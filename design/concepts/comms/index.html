@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Связь · концепты Искры</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .feat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 8px; }
+  .feat a { text-decoration: none; display: grid; gap: 10px; padding: 20px; align-content: start; }
+  .feat a:hover { box-shadow: var(--shadow-3); background: var(--color-bg-4); }
+  .feat .num-b { font-size: 13px; font-weight: 700; color: var(--color-text-3); }
+  .feat h3 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
+  .feat p { margin: 0; color: var(--color-text-2); font-size: 14px; line-height: 1.45; }
+  .feat .vv { display: grid; gap: 6px; margin-top: 4px; }
+  .feat .vv div { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; color: var(--color-text-2); line-height: 1.35; }
+  .feat .vv b { flex: none; width: 18px; color: var(--color-accent); }
+  .flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: stretch; margin: 10px 0 4px; }
+  .flow .card { padding: 14px; font-size: 13.5px; line-height: 1.4; color: var(--color-text-2); }
+  .flow .card b { display: block; color: var(--color-text); margin-bottom: 4px; font-size: 14px; }
+  @media (max-width: 900px) { .feat, .flow { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-variant="a" data-view="mock">
+<header class="doc-head">
+  <h1>Связь с учеником и родителем<small>Концепты 4–6 · Искра · ноябрь 2026</small></h1>
+  <span class="grow"></span>
+  <div class="seg" role="group" aria-label="Тема"><button data-doc="t:light"><i data-i="Sun" data-s="16"></i>Светлая</button><button data-doc="t:dark"><i data-i="Moon" data-s="16"></i>Тёмная</button></div>
+  <div class="seg" role="group" aria-label="Вид"><button data-doc="view:mock">Обзор</button><button data-doc="view:spec">Общее ядро данных</button></div>
+</header>
+
+<main class="doc">
+<section class="view view-mock">
+  <p class="lead">Три связанные функции, у каждой два варианта UX. В каждом макете: экран учителя на ПК и телефоне, что получает ученик или родитель (Telegram, пуш, страница по ссылке), светлая и тёмная тема. Переключатели вверху каждой страницы; «Обоснование и данные» — сравнение, рекомендация и черновик таблиц, cron и триггеров.</p>
+  <div class="feat">
+    <a class="card" href="reminders.html">
+      <span class="ico-tile" style="width:48px;height:48px;border-radius:16px"><i data-i="Bell" data-s="28"></i></span>
+      <span class="num-b">4 · Ученику</span><h3>Напоминания</h3>
+      <p>Урок через час, ДЗ завтра до 20:00, ДЗ просрочено, перенос или отмена. Telegram и пуш, тихие часы.</p>
+      <div class="vv"><div><b>A</b>Правила один раз; подключение кнопкой-ссылкой</div><div><b>B</b>Очередь «что уйдёт» в «Моём дне»; код и личные настройки ученика</div><div><i data-i="CheckCircle2" data-s="18"></i><b style="width:auto;color:var(--color-text)">Итог:</b> правила A + «что уйдёт» под занятием</div></div>
+    </a>
+    <a class="card" href="parent-report.html">
+      <span class="ico-tile green" style="width:48px;height:48px;border-radius:16px"><i data-i="ScrollText" data-s="28"></i></span>
+      <span class="num-b">5 · Родителю</span><h3>Недельный отчёт</h3>
+      <p>Посещаемость, ДЗ, баллы и две фразы от ИИ, которые учитель утверждает. Родителю не нужен аккаунт.</p>
+      <div class="vv"><div><b>A</b>Каждый отчёт по очереди; весь текст в Telegram</div><div><b>B</b>«Утвердить всё, кроме отмеченных»; постоянная ссылка с историей</div><div><i data-i="CheckCircle2" data-s="18"></i><b style="width:auto;color:var(--color-text)">Итог:</b> утверждение B, текст A, ссылка B</div></div>
+    </a>
+    <a class="card" href="payments.html">
+      <span class="ico-tile amber" style="width:48px;height:48px;border-radius:16px"><i data-i="Wallet" data-s="28"></i></span>
+      <span class="num-b">6 · Плательщику</span><h3>Оплаты</h3>
+      <p>Напоминание о долге по шаблону, счёт за месяц по проведённым урокам, сообщение при переносе или отмене.</p>
+      <div class="vv"><div><b>A</b>Автопилот по шаблонам; сообщение в шторке отмены</div><div><b>B</b>«Закрыть месяц» таблицей; долг в одно касание; тост после отмены</div><div><i data-i="CheckCircle2" data-s="18"></i><b style="width:auto;color:var(--color-text)">Итог:</b> месяц B, долг A, отмена обоими путями</div></div>
+    </a>
+  </div>
+
+  <a class="card" href="access.html" style="display:flex;align-items:center;gap:14px;padding:16px 20px;margin-top:16px;text-decoration:none">
+    <span class="ico-tile" style="width:48px;height:48px;border-radius:16px"><i data-i="ShieldCheck" data-s="28"></i></span>
+    <div class="txt" style="flex:1"><span class="title" style="font-size:17px">Доступ к автоматизациям</span><span class="sub">Админ выдаёт доступ учителю или всем; без доступа функции не видно; с доступом — тумблер и параметры в «Настройках». Админка → «Функции», настройки учителя на ПК и телефоне.</span></div>
+    <i data-i="ChevronRight" data-s="18" class="muted-ico"></i>
+  </a>
+
+  <div class="spec" style="max-width:none">
+    <h2>Итог, выбранный 7 ноября</h2>
+    <table class="cmp">
+      <tr><th>Функция</th><th>A</th><th>B</th><th>Итог (открывается первым на странице)</th></tr>
+      <tr><td>4 · Напоминания</td><td>Минимум внимания учителя; не видно, что ушло</td><td>Прозрачно, но больше шума и работы</td><td>Правила из A + строки «В 16:00 напомним 6» под занятием в «Моём дне» и на главной ПК, блок «Не дошло»; код — запасной путь</td></tr>
+      <tr><td>5 · Отчёт родителю</td><td>Полный контроль, ≈ 7 мин в неделю; отчёт целиком в Telegram</td><td>≈ 2–3 мин; нужен Telegram родителя не обязательно</td><td>Утверждение из B (первые 2 недели — все на проверку) + весь текст в Telegram из A + постоянная ссылка с историей из B</td></tr>
+      <tr><td>6 · Оплаты</td><td>Без неловкости; риск ошибки в журнале → в счёт</td><td>Учитель видит таблицу; долги вручную</td><td>«Закрыть месяц» из B, долг на автопилоте A только после счёта, отмена — шторкой A или тостом B</td></tr>
+    </table>
+
+    <h2>Как всё связано</h2>
+    <div class="flow">
+      <div class="card"><b>События</b>Расписание (<code>schedule_*</code>), ДЗ, посещаемость, <code>payments</code>, cron по времени</div>
+      <div class="card"><b>Планировщики</b>SQL-функции решают, что и кому; ставят в одну очередь с ключом от дублей</div>
+      <div class="card"><b>comms_outbox</b>Одна очередь: тихие часы, отзыв, статус доставки, повтор</div>
+      <div class="card"><b>comms-send</b>Edge-функция: Telegram Bot API (тот же бот, что <code>tg-webhook</code>), APNs / веб-пуш</div>
+      <div class="card"><b>Получатель</b><code>student_contacts</code>: ученик или родитель-плательщик; ссылки без аккаунта — по токену</div>
+    </div>
+    <p class="sub" style="margin-top:12px"><b>Всё настраивается:</b> на главной ПК три новых необязательных виджета из библиотеки — «Связь с учениками», «Отчёты родителям», «Оплаты: ждут вас»; на телефоне те же блоки включаются и переставляются в «Настроить „Мой день“».</p>
+    <p class="sub" style="margin-top:6px">Порядок сборки: 1) контакты + привязка Telegram + очередь + диспетчер; 2) напоминания (самое простое, проверяет канал); 3) перенос и отмена с условиями оплаты; 4) счёт за месяц; 5) отчёт родителю с ИИ.</p>
+  </div>
+</section>
+
+<section class="view view-spec spec">
+  <h2>Общее ядро для трёх функций</h2>
+  <p>Напоминания, отчёты и оплаты отправляют сообщения одним путём. Ни одна функция не пишет в Telegram напрямую: она ставит строку в <code>comms_outbox</code>, а отправляет единый диспетчер. Так тихие часы, дубли, отзыв по «Отменить» и журнал доставки делаются один раз.</p>
+
+<pre>-- Кому писать: ученик или родитель (у родителя нет аккаунта и роли)
+create table student_contacts (
+  id          uuid primary key default gen_random_uuid(),
+  student_id  uuid not null references students(id) on delete cascade,
+  role        text not null check (role in ('student','parent')),
+  name        text,
+  is_payer    boolean not null default false,
+  tg_chat_id  bigint,
+  tg_username text,
+  linked_at   timestamptz,
+  revoked_at  timestamptz,             -- /stop или «отвязать» у учителя
+  blocked_at  timestamptz              -- Telegram ответил 403: бот заблокирован
+);
+create unique index on student_contacts (student_id, tg_chat_id) where revoked_at is null;
+
+-- Одна очередь отправки
+create table comms_outbox (
+  id           uuid primary key default gen_random_uuid(),
+  teacher_id   uuid not null,
+  student_id   uuid not null,
+  contact_id   uuid references student_contacts(id),     -- null = пуш ученику
+  channel      text not null check (channel in ('telegram','push')),
+  kind         text not null,          -- lesson_soon | hw_due | hw_late | schedule_change |
+                                       -- parent_report | invoice | debt | payment_received
+  payload      jsonb not null,         -- текст, кнопки, ссылка
+  send_at      timestamptz not null,   -- уже сдвинуто тихими часами
+  dedupe_key   text not null,
+  status       text not null default 'queued'
+               check (status in ('queued','sending','sent','failed','cancelled','skipped')),
+  attempts     int not null default 0,
+  error        text,
+  sent_at      timestamptz,
+  tg_message_id bigint,
+  unique (dedupe_key, channel, contact_id)
+);
+create index comms_outbox_due on comms_outbox (send_at) where status = 'queued';
+
+alter table comms_outbox enable row level security;
+-- Учитель читает только свои строки; вставка — только SECURITY DEFINER функциями.</pre>
+
+  <h3>Диспетчер</h3>
+<pre>-- Раз в минуту: забрать до 200 строк, у которых пришло время, и отдать edge-функции
+select cron.schedule('comms-dispatch', '* * * * *', $$
+  select net.http_post(
+    url     := 'https://&lt;project&gt;.functions.supabase.co/comms-send',
+    headers := jsonb_build_object('Authorization', 'Bearer ' || (select secret from vault ...)),
+    body    := jsonb_build_object('batch', comms_claim_batch(200))   -- UPDATE … SET status='sending' … RETURNING
+  ) $$);</pre>
+  <ul>
+    <li><code>comms-send</code> отправляет через Bot API, пишет <code>sent</code>/<code>failed</code>. 403 от Telegram → <code>student_contacts.blocked_at</code> и событие учителю в <code>notifications</code>. 429 → вернуть в очередь с <code>send_at + retry_after</code>.</li>
+    <li>Кнопки сообщений — callback_data <code>c:&lt;outbox_id&gt;:&lt;действие&gt;</code>. Их обрабатывает <code>tg-webhook</code>: «Я оплатила», «Оплачу до…», «Через 2 часа».</li>
+    <li>Тихие часы — при постановке: <code>comms_quiet_shift(student_id, ts)</code> по <code>students.preferences.quiet</code> и часовому поясу.</li>
+    <li>Отзыв — <code>update comms_outbox set status='cancelled' where dedupe_key like … and status='queued'</code> из <code>schedule_undo</code>, при сдаче ДЗ, при оплате.</li>
+    <li>Расход ИИ — только в отчётах родителю, флаг <code>ai_parent_reports</code> в <code>app_flags</code>. Telegram и пуш бесплатны.</li>
+  </ul>
+
+  <h3>Что уже есть и переиспользуется</h3>
+  <table class="cmp">
+    <tr><th>Есть в проекте</th><th>Как используем</th></tr>
+    <tr><td><code>notifications</code> + триггеры (0005, 20261105120000)</td><td>Остаются колокольчиком в приложении. Новые сообщения ставятся в очередь рядом, не вместо.</td></tr>
+    <tr><td><code>_schedule_notify</code>, <code>schedule_move/_shift/_cancel/_undo</code> (0121)</td><td>Точка входа для «перенесён/отменён» (концепты 4 и 6) и отзыва по «Отменить»</td></tr>
+    <tr><td><code>tg-webhook</code>, <code>tg-reply</code>, <code>tg_threads</code></td><td>Тот же бот. В webhook — ветки <code>/start &lt;токен&gt;</code>, 4-значного кода, <code>/stop</code> и callback-кнопок</td></tr>
+    <tr><td><code>payments</code>, <code>on_payment_received</code>, <code>sync_prepaid_lesson_balance</code>, <code>notify_on_payment_due</code></td><td>Закрытие счёта, остановка напоминаний о долге, «осталось N уроков»</td></tr>
+    <tr><td>Посещаемость: <code>student_schedule_attendance</code>, <code>on_lesson_attended</code></td><td>Строки счёта и цифры недельного отчёта</td></tr>
+    <tr><td>pg_cron + pg_net (<code>iskra-homework-ai</code>, <code>notifications-cleanup-daily</code>)</td><td>Тот же способ звать edge-функции по расписанию</td></tr>
+    <tr><td>Пуши</td><td><b>Нет совсем.</b> Нужны <code>@capacitor/push-notifications</code>, APNs-ключ, таблица <code>push_tokens</code>; веб-пуш — только PWA на iOS 16.4+</td></tr>
+  </table>
+
+  <div class="note amber"><b>Безопасность ссылок без аккаунта.</b> Токен 24 байта, в базе только sha256. Страницы <code>/r/…</code> и <code>/i/…</code> отдаёт edge-функция с service role, без анонимных политик на таблицах (не повторять <code>USING (true)</code>). <code>noindex</code>, без фамилии и других учеников, отзыв в карточке ученика, срок жизни у недельной ссылки.</div>
+</section>
+</main>
+<script src="icons.js"></script>
+<script src="kit.js"></script>
+</body>
+</html>

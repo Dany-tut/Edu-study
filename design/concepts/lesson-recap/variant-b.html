@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Вариант B · Итоги урока</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .wave { height: 54px; border-radius: 14px; background: var(--color-bg-3); position: relative; overflow: hidden; display: flex; align-items: center; gap: 2px; padding: 0 10px; flex: none; }
+  .wave i { flex: 1; border-radius: 2px; background: var(--color-text-4); min-width: 2px; }
+  .wave .q { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, transparent 0 5px, rgba(var(--accent-rgb, 126,110,230), .12) 5px 7px); }
+  .wave .mark { position: absolute; top: 4px; bottom: 4px; width: 3px; border-radius: 2px; background: var(--color-control-accent); }
+  .wave .read { position: absolute; inset: 0 auto 0 0; background: var(--color-accent-soft); mix-blend-mode: multiply; }
+  html[data-theme="dark"] .wave .read { mix-blend-mode: screen; }
+  .tr { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 8px 10px; border-radius: 12px; font-size: 14px; color: var(--color-text-2); transition: background .2s; }
+  .tr time { font-size: 12px; font-weight: 650; color: var(--color-text-3); font-variant-numeric: tabular-nums; padding-top: 2px; }
+  .tr .who { font-weight: 650; font-size: 12.5px; }
+  .tr .who.t { color: var(--color-purple-text); }
+  .tr .who.s { color: var(--color-teal-pill-text); }
+  .tr.hl { background: var(--color-accent-soft); color: var(--color-text); }
+  .tr.hl time { color: var(--color-purple-text); }
+  .tr.dim { opacity: .55; }
+  .rtabs { display: flex; gap: 4px; }
+  .rtabs button { display: inline-flex; gap: 6px; align-items: center; height: 32px; padding: 0 11px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; color: var(--color-text-3); background: var(--color-bg-3); white-space: nowrap; flex: none; }
+  .rtabs button.on { background: var(--color-accent-soft); color: var(--color-purple-text); }
+  .rtabs button .ic { width: 16px; height: 16px; }
+  .rtabs button em { font-style: normal; font-size: 11px; opacity: .8; }
+  .src { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--color-bg-3); font-size: 13px; color: var(--color-text-2); }
+  .src .ic { width: 16px; height: 16px; margin-top: 1px; }
+  .picked { box-shadow: inset 0 0 0 1.5px var(--color-accent); border-radius: 14px; padding-left: 10px !important; padding-right: 10px !important; background: var(--color-bg-2); }
+  .toast { position: absolute; z-index: 25; border-radius: 22px; padding: 14px 16px; display: grid; gap: 8px; }
+  .toast .r { display: flex; gap: 10px; align-items: center; font-size: 13.5px; }
+  .toast .r .grow { flex: 1; color: var(--color-text-2); }
+  .toast .r a { font-size: 12.5px; font-weight: 650; color: var(--color-purple-text); text-decoration: none; }
+  .new-flag { box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+  .sw { width: 46px; height: 28px; border-radius: 14px; background: var(--color-control-accent); position: relative; flex: none; cursor: pointer; transition: background .15s; }
+  .sw::after { content: ''; position: absolute; top: 3px; left: 21px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .15s; }
+  .sw.off { background: var(--color-bg-5); }
+  .sw.off::after { left: 3px; }
+  .set-row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-top: 1px solid var(--color-border-soft); }
+  .set-row:first-child { border-top: 0; }
+  .set-nav b { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; font-weight: 600; font-size: 13.5px; color: var(--color-text-2); }
+  .set-nav b.on { background: var(--color-bg-2); box-shadow: var(--shadow-1); color: var(--color-text); }
+</style>
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+</head>
+<body>
+<script>
+const { I, tc, cb, ed, ko, D, KINDS, B, secHead, studentDesk, studentPhone, rail, lessonList, dock, progRows } = R;
+
+/* Расшифровка урока: фрагменты, на которые ссылаются черновики */
+const LINES = [
+  ['04:12', 't', 'Часы мы называем родными числами — 한 시, 두 시, 세 시. А минуты — китайскими.'],
+  ['05:20', 's', 'Тогда в час — 일 시?'],
+  ['05:24', 't', 'Нет, для часов — 한 시. Китайские числа оставим минутам.'],
+  ['07:30', 't', 'Минуты: 일 분, 이 분… 십 분, 삼십 분. Это китайско-корейские.'],
+  ['09:55', 's', 'Значит, час десять — 한 시 십 분?'],
+  ['11:40', 't', 'Да. И заметь: перед 시 하나 превращается в 한, 둘 — в 두, 셋 — в 세, 넷 — в 네.'],
+  ['12:48', 's', 'А почему 네 시, а не 넷 시? Мы же учили 넷.'],
+  ['12:55', 't', 'Перед счётным словом 넷 сокращается. Так же, как 한 개, 두 개.'],
+  ['18:05', 't', 'Половина — 반. 세 시 반 — это три тридцать.'],
+  ['18:40', 's', 'А можно сказать 세 시 삼십 분?'],
+  ['18:44', 't', 'Можно, оба варианта верны.'],
+  ['23:30', 't', 'Спросить время: 지금 몇 시예요?'],
+  ['31:45', 's', '일 시… ой, 한 시 반이에요.'],
+  ['36:10', 's', '지금 몇 시예요? — 네 시 십 분이에요.'],
+  ['40:55', 't', 'Ещё 오전 и 오후 — до и после полудня, подробно в следующий раз.'],
+];
+const trLines = (hl = [], dimOthers) => LINES.map(([t, w, x]) => `<div class="tr ${hl.includes(t) ? 'hl' : dimOthers && hl.length ? '' : ''}" data-t="${t}"><time>${t}</time><div><div class="who ${w}">${w === 't' ? 'Учитель' : D.student}</div>${x}</div></div>`).join('');
+const wave = (mark, read) => { let bars = ''; for (let i = 0; i < 90; i++) { const h = 18 + Math.abs(Math.sin(i * 1.7) * 22 + Math.cos(i * .53) * 10); bars += `<i style="height:${h}px"></i>`; } return `<div class="wave">${read != null ? `<span class="read" style="width:${read}%"></span>` : ''}<span class="q" style="left:31%;width:4%"></span><span class="q" style="left:62%;width:6%"></span>${bars}${mark != null ? `<span class="mark" style="left:${mark}%"></span>` : ''}</div>`; };
+
+const TABS = [['summary', 'Конспект'], ['questions', 'Вопросы'], ['cards', 'Карточки'], ['hw', 'ДЗ'], ['note', 'Заметка']];
+const rtabs = (on) => `<div class="rtabs hscroll">${TABS.map(([id, n]) => { const k = KINDS.find(x => x.id === id); return `<button class="${id === on ? 'on' : ''}" data-tab="${id}">${I(k.icon)}${n}<em>${id === 'summary' ? D.summary.length : id === 'questions' ? D.questions.length : id === 'cards' ? D.cards.length : id === 'hw' ? D.hw.tasks.length : D.note.length}</em></button>`; }).join('')}</div>`;
+
+let TAB = 'questions';
+const panelBody = (tab) => {
+  if (tab === 'questions') return D.questions.map((x, i) => `<div class="item ${i === 0 ? 'picked' : ''}" data-src="${x.t}">${cb()}<div class="body">${ed(x.q, 'div', 'q')}${ed(x.a, 'div', 'a')}<div class="meta"><span class="pill gray">${x.kind}</span>${tc(x.t)}</div></div></div>`).join('');
+  if (tab === 'note') return B.note();
+  return B[tab]();
+};
+const srcFor = { questions: ['12:48', '12:55'], summary: ['04:12', '05:24'], cards: ['18:05'], hw: ['11:40', '18:05'], note: ['05:20', '31:45'] };
+
+/* Окно монтажа (ПК) */
+const montage = (mode) => {
+  const right = mode === 'idle' ? '' : `<div class="panel" style="width:430px;flex:none;display:flex;flex-direction:column;min-height:0;padding:16px 16px 12px;gap:12px">
+      <div class="sec-h" style="margin:0"><span class="sec-ic">${I('Sparkles')}</span><div><h3>Итоги урока</h3><div class="muted small">${mode === 'wait' ? 'Читаем расшифровку · около 40 секунд' : 'Черновик · ученик не видит'}</div></div><span class="sp"></span>${mode === 'ready' ? `<button class="btn ghost sm">${I('RefreshCw')}</button>` : ''}</div>
+      ${mode === 'wait' ? `${progRows('b')}<div class="muted small">Можно продолжать монтаж — итоги соберутся по сохранённой расшифровке.</div>` : `${rtabs(TAB)}
+        <div class="src" id="src">${I('Quote')}<span>Нажмите на пункт — слева подсветится место в расшифровке, откуда он взят.</span></div>
+        <div class="scroll" id="rbody" style="flex:1;min-height:0">${panelBody(TAB)}</div>
+        <div style="display:flex;gap:8px;align-items:center;padding-top:4px"><span class="muted small" style="flex:1">Правка — прямо по тексту</span><button class="btn primary" data-go="6">${I('Check')}Применить к уроку</button></div>`}
+    </div>`;
+  return `<div class="desk-body" style="flex-direction:column;padding:14px 18px 16px;gap:12px">
+    <div class="ws-head"><span class="btn ghost sm" style="width:36px;padding:0">${I('X')}</span><div><div class="crumb">Монтаж записи · ${D.course}</div><h2 style="font-size:19px">${D.lesson}</h2></div><span class="sp"></span>
+      <span class="pill gray">${I('Clock')}${D.duration} · паузы вырезаны: 6:20</span>
+      <button class="btn ${mode === 'idle' ? 'soft pulse' : 'soft'}" data-go="4">${I('Sparkles')}Итоги урока</button>
+      <button class="btn primary">Сохранить монтаж</button></div>
+    ${wave(mode === 'ready' ? 30.3 : null, mode === 'wait' ? 46 : null)}
+    <div style="flex:1;min-height:0;display:flex;gap:14px">
+      <div class="panel" style="flex:1;min-width:0;display:flex;flex-direction:column;padding:12px 8px 8px 12px;min-height:0">
+        <div style="display:flex;gap:8px;align-items:center;padding:0 4px 8px"><b style="font-size:15px">Расшифровка</b><span class="pill purple">Учитель</span><span class="pill" style="background:var(--color-teal-pill-bg);color:var(--color-teal-pill-text)">${D.student}</span><span class="sp" style="flex:1"></span><span class="muted small">${I('Search', 'sm')}</span></div>
+        <div class="scroll" id="trs" style="flex:1;min-height:0">${trLines(mode === 'ready' ? srcFor[TAB] : [])}</div>
+      </div>${right}
+    </div></div>`;
+};
+
+/* После «Применить»: урок с разложенными черновиками + сводка */
+const appliedDesk = () => `<div class="desk-body">${rail()}${lessonList()}<div class="workspace">
+  <div class="crumb">Конструктор · ${D.course}</div>
+  <div class="ws-head"><h2>${D.lesson}</h2><span class="sp"></span><button class="btn ghost sm">${I('Eye')}Как видит ученик</button><button class="btn primary sm">${I('Send')}Опубликовать урок</button></div>
+  <div class="tabs"><span class="on">Урок <span class="badge">+2 блока</span></span><span>Запись</span><span>Домашки <span class="badge">+1 черновик</span></span></div>
+  <div class="scroll" style="flex:1;display:grid;gap:12px;align-content:start">
+    <div class="panel new-flag" style="padding:18px 20px"><div class="sec-h"><span class="sec-ic">${I('FileText')}</span><div><h3>Итоги занятия</h3><div class="muted small">Новый блок из записи · таймкоды ведут в видео</div></div><span class="sp"></span><span class="pill purple">${I('Sparkles')}из записи</span></div>${B.summary()}</div>
+    <div class="panel" style="padding:18px 20px"><div class="sec-h"><span class="sec-ic">${I('BookOpen')}</span><div><h3>Материал урока</h3><div class="muted small">Было до записи</div></div></div><div class="skel" style="height:12px;width:70%;margin:6px 0"></div><div class="skel" style="height:12px;width:55%"></div></div>
+  </div>
+</div>
+<div class="toast glass" style="right:22px;bottom:22px;width:400px">
+  <div class="r"><span class="sec-ic">${I('CheckCircle2')}</span><b style="flex:1">Итоги разложены по уроку</b>${I('X', 'sm')}</div>
+  ${[['FileText', 'Конспект → «Итоги занятия»'], ['ListChecks', '7 вопросов → «Проверь себя»'], ['GalleryVerticalEnd', '8 карточек → набор урока'], ['NotebookPen', 'ДЗ → черновик во «Домашках»'], ['Lock', 'Заметка → карточка Маши, только вам']].map(([i, t]) => `<div class="r">${I(i, 'sm')}<span class="grow">${t}</span><a href="#">Отменить</a></div>`).join('')}
+  <div class="muted small">Ученик увидит всё после «Опубликовать урок».</div>
+  <button class="btn soft sm" data-go="7">${I('Eye')}Как видит ученик</button>
+</div></div>`;
+
+/* Телефон: монтаж — расшифровка на весь экран, итоги — нижним листом */
+const phoneMontage = (mode) => `<div style="padding:0 16px 8px;display:grid;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px"><span class="btn ghost sm" style="width:36px;padding:0">${I('X')}</span><div style="flex:1"><div class="crumb">Монтаж записи</div><div style="font-weight:700;font-size:17px">${D.lesson}</div></div>
+    <button class="btn soft sm ${mode === 'idle' ? 'pulse' : ''}" data-go="4">${I('Sparkles')}Итоги</button></div>
+    ${wave(mode === 'ready' ? 30.3 : null, mode === 'wait' ? 46 : null).replace('height: 54px', '')}
+  </div>
+  <div class="scroll" id="trs" style="flex:1;padding:0 8px ${mode === 'idle' ? 40 : 420}px">${trLines(mode === 'ready' ? srcFor[TAB] : [])}</div>
+  ${mode === 'idle' ? '' : `<div class="sheet" style="height:${mode === 'wait' ? 380 : 470}px"><div class="grab"></div>
+    <div style="padding:2px 16px 10px;display:grid;gap:10px">
+      <div class="sec-h" style="margin:0"><span class="sec-ic">${I('Sparkles')}</span><div><h3>Итоги урока</h3><div class="muted small">${mode === 'wait' ? 'Около 40 секунд' : 'Черновик · ученик не видит'}</div></div></div>
+      ${mode === 'wait' ? progRows('bp') : rtabs(TAB)}
+    </div>
+    ${mode === 'ready' ? `<div class="scroll" id="rbody" style="flex:1;min-height:0;padding:0 16px">${panelBody(TAB)}</div>
+    <div style="padding:10px 16px 30px"><button class="btn primary lg block" data-go="6">${I('Check')}Применить к уроку</button></div>` : ''}
+  </div>`}`;
+
+const phoneApplied = () => `<div style="padding:0 16px 8px;display:grid;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px"><span class="btn ghost sm" style="width:36px;padding:0">${I('ChevronLeft')}</span><div style="flex:1"><div class="crumb">${D.course}</div><div style="font-weight:700;font-size:17px">${D.lesson}</div></div></div>
+    <div class="hscroll" style="margin:0 -16px;padding:0 16px"><div class="tabs"><span class="on">Урок <span class="badge">+2</span></span><span>Запись</span><span>Домашки <span class="badge">+1</span></span></div></div></div>
+  <div class="scroll" style="flex:1;padding:4px 16px 120px;display:grid;gap:12px;align-content:start">
+    <div class="panel new-flag" style="padding:16px">${secHead(KINDS[0], `<span class="pill purple">${I('Sparkles')}новое</span>`)}${B.summary()}</div></div>
+  <div class="toast glass" style="left:12px;right:12px;bottom:100px">
+    <div class="r"><span class="sec-ic">${I('CheckCircle2')}</span><b style="flex:1">Разложено по уроку · 5 мест</b><a href="#" data-go="7">Как видит ученик</a></div>
+    <div class="muted small">Конспект и вопросы — во вкладке «Урок», карточки — в тренажёре, ДЗ — черновиком, заметка — только вам. Каждое можно отменить.</div></div>
+  ${dock('teacher')}`;
+
+
+/* Вход из урока: вкладка «Запись» — та же кнопка, что в монтаже */
+const recapEntry = (phone) => `<div class="panel" style="padding:18px;display:grid;gap:12px;align-content:start">
+  <div class="sec-h" style="margin:0"><span class="sec-ic">${I('Sparkles')}</span><div><h3>Итоги урока из записи</h3><div class="muted small">Проверять будете рядом с расшифровкой</div></div></div>
+  <p style="margin:0;color:var(--color-text-2);font-size:14px">Конспект, вопросы на проверку, карточки, черновик ДЗ и заметка для вас. Ученик ничего не увидит, пока вы не примените и не опубликуете урок.</p>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">${KINDS.map(k => `<span class="pill gray">${I(k.icon)}${k.name}</span>`).join('')}</div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="muted small" style="flex:1;min-width:140px">≈ 10 ₽ · около 40 секунд</span>
+    ${phone ? '' : `<button class="btn ghost sm" data-go="3">${I('Clapperboard')}Открыть монтаж</button>`}
+    <button class="btn primary ${phone ? 'lg block' : ''} pulse" data-go="4">${I('Sparkles')}Собрать итоги</button></div>
+</div>`;
+const recCard = () => `<div class="panel" style="padding:18px;display:grid;gap:12px;align-content:start">
+  <div style="display:flex;gap:12px;align-items:center"><span class="sec-ic" style="background:var(--track-recording-bg)">${I('AudioLines')}</span>
+    <div style="flex:1"><div style="font-weight:650">Запись урока</div><div class="muted small">${D.duration} · 2 голоса · монтаж применён</div></div><span class="pill green">${I('Check')}Расшифрована</span></div>
+  ${LINES.slice(0, 3).map(([t, w, x]) => `<div style="font-size:13.5px;color:var(--color-text-2)">${tc(t)} <b style="color:var(--color-text)">${w === 't' ? 'Учитель' : D.student}:</b> ${x}</div>`).join('')}
+</div>`;
+const lessonEntryDesk = () => `<div class="desk-body">${rail()}${lessonList()}<div class="workspace">
+  <div class="crumb">Конструктор · ${D.course}</div>
+  <div class="ws-head"><h2>${D.lesson}</h2><span class="sp"></span><button class="btn ghost sm">${I('Eye')}Как видит ученик</button></div>
+  <div class="tabs"><span>Урок</span><span class="on">Запись</span><span>Домашки</span></div>
+  <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:14px;align-content:start">${recCard()}${recapEntry()}</div>
+</div></div>`;
+const lessonEntryPhone = () => `<div style="padding:0 16px 8px;display:grid;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px"><span class="btn ghost sm" style="width:36px;padding:0">${I('ChevronLeft')}</span><div style="flex:1"><div class="crumb">${D.course}</div><div style="font-weight:700;font-size:17px">${D.lesson}</div></div><span class="btn ghost sm" style="width:36px;padding:0">${I('MoreHorizontal')}</span></div>
+    <div class="hscroll" style="margin:0 -16px;padding:0 16px"><div class="tabs"><span>Урок</span><span class="on">Запись</span><span>Домашки</span></div></div></div>
+  <div class="scroll" style="flex:1;padding:4px 16px 110px;display:grid;gap:12px;align-content:start">${recapEntry(true)}${recCard()}</div>${dock('teacher')}`;
+
+/* Доступ: админ выдаёт фичу lesson_recap учителю или всем; учитель включает её в «Настройках» */
+const settingRow = (phone) => `<div class="set-row" data-host>
+    <span class="sec-ic">${I('Sparkles')}</span>
+    <div style="flex:1;min-width:0;display:grid;gap:4px"><b style="font-size:15px">Итоги урока из записи</b>
+      <span style="font-size:13.5px;color:var(--color-text-2)">Кнопка «Собрать итоги» во вкладке «Запись» и в окне монтажа: конспект, вопросы, карточки, черновик ДЗ и заметка для вас. Ученик ничего не видит, пока вы не опубликуете.</span>
+      <span class="privacy">${I('ShieldCheck')}Доступ выдал администратор · расход ИИ — за счёт школы</span></div>
+    <span class="sw" role="switch" aria-checked="true" data-sw></span></div>`;
+const settingsDesk = () => `<div class="desk-body">${rail(-1)}<div class="workspace" style="padding-left:6px">
+  <div class="ws-head"><h2>Настройки</h2></div>
+  <div style="display:flex;gap:14px;flex:1;min-height:0">
+    <div class="set-nav" style="width:220px;flex:none;display:grid;gap:4px;align-content:start">${[['UserCircle', 'Профиль'], ['Bell', 'Уведомления'], ['Sparkles', 'Автоматизации', 1], ['Shield', 'Безопасность']].map(([i, t, on]) => `<b class="${on ? 'on' : ''}">${I(i)}${t}</b>`).join('')}</div>
+    <div class="panel" style="flex:1;padding:18px 22px;align-self:start">
+      <div class="sec-h"><div><h3 style="font-size:18px">Автоматизации</h3><div class="muted small">Здесь только функции, к которым вам открыт доступ</div></div></div>
+      ${settingRow()}
+    </div>
+  </div>
+  <div class="muted small" style="display:flex;gap:8px;align-items:center">${I('Info', 'sm')}Выключите — кнопки в уроке и монтаже исчезнут, черновики сохранятся. <a href="#" data-go="2" style="color:var(--color-purple-text);font-weight:650">Дальше: урок с включённой функцией →</a></div>
+</div></div>`;
+const settingsPhone = () => `<div style="padding:0 16px 8px;display:flex;align-items:center;gap:10px"><span class="btn ghost sm" style="width:36px;padding:0">${I('ChevronLeft')}</span><div style="font-weight:700;font-size:17px">Автоматизации</div></div>
+  <div class="scroll" style="flex:1;padding:4px 16px 110px;display:grid;gap:12px;align-content:start">
+    <div class="panel" style="padding:4px 16px">${settingRow(true)}</div>
+    <div class="muted small" style="padding:0 4px">Здесь только функции, к которым вам открыт доступ. Выключите — кнопки исчезнут, черновики сохранятся.</div>
+    <button class="btn soft block" data-go="2">Дальше: урок с включённой функцией</button>
+  </div>${dock('teacher').replace('<b class="">' + I('UserCircle'), '<b class="on">' + I('UserCircle')).replace('<b class="on">' + I('BookOpen'), '<b class="">' + I('BookOpen'))}`;
+const noAccessDesk = () => lessonEntryDesk().replace(recapEntry(), `<div class="panel" style="padding:18px;display:grid;gap:8px;align-content:start;background:transparent;box-shadow:inset 0 0 0 1.5px var(--color-border-strong)">
+    <div class="muted small" style="display:flex;gap:8px;align-items:center">${I('EyeOff', 'sm')}Пример: доступа нет или функция выключена</div>
+    <p style="margin:0;color:var(--color-text-2);font-size:14px">Вкладка «Запись» — как сегодня: только запись и расшифровка. Ни карточки «Итоги урока», ни упоминания функции. В окне монтажа нет кнопки «Итоги урока», в «Настройках» — пункта «Автоматизации».</p></div>`);
+const noAccessPhone = () => lessonEntryPhone().replace(recapEntry(true), '');
+
+window.VARIANT = {
+  title: 'B · Панель в монтаже — выбран',
+  tagline: 'Итоги собираются там же, где учитель только что проверял расшифровку, — в окне монтажа. Каждый пункт черновика показывает, из какого места записи он взят.',
+  why: [
+    'Главный риск сгенерированного контента — уверенная ошибка. Здесь проверка идёт по источнику: нажал на вопрос — слева подсветилась реплика, из которой он сделан, и точка на волне.',
+    'Учитель уже сидит в монтаже после расшифровки, контекст урока свежий. Кнопка «Итоги урока» — следующий естественный шаг, а не отдельный поход в редактор.',
+  ],
+  pros: [
+    'Лучшая проверка фактов: любой пункт сверяется с репликой за один клик, без перехода в плеер.',
+    'Заметка учителю сразу подкреплена цитатами Маши — видно, где именно она путалась.',
+    'Ученик получает конспект с таймкодами — нажал время и посмотрел этот кусок урока.',
+  ],
+  cons: [
+    'Окно монтажа и так плотное; на телефоне лист итогов закрывает больше половины расшифровки.',
+    'Два входа (урок и монтаж) — оба должны вести в одно и то же состояние черновика, иначе учитель запутается.',
+    'Дороже в разработке: привязка каждого пункта к сегментам расшифровки и обратная подсветка.',
+  ],
+  steps: [
+    { label: 'Доступ и настройка', caption: 'Функцию открывает администратор — конкретному учителю или всем (общий механизм доступа, ключ <code>lesson_recap</code>). У учителя с доступом в «Настройках» появляется раздел «Автоматизации» с переключателем. Выключил — кнопки пропадают, черновики остаются.', url: 'iskra.app/#/teacher/settings/automations',
+      desk: settingsDesk, phone: settingsPhone },
+    { label: 'Без доступа', caption: 'Учитель без доступа (или с выключенным переключателем) не видит функцию нигде: во вкладке «Запись» только расшифровка, в монтаже нет кнопки, в «Настройках» нет пункта. Серая рамка на ПК — пояснение для макета, в продукте её нет.',
+      desk: noAccessDesk, phone: noAccessPhone },
+    { label: 'Вход из урока', caption: 'Доступ есть и функция включена. Основной вход: вкладка «Запись» в уроке. Под расшифровкой — карточка «Итоги урока из записи» с ценой. «Собрать итоги» открывает окно монтажа сразу с панелью итогов: проверка всё равно идёт рядом с расшифровкой.',
+      desk: lessonEntryDesk, phone: lessonEntryPhone },
+    { label: 'Кнопка в монтаже', caption: 'Второй вход — для тех, кто только что правил монтаж: в шапке окна рядом с «Сохранить монтаж» кнопка «Итоги урока». Ведёт в ту же панель.', url: 'iskra.app/#/teacher/constructor/montage',
+      desk: () => montage('idle'), phone: () => phoneMontage('idle') },
+    { label: 'Ожидание', caption: 'Справа выезжает панель с прогрессом по пяти видам, по волне идёт полоса «прочитано». Монтаж можно продолжать — итоги собираются по уже сохранённой расшифровке.', url: 'iskra.app/#/teacher/constructor/montage',
+      desk: () => montage('wait'), phone: () => phoneMontage('wait') },
+    { label: 'Превью и правка', caption: 'Пять вкладок черновика. Нажмите на любой вопрос — в расшифровке подсветятся реплики-источники, на волне встанет отметка. Текст правится на месте, галочка исключает пункт.', url: 'iskra.app/#/teacher/constructor/montage',
+      desk: () => montage('ready'), phone: () => phoneMontage('ready') },
+    { label: 'Раскладка по уроку', caption: '«Применить к уроку» закрывает монтаж: черновики встают в свои места, новые блоки отмечены рамкой, у вкладок — счётчики. Сводка позволяет отменить любой кусок. Ученик увидит всё после «Опубликовать урок».',
+      desk: appliedDesk, phone: phoneApplied },
+    { label: 'Что видит ученик', caption: 'Конспект «Итоги занятия» с таймкодами: нажал время — видео справа перемоталось на этот момент. «Проверь себя», карточки и домашка — как в варианте A.', url: 'iskra.app/#/course/kor-0/5',
+      desk: () => studentDesk('b'), phone: () => studentPhone('b') },
+  ],
+  bind(f) {
+    f.querySelectorAll('[data-sw]').forEach(sw => sw.addEventListener('click', () => { const off = sw.classList.toggle('off'); sw.setAttribute('aria-checked', String(!off)); }));
+    // Вкладки панели
+    f.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { TAB = b.dataset.tab; R.render(); }));
+    // Пункт → подсветка источника в расшифровке
+    const pick = (el) => {
+      f.querySelectorAll('.picked').forEach(x => x.classList.remove('picked')); el.classList.add('picked');
+      const ts = [...el.querySelectorAll('.tc')].map(x => x.textContent.trim());
+      const extra = { '12:48': ['12:55'], '05:20': ['05:24'], '18:05': [], '23:30': [] };
+      const sec = t => { const [m, x] = t.split(':').map(Number); return m * 60 + x; };
+      const near = t => (LINES.filter(l => sec(l[0]) <= sec(t)).pop() || LINES[0])[0];
+      const all = ts.map(near).flatMap(t => [t, ...(extra[t] || [])]);
+      f.querySelectorAll('.tr').forEach(r => r.classList.toggle('hl', all.includes(r.dataset.t)));
+      const first = f.querySelector('.tr.hl'); const box = f.querySelector('#trs');
+      if (first && box) { box.scrollTop = first.offsetTop - 20; box.dispatchEvent(new Event('scroll')); }
+      const src = f.querySelector('#src'); const line = LINES.find(l => l[0] === all[0]);
+      if (src && line) src.innerHTML = `${I('Quote')}<span><b>${line[0]} · ${line[1] === 't' ? 'Учитель' : D.student}:</b> ${line[2]}</span>`;
+      const m = f.querySelector('.wave .mark'); if (m && all[0]) { const [mm, ss] = all[0].split(':').map(Number); m.style.left = ((mm * 60 + ss) / 2530 * 100) + '%'; }
+    };
+    f.querySelectorAll('#rbody .item, #rbody .para, #rbody .note-line, #rbody .vcard, #rbody .hw-task').forEach(el => el.addEventListener('click', e => { if (!e.target.closest('[data-cb]')) pick(el); }));
+    const first = f.querySelector('#rbody .picked'); if (first) pick(first);
+  },
+};
+</script>
+</body>
+</html>

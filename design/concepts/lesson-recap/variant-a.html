@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Вариант A · Итоги урока</title>
+<link rel="stylesheet" href="shared.css">
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+</head>
+<body>
+<script>
+const { I, tc, cb, D, KINDS, B, secHead, studentDesk, studentPhone, rail, lessonList, dock, progRows } = R;
+
+/* Общие куски варианта A */
+const recordingCard = (compact) => `<div class="panel" style="padding:${compact ? 16 : 18}px;display:grid;gap:12px;align-content:start">
+  <div style="display:flex;gap:12px;align-items:center">
+    <span class="sec-ic" style="background:var(--track-recording-bg)">${I('AudioLines')}</span>
+    <div style="flex:1"><div style="font-weight:650">Запись урока</div><div class="muted small">${D.duration} · 2 голоса · монтаж применён</div></div>
+    <span class="pill green">${I('Check')}Расшифрована</span>
+  </div>
+  ${compact ? '' : `<div style="display:grid;gap:6px;font-size:13.5px;color:var(--color-text-2)">
+    <div>${tc('04:12')} <b style="color:var(--color-text)">Учитель:</b> Часы мы называем родными числами — 한 시, 두 시…</div>
+    <div>${tc('05:20')} <b style="color:var(--color-text)">Маша:</b> 일 시?</div>
+    <div>${tc('05:24')} <b style="color:var(--color-text)">Учитель:</b> Нет, для часов — 한 시. Китайские оставим минутам.</div>
+  </div>`}
+</div>`;
+
+const recapCard = (state, phone) => {
+  const head = `<div class="sec-h" style="margin:0"><span class="sec-ic">${I('Sparkles')}</span><div><h3>Итоги урока из записи</h3><div class="muted small">${state === 'wait' ? 'Собираем черновики · около 40 секунд' : 'Черновики — ученик ничего не увидит, пока вы не опубликуете'}</div></div></div>`;
+  if (state === 'wait') return `<div class="panel" style="padding:18px;display:grid;gap:14px">${head}${progRows('a')}
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="muted small" style="flex:1;min-width:160px">Можно закрыть урок — черновик сохранится, придёт уведомление.</span><button class="btn ghost sm">Отменить</button><button class="btn soft sm" data-go="2">Открыть готовое</button></div></div>`;
+  return `<div class="panel" style="padding:18px;display:grid;gap:12px">${head}
+    <div style="display:grid;gap:2px">${KINDS.map(k => `<div class="item" data-host style="padding:8px 0;align-items:center">${cb()}<div class="body" style="grid-auto-flow:column;justify-content:start;align-items:center;gap:10px">${I(k.icon)}<span style="font-weight:600">${k.name}</span><span class="muted small">${k.who}</span></div></div>`).join('')}</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="muted small" style="flex:1;min-width:150px">Около 10 ₽ · считаем только по тексту расшифровки, видео не отправляется</span><button class="btn primary ${phone ? 'block lg' : ''} pulse" data-go="1">${I('Sparkles')}Собрать итоги</button></div>
+  </div>`;
+};
+
+const editorDesk = (tab, right) => `<div class="desk-body">${rail()}${lessonList()}<div class="workspace">
+  <div class="crumb">Конструктор · ${D.course}</div>
+  <div class="ws-head"><h2>${D.lesson}</h2><span class="sp"></span><button class="btn ghost sm">${I('Eye')}Как видит ученик</button></div>
+  <div class="tabs">${['Урок', 'Запись', 'Итоги', 'Домашки'].map(t => `<span class="${t === tab ? 'on' : ''}">${t === 'Итоги' ? I('Sparkles', 'sm') : ''}${t}${t === 'Итоги' && right === 'wait' ? ' <span class="badge">…</span>' : t === 'Итоги' && right === 'ready' ? ' <span class="badge">черновик</span>' : ''}</span>`).join('')}</div>
+  ${right}
+</div></div>`;
+
+/* Превью итогов (ПК) */
+const previewDesk = () => editorDesk('Итоги', `
+  <div style="flex:1;min-height:0;display:flex;gap:14px">
+    <div style="width:220px;flex:none;display:grid;gap:4px;align-content:start">
+      ${KINDS.map((k, i) => `<a href="#sec-${k.id}" data-jump="${k.id}" style="text-decoration:none;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;${i === 0 ? 'background:var(--color-bg-2);box-shadow:var(--shadow-1)' : ''}">${I(k.icon)}<span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:13.5px">${k.name}</span><span class="muted small">${k.count()}</span></span></a>`).join('')}
+      <div class="privacy" style="padding:12px 12px 0">${I('EyeOff')}Ученик пока ничего не видит</div>
+    </div>
+    <div class="scroll" data-fade id="recap-scroll" style="flex:1;min-width:0;display:grid;gap:12px;align-content:start;padding:2px 2px 12px">
+      ${KINDS.map(k => `<div class="panel" id="sec-${k.id}" style="padding:18px 20px">${secHead(k, k.id === 'note' ? '<span class="pill gray">' + I('Lock') + 'только вам</span>' : '<button class="btn ghost sm">' + I('RefreshCw') + 'Пересобрать</button>')}${B[k.id]()}</div>`).join('')}
+    </div>
+  </div>
+  <div class="glass" style="border-radius:20px;padding:10px 12px 10px 18px;display:flex;align-items:center;gap:12px">
+    <span class="pill amber">${I('Pencil')}Черновик</span><span class="muted small" style="flex:1">Нажмите на любой текст, чтобы поправить. Снимите галочку — пункт не попадёт к ученику.</span>
+    <button class="btn ghost sm">Сохранить черновик</button><button class="btn primary" data-go="3">${I('Send')}Опубликовать…</button>
+  </div>`);
+
+const routes = [
+  ['summary', 'Вкладка «Урок» → раздел «Итоги занятия»', 'ученик и пропустившие'],
+  ['questions', 'Блок «Проверь себя» в конце урока', 'ученик · без оценки'],
+  ['cards', 'Набор «Урок 5 · Который час» в тренажёре', 'ученики курса'],
+  ['hw', 'Вкладка «Домашки» → черновик, срок не назначен', 'после «Назначить»'],
+  ['note', 'Карточка ученика → «Заметки к урокам»', 'только вы'],
+];
+const routeList = () => routes.map(([id, to, who]) => { const k = KINDS.find(x => x.id === id); return `<div class="item" data-host style="align-items:center;padding:12px 0">${cb()}<div class="body" style="grid-template-columns:auto 1fr;column-gap:10px;align-items:center">${I(k.icon)}<span><b style="font-weight:600">${k.name}</b> <span class="muted small">· ${k.count()}</span><br><span class="small" style="color:var(--color-text-2)">${I('CornerDownRight', 'sm')} ${to}</span> <span class="muted small">· ${who}</span></span></div></div>`; }).join('');
+
+window.VARIANT = {
+  title: 'A · Вкладка «Итоги»',
+  tagline: 'Кнопка живёт в редакторе урока рядом с записью. Всё собранное лежит на отдельной вкладке «Итоги» одним списком: учитель читает сверху вниз, правит и публикует разом.',
+  why: [
+    'Учитель уже привык к вкладкам урока «Урок · Запись · Домашки». Четвёртая вкладка — самое предсказуемое место, ничего нового учить не надо.',
+    'Одна точка проверки: пять видов черновиков на одном экране, в одном порядке. Перед публикацией окно «Куда попадёт» показывает, что и где увидит ученик.',
+  ],
+  pros: [
+    'Самый дешёвый в разработке: новая вкладка + окно, остальное — существующие блоки урока.',
+    'Понятная граница «черновик / опубликовано»: пока не нажал — ученик не видит ничего.',
+    'Легко выбрать, что собирать: галочки до запуска экономят расход ИИ.',
+  ],
+  cons: [
+    'Проверка «на веру»: чтобы сверить вопрос с записью, надо нажать таймкод и уйти в плеер.',
+    'Ещё одна вкладка в уроке; после публикации она пустеет и становится лишней.',
+    'Публикация разом поощряет «пролистал и опубликовал» без чтения.',
+  ],
+  steps: [
+    { label: 'Кнопка', caption: 'Вкладка «Запись»: расшифровка готова — под ней карточка «Итоги урока из записи». Галочками выбирается, что собирать; цена видна до запуска. Нажмите «Собрать итоги».',
+      desk: () => editorDesk('Запись', `<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:14px;align-content:start">${recordingCard()}${recapCard('idle')}</div>`),
+      phone: () => phoneEditor('Запись', recordingCard(true) + recapCard('idle', true)) },
+    { label: 'Ожидание', caption: 'Карточка превращается в строки прогресса — тот же приём, что у расшифровки. Появляется вкладка «Итоги» с отметкой. Урок можно закрыть: черновик сохранится, придёт уведомление.',
+      desk: () => editorDesk('Запись', `<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:14px;align-content:start">${recordingCard()}${recapCard('wait')}</div>`).replace('>Итоги<', '>Итоги <span class="badge">…</span><'),
+      phone: () => phoneEditor('Запись', recordingCard(true) + recapCard('wait', true)) },
+    { label: 'Превью и правка', caption: 'Вкладка «Итоги»: пять разделов одним списком. Любой текст правится на месте (подчёркивание по фокусу), галочка исключает пункт, таймкод открывает место в записи. Заметка учителю помечена замком.',
+      desk: previewDesk,
+      phone: () => phoneEditor('Итоги', `<div class="hscroll" style="display:flex;gap:6px;margin:0 -16px;padding:0 16px 2px">${KINDS.map((k, i) => `<span class="pill ${i === 0 ? 'purple' : 'gray'}" style="height:32px;padding:0 12px;font-size:13px">${I(k.icon)}${k.name}</span>`).join('')}</div>
+        ${KINDS.map(k => `<div class="panel" style="padding:16px">${secHead(k)}${k.id === 'cards' ? B.cards({ limit: 4 }) : k.id === 'questions' ? B.questions({ limit: 3 }) : B[k.id]()}</div>`).join('')}`,
+        `<div class="glass" style="position:absolute;left:12px;right:12px;bottom:26px;z-index:7;border-radius:26px;padding:8px;display:flex;gap:8px;align-items:center"><span class="pill amber" style="margin-left:6px">Черновик</span><span style="flex:1"></span><button class="btn primary" data-go="3">${I('Send')}Опубликовать</button></div>`, true) },
+    { label: 'Раскладка по уроку', caption: 'Окно «Куда попадёт»: каждый вид черновика — своё место в уроке и своя аудитория. Здесь же можно не публиковать что-то целиком. Заметка никогда не уходит ученику.',
+      desk: () => previewDesk().replace(/<\/div>$/, '') + `<div class="modal-dim"><div class="modal"><div style="padding:22px 24px 6px"><div class="sec-h"><span class="sec-ic">${I('Layers')}</span><div><h3 style="font-size:19px">Куда попадёт</h3><div class="muted small">${D.lesson}</div></div><span class="sp"></span><span class="btn ghost sm" style="width:32px;padding:0">${I('X')}</span></div></div>
+        <div class="scroll" style="padding:0 24px">${routeList()}</div>
+        <div style="padding:14px 24px 20px;display:flex;gap:10px;align-items:center"><span class="muted small" style="flex:1">Ученик получит уведомление «Итоги урока готовы»</span><button class="btn ghost" data-go="2">Назад</button><button class="btn primary" data-go="4">${I('Send')}Опубликовать</button></div></div></div></div></div>`,
+      phone: () => phoneEditor('Итоги', KINDS.map(k => `<div class="panel" style="padding:16px">${secHead(k)}</div>`).join(''), `<div class="sheet-dim"></div><div class="sheet" style="max-height:78%"><div class="grab"></div><div style="padding:6px 20px 0"><div class="sec-h"><span class="sec-ic">${I('Layers')}</span><div><h3 style="font-size:18px">Куда попадёт</h3><div class="muted small">${D.lesson}</div></div></div></div><div class="scroll" style="padding:0 20px;flex:1">${routeList()}</div><div style="padding:12px 20px 34px;display:grid;gap:8px"><button class="btn primary lg block" data-go="4">${I('Send')}Опубликовать</button></div></div>`, true) },
+    { label: 'Что видит ученик', caption: 'У ученика на вкладке «Урок» появляется блок «Итоги занятия» и «Проверь себя», справа — карточки урока и домашка (если учитель её назначил). Пропустившим — то же самое.',
+      url: 'iskra.app/#/course/kor-0/5',
+      desk: () => studentDesk('a'), phone: () => studentPhone('a') },
+  ],
+};
+
+/* Телефон учителя: экран урока в мобильном кабинете */
+function phoneEditor(tab, body, overlay = '', noDock) {
+  return `<div style="padding:0 16px 8px;display:grid;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px"><span class="btn ghost sm" style="width:36px;padding:0">${I('ChevronLeft')}</span><div style="flex:1"><div class="crumb">${D.course}</div><div style="font-weight:700;font-size:17px">${D.lesson}</div></div><span class="btn ghost sm" style="width:36px;padding:0">${I('MoreHorizontal')}</span></div>
+    <div class="hscroll" style="margin:0 -16px;padding:0 16px"><div class="tabs">${['Урок', 'Запись', 'Итоги', 'Домашки'].map(t => `<span class="${t === tab ? 'on' : ''}">${t === 'Итоги' ? I('Sparkles', 'sm') : ''}${t}</span>`).join('')}</div></div>
+  </div>
+  <div class="scroll" style="flex:1;padding:4px 16px 110px;display:grid;gap:12px;align-content:start">${body}</div>
+  ${noDock ? '' : dock('teacher')}${overlay}`;
+}
+</script>
+</body>
+</html>

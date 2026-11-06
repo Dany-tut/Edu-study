@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Доступ к автоматизациям · Искра</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .fscroll { overflow: auto; scrollbar-width: none; min-height: 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%); }
+  .fscroll::-webkit-scrollbar { display: none; }
+  .adm-tabs { display: flex; gap: 2px; padding: 3px; border-radius: var(--radius-pill); background: var(--color-bg-5); }
+  .adm-tabs span { height: 30px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; color: var(--color-text-3); }
+  .adm-tabs span.on { background: var(--pill-active-bg); color: var(--color-text); box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
+  .feat-card { padding: 14px 16px; display: grid; gap: 10px; }
+  .feat-card .hd { display: flex; align-items: center; gap: 10px; }
+  .mx { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  .mx th { text-align: left; font-size: 12px; color: var(--color-text-3); font-weight: 600; padding: 6px 10px; position: sticky; top: 0; background: var(--color-bg-2); z-index: 1; white-space: nowrap; }
+  .mx td { padding: 9px 10px; border-top: 1px solid var(--color-border-soft); vertical-align: middle; white-space: nowrap; }
+  .mx tr.sel td { background: var(--color-purple-soft); }
+  .mx tbody tr { cursor: pointer; }
+  .mx tbody tr:hover td { background: var(--color-bg-3); }
+  .cell { display: inline-flex; align-items: center; gap: 8px; }
+  .st { font-size: 12px; color: var(--color-text-3); }
+  .set-nav { display: grid; gap: 2px; align-content: start; }
+  .set-nav > span { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--color-text-2); }
+  .set-nav > span.on { background: var(--color-purple-soft); color: var(--color-purple-text); }
+  .auto { padding: 14px 16px; display: grid; gap: 10px; }
+  .auto .hd { display: flex; align-items: center; gap: 12px; }
+  .auto .params { display: grid; gap: 8px; padding-left: 48px; }
+  .auto .params .row { padding: 6px 0; min-height: 0; }
+  .auto.off .params { display: none; }
+  .param { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--color-text-2); }
+  .param .time-chip { height: 28px; font-size: 13px; }
+  [data-feat][hidden] { display: none !important; }
+  .empty-note { padding: 14px 16px; border-radius: 18px; background: var(--color-bg-3); color: var(--color-text-3); font-size: 13.5px; }
+</style>
+</head>
+<body data-variant="c" data-view="mock">
+<header class="doc-head">
+  <a class="back" href="index.html" aria-label="Ко всем концептам"><i data-i="ChevronLeft" data-s="18"></i></a>
+  <h1>Доступ к автоматизациям<small>Админ выдаёт доступ · учитель включает и настраивает · без доступа функции не видно</small></h1>
+  <span class="grow"></span>
+  <div class="seg" role="group" aria-label="Тема"><button data-doc="t:light"><i data-i="Sun" data-s="16"></i>Светлая</button><button data-doc="t:dark"><i data-i="Moon" data-s="16"></i>Тёмная</button></div>
+  <div class="seg" role="group" aria-label="Вид"><button data-doc="view:mock">Макеты</button><button data-doc="view:spec">Правило и данные</button></div>
+</header>
+
+<main class="doc">
+<section class="view view-mock">
+  <p class="lead">Правило для всех новых автоматизаций: <b>админ</b> выдаёт доступ конкретному учителю или сразу всем. <b>Без доступа</b> учитель не видит ни настройку, ни сам инструмент: нет заглушек и замков. <b>С доступом</b> в «Настройках» учителя появляется переключатель и параметры. Все ручки по всем учителям собраны в админке. Нажмите на учителя в таблице: справа и ниже видно, что у него в настройках.</p>
+
+  <!-- ── Админка ── -->
+  <div class="lane">
+    <h3><i data-i="ShieldCheck" data-s="16" class="muted-ico"></i>Админ · ПК · Администрирование → Функции</h3>
+    <div class="desk" id="deskAdm" style="height:720px">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="adm-tabs"><span>Обзор</span><span>Пользователи</span><span>Доступы</span><span class="on">Функции</span><span>Аналитика</span><span>Расход на ИИ</span></nav>
+        <div class="right"><span class="avatar av1">Д</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto auto minmax(0,1fr)">
+        <div style="display:flex;align-items:center;gap:12px"><h2 class="h-lg">Автоматизации</h2><span class="sub">3 функции · 6 учителей</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px" id="featCards">
+          <div class="card feat-card" data-key="reminders">
+            <div class="hd"><span class="ico-tile"><i data-i="Bell"></i></span><div class="txt" style="flex:1"><span class="title">Напоминания ученикам</span><span class="sub"><code style="font-size:11.5px">reminders</code> · Telegram и пуш</span></div></div>
+            <div class="seg sm" data-seg data-scope><button aria-pressed="false" data-value="none">Никому</button><button aria-pressed="true" data-value="some">Выбранным</button><button aria-pressed="false" data-value="all">Всем</button></div>
+            <div class="sub" data-count></div>
+          </div>
+          <div class="card feat-card" data-key="parent_report">
+            <div class="hd"><span class="ico-tile green"><i data-i="ScrollText"></i></span><div class="txt" style="flex:1"><span class="title">Отчёт родителю</span><span class="sub"><code style="font-size:11.5px">parent_report</code> · фразы ИИ</span></div></div>
+            <div class="seg sm" data-seg data-scope><button aria-pressed="false" data-value="none">Никому</button><button aria-pressed="true" data-value="some">Выбранным</button><button aria-pressed="false" data-value="all">Всем</button></div>
+            <div class="sub" data-count>Доступ у 3 · включили 2 · ИИ: <b>вкл</b> (<code style="font-size:11.5px">ai_parent_reports</code>)</div>
+          </div>
+          <div class="card feat-card" data-key="payment_reminders">
+            <div class="hd"><span class="ico-tile amber"><i data-i="Wallet"></i></span><div class="txt" style="flex:1"><span class="title">Оплаты</span><span class="sub"><code style="font-size:11.5px">payment_reminders</code> · счёт, долг, отмены</span></div></div>
+            <div class="seg sm" data-seg data-scope><button aria-pressed="false" data-value="none">Никому</button><button aria-pressed="true" data-value="some">Выбранным</button><button aria-pressed="false" data-value="all">Всем</button></div>
+            <div class="sub" data-count>Доступ у 2 · включил 1</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;min-height:0">
+          <div class="card fscroll" style="padding:6px 8px">
+            <table class="mx" id="mx">
+              <thead><tr><th>Учитель</th><th>Напоминания</th><th>Отчёт родителю</th><th>Оплаты</th><th>Сообщений за неделю</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="card pad fscroll" id="admSide"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Учитель ── -->
+  <div class="lane">
+    <h3><i data-i="Monitor" data-s="16" class="muted-ico"></i>Учитель · ПК · Профиль → Настройки → Автоматизации  ·  <span id="whoLabel"></span></h3>
+    <div class="desk" id="deskT" style="height:640px">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span>Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i></span><span class="avatar av1" id="tAva">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-columns:220px minmax(0,1fr)">
+        <nav class="set-nav card" style="padding:8px">
+          <span data-nav-profile><i data-i="User" data-s="18"></i>Профиль</span>
+          <span><i data-i="CalendarDays" data-s="18"></i>Расписание</span>
+          <span class="on" data-feat-any><i data-i="Zap" data-s="18"></i>Автоматизации</span>
+          <span><i data-i="Link2" data-s="18"></i>Интеграции</span>
+          <span><i data-i="Lightbulb" data-s="18"></i>Подсказки</span>
+        </nav>
+        <div class="fscroll" style="display:grid;gap:12px;align-content:start">
+          <div data-feat-any><h2 class="h-lg" style="margin-bottom:4px">Автоматизации</h2><div class="sub">Что Искра делает за вас. Выключенная функция ничего не отправляет.</div></div>
+          <div class="card auto" data-feat="reminders">
+            <div class="hd"><span class="ico-tile"><i data-i="Bell"></i></span><div class="txt" style="flex:1"><span class="title">Напоминания ученикам</span><span class="sub">Урок через час, срок ДЗ, просрочка, перенос и отмена</span></div><button class="tgl" role="switch" aria-checked="true" aria-label="Напоминания ученикам"></button></div>
+            <div class="params">
+              <div class="param"><span style="flex:1">Урок через час</span><div class="seg sm" data-seg><button aria-pressed="false">30 мин</button><button aria-pressed="true">1 час</button><button aria-pressed="false">2 часа</button></div></div>
+              <div class="param"><span style="flex:1">ДЗ завтра · накануне в</span><span class="time-chip">18:00</span></div>
+              <div class="param"><span style="flex:1">Просрочка · повторять до</span><span class="time-chip">3 раз</span></div>
+              <div class="param"><span style="flex:1">Тихие часы</span><span class="time-chip">22:00 – 08:00</span></div>
+              <div class="param"><span style="flex:1">Каналы</span><span class="chip blue"><i data-i="Send" data-s="14"></i>Telegram</span><span class="chip purple"><i data-i="Bell" data-s="14"></i>Пуш</span></div>
+            </div>
+          </div>
+          <div class="card auto" data-feat="parent_report">
+            <div class="hd"><span class="ico-tile green"><i data-i="ScrollText"></i></span><div class="txt" style="flex:1"><span class="title">Отчёт родителю</span><span class="sub">Раз в неделю: посещаемость, ДЗ, баллы и две фразы, которые вы утверждаете</span></div><button class="tgl" role="switch" aria-checked="true" aria-label="Отчёт родителю"></button></div>
+            <div class="params">
+              <div class="param"><span style="flex:1">Подготовить черновики</span><span class="time-chip">пт 17:00</span></div>
+              <div class="param"><span style="flex:1">Отправить утверждённые</span><span class="time-chip">вс 18:00</span></div>
+              <div class="param"><span style="flex:1">Фразы от ИИ</span><span class="tgl" role="switch" aria-checked="true"></span></div>
+              <div class="param"><span style="flex:1">Показывать мне все отчёты, а не только отмеченные</span><span class="tgl" role="switch" aria-checked="false"></span></div>
+            </div>
+          </div>
+          <div class="card auto" data-feat="payment_reminders">
+            <div class="hd"><span class="ico-tile amber"><i data-i="Wallet"></i></span><div class="txt" style="flex:1"><span class="title">Оплаты</span><span class="sub">Счёт за месяц, напоминание о долге, сообщение при переносе и отмене</span></div><button class="tgl" role="switch" aria-checked="true" aria-label="Оплаты"></button></div>
+            <div class="params">
+              <div class="param"><span style="flex:1">Счёт за месяц</span><div class="seg sm" data-seg><button aria-pressed="false">Сразу</button><button aria-pressed="true">Сначала мне</button></div></div>
+              <div class="param"><span style="flex:1">Долг · через</span><span class="time-chip">3 дня</span><span>повтор</span><span class="time-chip">7 дней</span><span>×</span><span class="time-chip">3</span></div>
+              <div class="param"><span style="flex:1">Отмена учеником позже, чем за</span><span class="time-chip">24 ч</span><span>, оплачивается</span></div>
+              <div class="param"><span style="flex:1">Шаблоны сообщений</span><button class="btn s"><i data-i="Pencil" data-s="14"></i>Изменить</button></div>
+            </div>
+          </div>
+          <div data-feat-none hidden style="display:grid;gap:12px">
+            <div><h2 class="h-lg" style="margin-bottom:4px">Профиль</h2><div class="sub">Имя, фото и ник в Искре</div></div>
+            <div class="card pad" style="display:flex;gap:14px;align-items:center"><span class="avatar lg av2" style="width:56px;height:56px">ВН</span><div class="txt"><span class="title" style="font-size:17px">Вера Новикова</span><span class="sub">учитель · биология</span></div><button class="btn s" style="margin-left:auto">Сменить фото</button></div>
+            <div class="field" style="max-width:420px"><span>Имя в профиле</span><div class="input">Вера Новикова</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <h3><i data-i="Phone" data-s="16" class="muted-ico"></i>Учитель · телефон · Ещё → Настройки</h3>
+    <div class="lane-row">
+      <div class="cap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">9:41</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="ChevronLeft"></i></span><h2>Настройки</h2><span></span></div>
+            <div class="scroll" style="padding-bottom:40px">
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="ico-tile grey"><i data-i="User"></i></span><div class="txt"><span class="title">Профиль</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div>
+                <div class="row"><span class="ico-tile grey"><i data-i="CalendarDays"></i></span><div class="txt"><span class="title">Расписание</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div>
+              </div></div>
+              <div data-feat-any><div class="sec-label">Автоматизации</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row" data-feat="reminders"><span class="ico-tile"><i data-i="Bell"></i></span><div class="txt"><span class="title">Напоминания ученикам</span><span class="sub">1 час · 18:00 · тихие 22–08</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row" data-feat="parent_report"><span class="ico-tile green"><i data-i="ScrollText"></i></span><div class="txt"><span class="title">Отчёт родителю</span><span class="sub">пт 17:00 → вс 18:00</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row" data-feat="payment_reminders"><span class="ico-tile amber"><i data-i="Wallet"></i></span><div class="txt"><span class="title">Оплаты</span><span class="sub">счёт «сначала мне» · долг ×3</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+              </div></div></div>
+              <div class="sec-label">Прочее</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="ico-tile grey"><i data-i="Link2"></i></span><div class="txt"><span class="title">Интеграции</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div>
+                <div class="row"><span class="ico-tile grey"><i data-i="Lightbulb"></i></span><div class="txt"><span class="title">Подсказки</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div>
+              </div></div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Телефон.</b> Строка на функцию: тумблер и короткая сводка параметров, нажатие открывает те же параметры, что на ПК. Нет доступа — нет ни строки, ни заголовка «Автоматизации».</p>
+      </div>
+      <div class="cap">
+        <div class="card pad-l" style="display:grid;gap:10px">
+          <div class="title">Что ещё прячется без доступа</div>
+          <div class="list">
+            <div class="row" style="padding:8px 0"><span class="ico-tile"><i data-i="Bell"></i></span><div class="txt"><span class="title"><code>reminders</code></span><span class="sub">строки «В 16:00 напомним» в расписании и «Моём дне», виджет «Связь с учениками», экран «Напоминания»</span></div></div>
+            <div class="row" style="padding:8px 0"><span class="ico-tile green"><i data-i="ScrollText"></i></span><div class="txt"><span class="title"><code>parent_report</code></span><span class="sub">виджет «Отчёты родителям», экран утверждения, «Пригласить родителя» в карточке ученика</span></div></div>
+            <div class="row" style="padding:8px 0"><span class="ico-tile amber"><i data-i="Wallet"></i></span><div class="txt"><span class="title"><code>payment_reminders</code></span><span class="sub">«Закрыть месяц», виджет «Оплаты: ждут вас», статус автонапоминаний в «Должниках», текст плательщику в шторке отмены</span></div></div>
+          </div>
+          <div class="sub">Доступ есть, но учитель выключил функцию: инструменты на месте, ничего не уходит; в виджетах — строка «Выключено в настройках».</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view view-spec spec">
+  <h2>Правило</h2>
+  <ol>
+    <li>Админ в админке выдаёт доступ к функции конкретному учителю или сразу всем.</li>
+    <li>Без доступа учитель не видит ни настройку, ни инструмент. Не рисуем замков, «скоро», серых пунктов.</li>
+    <li>С доступом в «Настройках → Автоматизации» есть переключатель функции и её параметры. По умолчанию после выдачи доступа функция <b>выключена</b>: учитель включает сам.</li>
+    <li>В админке на вкладке «Функции» собраны все ручки по всем учителям: доступ, включено ли, ключевые параметры, объём отправки.</li>
+  </ol>
+  <h2>Состояния у учителя</h2>
+  <table class="cmp">
+    <tr><th>Доступ</th><th>Включено</th><th>Что видит учитель</th></tr>
+    <tr><td>нет</td><td>—</td><td>Ничего: ни пункта настроек, ни виджета, ни строк в расписании</td></tr>
+    <tr><td>есть</td><td>нет</td><td>Пункт в настройках с выключенным тумблером; виджеты можно поставить, в них «Выключено в настройках»; ничего не отправляется</td></tr>
+    <tr><td>есть</td><td>да</td><td>Всё из концепта</td></tr>
+  </table>
+  <h2>Черновик данных</h2>
+  <p>Общий механизм фича-ключей делает основная сессия. Для этих трёх функций нужны ключи <code>reminders</code>, <code>parent_report</code>, <code>payment_reminders</code>. Ниже — что макет ожидает от механизма.</p>
+<pre>-- Доступ: «всем» = строка с teacher_id is null
+feature_access (feature_key text, teacher_id uuid null, granted_by uuid, granted_at timestamptz)
+
+-- Включение и параметры — у учителя (меняет сам, админ видит и может поправить)
+teacher_features (teacher_id uuid, feature_key text, enabled boolean default false,
+                  params jsonb default '{}', updated_at timestamptz,
+                  primary key (teacher_id, feature_key))
+
+-- Права: has_feature(teacher, key) = доступ есть (лично или всем).
+-- Планировщики cron и comms_outbox проверяют has_feature AND enabled — иначе ничего не ставят в очередь.
+-- Отзыв доступа: снять из очереди всё queued этого учителя по функции.</pre>
+  <ul>
+    <li>Параметры из концептов уходят в <code>teacher_features.params</code>: напоминания — offset, at_time, repeat_max, quiet, channels; отчёт — время черновиков/отправки, ai, review_all; оплаты — invoice_mode, debt_rule, late_cancel_hours, шаблоны.</li>
+    <li>Флаг <code>ai_parent_reports</code> в <code>app_flags</code> остаётся глобальным рубильником расхода; фича-ключ отвечает только за доступ.</li>
+  </ul>
+</section>
+</main>
+
+<script src="icons.js"></script>
+<script src="kit.js"></script>
+<script>
+  const F = ['reminders', 'parent_report', 'payment_reminders'];
+  const T = [
+    { id: 'as', n: 'Анна Сергеевна', ini: 'АС', av: 'av1', acc: { reminders: 1, parent_report: 1, payment_reminders: 1 }, on: { reminders: 1, parent_report: 1, payment_reminders: 1 }, sent: 126 },
+    { id: 'ov', n: 'Ольга Викторовна', ini: 'ОВ', av: 'av3', acc: { reminders: 1, parent_report: 1 }, on: { reminders: 1, parent_report: 1 }, sent: 88 },
+    { id: 'ik', n: 'Игорь Котов', ini: 'ИК', av: 'av4', acc: { reminders: 1, parent_report: 1, payment_reminders: 1 }, on: { reminders: 1 }, sent: 41 },
+    { id: 'md', n: 'Мария Демина', ini: 'МД', av: 'av5', acc: { reminders: 1 }, on: { reminders: 1 }, sent: 37 },
+    { id: 'pl', n: 'Пётр Лебедев', ini: 'ПЛ', av: 'av6', acc: { reminders: 1 }, on: {}, sent: 0 },
+    { id: 'vn', n: 'Вера Новикова', ini: 'ВН', av: 'av2', acc: {}, on: {}, sent: 0 },
+  ];
+  let sel = 'as';
+  const scope = { reminders: 'some', parent_report: 'some', payment_reminders: 'some' };
+  const has = (t, k) => scope[k] === 'all' || (scope[k] === 'some' && t.acc[k]);
+  function cell(t, k) {
+    if (!has(t, k)) return `<span class="cell"><span class="cbx" role="checkbox" aria-checked="false" data-acc="${t.id}:${k}" ${scope[k] === 'all' ? 'style="opacity:.4"' : ''}></span><span class="st">нет доступа</span></span>`;
+    return `<span class="cell"><span class="cbx" role="checkbox" aria-checked="true" data-acc="${t.id}:${k}" ${scope[k] === 'all' ? 'style="opacity:.4" title="Доступ у всех"' : ''}></span>${t.on[k] ? '<span class="chip green">включено</span>' : '<span class="chip">выключено</span>'}</span>`;
+  }
+  function render() {
+    document.querySelector('#mx tbody').innerHTML = T.map((t) => `<tr data-t="${t.id}" class="${t.id === sel ? 'sel' : ''}"><td><span class="cell"><span class="avatar sm ${t.av}">${t.ini}</span><b>${t.n}</b></span></td>${F.map((k) => `<td>${cell(t, k)}</td>`).join('')}<td class="num">${t.sent || '—'}</td></tr>`).join('');
+    F.forEach((k) => {
+      const card = document.querySelector(`.feat-card[data-key="${k}"]`);
+      const n = T.filter((t) => has(t, k)).length, on = T.filter((t) => has(t, k) && t.on[k]).length;
+      const extra = k === 'parent_report' ? ' · ИИ: <b>вкл</b>' : '';
+      card.querySelector('[data-count]').innerHTML = scope[k] === 'none' ? 'Ни у кого нет доступа' : `Доступ у ${scope[k] === 'all' ? 'всех ' : ''}${n} · включили ${on}${extra}`;
+    });
+    const t = T.find((x) => x.id === sel);
+    document.getElementById('admSide').innerHTML = `<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px"><span class="avatar lg ${t.av}">${t.ini}</span><div class="txt"><span class="title" style="font-size:16px">${t.n}</span><span class="sub">ручки учителя · видит админ</span></div></div>`
+      + F.map((k) => {
+        const lbl = { reminders: 'Напоминания', parent_report: 'Отчёт родителю', payment_reminders: 'Оплаты' }[k];
+        if (!has(t, k)) return `<div class="row" style="padding:8px 0"><div class="txt"><span class="title">${lbl}</span><span class="sub">нет доступа — у учителя не видно</span></div></div>`;
+        const p = { reminders: '1 час · ДЗ 18:00 · просрочка ×3 · тихие 22–08', parent_report: 'пт 17:00 → вс 18:00 · ИИ · отмеченные', payment_reminders: 'счёт «сначала мне» · долг +3 д ×3 · поздняя отмена 24 ч' }[k];
+        return `<div class="row" style="padding:8px 0"><div class="txt"><span class="title">${lbl}</span><span class="sub">${t.on[k] ? p : 'выключено учителем'}</span></div><span class="tgl" role="switch" aria-checked="${t.on[k] ? 'true' : 'false'}" data-on="${t.id}:${k}"></span></div>`;
+      }).join('')
+      + `<div class="sub" style="margin-top:10px">Тумблер здесь меняет то же, что учитель у себя в настройках.</div>`;
+    // предпросмотр настроек учителя
+    const any = F.some((k) => has(t, k));
+    document.querySelectorAll('[data-feat]').forEach((el) => { el.hidden = !has(t, el.dataset.feat); const tg = el.querySelector('.tgl'); if (tg) { tg.setAttribute('aria-checked', t.on[el.dataset.feat] ? 'true' : 'false'); el.classList.toggle('off', !t.on[el.dataset.feat]); } });
+    document.querySelectorAll('[data-feat-any]').forEach((el) => { el.hidden = !any; });
+    document.querySelectorAll('[data-feat-none]').forEach((el) => { el.hidden = any; });
+    document.querySelector('[data-nav-profile]').classList.toggle('on', !any);
+    document.getElementById('whoLabel').textContent = 'так видит ' + t.n + (any ? '' : ' — доступа нет: пункта «Автоматизации» нет вовсе, открыт обычный «Профиль»');
+    document.getElementById('tAva').textContent = t.ini;
+    window.paintIcons(document); setTimeout(window.updateAllFades, 30);
+  }
+  document.getElementById('mx').addEventListener('click', (e) => {
+    const c = e.target.closest('[data-acc]');
+    if (c) {
+      const [id, k] = c.dataset.acc.split(':');
+      if (scope[k] === 'all') { mockToast(document.getElementById('deskAdm'), 'Доступ «Всем»: переключите на «Выбранным»'); setTimeout(render, 0); return; }
+      const t = T.find((x) => x.id === id);
+      setTimeout(() => { t.acc[k] = !t.acc[k]; if (!t.acc[k]) t.on[k] = 0; if (scope[k] === 'none' && t.acc[k]) scope[k] = 'some'; sel = id; syncScopes(); render(); }, 0);
+      return;
+    }
+    const r = e.target.closest('tr[data-t]'); if (r) { sel = r.dataset.t; render(); }
+  });
+  document.getElementById('admSide').addEventListener('mock:toggle', (e) => {
+    const [id, k] = e.target.dataset.on.split(':'); const t = T.find((x) => x.id === id); t.on[k] = e.detail.on ? 1 : 0; render();
+  });
+  document.getElementById('deskT').addEventListener('mock:toggle', (e) => {
+    const box = e.target.closest('[data-feat]'); if (!box || e.target !== box.querySelector('.tgl')) return;
+    const t = T.find((x) => x.id === sel); t.on[box.dataset.feat] = e.detail.on ? 1 : 0; render();
+  });
+  function syncScopes() {
+    document.querySelectorAll('.feat-card').forEach((c) => c.querySelectorAll('[data-scope] button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === scope[c.dataset.key]))));
+  }
+  document.getElementById('featCards').addEventListener('mock:seg', (e) => {
+    const k = e.target.closest('.feat-card').dataset.key; scope[k] = e.detail.value; render();
+  });
+  render();
+</script>
+</body>
+</html>
