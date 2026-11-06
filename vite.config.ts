@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
@@ -17,6 +18,12 @@ const gitHash = (() => {
   try { return execSync('git rev-parse --short HEAD').toString().trim() }
   catch { return (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || 'dev' }
 })()
+
+// Source maps для Sentry (проект iskra-web): только в продакшен-сборке Vercel,
+// где лежит SENTRY_AUTH_TOKEN. Карты создаются скрытыми (без ссылки в чанках),
+// уходят в Sentry и удаляются из dist до выкладки — исходники публично не
+// раздаются. Локально, в CI и в превью без токена ничего не меняется.
+const sentryUpload = Boolean(process.env.SENTRY_AUTH_TOKEN) && process.env.VERCEL_ENV === 'production'
 
 export default defineConfig({
   define: {
@@ -62,6 +69,8 @@ export default defineConfig({
           'icon-teacher.svg',
         ],
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+        // Карты воркера не нужны и пишутся уже после очистки для Sentry.
+        sourcemap: false,
 
         runtimeCaching: [
           {
@@ -96,8 +105,20 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
     }),
+    sentryUpload && sentryVitePlugin({
+      org: 'iskra-b9',
+      project: 'iskra-web',
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      telemetry: false,
+      // Сбой Sentry не должен валить выкладку: без карт стеки просто минифицированы.
+      errorHandler: err => { console.warn('[sentry] source maps upload failed:', err.message) },
+      // Релиз задаёт сам SDK (__APP_VERSION__); карты находятся по debug ID.
+      release: { name: `${buildInfo.version}·${gitHash}`, inject: false },
+      sourcemaps: { filesToDeleteAfterUpload: ['dist/**/*.map'] },
+    }),
   ],
   build: {
+    sourcemap: sentryUpload ? 'hidden' : false,
     rollupOptions: {
       output: {
         entryFileNames: 'assets/app-[hash].js',
