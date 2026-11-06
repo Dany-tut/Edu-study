@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react'
 import Segmented from '../Segmented'
 import PhotoGallery from '../PhotoGallery'
-import { Inbox, GraduationCap, User, RefreshCw, MessageCircle } from '../icons/appIcons'
+import { Inbox, GraduationCap, User, RefreshCw, MessageCircle, Layers, FileText } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import type { FeedbackRequest, FeedbackStatus } from '../../lib/feedbackRequests'
 import { useT } from '../../lib/i18n'
 import TgDialogs from './TgDialogs'
 import AssignPlanButton from './AssignPlanButton'
 import { fetchTeacherUsage, type TeacherUsageRow } from '../../lib/plan'
+import HScrollFade from '../HScrollFade'
+import FadeText from '../FadeText'
+import FeedbackTopics, { KindChip } from './FeedbackTopics'
+import FeedbackDigestView from './FeedbackDigestView'
+import {
+  fetchTriage, fetchDigests, fetchTriageEnabled, runTriage,
+  type FeedbackItem, type FeedbackTopic, type FeedbackDigest,
+} from '../../lib/feedbackTriage'
 
 // Вкладка «Заявки» в Админке: список обратной связи от учеников и учителей.
 // data-URL картинки нельзя открыть через window.open → показываем в оверлее.
@@ -35,22 +43,58 @@ export default function FeedbackRequestsManager() {
   // Учителя с тарифом и почтой: по ним заявка с лендинга находит аккаунт
   // (у неё нет author_id, только contact), а кнопка тарифа знает текущий.
   const [teachers, setTeachers] = useState<TeacherUsageRow[]>([])
-  const [view, setView] = useState<'requests' | 'dialogs'>(() => {
+  const [view, setView] = useState<'requests' | 'topics' | 'digest' | 'dialogs'>(() => {
     // Быстрый переход из меню профиля «Диалоги» кладёт сюда флаг.
     const v = sessionStorage.getItem('feedback_view')
     if (v) sessionStorage.removeItem('feedback_view')
     return v === 'dialogs' ? 'dialogs' : 'requests'
   })
+  // Сортировка: обращения из формы и Telegram, темы и недельные сводки.
+  const [items, setItems] = useState<FeedbackItem[]>([])
+  const [topics, setTopics] = useState<FeedbackTopic[]>([])
+  const [triageOn, setTriageOn] = useState(false)
+  const [focusTopic, setFocusTopic] = useState<string | null>(null)
+  const [digests, setDigests] = useState<FeedbackDigest[]>([])
+  const [digestIdx, setDigestIdx] = useState(0)
+  const [busy, setBusy] = useState<'classify' | 'digest' | null>(null)
+  const [runErr, setRunErr] = useState<string | null>(null)
+
+  async function loadTriage() {
+    const [tr, on] = await Promise.all([fetchTriage(), fetchTriageEnabled()])
+    setItems(tr.items); setTopics(tr.topics); setTriageOn(on)
+  }
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase.from('feedback_requests').select('*').order('created_at', { ascending: false })
+    const [{ data }] = await Promise.all([
+      supabase.from('feedback_requests').select('*').order('created_at', { ascending: false }),
+      loadTriage(),
+    ])
     setRows((data as FeedbackRequest[] | null) ?? [])
     setTeachers(await fetchTeacherUsage())
     setLoading(false)
   }
 
   useEffect(() => { load() }, [])
+  useEffect(() => {
+    if (view !== 'digest') return
+    let alive = true
+    void fetchDigests().then(d => { if (alive) { setDigests(d); setDigestIdx(0) } })
+    return () => { alive = false }
+  }, [view])
+
+  async function run(mode: 'classify' | 'digest') {
+    setBusy(mode); setRunErr(null)
+    const r = await runTriage(mode)
+    if (r.error) setRunErr(r.error)
+    if (mode === 'digest') { setDigests(await fetchDigests()); setDigestIdx(0) }
+    else await loadTriage()
+    setBusy(null)
+  }
+
+  const itemByRequest = new Map(items.filter(i => i.feedback_id).map(i => [i.feedback_id as string, i]))
+  const topicTitle = new Map(topics.map(x => [x.id, x.title]))
+  const pendingCount = items.filter(i => i.triage_state === 'pending').length
 
   async function setStatus(id: string, status: FeedbackStatus) {
     setRows(prev => prev.map(r => (r.id === id ? { ...r, status } : r)))
@@ -68,12 +112,37 @@ export default function FeedbackRequestsManager() {
   return (
     <div>
       {/* Верхний переключатель: разовые заявки ↔ диалоги из Telegram-бота */}
-      <Segmented
-        variant="mode" value={view} onChange={setView} style={{ marginBottom: 18 }}
-        items={[{ id: 'requests', label: t('Заявки'), icon: Inbox }, { id: 'dialogs', label: t('Диалоги'), icon: MessageCircle }]}
-      />
+      <HScrollFade gap={0} style={{ marginBottom: 18 }}>
+        <Segmented
+          variant="mode" value={view} onChange={v => { setView(v); setRunErr(null); if (v !== 'topics') setFocusTopic(null) }}
+          items={[
+            { id: 'requests', label: t('Заявки'), icon: Inbox },
+            { id: 'topics', label: t('Темы'), icon: Layers, count: pendingCount || undefined },
+            { id: 'digest', label: t('Сводка недели'), icon: FileText },
+            { id: 'dialogs', label: t('Диалоги'), icon: MessageCircle },
+          ]}
+        />
+      </HScrollFade>
 
       {view === 'dialogs' && <TgDialogs />}
+
+      {view === 'topics' && (
+        <>
+          {runErr && <div style={{ marginBottom: 12, fontSize: 13, color: 'var(--color-red-text)' }}>{runErr}</div>}
+          <FeedbackTopics
+            key={focusTopic ?? 'all'}
+            items={items} topics={topics} enabled={triageOn} busy={busy === 'classify'}
+            onRun={() => void run('classify')} onChanged={loadTriage} focusTopic={focusTopic}
+          />
+        </>
+      )}
+
+      {view === 'digest' && (
+        <FeedbackDigestView
+          digests={digests} idx={digestIdx} setIdx={setDigestIdx} enabled={triageOn}
+          busy={busy === 'digest'} error={runErr} onRun={() => void run('digest')}
+        />
+      )}
 
       {view === 'requests' && (
       <>
@@ -130,6 +199,29 @@ export default function FeedbackRequestsManager() {
               </div>
 
               <div style={{ fontSize: 14, color: 'var(--color-text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{r.message}</div>
+
+              {(() => {
+                // Тип и тема из сортировки; заявки с лендинга её не проходят.
+                const it = itemByRequest.get(r.id)
+                if (!it) return null
+                const title = it.topic_id ? topicTitle.get(it.topic_id) : null
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, minWidth: 0, fontSize: 12, color: 'var(--color-text-3)' }}>
+                    {it.triage_state === 'pending' && !it.kind
+                      ? <span>{t('Ждёт разбора')}</span>
+                      : <KindChip kind={it.kind} />}
+                    {it.screen && <span style={{ flexShrink: 0, fontWeight: 600, color: 'var(--color-text-2)' }}>{t(it.screen)}</span>}
+                    {title && (
+                      <button type="button" data-hover="link"
+                        onClick={() => { setFocusTopic(it.topic_id); setView('topics') }}
+                        style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: 'var(--color-purple-text)', fontWeight: 600 }}>
+                        <Layers size={13} style={{ flexShrink: 0 }} />
+                        <FadeText>{title}</FadeText>
+                      </button>
+                    )}
+                  </div>
+                )
+              })()}
 
               {r.attachments.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>

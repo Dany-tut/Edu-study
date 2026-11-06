@@ -142,6 +142,9 @@ const StudentWidgetStand = window.location.pathname.replace(/\/+$/, '') === '/st
 const LessonMontageStand = import.meta.env.DEV && window.location.pathname.replace(/\/+$/, '') === '/lesson-montage-stand'
   ? lazy(() => import('./components/lessonMontageStand/LessonMontageStand')) : null
 
+const FeedbackTriageStand = import.meta.env.DEV && (window.location.pathname.replace(/\/+$/, '') === '/feedback-triage-stand' || window.location.hash === '#/feedback-triage-stand')
+  ? lazy(() => import('./components/teacher/feedbackTriageStand/FeedbackTriageStand')) : null
+
 startTextFades()
 
 // Install diagnostics before rendering; App's later call is idempotent.
@@ -156,7 +159,7 @@ if (!(window as Window & { __iskraUnsupported?: boolean }).__iskraUnsupported) c
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
       <ErrorBoundary>
-        {LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <MfaGate><App /></MfaGate>}
+        {FeedbackTriageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><FeedbackTriageStand /></Suspense> : LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <MfaGate><App /></MfaGate>}
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,
