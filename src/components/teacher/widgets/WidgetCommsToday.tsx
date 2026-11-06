@@ -50,6 +50,12 @@ export default function WidgetCommsToday() {
     return n + ' ' + t(mod10 === 1 && mod100 !== 11 ? 'ученику' : 'ученикам')
   }
 
+  // Два имени и счётчик: полный список — в «Позвать», иначе ряд растёт на весь виджет.
+  const unlinkedLine = (list: { name: string }[]) => {
+    const rest = list.length - 2
+    return `${t('Без бота')}: ${list.slice(0, 2).map(u => u.name).join(', ')}${rest > 0 ? ` ${t('и ещё')} ${rest}` : ''}`
+  }
+
   const next = data?.nextAt ? clock(data.nextAt) : ''
   const heroTitle = !data ? '' : data.queued > 0 ? `${t('Сегодня уйдёт')} ${data.queued}` : data.sent > 0 ? `${t('Сегодня ушло')} ${data.sent}` : t('Сегодня без напоминаний')
   const heroSub = !data ? '' : data.queued > 0 ? `${t('ближайшее в')} ${next}` : data.linked === 0 ? t('Пока никто не подключил бота') : t('Новые появятся по расписанию и ДЗ')
@@ -98,7 +104,7 @@ export default function WidgetCommsToday() {
               <strong>Telegram {data.linked} {t('из')} {data.total}</strong>
               <span style={textFadeLines(2)}>{data.unlinked.length === 0
                 ? (data.total > 0 ? t('Подключены все') : t('Учеников пока нет'))
-                : `${t('Без бота')}: ${data.unlinked.map(u => u.name).join(', ')}`}</span>
+                : unlinkedLine(data.unlinked)}</span>
             </div>
             {data.unlinked.length > 0 && <button type="button" onClick={() => setInviteOpen(true)} style={btn('S', 'primary')}>{t('Позвать')}</button>}
           </div>

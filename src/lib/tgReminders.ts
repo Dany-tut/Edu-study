@@ -5,6 +5,7 @@
 // Ссылку t.me/<бот>?start=<код> собирает Edge Function tg-link (имя бота
 // знает только она), отправку — reminders-send по крону.
 import { supabase } from './supabase'
+import { getAuthUser } from './owner'
 
 export type TgLinkStatus = {
   linked: boolean
@@ -106,7 +107,28 @@ export function parseCommsToday(raw: unknown): CommsToday | null {
   }
 }
 
+// DEV: превью без входа учителя (как в parentReports) — 54 ученика, бот ни у кого.
+// localStorage['iskra:dev-comms'] = 'busy' — очередь на сегодня и одно «не дошло».
+function demoCommsToday(): CommsToday {
+  const names = ['Алина Смирнова', 'Алиса Григорьева', 'Анна Морозова', 'Анна Петровна', 'Артём Соколов', 'Биба Бенкенс', 'Биба Бульдозер', 'Виктория Зайцева', 'Галя', 'Даниил Макаренко', 'Дарья Семёнова']
+  const unlinked = Array.from({ length: 54 }, (_, i) => ({ id: `demo-s${i}`, name: names[i % names.length] + (i >= names.length ? ` ${Math.floor(i / names.length) + 1}` : '') }))
+  let busy = false
+  try { busy = localStorage.getItem('iskra:dev-comms') === 'busy' } catch { /* без хранилища — пустой день */ }
+  if (!busy) return { queued: 0, sent: 0, nextAt: null, upcoming: [], failed: [], linked: 0, total: 54, unlinked }
+  const at = (h: number) => { const d = new Date(); d.setHours(h, 0, 0, 0); return d.toISOString() }
+  return {
+    queued: 7, sent: 3, nextAt: at(15),
+    upcoming: [
+      { at: at(15), kind: 'lesson_soon', title: 'Урок скоро', body: 'Через час урок «ОВР: метод баланса»', count: 4, names: names.slice(0, 4) },
+      { at: at(18), kind: 'hw_due', title: 'ДЗ завтра', body: 'Завтра срок домашки «Клетка, линия 3»', count: 3, names: names.slice(4, 7) },
+    ],
+    failed: [{ id: 'demo-f1', studentId: 'demo-s3', name: 'Анна Морозова', kind: 'hw_late', title: 'ДЗ просрочено', error: 'blocked', at: at(10) }],
+    linked: 12, total: 54, unlinked: unlinked.slice(12),
+  }
+}
+
 export async function fetchCommsToday(): Promise<CommsToday | null> {
+  if (import.meta.env.DEV && !(await getAuthUser())) return demoCommsToday()
   const { data, error } = await supabase.rpc('reminders_today')
   if (error) throw error
   return parseCommsToday(data)
