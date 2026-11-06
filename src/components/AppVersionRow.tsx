@@ -85,7 +85,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
         title={`${t('Проверить обновление')} · ${APP_COMMIT}`}
         style={{
           display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-          padding: '6px 8px', background: 'none', border: 'none', cursor: 'pointer',
+          padding: '6px 8px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer',
           // lineHeight: 1 — иначе глобальные 1.5 добавляют под цифрами ~4.5px
           // пустой строки, и подвал меню выглядит просевшим: слева от текста до
           // края панели 22px, а снизу — почти 25. Со сжатой строкой поля равны.
