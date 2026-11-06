@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Напоминания ученику · Искра</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .rem-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; min-height: 0; }
+  .col { display: grid; gap: 16px; align-content: start; min-height: 0; }
+  .fscroll { overflow: auto; scrollbar-width: none; min-height: 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft,0px), #000 calc(100% - var(--fb,0px)), transparent 100%); }
+  .fscroll::-webkit-scrollbar { display: none; }
+  .rule { cursor: pointer; border-radius: 16px; }
+  .rule[aria-selected="true"] { background: var(--color-purple-soft); }
+  .rule[aria-selected="true"] .title { color: var(--color-purple-text); }
+  .rule .chans { display: flex; gap: 4px; margin-top: 4px; }
+  .rule.off .txt { opacity: 0.5; }
+  .quiet { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .preview-pane { background: var(--tg-bg); background-image: radial-gradient(var(--tg-pattern) 1.2px, transparent 1.4px); background-size: 18px 18px; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 6px; color: var(--tg-text); }
+  .who { display: flex; align-items: center; gap: -6px; }
+  .who .avatar { margin-left: -8px; box-shadow: 0 0 0 2px var(--color-bg-2); }
+  .who .avatar:first-child { margin-left: 0; }
+  .q-time { width: 64px; flex: none; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; padding-top: 14px; color: var(--color-text-2); }
+  .q-item { display: flex; gap: 12px; }
+  .q-item + .q-item { margin-top: 8px; }
+  .q-card { flex: 1; min-width: 0; padding: 12px 14px; }
+  .q-card.muted { opacity: 0.55; }
+  .q-card .top { display: flex; gap: 10px; align-items: center; }
+  .q-card .bot { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  .lesson-card { padding: 14px; display: grid; gap: 10px; }
+  .lesson-card .tm { font-size: 13px; font-weight: 700; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
+  .rem-line { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: var(--color-bg-3); font-size: 13px; color: var(--color-text-2); width: 100%; text-align: left; }
+  .rem-line:hover { background: var(--color-bg-5); }
+  .rem-line .end { margin-left: auto; }
+  .code { display: flex; gap: 8px; justify-content: center; }
+  .code b { width: 48px; height: 58px; border-radius: 14px; background: var(--color-bg-input); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .qr { width: 132px; height: 132px; border-radius: 16px; background: #fff; padding: 10px; margin: 0 auto; }
+  .qr i { display: block; width: 100%; height: 100%; background:
+    conic-gradient(from 90deg at 20% 20%, #111 25%, transparent 0) 0 0/28% 28% no-repeat,
+    conic-gradient(from 90deg at 20% 20%, #111 25%, transparent 0) 100% 0/28% 28% no-repeat,
+    conic-gradient(from 90deg at 20% 20%, #111 25%, transparent 0) 0 100%/28% 28% no-repeat,
+    repeating-linear-gradient(90deg, #111 0 6px, transparent 6px 11px) 40% 50%/44% 60% no-repeat,
+    repeating-linear-gradient(0deg, #111 0 5px, transparent 5px 9px) 100% 100%/40% 40% no-repeat; }
+  .kind-row .end .chip { min-width: 0; }
+</style>
+</head>
+<body data-variant="a" data-view="mock">
+<header class="doc-head">
+  <a class="back" href="index.html" aria-label="Ко всем концептам"><i data-i="ChevronLeft" data-s="18"></i></a>
+  <h1>Напоминания ученику<small>Концепт 4 · Telegram и пуш · тихие часы</small></h1>
+  <span class="grow"></span>
+  <div class="seg" role="group" aria-label="Вариант">
+    <button data-doc="v:c" class="final">Итог</button>
+    <button data-doc="v:a">A · Правила</button>
+    <button data-doc="v:b">B · Очередь</button>
+  </div>
+  <div class="seg" role="group" aria-label="Тема">
+    <button data-doc="t:light"><i data-i="Sun" data-s="16"></i>Светлая</button>
+    <button data-doc="t:dark"><i data-i="Moon" data-s="16"></i>Тёмная</button>
+  </div>
+  <div class="seg" role="group" aria-label="Вид">
+    <button data-doc="view:mock">Макеты</button>
+    <button data-doc="view:spec">Обоснование и данные</button>
+  </div>
+</header>
+
+<main class="doc">
+<!-- ═══════════════════════════ МАКЕТЫ ═══════════════════════════ -->
+<section class="view view-mock">
+  <div data-v="a">
+    <h2 class="variant-title">Правила один раз <span class="tag">Вариант A</span></h2>
+    <p class="lead">Учитель один раз включает <b>четыре правила</b>, и дальше всё уходит само. Он не видит отдельных сообщений, только правило, превью и долю учеников, подключивших Telegram. Ученик подключается <b>одной кнопкой</b>: ссылка-приглашение открывает бота уже «узнавшим» ученика.</p>
+  </div>
+  <div data-v="b">
+    <h2 class="variant-title">Очередь «что уйдёт» <span class="tag">Вариант B</span></h2>
+    <p class="lead">Учитель видит <b>конкретные сообщения</b>: что, кому и когда уйдёт сегодня и завтра. Любое можно снять или поправить. На телефоне очередь встроена в «Мой день», в карточку занятия. Ученик подключается <b>кодом из четырёх цифр</b> и сам решает, что и куда ему присылать.</p>
+  </div>
+
+  <div data-v="c">
+    <h2 class="variant-title">Итог: правила + «что уйдёт» на главной <span class="tag final">Выбран</span></h2>
+    <p class="lead">Настраивает учитель <b>один раз</b>, как в A: четыре правила, тихие часы, подключение. А в повседневной работе он <b>видит отправку там, где и так смотрит</b>: строка «В 16:00 напомним 6 ученикам» под занятием в «Моём дне» и в виджете «Расписание» на главной ПК. Главная — <b>настраиваемый стол</b>: «Связь с учениками», «Отчёты родителям» и «Оплаты: ждут вас» — новые виджеты из библиотеки, учитель сам решает, ставить ли их; строки в расписании выключаются одной кнопкой. На телефоне те же блоки включаются и переставляются в «Настроить „Мой день“». Снять одно напоминание можно прямо из занятия. Ученик подключается кнопкой; если Telegram на другом устройстве — кодом.</p>
+  </div>
+
+  <!-- ── Учитель · ПК ── -->
+  <div class="lane">
+    <h3><i data-i="Monitor" data-s="16" class="muted-ico"></i>Учитель · ПК</h3>
+
+    <!-- A · ПК -->
+    <div class="desk" data-v="a c" id="deskA">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span>Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i></span><span class="icon-btn"><i data-i="Settings" data-s="18"></i></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto minmax(0,1fr)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="sub">Настройки</span><i data-i="ChevronRight" data-s="14" class="muted-ico"></i>
+          <h2 class="h-lg">Напоминания ученикам</h2>
+          <span class="chip green" style="margin-left:6px"><i data-i="CheckCircle2" data-s="14"></i>Работают</span>
+          <span style="margin-left:auto" class="sub">Для всех групп · <a href="#" class="lk" style="color:var(--color-accent);font-weight:600;text-decoration:none">2 исключения</a></span>
+        </div>
+        <div class="rem-grid">
+          <div class="col fscroll" style="max-height:100%">
+            <div class="card" style="padding:6px">
+              <div class="list" id="rulesA">
+                <div class="row rule" data-rule="soon" aria-selected="true">
+                  <span class="ico-tile"><i data-i="CalendarClock"></i></span>
+                  <div class="txt"><span class="title">Урок через час</span><span class="sub">За <b class="num">60</b> минут до начала</span>
+                    <div class="chans"><span class="chip blue"><i data-i="Send" data-s="14"></i>Telegram</span><span class="chip purple"><i data-i="Bell" data-s="14"></i>Пуш</span></div></div>
+                  <div class="end"><button class="tgl" role="switch" aria-checked="true" aria-label="Урок через час"></button></div>
+                </div>
+                <div class="row rule" data-rule="due">
+                  <span class="ico-tile amber"><i data-i="ClipboardList"></i></span>
+                  <div class="txt"><span class="title">ДЗ завтра до 20:00</span><span class="sub">Накануне срока в <b class="num">18:00</b>, если не сдано</span>
+                    <div class="chans"><span class="chip blue"><i data-i="Send" data-s="14"></i>Telegram</span><span class="chip purple"><i data-i="Bell" data-s="14"></i>Пуш</span></div></div>
+                  <div class="end"><button class="tgl" role="switch" aria-checked="true" aria-label="ДЗ завтра"></button></div>
+                </div>
+                <div class="row rule" data-rule="late">
+                  <span class="ico-tile red"><i data-i="AlertTriangle"></i></span>
+                  <div class="txt"><span class="title">ДЗ просрочено</span><span class="sub">Через 2 часа после срока, затем раз в сутки, не больше 3 раз</span>
+                    <div class="chans"><span class="chip blue"><i data-i="Send" data-s="14"></i>Telegram</span></div></div>
+                  <div class="end"><button class="tgl" role="switch" aria-checked="true" aria-label="ДЗ просрочено"></button></div>
+                </div>
+                <div class="row rule" data-rule="moved">
+                  <span class="ico-tile blue"><i data-i="ArrowRightLeft"></i></span>
+                  <div class="txt"><span class="title">Урок перенесён или отменён</span><span class="sub">Сразу после изменения в расписании</span>
+                    <div class="chans"><span class="chip blue"><i data-i="Send" data-s="14"></i>Telegram</span><span class="chip purple"><i data-i="Bell" data-s="14"></i>Пуш</span></div></div>
+                  <div class="end"><button class="tgl" role="switch" aria-checked="true" aria-label="Перенос или отмена"></button></div>
+                </div>
+              </div>
+            </div>
+            <div class="card pad">
+              <div style="display:flex;align-items:center;gap:10px"><span class="ico-tile grey"><i data-i="Moon"></i></span>
+                <div class="txt" style="flex:1"><span class="title">Тихие часы</span><span class="sub">Ночью ничего не приходит. Отложенное уходит в 08:00 по времени ученика.</span></div>
+                <button class="tgl" role="switch" aria-checked="true" aria-label="Тихие часы"></button></div>
+              <div class="quiet" style="margin:12px 0 0 46px"><span class="time-chip">22:00</span><i data-i="ArrowRight" data-s="16" class="muted-ico"></i><span class="time-chip">08:00</span>
+                <span class="sub">Перенос урока, начинающегося до 10:00, приходит сразу.</span></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card pad">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span class="title" id="pvTitleA">Урок через час</span><span class="sub" style="margin-left:auto">Так увидит ученик</span></div>
+              <div class="seg sm" data-seg style="margin-bottom:10px"><button aria-pressed="false">30 мин</button><button aria-pressed="true">60 мин</button><button aria-pressed="false">2 часа</button></div>
+              <div class="preview-pane" id="pvA">
+                <div class="bub"><p><b>Через час химия</b> · 17:00</p><p>Тема: окислительно-восстановительные реакции. Возьми тетрадь с прошлого урока.</p><span class="meta">16:00</span></div>
+                <div class="kb"><div class="kr"><button><i data-i="ExternalLink" data-s="14"></i>Открыть урок</button></div></div>
+              </div>
+              <div class="field" style="margin-top:12px"><span>Текст</span>
+                <div class="input area" id="pvTextA">Через час <span class="var">предмет</span> · <span class="var">время</span>. Тема: <span class="var">тема урока</span>.</div></div>
+            </div>
+            <div class="card pad">
+              <div style="display:flex;align-items:center;gap:10px"><span class="ico-tile blue"><i data-i="Send"></i></span>
+                <div style="flex:1"><span class="title">Telegram подключили</span><div class="bar" style="margin-top:8px"><i style="width:78%"></i></div></div>
+                <b class="num" style="font-size:20px">14<span class="sub"> из 18</span></b></div>
+              <div class="sub" style="margin:10px 0 8px 46px">Без Telegram: Артём Ким, Никита Белов, Соня Ли, Тимур Ахмедов. Им приходит только пуш, если включён.</div>
+              <div style="display:flex;gap:8px;margin-left:46px"><button class="btn s soft" data-act="copyInvite"><i data-i="Link2" data-s="16"></i>Отправить ссылку четверым</button><button class="btn s"><i data-i="Copy" data-s="16"></i>Скопировать</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Итог · ПК: главная = настраиваемый стол «Сегодня» -->
+    <div class="desk" data-v="c" id="deskC" style="margin-top:20px;height:660px">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span class="on">Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i><span class="dot"></span></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-rows:auto minmax(0,1fr)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <nav class="desk-tabs2"><span class="on">Сегодня</span><span>Финансы</span><span>Ученики</span></nav>
+          <span class="sub" style="margin-left:6px">Стол настраивается: виджеты добавляются из библиотеки, двигаются и меняют размер</span>
+          <button class="btn s" style="margin-left:auto" data-edit-desk><i data-i="GripVertical" data-s="14"></i><span>Настроить</span></button>
+          <button class="btn s soft" data-lib><i data-i="Plus" data-s="14"></i>Виджет</button>
+        </div>
+        <div class="dgrid-wrap"><div class="dgrid">
+          <div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile green"><i data-i="Users"></i></span><div><b>18</b><span class="l">Студентов</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile red"><i data-i="CheckCircle2"></i></span><div><b>5</b><span class="l">Проверить ДЗ</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile "><i data-i="Clock"></i></span><div><b>2</b><span class="l">Уроков сегодня</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div><div class="w w-stat" style="--w:2;--h:1"><span class="ico-tile amber"><i data-i="CircleAlert"></i></span><div><b>3</b><span class="l">Требуют внимания</span></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w" id="w-today-schedule" style="--w:3;--h:4"><div class="w-h"><span class="title">Расписание</span><button class="chip purple" id="rlToggle" title="Показывать строки напоминаний в расписании" style="cursor:pointer"><i data-i="Bell" data-s="14"></i>строки</button><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-lesson"><div style="display:flex;gap:8px;align-items:center"><span class="tm">17:00–18:30</span><span class="title" style="font-size:14px">Химия 10Б</span><span class="chip purple" style="margin-left:auto;height:20px;font-size:11px">Следующее</span></div>
+<button class="w-line rl" data-open="qSheetC"><i data-i="Bell" data-s="14"></i>В 16:00 напомним 6 ученикам<i data-i="ChevronRight" data-s="14" style="margin-left:auto"></i></button>
+<button class="w-line rl" data-open="qSheetC"><i data-i="ClipboardList" data-s="14"></i>18:00 «ДЗ завтра» троим<i data-i="ChevronRight" data-s="14" style="margin-left:auto"></i></button></div>
+<div class="w-lesson"><div style="display:flex;gap:8px;align-items:center"><span class="tm">19:00–20:00</span><span class="title" style="font-size:14px">Маша Соколова</span></div>
+<button class="w-line rl"><i data-i="Bell" data-s="14"></i>В 18:00 напомним Маше</button></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w new" id="w-comms-today" style="--w:3;--h:4"><div class="w-h"><span class="title">Связь с учениками</span><span class="newtag">Новый</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="ico-tile" style="width:30px;height:30px;border-radius:10px"><i data-i="Bell" data-s="16"></i></span><div class="txt"><span class="title">Сегодня уйдёт 14</span><span class="sub">ближайшее в 16:00</span></div></div>
+<div class="w-row"><span class="ico-tile red" style="width:30px;height:30px;border-radius:10px"><i data-i="CircleAlert" data-s="16"></i></span><div class="txt"><span class="title">Не дошло: Артём</span><span class="sub">заблокировал бота</span></div><button class="btn s">Написать</button></div>
+<div class="w-row"><span class="ico-tile blue" style="width:30px;height:30px;border-radius:10px"><i data-i="Send" data-s="16"></i></span><div class="txt"><span class="title">Telegram 14 из 18</span><span class="sub">4 получают пуш</span></div><button class="btn s soft" data-act="copyInvite">Позвать</button></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w" id="w-today-tasks" style="--w:2;--h:4"><div class="w-h"><span class="title">Мои задачи</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="cbx" role="checkbox" aria-checked="false"></span><div class="txt"><span class="title">Тест по ОВР к пятнице</span></div></div>
+<div class="w-row"><span class="cbx" role="checkbox" aria-checked="true"></span><div class="txt"><span class="title">Позвонить маме Артёма</span></div></div>
+<div class="w-row"><span class="cbx" role="checkbox" aria-checked="false"></span><div class="txt"><span class="title">Проверить пробник Веры</span></div></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w new" id="w-parent-reports" style="--w:4;--h:2" hidden><div class="w-h"><span class="title">Отчёты родителям · 4–10 ноября</span><span class="newtag">Новый</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="ico-tile amber" style="width:30px;height:30px;border-radius:10px"><i data-i="AlertTriangle" data-s="16"></i></span><div class="txt"><span class="title">2 требуют решения</span><span class="sub">Артём, Ева</span></div></div>
+<button class="btn primary" style="height:36px"><i data-i="CheckCheck" data-s="16"></i>Утвердить 10 готовых</button></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+          <div class="w new" id="w-payments-inbox" style="--w:4;--h:2" hidden><div class="w-h"><span class="title">Оплаты: ждут вас</span><span class="newtag">Новый</span><span class="w-act"><i data-i="MoreHorizontal" data-s="16"></i></span></div><div class="w-b"><div class="w-row"><span class="avatar sm av1">МС</span><div class="txt"><span class="title">Мама Маши: «Я оплатила»</span><span class="sub num">8 000 ₽ · 10:42</span></div><button class="btn s primary">Пришло</button></div></div><button class="rm" aria-label="Убрать"><i data-i="X" data-s="14"></i></button></div>
+        </div></div>
+      </div>
+      <aside class="lib">
+        <div style="display:flex;align-items:center;gap:8px"><h3 class="h-md" style="flex:1">Добавить виджет</h3><button class="round" style="width:36px;height:36px" data-lib aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div>
+        <div class="input" style="font-size:14px;min-height:38px;padding:8px 12px"><i data-i="Search" data-s="16" class="muted-ico"></i><span class="sub">Найти виджет</span></div>
+        <div class="fscroll lib-list"></div>
+      </aside>
+      <div class="sheet-wrap" id="qSheetC" style="align-items:center;justify-content:center">
+        <div class="sheet" style="width:460px;border-radius:24px;padding:18px 20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><h3 class="h-md" style="flex:1">16:00 · урок через час</h3><button class="round" style="width:36px;height:36px" data-close aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div>
+          <div class="fscroll" style="max-height:320px"><div class="list">
+            <div class="row" data-check style="padding:8px 4px"><span class="avatar sm av1">МС</span><div class="txt"><span class="title">Маша Соколова</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+            <div class="row" data-check style="padding:8px 4px"><span class="avatar sm av2">АК</span><div class="txt"><span class="title">Артём Ким</span><span class="sub">Пуш · бот заблокирован</span></div><span class="cbx" aria-checked="true"></span></div>
+            <div class="row" data-check style="padding:8px 4px"><span class="avatar sm av3">ЛО</span><div class="txt"><span class="title">Лиза Орлова</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+            <div class="row" data-check style="padding:8px 4px"><span class="avatar sm av4">НБ</span><div class="txt"><span class="title">Никита Белов</span><span class="sub">Пуш</span></div><span class="cbx" aria-checked="true"></span></div>
+            <div class="row" data-check style="padding:8px 4px"><span class="avatar sm av5">СЛ</span><div class="txt"><span class="title">Соня Ли</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+            <div class="row" data-check style="padding:8px 4px"><span class="avatar sm av6">ТА</span><div class="txt"><span class="title">Тимур Ахмедов</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+          </div></div>
+          <button class="btn l primary wide" data-close style="margin-top:12px">Готово</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- B · ПК -->
+    <div class="desk" data-v="b" id="deskB">
+      <div class="desk-top">
+        <span class="logo"><i></i>Искра</span>
+        <nav class="desk-tabs"><span class="on">Главная</span><span>Группы</span><span>Журнал</span><span>Конструктор</span><span>Финансы</span></nav>
+        <div class="right"><span class="icon-btn"><i data-i="Bell" data-s="18"></i></span><span class="avatar av1">АС</span></div>
+      </div>
+      <div class="desk-body" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)">
+        <div class="col" style="grid-template-rows:auto minmax(0,1fr);min-height:0">
+          <div style="display:flex;align-items:center;gap:10px">
+            <h2 class="h-lg">Что уйдёт ученикам</h2>
+            <div class="seg sm" data-seg style="margin-left:8px"><button aria-pressed="true">Сегодня · 14</button><button aria-pressed="false">Завтра · 9</button></div>
+            <button class="btn s" style="margin-left:auto" data-open="rulesSheetB"><i data-i="SlidersHorizontal" data-s="16"></i>Правила</button>
+          </div>
+          <div class="fscroll" id="queueB">
+            <div class="q-item"><span class="q-time">16:00</span>
+              <div class="card q-card"><div class="top"><span class="ico-tile"><i data-i="CalendarClock"></i></span><div class="txt" style="flex:1;min-width:0"><span class="title">Урок через час · Химия 10Б</span><span class="sub">«Через час химия · 17:00. Тема: ОВР»</span></div>
+                <button class="btn s" data-act="muteQ">Не отправлять</button></div>
+                <div class="bot"><span class="who"><span class="avatar sm av1">МС</span><span class="avatar sm av2">АК</span><span class="avatar sm av3">ЛО</span><span class="avatar sm av4">НБ</span><span class="avatar sm av5">СЛ</span><span class="avatar sm av6">ТА</span></span><span class="sub">6 учеников</span><span class="chip blue"><i data-i="Send" data-s="14"></i>4</span><span class="chip purple"><i data-i="Bell" data-s="14"></i>2</span></div></div></div>
+            <div class="q-item"><span class="q-time">17:40</span>
+              <div class="card q-card"><div class="top"><span class="ico-tile blue"><i data-i="ArrowRightLeft"></i></span><div class="txt" style="flex:1;min-width:0"><span class="title">Перенос · Маша Соколова</span><span class="sub">«Биология: чт 14.11 18:00 → пт 15.11 16:00». Уйдёт сразу после вашего переноса</span></div>
+                <span class="chip green"><i data-i="CheckCheck" data-s="14"></i>Доставлено</span></div></div></div>
+            <div class="q-item"><span class="q-time">18:00</span>
+              <div class="card q-card"><div class="top"><span class="ico-tile amber"><i data-i="ClipboardList"></i></span><div class="txt" style="flex:1;min-width:0"><span class="title">ДЗ завтра до 20:00 · Химия 10Б</span><span class="sub">«Окислительно-восстановительные реакции», 8 заданий</span></div>
+                <button class="btn s" data-act="editQ"><i data-i="Pencil" data-s="14"></i>Текст</button><button class="btn s" data-act="muteQ">Не отправлять</button></div>
+                <div class="bot"><span class="who"><span class="avatar sm av2">АК</span><span class="avatar sm av4">НБ</span><span class="avatar sm av6">ТА</span></span><span class="sub">3 ученика</span><span class="chip out">Маша, Лиза, Соня уже сдали: им не уйдёт</span></div></div></div>
+            <div class="q-item"><span class="q-time">20:00</span>
+              <div class="card q-card"><div class="top"><span class="ico-tile red"><i data-i="AlertTriangle"></i></span><div class="txt" style="flex:1;min-width:0"><span class="title">ДЗ просрочено · Артём Ким</span><span class="sub">Биология, «Клетка». Повтор 2 из 3</span></div>
+                <button class="btn s" data-act="muteQ">Не отправлять</button></div></div></div>
+            <div class="q-item"><span class="q-time" style="color:var(--color-text-3)">22:30</span>
+              <div class="card q-card"><div class="top"><span class="ico-tile grey"><i data-i="Moon"></i></span><div class="txt" style="flex:1;min-width:0"><span class="title">ДЗ просрочено · Никита Белов</span><span class="sub">Тихие часы: перенесено на 08:00 завтра</span></div>
+                <span class="chip"><i data-i="Clock" data-s="14"></i>08:00</span></div></div></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card pad">
+            <div class="title" style="margin-bottom:10px">Доставка за неделю</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+              <div><b class="num" style="font-size:24px">126</b><div class="sub">доставлено</div></div>
+              <div><b class="num" style="font-size:24px">71%</b><div class="sub">открыли урок или ДЗ</div></div>
+              <div><b class="num" style="font-size:24px;color:var(--color-red-text)">2</b><div class="sub">не дошли</div></div>
+            </div>
+          </div>
+          <div class="card" style="padding:6px">
+            <div class="row"><span class="ico-tile red"><i data-i="CircleAlert"></i></span><div class="txt"><span class="title">Артём заблокировал бота</span><span class="sub">Пуши доходят, Telegram нет</span></div><button class="btn s">Написать</button></div>
+            <div class="row"><span class="ico-tile amber"><i data-i="BellOff"></i></span><div class="txt"><span class="title">Тимур выключил «урок через час»</span><span class="sub">Сам, в своих настройках</span></div></div>
+          </div>
+          <div class="card pad">
+            <div style="display:flex;gap:10px;align-items:center"><span class="ico-tile blue"><i data-i="Send"></i></span><div class="txt" style="flex:1"><span class="title">Подключены 14 из 18</span><span class="sub">Ученик вводит код в боте</span></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- лист правил B -->
+      <div class="sheet-wrap" id="rulesSheetB" style="align-items:center;justify-content:center">
+        <div class="sheet" style="width:520px;border-radius:24px;padding:18px 20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><h3 class="h-md" style="flex:1">Правила по умолчанию</h3><button class="round" data-close aria-label="Закрыть" style="width:36px;height:36px"><i data-i="X" data-s="16"></i></button></div>
+          <div class="list">
+            <div class="row" style="padding:10px 4px"><div class="txt"><span class="title">Урок через час</span><span class="sub">за 60 мин</span></div><button class="tgl" role="switch" aria-checked="true"></button></div>
+            <div class="row" style="padding:10px 4px"><div class="txt"><span class="title">ДЗ завтра до срока</span><span class="sub">накануне в 18:00</span></div><button class="tgl" role="switch" aria-checked="true"></button></div>
+            <div class="row" style="padding:10px 4px"><div class="txt"><span class="title">ДЗ просрочено</span><span class="sub">+2 ч, потом раз в сутки ×3</span></div><button class="tgl" role="switch" aria-checked="true"></button></div>
+            <div class="row" style="padding:10px 4px"><div class="txt"><span class="title">Перенос и отмена</span><span class="sub">сразу</span></div><button class="tgl" role="switch" aria-checked="true"></button></div>
+            <div class="row" style="padding:10px 4px"><div class="txt"><span class="title">Тихие часы по умолчанию</span><span class="sub">ученик может расширить, но не сузить</span></div><span class="time-chip">22:00–08:00</span></div>
+          </div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Учитель · телефон  +  Ученик ── -->
+  <div class="lane">
+    <h3><i data-i="Phone" data-s="16" class="muted-ico"></i>Учитель · телефон  ·  Ученик: подключение, Telegram, пуш</h3>
+    <div class="lane-row">
+
+      <!-- A · телефон учителя -->
+      <div class="cap" data-v="a c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">9:41</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="ChevronLeft"></i></span><h2>Напоминания<small>для всех групп</small></h2><span></span></div>
+            <div class="scroll">
+              <div class="card" style="padding:4px">
+                <div class="list">
+                  <button class="row" data-open="ruleSheetA"><span class="ico-tile"><i data-i="CalendarClock"></i></span><div class="txt"><span class="title">Урок через час</span><span class="sub">Telegram и пуш</span></div><span class="end"><span class="tgl" role="switch" aria-checked="true"></span></span></button>
+                  <button class="row"><span class="ico-tile amber"><i data-i="ClipboardList"></i></span><div class="txt"><span class="title">ДЗ завтра до 20:00</span><span class="sub">накануне в 18:00</span></div><span class="end"><span class="tgl" role="switch" aria-checked="true"></span></span></button>
+                  <button class="row"><span class="ico-tile red"><i data-i="AlertTriangle"></i></span><div class="txt"><span class="title">ДЗ просрочено</span><span class="sub">до 3 раз, раз в сутки</span></div><span class="end"><span class="tgl" role="switch" aria-checked="true"></span></span></button>
+                  <button class="row"><span class="ico-tile blue"><i data-i="ArrowRightLeft"></i></span><div class="txt"><span class="title">Перенос или отмена</span><span class="sub">сразу</span></div><span class="end"><span class="tgl" role="switch" aria-checked="true"></span></span></button>
+                </div>
+              </div>
+              <div class="sec-label">Тихие часы</div>
+              <div class="card" style="padding:4px"><div class="row"><span class="ico-tile grey"><i data-i="Moon"></i></span><div class="txt"><span class="title num">22:00 – 08:00</span><span class="sub">ночные уйдут утром</span></div><span class="end"><span class="tgl" role="switch" aria-checked="true"></span></span></div></div>
+              <div class="sec-label">Подключение</div>
+              <div class="card pad">
+                <div style="display:flex;align-items:baseline;gap:6px"><b class="num" style="font-size:28px;letter-spacing:-0.03em">14</b><span class="sub">из 18 подключили Telegram</span></div>
+                <div class="bar" style="margin:10px 0 12px"><i style="width:78%"></i></div>
+                <button class="btn wide soft" data-act="copyInvite"><i data-i="Share2" data-s="18"></i>Позвать четверых</button>
+              </div>
+              <div class="sec-label">Исключения</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="avatar av3">ЕГ</span><div class="txt"><span class="title">ЕГЭ · вечерняя</span><span class="sub">без «урок через час»</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div>
+                <div class="row"><span class="avatar av4">МС</span><div class="txt"><span class="title">Маша Соколова</span><span class="sub">тихие часы с 21:00</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div>
+              </div></div>
+            </div>
+            <nav class="dock"><span><i data-i="CalendarDays"></i>Мой день</span><span><i data-i="Users"></i>Ученики</span><span><i data-i="ClipboardCheck"></i>Проверка</span><span class="on"><i data-i="MoreHorizontal"></i>Ещё</span></nav>
+            <div class="sheet-wrap" id="ruleSheetA">
+              <div class="sheet">
+                <div><div class="grabber"></div><div style="display:flex;align-items:center;margin-bottom:12px"><h3 class="h-md" style="flex:1;text-align:center;padding-left:36px">Урок через час</h3><button class="round" style="width:36px;height:36px" data-close aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div></div>
+                <div class="scroll" style="padding:0 0 8px">
+                  <div class="sec-label" style="margin-top:0">Когда</div>
+                  <div class="seg" data-seg style="width:100%"><button style="flex:1" aria-pressed="false">30 мин</button><button style="flex:1" aria-pressed="true">1 час</button><button style="flex:1" aria-pressed="false">2 часа</button></div>
+                  <div class="sec-label">Куда</div>
+                  <div class="card" style="padding:4px"><div class="list">
+                    <div class="row"><i data-i="Send"></i><div class="txt"><span class="title">Telegram</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                    <div class="row"><i data-i="Bell"></i><div class="txt"><span class="title">Пуш в приложении</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                  </div></div>
+                  <div class="sec-label">Превью</div>
+                  <div class="preview-pane"><div class="bub"><p><b>Через час химия</b> · 17:00</p><p>Тема: ОВР.</p><span class="meta">16:00</span></div></div>
+                </div>
+                <button class="btn l primary wide" data-close>Готово</button>
+              </div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Ещё → Напоминания.</b> Тумблер на строке, детали в шторке. Нажмите «Урок через час».</p>
+      </div>
+
+      <!-- B · телефон учителя: «Мой день» -->
+      <div class="cap" data-v="b c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">9:41</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span></span><h2>Мой день<small>среда, 13 ноября</small></h2><span class="round"><i data-i="Bell"></i></span></div>
+            <div class="scroll">
+              <div class="card lesson-card">
+                <div style="display:flex;align-items:center;gap:8px"><span class="tm">17:00 – 18:30</span><span class="chip purple" style="margin-left:auto">Следующее</span></div>
+                <div><div class="title" style="font-size:17px">Химия 10Б</div><div class="sub">Окислительно-восстановительные реакции</div></div>
+                <button class="rem-line" data-open="qSheetB"><i data-i="Bell" data-s="16"></i>В 16:00 напомним 6 ученикам<span class="end"><i data-i="ChevronRight" data-s="14" class="muted-ico"></i></span></button>
+                <button class="rem-line" data-open="qSheetB"><i data-i="ClipboardList" data-s="16"></i>В 18:00: «ДЗ завтра» трём, не сдавшим<span class="end"><i data-i="ChevronRight" data-s="14" class="muted-ico"></i></span></button>
+              </div>
+              <div class="card lesson-card" style="margin-top:12px">
+                <div style="display:flex;align-items:center;gap:8px"><span class="tm">19:00 – 20:00</span></div>
+                <div><div class="title" style="font-size:17px">Маша Соколова</div><div class="sub">Биология ЕГЭ · линия 3</div></div>
+                <button class="rem-line" data-v="b"><i data-i="BellOff" data-s="16"></i>Маша выключила «урок через час»</button><button class="rem-line" data-v="c"><i data-i="Bell" data-s="16"></i>В 18:00 напомним Маше<span class="end"><i data-i="ChevronRight" data-s="14" class="muted-ico"></i></span></button>
+              </div>
+              <div class="sec-label">Ушло сегодня</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="ico-tile blue"><i data-i="ArrowRightLeft"></i></span><div class="txt"><span class="title">Перенос · Маша</span><span class="sub">чт → пт 16:00</span></div><span class="chip green"><i data-i="CheckCheck" data-s="14"></i>12:10</span></div>
+                <div class="row"><span class="ico-tile red"><i data-i="CircleAlert"></i></span><div class="txt"><span class="title">Артём: не дошло</span><span class="sub">заблокировал бота</span></div><span class="chip red">Telegram</span></div>
+              </div></div>
+            </div>
+            <nav class="dock"><span class="on"><i data-i="CalendarDays"></i>Мой день</span><span><i data-i="Users"></i>Ученики</span><span><i data-i="ClipboardCheck"></i>Проверка</span><span><i data-i="MoreHorizontal"></i>Ещё</span></nav>
+            <div class="sheet-wrap" id="qSheetB">
+              <div class="sheet">
+                <div><div class="grabber"></div><div style="display:flex;align-items:center;margin-bottom:12px"><h3 class="h-md" style="flex:1;text-align:center;padding-left:36px">16:00 · урок через час</h3><button class="round" style="width:36px;height:36px" data-close aria-label="Закрыть"><i data-i="X" data-s="16"></i></button></div></div>
+                <div class="scroll" style="padding:0 0 8px" id="qListB">
+                  <div class="preview-pane" style="margin-bottom:12px"><div class="bub"><p><b>Через час химия</b> · 17:00</p><p>Тема: ОВР. Возьми тетрадь.</p><span class="meta">16:00</span></div></div>
+                  <div class="card" style="padding:4px"><div class="list">
+                    <div class="row" data-check><span class="avatar sm av1">МС</span><div class="txt"><span class="title">Маша Соколова</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+                    <div class="row" data-check><span class="avatar sm av2">АК</span><div class="txt"><span class="title">Артём Ким</span><span class="sub">Пуш · бот заблокирован</span></div><span class="cbx" aria-checked="true"></span></div>
+                    <div class="row" data-check><span class="avatar sm av3">ЛО</span><div class="txt"><span class="title">Лиза Орлова</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+                    <div class="row" data-check><span class="avatar sm av4">НБ</span><div class="txt"><span class="title">Никита Белов</span><span class="sub">Пуш</span></div><span class="cbx" aria-checked="true"></span></div>
+                    <div class="row" data-check><span class="avatar sm av5">СЛ</span><div class="txt"><span class="title">Соня Ли</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+                    <div class="row" data-check><span class="avatar sm av6">ТА</span><div class="txt"><span class="title">Тимур Ахмедов</span><span class="sub">Telegram</span></div><span class="cbx" aria-checked="true"></span></div>
+                  </div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn l" data-close><i data-i="Pencil" data-s="16"></i>Текст</button><button class="btn l primary" data-close>Готово</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Очередь внутри «Моего дня».</b> Под занятием видно, что и кому уйдёт. Снять галочку = не отправлять этому ученику. Нажмите строку напоминания.</p>
+      </div>
+
+      <!-- Итог · телефон: настроить «Мой день» -->
+      <div class="cap" data-v="c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">9:41</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="X"></i></span><h2>Настроить «Мой день»<small>порядок и блоки</small></h2><span></span></div>
+            <div class="scroll" style="padding-bottom:110px">
+              <div class="sec-label" style="margin-top:4px">Блоки сверху вниз · тащите за ручку</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="grip"><i data-i="GripVertical" data-s="18"></i></span><span class="ico-tile " style="width:32px;height:32px;border-radius:10px"><i data-i="CalendarDays" data-s="18"></i></span><div class="txt"><span class="title">Ближайшее занятие</span><span class="sub">главный блок</span></div><span class="chip">всегда</span></div>
+                <div class="row"><span class="grip"><i data-i="GripVertical" data-s="18"></i></span><span class="ico-tile red" style="width:32px;height:32px;border-radius:10px"><i data-i="ClipboardCheck" data-s="18"></i></span><div class="txt"><span class="title">Проверка работ</span><span class="sub">очередь ДЗ</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row"><span class="grip"><i data-i="GripVertical" data-s="18"></i></span><span class="ico-tile blue" style="width:32px;height:32px;border-radius:10px"><i data-i="Send" data-s="18"></i></span><div class="txt"><span class="title">Связь с учениками</span><span class="sub">не дошло, кто без Telegram</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row"><span class="grip"><i data-i="GripVertical" data-s="18"></i></span><span class="ico-tile green" style="width:32px;height:32px;border-radius:10px"><i data-i="ScrollText" data-s="18"></i></span><div class="txt"><span class="title">Отчёты родителям</span><span class="sub">появляется в пятницу</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row"><span class="grip"><i data-i="GripVertical" data-s="18"></i></span><span class="ico-tile amber" style="width:32px;height:32px;border-radius:10px"><i data-i="Wallet" data-s="18"></i></span><div class="txt"><span class="title">Оплаты: ждут вас</span><span class="sub">«Я оплатила», закрыть месяц</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+                <div class="row"><span class="grip"><i data-i="GripVertical" data-s="18"></i></span><span class="ico-tile amber" style="width:32px;height:32px;border-radius:10px"><i data-i="CircleAlert" data-s="18"></i></span><div class="txt"><span class="title">Требуют внимания</span><span class="sub">до 3 учеников</span></div><span class="tgl" role="switch" aria-checked="false"></span></div>
+              </div></div>
+              <div class="sec-label">В карточке занятия</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row"><span class="ico-tile" style="width:32px;height:32px;border-radius:10px"><i data-i="Bell" data-s="18"></i></span><div class="txt"><span class="title">Строки напоминаний</span><span class="sub">«В 16:00 напомним 6»</span></div><span class="tgl" role="switch" aria-checked="true"></span></div>
+              </div></div>
+            </div>
+            <div class="sticky-foot"><button class="btn l primary wide">Готово</button></div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Новое: «Мой день» тоже настраивается.</b> Те же блоки, что виджеты на ПК: порядок ручкой, лишнее выключается. Ближайшее занятие всегда первое.</p>
+      </div>
+
+      <!-- A · ученик: подключение в один тап -->
+      <div class="cap" data-v="a c">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">9:41</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="ChevronLeft"></i></span><h2>Уведомления</h2><span></span></div>
+            <div class="scroll">
+              <div class="card pad-l" style="text-align:center;display:grid;gap:10px;justify-items:center">
+                <span class="ico-tile blue" style="width:56px;height:56px;border-radius:18px"><i data-i="Send" data-s="28"></i></span>
+                <div class="h-md">Напоминания в Telegram</div>
+                <div class="sub" style="max-width:260px">Урок через час, срок ДЗ, переносы. Бот откроется уже с вашим именем, ничего вводить не нужно.</div>
+                <button class="btn l primary wide" data-act="connectA" id="connectBtnA"><i data-i="Send" data-s="18"></i>Подключить Telegram</button>
+                <div data-v="c" class="sub">Telegram на другом устройстве? Напишите боту код <b class="num" style="color:var(--color-text)">4821</b></div>
+              </div>
+              <div class="sec-label">Пуш на этот телефон</div>
+              <div class="card" style="padding:4px"><div class="row"><span class="ico-tile"><i data-i="Bell"></i></span><div class="txt"><span class="title">Разрешить пуши</span><span class="sub">iPhone спросит один раз</span></div><span class="tgl" role="switch" aria-checked="false"></span></div></div>
+              <div class="sec-label">Тихие часы</div>
+              <div class="card" style="padding:4px"><div class="row"><span class="ico-tile grey"><i data-i="Moon"></i></span><div class="txt"><span class="title num">22:00 – 08:00</span><span class="sub">задал учитель · можно расширить</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div></div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Ученик: Профиль → Уведомления.</b> Кнопка ведёт на <code>t.me/iskra_bot?start=…</code> с одноразовым токеном. Учитель может прислать ту же ссылку сам.</p>
+      </div>
+
+      <!-- B · ученик: код + свои настройки -->
+      <div class="cap" data-v="b">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span class="num">9:41</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="app">
+            <div class="app-head"><span class="round"><i data-i="ChevronLeft"></i></span><h2>Уведомления</h2><span></span></div>
+            <div class="scroll">
+              <div class="card pad-l" style="text-align:center;display:grid;gap:12px">
+                <div class="title">Напишите боту <span style="color:var(--color-accent)">@iskra_bot</span> этот код</div>
+                <div class="code"><b>4</b><b>8</b><b>2</b><b>1</b></div>
+                <div class="sub">Код действует 15 минут</div>
+                <button class="btn soft wide"><i data-i="Send" data-s="16"></i>Открыть бота</button>
+              </div>
+              <div class="sec-label">Что присылать</div>
+              <div class="card" style="padding:4px"><div class="list">
+                <div class="row kind-row"><div class="txt"><span class="title">Урок через час</span></div><span class="end"><div class="seg sm" data-seg><button aria-pressed="true">TG</button><button aria-pressed="false">Пуш</button><button aria-pressed="false">Нет</button></div></span></div>
+                <div class="row kind-row"><div class="txt"><span class="title">Срок ДЗ</span></div><span class="end"><div class="seg sm" data-seg><button aria-pressed="true">TG</button><button aria-pressed="false">Пуш</button><button aria-pressed="false">Нет</button></div></span></div>
+                <div class="row kind-row"><div class="txt"><span class="title">Просрочка</span></div><span class="end"><div class="seg sm" data-seg><button aria-pressed="false">TG</button><button aria-pressed="true">Пуш</button><button aria-pressed="false">Нет</button></div></span></div>
+                <div class="row kind-row"><div class="txt"><span class="title">Перенос и отмена</span><span class="sub">выключить нельзя</span></div><span class="end"><span class="chip">TG + пуш</span></span></div>
+              </div></div>
+              <div class="sec-label">Не беспокоить</div>
+              <div class="card" style="padding:4px"><div class="row"><span class="ico-tile grey"><i data-i="Moon"></i></span><div class="txt"><span class="title num">21:00 – 08:00</span><span class="sub">учитель задал 22:00</span></div><i data-i="ChevronRight" data-s="16" class="muted-ico"></i></div></div>
+            </div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Ученик сам управляет каналами.</b> Подключение — код вместо ссылки: работает, даже если Искра открыта на компьютере, а Telegram — на телефоне.</p>
+      </div>
+
+      <!-- Telegram (общий, с разным началом) -->
+      <div class="cap">
+        <div class="phone"><div class="screen">
+          <div class="statusbar" style="background:var(--tg-head);color:var(--tg-text)"><span class="num">16:00</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="tg">
+            <div class="tg-head"><span class="bk"><i data-i="ChevronLeft" data-s="18"></i>Чаты</span><div class="nm"><b>Искра</b><span>бот</span></div><span class="tg-ava">И</span></div>
+            <div class="tg-feed" data-bottom id="tgFeed">
+              <div class="tg-day">11 ноября</div>
+              <div data-v="a c" class="contents"><div class="bub out">/start<span class="meta">19:02</span></div></div>
+              <div data-v="b" class="contents"><div class="bub out">4821<span class="meta">19:02</span></div>
+                <div class="bub">Это <b>Маша Соколова</b>, ученица Анны Сергеевны?<span class="meta">19:02</span></div>
+                <div class="kb"><div class="kr"><button class="done">Да, это я</button><button class="done">Нет</button></div></div></div>
+              <div class="bub"><p><b>Готово, Маша!</b></p><p>Буду напоминать об уроках и сроках домашки. Ночью с 22:00 до 08:00 молчу.</p><span class="quiet">Отключить: /stop · настройки в Искре</span><span class="meta">19:02</span></div>
+              <div class="tg-day">Вчера</div>
+              <div class="bub"><p><b>Урок перенесён</b></p><p>Биология: <s>чт 14.11, 18:00</s> → <b>пт 15.11, 16:00</b></p><span class="meta">12:10</span></div>
+              <div class="kb"><div class="kr"><button><i data-i="CalendarCheck" data-s="14"></i>В календарь</button></div></div>
+              <div class="bub"><p><b>ДЗ завтра до 20:00</b></p><p>Химия · «Окислительно-восстановительные реакции». Сделано 3 из 8 заданий.</p><span class="meta">18:00</span></div>
+              <div class="kb"><div class="kr"><button><i data-i="ExternalLink" data-s="14"></i>Открыть ДЗ</button><button data-v="b" data-act="snooze"><i data-i="Clock" data-s="14"></i>Через 2 часа</button></div></div>
+              <div class="tg-day">Сегодня</div>
+              <div class="bub"><p><b>ДЗ просрочено</b></p><p>Химия · ОВР: срок был вчера в 20:00. Учитель ещё принимает.</p><span class="meta">08:00</span></div>
+              <div class="kb"><div class="kr"><button><i data-i="ExternalLink" data-s="14"></i>Сдать сейчас</button><button><i data-i="MessageCircle" data-s="14"></i>Учителю</button></div></div>
+              <div class="bub"><p><b>Через час химия</b> · 17:00</p><p>Тема: окислительно-восстановительные реакции. Возьми тетрадь с прошлого урока.</p><span class="meta">16:00</span></div>
+              <div class="kb"><div class="kr"><button><i data-i="ExternalLink" data-s="14"></i>Открыть урок</button></div></div>
+            </div>
+            <div class="tg-input"><i data-i="Plus" data-s="20" class="muted-ico"></i><span>Сообщение</span></div>
+          </div>
+          <div class="homebar"></div>
+        </div></div>
+        <p><b>Telegram.</b> Все четыре типа, у каждого одно главное действие. «Просрочено» пришло в 08:00: ночное время сдвинули тихие часы. Прокрутите чат вверх, к подключению.</p>
+      </div>
+
+      <!-- Пуш -->
+      <div class="cap">
+        <div class="phone"><div class="screen" style="grid-template-rows:47px minmax(0,1fr)">
+          <div class="statusbar" style="color:#fff"><span class="num">16:00</span><span class="isl"></span><span class="sig"><i></i><b></b></span></div>
+          <div class="lock">
+            <div class="date">Среда, 13 ноября</div>
+            <div class="clock">16:00</div>
+            <div class="stack">
+              <div class="push"><span class="pi"><i data-i="CalendarClock" data-s="20"></i></span><div><b>Через час химия · 17:00</b><span>Тема: ОВР. Возьми тетрадь с прошлого урока.</span></div><time>сейчас</time></div>
+              <div class="push dim"><span class="pi"><i data-i="AlertTriangle" data-s="20"></i></span><div><b>ДЗ просрочено</b><span>Химия · ОВР. Учитель ещё принимает.</span></div><time>08:00</time></div>
+              <div class="push dim" style="transform:scale(.94);opacity:.55"><span class="pi"><i data-i="ArrowRightLeft" data-s="20"></i></span><div><b>Урок перенесён</b><span>Биология → пт 15.11, 16:00</span></div><time>вчера</time></div>
+            </div>
+          </div>
+          <div class="homebar" style="background:#fff"></div>
+        </div></div>
+        <p><b>Пуш</b> — тот же текст короче, тап открывает урок или ДЗ в приложении. Пуш нужен тем, у кого нет Telegram, и в A, и в B.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ ОБОСНОВАНИЕ ═══════════════════════════ -->
+<section class="view view-spec spec">
+  <div class="note"><b>Доступ.</b> Функция за фича-ключом <code>reminders</code>: админ выдаёт доступ учителю или всем (Администрирование → Функции). Без доступа у учителя нет ни настроек, ни виджетов, ни строк из этого макета. С доступом — тумблер и параметры в «Настройках → Автоматизации». Подробно: <a href="access.html" style="color:inherit">Доступ к автоматизациям</a>.</div>
+  <div data-v="c">
+  <h2>Итог: что взяли из A и B</h2>
+  <ul>
+    <li><b>Из A:</b> экран «Напоминания» (ПК: Настройки; телефон: Ещё → Напоминания) — четыре правила, каналы, тихие часы, исключения по группам и ученикам; подключение ученика кнопкой <code>?start=токен</code>.</li>
+    <li><b>Из B:</b> строки «В 16:00 напомним 6 ученикам» под занятием в «Моём дне» и в виджете расписания на главной ПК; по нажатию — список получателей с галочками (снять одного = не отправлять ему). Блок «Не дошло» рядом с расписанием. Код из 4 цифр — запасной путь, если Telegram на другом устройстве.</li>
+    <li><b>Настраивается везде:</b> на ПК — три новых виджета в реестре (<code>comms-today</code>, <code>parent-reports</code>, <code>payments-inbox</code> в <code>widgets/registry.tsx</code>), их не ставим на стол по умолчанию; раскладка хранится как сейчас, в <code>desk_layouts</code>; админ может скрыть их через <code>hidden_widgets</code>. Строки напоминаний в виджете «Расписание» — настройка самого виджета (кнопка «строки»). На телефоне — новый экран «Настроить „Мой день“»: порядок и включение тех же блоков, хранится в настройках учителя (например, <code>my_day_blocks</code> рядом с раскладкой стола).</li>
+    <li><b>Не берём:</b> отдельный экран очереди на ПК и личный выбор каналов учеником (B). Каналы задаёт учитель; ученик может только расширить тихие часы и отписаться в боте (<code>/stop</code>).</li>
+    <li><b>Данные:</b> строки под занятием читают <code>comms_outbox</code> по <code>schedule_id</code> (поле в <code>payload</code> или отдельная колонка); снятие галочки ставит строке <code>status='cancelled'</code>.</li>
+  </ul>
+  </div>
+  <h2>Зачем и для кого</h2>
+  <p>Ученик пропускает урок или срок не из лени: он забыл. Внутренние уведомления Искры (таблица <code>notifications</code>) видны, только когда ученик уже открыл приложение. Нужен канал, который сам «стучится»: Telegram есть почти у всех, пуш — у тех, кто поставил приложение.</p>
+
+  <h2>Сравнение вариантов</h2>
+  <table class="cmp">
+    <tr><th></th><th>A · Правила один раз</th><th>B · Очередь «что уйдёт»</th></tr>
+    <tr><td>Модель для учителя</td><td>Настроил 4 тумблера и забыл. Сообщений не видно.</td><td>Видно каждое сообщение до отправки: кому, когда, что. Можно снять или поправить.</td></tr>
+    <tr><td>Где живёт</td><td>Ещё → Напоминания (телефон), Настройки (ПК)</td><td>В «Моём дне» под занятием + экран очереди на ПК; правила в шторке</td></tr>
+    <tr><td>Подключение ученика</td><td>Кнопка с одноразовой ссылкой <code>?start=токен</code>. Один тап.</td><td>4-значный код, который ученик пишет боту. Работает между устройствами.</td></tr>
+    <tr><td>Кто решает про каналы</td><td>Учитель (исключения для групп и учеников)</td><td>Ученик сам: TG / пуш / нет по каждому типу. Перенос и отмену выключить нельзя.</td></tr>
+    <tr><td>Тихие часы</td><td>Задаёт учитель, ученик может только расширить</td><td>Учитель задаёт по умолчанию, ученик меняет у себя</td></tr>
+    <tr><td>Нагрузка на учителя</td><td>Минимальная</td><td>Больше информации; без вмешательства работает так же, как A</td></tr>
+    <tr><td>Риск</td><td>Учитель не знает, что ушло «не то», пока ученик не скажет</td><td>Шум в «Моём дне»; нужно аккуратно не перегрузить карточку занятия</td></tr>
+    <tr><td>Стоимость</td><td>Меньше: экран правил + шторка</td><td>Больше: очередь, журнал доставки, личные настройки ученика</td></tr>
+  </table>
+  <div class="note"><b>Рекомендация:</b> правила и подключение одной кнопкой из A, а из B — строка «В 16:00 напомним 6 ученикам» в карточке занятия «Моего дня» (без отдельного экрана очереди) и журнал «не дошло». Код из B оставить запасным путём, когда кнопка не срабатывает (Искра на ПК, Telegram на телефоне).</div>
+
+  <h2>Что и когда уходит</h2>
+  <table class="cmp">
+    <tr><th>Тип</th><th>Когда</th><th>Отменяется, если</th><th>Ключ дедупликации</th></tr>
+    <tr><td>Урок через час</td><td>start − 60 мин (30/60/120)</td><td>урок отменён или перенесён; ученик выключил тип</td><td><code>lesson_soon:{schedule_id}:{date}</code></td></tr>
+    <tr><td>ДЗ завтра до 20:00</td><td>накануне срока в 18:00</td><td>ДЗ сдано (статус ≠ assigned/in_progress) до отправки</td><td><code>hw_due:{student}:{assignment}</code></td></tr>
+    <tr><td>ДЗ просрочено</td><td>срок + 2 ч, затем раз в сутки, максимум 3</td><td>сдано; учитель закрыл приём; снято вручную</td><td><code>hw_late:{student}:{assignment}:{n}</code></td></tr>
+    <tr><td>Перенос / отмена</td><td>сразу после <code>schedule_move</code>/<code>_cancel</code>/<code>_shift</code></td><td><code>schedule_undo</code> в течение 30 с (окно тоста «Отменить»)</td><td><code>sched:{schedule_id}:{version}</code></td></tr>
+  </table>
+  <p>Тихие часы применяются при постановке в очередь: <code>send_at</code> сдвигается на конец окна по часовому поясу ученика. Исключение: перенос урока, который начинается до 10:00, приходит сразу.</p>
+
+  <h2>Черновик данных</h2>
+  <p>Общее ядро (контакты, очередь отправки, диспетчер) одно на три концепта и описано в <a href="index.html?view=spec" style="color:var(--color-accent)">обзоре</a>. Здесь только то, что нужно напоминаниям.</p>
+<pre>-- Привязка Telegram: одноразовый токен для ?start= (A) или 4-значный код (B)
+create table messenger_link_codes (
+  code        text primary key,           -- base64url 24 байта (A) или 4 цифры (B)
+  student_id  uuid not null references students(id) on delete cascade,
+  role        text not null default 'student' check (role in ('student','parent')),
+  expires_at  timestamptz not null,       -- A: 7 дней, B: 15 минут
+  used_at     timestamptz
+);
+
+-- Пуш-токены устройств (сейчас пушей в проекте нет совсем)
+create table push_tokens (
+  id          uuid primary key default gen_random_uuid(),
+  student_id  uuid not null references students(id) on delete cascade,
+  platform    text not null check (platform in ('apns','webpush')),
+  token       text not null unique,
+  created_at  timestamptz default now(),
+  last_ok_at  timestamptz
+);
+
+-- Правила учителя; group_id/student_id = исключение поверх общего правила
+create table reminder_rules (
+  id          uuid primary key default gen_random_uuid(),
+  teacher_id  uuid not null references auth.users(id),
+  kind        text not null check (kind in ('lesson_soon','hw_due','hw_late','schedule_change')),
+  group_id    uuid, student_id uuid,
+  enabled     boolean not null default true,
+  offset_min  int,                         -- lesson_soon: 30/60/120
+  at_time     time,                        -- hw_due: 18:00
+  repeat_max  int default 3,               -- hw_late
+  channels    text[] not null default '{telegram,push}',
+  template    text,                        -- null = стандартный текст
+  unique (teacher_id, kind, group_id, student_id)
+);
+
+-- Тихие часы и выбор каналов ученика (B) — в students.preferences jsonb:
+-- { "quiet": {"from":"21:00","to":"08:00","tz":"Europe/Moscow"},
+--   "channels": {"lesson_soon":"telegram","hw_late":"push","hw_due":"off"} }</pre>
+
+  <h3>Cron (pg_cron → pg_net → edge-функция)</h3>
+<pre>select cron.schedule('comms-plan-lessons', '*/5 * * * *',  $$ select comms_plan_lesson_soon() $$);  -- уроки в окне [now, now+2ч]
+select cron.schedule('comms-plan-homework', '*/15 * * * *', $$ select comms_plan_homework() $$);     -- hw_due / hw_late
+select cron.schedule('comms-dispatch',     '* * * * *',    $$ select comms_dispatch() $$);          -- общий диспетчер очереди</pre>
+
+  <h3>Какие триггеры переиспользовать</h3>
+  <ul>
+    <li><code>_schedule_notify</code> (0121) — его уже зовут <code>schedule_move</code>/<code>_shift</code>/<code>_cancel</code> с флагом <code>p_notify</code>. Добавить в него постановку <code>schedule_change</code> в очередь рядом с вставкой в <code>notifications</code> и снимать из очереди ещё не ушедшие <code>lesson_soon</code> этого занятия.</li>
+    <li><code>schedule_undo</code> — отзывает неотправленные сообщения по <code>dedupe_key</code>. Отправку переноса держим 30 с (окно тоста «Отменить»).</li>
+    <li><code>notify_on_homework</code> — при выдаче ДЗ ничего не шлём (это уже делает приложение), но планировщик <code>comms_plan_homework</code> читает те же назначения.</li>
+    <li><code>notify_on_lesson_progress</code> — при сдаче снимать <code>hw_due</code>/<code>hw_late</code> из очереди.</li>
+    <li><code>tg-webhook</code> — сейчас ведёт диалоги с лидами (<code>tg_threads</code>). Добавить ветку <code>/start &lt;токен&gt;</code> и 4 цифры → запись в <code>messenger_links</code>; <code>/stop</code> → <code>revoked_at</code>.</li>
+  </ul>
+
+  <h3>Открытые вопросы</h3>
+  <ul>
+    <li>Пуши: нужен плагин <code>@capacitor/push-notifications</code>, ключ APNs и сборка приложения. Веб-пуш на iPhone работает только из PWA на экране «Домой» (iOS 16.4+). До этого канал — только Telegram.</li>
+    <li>Часовой пояс ученика: сейчас его нигде не храним. Брать из браузера при входе в <code>students.preferences.quiet.tz</code>.</li>
+    <li>Ученик без аккаунта (по ссылке-приглашению) не может открыть настройки. Учитель отправляет ему ссылку на привязку из карточки ученика.</li>
+  </ul>
+</section>
+</main>
+
+<script src="icons.js"></script>
+<script src="kit.js"></script>
+<script>
+  document.getElementById('rlToggle').addEventListener('click', (e) => { const on = e.currentTarget.classList.toggle('purple'); e.currentTarget.classList.toggle('out', !on); document.querySelectorAll('#deskC .rl').forEach((r) => { r.hidden = !on; }); });
+  // Превью правила A: клик по строке выбирает правило
+  const PV = {
+    soon: ['Урок через час', '<div class="bub"><p><b>Через час химия</b> · 17:00</p><p>Тема: окислительно-восстановительные реакции. Возьми тетрадь с прошлого урока.</p><span class="meta">16:00</span></div><div class="kb"><div class="kr"><button>Открыть урок</button></div></div>',
+      'Через час <span class="var">предмет</span> · <span class="var">время</span>. Тема: <span class="var">тема урока</span>.', ['30 мин','60 мин','2 часа']],
+    due: ['ДЗ завтра до 20:00', '<div class="bub"><p><b>ДЗ завтра до 20:00</b></p><p>Химия · «ОВР». Сделано 3 из 8 заданий.</p><span class="meta">18:00</span></div><div class="kb"><div class="kr"><button>Открыть ДЗ</button></div></div>',
+      'Завтра до <span class="var">срок</span> сдать «<span class="var">название ДЗ</span>». Сделано <span class="var">готово</span> из <span class="var">всего</span>.', ['17:00','18:00','19:00']],
+    late: ['ДЗ просрочено', '<div class="bub"><p><b>ДЗ просрочено</b></p><p>Химия · ОВР: срок был вчера в 20:00. Учитель ещё принимает.</p><span class="meta">08:00</span></div><div class="kb"><div class="kr"><button>Сдать сейчас</button><button>Написать учителю</button></div></div>',
+      '«<span class="var">название ДЗ</span>»: срок был <span class="var">срок</span>. Учитель ещё принимает.', ['1 раз','до 3 раз','до 5 раз']],
+    moved: ['Урок перенесён или отменён', '<div class="bub"><p><b>Урок перенесён</b></p><p>Биология: <s>чт 14.11, 18:00</s> → <b>пт 15.11, 16:00</b></p><span class="meta">12:10</span></div><div class="kb"><div class="kr"><button>В календарь</button></div></div>',
+      '<span class="var">предмет</span>: <span class="var">было</span> → <span class="var">стало</span>', ['сразу','через 30 с','через 5 мин']],
+  };
+  document.getElementById('rulesA').addEventListener('click', (e) => {
+    if (e.target.closest('.tgl')) { const r = e.target.closest('.rule'); setTimeout(() => r.classList.toggle('off', r.querySelector('.tgl').getAttribute('aria-checked') !== 'true')); return; }
+    const r = e.target.closest('.rule'); if (!r) return;
+    document.querySelectorAll('#rulesA .rule').forEach((x) => x.setAttribute('aria-selected', String(x === r)));
+    const p = PV[r.dataset.rule];
+    document.getElementById('pvTitleA').textContent = p[0];
+    document.getElementById('pvA').innerHTML = p[1];
+    document.getElementById('pvTextA').innerHTML = p[2];
+    const seg = document.querySelector('#deskA [data-seg]');
+    seg.querySelectorAll('button').forEach((b, i) => { b.textContent = p[3][i]; b.setAttribute('aria-pressed', String(i === 1)); });
+  });
+  window.ACTS = {
+    copyInvite: (b) => mockToast(b.closest('.desk, .screen'), 'Ссылки отправлены четверым'),
+    muteQ: (b) => {
+      const c = b.closest('.q-card'); c.classList.toggle('muted');
+      const on = c.classList.contains('muted'); b.textContent = on ? 'Вернуть' : 'Не отправлять';
+      if (on) mockToast(b.closest('.desk'), 'Не отправим', () => { c.classList.remove('muted'); b.textContent = 'Не отправлять'; });
+    },
+    editQ: (b) => mockToast(b.closest('.desk'), 'Откроется текст сообщения'),
+    connectA: (b) => { b.innerHTML = 'Подключено · @masha_s'; b.classList.remove('primary'); b.classList.add('soft'); },
+    snooze: (b) => { b.classList.add('done'); b.textContent = 'Напомню в 20:00'; },
+  };
+</script>
+<script src="widgets.js"></script>
+</body>
+</html>
