@@ -1,3 +1,4 @@
+import './lib/polyfills' // первым: заплатки API для старых iOS до Supabase и приложения
 import { initialRouteTarget } from './lib/initialRoute'
 import { initNativeCrashReporting } from './lib/nativeCrashReporting'
 import { initAnalytics } from './lib/analytics'
@@ -145,7 +146,8 @@ startTextFades()
 // Install diagnostics before rendering; App's later call is idempotent.
 initAnalytics()
 void initNativeCrashReporting()
-createRoot(document.getElementById('root')!).render(
+// Старый браузер: index.html уже показал экран «обновите iOS» — не затираем его.
+if (!(window as Window & { __iskraUnsupported?: boolean }).__iskraUnsupported) createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* Системная настройка «уменьшить движение» — для всего framer-motion
         сразу: без неё бесконечные repeat: Infinity её не слушали. */}

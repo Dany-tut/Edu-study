@@ -62,7 +62,8 @@ export function parseFormula(formula: string): FormulaChunk[] {
 
 /** Первое предложение заметки — подпись под схемой. Целиком она слишком длинна. */
 function firstSentence(text: string): string | undefined {
-  const s = text.trim().split(/(?<=[.!?])\s+/)[0]
+  // Без lookbehind: (?<=…) роняет весь модуль на iOS < 16.4.
+  const s = text.trim().replace(/([.!?])\s+[\s\S]*$/, '$1')
   return s && s.length > 15 ? s : undefined
 }
 

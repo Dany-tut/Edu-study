@@ -6,6 +6,7 @@ import { supabase } from '../../../lib/supabase'
 import ScrollFade from '../../ScrollFade'
 import { X } from '../../icons/appIcons'
 import './teacherGuides.css'
+import { openDialog } from '../../../lib/polyfills'
 
 const assets = import.meta.glob<string>('../../../../design/contextual-onboarding/media/{access-mode,unlock-lesson,pupil-open,pupil-locked,teacher-feedback,learner-feedback,revised-answer,compare-answers,publish-grade,misha-result,move-queue,desk-switch,roster-invite,roster-register,roster-joined,schedule-move,journal-first,journal-second,finance-payment,learner-card,learner-score,misha-first,misha-second}.{gif,webp,png}', { eager: true, query: '?url', import: 'default' })
 const media = (file: string) => assets['../../../../design/contextual-onboarding/media/' + file]
@@ -89,8 +90,8 @@ function GuideDialog({ current, onChoose, onClose }: {
   const selected = useRef<GuideId | null>(null)
   useLayoutEffect(() => {
     const el = dialog.current!
-    el.showModal()
-    return () => el.close()
+    openDialog(el)
+    return () => el.close?.()
   }, [])
   useLayoutEffect(() => {
     if (current === 'catalog' && selected.current) dialog.current?.querySelector<HTMLButtonElement>('[data-guide="'+selected.current+'"]')?.focus()

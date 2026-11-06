@@ -33,6 +33,7 @@ import type { StudentWork } from './studentWorks'
 import { useScrollEdges } from './useScrollEdges'
 import { DueDateSlip, GoalFlag, TopicGauge, WeeklyTrend, WeekStamps } from './StudentReportArt'
 import './groupOverview.css'
+import { openDialog } from '../../../lib/polyfills'
 
 function quantity(n: number, one: string, few: string, many: string) {
   return (
@@ -331,7 +332,7 @@ export function StudentOverviewCard({
       className="cj-button jo-shot"
       onClick={() => {
         setSharing(true)
-        dialog.current?.showModal()
+        openDialog(dialog.current)
       }}
     >
       <Camera size={15} />

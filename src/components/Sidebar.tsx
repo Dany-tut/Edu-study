@@ -33,6 +33,7 @@ import { useFeedGlance } from '../lib/feedRead'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
 import { useSeason, openSeasonPicker, VARIANTS } from '../lib/season'
+import { signOutAndReload } from '../lib/signOutAndReload'
 
 const navItems = [
   { id: 'home',    label: 'Главная',  icon: Home },
@@ -664,7 +665,7 @@ export default function Sidebar() {
                       icon={LogOut}
                       label={t('Выйти')}
                       danger
-                      onClick={() => { clearStudentSession(); void trackNow('logout', { role: 'student' }); void supabase.auth.signOut(); window.location.hash = '#/'; window.location.reload(); closePicker() }}
+                      onClick={() => { clearStudentSession(); void trackNow('logout', { role: 'student' }); closePicker(); void signOutAndReload('#/') }}
                     />
                     {/* Подвал меню: номер сборки этого устройства + проверка обновления */}
                     <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 8px 4px' }} />

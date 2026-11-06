@@ -171,7 +171,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
   // Тост сам уходит через 5 с — как в Таскли. Новый тост перезапускает отсчёт.
   useEffect(() => {
     if (!toast) return
-    const id = setTimeout(() => setToast(null), 5000)
+    // Ошибку держим дольше: её надо успеть прочитать.
+    const id = setTimeout(() => setToast(null), toast.tone === 'danger' ? 8000 : 5000)
     return () => clearTimeout(id)
   }, [toast])
 
@@ -319,11 +320,14 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
           {toast && (
             <motion.div
               key={toast.text + String(!!toast.undo)}
+              role={toast.tone === 'danger' ? 'alert' : 'status'}
+              aria-live={toast.tone === 'danger' ? 'assertive' : 'polite'}
               initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 24 }}
               transition={SPRING}
               style={{
                 position: 'fixed', left: 16, right: 16, margin: '0 auto', maxWidth: 420, zIndex: Z.toast,
-                bottom: mobile ? 'calc(env(safe-area-inset-bottom, 0px) + 96px)' : 24,
+                // Над плашкой «нет сети», если она видна: иначе стояли друг на друге.
+                bottom: mobile ? 'calc(env(safe-area-inset-bottom, 0px) + 96px + var(--offline-lift, 0px))' : 'calc(24px + var(--offline-lift, 0px))',
                 display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px 12px 16px', borderRadius: 18,
                 background: toast.tone === 'danger' ? 'var(--btn-red-bg)' : 'var(--color-text)',
                 color: toast.tone === 'danger' ? '#fff' : 'var(--color-bg)',

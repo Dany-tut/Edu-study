@@ -13,6 +13,7 @@ import { useLang, useT } from '../lib/i18n'
 import type { ScheduleDay } from '../data/mockData'
 import Skeleton from './Skeleton'
 import './scheduleRibbon.css'
+import { openDialog } from '../lib/polyfills'
 
 const dateOf = (key: string) => new Date(`${key}T12:00:00Z`)
 const keyOf = (date: Date) => date.toISOString().slice(0, 10)
@@ -86,7 +87,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
     return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape) }
   }, [open])
   useEffect(() => {
-    if (visible && expanded) expandedDialog.current?.showModal()
+    if (visible && expanded) openDialog(expandedDialog.current)
   }, [visible, expanded])
   const byDate = new Map([...days, ...remote].map(day => [day.date, day]))
   const loading = !byDate.has(selected) && !failed && (pending || !loaded)

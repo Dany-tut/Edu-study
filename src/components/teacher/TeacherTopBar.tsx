@@ -40,6 +40,7 @@ import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
 import { getAuthUser } from '../../lib/owner'
 import { AvatarPhotoFill } from '../AvatarPhoto'
 import { useDashboard } from '../../store/dashboardStore'
+import { signOutAndReload } from '../../lib/signOutAndReload'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
@@ -703,7 +704,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
             <motion.button whileTap={{ scale: 0.98 }}
-              onClick={() => { void trackNow('logout', { role: 'teacher' }); supabase.auth.signOut(); setProfileOpen(false) }}
+              onClick={() => { void trackNow('logout', { role: 'teacher' }); setProfileOpen(false); void signOutAndReload('#/teacher') }}
               className="profile-menu-row" data-tone="red"
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'transparent', textAlign: 'left', transition: 'background 0.15s', width: '100%' }}
             >

@@ -48,7 +48,19 @@ export function termMentions(term: string, text: string): number {
   // Формулы и латиница («KMnO4», «pH») — только целиком: KMnO3 не KMnO4.
   const part = (w: string) => /[a-z0-9]/.test(w) ? `${escape(w)}(?![\\p{L}\\p{N}])` : `${escape(stem(w))}[\\p{L}\\p{N}]*`
   const pattern = words.map(part).join('[^\\p{L}\\p{N}]{1,3}')
-  return (flat(text).match(new RegExp(`(?<![\\p{L}\\p{N}])${pattern}`, 'gu')) ?? []).length
+  // Совпадение не должно продолжать слово слева. Проверяем символ перед ним
+  // вручную: lookbehind (?<!…) — SyntaxError на iOS < 16.4.
+  const source = flat(text)
+  const re = new RegExp(pattern, 'gu')
+  const wordChar = /[\p{L}\p{N}]/u
+  let count = 0
+  for (let m = re.exec(source); m; m = re.exec(source)) {
+    const before = Array.from(source.slice(Math.max(0, m.index - 2), m.index)).pop()
+    if (before && wordChar.test(before)) { re.lastIndex = m.index + 1; continue }
+    count++
+    if (m[0] === '') re.lastIndex++
+  }
+  return count
 }
 
 /**
