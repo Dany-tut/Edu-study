@@ -30,7 +30,7 @@ export type NotifType =
 export type NotifLink = { page?: string; tab?: string; lessonRef?: string; subject?: string; studentId?: string; assignmentId?: string; homeworkId?: string; scheduleId?: string }
 
 /** Куда ведёт «Открыть»: полный адрес кабинета + вкладка конструктора, если нужна. */
-export type NotifAction = { label: string; page?: string; tab?: string }
+export type NotifAction = { label: string; page?: string; tab?: string; scheduleId?: string }
 
 export type Notification = {
   id: string
@@ -88,6 +88,8 @@ function runUpdate(ctx: string, q: PromiseLike<{ error: unknown }>) {
 function teacherTarget(row: NotifRow): NotifAction | undefined {
   const link = row.link
   const open = t('Открыть')
+  if (row.type === 'fill_journal')
+    return { label: t('Заполнить'), page: '#/teacher/gradebook', scheduleId: link?.scheduleId }
   if ((row.type === 'student_joined' || row.type === 'payment_due') && link?.studentId)
     return { label: open, page: teacherStudentHash(link.studentId) }
   if (row.type === 'test_completed' || link?.page === 'teacher/testing')
@@ -101,9 +103,18 @@ function teacherTarget(row: NotifRow): NotifAction | undefined {
 /** Событие для конструктора: открыть вкладку, даже если он уже на экране. */
 export const CONSTRUCTOR_TAB_EVENT = 'iskra:constructor-tab'
 
+/** Журнал: открыть отметки конкретного занятия (уведомление «Журнал не заполнен»). */
+export const JOURNAL_SCHEDULE_EVENT = 'iskra:journal-schedule'
+export const JOURNAL_SCHEDULE_KEY = 'iskra:journal-open-schedule'
+
 /** Перейти по действию уведомления (колокольчик, тост, таблетка — одно место). */
 export function followNotifAction(action: NotifAction | undefined): boolean {
   if (!action?.page) return false
+  if (action.scheduleId) {
+    // Журнал может ещё грузиться: он заберёт занятие из sessionStorage.
+    try { sessionStorage.setItem(JOURNAL_SCHEDULE_KEY, action.scheduleId) } catch {}
+    window.dispatchEvent(new CustomEvent(JOURNAL_SCHEDULE_EVENT, { detail: action.scheduleId }))
+  }
   if (action.tab && action.page.startsWith('#/teacher/profile')) {
     // Раздел профиля («Интеграции»): страница читает его при открытии,
     // а уже открытая — ловит событие.
@@ -130,6 +141,16 @@ function rowToNotif(row: NotifRow, live: boolean): Notification {
     action,
     link: row.link,
   }
+}
+
+/**
+ * Серверное «Журнал не заполнен» (крон, 20261106120000) и локальное из
+ * useJournalPending говорят об одном занятии: когда пришла строка из базы,
+ * локальный двойник `journal-<scheduleId>` уходит.
+ */
+function dropShadowedJournal(list: Notification[]): Notification[] {
+  const served = new Set(list.filter(n => !n.local && n.type === 'fill_journal' && n.link?.scheduleId).map(n => `journal-${n.link!.scheduleId}`))
+  return served.size ? list.filter(n => !(n.local && served.has(n.id))) : list
 }
 
 type State = {
@@ -178,15 +199,15 @@ export const useNotificationsStore = create<State>()((set, get) => ({
   // Локальные (журнал, напоминания дневника) в базе не лежат: загрузка истории
   // их не заменяет, иначе они пропадали, если ответ приходил позже них.
   hydrate: (rows) => set(state => ({
-    notifications: [
+    notifications: dropShadowedJournal([
       ...state.notifications.filter(n => n.local),
       ...rows.map(r => rowToNotif(r, false)),
-    ].sort((a, b) => b.createdAt - a.createdAt),
+    ].sort((a, b) => b.createdAt - a.createdAt)),
   })),
 
   ingest: (row) => set(state => {
     if (state.notifications.some(n => n.id === row.id)) return state
-    return { notifications: [rowToNotif(row, true), ...state.notifications] }
+    return { notifications: dropShadowedJournal([rowToNotif(row, true), ...state.notifications]) }
   }),
 
   applyUpdate: (row) => set(state => ({
@@ -247,7 +268,7 @@ export const useNotificationsStore = create<State>()((set, get) => ({
       state.notifications.filter(n => n.type === 'fill_journal').map(n => [n.id, n])
     )
     const localRead = getLocalRead()
-    const kept = state.notifications.filter(n => n.type !== 'fill_journal')
+    const kept = state.notifications.filter(n => !(n.local && n.type === 'fill_journal'))
     const fresh: Notification[] = items.map(it => {
       const id = `journal-${it.id}`
       return {
@@ -259,9 +280,9 @@ export const useNotificationsStore = create<State>()((set, get) => ({
         read: localRead.has(id) || (prevById.get(id)?.read ?? false),
         live: false,
         local: true,
-        action: { label: t('Заполнить'), page: '#/teacher/gradebook' },
+        action: { label: t('Заполнить'), page: '#/teacher/gradebook', scheduleId: it.id },
       }
     })
-    return { notifications: [...fresh, ...kept] }
+    return { notifications: dropShadowedJournal([...fresh, ...kept]) }
   }),
 }))

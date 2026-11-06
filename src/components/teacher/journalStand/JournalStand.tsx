@@ -16,7 +16,8 @@ import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
 import { useTeacher } from '../../../store/teacherStore'
 import { useCourseJournal } from '../../../lib/useCourseJournal'
-import { OUTSIDE_COURSES, type JournalCell, type CourseJournalData } from '../../../lib/courseJournal'
+import { OUTSIDE_COURSES, scheduleAttendanceCells, type JournalCell, type CourseJournalData } from '../../../lib/courseJournal'
+import { JOURNAL_SCHEDULE_EVENT, JOURNAL_SCHEDULE_KEY } from '../../../store/notificationsStore'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
@@ -723,6 +724,23 @@ export default function JournalStand({ owner, user, production = false }: { owne
   const scope = { course, module }
   const slots = useMemo(() => (index ? scopeSlots(index, { course, module }) : []), [index, course, module])
   const today = wallDateTimeInTz(useNow(60_000).toISOString(), 'Europe/Moscow').day
+  // Уведомление «Журнал не заполнен» ведёт прямо к отметкам своего занятия.
+  const [openSchedule, setOpenSchedule] = useState<string | null>(() => {
+    try { return sessionStorage.getItem(JOURNAL_SCHEDULE_KEY) } catch { return null }
+  })
+  useEffect(() => {
+    const onOpen = (e: Event) => setOpenSchedule((e as CustomEvent<string>).detail)
+    window.addEventListener(JOURNAL_SCHEDULE_EVENT, onOpen)
+    return () => window.removeEventListener(JOURNAL_SCHEDULE_EVENT, onOpen)
+  }, [])
+  useEffect(() => {
+    if (!openSchedule || !journalActive || loading || !data) return
+    try { sessionStorage.removeItem(JOURNAL_SCHEDULE_KEY) } catch { /* optional */ }
+    setOpenSchedule(null)
+    set({ tab: 'Посещаемость' })
+    const cells = scheduleAttendanceCells(data, openSchedule, today)
+    if (cells.length) setAttendanceCells(cells)
+  }, [openSchedule, journalActive, loading, data, today])
   async function saveReview(entry: HomeworkEntry, decision: ReviewDecision) {
     if (!data || data.demo || !entry.work.submission) throw new Error('Откройте актуальную сдачу в журнале.')
     applyStandReview(data, entry, decision)
