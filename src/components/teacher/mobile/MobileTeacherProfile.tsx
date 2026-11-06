@@ -34,6 +34,9 @@ import DesktopFriends from '../../DesktopFriends'
 import { useDesktopFriends } from '../../../lib/desktopFriends'
 import TeacherLoginMethods from '../TeacherLoginMethods'
 import TeacherFeatureSettings from '../TeacherFeatureSettings'
+import PaymentsInbox from '../payments/PaymentsInbox'
+import { useFeature } from '../../../lib/teacherFeatures'
+import { usePaymentInbox } from '../../../lib/paymentClaims'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
@@ -74,6 +77,11 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  // «Оплаты» (концепт «Связь»): подтвердить «Оплатили» одним касанием.
+  const payments = useFeature('payment_reminders')
+  const [paymentsOpen, setPaymentsOpen] = useState(false)
+  const paymentClaims = usePaymentInbox(s => s.claims.length)
+  useEffect(() => { if (payments) void usePaymentInbox.getState().load() }, [payments])
   const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
@@ -303,6 +311,15 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           </button>
         ))}
 
+        {payments && (
+          <button data-hover="layer" type="button" onClick={() => { tactile(); setPaymentsOpen(true) }}
+            style={{ gridColumn: 'span 2', minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', color: 'var(--color-text)' }}>
+            <Wallet size={16} />{t('Оплаты: ждут вас')}
+            {paymentClaims > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: '#C07020', background: 'var(--color-peach-soft)', borderRadius: 20, padding: '1px 8px' }}>{paymentClaims}</span>}
+          </button>
+        )}
+
         {isAdmin && <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
           onClick={() => { tactile(); studentCabinet.open() }}
@@ -326,6 +343,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
       <DesktopFriends model={friends}/>
       {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
+      {paymentsOpen && <Modal title={t('Оплаты: ждут вас')} onClose={() => setPaymentsOpen(false)}><div style={{ margin: '0 -16px' }}><PaymentsInbox /></div></Modal>}
       {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
     </MobileScreen>
   )

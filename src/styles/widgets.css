@@ -192,6 +192,12 @@ html:has(.ww-gallery-dialog),body:has(.ww-gallery-dialog){overflow:hidden;oversc
 .iskra-widget[data-widget="pupil-stats"] .stat-value{font-size:20px!important}
 .iskra-widget[data-widget="pupil-stats"] .stat-pending>*:last-child{display:none}
 }
+/* «Оплаты: ждут вас»: отметка = кнопка-строка + «Пришло», закрытие месяца =
+   значок, текст, стрелка. Общий .ww-row — сетка, колонки задаём сами. */
+.iskra-widget .ww-claim-row{grid-template-columns:minmax(0,1fr) auto}
+.iskra-widget .ww-month-row{grid-template-columns:30px minmax(0,1fr) 16px}
+.iskra-widget .ww-month-row .ww-avatar{align-self:center;margin-top:0}
+
 /* Compact payment rows reserve a full line for the name and another for money
    and date, rather than squeezing both primary values into adjacent columns. */
 @container iskra-widget (max-width:440px){
