@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Итоги урока · Сравнение</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; }
+  .vc { background: var(--color-bg-2); border-radius: 24px; padding: 20px 22px; box-shadow: var(--shadow-2); display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .15s; }
+  .vc:hover { box-shadow: var(--shadow-3); transform: translateY(-1px); }
+  .vc h3 { margin: 0; font-size: 19px; letter-spacing: -0.3px; }
+  .vc p { margin: 0; color: var(--color-text-2); font-size: 14px; line-height: 1.5; }
+  .vc .go { margin-top: auto; }
+  .letter { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; font-weight: 800; font-size: 18px; background: var(--color-accent-soft); color: var(--color-purple-text); }
+  .tbl { overflow-x: auto; margin-top: 26px; background: var(--color-bg-2); border-radius: 24px; box-shadow: var(--shadow-2); padding: 8px 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 680px; }
+  th, td { text-align: left; padding: 11px 10px; border-top: 1px solid var(--color-border-medium); vertical-align: top; color: var(--color-text-2); }
+  th { color: var(--color-text-3); font-weight: 650; font-size: 12.5px; border-top: 0; }
+  td:first-child { color: var(--color-text); font-weight: 600; width: 22%; }
+  .best { color: var(--color-green-text); font-weight: 650; }
+  .pick { margin-top: 22px; background: var(--color-accent-soft); color: var(--color-purple-text); border-radius: 24px; padding: 18px 22px; }
+  .pick b { color: var(--color-text); }
+  .pick p { margin: 6px 0 0; color: var(--color-text-2); }
+  .same { margin-top: 22px; }
+  .same ul { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; color: var(--color-text-2); }
+  @media (max-width: 860px) { .grid3 { grid-template-columns: 1fr; } }
+</style>
+<script src="icons.js"></script>
+</head>
+<body>
+<div class="page">
+  <div class="page-head"><div>
+    <div class="eyebrow">Искра · Концепт</div>
+    <h1 class="title">Итоги урока из расшифровки</h1>
+    <p class="subtitle">Одна кнопка собирает из записи урока черновики: конспект для ученика и пропустивших, 5–10 вопросов на проверку, карточки с терминами, черновик ДЗ по пройденному и заметку учителю. Учитель правит и публикует сам. Три варианта отличаются тем, где живёт кнопка и как учитель проверяет результат.</p></div>
+    <div class="controls"><div class="seg" id="thm"><button data-v="light"><span data-i="Sun"></span>Светлая</button><button data-v="dark"><span data-i="Moon"></span>Тёмная</button></div></div>
+  </div>
+
+  <div class="grid3">
+    <a class="vc" href="variant-a.html"><span class="letter">A</span><h3>Вкладка «Итоги»</h3><p>Кнопка под расшифровкой во вкладке «Запись». Всё собранное — на новой вкладке урока одним списком; перед публикацией окно «Куда попадёт».</p><span class="btn soft sm go">Открыть макет</span></a>
+    <a class="vc" href="variant-b.html" style="box-shadow:inset 0 0 0 1.5px var(--color-accent),var(--shadow-2)"><span style="display:flex;gap:8px;align-items:center"><span class="letter">B</span><span class="pill green">Выбран · 07.11.2026</span></span><h3>Панель в монтаже</h3><p>Основной вход — вкладка «Запись» в уроке, второй — шапка монтажа. Итоги проверяются в окне монтажа рядом с расшифровкой. Нажал на пункт — подсветилась реплика, из которой он взят. «Применить» раскладывает всё по уроку.</p><span class="btn soft sm go">Открыть макет</span></a>
+    <a class="vc" href="variant-c.html"><span class="letter">C</span><h3>Черновики на своих местах</h3><p>Без экрана проверки: каждый черновик сразу стоит там, где его увидит ученик, в рамке «Черновик из записи». Принимается по одному.</p><span class="btn soft sm go">Открыть макет</span></a>
+  </div>
+
+  <div class="tbl hscroll" id="cmp"><table>
+    <tr><th></th><th>A · Вкладка «Итоги»</th><th>B · Панель в монтаже</th><th>C · На своих местах</th></tr>
+    <tr><td>Где кнопка</td><td>Урок → «Запись», карточка под расшифровкой</td><td>Шапка окна монтажа</td><td>Плашка над уроком после расшифровки</td></tr>
+    <tr><td>Ожидание</td><td>Строки прогресса в карточке, можно уйти</td><td>Панель справа + полоса по волне, монтаж не блокируется</td><td>Пустые рамки сразу на будущих местах</td></tr>
+    <tr><td>Проверка фактов</td><td>Таймкод → плеер</td><td class="best">Клик по пункту → реплика-источник рядом</td><td>Таймкод → плеер</td></tr>
+    <tr><td>Видно, как будет у ученика</td><td>Через окно «Куда попадёт»</td><td>После «Применить», рамки и счётчики</td><td class="best">Сразу, в потоке урока</td></tr>
+    <tr><td>Защита от «опубликовал не читая»</td><td>Слабая: одна кнопка на всё</td><td>Средняя: проверка идёт рядом с источником</td><td class="best">Сильная: принятие по одному</td></tr>
+    <tr><td>Телефон учителя</td><td>Хорошо: вкладка + нижний лист</td><td>Тесно: лист закрывает расшифровку</td><td class="best">Хорошо: тот же поток урока</td></tr>
+    <tr><td>Что видит ученик</td><td>Блок «Итоги занятия» + «Проверь себя»</td><td class="best">То же, но таймкоды в конспекте перематывают видео</td><td>Части урока без пометки «из записи»</td></tr>
+    <tr><td>Объём разработки</td><td class="best">Меньше всего</td><td>Больше всего: привязка к репликам</td><td>Средний: черновое состояние у блоков урока</td></tr>
+  </table></div>
+
+  <div class="pick"><b>Решение Дани: B с входом из урока.</b>
+    <p>Кнопка «Собрать итоги» живёт во вкладке «Запись» урока и открывает окно монтажа сразу с панелью итогов; в шапке монтажа — второй вход в ту же панель. Проверка — по репликам-источникам, у ученика конспект с таймкодами. Поштучное принятие из C — возможное дополнение, если учителя начнут применять не читая. Макет B дополнен шагами «Доступ и настройка», «Без доступа» и «Вход из урока».</p></div>
+
+  <div class="same note-card"><h3><span data-i="Layers"></span>Общее для всех вариантов</h3><ul>
+    <li>Ученик ничего не видит до явного действия учителя; заметка учителю не уходит ученику никогда и хранится отдельно от урока.</li>
+    <li>Правка на месте (подчёркивание по фокусу), галочка исключает пункт, у каждого пункта таймкод в запись.</li>
+    <li>ДЗ создаётся черновиком без срока: назначает учитель.</li>
+    <li>Доступ выдаёт админ (учителю или всем, ключ <code>lesson_recap</code>); у учителя с доступом — переключатель в «Настройках», без доступа функции не видно нигде.</li>
+    <li>Около 10 ₽ за урок (Claude Sonnet 5.5), флаг <code>ai_lesson_recap</code> + <code>ai_enabled</code>.</li>
+  </ul></div>
+
+  <div class="links"><a href="variant-a.html">A · Вкладка «Итоги»</a><a href="variant-b.html">B · Панель в монтаже</a><a href="variant-c.html">C · Черновики на местах</a><a href="data-and-prompt.html"><span data-i="Database"></span>Схема данных и промпт</a></div>
+</div>
+<script>
+  document.querySelectorAll('[data-i]').forEach(e => { e.outerHTML = '<span class="ic sm">' + (LOOP[e.dataset.i] || '') + '</span>'; });
+  let t; try { t = localStorage.getItem('recap.theme'); } catch {}
+  t = new URLSearchParams(location.search).get('theme') || t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const set = v => { document.documentElement.dataset.theme = v; document.querySelectorAll('#thm button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); try { localStorage.setItem('recap.theme', v); } catch {} };
+  document.getElementById('thm').onclick = e => { const b = e.target.closest('button'); if (b) set(b.dataset.v); };
+  set(t);
+  // SCROLL-01: фейд у края таблицы, когда на телефоне она шире экрана
+  const el = document.getElementById('cmp');
+  const upd = () => { const max = el.scrollWidth - el.clientWidth; el.style.setProperty('--fl', el.scrollLeft > 2 ? '28px' : '0px'); el.style.setProperty('--fr', el.scrollLeft < max - 2 ? '28px' : '0px'); };
+  el.addEventListener('scroll', upd, { passive: true }); addEventListener('resize', upd); upd();
+</script>
+</body>
+</html>
