@@ -31,6 +31,7 @@ import { AvatarPhotoFill } from '../../components/AvatarPhoto'
 import './studentProfile.css'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { useIsDesktop } from '../../lib/useIsDesktop'
+import StudentTgLink from '../../components/teacher/StudentTgLink'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function nameInitials(name: string) {
@@ -626,6 +627,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
             </div>
           </section>
         )}
+        <StudentTgLink studentId={student.id} />
 
         {/* ── Priority: diagnostics-only student → show diag first ─────── */}
         {!hasStats && diagResults.length > 0 && (

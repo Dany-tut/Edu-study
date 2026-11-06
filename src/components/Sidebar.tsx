@@ -7,7 +7,7 @@ import CountBadge, { countBadgeInset } from './CountBadge'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered, Ghost,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered, Ghost, Wallet,
   type LucideIcon,
 } from './icons/appIcons'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -23,6 +23,7 @@ import WidgetOrderModal from './WidgetOrderModal'
 import CourseOrderModal from './CourseOrderModal'
 import { CourseTintModal, useCurrentTintColor } from './CourseTintSheet'
 import FeedbackModal from './FeedbackModal'
+import { useMyPayment } from '../lib/paymentClaims'
 import AppVersionRow from './AppVersionRow'
 import { useTheme } from '../store/themeStore'
 import { useStudentData } from '../store/studentDataStore'
@@ -238,6 +239,9 @@ export default function Sidebar() {
   // незачем — она подождёт полторы секунды.
   const feedUnread = useFeedGlance(1500).unread.length
   const session = getStudentSession()
+  // «Оплата» есть, только если у учителя включена функция оплат.
+  const paymentAvailable = useMyPayment(s => !!session && s.studentId === session.id && s.info !== null)
+  useEffect(() => { if (session?.id) void useMyPayment.getState().load(session.id) }, [session?.id])
   const [isAdmin, setIsAdmin] = useState(false)
   useEffect(() => {
     let alive = true
@@ -656,6 +660,11 @@ export default function Sidebar() {
                       active={menuView !== 'root'}
                       onClick={() => setMenuView(menuView === 'root' ? 'settings' : 'root')}
                     />
+                    {paymentAvailable && <SettingsRow
+                      icon={Wallet}
+                      label={t('Оплата')}
+                      onClick={() => { useMyPayment.getState().setOpen(true); closePicker() }}
+                    />}
                     <SettingsRow
                       icon={MessageSquarePlus}
                       label={t('Обратная связь')}

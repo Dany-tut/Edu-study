@@ -6,7 +6,7 @@ import CountBadge from '../../CountBadge'
 import { useNotificationsStore } from '../../../store/notificationsStore'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -34,6 +34,9 @@ import DesktopFriends from '../../DesktopFriends'
 import { useDesktopFriends } from '../../../lib/desktopFriends'
 import TeacherLoginMethods from '../TeacherLoginMethods'
 import TeacherFeatureSettings from '../TeacherFeatureSettings'
+import PaymentsInbox from '../payments/PaymentsInbox'
+import { useFeature } from '../../../lib/teacherFeatures'
+import { usePaymentInbox } from '../../../lib/paymentClaims'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
@@ -60,7 +63,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
   )
 }
 
-export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onOpenNotifications }: { onOpenJournal?: () => void; onOpenWidgets?: () => void; onOpenNotifications?: () => void }) {
+export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onOpenNotifications, onOpenReports }: { onOpenJournal?: () => void; onOpenWidgets?: () => void; onOpenNotifications?: () => void; onOpenReports?: () => void }) {
   const unreadNotifs = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
   const signedIn = useTeacherSession()
   const studentCabinet = useOpenStudentCabinet()
@@ -74,6 +77,11 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  // «Оплаты» (концепт «Связь»): подтвердить «Оплатили» одним касанием.
+  const payments = useFeature('payment_reminders')
+  const [paymentsOpen, setPaymentsOpen] = useState(false)
+  const paymentClaims = usePaymentInbox(s => s.claims.length)
+  useEffect(() => { if (payments) void usePaymentInbox.getState().load() }, [payments])
   const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
@@ -194,6 +202,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         <StatTile icon={<ClipboardCheck size={18} />} value={m.pending} label={m.pending > 0 ? t('Ждут проверки') : t('Всё проверено')} bg="var(--color-yellow-soft)" fg="var(--color-yellow-text)" />
 
         {onOpenJournal && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
+        {onOpenReports && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenReports() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><FileText size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Отчёты родителям')}</span><ChevronRight size={18} /></button>}
 
         <div style={{ gridColumn: 'span 2' }}><TeacherLoginMethods /></div>
         <div style={{ gridColumn: 'span 2' }}><TeacherFeatureSettings /></div>
@@ -303,6 +312,15 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           </button>
         ))}
 
+        {payments && (
+          <button data-hover="layer" type="button" onClick={() => { tactile(); setPaymentsOpen(true) }}
+            style={{ gridColumn: 'span 2', minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              borderRadius: 14, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)', color: 'var(--color-text)' }}>
+            <Wallet size={16} />{t('Оплаты: ждут вас')}
+            {paymentClaims > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: '#C07020', background: 'var(--color-peach-soft)', borderRadius: 20, padding: '1px 8px' }}>{paymentClaims}</span>}
+          </button>
+        )}
+
         {isAdmin && <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
           onClick={() => { tactile(); studentCabinet.open() }}
@@ -326,6 +344,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
       <DesktopFriends model={friends}/>
       {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
+      {paymentsOpen && <Modal title={t('Оплаты: ждут вас')} onClose={() => setPaymentsOpen(false)}><div style={{ margin: '0 -16px' }}><PaymentsInbox /></div></Modal>}
       {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
     </MobileScreen>
   )

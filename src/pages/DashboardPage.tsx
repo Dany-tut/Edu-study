@@ -19,6 +19,7 @@ import LessonPage from './LessonPage'
 import TestFlow from '../components/TestFlow'
 import AnswerFlightLayer from '../components/AnswerFlightLayer'
 import NotificationToastContainer from '../components/NotificationToast'
+import { StudentPaymentHost } from '../components/StudentPaymentModal'
 import { useNotificationsInit } from '../lib/notificationsSync'
 import { useDashboard } from '../store/dashboardStore'
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion'
@@ -357,6 +358,7 @@ export default function DashboardPage() {
       {/* Desktop live notifications surface inside CompactWidgetPill (beside the
           topbar); the standalone toast is only kept for mobile where there's no pill. */}
       {!isDesktop && <NotificationToastContainer />}
+      <StudentPaymentHost />
       {/* Desktop no-scroll layout.
           РАЗМЕТКА НЕ ПРОСТО ПРЯЧЕТСЯ, А НЕ МОНТИРУЕТСЯ ВОВСЕ. Обе ветки стояли
           в DOM одновременно, невидимая — под display:none, и честно

@@ -121,6 +121,9 @@ jobs:
       - name: Полнота и параллельная загрузка журнала
         run: npm run check:journal-loading && npm run check:journal-summary
 
+      - name: Напоминания ученикам в Telegram (SQL и бот)
+        run: npm run check:reminders
+
       - name: Изоляция личного учебного примера
         run: node scripts/checkPersonalStudentDemo.mjs
 

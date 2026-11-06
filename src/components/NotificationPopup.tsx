@@ -13,6 +13,7 @@ import { useDashboard } from '../store/dashboardStore'
 import { findLessonById } from '../data/lessonContent'
 import { baseLessonRef } from '../lib/extraHomework'
 import { t, useT } from '../lib/i18n'
+import { useMyPayment } from '../lib/paymentClaims'
 import { Bell, ClipboardList, CheckCircle2, FileText, BookOpen, Brain, UserPlus, Clock, Trophy, RotateCcw, Banknote, NotebookPen, CalendarClock, CalendarX, BellOff, AudioLines } from './icons/appIcons'
 
 const ICON_MAP: Record<NotifType, React.ReactNode> = {
@@ -105,6 +106,12 @@ export function useNotificationActivate(onClose: () => void) {
       const s = getStudentSession()
       window.location.hash = `#/diagnostic?subject=${encodeURIComponent(link.subject)}&assignment=${link.assignmentId}`
         + (s ? `&sid=${s.id}&sname=${encodeURIComponent(s.name || 'Аноним')}` : '')
+      onClose()
+      return
+    }
+    // Оплата: «Счёт за…», «Оплата получена/не подтверждена» — окно «Оплата».
+    if (n.type === 'payment_due' && link?.payment) {
+      useMyPayment.getState().setOpen(true)
       onClose()
       return
     }

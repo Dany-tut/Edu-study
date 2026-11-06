@@ -1,6 +1,7 @@
 import { lazy, type ComponentType } from 'react'
 import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from '../../icons/appIcons'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, Send, FileText } from '../../icons/appIcons'
+import type { FeatureKey } from '../../../lib/teacherFeatures'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
 
@@ -27,6 +28,9 @@ const WidgetStudentCount      = lazy(() => retryImport(() => import('./WidgetStu
 const WidgetStudentGroups     = lazy(() => retryImport(() => import('./WidgetStudentGroups')))
 const WidgetStudentActive     = lazy(() => retryImport(() => import('./WidgetStudentActive')))
 const WidgetStudentDebtors    = lazy(() => retryImport(() => import('./WidgetStudentDebtors')))
+const WidgetPaymentsInbox     = lazy(() => retryImport(() => import('./WidgetPaymentsInbox')))
+const WidgetCommsToday        = lazy(() => retryImport(() => import('./WidgetCommsToday')))
+const WidgetParentReports     = lazy(() => retryImport(() => import('./WidgetParentReports')))
 
 export type WidgetDef = {
   type: string
@@ -51,6 +55,9 @@ export type WidgetDef = {
   bare?: boolean
   /** Existing saved desks still render this type; new desks use individual cards. */
   legacy?: boolean
+  /** Виджет функции-автоматизации: виден на столе и в «Добавить виджет»,
+   *  только пока функция выдана и включена (teacherFeatures). */
+  feature?: FeatureKey
   component: ComponentType
 }
 
@@ -103,6 +110,18 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     defaultW: 3, defaultH: 3,
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     component: WidgetFinanceActivity,
+  },
+  {
+    type: 'payments-inbox',
+    label: 'Оплаты: ждут вас',
+    icon: Wallet,
+    iconBg: 'var(--color-peach-soft)',
+    iconColor: '#C07020',
+    description: '«Оплатили» на подтверждение и закрытие месяца',
+    defaultW: 3, defaultH: 3,
+    minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
+    feature: 'payment_reminders' as FeatureKey,
+    component: WidgetPaymentsInbox,
   },
   {
     type: 'student-stats',
@@ -184,6 +203,30 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     defaultW: 3, defaultH: 3,
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     component: WidgetTodayTasks,
+  },
+  {
+    type: 'comms-today',
+    label: 'Связь с учениками',
+    icon: Send,
+    iconBg: 'var(--color-blue-pill-bg)',
+    iconColor: 'var(--color-blue-pill-text)',
+    description: 'Что уйдёт сегодня, что не дошло, кто подключил Telegram',
+    defaultW: 3, defaultH: 4,
+    minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
+    feature: 'reminders' as FeatureKey,
+    component: WidgetCommsToday,
+  },
+  {
+    type: 'parent-reports',
+    label: 'Отчёты родителям',
+    icon: FileText,
+    iconBg: 'var(--color-purple-soft)',
+    iconColor: 'var(--color-accent)',
+    description: 'Сколько отчётов готово и какие требуют решения',
+    defaultW: 3, defaultH: 4,
+    minW: 2, minH: 2, minWidthPx: 280, minHeightPx: 240,
+    feature: 'parent_report' as FeatureKey,
+    component: WidgetParentReports,
   },
 ].map(def => ({...def, allowedSizes:WIDGET_LAYOUTS[def.type]}))
 
