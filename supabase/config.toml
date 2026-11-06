@@ -42,3 +42,7 @@ verify_jwt = false
 [functions.feedback-triage]
 # Cron authenticates with x-digest-secret; admin JWT is verified inside the handler.
 verify_jwt = false
+
+[functions.reminders-send]
+# Крон reminders-dispatch (pg_net) зовёт без JWT; защита — x-reminders-secret.
+verify_jwt = false

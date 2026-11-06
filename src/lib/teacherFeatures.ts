@@ -22,10 +22,20 @@ export const FEATURES: FeatureInfo[] = [
   { key: 'transcription', label: 'Расшифровка записей', about: 'Расшифровка и монтаж записи урока на вашем Mac.', ready: true },
   { key: 'mcp', label: 'ИИ-помощники (MCP)', about: 'Подключить Claude и другие ИИ-клиенты к вашим курсам.', ready: true },
   { key: 'lesson_recap', label: 'Итоги урока из записи', about: 'Конспект, вопросы, карточки, черновик ДЗ и заметка для вас — из расшифровки урока. Выключено — кнопки скрыты, черновики остаются.', ready: true },
-  { key: 'reminders', label: 'Напоминания ученикам', about: 'Урок скоро, ДЗ завтра, ДЗ просрочено — в Telegram и пушем.', ready: false },
+  { key: 'reminders', label: 'Напоминания ученикам', about: 'Урок скоро, ДЗ завтра, ДЗ просрочено — бот Искры пишет ученику в Telegram.', ready: true },
   { key: 'parent_report', label: 'Отчёт родителю', about: 'Недельный отчёт: посещаемость, ДЗ, баллы и пара фраз от вас.', ready: false },
   { key: 'payment_reminders', label: 'Оплаты', about: 'Ученик отмечает «Оплатили» — вы подтверждаете, и занятия прибавляются к балансу. Закрытие месяца: счета за занятия в долг.', ready: true },
 ]
+
+/** DEV-превью без входа: localStorage['iskra:dev-features'] = 'parent_report,…'.
+ *  В сборке для прода всегда пусто. */
+function devFeatures(): Partial<Record<FeatureKey, boolean>> {
+  if (!import.meta.env.DEV) return {}
+  try {
+    const keys = (localStorage.getItem('iskra:dev-features') ?? '').split(',').map(s => s.trim())
+    return Object.fromEntries(FEATURES.filter(f => keys.includes(f.key)).map(f => [f.key, true]))
+  } catch { return {} }
+}
 
 type FeaturesState = {
   loaded: boolean
@@ -44,7 +54,7 @@ export const useTeacherFeatures = create<FeaturesState>((set, get) => ({
   map: {},
   load: async () => {
     const user = await getAuthUser()
-    if (!user) { set({ loaded: true, map: {} }); return }
+    if (!user) { set({ loaded: true, map: devFeatures() }); return }
     const { data, error } = await supabase.rpc('my_features')
     // Миграции ещё нет в базе — ведём себя как до правила: всё, что уже было, видно.
     if (error) {

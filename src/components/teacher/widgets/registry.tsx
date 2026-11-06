@@ -1,6 +1,6 @@
 import { lazy, type ComponentType } from 'react'
 import { WIDGET_LAYOUTS, type WidgetCellSize } from '../../../lib/widgetLayouts'
-import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles } from '../../icons/appIcons'
+import { CreditCard, Users, Wallet, AlertCircle, LayoutList, Clock, Bell, CheckCircle2, TrendingUp, Layers, Sparkles, Send } from '../../icons/appIcons'
 import type { LucideIcon } from '../../icons/appIcons'
 import { retryImport } from '../../../lib/chunkError'
 import type { FeatureKey } from '../../../lib/teacherFeatures'
@@ -29,6 +29,7 @@ const WidgetStudentGroups     = lazy(() => retryImport(() => import('./WidgetStu
 const WidgetStudentActive     = lazy(() => retryImport(() => import('./WidgetStudentActive')))
 const WidgetStudentDebtors    = lazy(() => retryImport(() => import('./WidgetStudentDebtors')))
 const WidgetPaymentsInbox     = lazy(() => retryImport(() => import('./WidgetPaymentsInbox')))
+const WidgetCommsToday        = lazy(() => retryImport(() => import('./WidgetCommsToday')))
 
 export type WidgetDef = {
   type: string
@@ -201,6 +202,18 @@ export const WIDGET_REGISTRY: WidgetDef[] = [
     defaultW: 3, defaultH: 3,
     minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
     component: WidgetTodayTasks,
+  },
+  {
+    type: 'comms-today',
+    label: 'Связь с учениками',
+    icon: Send,
+    iconBg: 'var(--color-blue-pill-bg)',
+    iconColor: 'var(--color-blue-pill-text)',
+    description: 'Что уйдёт сегодня, что не дошло, кто подключил Telegram',
+    defaultW: 3, defaultH: 4,
+    minW: 1, minH: 1, minWidthPx: 280, minHeightPx: 240,
+    feature: 'reminders' as FeatureKey,
+    component: WidgetCommsToday,
   },
 ].map(def => ({...def, allowedSizes:WIDGET_LAYOUTS[def.type]}))
 

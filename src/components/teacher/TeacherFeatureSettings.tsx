@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import Switch from '../Switch'
 import { useT } from '../../lib/i18n'
 import { FEATURES, useTeacherFeatures } from '../../lib/teacherFeatures'
+import ReminderSettings from './ReminderSettings'
 
 export default function TeacherFeatureSettings() {
   const t = useT()
@@ -24,7 +25,8 @@ export default function TeacherFeatureSettings() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {rows.map(f => (
-            <div key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div key={f.key}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 650, color: 'var(--color-text)' }}>{t(f.label)}</div>
                 <div style={{ fontSize: 12, lineHeight: 1.35, color: 'var(--color-text-3)', marginTop: 2 }}>{t(f.about)}</div>
@@ -35,6 +37,8 @@ export default function TeacherFeatureSettings() {
                 label={t(f.label)}
                 onChange={async v => { setFailed(''); if (!(await setOn(f.key, v))) setFailed(f.key) }}
               />
+            </div>
+            {f.key === 'reminders' && map.reminders === true && <ReminderSettings />}
             </div>
           ))}
         </div>
