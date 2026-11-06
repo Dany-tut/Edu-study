@@ -9,6 +9,7 @@ import { rememberCabinet } from './cabinetChoice'
 import { trackNow, trackEvent } from './analytics'
 import { authErrorRu } from './authErrors'
 import { fenceAuthCode, fenceAuthCommit } from './authTransport'
+import { isPasskeyCancel, passkeyErrorRu, signInWithPasskey } from './passkey'
 
 export type LoginRole = 'teacher' | 'student'
 
@@ -188,6 +189,31 @@ export async function startSocialLogin(provider: Provider, role: LoginRole, join
     if (!data.url) throw new Error('Не удалось открыть страницу входа')
     window.location.assign(data.url)
   } catch (error) { if (id !== generation) return; endOAuthAttempt('auth_failed'); throw error }
+}
+
+/**
+ * Вход ключом доступа. Роль кладём туда же, где её ждёт finishSocialLogin:
+ * дальше тот же путь, что у Google/Apple (двухфакторка, кабинет, адрес).
+ * Возвращает false, если человек закрыл системное окно.
+ */
+export async function startPasskeyLogin(role: LoginRole): Promise<boolean> {
+  localStorage.removeItem(LINK_KEY)
+  localStorage.removeItem(JOIN_KEY)
+  if (friendRoute.test(location.hash)) sessionStorage.setItem(FRIEND_RETURN_KEY, location.hash)
+  else sessionStorage.removeItem(FRIEND_RETURN_KEY)
+  localStorage.setItem(OAUTH_ROLE_KEY, role)
+  const id = beginOAuthAttempt('passkey', 'login')
+  try {
+    await signInWithPasskey()
+  } catch (error) {
+    if (id !== generation) return false
+    if (isPasskeyCancel(error)) { endOAuthAttempt('auth_cancelled'); return false }
+    endOAuthAttempt('auth_failed')
+    throw new Error(passkeyErrorRu(error, 'Не удалось войти по ключу. Попробуйте ещё раз или войдите по почте.'))
+  }
+  if (id !== generation) return false
+  await finishSocialLogin()
+  return true
 }
 
 /** Exchanges the PKCE callback delivered by the native app URL scheme. */

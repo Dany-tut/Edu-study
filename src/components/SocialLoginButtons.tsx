@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { startSocialLogin, cancelSocialLogin, type LoginRole } from '../lib/socialAuth'
+import { startSocialLogin, cancelSocialLogin, startPasskeyLogin, type LoginRole } from '../lib/socialAuth'
+import { usePasskeyAvailable } from '../lib/passkey'
+import { KeyRound } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { authFailureFeedback, useAuthFeedback } from './AuthFeedback'
 
@@ -16,6 +18,8 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
   const feedback = useAuthFeedback('social')
   const started = useRef(false)
   const pending = useRef(false)
+  // ключ доступа — вход в уже готовый аккаунт; на странице приглашения его нет
+  const passkeyOn = usePasskeyAvailable() && !joinToken
 
   useEffect(() => {
     const onError = (event: Event) => {
@@ -44,6 +48,27 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
       pending.current = false
       setBusy(null)
       feedback.report(authFailureFeedback(err))
+    }
+  }
+
+  async function withPasskey() {
+    const id = ++sequence.current
+    setBusy('passkey')
+    started.current = true; pending.current = true
+    feedback.begin({ tone: 'info', title: 'Проверяем ключ доступа…', busy: true })
+    try {
+      const signedIn = await startPasskeyLogin(role)
+      if (sequence.current !== id) return
+      pending.current = false
+      setBusy(null)
+      // закрыли системное окно — просто возвращаем экран как был
+      if (!signedIn) feedback.reset()
+    } catch (err) {
+      if (sequence.current !== id) return
+      pending.current = false
+      setBusy(null)
+      // наши сообщения уже по-русски — показываем как есть, остальное переводит authErrorRu
+      feedback.report(authFailureFeedback(err instanceof Error && /[а-яё]/i.test(err.message) ? err.message : err))
     }
   }
 
@@ -78,6 +103,23 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           <span style={{ display: 'block', lineHeight: '20px' }}>{label}</span>
         </button>
       ))}
+      {passkeyOn && <button
+          data-auth-provider="passkey"
+          type="button"
+          onClick={() => void withPasskey()}
+          disabled={busy !== null || feedback.busy}
+          aria-busy={busy === 'passkey'}
+          style={{
+            gridColumn: '1 / -1', minHeight: 48, minWidth: 0, borderRadius: 14, padding: '8px 10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            border: '1px solid var(--color-border-medium)', background: 'var(--color-surface)',
+            color: 'var(--color-text)', fontSize: 14, fontWeight: 650,
+            opacity: busy && busy !== 'passkey' ? 0.55 : 1,
+          }}
+        >
+          <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}><KeyRound size={19} /></span>
+          <span style={{ display: 'block', lineHeight: '20px' }}>{t('Войти с ключом доступа')}</span>
+        </button>}
       </div>
     </div>
   )
