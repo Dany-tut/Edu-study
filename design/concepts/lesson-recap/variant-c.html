@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Вариант C · Итоги урока</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .banner { display: flex; gap: 12px; align-items: center; padding: 10px 12px 10px 14px; border-radius: 18px; background: var(--color-accent-soft); color: var(--color-purple-text); }
+  .banner .grow { flex: 1; min-width: 0; font-size: 13.5px; }
+  .banner .grow b { display: block; color: var(--color-text); font-size: 14px; }
+  .draft { border-radius: 24px; padding: 16px 18px; background: var(--color-bg-2); box-shadow: inset 0 0 0 1.5px var(--color-accent), var(--shadow-sm); position: relative; }
+  .draft.ghost { box-shadow: inset 0 0 0 1.5px var(--color-border-strong); background: transparent; }
+  .draft .tag { position: absolute; top: -10px; left: 16px; height: 20px; padding: 0 9px; border-radius: var(--radius-pill); background: var(--color-control-accent); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+  .draft .tag .ic { width: 12px; height: 12px; color: #fff; }
+  .draft .tag .ic .ld { stroke: #FFD3A6; }
+  .draft.ghost .tag { background: var(--color-bg-5); color: var(--color-text-3); }
+  .draft.ghost .tag .ic { color: var(--color-text-3); }
+  .draft.accepted { box-shadow: var(--shadow-sm); }
+  .draft.accepted .tag { background: var(--color-green-soft); color: var(--color-green-text); }
+  .draft.accepted .tag .ic { color: var(--color-green-text); }
+  .draft.accepted .tag .ic .ld { stroke: var(--color-green-text); }
+  .acts { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .navpill { position: absolute; z-index: 12; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: var(--radius-pill); white-space: nowrap; }
+  .dots { display: flex; gap: 4px; }
+  .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-4); }
+  .dots i.ok { background: var(--color-green-text); }
+  .dots i.cur { background: var(--color-control-accent); width: 18px; border-radius: 4px; }
+  .sticky { border-radius: 24px; padding: 16px 18px; background: var(--color-amber-soft); }
+  .sticky .sec-ic { background: rgba(var(--glass-rgb), .6); }
+  .existing { border-radius: 24px; padding: 16px 18px; background: var(--color-bg-2); box-shadow: var(--shadow-sm); }
+</style>
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+</head>
+<body>
+<script>
+const { I, tc, cb, ed, ko, D, KINDS, B, secHead, studentDesk, studentPhone, rail, lessonList, dock, progRows } = R;
+const K = id => KINDS.find(k => k.id === id);
+
+const existing = (title, w = [72, 58, 64]) => `<div class="existing"><div class="sec-h" style="margin:0 0 8px"><span class="sec-ic" style="background:var(--color-bg-3)">${I('BookOpen')}</span><div><h3>${title}</h3><div class="muted small">Ваш материал</div></div></div>${w.map(x => `<div class="skel" style="height:10px;width:${x}%;margin:8px 0;animation:none"></div>`).join('')}</div>`;
+
+const draft = (id, state, body, extra = '') => {
+  const k = K(id);
+  const tag = state === 'ghost' ? `${I('Loader2')}Пишем…` : state === 'accepted' ? `${I('Check')}Принято` : `${I('Sparkles')}Черновик из записи`;
+  return `<div class="draft ${state === 'ghost' ? 'ghost' : state === 'accepted' ? 'accepted' : ''}" data-draft="${id}"><span class="tag">${tag}</span>
+    ${secHead(k, state === 'draft' ? `<button class="btn ghost sm" title="Пересобрать">${I('RefreshCw')}</button>` : '')}
+    ${state === 'ghost' ? `<div class="skel" style="height:12px;width:80%;margin:8px 0"></div><div class="skel" style="height:12px;width:62%;margin:8px 0"></div><div class="skel" style="height:12px;width:70%;margin:8px 0"></div>` : body}
+    ${state === 'draft' ? `<div class="acts"><button class="btn primary sm" data-accept>${I('Check')}Принять</button><button class="btn ghost sm" data-drop>${I('X')}Убрать</button><span class="muted small" style="margin-left:6px">Ученик не видит, пока не примете</span>${extra}</div>` : ''}
+  </div>`;
+};
+
+const note = (compact) => `<div class="sticky"><div class="sec-h"><span class="sec-ic">${I('Lightbulb')}</span><div><h3>Заметка для вас</h3><div class="muted small">По записи · ${D.student}</div></div></div>${compact ? B.note().split('<div class="note-line">').slice(0, 3).join('<div class="note-line">') + '<div class="muted small" style="padding-top:6px">Ещё 3 пункта · только вам</div>' : B.note()}</div>`;
+
+const navpill = (n, cur, bottom = 22, go = 3) => `<div class="navpill glass" style="bottom:${bottom}px"><span class="dots">${[0, 1, 2, 3, 4].map(i => `<i class="${i < n ? 'ok' : i === cur ? 'cur' : ''}"></i>`).join('')}</span><span style="font-size:13.5px;font-weight:600">Принято ${n} из 5</span><button class="btn ghost sm" style="width:32px;padding:0">${I('ChevronLeft')}</button><button class="btn ghost sm" style="width:32px;padding:0">${I('ChevronRight')}</button><button class="btn primary sm" data-go="${go}">Принять всё</button></div>`;
+
+const editor = (tab, main, side, overlay = '', head = '') => `<div class="desk-body">${rail()}${lessonList()}<div class="workspace">
+  <div class="crumb">Конструктор · ${D.course}</div>
+  <div class="ws-head"><h2>${D.lesson}</h2><span class="sp"></span><button class="btn ghost sm">${I('Eye')}Как видит ученик</button></div>
+  ${head}
+  <div class="tabs">${[['Урок', tab === 'wait' ? '…' : tab === 'Урок' || tab === 'Домашки' ? '3' : ''], ['Запись', ''], ['Домашки', tab === 'wait' ? '…' : tab === 'Урок' || tab === 'Домашки' ? '1' : '']].map(([t, b]) => `<span class="${t === tab || (tab === 'wait' && t === 'Урок') || (tab === 'idle' && t === 'Урок') ? 'on' : ''}">${t}${b ? ` <span class="badge">${b}</span>` : ''}</span>`).join('')}</div>
+  <div style="flex:1;min-height:0;display:flex;gap:14px">
+    <div class="scroll" style="flex:1;min-width:0;display:grid;gap:18px;align-content:start;padding:12px 4px 80px">${main}</div>
+    ${side ? `<div class="scroll" style="width:300px;flex:none;padding:12px 2px 20px">${side}</div>` : ''}
+  </div>
+</div>${overlay}</div>`;
+
+const banner = (wait) => wait
+  ? `<div class="banner"><span class="sec-ic" style="background:rgba(var(--glass-rgb),.6)">${I('Sparkles')}</span><div class="grow"><b>Раскладываем итоги по уроку</b>Черновики появляются прямо на своих местах · около 40 секунд</div><div style="width:220px;display:grid;gap:6px"><div class="small" style="display:flex;justify-content:space-between;font-weight:650"><span>Вопросы на проверку</span><span>2 из 5</span></div><div style="height:6px;border-radius:3px;background:rgba(var(--glass-rgb),.6);overflow:hidden"><div style="width:46%;height:100%;background:var(--grad-purple-bar)"></div></div></div></div></div>`
+  : `<div class="banner pulse"><span class="sec-ic" style="background:rgba(var(--glass-rgb),.6)">${I('AudioLines')}</span><div class="grow"><b>Запись урока расшифрована · ${D.duration}</b>Разложить по уроку конспект, вопросы, карточки, черновик ДЗ и заметку для вас?</div><span class="muted small">≈ 10 ₽</span><button class="btn primary" data-go="1">${I('Sparkles')}Разложить по уроку</button><button class="btn ghost sm" style="width:32px;padding:0">${I('X')}</button></div>`;
+
+/* Телефон */
+const phone = (tab, body, overlay = '', head = '') => `<div style="padding:0 16px 8px;display:grid;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px"><span class="btn ghost sm" style="width:36px;padding:0">${I('ChevronLeft')}</span><div style="flex:1"><div class="crumb">${D.course}</div><div style="font-weight:700;font-size:17px">${D.lesson}</div></div><span class="btn ghost sm" style="width:36px;padding:0">${I('MoreHorizontal')}</span></div>
+    <div class="hscroll" style="margin:0 -16px;padding:0 16px"><div class="tabs">${[['Урок', tab === 'Урок' || tab === 'Домашки' ? '3' : ''], ['Запись', ''], ['Домашки', tab === 'Урок' || tab === 'Домашки' ? '1' : '']].map(([t, b]) => `<span class="${t === tab || ((tab === 'idle' || tab === 'wait') && t === 'Урок') ? 'on' : ''}">${t}${b ? ` <span class="badge">${b}</span>` : ''}</span>`).join('')}</div></div>${head}</div>
+  <div class="scroll" style="flex:1;padding:12px 16px 170px;display:grid;gap:18px;align-content:start">${body}</div>${overlay}${dock('teacher')}`;
+
+const pBanner = (wait) => wait
+  ? `<div class="banner"><span class="sec-ic" style="background:rgba(var(--glass-rgb),.6)">${I('Loader2')}</span><div class="grow"><b>Раскладываем итоги</b>Около 40 секунд · можно уйти</div></div>`
+  : `<div class="banner pulse" style="flex-wrap:wrap"><span class="sec-ic" style="background:rgba(var(--glass-rgb),.6)">${I('AudioLines')}</span><div class="grow"><b>Запись расшифрована</b>Разложить итоги по уроку?</div><button class="btn primary block" data-go="1">${I('Sparkles')}Разложить · ≈ 10 ₽</button></div>`;
+
+window.VARIANT = {
+  title: 'C · Черновики на своих местах',
+  tagline: 'Отдельного экрана проверки нет. Каждый черновик сразу встаёт туда, где его увидит ученик, — в рамке «Черновик из записи». Учитель принимает или убирает их по одному, прямо в уроке.',
+  why: [
+    'Учитель сразу видит итог в контексте: конспект рядом с его собственным материалом, вопросы — там, где их будет решать ученик. Не надо представлять, «куда это попадёт».',
+    'Принятие поштучное: нельзя опубликовать всё одним нажатием, не взглянув. Заметка для учителя живёт отдельно, справа, и физически не стоит в потоке урока.',
+  ],
+  pros: [
+    'Нет нового экрана и новой вкладки — меньше интерфейса, итоги не «висят» после публикации.',
+    'Сразу видно, как урок будет выглядеть у ученика, включая порядок блоков.',
+    'Удобно на телефоне: тот же поток урока, принятие — одной кнопкой под блоком.',
+  ],
+  cons: [
+    'Черновики разбросаны по вкладкам («Урок», «Домашки», тренажёр) — нужна навигация «следующий черновик».',
+    'Неудобно сравнивать вопросы с конспектом: они в разных местах длинного урока.',
+    'Риск забыть непринятый черновик — нужен счётчик на вкладках и напоминание.',
+  ],
+  steps: [
+    { label: 'Кнопка', caption: 'После расшифровки над уроком появляется плашка «Запись урока расшифрована». Одна кнопка «Разложить по уроку» и цена. Плашку можно закрыть — кнопка останется во вкладке «Запись».',
+      desk: () => editor('idle', existing('Числа до ста: повторение') + existing('Который час: диалог', [68, 50]), '', '', banner()),
+      phone: () => phone('idle', existing('Числа до ста: повторение') + existing('Который час: диалог', [68, 50]), '', pBanner()) },
+    { label: 'Ожидание', caption: 'Пустые рамки появляются сразу там, где встанут черновики: конспект — в начало урока, вопросы — в конец. Учитель видит будущую раскладку ещё до ответа модели.',
+      desk: () => editor('wait', draft('summary', 'ghost') + existing('Числа до ста: повторение') + draft('questions', 'ghost') + draft('cards', 'ghost'), `<div class="sticky" style="opacity:.6"><div class="sec-h"><span class="sec-ic">${I('Lightbulb')}</span><div><h3>Заметка для вас</h3><div class="muted small">Пишем…</div></div></div><div class="skel" style="height:10px;margin:8px 0"></div><div class="skel" style="height:10px;width:70%"></div></div>`, '', banner(true)),
+      phone: () => phone('wait', draft('summary', 'ghost') + existing('Числа до ста: повторение') + draft('questions', 'ghost'), '', pBanner(true)) },
+    { label: 'Превью и правка', caption: 'Черновик стоит на своём месте в рамке. Текст правится прямо в уроке, галочки снимают пункты, «Принять» превращает рамку в обычный блок. Внизу — навигатор по черновикам; справа — заметка только для учителя.',
+      desk: () => editor('Урок', draft('summary', 'draft', B.summary()) + existing('Числа до ста: повторение') + draft('questions', 'draft', B.questions({ limit: 4 })) + draft('cards', 'draft', B.cards()), note(), navpill(0, 0)),
+      phone: () => phone('Урок', `<details class="sticky" style="padding:12px 16px"><summary style="list-style:none;display:flex;gap:10px;align-items:center;cursor:pointer"><span class="sec-ic">${I('Lightbulb')}</span><b style="flex:1">Заметка для вас · 5</b>${I('ChevronDown')}</summary><div style="padding-top:8px">${B.note()}</div></details>` + draft('summary', 'draft', B.summary()) + existing('Числа до ста: повторение') + draft('questions', 'draft', B.questions({ limit: 3 })), navpill(0, 0, 100).replace('Принять всё', 'Все').replace(/<button class="btn ghost sm" style="width:32px;padding:0">.*?<\/button>/g, '')) },
+    { label: 'Раскладка по уроку', caption: 'Черновик ДЗ лежит во вкладке «Домашки» с пометкой «Только пройденное» — без срока и учеников, назначает учитель. Принятые блоки в уроке стали обычными (зелёная метка), навигатор ведёт к оставшимся.',
+      desk: () => editor('Домашки', draft('hw', 'draft', `<div class="privacy" style="margin-bottom:10px">${I('Target')}${D.hw.note}</div>${B.hw()}`, '<span class="sp" style="flex:1"></span><button class="btn soft sm">Назначить…</button>') + `<div class="existing"><div class="sec-h" style="margin:0"><span class="sec-ic" style="background:var(--color-bg-3)">${I('NotebookPen')}</span><div><h3>Домашка урока 4</h3><div class="muted small">Назначена · сдали 3 из 4</div></div></div></div>`,
+        `<div style="display:grid;gap:10px">${[['summary', 1], ['questions', 1], ['cards', 1], ['hw', 0], ['note', 1]].map(([id, ok]) => `<div class="existing" style="padding:12px 14px;display:flex;gap:10px;align-items:center">${I(K(id).icon)}<span style="flex:1;font-weight:600;font-size:13.5px">${K(id).name}</span>${ok ? `<span class="pill green">${I('Check')}Принято</span>` : `<span class="pill purple">Здесь</span>`}</div>`).join('')}</div>`, navpill(4, 3, 22, 4)).replace('Принять всё', 'Принять последний'),
+      phone: () => phone('Домашки', draft('hw', 'draft', `<div class="privacy" style="margin-bottom:10px">${I('Target')}${D.hw.note}</div>${B.hw()}`), navpill(4, 3, 100, 4).replace('Принять всё', 'Принять').replace(/<button class="btn ghost sm" style="width:32px;padding:0">.*?<\/button>/g, '')) },
+    { label: 'Что видит ученик', caption: 'У ученика нет отдельного «ИИ-блока»: конспект, «Проверь себя» и карточки выглядят как обычные части урока, которые написал учитель. Пропустившие получают тот же урок.', url: 'iskra.app/#/course/kor-0/5',
+      desk: () => studentDesk('c'), phone: () => studentPhone('c') },
+  ],
+  bind(f) {
+    f.querySelectorAll('[data-accept]').forEach(b => b.addEventListener('click', () => {
+      const d = b.closest('.draft'); d.classList.add('accepted'); d.querySelector('.tag').innerHTML = `${I('Check')}Принято`; d.querySelector('.acts').remove();
+      const n = f.querySelectorAll('.draft.accepted').length; const pill = f.querySelector('.navpill span[style]'); if (pill) pill.textContent = `Принято ${n} из 5`;
+      f.querySelectorAll('.dots i').forEach((i, j) => { i.className = j < n ? 'ok' : j === n ? 'cur' : ''; });
+    }));
+    f.querySelectorAll('[data-drop]').forEach(b => b.addEventListener('click', () => { const d = b.closest('.draft'); d.style.opacity = '.35'; d.querySelector('.acts').innerHTML = `<span class="muted small">Убрано.</span><button class="btn ghost sm">${I('Undo2')}Вернуть</button>`; }));
+  },
+};
+</script>
+</body>
+</html>
