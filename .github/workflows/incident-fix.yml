@@ -18,11 +18,11 @@ jobs:
     outputs:
       needed: ${{ steps.decision.outputs.needed }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - run: npm ci --ignore-scripts
@@ -32,7 +32,7 @@ jobs:
           ISKRA_PUBLISHABLE_KEY: ${{ vars.ISKRA_PUBLISHABLE_KEY }}
           ISKRA_MONITOR_WORKER_SECRET: ${{ secrets.ISKRA_MONITOR_WORKER_SECRET }}
         run: node scripts/monitor/prepare-context.mjs
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         id: attempted
         with:
           path: /tmp/iskra-attempt
@@ -42,7 +42,7 @@ jobs:
         run: mkdir -p /tmp/iskra-attempt && date -u > /tmp/iskra-attempt/at
       - name: Кандидат без прав публикации
         if: steps.context.outputs.needed == 'true' && steps.attempted.outputs.cache-hit != 'true'
-        uses: openai/codex-action@1d82a3dba7c7988ec71ecae1ed5b8e8db96495c5
+        uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           permission-profile: ':workspace'
@@ -56,7 +56,7 @@ jobs:
           else
             echo 'needed=false' >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: steps.decision.outputs.needed == 'true'
         with:
           name: iskra-candidate
@@ -71,14 +71,14 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: iskra-candidate
           path: /tmp/iskra-candidate

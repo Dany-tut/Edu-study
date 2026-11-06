@@ -18,10 +18,10 @@ jobs:
       ISKRA_LOCAL_DIR: node_modules/.cache/iskra-ci
       ISKRA_PLAYWRIGHT_MODULE: playwright
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - run: npm ci
@@ -58,7 +58,7 @@ jobs:
         if: always()
         run: |
           if ($env:ISKRA_WSL_KEEPER) { Stop-Process -Id $env:ISKRA_WSL_KEEPER -ErrorAction SilentlyContinue }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: windows-qa-results
