@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { useScrollLock } from '../../lib/useScrollLock'
 import { useWidgetScrollFades } from '../../lib/useWidgetScrollFades'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { X, Plus, Pencil } from '../icons/appIcons'
 import { WIDGET_REGISTRY, getWidgetDef, type WidgetDef } from './widgets/registry'
 import type { LayoutItem } from '../../lib/useDeskLayouts'
@@ -42,6 +42,8 @@ function WidgetCard({ def, onAdd }: { def: WidgetDef; onAdd: () => void }) {
     </div>
   )
 }
+
+const keepJsOpacity = () => {}
 
 function findFreePosition(existingItems: { x: number; y: number; w: number; h: number }[], w: number, h: number, cols = 12): { x: number; y: number } {
   const maxY = existingItems.reduce((m, i) => Math.max(m, i.y + i.h), 0)
@@ -90,11 +92,16 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
     onClose()
   }
 
+  // Появление и уход анимирует AnimatePresence у родителя (TeacherDashboardPage):
+  // своё здесь не увидело бы ухода — компонент снимается целиком.
   return createPortal(
-    <AnimatePresence>
       <motion.div
         key="wl-backdrop"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        // onUpdate выключает WAAPI-ускорение прозрачности. В framer-motion 11.18
+        // ускоренная анимация в конце на один кадр отдаёт стартовый opacity: 0 —
+        // подложка вместе с окном мигала через ~0,3 с после открытия.
+        onUpdate={keepJsOpacity}
         onClick={onClose}
         style={{
           position: 'fixed', inset: 0, zIndex: 3000,
@@ -167,8 +174,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
             </button>
           )}
         </motion.div>
-      </motion.div>
-    </AnimatePresence>,
+      </motion.div>,
     document.body
   )
 }
