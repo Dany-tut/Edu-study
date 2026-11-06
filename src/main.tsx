@@ -1,6 +1,7 @@
 import './lib/polyfills' // первым: заплатки API для старых iOS до Supabase и приложения
 import { initialRouteTarget } from './lib/initialRoute'
 import { initNativeCrashReporting } from './lib/nativeCrashReporting'
+import { initWebCrashReporting } from './lib/webCrashReporting'
 import { initAnalytics } from './lib/analytics'
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -146,6 +147,7 @@ startTextFades()
 // Install diagnostics before rendering; App's later call is idempotent.
 initAnalytics()
 void initNativeCrashReporting()
+initWebCrashReporting()
 // Старый браузер: index.html уже показал экран «обновите iOS» — не затираем его.
 if (!(window as Window & { __iskraUnsupported?: boolean }).__iskraUnsupported) createRoot(document.getElementById('root')!).render(
   <StrictMode>
