@@ -5,7 +5,7 @@
   if (location.hostname === 'localhost' && !window.Capacitor?.isNativePlatform?.()) return;
   const storageKey = 'iskra:boot-outbox';
   // crypto.randomUUID — iOS 15.4+. Без запасного пути скрипт падал раньше, чем ставил слушатели, и старые телефоны были не видны.
-  const uuid=()=>{try{if(crypto.randomUUID)return crypto.randomUUID()}catch{}return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)};
+  const uuid=()=>{try{if(crypto.randomUUID)return crypto.randomUUID()}catch{}return Date.now().toString(36)+'-'+Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,'0')).join('')};
   let session;try { session=sessionStorage.getItem('analytics_session');if(!session){session=uuid();sessionStorage.setItem('analytics_session',session)} } catch {session=uuid()}
   let pending=[];try{const rows=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(rows))pending=rows.filter(x=>x?.event==='bootstrap_error' && x.role==='anon' && x.user_id===null && x.student_id===null && typeof x.meta?.incident_id==='string' && x.meta?.channel==='prebootstrap' && Date.now()-Date.parse(x.created_at)<86400000).slice(-20).map(x=>({event:'bootstrap_error',role:'anon',user_id:null,student_id:null,created_at:x.created_at,session_id:String(x.session_id).slice(0,80),path:null,meta:{incident_id:x.meta.incident_id.slice(0,80),channel:'prebootstrap',reason:'replayed_bootstrap_error',event_source:['qa','automation_suspected'].includes(x.meta.event_source)?x.meta.event_source:'browser_unclassified',app_host_kind:x.meta.app_host_kind==='native'?'native':'canonical_production'}}))}catch{}
   const persist=()=>{try{localStorage.setItem(storageKey,JSON.stringify(pending.slice(-20)))}catch{}};
