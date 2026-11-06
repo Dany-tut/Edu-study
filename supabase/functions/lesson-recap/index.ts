@@ -2,8 +2,9 @@
 //
 // Учитель нажимает «Собрать итоги» → сюда приходит short_id урока и список
 // нужных видов (summary, questions, cards, hw, note). Функция:
-//   • проверяет рубильники ai_enabled + ai_lesson_recap (иначе 409),
-//     владельца урока и дневной лимит учителя (20 сборок за сутки);
+//   • проверяет по порядку: рубильники ai_enabled + ai_lesson_recap (409) →
+//     доступ lesson_recap и переключатель учителя (403) → владельца урока →
+//     дневной лимит (20 сборок за сутки);
 //   • берёт СОХРАНЁННУЮ расшифровку из lessons.content.transcript, нумерует
 //     реплики и заменяет имена на «Учитель / Ученик А» — наружу не уходят ни
 //     имена, ни видео, ни голос;
@@ -83,6 +84,15 @@ async function handle(req: Request): Promise<Response> {
   const { data: flags } = await admin.from('app_flags').select('key, enabled').in('key', ['ai_enabled', 'ai_lesson_recap'])
   if (!['ai_enabled', 'ai_lesson_recap'].every(k => flags?.find(f => f.key === k)?.enabled))
     return json({ error: 'Итоги урока выключены в админке', code: 'off' }, 409)
+
+  // ── Доступ учителя ───────────────────────────────────────────────────────
+  // Общий механизм доступа к автоматизациям (миграция teacher_features):
+  // админ выдал ключ lesson_recap и учитель не выключил его в «Настройках».
+  // my_features зовём от имени учителя — так же, как его видит клиент. База не
+  // ответила — считаем, что доступа нет.
+  const { data: features, error: featuresError } = await caller.rpc('my_features')
+  const access = !featuresError && (features as Array<{ feature: string; enabled: boolean }> | null)?.some(f => f.feature === 'lesson_recap' && f.enabled)
+  if (!access) return json({ error: 'Итоги урока не включены для вашего кабинета', code: 'no_access' }, 403)
 
   let body: { lesson?: string; kinds?: unknown; lang?: string; recap?: string; force?: boolean }
   try { body = await req.json() } catch { return json({ error: 'Пустой запрос', code: 'bad_request' }, 400) }

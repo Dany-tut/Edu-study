@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useFeature } from '../../lib/teacherFeatures'
 import {
   loadLessonRecap, recapAvailable, requestLessonRecap, saveRecapDraft,
   type RecapDraft, type RecapKind, type RecapRow,
@@ -8,8 +9,15 @@ import {
 // урок, чтобы оба входа вели в один и тот же черновик.
 
 let availability: Promise<boolean> | null = null
-/** Рубильник читается один раз за сеанс страницы: кнопка не мигает между уроками. */
+/**
+ * Итоги видны, только когда сходятся три условия: рубильники ai_enabled +
+ * ai_lesson_recap (деньги), доступ lesson_recap от админа и переключатель
+ * учителя в «Настройках» (общий механизм lib/teacherFeatures). Без доступа нет
+ * ни карточки, ни кнопки в монтаже, ни пункта в настройках; выключил — кнопки
+ * скрыты, черновики остаются. Рубильник читается один раз за сеанс страницы.
+ */
 export function useRecapAvailable() {
+  const access = useFeature('lesson_recap')
   const [on, setOn] = useState(false)
   useEffect(() => {
     let alive = true
@@ -17,7 +25,7 @@ export function useRecapAvailable() {
     void availability.then(v => { if (alive) setOn(v) })
     return () => { alive = false }
   }, [])
-  return on
+  return on && access
 }
 
 export function useLessonRecap(lessonShortId: string | undefined, lang: string, enabled: boolean) {

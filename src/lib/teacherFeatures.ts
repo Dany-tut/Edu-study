@@ -21,7 +21,7 @@ export const FEATURES: FeatureInfo[] = [
   { key: 'journal_push', label: 'Напоминание о журнале', about: 'Уведомление, если урок прошёл, а журнал не заполнен.', ready: true },
   { key: 'transcription', label: 'Расшифровка записей', about: 'Расшифровка и монтаж записи урока на вашем Mac.', ready: true },
   { key: 'mcp', label: 'ИИ-помощники (MCP)', about: 'Подключить Claude и другие ИИ-клиенты к вашим курсам.', ready: true },
-  { key: 'lesson_recap', label: 'Итоги урока', about: 'Конспект, вопросы, карточки и черновик ДЗ из расшифровки урока.', ready: false },
+  { key: 'lesson_recap', label: 'Итоги урока из записи', about: 'Конспект, вопросы, карточки, черновик ДЗ и заметка для вас — из расшифровки урока. Выключено — кнопки скрыты, черновики остаются.', ready: true },
   { key: 'reminders', label: 'Напоминания ученикам', about: 'Урок скоро, ДЗ завтра, ДЗ просрочено — в Telegram и пушем.', ready: false },
   { key: 'parent_report', label: 'Отчёт родителю', about: 'Недельный отчёт: посещаемость, ДЗ, баллы и пара фраз от вас.', ready: false },
   { key: 'payment_reminders', label: 'Напоминания об оплате', about: 'Напоминание о долге и счёт за месяц по проведённым урокам.', ready: false },
