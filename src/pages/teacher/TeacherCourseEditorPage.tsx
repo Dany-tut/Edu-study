@@ -51,6 +51,7 @@ import ScrollFade from '../../components/ScrollFade'
 import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
 import { getOwnerId } from '../../lib/owner'
+import { useFeature } from '../../lib/teacherFeatures'
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
 import { typeVisual } from '../../data/taskTypeVisuals'
@@ -1739,6 +1740,7 @@ function CenterRecording({
 }) {
   const t = useT()
   const owner = useTranscriptionOwner()
+  const transcription = useFeature('transcription')
   const [linkMode, setLinkMode] = useState(false)
   // Крестик взводится первым нажатием: вторым уходит запись вместе с главами и
   // расшифровкой — часы разбора не должны пропадать от промаха мышью.
@@ -1996,7 +1998,7 @@ function CenterRecording({
 
   return (
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingBottom: RECORDING_BLEED }}>
-      {loading || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
+      {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
     </div>
