@@ -523,17 +523,16 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
         whileTap={{ scale: 0.97 }}
         style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '0 8px', height: 44, cursor: 'pointer', borderRadius: 14, userSelect: 'none' }}
       >
-        <motion.div
-          // Свечение держим в пределах бара: у бара overflow:hidden, и широкая
-          // тень (blur 16) срезалась его краями в прямоугольник. Кольцо + мягкая
-          // тень до ~10 px от круга — ховер остаётся круглым.
-          whileHover={{ scale: 1.08, boxShadow: '0 0 0 3px rgba(120,106,215,0.40), 0 2px 8px rgba(106,90,230,0.45)' }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-          style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 0 0 rgba(120,106,215,0), 0 2px 8px rgba(106,90,230,0.35)' }}
+        {/* Ховер — только кольцо в CSS (.topbar-avatar), без scale из motion:
+            трансформ выносил круг в свой слой, и стекло бара (backdrop-filter)
+            рисовало вокруг него серый скруглённый квадрат — «второй ховер». */}
+        <div
+          className="topbar-avatar"
+          style={{ position: 'relative', width: 30, height: 30, borderRadius: '50%', background: selectedAvatar.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
         >
           <AvatarIcon size={16} strokeWidth={1.8} style={{ color: '#fff' }} />
           <AvatarPhotoFill path={avatarPath} />
-        </motion.div>
+        </div>
         <div ref={profileTextRef} style={{
           overflow: 'hidden', whiteSpace: 'nowrap',
           maxWidth: (isHome && teacherName && squeeze < 2) ? 208 : 0,

@@ -9,3 +9,9 @@
 .profile-menu-row[data-tone=red] .profile-menu-tile {background:var(--color-red-soft);color:var(--color-red-text)}
 .profile-menu-row[data-tone=red]:hover {background:color-mix(in srgb,var(--color-red-soft) 60%,transparent) !important}
 .profile-menu-row[data-tone=red]:hover .profile-menu-tile {background:color-mix(in srgb,var(--color-red-soft),var(--color-red-text) 14%);color:var(--color-red-text)}
+/* Аватар в шапке: ховер — кольцо 3 px вокруг круга. Без transform — иначе
+   круг уходит в свой слой, и стекло бара рисует вокруг него серый квадрат. */
+.topbar-avatar {box-shadow:0 0 0 0 rgba(120,106,215,0),0 2px 8px rgba(106,90,230,.35);transition:box-shadow .15s}
+@media (hover:hover) and (pointer:fine) {
+  .topbar-avatar:hover {box-shadow:0 0 0 3px rgba(120,106,215,.4),0 2px 8px rgba(106,90,230,.45)}
+}

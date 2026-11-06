@@ -1,5 +1,5 @@
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Student } from '../../../data/teacherMockData'
 import {
   Activity,
@@ -327,6 +327,19 @@ export function StudentOverviewCard({
 }: CardProps & { onWork?: (w: StudentWork) => void; onProfile?: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [sharing, setSharing] = useState(false)
+  // Лист для скрина — альбомный 4:3. На широком экране он свёрстан в 1040×780
+  // и уменьшается целиком, чтобы влезать в окно без прокрутки; на телефоне течёт.
+  const [paperZoom, setPaperZoom] = useState<number | null>(null)
+  useEffect(() => {
+    if (!sharing) return
+    const fit = () => {
+      const w = window.innerWidth, h = window.innerHeight
+      setPaperZoom(w < 700 ? null : Math.min(1, (w - 32) / 1040, (h - 92) / 780))
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [sharing])
   const actions = (
     <button
       className="cj-button jo-shot"
@@ -395,7 +408,8 @@ export function StudentOverviewCard({
               </button>
             </div>
             <OverlayScrollArea className="jo-share-scroll" style={{flex:1}} showScrollbar={false}>
-            <div className="jo-share-paper">
+            <div className="jo-share-paper" data-fixed={paperZoom !== null || undefined}
+              style={paperZoom !== null ? { zoom: paperZoom } : undefined}>
               <div className="jo-brand">✳ Искра</div>
               <ReportSheet {...props} embedded={false} />
             </div>
