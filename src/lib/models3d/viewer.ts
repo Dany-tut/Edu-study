@@ -53,6 +53,11 @@ export interface ModelViewer {
   setPaused(on: boolean): void
   /** Подвести камеру к части; null — вернуться к общему виду. */
   focusPart(id: string | null): void
+  /**
+   * Справа на сцене стоит карточка шириной px: центр кадра сдвигается в
+   * свободную часть, чтобы приближенная деталь не уходила под карточку.
+   */
+  setViewInset(px: number): void
   resetView(): void
   resize(): void
   dispose(): void
@@ -335,10 +340,16 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   canvas.addEventListener('pointerleave', onLeave)
 
   // ── Цикл ─────────────────────────────────────────────────────────────────
+  let viewInset = 0
   function resize() {
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1
     renderer.setSize(w, h, false)
     camera.aspect = w / h
+    // Сдвиг на половину карточки: картинка уезжает влево, центр модели встаёт
+    // посередине свободной части. Подписи и выбор кликом считаются через ту же
+    // матрицу проекции, поэтому остаются на своих местах.
+    if (viewInset > 0) camera.setViewOffset(w, h, viewInset / 2, 0, w, h)
+    else camera.clearViewOffset()
     camera.updateProjectionMatrix()
   }
   resize()
@@ -367,6 +378,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     setIsolate(id) { isolated = id },
     setHighlight(id) { highlighted = id },
     setEmphasis(id) { emphasis = id },
+    setViewInset(px) { viewInset = Math.max(0, px); resize() },
     setMarker(id, worldPoint) {
       const part = id ? byId.get(id) : null
       if (!part || !worldPoint) { marker = null; return }

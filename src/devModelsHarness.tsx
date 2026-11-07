@@ -82,7 +82,7 @@ function Stand() {
           ))}
         </div>
       </div>
-      <div style={{ padding: 24, maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 28 }}>
+      <div style={{ padding: 24, maxWidth: 'calc(74vh * 16 / 9)', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 28 }}>
         {refs.map(r => <Model3DFigure key={r} src={r} caption={`Маркер в конспекте: \`![подпись](${r})\``} />)}
       </div>
     </div>

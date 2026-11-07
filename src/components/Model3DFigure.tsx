@@ -17,12 +17,15 @@ import './model3dFigure.css'
 
 type Status = 'loading' | 'ready' | 'error'
 
+/** Ширина боковой карточки «Отдельно», px (держать в паре с .m3d__card--side). */
+const SIDE_W = 300
+
 export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selectedPart, onSelectPart, compact }: {
   src: string
   caption?: string
   scale?: number
   /** Ширина листа в колонке конспекта; во весь экран игнорируется. */
-  maxWidth?: number
+  maxWidth?: number | string
   /** Управляемый выбор части снаружи (карточка проверки: клик по строке). */
   selectedPart?: string | null
   onSelectPart?: (id: string | null) => void
@@ -42,6 +45,8 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   const [spinning, setSpinning] = useState(true)
   const [full, setFull] = useState(false)
   const [touched, setTouched] = useState(false)
+  /** Сцена достаточно широкая, чтобы карточка «Отдельно» встала сбоку. */
+  const [wide, setWide] = useState(false)
   const [moving, setMoving] = useState(true)
   const [progress, setProgress] = useState(0)
   const [playing, setPlaying] = useState(false)
@@ -128,6 +133,15 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   // Выбранная часть — в полном цвете, остальное гаснет до 5 %, как в заданиях
   // на модели: сразу видно, что именно выбрано.
   useEffect(() => { viewerRef.current?.setEmphasis(selected) }, [selected, status])
+  useEffect(() => {
+    const st = stageRef.current
+    if (!st || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => setWide(st.clientWidth >= 640))
+    ro.observe(st)
+    return () => ro.disconnect()
+  }, [status])
+  // Карточка сбоку занимает SIDE_W + отступ: на столько сдвигаем центр кадра.
+  useEffect(() => { viewerRef.current?.setViewInset(isolated && wide && selected ? SIDE_W + 24 : 0) }, [isolated, wide, selected, status])
   useEffect(() => { viewerRef.current?.setAutoRotate(spinning) }, [spinning, status])
   useEffect(() => { viewerRef.current?.setAnimation(moving) }, [moving, status])
   useEffect(() => { viewerRef.current?.setPlaying(playing) }, [playing, status])
@@ -241,9 +255,19 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           )}
           {status === 'loading' && <div className="m3d__state">Загружаем 3D-модель…</div>}
           {status === 'error' && <div className="m3d__state">3D-модель не загрузилась. Проверьте связь и обновите страницу.</div>}
+          {part && isolated && wide && (
+            <div className="m3d__card m3d__card--side" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
+              <div className="m3d__card-title">{part.name}</div>
+              <div className="m3d__card-text"><Prose text={part.info} /></div>
+              <div className="m3d__card-actions">
+                <button type="button" className="m3d__btn" data-hover="own" aria-pressed onClick={() => setIsolated(false)}>Показать всё</button>
+                <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {part && isolated && (
+        {part && isolated && !wide && (
           <div className="m3d__card" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
             <div className="m3d__card-title">{part.name}</div>
             <div className="m3d__card-text"><Prose text={part.info} /></div>

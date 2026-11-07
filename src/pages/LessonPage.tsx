@@ -157,7 +157,8 @@ const FIGURE_W = 680
 function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: string; scale?: number }) {
   const [zoom, setZoom] = useState(false)
   // 3D-модель едет тем же маркером, что картинка, но рисуется своей сценой.
-  if (isModelRef(src)) return <Model3DFigure src={src} caption={caption} scale={scale} maxWidth={FIGURE_W} />
+  // Модель — шириной плеера, а не листа схемы: ей нужна сцена, а не колонка текста.
+  if (isModelRef(src)) return <Model3DFigure src={src} caption={caption} scale={scale} maxWidth={PLAYER_MAX_W} />
   return (
     <>
       <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
