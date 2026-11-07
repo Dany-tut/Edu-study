@@ -15,10 +15,18 @@ import type { ModelSpec, ModelPartSpec } from './spec'
 interface GltfPart {
   node: string; name: string; color: string; info: string
   opacity?: number; shell?: boolean; hideLabel?: boolean
+  /** Шаг вдоль оси разбора (см. GltfModel.explodeAxis): +3 — дальше всех вперёд. */
+  explodeStep?: number
 }
 interface GltfModel {
   key: string; url: string; title: string; subtitle: string; credit: string
   parts: GltfPart[]
+  /**
+   * Разбор вдоль оси «от узла → к узлу» (центры их габаритов), по шагам
+   * explodeStep. Нужен органам, где части лежат стопкой на одной оси (глаз):
+   * разбор «от центра» разводит их почти одинаково, и стопка остаётся слипшейся.
+   */
+  explodeAxis?: [string, string]
 }
 
 const BP3D_CREDIT = 'Меш: BodyParts3D, © The Database Center for Life Science, CC BY 4.0.'
@@ -42,16 +50,17 @@ const MODELS: GltfModel[] = [
   },
   {
     key: 'bp3d-eye', url: '/models/bp3d-eye.glb', title: 'Глазное яблоко · по МРТ',
+    explodeAxis: ['choroid', 'cornea'],
     subtitle: 'Оболочки и преломляющие среды из базы BodyParts3D. Склера полупрозрачна, чтобы видеть хрусталик и связку.',
     credit: BP3D_CREDIT,
     parts: [
-      { node: 'sclera', name: 'Склера', color: '#E9E6EE', opacity: 0.3, shell: true, info: 'Белочная оболочка — наружный каркас глаза. Спереди переходит в роговицу.' },
-      { node: 'cornea', name: 'Роговица', color: '#9FD3F0', opacity: 0.5, info: 'Прозрачная выпуклая часть наружной оболочки. Главная преломляющая среда глаза.' },
-      { node: 'choroid', name: 'Сосудистая оболочка', color: '#C97A6A', opacity: 0.85, info: 'Средняя оболочка с сосудами и пигментом: питает сетчатку и гасит рассеянный свет. Спереди переходит в ресничное тело и радужку.' },
-      { node: 'iris', name: 'Радужка', color: '#6B8BC7', info: 'Кольцо с пигментом и двумя мышцами; отверстие в центре — зрачок.' },
-      { node: 'lens', name: 'Хрусталик', color: '#F2DFA0', opacity: 0.85, info: 'Двояковыпуклая линза. Меняет кривизну — аккомодация.' },
-      { node: 'ligament', name: 'Ресничный поясок', color: '#D98A7A', info: 'Тонкие волокна, на которых хрусталик подвешен к ресничному телу. Их натяжение меняет форму хрусталика.' },
-      { node: 'vitreous', name: 'Стекловидное тело', color: '#BFE3F5', opacity: 0.15, hideLabel: true, info: 'Прозрачный гель, заполняющий глаз за хрусталиком.' },
+      { node: 'sclera', explodeStep: 0, name: 'Склера', color: '#E9E6EE', opacity: 0.3, shell: true, info: 'Белочная оболочка — наружный каркас глаза. Спереди переходит в роговицу.' },
+      { node: 'cornea', explodeStep: 3.2, name: 'Роговица', color: '#9FD3F0', opacity: 0.5, info: 'Прозрачная выпуклая часть наружной оболочки. Главная преломляющая среда глаза.' },
+      { node: 'choroid', explodeStep: -1.6, name: 'Сосудистая оболочка', color: '#C97A6A', opacity: 0.85, info: 'Средняя оболочка с сосудами и пигментом: питает сетчатку и гасит рассеянный свет. Спереди переходит в ресничное тело и радужку.' },
+      { node: 'iris', explodeStep: 2.4, name: 'Радужка', color: '#6B8BC7', info: 'Кольцо с пигментом и двумя мышцами; отверстие в центре — зрачок.' },
+      { node: 'lens', explodeStep: 1.6, name: 'Хрусталик', color: '#F2DFA0', opacity: 0.85, info: 'Двояковыпуклая линза. Меняет кривизну — аккомодация.' },
+      { node: 'ligament', explodeStep: 0.8, name: 'Ресничный поясок', color: '#D98A7A', info: 'Тонкие волокна, на которых хрусталик подвешен к ресничному телу. Их натяжение меняет форму хрусталика.' },
+      { node: 'vitreous', explodeStep: -0.4, name: 'Стекловидное тело', color: '#BFE3F5', opacity: 0.15, hideLabel: true, info: 'Прозрачный гель, заполняющий глаз за хрусталиком.' },
     ],
   },
 ]
@@ -100,8 +109,18 @@ export async function gltfModelSpec(key: string): Promise<ModelSpec | null> {
     const a = (best as THREE.Vector3).sub(centre).multiplyScalar(scale)
     return [a.x, a.y, a.z]
   }
+  // Ось разбора в итоговых координатах модели: тот же сдвиг, масштаб и
+  // поворот Z-вверх → Y-вверх, что и у самих частей (rotation.x = −π/2).
+  const toFinal = (v: THREE.Vector3) => v.clone().sub(centre).multiplyScalar(scale).applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)
+  let axis: THREE.Vector3 | null = null
+  if (def.explodeAxis && nodes.has(def.explodeAxis[0]) && nodes.has(def.explodeAxis[1])) {
+    const a = toFinal(new THREE.Box3().expandByObject(nodes.get(def.explodeAxis[0])!).getCenter(new THREE.Vector3()))
+    const b = toFinal(new THREE.Box3().expandByObject(nodes.get(def.explodeAxis[1])!).getCenter(new THREE.Vector3()))
+    axis = b.sub(a).normalize()
+  }
   const parts: ModelPartSpec[] = def.parts.filter(p => nodes.has(p.node)).map(p => ({
     id: p.node, name: p.name, color: p.color, info: p.info, shell: p.shell, hideLabel: p.hideLabel,
+    explode: axis && p.explodeStep !== undefined ? (axis.clone().multiplyScalar(p.explodeStep).toArray() as [number, number, number]) : undefined,
     anchor: surfaceAnchor(nodes.get(p.node)!),
     build: (T) => {
       const g = new T.Group()
