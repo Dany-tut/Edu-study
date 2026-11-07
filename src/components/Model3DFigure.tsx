@@ -70,7 +70,9 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
         // Ярлык, который край сцены отрезал бы наполовину, прячем целиком.
         const hw = el.offsetWidth / 2, hh = el.offsetHeight / 2
         const outside = !!st && (a.x - hw < 0 || a.y - hh < 0 || a.x + hw > st.clientWidth || a.y + hh > st.clientHeight)
-        const hidden = a.hidden || outside || (!on && sel !== a.id)
+        // Выбрана часть — подпись только у неё (остальные погашены до 5 %);
+        // иначе — по переключателю «Подписи».
+        const hidden = a.hidden || outside || (sel ? sel !== a.id : !on)
         if ((el.dataset.hidden === 'true') !== hidden) el.dataset.hidden = String(hidden)
       }
     }
