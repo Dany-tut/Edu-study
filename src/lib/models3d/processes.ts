@@ -38,7 +38,11 @@ function setOpacity(obj: THREE.Object3D, o: number) {
   obj.visible = o > 0.02
   obj.traverse(c => {
     const m = (c as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined
-    if (m && 'opacity' in m) { m.transparent = true; m.opacity = o * ((m.userData.base as number | undefined) ?? 1) }
+    if (m && 'opacity' in m) {
+      if (!m.transparent) { m.transparent = true; m.needsUpdate = true }
+      m.userData.anim = true
+      m.opacity = o * ((m.userData.base as number | undefined) ?? 1)
+    }
   })
 }
 

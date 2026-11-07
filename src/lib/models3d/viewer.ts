@@ -218,7 +218,13 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       const target = base * (1 - d * 0.95) * (1 - shellFade * 0.85)
       // Флаг прозрачности не липкий: непрозрачная часть снова рисуется как
       // непрозрачная, иначе сортировка прозрачных даёт просветы в стенках.
-      m.transparent = base < 0.999 || target < 0.999
+      // Признак прозрачности three.js вшивает в шейдер (define OPAQUE: альфа
+      // принудительно 1). Сменили флаг — материал надо пересобрать, иначе
+      // часть остаётся непрозрачной при любой opacity: так у Дани в Edge
+      // остальные части не гасли до 5 %.
+      // Материалы, прозрачность которых ведёт сам процесс (userData.anim), не трогаем.
+      const wantTransparent = m.userData.anim === true || base < 0.999 || target < 0.999
+      if (m.transparent !== wantTransparent) { m.transparent = wantTransparent; m.needsUpdate = true }
       m.opacity = target
       m.depthWrite = target > 0.5
       m.emissive.copy(part.baseEmissive[i])

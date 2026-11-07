@@ -127,7 +127,9 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
     return () => ro.disconnect()
   }, [status])
   // Карточка сбоку занимает SIDE_W + отступ: на столько сдвигаем центр кадра.
-  useEffect(() => { viewerRef.current?.setViewInset(wide && selected ? SIDE_W + 24 : 0) }, [wide, selected, status])
+  // Сдвиг кадра под карточку — только при «Приблизить»: при обычном выборе
+  // модель стоит на месте.
+  useEffect(() => { viewerRef.current?.setViewInset(wide && selected && isolated ? SIDE_W + 24 : 0) }, [wide, selected, isolated, status])
   useEffect(() => { viewerRef.current?.setAutoRotate(spinning) }, [spinning, status])
   useEffect(() => { viewerRef.current?.setAnimation(moving) }, [moving, status])
   useEffect(() => { viewerRef.current?.setPlaying(playing) }, [playing, status])

@@ -29,7 +29,13 @@ function applyKey(obj: THREE.Object3D, keys: Key[], progress: number, mat?: THRE
   obj.position.set(...lerp3(a.pos, b.pos, t))
   obj.rotation.set(...lerp3(a.rot, b.rot, t))
   obj.scale.set(...lerp3(a.scale, b.scale, t))
-  if (mat) { mat.opacity = lerp(a.opacity, b.opacity, t); mat.transparent = true; mat.visible = mat.opacity > 0.02 }
+  if (mat) {
+    mat.opacity = lerp(a.opacity, b.opacity, t)
+    // Прозрачность ведёт плёнка: помечаем, чтобы сцена её не сбрасывала (см. viewer).
+    if (!mat.transparent) { mat.transparent = true; mat.needsUpdate = true }
+    mat.userData.anim = true
+    mat.visible = mat.opacity > 0.02
+  }
 }
 
 const K = (pos: V3, rot: V3 = [0, 0, 0], scale: V3 = [1, 1, 1], opacity = 1): Key => ({ pos, rot, scale, opacity })
