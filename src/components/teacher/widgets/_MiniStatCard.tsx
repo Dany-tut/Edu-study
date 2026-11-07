@@ -63,7 +63,6 @@ export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, 
       WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
       padding: '16px 20px',
       display: 'flex', flexDirection: 'column', gap: 6, overflow: 'hidden',
     }}>
