@@ -61,5 +61,5 @@ try {
     const expected = new Resvg(source, { font: { loadSystemFonts: false }, fitTo: {mode: 'width', value: 72} }).render().asPng()
     assert.deepEqual(readFileSync(path.join(root, `public/icons/loop/${name}-${theme}@3x.png`)), expected, `${name} ${theme}: native palette drift`)
   }
-  console.log(`Loop fills: ${rendered.all.length} web drawings, both themes, explicit active fills and 12 native assets verified.`)
+  console.log(`Loop fills: ${rendered.all.length} web drawings, both themes, explicit active fills and ${Object.keys(manifest.symbols).length * 2} native assets verified.`)
 } finally { rmSync(temporary, {recursive: true, force: true}) }

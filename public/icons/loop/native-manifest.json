@@ -26,6 +26,14 @@
     "person.crop.circle": {
       "name": "UserCircle",
       "sourceSha256": "e082e2bc70d4a921671ff52ecb79e661ef14ef587780070a6981da7442224059"
+    },
+    "book": {
+      "name": "BookOpen",
+      "sourceSha256": "e906762313a8fce5b4fbae83eb3b86b33edcc4348262165bea23bc83dd02c1be"
+    },
+    "dumbbell": {
+      "name": "Dumbbell",
+      "sourceSha256": "252cf331caa49865312d946a90a6bd589ce6ff39769196197c86b84897a89cce"
     }
   }
 }

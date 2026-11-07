@@ -10,7 +10,7 @@ const root = new URL('../', import.meta.url)
 const glyphs = JSON.parse(readFileSync(new URL('design/ios-concepts/loop-kit/glyphs.json', root), 'utf8'))
 const out = new URL('public/icons/loop/', root)
 mkdirSync(out, { recursive: true })
-const symbols = { house: 'Home', calendar: 'CalendarCheck', 'person.2': 'Users', 'checkmark.rectangle.stack': 'CheckCircle2', checklist: 'NotebookPen', 'person.crop.circle': 'UserCircle' }
+const symbols = { house: 'Home', calendar: 'CalendarCheck', 'person.2': 'Users', 'checkmark.rectangle.stack': 'CheckCircle2', checklist: 'NotebookPen', 'person.crop.circle': 'UserCircle', 'book': 'BookOpen', 'dumbbell': 'Dumbbell' }
 const manifest = { pointSize: 24, scale: 3, interiorFill: 'none', symbols: {} }
 for (const [symbol, name] of Object.entries(symbols)) {
   const svg = glyphs.find(g => g.name === name).svg
@@ -22,4 +22,4 @@ for (const [symbol, name] of Object.entries(symbols)) {
   }
 }
 writeFileSync(new URL('native-manifest.json', out), JSON.stringify(manifest, null, 2) + '\n')
-console.log(`Exported 12 native Loop images to ${fileURLToPath(out)}`)
+console.log(`Exported ${Object.keys(symbols).length * 2} native Loop images to ${fileURLToPath(out)}`)

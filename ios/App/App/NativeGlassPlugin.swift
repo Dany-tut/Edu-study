@@ -7,7 +7,7 @@ private enum LoopNativeIcons {
     private static let names = [
         "house": "Home", "calendar": "CalendarCheck", "person.2": "Users",
         "checkmark.rectangle.stack": "CheckCircle2", "checklist": "NotebookPen",
-        "person.crop.circle": "UserCircle",
+        "person.crop.circle": "UserCircle", "book": "BookOpen", "dumbbell": "Dumbbell",
     ]
     private static var images: [String: UIImage] = [:]
 
