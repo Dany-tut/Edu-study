@@ -7,7 +7,7 @@ import { currentLoginCodeRequest, mfaErrorRu, recoverWithBackupCode, subscribeLo
 import { Alert } from '../Alert'
 import AuthHero from '../AuthHero'
 import ScrollFade from '../ScrollFade'
-import { CodeCells, linkButton, primaryButton } from './MfaParts'
+import { CodeCells, CodeSubmitButton, linkButton, primaryButton } from './MfaParts'
 
 type GateState = 'checking' | 'open' | 'code'
 
@@ -115,7 +115,7 @@ export function MfaChallengeScreen({ onPassed, client = supabase, onCancel }: { 
       : <form noValidate onSubmit={event => { event.preventDefault(); void submit() }} style={{ display: 'grid', gap: 12, marginTop: 8 }}>
         <CodeCells value={code} onChange={value => { setCode(value); setError('') }} onComplete={value => void submit(value)} disabled={busy} invalid={!!error} label={t('Код из приложения')} />
         {error && <Alert tone="danger" text={t(error)} />}
-        <button data-hover="layer" type="submit" disabled={busy || code.length !== 6 || !factorId} style={{ ...primaryButton, opacity: busy || code.length !== 6 ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Подтвердить')}</button>
+        <CodeSubmitButton code={code} busy={busy} ready={!!factorId} onPaste={value => { setCode(value); setError(''); void submit(value) }} />
         <button data-hover="layer" type="button" onClick={() => { setBackup(true); setError('') }} style={linkButton}>{t('Использовать запасной код')}</button>
       </form>}
     <button data-hover="layer" type="button" onClick={() => { if (onCancel) onCancel(); else void signOut() }} style={{ ...linkButton, width: '100%', color: 'var(--color-muted)' }}>{t(onCancel ? 'Отмена' : 'Выйти')}</button>

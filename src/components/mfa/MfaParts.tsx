@@ -6,12 +6,7 @@ import { Check, ClipboardPaste, Copy, Download } from '../icons/appIcons'
 /** Чтение буфера обмена есть не везде (старые WebView, http без TLS). */
 const canReadClipboard = () => typeof navigator !== 'undefined' && typeof navigator.clipboard?.readText === 'function'
 
-/**
- * Шесть клеток кода. Под ними одно настоящее поле: вставка, автозаполнение кода и нампад работают как обычно.
- * Кнопка «Вставить код» — для того, кто скопировал код в аутентификаторе и вернулся: системное
- * «Вставить» по долгому нажатию на невидимом поле никто не находит. Кнопка читает буфер
- * по нажатию (iOS при этом сам спрашивает разрешение) и берёт из текста шесть цифр подряд.
- */
+/** Шесть клеток кода. Под ними одно настоящее поле: вставка, автозаполнение кода и нампад работают как обычно. */
 export function CodeCells({ value, onChange, onComplete, disabled, invalid, autoFocus = true, label }: {
   value: string
   onChange: (value: string) => void
@@ -21,26 +16,8 @@ export function CodeCells({ value, onChange, onComplete, disabled, invalid, auto
   autoFocus?: boolean
   label: string
 }) {
-  const t = useT()
   const ref = useRef<HTMLInputElement>(null)
   const [focused, setFocused] = useState(false)
-  const [pasteNote, setPasteNote] = useState('')
-  const accept = (next: string) => {
-    onChange(next)
-    if (next.length === 6) onComplete?.(next)
-  }
-  const paste = async () => {
-    setPasteNote('')
-    let text = ''
-    try { text = await navigator.clipboard.readText() } catch {
-      setPasteNote('Не получилось прочитать буфер обмена.\nЗажмите поле с клетками и выберите «Вставить».')
-      return
-    }
-    // «123 456», «123-456» и код посреди текста — берём первые шесть цифр подряд, разделители пропускаем.
-    const digits = text.match(/\d(?:[\s-]?\d){5}/)?.[0].replace(/\D/g, '')
-    if (!digits) { setPasteNote('В буфере обмена нет кода из 6 цифр.\nСкопируйте код в приложении-аутентификаторе.'); return }
-    accept(digits)
-  }
   useEffect(() => {
     // И после неверного кода: поле снова доступно — курсор сразу в нём.
     if (!autoFocus || disabled) return
@@ -49,7 +26,6 @@ export function CodeCells({ value, onChange, onComplete, disabled, invalid, auto
   }, [autoFocus, disabled])
   const active = Math.min(value.length, 5)
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
     <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 48px))', justifyContent: 'center', gap: 8 }}>
       {Array.from({ length: 6 }, (_, i) => {
         const current = focused && !disabled && i === active
@@ -65,15 +41,58 @@ export function CodeCells({ value, onChange, onComplete, disabled, invalid, auto
       <input ref={ref} aria-label={label} value={value} disabled={disabled}
         inputMode="numeric" pattern="[0-9]*" autoComplete="one-time-code" maxLength={6}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        onChange={event => { setPasteNote(''); accept(event.target.value.replace(/\D/g, '').slice(0, 6)) }}
+        onChange={event => {
+          const next = event.target.value.replace(/\D/g, '').slice(0, 6)
+          onChange(next)
+          if (next.length === 6) onComplete?.(next)
+        }}
         aria-invalid={invalid}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, border: 0, fontSize: 16, caretColor: 'transparent', cursor: 'text' }} />
     </div>
-    {canReadClipboard() && <IconButton icon={<ClipboardPaste size={18} />} onClick={() => void paste()} disabled={disabled}
-      style={{ justifySelf: 'center' }}>{t('Вставить код')}</IconButton>}
-    {pasteNote && <Alert tone="warning" text={t(pasteNote)} />}
-    </div>
   )
+}
+
+/**
+ * Главная кнопка под клетками — одна на двоих. Пока клетки пусты, это «Вставить код»:
+ * скопировал код в аутентификаторе, вернулся, нажал — и он сразу уходит на проверку
+ * (шесть цифр отправляются сами). С первой набранной цифры кнопка становится «Подтвердить».
+ * Буфер читается только по нажатию (iOS сам спрашивает разрешение); из текста берутся
+ * шесть цифр подряд — «123 456», «123-456», код посреди строки.
+ * Где буфер не читается (старые WebView, http), кнопка сразу «Подтвердить».
+ */
+export function CodeSubmitButton({ code, busy, ready = true, onPaste }: {
+  code: string
+  busy: boolean
+  /** Остальное готово к проверке (например, фактор уже загружен). */
+  ready?: boolean
+  onPaste: (code: string) => void
+}) {
+  const t = useT()
+  const [note, setNote] = useState('')
+  useEffect(() => { if (code) setNote('') }, [code])
+  const pasteMode = !busy && code.length === 0 && canReadClipboard()
+  const paste = async () => {
+    setNote('')
+    let text = ''
+    try { text = await navigator.clipboard.readText() } catch {
+      setNote('Не получилось прочитать буфер обмена.\nЗажмите поле с клетками и выберите «Вставить».')
+      return
+    }
+    const digits = text.match(/\d(?:[\s-]?\d){5}/)?.[0].replace(/\D/g, '')
+    if (!digits) { setNote('В буфере обмена нет кода из 6 цифр.\nСкопируйте код в приложении-аутентификаторе.'); return }
+    onPaste(digits)
+  }
+  const canSubmit = !busy && ready && code.length === 6
+  return <>
+    {note && <Alert tone="warning" text={t(note)} />}
+    {pasteMode
+      ? <button data-hover="layer" type="button" onClick={() => void paste()}
+        style={{ ...primaryButton, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <ClipboardPaste size={18} />{t('Вставить код')}
+      </button>
+      : <button data-hover="layer" type="submit" disabled={!canSubmit}
+        style={{ ...primaryButton, opacity: canSubmit ? 1 : 0.6 }}>{t(busy ? 'Проверяем…' : 'Подтвердить')}</button>}
+  </>
 }
 
 export const primaryButton: CSSProperties = {

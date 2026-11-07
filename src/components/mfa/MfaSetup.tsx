@@ -5,7 +5,7 @@ import { cancelEnrollment, generateBackupCodes, mfaErrorRu, startEnrollment, ver
 import { Alert } from '../Alert'
 import Modal from '../Modal'
 import { Check, Copy, Shield, ShieldCheck } from '../icons/appIcons'
-import { BackupCodesList, CodeCells, linkButton, primaryButton } from './MfaParts'
+import { BackupCodesList, CodeCells, CodeSubmitButton, linkButton, primaryButton } from './MfaParts'
 
 const STEP_TITLES = ['Сканируйте QR-код', 'Введите код', 'Защита включена'] as const
 
@@ -99,7 +99,7 @@ export function MfaSetupFlow({ onDone, onStep }: { onDone: () => void; onStep?: 
       <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, color: 'var(--color-text-2)' }}>{t('Введите 6 цифр, которые показывает приложение для «Искры».')}</p>
       <CodeCells value={code} onChange={value => { setCode(value); setError('') }} onComplete={value => void submit(value)} disabled={busy} invalid={!!error} label={t('Код из приложения')} />
       {error && <Alert tone="danger" text={t(error)} />}
-      <button data-hover="layer" type="submit" disabled={busy || code.length !== 6} style={{ ...primaryButton, opacity: busy || code.length !== 6 ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Подтвердить')}</button>
+      <CodeSubmitButton code={code} busy={busy} onPaste={value => { setCode(value); setError(''); void submit(value) }} />
       <button data-hover="layer" type="button" onClick={() => { setStep(0); setCode(''); setError('') }} style={linkButton}>{t('Назад')}</button>
     </form>}
 
