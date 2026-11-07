@@ -54,6 +54,11 @@ export interface ModelViewer {
   /** Подвести камеру к части; null — вернуться к общему виду. */
   focusPart(id: string | null): void
   /**
+   * Перенести точку вращения на часть, не меняя расстояния до камеры: крутишь
+   * и приближаешь вокруг выбранной части, а не вокруг центра модели.
+   */
+  setPivot(id: string | null): void
+  /**
    * Справа на сцене стоит карточка шириной px: центр кадра сдвигается в
    * свободную часть, чтобы приближенная деталь не уходила под карточку.
    */
@@ -425,6 +430,12 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       const box = partBox(part)
       const r = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, fitRadius * 0.12)
       focus = { target: box.getCenter(new THREE.Vector3()), dist: Math.min(controls.maxDistance, Math.max(controls.minDistance, r * 3.2)) }
+    },
+    setPivot(id) {
+      const part = id ? byId.get(id) : null
+      if (!part) return
+      const target = partBox(part).getCenter(new THREE.Vector3())
+      focus = { target, dist: camera.position.distanceTo(controls.target) }
     },
     resetView() {
       focus = null
