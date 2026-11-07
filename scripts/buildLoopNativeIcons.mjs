@@ -10,7 +10,7 @@ const root = new URL('../', import.meta.url)
 const glyphs = JSON.parse(readFileSync(new URL('design/ios-concepts/loop-kit/glyphs.json', root), 'utf8'))
 const out = new URL('public/icons/loop/', root)
 mkdirSync(out, { recursive: true })
-const symbols = { house: 'Home', calendar: 'CalendarCheck', 'person.2': 'Users', 'checkmark.rectangle.stack': 'CheckCircle2', checklist: 'NotebookPen', 'person.crop.circle': 'UserCircle', 'book': 'BookOpen', 'dumbbell': 'Dumbbell' }
+const symbols = { house: 'Home', calendar: 'CalendarCheck', 'person.2': 'Users', 'checkmark.rectangle.stack': 'CheckCircle2', checklist: 'NotebookPen', 'person.crop.circle': 'UserCircle', 'book': 'BookOpen', 'dumbbell': 'Dumbbell', 'magnifyingglass': 'Search', 'slider.horizontal.3': 'SlidersHorizontal' }
 const manifest = { pointSize: 24, scale: 3, interiorFill: 'none', symbols: {} }
 for (const [symbol, name] of Object.entries(symbols)) {
   const svg = glyphs.find(g => g.name === name).svg

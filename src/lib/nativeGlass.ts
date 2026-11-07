@@ -16,12 +16,27 @@
 // (useNativeOverlay), и пока открыто хоть одно — или открыта клавиатура — бар
 // уезжает вниз.
 // ─────────────────────────────────────────────────────────────────────────────
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 
 type AlertButton = { label: string; style?: 'default' | 'cancel' | 'destructive'; preferred?: boolean }
 export type GlassMenuItem = { label: string; checked?: boolean; destructive?: boolean; disabled?: boolean; symbol?: string }
 export type GlassTab = { id: string; title: string; symbol: string; badge?: number }
+
+/** Пункт стеклянного бара экрана: круг с иконкой или таблетка с подписью.
+ *  С `menu` — системное меню от кнопки (выбор приходит в onMenu). */
+export type GlassBarItem = {
+  id: string
+  kind: 'circle' | 'pill'
+  title?: string
+  symbol?: string
+  label?: string
+  active?: boolean
+  menuTitle?: string
+  menu?: { value: string; title: string; checked?: boolean }[]
+}
+/** Бар экрана: таблетка по центру сверху и ряд над вкладками. */
+export type GlassBar = { top?: GlassBarItem; bottom?: GlassBarItem[] }
 
 export type GlassHeader = { leading: string; leadingSymbol?: string; trailingText?: string; trailingSymbol?: string; onBack?: () => void; backLabel?: string }
 
@@ -35,6 +50,11 @@ interface NativeGlassPlugin {
   headerHidden(o: { hidden: boolean }): Promise<void>
   headerRemove(): Promise<void>
   setAppearance(o: { dark: boolean }): Promise<void>
+  barSet(o: GlassBar): Promise<void>
+  barHidden(o: { top: boolean; bottom: boolean }): Promise<void>
+  barRemove(): Promise<void>
+  addListener(e: 'barTap', fn: (d: { id: string }) => void): Promise<PluginListenerHandle>
+  addListener(e: 'barMenu', fn: (d: { id: string; value: string }) => void): Promise<PluginListenerHandle>
   addListener(e: 'tabSelect', fn: (d: { id: string }) => void): Promise<PluginListenerHandle>
   addListener(e: 'headerBack', fn: () => void): Promise<PluginListenerHandle>
 }
@@ -85,9 +105,14 @@ let overlays = 0
 let keyboard = false
 let barShown = false
 let headerShown = false
+let screenBarShown = false
+let screenBarBottomHidden = false
 const syncBar = () => {
   const hide = overlays > 0 || keyboard
   if (barShown) void NativeGlass.tabBarHidden({ hidden: hide }).catch(() => {})
+  // Бар экрана: верх — как шапка (только под шторкой/окном), низ — как вкладки
+  // (и под клавиатурой), плюс по просьбе экрана (поиск открыт вместо ряда).
+  if (screenBarShown) void NativeGlass.barHidden({ top: overlays > 0, bottom: hide || screenBarBottomHidden }).catch(() => {})
   // Шапка прячется под шторкой/окном (она плавает над WebView и легла бы
   // поверх затемнения), но НЕ под клавиатурой — она вверху, не мешает.
   if (headerShown) void NativeGlass.headerHidden({ hidden: overlays > 0 }).catch(() => {})
@@ -153,4 +178,60 @@ if (GLASS && typeof document !== 'undefined') {
   const push = () => { void NativeGlass.setAppearance({ dark: root.getAttribute('data-theme') === 'dark' }).catch(() => {}) }
   push()
   new MutationObserver(push).observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+}
+
+// ── стеклянный бар экрана (ученик, iPhone) ───────────────────────────────────
+//
+// Органы управления экраном — нативными кнопками Liquid Glass: таблетка сверху
+// (переключатель курса и т. п.) и ряд над вкладками (поиск, модуль, фильтры).
+// Пока бар стоит, на <html> висят --glass-top-pad / --glass-bottom-pad: отступы
+// контента и высота мягкого края (WindowSoftEdges) учитывают кнопки.
+
+/** Поставить бар, пока экран смонтирован. `hideBottom` — убрать нижний ряд
+ *  (например, открыт веб-поиск на его месте). Обработчики читаются по ref. */
+export function useGlassBar(
+  bar: GlassBar | null,
+  handlers: { onTap?: (id: string) => void; onMenu?: (id: string, value: string) => void },
+  hideBottom = false,
+) {
+  const ref = useRef(handlers)
+  ref.current = handlers
+  const json = bar ? JSON.stringify(bar) : ''
+  useEffect(() => {
+    if (!GLASS) return
+    if (!json) {
+      // Экран больше не просит бар (например, спрятан под открытым уроком) —
+      // снимаем, иначе кнопки остались бы поверх чужого экрана.
+      if (screenBarShown) removeScreenBar()
+      return
+    }
+    const parsed = JSON.parse(json) as GlassBar
+    screenBarShown = true
+    void NativeGlass.barSet(parsed).catch(() => {})
+    syncBar()
+    const root = document.documentElement
+    root.style.setProperty('--glass-top-pad', parsed.top ? '76px' : '20px')
+    root.style.setProperty('--glass-bottom-pad', parsed.bottom?.length ? '58px' : '0px')
+  }, [json])
+  useEffect(() => {
+    if (!GLASS) return
+    screenBarBottomHidden = hideBottom
+    syncBar()
+  }, [hideBottom])
+  useEffect(() => {
+    if (!GLASS || !json) return
+    const tap = NativeGlass.addListener('barTap', d => ref.current.onTap?.(d.id))
+    const menu = NativeGlass.addListener('barMenu', d => ref.current.onMenu?.(d.id, d.value))
+    return () => { void tap.then(x => x.remove()); void menu.then(x => x.remove()) }
+  }, [!!json])
+  useEffect(() => () => { if (GLASS && screenBarShown) removeScreenBar() }, [])
+}
+
+function removeScreenBar() {
+  screenBarShown = false
+  screenBarBottomHidden = false
+  void NativeGlass.barRemove().catch(() => {})
+  const root = document.documentElement
+  root.style.removeProperty('--glass-top-pad')
+  root.style.removeProperty('--glass-bottom-pad')
 }
