@@ -256,9 +256,11 @@ export default function MobileScreen({
         {children}
       </div>
 
+      {/* z 45: над контентом, но ПОД слоем нижней навигации (#mobile-dock-layer,
+          z 50) и шапкой (60) — иначе размытие ложилось поверх веб-вкладок. */}
       {IS_IOS && <>
-        <SoftEdge edge="top" size={topPadding} strength={fade.top} />
-        {!keyboardOpen && <SoftEdge edge="bottom" strength={fade.bottom}
+        <SoftEdge edge="top" size={topPadding} strength={fade.top} zIndex={45} />
+        {!keyboardOpen && <SoftEdge edge="bottom" strength={fade.bottom} zIndex={45}
           // Без веб-дока внизу лежат системные вкладки (UITabBar): их высота
           // 49 + safe-area, полоса чуть выше, чтобы размытие начиналось над ней.
           size={dockClearance > 0 ? `${dockClearance + 28}px` : `calc(${SAFE_BOTTOM} + 76px)`} />}
