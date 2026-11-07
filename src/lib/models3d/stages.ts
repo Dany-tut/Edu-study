@@ -162,6 +162,8 @@ export function mitosisSpec(): ModelSpec {
     title: 'Митоз',
     subtitle: 'Пять стадий одного деления. Проиграйте плёнку или нажмите на стадию.',
     radius: 3.2,
+    // Кадр — по клетке целиком: в телофазе дочерние клетки расходятся до ±3.4.
+    frame: { center: [0, 0, 0], radius: 3.6 },
     parts: [membrane, envelope, chromosomes, spindle],
     canExplode: false,
     timeline: {
