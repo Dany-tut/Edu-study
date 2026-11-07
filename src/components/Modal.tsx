@@ -7,6 +7,7 @@ import { useT } from '../lib/i18n'
 import { OverlayScrollArea } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { useNativeOverlay } from '../lib/nativeGlass'
+import { useBackClose } from '../lib/overlayStack'
 import './Modal.css'
 
 /**
@@ -75,6 +76,8 @@ export default function Modal({
   const keyboard = useKeyboardState()
   // Нативный таб-бар приложения лежит над WebView — пока окно открыто, он уезжает.
   useNativeOverlay(true)
+  // Системная «Назад» (Android) закрывает верхнее окно; Escape ниже — как раньше.
+  useBackClose(true, onClose)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !e.defaultPrevented) onClose() }
