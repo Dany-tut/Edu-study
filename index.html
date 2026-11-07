@@ -41,9 +41,14 @@
         // Тема — до первой отрисовки. Стор ставит data-theme на монтировании, то
         // есть через секунды после начала загрузки, и всё это время тёмный
         // пользователь смотрел на белый экран.
+        // Сохранённый выбор человека важнее; без него — тема системы (решение
+        // Дани, 07.11.2026). Правило то же, что в src/store/themeStore.ts.
         try {
-          document.documentElement.setAttribute('data-theme',
-            localStorage.getItem('theme') === 'dark' ? 'dark' : 'light')
+          var saved = null
+          try { saved = localStorage.getItem('theme') } catch (e) {}
+          var dark = saved === 'dark' || (saved !== 'light' &&
+            !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
         } catch (e) {}
         function syncIcon() {
           var teacher = location.hash.indexOf('#/teacher') === 0

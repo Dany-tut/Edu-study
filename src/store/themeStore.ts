@@ -1,7 +1,27 @@
 import { create } from 'zustand'
 
-function getSaved(): boolean {
-  try { return localStorage.getItem('theme') === 'dark' } catch { return false }
+// ── Какая тема ───────────────────────────────────────────────────────────────
+// Выбор человека (ручное переключение) хранится в localStorage 'theme' и всегда
+// главнее. Пока выбора нет — тема системы, и при её смене кабинет следует за
+// ней (решение Дани, 07.11.2026). Тот же порядок — во встроенном скрипте
+// index.html, который ставит тему до первой отрисовки.
+//
+// Раньше старт без выбора сразу ЗАПИСЫВАЛ 'light' — у всех, кто уже заходил,
+// ключ есть, и для них ничего не меняется: правило касается новых установок
+// и очищенного хранилища. Чужой ключ не трогаем.
+
+function savedChoice(): 'dark' | 'light' | null {
+  try {
+    const v = localStorage.getItem('theme')
+    return v === 'dark' || v === 'light' ? v : null
+  } catch { return null }
+}
+
+const systemQuery: MediaQueryList | null =
+  typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null
+
+function systemDark(): boolean {
+  return !!systemQuery?.matches
 }
 
 // Подмена темы должна пройти одним кадром. Пока у тела был собственный переход
@@ -20,7 +40,6 @@ function freezeColorTransitions() {
 
 function apply(dark: boolean) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
-  try { localStorage.setItem('theme', dark ? 'dark' : 'light') } catch {}
   // Keep Safari's status/address-bar tint EXACTLY equal to the app's current bg
   // (follows the in-app toggle, not the OS) so the bars blend — no visible band.
   try {
@@ -35,8 +54,14 @@ function apply(dark: boolean) {
   } catch {}
 }
 
-// Apply before first render to avoid flash
-const _initial = getSaved()
+/** Ручной выбор — запоминаем. */
+function remember(dark: boolean) {
+  try { localStorage.setItem('theme', dark ? 'dark' : 'light') } catch {}
+}
+
+// Apply before first render to avoid flash (index.html already set it the same way)
+const _saved = savedChoice()
+const _initial = _saved ? _saved === 'dark' : systemDark()
 apply(_initial)
 
 interface ThemeStore {
@@ -50,6 +75,16 @@ export const useTheme = create<ThemeStore>((set) => ({
     const next = !s.dark
     freezeColorTransitions()
     apply(next)
+    remember(next)
     return { dark: next }
   }),
 }))
+
+// Пока человек не выбрал тему сам — следуем за системой.
+systemQuery?.addEventListener?.('change', e => {
+  if (savedChoice()) return
+  if (useTheme.getState().dark === e.matches) return
+  freezeColorTransitions()
+  apply(e.matches)
+  useTheme.setState({ dark: e.matches })
+})
