@@ -7,6 +7,8 @@ import { GLASS, type GlassHeader } from '../lib/nativeGlass'
 import { useOverlayScroll } from './teacher/OverlayScroll'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
+import SoftEdge from './SoftEdge'
+import { IS_IOS } from '../lib/platform'
 import './mobileInteraction.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,7 +110,12 @@ export default function MobileScreen({
     ? `max(${topFadeEnd}, calc(100% - ${dockClearance + 56}px))`
     : 'calc(100% - 100px)'
   const bottomFadeEnd = dockClearance > 0 && !keyboardOpen ? `calc(100% - ${dockClearance}px)` : '100%'
-  const contentMask = fade.top > 0 || fade.bottom > 0
+  // iPhone/iPad: мягкий край (SoftEdge) вместо растворения — контент под
+  // шапкой и вкладками размывается, а гаснет только в полосе статус-бара, где
+  // поверх него системные часы. Android: прежние фейды SCROLL-01.
+  const contentMask = IS_IOS
+    ? (fade.top > 0 ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0px, #000 env(safe-area-inset-top, 0px))` : undefined)
+    : fade.top > 0 || fade.bottom > 0
     ? `linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) ${topFadeStart}, #000 ${topFadeEnd}, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
     : undefined
 
@@ -248,6 +255,14 @@ export default function MobileScreen({
       >
         {children}
       </div>
+
+      {IS_IOS && <>
+        <SoftEdge edge="top" size={topPadding} strength={fade.top} />
+        {!keyboardOpen && <SoftEdge edge="bottom" strength={fade.bottom}
+          // Без веб-дока внизу лежат системные вкладки (UITabBar): их высота
+          // 49 + safe-area, полоса чуть выше, чтобы размытие начиналось над ней.
+          size={dockClearance > 0 ? `${dockClearance + 28}px` : `calc(${SAFE_BOTTOM} + 76px)`} />}
+      </>}
 
       {/* BOTTOM — fixed dock: page controls + nav. 44px off edge + safe-area. */}
       {bottomDock != null && !keyboardOpen && (
