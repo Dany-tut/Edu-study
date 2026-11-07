@@ -35,7 +35,7 @@ function writeUrl(subject: Subject, ref: string | null) {
 }
 
 const chip = (on: boolean): React.CSSProperties => ({
-  padding: '6px 12px', borderRadius: 999, fontSize: 12.5, fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer',
+  padding: 'calc(6px - 0.06em) 12px calc(6px + 0.06em)', borderRadius: 999, fontSize: 12.5, fontWeight: 500, fontFamily: 'inherit', cursor: 'pointer',
   whiteSpace: 'nowrap', lineHeight: 1,
   border: `1px solid ${on ? '#786AD7' : 'transparent'}`,
   background: on ? 'color-mix(in srgb, #786AD7 16%, var(--color-bg-4))' : 'var(--color-bg-4)',

@@ -258,7 +258,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
                   onClick={() => setSelected(prev => (prev === p.id ? null : p.id))}
                 >
                   <span className="m3d__dot" />
-                  {p.name}
+                  <span className="m3d__txt">{p.name}</span>
                 </button>
               ))}
             </div>
@@ -336,7 +336,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
                 onClick={() => setSelected(prev => (prev === p.id ? null : p.id))}
               >
                 <span className="m3d__dot" />
-                {p.name}
+                <span className="m3d__txt">{p.name}</span>
               </button>
             ))}
           </div>
@@ -370,7 +370,13 @@ function DimSlider({ value, onChange }: { value: number; onChange: (v: number) =
     g.style.setProperty('--to', over < 0 ? 'right center' : 'left center')
     g.classList.toggle('squish', over !== 0)
   }
+  // Своя геометрия вместо нативной: центр капсулы ходит от left+29 до right-29.
+  // Нажатие на саму капсулу значение не меняет — запоминаем, где за неё взялись.
+  const grab = useRef<number | null>(null)
+  const span = () => { const r = box.current!.getBoundingClientRect(); return { lo: r.left + 29, w: Math.max(1, r.width - 58) } }
+  const valueAt = (x: number) => { const { lo, w } = span(); return Math.round(Math.min(1, Math.max(0, (x - (grab.current ?? 0) - lo) / w)) * 100) }
   const release = () => {
+    grab.current = null
     const g = box.current
     g?.style.setProperty('--sq', '0'); g?.classList.remove('squish')
     setTimeout(() => setPress(false), 120)
@@ -378,16 +384,29 @@ function DimSlider({ value, onChange }: { value: number; onChange: (v: number) =
   return (
     <div className="m3d__dim">
       <span className="m3d__dim-label">Остальное</span>
-      <span ref={box} className={`m3d-slider${press ? ' press' : ''}`} style={{ '--v': value / 100 } as CSSProperties}>
+      <span
+        ref={box} className={`m3d-slider${press ? ' press' : ''}`} style={{ '--v': value / 100 } as CSSProperties}
+        onPointerDown={e => {
+          e.stopPropagation(); e.preventDefault()
+          e.currentTarget.setPointerCapture(e.pointerId)
+          const { lo, w } = span(), center = lo + w * value / 100, off = e.clientX - center
+          grab.current = Math.abs(off) <= 26 ? off : 0
+          if (grab.current === 0 && Math.abs(off) > 26) onChange(valueAt(e.clientX))
+          setPress(true)
+        }}
+        onPointerMove={e => {
+          if (grab.current === null) return
+          stretch(e.clientX)
+          const v = valueAt(e.clientX); if (v !== value) onChange(v)
+        }}
+        onPointerUp={release} onPointerCancel={release}
+        onDoubleClick={() => onChange(5)}
+      >
         <span className="m3d-slider__track"><span className="m3d-slider__ticks">{Array.from({ length: 11 }, (_, i) => <i key={i} />)}</span></span>
         <span className="m3d-slider__knob">{value}%</span>
         <input
           type="range" min={0} max={100} step={1} value={value} aria-label="Видимость остальных частей"
           onChange={e => onChange(Number(e.target.value))}
-          onPointerDown={e => { e.stopPropagation(); setPress(true) }}
-          onPointerMove={e => press && stretch(e.clientX)}
-          onPointerUp={release} onPointerCancel={release}
-          onDoubleClick={() => onChange(5)}
         />
       </span>
     </div>
