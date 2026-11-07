@@ -15,7 +15,7 @@ export const jsx=(type,props)=>({type,props});export const jsxs=jsx;export const
 export const createPortal=tree=>tree;
 export const useOverlayScroll=()=>({ref:{current:env.scroller},fade:{top:0,bottom:0},onScroll:()=>{}});
 export const fadeMask=()=>({});export const useKeyboardState=()=>({open:false,inset:0});
-export const useNativeOverlay=()=>{};export const useT=()=>s=>s;
+export const useNativeOverlay=()=>{};export const useBackClose=()=>{};export const useT=()=>s=>s;
 export const motion=new Proxy({}, {get:(_,key)=>key});export const AnimatePresence='presence';
 export const useMotionValue=()=>env.motion;export const useDragControls=()=>({start:()=>{}});
 export const animate=(value,to)=>{value.set(to);return {stop(){}}};

@@ -6,6 +6,7 @@ import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { createPortal } from 'react-dom'
 import { useNativeOverlay } from '../lib/nativeGlass'
+import { useBackClose } from '../lib/overlayStack'
 import { motion, AnimatePresence, useMotionValue, useDragControls, animate } from 'framer-motion'
 import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
 
@@ -67,6 +68,8 @@ export default function MobileSheet({
   // каждый новый колбэк родителя нельзя, посреди жеста это его обрывает.
   const closeRef = useRef(onClose)
   closeRef.current = onClose
+  // Системная «Назад» (Android) закрывает верхнюю шторку.
+  useBackClose(open, onClose)
 
   // Мышью тянут за что угодно — у указателя мыши нет спора со скроллом.
   const startDrag = (e: ReactPointerEvent) => {
