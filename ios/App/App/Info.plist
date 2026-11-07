@@ -36,6 +36,10 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!-- Только шифрование самой iOS (HTTPS). Без этого ключа каждая сборка в
+	     TestFlight висит «Нет экспортных документов» и не доходит до тестировщиков. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<!-- Устный ответ в домашке и шэдоуинг в тренажёре пишут голос через
