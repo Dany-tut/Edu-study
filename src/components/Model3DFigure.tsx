@@ -52,7 +52,6 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   const [playing, setPlaying] = useState(false)
   const progressRef = useRef<HTMLDivElement>(null)
   const [labelsOn, setLabelsOn] = useState(true)
-  const popRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   // Зеркала состояния для коллбэка сцены: он живёт вне рендера React.
   const liveRef = useRef({ selected: null as string | null, labelsOn: true, isolated: false })
@@ -61,7 +60,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   liveRef.current.isolated = isolated
 
   const onAnchors = useCallback((anchors: LabelAnchor[]) => {
-    const { selected: sel, labelsOn: on, isolated: iso } = liveRef.current
+    const { selected: sel, labelsOn: on } = liveRef.current
     for (const a of anchors) {
       const el = labelRefs.current.get(a.id)
       if (el) {
@@ -73,19 +72,6 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
         const outside = !!st && (a.x - hw < 0 || a.y - hh < 0 || a.x + hw > st.clientWidth || a.y + hh > st.clientHeight)
         const hidden = a.hidden || outside || (!on && sel !== a.id)
         if ((el.dataset.hidden === 'true') !== hidden) el.dataset.hidden = String(hidden)
-      }
-      // Справка — рядом с точкой клика, внутри сцены; внизу места нет — встаёт сверху.
-      // В режиме «отдельно» карточка стоит в углу и не загораживает часть.
-      if (a.id === sel && popRef.current && stageRef.current && !iso) {
-        const pop = popRef.current
-        const W = stageRef.current.clientWidth, H = stageRef.current.clientHeight
-        const w = pop.offsetWidth, h = pop.offsetHeight
-        const x = Math.max(10, Math.min(W - w - 10, a.x - w * 0.3))
-        // Снизу карточка может выйти за сцену (там список частей), сверху — нет.
-        const below = a.y + 18 + h <= H + 40
-        const y = below ? Math.max(10, a.y + 18) : Math.max(10, a.y - 18 - h)
-        pop.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
-        pop.dataset.ready = 'true'
       }
     }
   }, [])
@@ -141,7 +127,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
     return () => ro.disconnect()
   }, [status])
   // Карточка сбоку занимает SIDE_W + отступ: на столько сдвигаем центр кадра.
-  useEffect(() => { viewerRef.current?.setViewInset(isolated && wide && selected ? SIDE_W + 24 : 0) }, [isolated, wide, selected, status])
+  useEffect(() => { viewerRef.current?.setViewInset(wide && selected ? SIDE_W + 24 : 0) }, [wide, selected, status])
   useEffect(() => { viewerRef.current?.setAutoRotate(spinning) }, [spinning, status])
   useEffect(() => { viewerRef.current?.setAnimation(moving) }, [moving, status])
   useEffect(() => { viewerRef.current?.setPlaying(playing) }, [playing, status])
@@ -233,21 +219,8 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
               ))}
             </div>
           )}
-          {/* Справка у точки клика — только пока смотрят всю модель. В режиме
-              «Отдельно» часть приближена на весь кадр, и карточка поверх неё
-              съедала смысл приближения: там она уходит под сцену. */}
-          {part && !isolated && (
-            <div ref={popRef} className="m3d__pop" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
-              <div className="m3d__pop-title">{part.name}</div>
-              <div className="m3d__pop-text"><Prose text={part.info} /></div>
-              <div className="m3d__card-actions">
-                <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>
-                  {isolated ? 'Показать всё' : 'Отдельно'}
-                </button>
-                <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
-              </div>
-            </div>
-          )}
+          {/* Справка о части — карточкой сбоку (на узкой сцене под ней) с первого
+              клика: всплывающее окно у точки клика закрывало саму часть. */}
           {status === 'ready' && !touched && !selected && (
             <div className="m3d__hint">
               Крутите пальцем, нажмите на часть
@@ -255,24 +228,24 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           )}
           {status === 'loading' && <div className="m3d__state">Загружаем 3D-модель…</div>}
           {status === 'error' && <div className="m3d__state">3D-модель не загрузилась. Проверьте связь и обновите страницу.</div>}
-          {part && isolated && wide && (
+          {part && wide && (
             <div className="m3d__card m3d__card--side" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
               <div className="m3d__card-title">{part.name}</div>
               <div className="m3d__card-text"><Prose text={part.info} /></div>
               <div className="m3d__card-actions">
-                <button type="button" className="m3d__btn" data-hover="own" aria-pressed onClick={() => setIsolated(false)}>Показать всё</button>
+                <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>{isolated ? 'Показать всё' : 'Приблизить'}</button>
                 <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
               </div>
             </div>
           )}
         </div>
 
-        {part && isolated && !wide && (
+        {part && !wide && (
           <div className="m3d__card" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
             <div className="m3d__card-title">{part.name}</div>
             <div className="m3d__card-text"><Prose text={part.info} /></div>
             <div className="m3d__card-actions">
-              <button type="button" className="m3d__btn" data-hover="own" aria-pressed onClick={() => setIsolated(false)}>Показать всё</button>
+              <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>{isolated ? 'Показать всё' : 'Приблизить'}</button>
               <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
             </div>
           </div>
