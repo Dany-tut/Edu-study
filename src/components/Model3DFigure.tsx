@@ -17,6 +17,15 @@ import './model3dFigure.css'
 
 type Status = 'loading' | 'ready' | 'error'
 
+const DIM_KEY = 'm3d-dim-level'
+/** Видимость остальных частей при выборе, %: по умолчанию 5. */
+function readDimLevel(): number {
+  try {
+    const v = Number(localStorage.getItem(DIM_KEY))
+    return localStorage.getItem(DIM_KEY) !== null && Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : 5
+  } catch { return 5 }
+}
+
 /** Ширина боковой карточки «Отдельно», px (держать в паре с .m3d__card--side). */
 const SIDE_W = 300
 
@@ -122,6 +131,13 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   // Выбранная часть — в полном цвете, остальное гаснет до 5 %, как в заданиях
   // на модели: сразу видно, что именно выбрано.
   useEffect(() => { viewerRef.current?.setEmphasis(selected) }, [selected, status])
+  // Видимость остальных частей при выборе — ползунок в карточке. Запоминается
+  // в браузере: кто раз выставил удобный фон, тот хочет его во всех моделях.
+  const [dimLevel, setDimLevel] = useState(readDimLevel)
+  useEffect(() => {
+    viewerRef.current?.setDimLevel(dimLevel / 100)
+    try { localStorage.setItem(DIM_KEY, String(dimLevel)) } catch { /* приватное окно */ }
+  }, [dimLevel, status])
   // Выбранная часть становится точкой вращения и приближения — только в момент
   // выбора новой части. На выход из «Приблизить» не реагируем: там focusPart(null)
   // возвращает общий вид, и точка вращения не должна его перебивать.
@@ -260,6 +276,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
             <div className="m3d__card m3d__card--side" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
               <div className="m3d__card-title">{part.name}</div>
               <div className="m3d__card-text"><Prose text={part.info} /></div>
+              <DimSlider value={dimLevel} onChange={setDimLevel} />
               <div className="m3d__card-actions">
                 <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>{isolated ? 'Показать всё' : 'Приблизить'}</button>
                 <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
@@ -272,6 +289,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           <div className="m3d__card" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
             <div className="m3d__card-title">{part.name}</div>
             <div className="m3d__card-text"><Prose text={part.info} /></div>
+            <DimSlider value={dimLevel} onChange={setDimLevel} />
             <div className="m3d__card-actions">
               <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>{isolated ? 'Показать всё' : 'Приблизить'}</button>
               <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
@@ -331,5 +349,47 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
         </figcaption>
       )}
     </figure>
+  )
+}
+
+const rubber = (over: number) => Math.sign(over) * (1 - Math.exp(-Math.abs(over) / 60))
+
+/**
+ * Ползунок «Остальное»: как в Тестли (Оформление) — толстая дорожка с рисками,
+ * белая капсула со значением; пока тянешь, бегунок становится линзой, а за
+ * краем дорожка упруго тянется.
+ */
+function DimSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const box = useRef<HTMLSpanElement>(null)
+  const [press, setPress] = useState(false)
+  const stretch = (x: number) => {
+    const g = box.current; if (!g) return
+    const r = g.getBoundingClientRect(), lo = r.left + 26, hi = r.right - 26
+    const over = x < lo ? x - lo : x > hi ? x - hi : 0
+    g.style.setProperty('--sq', Math.abs(rubber(over)).toFixed(3))
+    g.style.setProperty('--to', over < 0 ? 'right center' : 'left center')
+    g.classList.toggle('squish', over !== 0)
+  }
+  const release = () => {
+    const g = box.current
+    g?.style.setProperty('--sq', '0'); g?.classList.remove('squish')
+    setTimeout(() => setPress(false), 120)
+  }
+  return (
+    <div className="m3d__dim">
+      <span className="m3d__dim-label">Остальное</span>
+      <span ref={box} className={`m3d-slider${press ? ' press' : ''}`} style={{ '--v': value / 100 } as CSSProperties}>
+        <span className="m3d-slider__track"><span className="m3d-slider__ticks">{Array.from({ length: 11 }, (_, i) => <i key={i} />)}</span></span>
+        <span className="m3d-slider__knob">{value}%</span>
+        <input
+          type="range" min={0} max={100} step={1} value={value} aria-label="Видимость остальных частей"
+          onChange={e => onChange(Number(e.target.value))}
+          onPointerDown={e => { e.stopPropagation(); setPress(true) }}
+          onPointerMove={e => press && stretch(e.clientX)}
+          onPointerUp={release} onPointerCancel={release}
+          onDoubleClick={() => onChange(5)}
+        />
+      </span>
+    </div>
   )
 }

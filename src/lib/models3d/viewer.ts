@@ -43,6 +43,8 @@ export interface ModelViewer {
   setMarker(id: string | null, worldPoint?: THREE.Vector3): void
   /** Акцент: выбранная часть ярче, остальные заметно гаснут (мягче изоляции). */
   setEmphasis(id: string | null): void
+  /** Насколько видны остальные части при выборе и «Приблизить»: 0 — не видны, 1 — как есть. */
+  setDimLevel(level: number): void
   setAutoRotate(on: boolean): void
   /** Покадровая анимация модели (электроны и т. п.); орбита при этом живёт. */
   setAnimation(on: boolean): void
@@ -86,6 +88,8 @@ type Part = {
   materials: Array<THREE.MeshStandardMaterial | THREE.MeshPhysicalMaterial>
   baseOpacity: number[]
   baseEmissive: THREE.Color[]
+  /** Разбор вширь (explodeSpread): потомки объекта, их место и сдвиг в координатах объекта. */
+  spread: Array<{ o: THREE.Object3D; home: THREE.Vector3; off: THREE.Vector3; centre: THREE.Vector3 }>
 }
 
 const UP = new THREE.Vector3(0, 1, 0)
@@ -166,6 +170,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       translucent: materials.length > 0 && materials.every(m => m.opacity < 0.7),
       baseOpacity: materials.map(m => m.opacity),
       baseEmissive: materials.map(m => m.emissive.clone()),
+      spread: [],
     }
     parts.push(part)
     byId.set(ps.id, part)
@@ -182,8 +187,20 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   const modelCentre = spec.frame ? new THREE.Vector3(...spec.frame.center) : union.getCenter(new THREE.Vector3())
   root.position.copy(modelCentre).negate()
   const fitRadius = spec.frame ? spec.frame.radius : Math.max(union.getBoundingSphere(new THREE.Sphere()).radius, 0.5)
+  root.updateMatrixWorld(true)
   for (const part of parts) {
-    if (spec.parts.find(ps => ps.id === part.id)?.explode) continue
+    const ps = spec.parts.find(p => p.id === part.id)!
+    if (ps.explodeSpread) {
+      // Сдвиг потомка задан в мировых координатах, а двигаем его в координатах
+      // объекта части (у меша может быть свой поворот и масштаб).
+      for (const child of part.obj.children) {
+        const c = new THREE.Box3().setFromObject(child).getCenter(new THREE.Vector3())
+        const worldOff = c.clone().sub(modelCentre).multiplyScalar(ps.explodeSpread)
+        const off = part.obj.worldToLocal(c.clone().add(worldOff)).sub(part.obj.worldToLocal(c.clone()))
+        part.spread.push({ o: child, home: child.position.clone(), off, centre: c.clone().add(worldOff) })
+      }
+    }
+    if (ps.explode || ps.explodeSpread) continue
     const dir = part.centre.clone().sub(modelCentre)
     if (dir.lengthSq() > 1e-6) part.explode.copy(dir.normalize().multiplyScalar(fitRadius * 0.6))
   }
@@ -191,7 +208,11 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   // при разборе сцена уменьшается и смещается, чтобы стопка влезала в кадр
   // (у глаза она длиной в несколько глазных яблок).
   const explodedBox = new THREE.Box3()
-  for (const part of parts) if (!part.shell) explodedBox.expandByPoint(part.centre.clone().add(part.explode))
+  for (const part of parts) {
+    if (part.shell) continue
+    if (part.spread.length) for (const ch of part.spread) explodedBox.expandByPoint(ch.centre.clone().add(part.explode))
+    else explodedBox.expandByPoint(part.centre.clone().add(part.explode))
+  }
   const explodedMid = explodedBox.isEmpty() ? modelCentre.clone() : explodedBox.getCenter(new THREE.Vector3())
   const explodedR = explodedBox.isEmpty() ? fitRadius : explodedBox.getBoundingSphere(new THREE.Sphere()).radius + fitRadius * 0.35
   const spreadK = Math.max(0.42, explodedR / fitRadius - 1)
@@ -213,6 +234,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   let highlighted: string | null = null
   let marker: { part: Part; local: THREE.Vector3 } | null = null
   let emphasis: string | null = null
+  let dimLevel = 0.05
   let paused = false
   let animating = true
   let animT = 0
@@ -235,7 +257,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       // Погашенная часть почти прозрачна, оболочка при разборе тоже тает.
       // Погашенная часть остаётся на 5 %: силуэт виден, но не спорит с выбранной.
       // Оболочка при разборе исчезает целиком: её призрак склеивал разобранные части.
-      const target = base * (1 - d * 0.95) * (1 - shellFade)
+      const target = base * (1 - d * (1 - dimLevel)) * (1 - shellFade)
       // Флаг прозрачности не липкий: непрозрачная часть снова рисуется как
       // непрозрачная, иначе сортировка прозрачных даёт просветы в стенках.
       // Признак прозрачности three.js вшивает в шейдер (define OPAQUE: альфа
@@ -269,6 +291,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       dim.set(part.id, d)
       const k = part.shell ? 0 : explodeNow
       part.root.position.copy(part.home).addScaledVector(part.explode, k)
+      for (const ch of part.spread) ch.o.position.copy(ch.home).addScaledVector(ch.off, k)
       applyMaterials(part, d, highlighted === part.id || emphasis === part.id)
     }
     if (focus) {
@@ -312,7 +335,11 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       raycaster.set(camPos, tmp.clone().sub(camPos).normalize())
       raycaster.far = toAnchor - 0.02
       const hits = raycaster.intersectObjects(pickables, false)
-      const blocker = hits.find(hit => {
+      // Точка внутри своей части (центр атома, сердцевина органеллы): луч
+      // сначала входит в свою поверхность, и всё, что дальше, — внутри неё
+      // (связь, упёртая в центр атома). Такие попадания подпись не закрывают.
+      const ownAt = hits.findIndex(hit => hit.object.userData.partId === part.id)
+      const blocker = (ownAt < 0 ? hits : hits.slice(0, ownAt)).find(hit => {
         const pid = hit.object.userData.partId as string
         if (pid === part.id) return false
         const other = byId.get(pid)
@@ -407,6 +434,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     setIsolate(id) { isolated = id },
     setHighlight(id) { highlighted = id },
     setEmphasis(id) { emphasis = id },
+    setDimLevel(level) { dimLevel = Math.min(1, Math.max(0, level)) },
     setViewInset(px) { viewInset = Math.max(0, px); resize() },
     setMarker(id, worldPoint) {
       const part = id ? byId.get(id) : null

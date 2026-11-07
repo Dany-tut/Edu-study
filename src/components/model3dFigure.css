@@ -203,3 +203,27 @@
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
   z-index: 20;
 }
+
+/* Ползунок «Остальное» в карточке части — как в Тестли (Оформление). */
+.m3d__dim { display: flex; align-items: center; gap: 10px; }
+.m3d__dim-label { font-size: 12px; color: var(--color-muted); white-space: nowrap; }
+.m3d-slider { position: relative; flex: 1; min-width: 0; height: 34px; display: flex; align-items: center; touch-action: none; }
+.m3d-slider__track { position: absolute; left: 0; right: 0; height: 34px; border-radius: 999px; background: rgb(118 118 128 / .14);
+  transform: scale(calc(1 + var(--sq, 0) * .07), calc(1 - var(--sq, 0) * .3)); transform-origin: var(--to, center);
+  transition: transform .5s cubic-bezier(.25, 1.6, .45, 1); }
+.m3d-slider.squish .m3d-slider__track { transition: none; }
+.m3d-slider__ticks { position: absolute; inset: 0 26px; display: flex; align-items: center; justify-content: space-between; }
+.m3d-slider__ticks i { width: 1.5px; height: 8px; border-radius: 1px; background: var(--color-muted); opacity: .55; }
+.m3d-slider__knob { position: absolute; top: 3px; left: calc(3px + (100% - 58px) * var(--v)); width: 52px; height: 28px; border-radius: 999px;
+  background: #fff; color: #080f14; pointer-events: none; display: grid; place-items: center;
+  font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 6px rgb(0 0 0 / .25), 0 0 0 .5px rgb(0 0 0 / .06);
+  transition: scale .3s cubic-bezier(.25, 1.6, .45, 1), background .18s, box-shadow .18s, color .18s; }
+.m3d-slider.press .m3d-slider__knob { scale: 1.42 1.5; color: var(--color-text); background: rgb(255 255 255 / .1);
+  -webkit-backdrop-filter: blur(.5px) saturate(2) brightness(1.2); backdrop-filter: blur(.5px) saturate(2) brightness(1.2);
+  box-shadow: inset 0 1.5px 1px rgb(255 255 255 / .19), inset 0 -1.5px 2px rgb(255 255 255 / .06), inset 0 0 0 .75px rgb(255 255 255 / .14),
+    inset 5px 0 8px -5px rgb(165 180 252 / .14), inset -5px 0 8px -5px rgb(110 231 183 / .12), 0 8px 18px -4px rgb(0 0 0 / .4); }
+.m3d-slider input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.m3d-slider input::-webkit-slider-thumb { -webkit-appearance: none; width: 52px; height: 34px; }
+.m3d-slider input::-moz-range-thumb { width: 52px; height: 34px; border: 0; }
+.m3d-slider input:focus-visible + .m3d-slider__knob, .m3d-slider:has(input:focus-visible) .m3d-slider__knob { outline: 2px solid #786AD7; outline-offset: 2px; }
