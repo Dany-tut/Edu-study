@@ -265,6 +265,8 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   let disposed = false
   const dim = new Map<string, number>() // текущая «погашенность» 0..1 по частям
   parts.forEach(p => dim.set(p.id, 0))
+  const shadeOf = new Map<string, number>() // затемнение при наведении на другую часть
+  parts.forEach(p => shadeOf.set(p.id, 0))
 
   const raycaster = new THREE.Raycaster()
   /**
@@ -288,7 +290,12 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   const tmp = new THREE.Vector3()
   const tmpC = new THREE.Vector3()
 
-  function applyMaterials(part: Part, d: number, hot: boolean) {
+  /**
+   * shade — затемнение при наведении на другую часть (0…1). Наведённая часть
+   * не высветляется: гаснут остальные, она остаётся как есть (просьба Дани:
+   * подсветка вымывала цвет, а тёмный фон выделяет часть чище).
+   */
+  function applyMaterials(part: Part, d: number, hot: boolean, shade: number) {
     const shellFade = part.shell ? Math.max(explodeNow, isolated && isolated !== part.id ? 1 : 0) : 0
     part.materials.forEach((m, i) => {
       const base = part.baseOpacity[i]
@@ -308,8 +315,15 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       m.opacity = target
       m.depthWrite = target > 0.5
       m.emissive.copy(part.baseEmissive[i])
-      // Подсветка едва заметная: сильный emissive вымывал цвет до пастели.
-      if (hot) m.emissive.offsetHSL(0, 0, emphasis === part.id ? 0.1 : 0.05)
+      // Выбранная часть чуть ярче; наведённая — без подсветки.
+      if (hot) m.emissive.offsetHSL(0, 0, 0.1)
+      // Базовый цвет запоминаем; если цвет с прошлого кадра сменил сам процесс
+      // (пузырёк фагоцитоза, связка глаза), новый цвет и становится базой.
+      const out = m.userData.shadeOut as THREE.Color | undefined
+      if (!m.userData.baseColor || (out && !m.color.equals(out))) m.userData.baseColor = m.color.clone()
+      m.color.copy(m.userData.baseColor as THREE.Color).multiplyScalar(1 - shade * 0.65)
+      m.userData.shadeOut = m.color.clone()
+      if (shade > 0) m.emissive.multiplyScalar(1 - shade * 0.65)
     })
   }
 
@@ -330,7 +344,11 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       const k = part.shell ? 0 : explodeNow
       part.root.position.copy(part.home).addScaledVector(part.explode, k)
       for (const ch of part.spread) ch.o.position.copy(ch.home).addScaledVector(ch.off, k)
-      applyMaterials(part, d, highlighted === part.id || emphasis === part.id)
+      // Наведение затемняет все части, кроме наведённой (при «Приблизить» не нужно).
+      const wantShade = highlighted && highlighted !== part.id && !isolated ? 1 : 0
+      const sh = shadeOf.get(part.id)! + (wantShade - shadeOf.get(part.id)!) * Math.min(1, dt * 10)
+      shadeOf.set(part.id, sh)
+      applyMaterials(part, d, emphasis === part.id, sh)
     }
     if (focus) {
       const k = Math.min(1, dt * 5)
