@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom'
 import { X } from './icons/appIcons'
 import { useT } from '../lib/i18n'
+import { useNativeOverlay } from '../lib/nativeGlass'
 
 // Онбординг по интерфейсу: затемняем экран, вырезаем в затемнении окно вокруг
 // нужного элемента и объясняем словами, что это.
@@ -73,6 +74,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
 }) {
   const t = useT()
   const [i, setI] = useState(0)
+  useNativeOverlay(open)
   // Замер цели: координаты И скругление одним объектом. Скругление берётся у
   // самого элемента, а не задаётся числом: у рамки ровно тот же радиус, что у
   // блока под ней, — один в один, иначе она читается как чужая деталь поверх
