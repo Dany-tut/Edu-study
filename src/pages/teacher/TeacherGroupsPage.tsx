@@ -2899,12 +2899,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                               borderLeft: `3px solid ${isSelected ? activeGroup.color : 'transparent'}`,
                               transition: 'background 0.15s',
                             }}
-                            onMouseEnter={e => {
-                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)'
-                            }}
-                            onMouseLeave={e => {
-                              if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'
-                            }}
+                            data-hover="row"
                           >
                             {/* Name */}
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', ...colBg('name') }}>
@@ -2917,7 +2912,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                 }}>
                                   {initials}
                                 </div>
-                                <div style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
+                                <div data-row-title style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
                                   <FadeText>{tn(student.name)}</FadeText>
                                   {allRosterView && <RosterDescription text={studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel} />}
                                 </div>

@@ -147,8 +147,6 @@ export default function WidgetFinanceOverdue() {
                 transition: 'background 0.15s',
                 opacity: isPaid ? 0.5 : 1,
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {/* Avatar */}
               <div className="ww-avatar" style={{

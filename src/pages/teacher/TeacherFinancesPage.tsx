@@ -226,7 +226,7 @@ function StudentRow({
         </motion.button>
 
         {/* Expand toggle */}
-        <button data-hover="layer" type="button" aria-label={t('История платежей') + ': ' + tn(student.name)} aria-expanded={expanded} onClick={e => { e.stopPropagation(); onToggle() }} style={{ color: 'var(--color-text-3)', flexShrink: 0, border: 0, background: 'transparent', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gridColumn: compact ? 3 : undefined, gridRow: compact ? 1 : undefined, justifySelf: 'end' }}>
+        <button data-hover="layer" type="button" aria-label={t('История платежей') + ': ' + tn(student.name)} aria-expanded={expanded} onClick={e => { e.stopPropagation(); onToggle() }} style={{ color: 'var(--color-text-3)', flexShrink: 0, border: 0, borderRadius: 9, background: 'transparent', cursor: 'pointer', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', gridColumn: compact ? 3 : undefined, gridRow: compact ? 1 : undefined, justifySelf: 'end' }}>
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
       </div>
@@ -271,7 +271,7 @@ function StudentRow({
                     disabled={deletion.busy}
                     onClick={() => handleDelete(p.id)}
                     style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
+                      background: 'none', border: 'none', borderRadius: 6, cursor: 'pointer',
                       color: 'var(--color-text-3)', padding: 2, display: 'flex',
                       minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center',
                     }}

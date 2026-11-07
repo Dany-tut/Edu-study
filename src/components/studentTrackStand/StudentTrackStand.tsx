@@ -27,7 +27,7 @@ const stateLabel = (work: TrackAssignment) => work.state === 'returned' ? 'На 
 
 function WorkRow({ work, onOpen }: { work: TrackAssignment; onOpen: (work: TrackAssignment) => void }) {
     const late = isHomeworkOverdue(work,TODAY)
-    return <button data-hover="layer" type="button" className="st-work-row" onClick={() => onOpen(work)}><TaskliIcon name={late?'attention':work.state==='returned'?'returned':work.state==='submitted'?'reviewStatus':'courses'} size={21} /><span><strong>{work.title}</strong><small>Модуль {work.moduleId} · {work.state==='submitted'||work.state==='unknown'?'На проверке':stateLabel(work)}</small></span><span className={late?'st-late':'st-muted'}>{late?'Срок был ':work.dueDate?'До ':''}{dateLabel(work.dueDate)}</span><ChevronRight size={16}/></button>
+    return <button data-hover="row" type="button" className="st-work-row" onClick={() => onOpen(work)}><TaskliIcon name={late?'attention':work.state==='returned'?'returned':work.state==='submitted'?'reviewStatus':'courses'} size={21} /><span><strong>{work.title}</strong><small>Модуль {work.moduleId} · {work.state==='submitted'||work.state==='unknown'?'На проверке':stateLabel(work)}</small></span><span className={late?'st-late':'st-muted'}>{late?'Срок был ':work.dueDate?'До ':''}{dateLabel(work.dueDate)}</span><ChevronRight size={16}/></button>
   }
 
 export default function StudentTrackStand() {
