@@ -89,6 +89,8 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   renderer.outputColorSpace = THREE.SRGBColorSpace
+  // Срезы (глаз в разрезе): материалы со своими clippingPlanes.
+  renderer.localClippingEnabled = true
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.05
 

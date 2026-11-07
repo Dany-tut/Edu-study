@@ -46,6 +46,12 @@ function setOpacity(obj: THREE.Object3D, o: number) {
   })
 }
 
+/** Срез по плоскости z = 0: остаётся задняя половина, внутренность видна. */
+function cut(T: ThreeNS, m: THREE.Material) {
+  m.clippingPlanes = [new T.Plane(new T.Vector3(0, 0, -1), 0)]
+  return m
+}
+
 const KB_9 = 'textbooks/txt/Биология. Введение в общую биологию. 9 класс. Рабочая тетрадь к учебнику Каменского А.А. и др. - Пасечник В.В., Швецов Г.Г..txt'
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -515,6 +521,322 @@ export function phagocytosisSpec(): ModelSpec {
           m.position.set(IN[0] + Math.cos(a) * r, IN[1] + Math.sin(b) * r * 0.7, IN[2] + Math.sin(a) * r)
           m.visible = dig > 0.05
         })
+      },
+    },
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Глаз: путь света и аккомодация
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// Срез глаза сбоку, свет идёт справа налево. Далёкий предмет — лучи
+// параллельны и сходятся на сетчатке при плоском хрусталике. Предмет
+// приближается — лучи расходятся, фокус уходит за сетчатку, на ней пятно.
+// Ресничная мышца сокращается, связка провисает, хрусталик становится
+// выпуклее — фокус возвращается на сетчатку. Изображение перевёрнуто.
+
+export function eyeAccommodationSpec(): ModelSpec {
+  const N = 4
+  const R = 2.4                // радиус глазного яблока
+  const LENS_X = 1.15          // хрусталик за зрачком
+  const RETINA_X = -R + 0.08
+  const RAYS = [-0.55, -0.28, 0, 0.28, 0.55]
+  const refs = {
+    lens: null as THREE.Object3D | null, ring: null as THREE.Object3D | null,
+    ligaments: [] as THREE.Mesh[], ligMat: null as THREE.MeshStandardMaterial | null,
+    object: null as THREE.Object3D | null, rays: [] as THREE.Line[], spot: null as THREE.Object3D | null,
+    image: null as THREE.Object3D | null,
+  }
+
+  const sclera: ModelPartSpec = {
+    id: 'sclera', name: 'Склера', color: '#E9E6EE', shell: true, anchor: [-0.6, R * 0.95, 0.3],
+    info: 'Плотная белая оболочка: защищает глаз и держит его форму. Спереди переходит в прозрачную роговицу.',
+    build: (T) => new T.Mesh(new T.SphereGeometry(R, 48, 32), cut(T, std(T, '#ECEAF0', { transparent: true, opacity: 0.35, side: T.DoubleSide, roughness: 0.3 }))),
+  }
+  const cornea: ModelPartSpec = {
+    id: 'cornea', name: 'Роговица', color: '#9FD3F0', anchor: [R + 0.25, 0.9, 0.3],
+    info: 'Главная светопреломляющая структура глаза. Её кривизна постоянна, поэтому преломление здесь зависит только от угла, под которым падает свет.',
+    build: (T) => {
+      const m = new T.Mesh(new T.SphereGeometry(1.25, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.36), cut(T, std(T, '#9FD3F0', { transparent: true, opacity: 0.55, side: T.DoubleSide, roughness: 0.15 })))
+      m.rotation.z = -Math.PI / 2
+      m.position.x = R - 0.95
+      return m
+    },
+  }
+  const lens: ModelPartSpec = {
+    id: 'lens', name: 'Хрусталик', color: '#F2DFA0', anchor: [LENS_X, 1.0, 0.3],
+    liveAnchor: () => [LENS_X, 1.0, 0.3],
+    info: 'Упругая двояковыпуклая линза: тонкая наводка на фокус за счёт изменения кривизны. Чем выпуклее хрусталик, тем сильнее он преломляет свет.',
+    build: (T) => {
+      const m = new T.Mesh(new T.SphereGeometry(1, 36, 24), std(T, '#F2DFA0', { transparent: true, opacity: 0.8, roughness: 0.2 }))
+      m.userData.base = 0.8
+      m.position.x = LENS_X
+      refs.lens = m
+      return m
+    },
+  }
+  const ciliary: ModelPartSpec = {
+    id: 'ciliary', name: 'Ресничная мышца и связка', color: '#D98A7A', anchor: [LENS_X, 1.75, 0.3],
+    info: 'Кольцо мышцы вокруг хрусталика держит его на связке. Мышца сокращена — связка не натянута, хрусталик выпуклее, преломление сильнее (предмет близко). Мышца расслаблена — связка натянута, хрусталик уплощён (предмет далеко).',
+    build: (T) => {
+      const g = new T.Group()
+      const ring = new T.Mesh(new T.TorusGeometry(1, 0.13, 12, 48), cut(T, std(T, '#D98A7A', { side: T.DoubleSide })))
+      ring.rotation.y = Math.PI / 2
+      ring.position.x = LENS_X
+      refs.ring = ring
+      g.add(ring)
+      const ligMat = std(T, '#E8B4A8')
+      refs.ligMat = ligMat
+      for (let i = 0; i < 10; i++) {
+        const m = new T.Mesh(new T.CylinderGeometry(0.02, 0.02, 1, 6), ligMat)
+        m.userData.angle = (i / 10) * Math.PI * 2
+        refs.ligaments.push(m); g.add(m)
+      }
+      return g
+    },
+  }
+  const retina: ModelPartSpec = {
+    id: 'retina', name: 'Сетчатка', color: '#E59A6B', anchor: [-R + 0.2, -1.6, 0.4],
+    info: 'Внутренний слой с фоторецепторами — палочками и колбочками. Изображение на сетчатке по законам оптики перевёрнутое, но мозг (зрительная кора) позволяет воспринимать его «как надо».',
+    build: (T) => {
+      const m = new T.Mesh(new T.SphereGeometry(R * 0.97, 40, 28, 0, Math.PI * 2, 0, Math.PI * 0.5), cut(T, std(T, '#E59A6B', { side: T.DoubleSide, roughness: 0.6 })))
+      m.rotation.z = Math.PI / 2
+      return m
+    },
+  }
+  const light: ModelPartSpec = {
+    id: 'light', name: 'Лучи света', color: '#F7E27A', anchor: [R + 2.2, 0.75, 0],
+    liveAnchor: () => { const o = refs.object; return o ? [o.position.x - 0.6, 0.75, 0] : [R + 2, 0.75, 0] },
+    info: 'Лучи от далёких предметов (дальше 6 м) идут в глаз почти параллельно, от близких — расходящимся пучком. Для близких предметов преломление должно быть сильнее.',
+    build: (T) => {
+      const g = new T.Group()
+      const mat = new T.LineBasicMaterial({ color: '#F7E27A', transparent: true, opacity: 0.95 })
+      for (let i = 0; i < RAYS.length; i++) {
+        const geo = new T.BufferGeometry().setAttribute('position', new T.BufferAttribute(new Float32Array(4 * 3), 3))
+        const line = new T.Line(geo, mat)
+        refs.rays.push(line); g.add(line)
+      }
+      // Предмет — стрелка вверх.
+      const obj = new T.Group()
+      const sm = std(T, '#6EC26E')
+      const stem = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 0.9, 8), sm); stem.position.y = 0.45
+      const tip = new T.Mesh(new T.ConeGeometry(0.16, 0.3, 14), sm); tip.position.y = 1.0
+      obj.add(stem, tip)
+      refs.object = obj; g.add(obj)
+      // Размытое пятно на сетчатке и чёткое перевёрнутое изображение.
+      const spot = new T.Mesh(new T.CircleGeometry(1, 32), new T.MeshBasicMaterial({ color: '#F7E27A', transparent: true, opacity: 0.35, side: T.DoubleSide }))
+      spot.rotation.y = Math.PI / 2
+      refs.spot = spot; g.add(spot)
+      const img = new T.Group()
+      const im = std(T, '#6EC26E')
+      const s2 = new T.Mesh(new T.CylinderGeometry(0.025, 0.025, 0.36, 6), im); s2.position.y = -0.18
+      const t2 = new T.Mesh(new T.ConeGeometry(0.07, 0.12, 10), im); t2.position.y = -0.4; t2.rotation.z = Math.PI
+      img.add(s2, t2)
+      img.position.set(RETINA_X + 0.02, 0, 0)
+      refs.image = img; g.add(img)
+      return g
+    },
+  }
+
+  const stages = [
+    { name: 'Далёкий предмет', info: 'Лучи от далёкого предмета идут почти параллельно. Ресничная мышца расслаблена, связка натянута, хрусталик уплощён — фокус на сетчатке.' },
+    { name: 'Предмет близко', info: 'От близкого предмета лучи расходятся. При уплощённом хрусталике их не хватает преломить: фокус уходит за сетчатку, на ней размытое пятно.' },
+    { name: 'Аккомодация', info: 'Ресничная мышца сокращается, связка перестаёт тянуть, и упругий хрусталик становится выпуклее. Преломление усиливается, фокус возвращается на сетчатку.' },
+    { name: 'Изображение', info: 'Изображение на сетчатке перевёрнутое и обратное. Зрительная кора обрабатывает его так, что мы видим мир «как надо».' },
+  ]
+
+  return {
+    id: 'process-eye', title: 'Глаз: путь света и аккомодация',
+    subtitle: 'Срез глаза сбоку, свет идёт справа налево. Проиграйте плёнку или нажмите на стадию.',
+    radius: 4, canExplode: false, view: 'front',
+    frame: { center: [2.4, 0.3, 0], radius: 5.2 },
+    sources: [
+      'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.322',
+      'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.323',
+      'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.324',
+      'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.325',
+    ],
+    parts: [sclera, cornea, lens, ciliary, retina, light],
+    timeline: {
+      stages, duration: 16,
+      update: (p) => {
+        const near = span(p, N, 0, 1)        // предмет подходит
+        const acc = span(p, N, 1, 2)         // аккомодация
+        const img = span(p, N, 2, 3)         // перевёрнутое изображение
+        // Хрусталик: уплощён → выпуклый.
+        refs.lens?.scale.set(lerp(0.3, 0.52, acc), lerp(0.85, 0.74, acc), lerp(0.85, 0.74, acc))
+        // Ресничное тело приближается к хрусталику при сокращении.
+        const ringR = lerp(1.45, 1.18, acc)
+        refs.ring?.scale.setScalar(ringR)
+        const lensR = lerp(0.85, 0.74, acc)
+        refs.ligaments.forEach(m => {
+          const a = m.userData.angle as number
+          const r0 = lensR, r1 = ringR - 0.1
+          const mid = (r0 + r1) / 2
+          m.position.set(LENS_X, Math.cos(a) * mid, Math.sin(a) * mid)
+          m.scale.y = Math.max(0.05, r1 - r0)
+          m.rotation.set(a, 0, 0)
+        })
+        // Натянутая связка — светлая и ровная; провисшая — темнее.
+        refs.ligMat?.color.set(acc > 0.5 ? '#B98A80' : '#E8B4A8')
+        // Предмет и лучи.
+        const objX = lerp(R + 9, R + 2.6, near)
+        refs.object?.position.set(objX, -0.05, 0)
+        // Где сходятся лучи: на сетчатке, если хрусталик справляется.
+        const focusX = RETINA_X - 1.3 * near * (1 - acc)
+        const imgH = lerp(0.12, 0.42, near) // высота изображения кончика
+        refs.rays.forEach((line, i) => {
+          const yc = RAYS[i]
+          const start: V3 = [objX, lerp(yc + 0.9, 0.95, near), 0]
+          const corneaPt: V3 = [R + 0.15, yc * 1.25, 0]
+          const lensPt: V3 = [LENS_X, yc, 0]
+          const focus: V3 = [focusX, -imgH, 0]
+          // Обрезаем на сетчатке: дальше свет не идёт.
+          const t = (RETINA_X - lensPt[0]) / (focus[0] - lensPt[0])
+          const end: V3 = [RETINA_X, lerp(lensPt[1], focus[1], t), 0]
+          const a = (line.geometry.getAttribute('position') as THREE.BufferAttribute)
+          ;[start, corneaPt, lensPt, end].forEach((pt, k) => a.setXYZ(k, pt[0], pt[1], pt[2]))
+          a.needsUpdate = true
+        })
+        // Размер пятна = разброс лучей на сетчатке.
+        const spread = Math.abs(((RETINA_X - LENS_X) / (focusX - LENS_X) - 1) * RAYS[RAYS.length - 1])
+        if (refs.spot) {
+          refs.spot.position.set(RETINA_X + 0.03, -imgH * Math.min(1, (RETINA_X - LENS_X) / (focusX - LENS_X)), 0)
+          refs.spot.scale.setScalar(Math.max(0.06, spread))
+          refs.spot.visible = spread > 0.08
+        }
+        if (refs.image) {
+          refs.image.position.set(RETINA_X + 0.04, 0, 0)
+          refs.image.scale.setScalar(lerp(0.4, 1, near))
+          setOpacity(refs.image, img)
+        }
+      },
+    },
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Удвоение ДНК (редупликация)
+// ═════════════════════════════════════════════════════════════════════════════
+
+export function dnaReplicationSpec(): ModelSpec {
+  const N = 4
+  const BASES = 14, STEP = 0.42
+  const x0 = -((BASES - 1) * STEP) / 2
+  const SEP = 1.35 // насколько расходятся дочерние молекулы
+  const seq = 'ATGCGTACGATCGTAG'
+  const pairColor = (i: number) => ('GC'.includes(seq[i % seq.length]) ? ['#F2C864', '#D9A93F'] : ['#E2857A', '#C86A5F'])
+  const refs = {
+    oldTop: [] as THREE.Object3D[], oldBot: [] as THREE.Object3D[],
+    halfTop: [] as THREE.Object3D[], halfBot: [] as THREE.Object3D[],
+    newTop: [] as THREE.Object3D[], newBot: [] as THREE.Object3D[],
+    newHalfTop: [] as THREE.Object3D[], newHalfBot: [] as THREE.Object3D[],
+    enzyme: null as THREE.Object3D | null,
+  }
+
+  const strand = (T: ThreeNS, color: string, arr: THREE.Object3D[]) => {
+    const g = new T.Group()
+    const geo = new T.CylinderGeometry(0.08, 0.08, STEP * 1.02, 10)
+    const mat = std(T, color, { transparent: true })
+    for (let i = 0; i < BASES; i++) {
+      const m = new T.Mesh(geo, mat)
+      m.rotation.z = Math.PI / 2
+      arr.push(m); g.add(m)
+    }
+    return g
+  }
+  const halves = (T: ThreeNS, arr: THREE.Object3D[], which: 0 | 1, transparent = false) => {
+    const g = new T.Group()
+    const geo = new T.CylinderGeometry(0.06, 0.06, 0.33, 8)
+    for (let i = 0; i < BASES; i++) {
+      const m = new T.Mesh(geo, std(T, pairColor(i)[which], { transparent }))
+      arr.push(m); g.add(m)
+    }
+    return g
+  }
+
+  const oldStrands: ModelPartSpec = {
+    id: 'old', name: '«Материнские» нити', color: '#7F9BE0', anchor: [x0, 0.6, 0.3],
+    liveAnchor: () => { const m = refs.oldTop[0]; return m ? [m.position.x - 0.2, m.position.y + 0.35, 0.3] : [0, 0, 0] },
+    info: 'Две нити исходной двойной спирали. При удвоении они расходятся, и каждая становится шаблоном для новой нити.',
+    build: (T) => {
+      const g = new T.Group()
+      g.add(strand(T, '#7F9BE0', refs.oldTop), strand(T, '#7F9BE0', refs.oldBot), halves(T, refs.halfTop, 0), halves(T, refs.halfBot, 1))
+      return g
+    },
+  }
+  const enzyme: ModelPartSpec = {
+    id: 'enzyme', name: 'Фермент', color: '#5FC3B8', anchor: [0, 0.8, 0.3],
+    liveAnchor: () => { const e = refs.enzyme; return e ? [e.position.x, e.position.y + 0.7, 0.3] : [0, 0, 0] },
+    info: 'Специальный фермент разрывает водородные связи между комплементарными основаниями: аденином и тимином, гуанином и цитозином. В удвоении участвует много ферментов, энергию даёт АТФ.',
+    build: (T) => {
+      const m = new T.Mesh(new T.SphereGeometry(0.42, 28, 20), std(T, '#5FC3B8', { transparent: true, opacity: 0.85 }))
+      m.userData.base = 0.85
+      refs.enzyme = m
+      return m
+    },
+  }
+  const newStrands: ModelPartSpec = {
+    id: 'new', name: 'Новые нити', color: '#F09A5B', anchor: [x0, -0.6, 0.3],
+    liveAnchor: () => { const vis = refs.newTop.filter(m => m.visible); const m = vis[vis.length - 1]; return m ? [m.position.x + 0.3, m.position.y - 0.3, 0.3] : [100, 100, 0] },
+    info: 'К каждому нуклеотиду разошедшихся нитей подстраиваются комплементарные нуклеотиды и соединяются в новую нить — копию разошедшейся.',
+    build: (T) => {
+      const g = new T.Group()
+      g.add(strand(T, '#F09A5B', refs.newTop), strand(T, '#F09A5B', refs.newBot), halves(T, refs.newHalfTop, 1, true), halves(T, refs.newHalfBot, 0, true))
+      return g
+    },
+  }
+
+  const stages = [
+    { name: '«Материнская» ДНК', info: 'Двойная спираль: основания двух нитей соединены водородными связями по принципу комплементарности — аденин с тимином, гуанин с цитозином.' },
+    { name: 'Разрыв связей', info: 'Фермент разрывает водородные связи между основаниями, и нити двойной спирали расходятся.' },
+    { name: 'Синтез новых нитей', info: 'К каждому нуклеотиду обеих нитей последовательно подстраиваются комплементарные нуклеотиды и соединяются в новые нити.' },
+    { name: 'Две «дочерние» ДНК', info: 'Получаются две одинаковые двойные спирали. В каждой — одна нить «материнской» молекулы и одна новая.' },
+  ]
+
+  const yTop = (s: number) => SEP * s
+  return {
+    id: 'process-replication', title: 'Удвоение ДНК',
+    subtitle: 'Редупликация: синие нити — «материнские», оранжевые — новые. Проиграйте плёнку или нажмите на стадию.',
+    radius: 3.4, canExplode: false, view: 'front',
+    frame: { center: [0, 0, 0], radius: 3.6 },
+    sources: [`${KB_9}#стр.96`, `${KB_9}#стр.97`],
+    parts: [oldStrands, enzyme, newStrands],
+    timeline: {
+      stages, duration: 16,
+      update: (p) => {
+        const open = span(p, N, 0.1, 1)     // вилка идёт слева направо
+        const build = span(p, N, 1.05, 2)   // новые нити дорастают за вилкой
+        const apart = span(p, N, 2.05, 3)   // дочерние молекулы расходятся
+        // Вилка уходит за край с запасом: иначе крайняя пара остаётся недоразведённой.
+        const forkX = lerp(x0 - 0.6, x0 + (BASES - 1) * STEP + 1.4, open)
+        const buildX = lerp(x0 - 0.6, x0 + (BASES - 1) * STEP + 1.4, build)
+        for (let i = 0; i < BASES; i++) {
+          const x = x0 + i * STEP
+          const s = smooth((forkX - x) / 0.9) // насколько расошлось основание i
+          const n = smooth((buildX - x) / 0.6) // насколько достроено
+          const yt = yTop(s) + apart * 0.5, yb = -yTop(s) - apart * 0.5
+          refs.oldTop[i].position.set(x, yt + 0.35, 0)
+          refs.oldBot[i].position.set(x, yb - 0.35, 0)
+          // Половинки пары: пока связаны — смыкаются в центре.
+          refs.halfTop[i].position.set(x, yt + 0.35 - 0.17 - (1 - s) * 0, 0)
+          refs.halfBot[i].position.set(x, yb - 0.35 + 0.17, 0)
+          // Новые нити: под старой верхней и над старой нижней.
+          refs.newTop[i].position.set(x, yt - 0.35, 0)
+          refs.newBot[i].position.set(x, yb + 0.35, 0)
+          refs.newHalfTop[i].position.set(x, yt - 0.35 + 0.17, 0)
+          refs.newHalfBot[i].position.set(x, yb + 0.35 - 0.17, 0)
+          const vis = n > 0.02 && s > 0.6
+          for (const arr of [refs.newTop, refs.newBot, refs.newHalfTop, refs.newHalfBot]) {
+            arr[i].visible = vis
+            arr[i].scale.setScalar(vis ? lerp(0.4, 1, n) : 1)
+          }
+        }
+        if (refs.enzyme) {
+          refs.enzyme.position.set(forkX, 0, 0)
+          setOpacity(refs.enzyme, open > 0.01 && open < 0.9 ? 1 : 0)
+        }
       },
     },
   }

@@ -76,10 +76,14 @@ export async function loadModelSpec(src: string): Promise<ModelSpec | null> {
     return gltfModelSpec(ref.key)
   }
   if (ref.kind === 'stages') {
-    if (ref.key === 'protein' || ref.key === 'plasmolysis' || ref.key === 'phagocytosis') {
-      const mod = await import('./processes')
-      return ref.key === 'protein' ? mod.proteinSynthesisSpec() : ref.key === 'plasmolysis' ? mod.plasmolysisSpec() : mod.phagocytosisSpec()
+    const PROCESSES: Record<string, (m: typeof import('./processes')) => ModelSpec> = {
+      protein: m => m.proteinSynthesisSpec(),
+      plasmolysis: m => m.plasmolysisSpec(),
+      phagocytosis: m => m.phagocytosisSpec(),
+      eye: m => m.eyeAccommodationSpec(),
+      replication: m => m.dnaReplicationSpec(),
     }
+    if (PROCESSES[ref.key]) return PROCESSES[ref.key](await import('./processes'))
     const { mitosisSpec } = await import('./stages')
     return ref.key === 'mitosis' || !ref.key ? mitosisSpec() : null
   }
@@ -102,6 +106,8 @@ export const MODEL_PRESETS: Array<{ ref: string; label: string; subject: 'chem' 
   { ref: 'model:stages:protein', label: 'Синтез белка (процесс)', subject: 'bio' },
   { ref: 'model:stages:plasmolysis', label: 'Плазмолиз (процесс)', subject: 'bio' },
   { ref: 'model:stages:phagocytosis', label: 'Фагоцитоз (процесс)', subject: 'bio' },
+  { ref: 'model:stages:replication', label: 'Удвоение ДНК (процесс)', subject: 'bio' },
+  { ref: 'model:stages:eye', label: 'Глаз: свет и аккомодация (процесс)', subject: 'bio' },
   { ref: 'model:molecule:dna', label: 'ДНК', subject: 'bio' },
   { ref: 'model:organ:eye', label: 'Глаз', subject: 'bio' },
   { ref: 'model:organ:neuron', label: 'Нейрон', subject: 'bio' },
