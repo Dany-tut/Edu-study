@@ -15,6 +15,9 @@ import { MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
 import { MOBILE_SCROLL_ATTR } from './MobileScreen'
 import { useDockLayer } from '../lib/dockLayer'
 import { useIsDesktop } from '../lib/useIsDesktop'
+import { GLASS } from '../lib/nativeGlass'
+import { PLATFORM } from '../lib/platform'
+import MobileStudentGlassTabs from './MobileStudentGlassTabs'
 
 // Shared ease/duration for the collapse so the dock shrinks and the labels
 // fade as one synchronized motion.
@@ -108,6 +111,10 @@ export default function MobileBottomNav() {
   // обрезается по короткому вьюпорту холодного запуска PWA — lib/dockLayer.ts.
   const layer = useDockLayer()
   if (isDesktop) return null
+  // В приложении на iPhone навигацию рисует система (UITabBar со стеклом).
+  // Только iPhone: на iPad своя капсула справа (чат «iPad версия»), на Android —
+  // свои таблетки; там веб-док ниже остаётся как есть.
+  if (GLASS && PLATFORM === 'iphone') return <MobileStudentGlassTabs items={items} active={active} onSelect={handleClick} hwBadge={hwBadge} feedBadge={feedBadge} />
   // Портал уносит навигацию наружу скрытой мобильной обёртки, поэтому ширину
   // она проверяет сама. Раньше это делал класс md:hidden — но у него порог 768,
   // а разметка переключается на 1024: в этой полосе мобильный экран оставался
