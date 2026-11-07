@@ -326,7 +326,7 @@
 			buildSettings = {
 				APP_DISPLAY_NAME = "Искра Тест";
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Ogonek AppIcon-Light AppIcon-Night AppIcon-Reader AppIcon-Star AppIcon-Heart";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Classic AppIcon-Light AppIcon-Night AppIcon-Reader AppIcon-Star AppIcon-Heart";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T9LW5YL65T;
 				CURRENT_PROJECT_VERSION = 2043;
@@ -352,7 +352,7 @@
 			buildSettings = {
 				APP_DISPLAY_NAME = "Искра";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Ogonek AppIcon-Light AppIcon-Night AppIcon-Reader AppIcon-Star AppIcon-Heart";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Classic AppIcon-Light AppIcon-Night AppIcon-Reader AppIcon-Star AppIcon-Heart";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T9LW5YL65T;
 				CURRENT_PROJECT_VERSION = 2043;

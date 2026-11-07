@@ -2,7 +2,7 @@ import Capacitor
 import UIKit
 
 // Выбор иконки приложения на главном экране телефона. Набор лежит в
-// Assets.xcassets (AppIcon-Ogonek, AppIcon-Night…), имена перечислены в
+// Assets.xcassets (AppIcon-Classic, AppIcon-Night…), имена перечислены в
 // ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES — оттуда actool сам пишет
 // CFBundleAlternateIcons в Info.plist. name = nil возвращает основную иконку.
 // Система после смены показывает своё окошко «Иконка изменена» — убрать его
