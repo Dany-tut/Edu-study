@@ -17,6 +17,7 @@
 		5A1E5EC12F00000000000009 /* PasskeyPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E5EC12F0000000000000A /* PasskeyPlugin.swift */; };
 		5A1E5EC12F0000000000000B /* AppLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E5EC12F0000000000000C /* AppLock.swift */; };
 		5A1E5EC12F00000000000007 /* GoogleAuthPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E5EC12F00000000000008 /* GoogleAuthPlugin.swift */; };
+		5A1E5EC12F0000000000001A /* AppIconPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E5EC12F0000000000001B /* AppIconPlugin.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
@@ -35,6 +36,7 @@
 		5A1E5EC12F0000000000000C /* AppLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLock.swift; sourceTree = "<group>"; };
 		5A1E5EC12F0000000000000D /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		5A1E5EC12F00000000000008 /* GoogleAuthPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuthPlugin.swift; sourceTree = "<group>"; };
+		5A1E5EC12F0000000000001B /* AppIconPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconPlugin.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -81,6 +83,7 @@
 				5A1E5EC12F00000000000004 /* NativeGlassPlugin.swift */,
 				5A1E5EC12F00000000000006 /* SceneDelegate.swift */,
 				5A1E5EC12F00000000000008 /* GoogleAuthPlugin.swift */,
+				5A1E5EC12F0000000000001B /* AppIconPlugin.swift */,
 				5A1E5EC12F0000000000000C /* AppLock.swift */,
 				5A1E5EC12F0000000000000A /* PasskeyPlugin.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
@@ -180,6 +183,7 @@
 				5A1E5EC12F00000000000003 /* NativeGlassPlugin.swift in Sources */,
 				5A1E5EC12F00000000000005 /* SceneDelegate.swift in Sources */,
 				5A1E5EC12F00000000000007 /* GoogleAuthPlugin.swift in Sources */,
+				5A1E5EC12F0000000000001A /* AppIconPlugin.swift in Sources */,
 				5A1E5EC12F0000000000000B /* AppLock.swift in Sources */,
 				5A1E5EC12F00000000000009 /* PasskeyPlugin.swift in Sources */,
 			);
@@ -322,6 +326,7 @@
 			buildSettings = {
 				APP_DISPLAY_NAME = "Искра Тест";
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Ogonek AppIcon-Light AppIcon-Night AppIcon-Reader AppIcon-Star AppIcon-Heart";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T9LW5YL65T;
 				CURRENT_PROJECT_VERSION = 2043;
@@ -347,6 +352,7 @@
 			buildSettings = {
 				APP_DISPLAY_NAME = "Искра";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Ogonek AppIcon-Light AppIcon-Night AppIcon-Reader AppIcon-Star AppIcon-Heart";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T9LW5YL65T;
 				CURRENT_PROJECT_VERSION = 2043;
