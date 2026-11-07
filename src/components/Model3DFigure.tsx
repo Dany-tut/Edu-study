@@ -122,9 +122,12 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   // Выбранная часть — в полном цвете, остальное гаснет до 5 %, как в заданиях
   // на модели: сразу видно, что именно выбрано.
   useEffect(() => { viewerRef.current?.setEmphasis(selected) }, [selected, status])
-  // Выбранная часть становится точкой вращения и приближения (при «Приблизить»
-  // камеру ведёт focusPart — там своя дистанция).
-  useEffect(() => { if (selected && !isolated) viewerRef.current?.setPivot(selected) }, [selected, isolated, status])
+  // Выбранная часть становится точкой вращения и приближения — только в момент
+  // выбора новой части. На выход из «Приблизить» не реагируем: там focusPart(null)
+  // возвращает общий вид, и точка вращения не должна его перебивать.
+  const isolatedRef = useRef(isolated)
+  isolatedRef.current = isolated
+  useEffect(() => { if (selected && !isolatedRef.current) viewerRef.current?.setPivot(selected) }, [selected, status])
   // Подписи лежат поверх канвы и забирали колёсико: над ними сцена не
   // приближалась. Пересылаем событие канве (его слушает OrbitControls).
   // Обработчик не пассивный — иначе вместе с зумом прокручивалась бы страница.
