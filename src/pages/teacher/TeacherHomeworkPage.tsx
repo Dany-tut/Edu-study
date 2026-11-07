@@ -302,14 +302,13 @@ function HwRow({ hw, index, isSelected, onClick, subject }: {
         borderLeft: isSelected ? '3px solid var(--color-accent)' : '3px solid transparent',
         transition: 'background 0.15s',
       }}
-      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-      onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+      data-hover="row"
     >
       {/* Group / student + subject chip */}
       <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-soft)', whiteSpace: 'nowrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: hw.color, flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{hw.groupName}</span>
+          <span data-row-title style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{hw.groupName}</span>
         </div>
         {subject && (
           <span style={{

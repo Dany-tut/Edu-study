@@ -65,7 +65,7 @@ export default function WidgetAttentionStudents() {
       // shadow on wrapper
       overflow: 'hidden',
     }}>
-      <button data-hover="layer" type="button" className="ww-attention-compact" onClick={() => setActivePage('groups')}
+      <button data-hover="own" type="button" className="ww-attention-compact" onClick={() => setActivePage('groups')}
         aria-label={`${t('Требуют внимания')}: ${atRisk.length}`}>
         <div className="ww-attention-summary">
           <div className="ww-attention-heading iskra-mini-stat-heading">
@@ -125,7 +125,7 @@ export default function WidgetAttentionStudents() {
             return (
               <div
                 key={s.id}
-                className="ww-row ww-attention-row"
+                className="ww-row ww-attention-row" data-hover="row"
                 onClick={() => openStudentDashboard(s.id, s.groupId)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
@@ -133,8 +133,6 @@ export default function WidgetAttentionStudents() {
                   borderBottom: i < atRisk.length - 1 ? '1px solid var(--color-border)' : 'none',
                   cursor: 'pointer', transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >
                 {/* Avatar */}
                 <div className="ww-avatar" style={{
@@ -148,7 +146,7 @@ export default function WidgetAttentionStudents() {
 
                 {/* Info */}
                 <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
+                  <div data-row-title style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                     {tn(s.name).split(' ').slice(0, 2).join(' ')}
                   </div>
                   <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>

@@ -189,7 +189,7 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
           <td><span className="swj-result">{work.score ?? '—'}{work.score !== null ? <><small> / 100</small><small className="swj-result-percent">%</small></> : null}</span>
             {work.score !== null && (work.state === 'draft' || work.state === 'pending') ? <span className="swj-work-meta">{t('Предыдущий итог')}</span> : null}</td>
           <td className="swj-attempts-column">{work.attemptCount ?? '—'}</td>
-          <td><button data-hover="layer" type="button" className="swj-state-button" onClick={() => setSelectedKey(work.key)}
+          <td><button data-hover="row" type="button" className="swj-state-button" onClick={() => setSelectedKey(work.key)}
             aria-label={`${t(STATE_LABEL[work.state])} · ${t('История попыток')} · ${work.entry.lesson.title}`} aria-haspopup="dialog"><WorkState work={work} /><ChevronRight size={15} /></button></td>
         </tr>)}</tbody>
       </table>

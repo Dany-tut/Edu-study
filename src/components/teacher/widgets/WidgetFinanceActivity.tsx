@@ -86,8 +86,6 @@ export default function WidgetFinanceActivity() {
                   borderBottom: i < recent.length - 1 ? '1px solid var(--color-border)' : 'none',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
               >
                 {/* Icon / avatar */}
                 <div className="ww-avatar" style={{

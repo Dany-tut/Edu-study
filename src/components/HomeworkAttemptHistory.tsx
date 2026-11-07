@@ -65,7 +65,7 @@ export default function HomeworkAttemptHistory({ authorName, attempts, attemptCo
                   </span>
                 </div>
                 <p className="hw-history-state">{pending && !returned ? t('Работа отправлена') : label}</p>
-                <button data-hover="layer" type="button" className="hw-history-answers-toggle" aria-expanded={!!expanded[attempt.id]} aria-controls={expandedId} onClick={() => {
+                <button data-hover="row" type="button" className="hw-history-answers-toggle" aria-expanded={!!expanded[attempt.id]} aria-controls={expandedId} onClick={() => {
                   const next = !expanded[attempt.id]
                   setExpanded(before => ({ ...before, [attempt.id]: next }))
                   if (next) onRead(attempt.id)

@@ -487,7 +487,7 @@ export default function DiaryStand() {
           {!visibleCourses.length && <Empty>Курсы ещё не добавлены</Empty>}
         </div>
         {pending.length ? (
-          <button data-hover="layer"
+          <button data-hover="row"
             type="button"
             className="ds-pending-strip"
             onClick={() => {

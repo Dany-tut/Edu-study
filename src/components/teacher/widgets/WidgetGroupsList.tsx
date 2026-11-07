@@ -74,7 +74,7 @@ export default function WidgetGroupsList() {
           groups.map((g, i) => (
             <div
               key={g.id}
-              className="ww-row ww-group-row" data-widget-interactive
+              className="ww-row ww-group-row" data-widget-interactive data-hover="row"
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '10px 16px',
@@ -82,8 +82,6 @@ export default function WidgetGroupsList() {
                 cursor: 'pointer', transition: 'background 0.15s',
               }}
               onClick={() => setActivePage('groups')}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {/* Group chip */}
               <div className="ww-avatar" style={{
@@ -97,7 +95,7 @@ export default function WidgetGroupsList() {
 
               {/* Name */}
               <div className="ww-info" style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
+                <div data-row-title style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                   {g.name}
                 </div>
                 <div className="ww-secondary" style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 1 }}>
