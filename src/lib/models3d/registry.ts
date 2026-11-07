@@ -84,6 +84,10 @@ export async function loadModelSpec(src: string): Promise<ModelSpec | null> {
       replication: m => m.dnaReplicationSpec(),
     }
     if (PROCESSES[ref.key]) return PROCESSES[ref.key](await import('./processes'))
+    if (ref.key === 'chlamydomonas' || ref.key === 'krebs') {
+      const c = await import('./cycles')
+      return ref.key === 'krebs' ? c.krebsSpec() : c.chlamydomonasSpec()
+    }
     const { mitosisSpec } = await import('./stages')
     return ref.key === 'mitosis' || !ref.key ? mitosisSpec() : null
   }
@@ -106,6 +110,8 @@ export const MODEL_PRESETS: Array<{ ref: string; label: string; subject: 'chem' 
   { ref: 'model:stages:protein', label: 'Синтез белка (процесс)', subject: 'bio' },
   { ref: 'model:stages:plasmolysis', label: 'Плазмолиз (процесс)', subject: 'bio' },
   { ref: 'model:stages:phagocytosis', label: 'Фагоцитоз (процесс)', subject: 'bio' },
+  { ref: 'model:stages:chlamydomonas', label: 'Цикл хламидомонады (процесс)', subject: 'bio' },
+  { ref: 'model:stages:krebs', label: 'Цикл Кребса (процесс)', subject: 'bio' },
   { ref: 'model:stages:replication', label: 'Удвоение ДНК (процесс)', subject: 'bio' },
   { ref: 'model:stages:eye', label: 'Глаз: свет и аккомодация (процесс)', subject: 'bio' },
   { ref: 'model:molecule:dna', label: 'ДНК', subject: 'bio' },
