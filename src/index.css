@@ -1255,17 +1255,17 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
    же цвет текста на 10 %: виден на любой заливке (серой, мягкой, градиенте,
    прозрачной) и в обеих темах. Кнопки со своим ховером — data-hover="own". */
 /* :where — нулевой вес: позицию из класса (absolute, fixed) не перебиваем. */
-:where([data-hover=layer],[data-hover=card]) {position:relative;isolation:isolate}
+:where([data-hover=layer]) {position:relative;isolation:isolate}
 /* Плашка повторяет скругление элемента. У кнопки без своего скругления (иконка,
    текстовая кнопка) плашка выходила квадратом — базовое скругление 8px; любой
    класс или инлайн-стиль со своим border-radius его перебивает (:where — вес 0).
    Строкам списков на всю ширину нужен не layer, а data-hover="row". */
 :where([data-hover=layer]) {border-radius:8px}
-[data-hover=layer]::after,[data-hover=card]::after {content:'';position:absolute;inset:0;border-radius:inherit;background:currentColor;opacity:0;pointer-events:none;transition:opacity .15s;z-index:1}
+[data-hover=layer]::after {content:'';position:absolute;inset:0;border-radius:inherit;background:currentColor;opacity:0;pointer-events:none;transition:opacity .15s;z-index:1}
 @media (hover:hover) and (pointer:fine) {
   [data-hover=layer]:hover:not(:disabled):not([aria-disabled=true])::after {opacity:.1}
-  /* Большие карточки целиком — слабее, иначе темнеет весь блок. */
-  [data-hover=card]:hover::after {opacity:.04}
+  /* data-hover="card" (кликабельная карточка/виджет целиком) — без засветки:
+     вся карточка светлела и отличалась от соседних. Ховер только у кнопок внутри. */
   /* Текстовая ссылка без заливки — подчёркивание. */
   [data-hover=link]:hover {text-decoration:underline;text-underline-offset:3px}
   /* Строка списка с разделителем (data-hover="row"): без плашки. Строка без
