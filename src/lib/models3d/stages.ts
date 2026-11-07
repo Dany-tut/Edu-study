@@ -29,7 +29,13 @@ function applyKey(obj: THREE.Object3D, keys: Key[], progress: number, mat?: THRE
   obj.position.set(...lerp3(a.pos, b.pos, t))
   obj.rotation.set(...lerp3(a.rot, b.rot, t))
   obj.scale.set(...lerp3(a.scale, b.scale, t))
-  if (mat) { mat.opacity = lerp(a.opacity, b.opacity, t); mat.transparent = true; mat.visible = mat.opacity > 0.02 }
+  if (mat) {
+    mat.opacity = lerp(a.opacity, b.opacity, t)
+    // Прозрачность ведёт плёнка: помечаем, чтобы сцена её не сбрасывала (см. viewer).
+    if (!mat.transparent) { mat.transparent = true; mat.needsUpdate = true }
+    mat.userData.anim = true
+    mat.visible = mat.opacity > 0.02
+  }
 }
 
 const K = (pos: V3, rot: V3 = [0, 0, 0], scale: V3 = [1, 1, 1], opacity = 1): Key => ({ pos, rot, scale, opacity })
@@ -69,7 +75,10 @@ export function mitosisSpec(): ModelSpec {
   }
 
   const envelope: ModelPartSpec = {
-    id: 'envelope', name: 'Ядерная оболочка', color: '#9A8CE6', anchor: [0.3, 1.25, 0.4],
+    id: 'envelope', name: 'Ядерная оболочка', color: '#9A8CE6',
+    // Левый верхний край: подходит и целому ядру, и левому дочернему в телофазе,
+    // и не совпадает с подписью хромосом (раньше они стояли в одной точке).
+    anchor: [-1.0, 0.85, 0.45],
     info: 'В конце профазы распадается на пузырьки, чтобы веретено добралось до хромосом; в телофазе собирается заново вокруг каждой из двух групп хромосом.',
     build: (T) => {
       const g = new T.Group()
@@ -86,6 +95,9 @@ export function mitosisSpec(): ModelSpec {
 
   const chromosomes: ModelPartSpec = {
     id: 'chrom', name: 'Хромосомы', color: '#5B4BB8', anchor: [0, 1.3, 0.3],
+    // Подпись едет за хроматидой правой группы: в метафазе — на экватор, в
+    // анафазе — к правому полюсу (слева стоят подписи оболочки и мембраны).
+    liveAnchor: () => { const m = refs.chromatids[1]?.mesh; return m ? [m.position.x, m.position.y + 0.55, m.position.z + 0.1] : [0, 1.3, 0.3] },
     info: 'Каждая хромосома после репликации — две сестринские хроматиды, скреплённые центромерой. В метафазе выстраиваются по экватору, в анафазе хроматиды расходятся к полюсам и становятся самостоятельными хромосомами.',
     build: (T) => {
       const g = new T.Group()
@@ -115,6 +127,9 @@ export function mitosisSpec(): ModelSpec {
 
   const spindle: ModelPartSpec = {
     id: 'spindle', name: 'Веретено деления', color: '#6EC26E', anchor: [-1.4, 0.9, 0],
+    // У правой центриоли, чуть ниже: статичная точка слева совпадала с
+    // подписью ядерной оболочки в телофазе.
+    liveAnchor: () => { const c = refs.centrioles[1]?.obj.position; return c ? [c.x, c.y - 0.35, c.z] : [-1.4, 0.9, 0] },
     info: 'Микротрубочки от центриолей на полюсах прикрепляются к центромерам. Укорачиваясь, они тянут хроматиды к полюсам. Колхицин разрушает веретено — хромосомы остаются на экваторе.',
     build: (T) => {
       const g = new T.Group()
@@ -156,6 +171,8 @@ export function mitosisSpec(): ModelSpec {
     title: 'Митоз',
     subtitle: 'Пять стадий одного деления. Проиграйте плёнку или нажмите на стадию.',
     radius: 3.2,
+    // Кадр — по клетке целиком: в телофазе дочерние клетки расходятся до ±3.4.
+    frame: { center: [0, 0, 0], radius: 3.6 },
     parts: [membrane, envelope, chromosomes, spindle],
     canExplode: false,
     timeline: {

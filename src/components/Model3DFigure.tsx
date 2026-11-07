@@ -17,12 +17,24 @@ import './model3dFigure.css'
 
 type Status = 'loading' | 'ready' | 'error'
 
+const DIM_KEY = 'm3d-dim-level'
+/** Видимость остальных частей при выборе, %: по умолчанию 5. */
+function readDimLevel(): number {
+  try {
+    const v = Number(localStorage.getItem(DIM_KEY))
+    return localStorage.getItem(DIM_KEY) !== null && Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : 5
+  } catch { return 5 }
+}
+
+/** Ширина боковой карточки «Отдельно», px (держать в паре с .m3d__card--side). */
+const SIDE_W = 300
+
 export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selectedPart, onSelectPart, compact }: {
   src: string
   caption?: string
   scale?: number
   /** Ширина листа в колонке конспекта; во весь экран игнорируется. */
-  maxWidth?: number
+  maxWidth?: number | string
   /** Управляемый выбор части снаружи (карточка проверки: клик по строке). */
   selectedPart?: string | null
   onSelectPart?: (id: string | null) => void
@@ -42,13 +54,15 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   const [spinning, setSpinning] = useState(true)
   const [full, setFull] = useState(false)
   const [touched, setTouched] = useState(false)
+  /** Сцена достаточно широкая, чтобы карточка «Отдельно» встала сбоку. */
+  const [wide, setWide] = useState(false)
   const [moving, setMoving] = useState(true)
   const [progress, setProgress] = useState(0)
   const [playing, setPlaying] = useState(false)
   const progressRef = useRef<HTMLDivElement>(null)
   const [labelsOn, setLabelsOn] = useState(true)
-  const popRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
+  const labelsRef = useRef<HTMLDivElement>(null)
   // Зеркала состояния для коллбэка сцены: он живёт вне рендера React.
   const liveRef = useRef({ selected: null as string | null, labelsOn: true, isolated: false })
   liveRef.current.selected = selected
@@ -56,32 +70,32 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   liveRef.current.isolated = isolated
 
   const onAnchors = useCallback((anchors: LabelAnchor[]) => {
-    const { selected: sel, labelsOn: on, isolated: iso } = liveRef.current
-    for (const a of anchors) {
+    const { selected: sel, labelsOn: on } = liveRef.current
+    const st = stageRef.current
+    // Подписи разводим, а не кладём одну на другую: модель крутится, и при
+    // каком-то ракурсе точки двух частей всё равно совпадут на экране. Ближняя
+    // к камере (выбранная — всегда первой) стоит на месте, следующая пробует
+    // сдвинуться на строку вверх или вниз, а если и там занято — прячется.
+    const order = anchors.slice().sort((p, q) => (p.id === sel ? -1 : q.id === sel ? 1 : p.depth - q.depth))
+    const placed: Array<{ l: number; t: number; r: number; b: number }> = []
+    for (const a of order) {
       const el = labelRefs.current.get(a.id)
-      if (el) {
-        el.style.transform = `translate(${a.x.toFixed(1)}px, ${a.y.toFixed(1)}px) translate(-50%, -50%)`
-        // Подписи выключены — видна только выбранная часть.
-        const st = stageRef.current
-        // Ярлык, который край сцены отрезал бы наполовину, прячем целиком.
-        const hw = el.offsetWidth / 2, hh = el.offsetHeight / 2
-        const outside = !!st && (a.x - hw < 0 || a.y - hh < 0 || a.x + hw > st.clientWidth || a.y + hh > st.clientHeight)
-        const hidden = a.hidden || outside || (!on && sel !== a.id)
-        if ((el.dataset.hidden === 'true') !== hidden) el.dataset.hidden = String(hidden)
+      if (!el) continue
+      // Ярлык, который край сцены отрезал бы наполовину, прячем целиком.
+      const hw = el.offsetWidth / 2, hh = el.offsetHeight / 2
+      const outside = !!st && (a.x - hw < 0 || a.y - hh < 0 || a.x + hw > st.clientWidth || a.y + hh > st.clientHeight)
+      // Выбрана часть — подпись только у неё (остальные погашены до 5 %);
+      // иначе — по переключателю «Подписи».
+      let hidden = a.hidden || outside || (sel ? sel !== a.id : !on)
+      let dy = 0
+      if (!hidden && a.id !== '__marker') {
+        const free = (y: number) => !placed.some(p => a.x - hw < p.r && a.x + hw > p.l && y - hh < p.b && y + hh > p.t)
+        const step = hh * 2 + 3
+        dy = [0, -step, step].find(d => free(a.y + d)) ?? NaN
+        if (Number.isNaN(dy)) { hidden = true; dy = 0 } else placed.push({ l: a.x - hw, t: a.y + dy - hh, r: a.x + hw, b: a.y + dy + hh })
       }
-      // Справка — рядом с точкой клика, внутри сцены; внизу места нет — встаёт сверху.
-      // В режиме «отдельно» карточка стоит в углу и не загораживает часть.
-      if (a.id === sel && popRef.current && stageRef.current && !iso) {
-        const pop = popRef.current
-        const W = stageRef.current.clientWidth, H = stageRef.current.clientHeight
-        const w = pop.offsetWidth, h = pop.offsetHeight
-        const x = Math.max(10, Math.min(W - w - 10, a.x - w * 0.3))
-        // Снизу карточка может выйти за сцену (там список частей), сверху — нет.
-        const below = a.y + 18 + h <= H + 40
-        const y = below ? Math.max(10, a.y + 18) : Math.max(10, a.y - 18 - h)
-        pop.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
-        pop.dataset.ready = 'true'
-      }
+      el.style.transform = `translate(${a.x.toFixed(1)}px, ${(a.y + dy).toFixed(1)}px) translate(-50%, -50%)`
+      if ((el.dataset.hidden === 'true') !== hidden) el.dataset.hidden = String(hidden)
     }
   }, [])
 
@@ -110,6 +124,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           },
         })
         if (s.timeline) setPlaying(true)
+        if (s.view === 'front') setSpinning(false)
         setStatus('ready')
       })
       .catch(() => { if (alive) setStatus('error') })
@@ -124,6 +139,50 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
     viewerRef.current?.focusPart(isolated && selected ? selected : null)
   }, [isolated, selected, status])
   useEffect(() => { viewerRef.current?.setHighlight(hover) }, [hover, status])
+  // Выбранная часть — в полном цвете, остальное гаснет до 5 %, как в заданиях
+  // на модели: сразу видно, что именно выбрано.
+  useEffect(() => { viewerRef.current?.setEmphasis(selected) }, [selected, status])
+  // Видимость остальных частей при выборе — ползунок в карточке. Запоминается
+  // в браузере: кто раз выставил удобный фон, тот хочет его во всех моделях.
+  const [dimLevel, setDimLevel] = useState(readDimLevel)
+  useEffect(() => {
+    viewerRef.current?.setDimLevel(dimLevel / 100)
+    try { localStorage.setItem(DIM_KEY, String(dimLevel)) } catch { /* приватное окно */ }
+  }, [dimLevel, status])
+  // Выбранная часть становится точкой вращения и приближения — только в момент
+  // выбора новой части. На выход из «Приблизить» не реагируем: там focusPart(null)
+  // возвращает общий вид, и точка вращения не должна его перебивать.
+  const isolatedRef = useRef(isolated)
+  isolatedRef.current = isolated
+  useEffect(() => { if (selected && !isolatedRef.current) viewerRef.current?.setPivot(selected) }, [selected, status])
+  // Подписи лежат поверх канвы и забирали колёсико: над ними сцена не
+  // приближалась. Пересылаем событие канве (его слушает OrbitControls).
+  // Обработчик не пассивный — иначе вместе с зумом прокручивалась бы страница.
+  useEffect(() => {
+    const host = labelsRef.current, c = canvasRef.current
+    if (!host || !c) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      c.dispatchEvent(new WheelEvent('wheel', {
+        deltaX: e.deltaX, deltaY: e.deltaY, deltaZ: e.deltaZ, deltaMode: e.deltaMode,
+        clientX: e.clientX, clientY: e.clientY, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey,
+        bubbles: true, cancelable: true,
+      }))
+    }
+    host.addEventListener('wheel', onWheel, { passive: false })
+    return () => host.removeEventListener('wheel', onWheel)
+  }, [status])
+  useEffect(() => {
+    const st = stageRef.current
+    if (!st || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => setWide(st.clientWidth >= 640))
+    ro.observe(st)
+    return () => ro.disconnect()
+  }, [status])
+  // Карточка сбоку занимает SIDE_W + отступ: на столько сдвигаем центр кадра.
+  // Сдвиг кадра под карточку — только при «Приблизить»: при обычном выборе
+  // модель стоит на месте.
+  useEffect(() => { viewerRef.current?.setViewInset(wide && selected && isolated ? SIDE_W + 24 : 0) }, [wide, selected, isolated, status])
   useEffect(() => { viewerRef.current?.setAutoRotate(spinning) }, [spinning, status])
   useEffect(() => { viewerRef.current?.setAnimation(moving) }, [moving, status])
   useEffect(() => { viewerRef.current?.setPlaying(playing) }, [playing, status])
@@ -195,7 +254,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
         <div className="m3d__stage" ref={stageRef}>
           <canvas ref={canvasRef} className="m3d__canvas" aria-label={spec?.title ?? '3D-модель'} />
           {spec && status === 'ready' && (
-            <div className="m3d__labels">
+            <div className="m3d__labels" ref={labelsRef}>
               {spec.parts.filter(p => !p.hideLabel).map(p => (
                 <button
                   key={p.id}
@@ -210,23 +269,13 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
                   onClick={() => setSelected(prev => (prev === p.id ? null : p.id))}
                 >
                   <span className="m3d__dot" />
-                  {p.name}
+                  <span className="m3d__txt">{p.name}</span>
                 </button>
               ))}
             </div>
           )}
-          {part && (
-            <div ref={popRef} className={`m3d__pop${isolated ? ' m3d__pop--docked' : ''}`} style={colorVar(part.color)} role="dialog" aria-label={part.name}>
-              <div className="m3d__pop-title">{part.name}</div>
-              <div className="m3d__pop-text"><Prose text={part.info} /></div>
-              <div className="m3d__card-actions">
-                <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>
-                  {isolated ? 'Показать всё' : 'Отдельно'}
-                </button>
-                <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
-              </div>
-            </div>
-          )}
+          {/* Справка о части — карточкой сбоку (на узкой сцене под ней) с первого
+              клика: всплывающее окно у точки клика закрывало саму часть. */}
           {status === 'ready' && !touched && !selected && (
             <div className="m3d__hint">
               Крутите пальцем, нажмите на часть
@@ -234,7 +283,30 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           )}
           {status === 'loading' && <div className="m3d__state">Загружаем 3D-модель…</div>}
           {status === 'error' && <div className="m3d__state">3D-модель не загрузилась. Проверьте связь и обновите страницу.</div>}
+          {part && wide && (
+            <div className="m3d__card m3d__card--side" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
+              <div className="m3d__card-title">{part.name}</div>
+              <div className="m3d__card-text"><Prose text={part.info} /></div>
+              <DimSlider value={dimLevel} onChange={setDimLevel} />
+              <div className="m3d__card-actions">
+                <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>{isolated ? 'Показать всё' : 'Приблизить'}</button>
+                <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {part && !wide && (
+          <div className="m3d__card" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
+            <div className="m3d__card-title">{part.name}</div>
+            <div className="m3d__card-text"><Prose text={part.info} /></div>
+            <DimSlider value={dimLevel} onChange={setDimLevel} />
+            <div className="m3d__card-actions">
+              <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>{isolated ? 'Показать всё' : 'Приблизить'}</button>
+              <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
+            </div>
+          </div>
+        )}
 
         {spec?.timeline && status === 'ready' && (
           <div className="m3d__stages">
@@ -275,7 +347,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
                 onClick={() => setSelected(prev => (prev === p.id ? null : p.id))}
               >
                 <span className="m3d__dot" />
-                {p.name}
+                <span className="m3d__txt">{p.name}</span>
               </button>
             ))}
           </div>
@@ -288,5 +360,66 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
         </figcaption>
       )}
     </figure>
+  )
+}
+
+const rubber = (over: number) => Math.sign(over) * (1 - Math.exp(-Math.abs(over) / 60))
+
+/**
+ * Ползунок «Остальное»: как в Тестли (Оформление) — толстая дорожка с рисками,
+ * белая капсула со значением; пока тянешь, бегунок становится линзой, а за
+ * краем дорожка упруго тянется.
+ */
+function DimSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const box = useRef<HTMLSpanElement>(null)
+  const [press, setPress] = useState(false)
+  const stretch = (x: number) => {
+    const g = box.current; if (!g) return
+    const r = g.getBoundingClientRect(), lo = r.left + 26, hi = r.right - 26
+    const over = x < lo ? x - lo : x > hi ? x - hi : 0
+    g.style.setProperty('--sq', Math.abs(rubber(over)).toFixed(3))
+    g.style.setProperty('--to', over < 0 ? 'right center' : 'left center')
+    g.classList.toggle('squish', over !== 0)
+  }
+  // Своя геометрия вместо нативной: центр капсулы ходит от left+29 до right-29.
+  // Нажатие на саму капсулу значение не меняет — запоминаем, где за неё взялись.
+  const grab = useRef<number | null>(null)
+  const span = () => { const r = box.current!.getBoundingClientRect(); return { lo: r.left + 29, w: Math.max(1, r.width - 58) } }
+  const valueAt = (x: number) => { const { lo, w } = span(); return Math.round(Math.min(1, Math.max(0, (x - (grab.current ?? 0) - lo) / w)) * 100) }
+  const release = () => {
+    grab.current = null
+    const g = box.current
+    g?.style.setProperty('--sq', '0'); g?.classList.remove('squish')
+    setTimeout(() => setPress(false), 120)
+  }
+  return (
+    <div className="m3d__dim">
+      <span className="m3d__dim-label">Остальное</span>
+      <span
+        ref={box} className={`m3d-slider${press ? ' press' : ''}`} style={{ '--v': value / 100 } as CSSProperties}
+        onPointerDown={e => {
+          e.stopPropagation(); e.preventDefault()
+          e.currentTarget.setPointerCapture(e.pointerId)
+          const { lo, w } = span(), center = lo + w * value / 100, off = e.clientX - center
+          grab.current = Math.abs(off) <= 26 ? off : 0
+          if (grab.current === 0 && Math.abs(off) > 26) onChange(valueAt(e.clientX))
+          setPress(true)
+        }}
+        onPointerMove={e => {
+          if (grab.current === null) return
+          stretch(e.clientX)
+          const v = valueAt(e.clientX); if (v !== value) onChange(v)
+        }}
+        onPointerUp={release} onPointerCancel={release}
+        onDoubleClick={() => onChange(5)}
+      >
+        <span className="m3d-slider__track"><span className="m3d-slider__ticks">{Array.from({ length: 11 }, (_, i) => <i key={i} />)}</span></span>
+        <span className="m3d-slider__knob">{value}%</span>
+        <input
+          type="range" min={0} max={100} step={1} value={value} aria-label="Видимость остальных частей"
+          onChange={e => onChange(Number(e.target.value))}
+        />
+      </span>
+    </div>
   )
 }

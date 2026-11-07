@@ -63,7 +63,11 @@
 .m3d__btn[aria-pressed="true"] { color: #786AD7; border-color: #786AD7; }
 .m3d__stage {
   position: relative;
-  aspect-ratio: 4 / 3;
+  /* Шириной и высотой как плеер урока (не выше 74vh): одна сетка с записью.
+     На телефоне — квадрат, иначе модель получается узкой полосой. */
+  aspect-ratio: 16 / 10;
+  max-height: 74vh;
+  width: 100%;
   background: var(--m3d-scene);
   touch-action: none;
   overflow: visible;
@@ -142,7 +146,7 @@
 .m3d__part[aria-pressed="true"] { border-color: var(--m3d-color); background: color-mix(in srgb, var(--m3d-color) 14%, var(--color-bg-4)); }
 .m3d__card {
   display: flex; flex-direction: column; gap: 8px;
-  margin: 0 12px 12px;
+  margin: 12px 12px 4px;
   padding: 12px 14px;
   border-radius: 14px;
   background: var(--color-bg-4);
@@ -170,13 +174,6 @@
   z-index: 20;
 }
 .m3d__pop[data-ready="true"] { opacity: 1; }
-/* «Отдельно»: карточка уходит в нижний левый угол сцены, чтобы не закрывать часть. */
-.m3d__pop--docked {
-  top: auto; bottom: 10px; left: 10px;
-  transform: none !important;
-  opacity: 1;
-  transition: opacity .15s;
-}
 .m3d__pop-title { font-size: 13px; font-weight: 600; color: var(--color-text); line-height: 1.3; }
 .m3d__pop-text { font-size: 12.5px; line-height: 1.4; color: var(--color-text); }
 .m3d__caption { font-size: 13px; line-height: 1.5; color: var(--color-muted); text-align: center; text-wrap: balance; }
@@ -191,3 +188,57 @@
 /* Живая миниатюра (Model3DThumb): тот же фон сцены, что у блока. */
 .m3d-thumb { background: radial-gradient(120% 90% at 50% 35%, #ffffff 0%, #EEEDF6 70%, #E4E2F0 100%); }
 [data-theme="dark"] .m3d-thumb { background: radial-gradient(120% 90% at 50% 35%, #2B2939 0%, #1B1A24 70%, #141319 100%); }
+
+@media (max-width: 640px) { .m3d__stage { aspect-ratio: 1 / 1; } }
+/* «Отдельно» на широкой сцене: карточка справа внутри сцены, кадр сдвинут
+   влево ровно на её половину (setViewInset). Ширина = SIDE_W в компоненте. */
+.m3d__card--side {
+  position: absolute; top: 12px; right: 12px; margin: 0;
+  width: 300px; box-sizing: border-box; max-height: calc(100% - 24px);
+  background: var(--m3d-pop);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--color-border-soft);
+  border-left: 3px solid var(--m3d-color);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  z-index: 20;
+}
+/* «Во весь экран» растягивает обычную карточку до 720 px — боковая должна
+   остаться 300: под эту ширину сдвинут кадр, иначе она закрывает приближенную часть. */
+.m3d--full .m3d__card--side { width: 300px; max-width: none; align-self: auto; }
+
+/* Ползунок «Остальное» в карточке части — как в Тестли (Оформление). */
+.m3d__dim { display: flex; align-items: center; gap: 10px; }
+.m3d__dim-label { font-size: 12px; color: var(--color-muted); white-space: nowrap; }
+.m3d-slider { position: relative; flex: 1; min-width: 0; height: 34px; display: flex; align-items: center; touch-action: none; }
+.m3d-slider__track { position: absolute; left: 0; right: 0; height: 34px; border-radius: 999px; background: rgb(118 118 128 / .14);
+  transform: scale(calc(1 + var(--sq, 0) * .07), calc(1 - var(--sq, 0) * .3)); transform-origin: var(--to, center);
+  transition: transform .5s cubic-bezier(.25, 1.6, .45, 1); }
+.m3d-slider.squish .m3d-slider__track { transition: none; }
+.m3d-slider__ticks { position: absolute; inset: 0 26px; display: flex; align-items: center; justify-content: space-between; }
+.m3d-slider__ticks i { width: 1.5px; height: 8px; border-radius: 1px; background: var(--color-muted); opacity: .55; }
+.m3d-slider__knob { position: absolute; top: 3px; left: calc(3px + (100% - 58px) * var(--v)); width: 52px; height: 28px; border-radius: 999px;
+  background: #fff; color: #080f14; pointer-events: none; display: grid; place-items: center;
+  font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 6px rgb(0 0 0 / .25), 0 0 0 .5px rgb(0 0 0 / .06);
+  transition: scale .3s cubic-bezier(.25, 1.6, .45, 1), background .18s, box-shadow .18s, color .18s; }
+.m3d-slider.press .m3d-slider__knob { scale: 1.42 1.5; color: var(--color-text); background: rgb(255 255 255 / .1);
+  -webkit-backdrop-filter: blur(.5px) saturate(2) brightness(1.2); backdrop-filter: blur(.5px) saturate(2) brightness(1.2);
+  box-shadow: inset 0 1.5px 1px rgb(255 255 255 / .19), inset 0 -1.5px 2px rgb(255 255 255 / .06), inset 0 0 0 .75px rgb(255 255 255 / .14),
+    inset 5px 0 8px -5px rgb(165 180 252 / .14), inset -5px 0 8px -5px rgb(110 231 183 / .12), 0 8px 18px -4px rgb(0 0 0 / .4); }
+.m3d-slider { cursor: pointer; }
+.m3d-slider input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.m3d-slider input::-webkit-slider-thumb { -webkit-appearance: none; width: 52px; height: 34px; }
+.m3d-slider input::-moz-range-thumb { width: 52px; height: 34px; border: 0; }
+.m3d-slider input:focus-visible + .m3d-slider__knob, .m3d-slider:has(input:focus-visible) .m3d-slider__knob { outline: 2px solid #786AD7; outline-offset: 2px; }
+
+/* Оптический центр подписей. Заглавные при line-height 1 стоят на 0,2–0,3 px
+   ниже середины, а подписи почти целиком из строчных — их середина ещё на ~1 px
+   ниже, и текст кажется опущенным. Подъём 0,06em ставит середину заглавных чуть
+   выше центра, строчных — чуть ниже (замер на стенде 07.11.2026). У чипов
+   с точкой поднимается только текст, точка остаётся по центру; у кнопок без
+   иконки — паддингом. */
+.m3d__txt { position: relative; top: -0.06em; }
+.m3d__btn, .m3d__stagebtn { padding-top: calc(7px - 0.06em); padding-bottom: calc(7px + 0.06em); }
+.m3d-slider__knob { padding-bottom: 0.12em; box-sizing: border-box; }
+.m3d__hint { padding-top: calc(4px - 0.06em); padding-bottom: calc(4px + 0.06em); }

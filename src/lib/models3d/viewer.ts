@@ -22,6 +22,8 @@ export interface LabelAnchor {
   y: number
   /** Точка закрыта другой частью или за камерой. */
   hidden: boolean
+  /** Глубина точки (NDC z, меньше — ближе к камере): кого оставить при наложении подписей. */
+  depth: number
 }
 
 export interface ViewerCallbacks {
@@ -43,6 +45,8 @@ export interface ModelViewer {
   setMarker(id: string | null, worldPoint?: THREE.Vector3): void
   /** Акцент: выбранная часть ярче, остальные заметно гаснут (мягче изоляции). */
   setEmphasis(id: string | null): void
+  /** Насколько видны остальные части при выборе и «Приблизить»: 0 — не видны, 1 — как есть. */
+  setDimLevel(level: number): void
   setAutoRotate(on: boolean): void
   /** Покадровая анимация модели (электроны и т. п.); орбита при этом живёт. */
   setAnimation(on: boolean): void
@@ -53,6 +57,16 @@ export interface ModelViewer {
   setPaused(on: boolean): void
   /** Подвести камеру к части; null — вернуться к общему виду. */
   focusPart(id: string | null): void
+  /**
+   * Перенести точку вращения на часть, не меняя расстояния до камеры: крутишь
+   * и приближаешь вокруг выбранной части, а не вокруг центра модели.
+   */
+  setPivot(id: string | null): void
+  /**
+   * Справа на сцене стоит карточка шириной px: центр кадра сдвигается в
+   * свободную часть, чтобы приближенная деталь не уходила под карточку.
+   */
+  setViewInset(px: number): void
   resetView(): void
   resize(): void
   dispose(): void
@@ -67,6 +81,7 @@ type Part = {
   explode: THREE.Vector3
   /** Центр части в координатах модели (до сдвига к центру габаритов). */
   centre: THREE.Vector3
+  liveAnchor?: () => [number, number, number]
   anchor: THREE.Vector3
   shell: boolean
   /** Все материалы полупрозрачны (вакуоль, оболочка ядра) — подписи за ней не прячем. */
@@ -75,6 +90,10 @@ type Part = {
   materials: Array<THREE.MeshStandardMaterial | THREE.MeshPhysicalMaterial>
   baseOpacity: number[]
   baseEmissive: THREE.Color[]
+  /** Разбор вширь (explodeSpread): потомки объекта, их место и сдвиг в координатах объекта. */
+  spread: Array<{ o: THREE.Object3D; home: THREE.Vector3; off: THREE.Vector3; centre: THREE.Vector3 }>
+  /** Сдвиг точки подписи при разборе вширь — она едет вместе с ближайшим потомком. */
+  anchorOff: THREE.Vector3 | null
 }
 
 const UP = new THREE.Vector3(0, 1, 0)
@@ -83,6 +102,8 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   renderer.outputColorSpace = THREE.SRGBColorSpace
+  // Срезы (глаз в разрезе): материалы со своими clippingPlanes.
+  renderer.localClippingEnabled = true
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.05
 
@@ -104,7 +125,10 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   controls.enablePan = true
   controls.panSpeed = 0.7
   controls.screenSpacePanning = true
-  controls.autoRotate = true
+  // Колёсико приближает к точке под курсором, а не к центру модели: навёл на
+  // хрусталик — едешь к хрусталику.
+  controls.zoomToCursor = true
+  controls.autoRotate = spec.view !== 'front'
   controls.autoRotateSpeed = 0.9
   controls.addEventListener('start', () => {
     focus = null
@@ -140,16 +164,25 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     // Центр части — для ярлыка и для направления разбора по умолчанию.
     const box = new THREE.Box3().setFromObject(obj)
     const centre = box.getCenter(new THREE.Vector3())
-    const anchor = ps.anchor ? new THREE.Vector3(...ps.anchor) : centre.clone()
+    // Точка подписи в спецификации задана в координатах модели (так её пишут
+    // авторы: «над ядром», «у края мембраны»). Переводим её в координаты
+    // объекта части: тогда она едет за ним, если процесс его двигает или
+    // сжимает. Брать её прямо как локальную нельзя — у мембраны, вакуоли,
+    // роговицы объект — это отмасштабированная или сдвинутая сфера, и
+    // подпись улетала на величину этого масштаба (у мембраны — за клетку).
+    obj.updateWorldMatrix(true, false)
+    const anchor = obj.worldToLocal(ps.anchor ? new THREE.Vector3(...ps.anchor) : centre.clone())
     // Вектор разбора считается ниже, когда известен центр всей модели.
     const explode = ps.explode ? new THREE.Vector3(...ps.explode) : new THREE.Vector3()
     if (!ps.shell) union.union(box)
     const part: Part = {
-      id: ps.id, root: group, obj, home: new THREE.Vector3(), explode, anchor, centre,
+      id: ps.id, root: group, obj, home: new THREE.Vector3(), explode, anchor, centre, liveAnchor: ps.liveAnchor,
       shell: !!ps.shell, hideLabel: !!ps.hideLabel, materials,
       translucent: materials.length > 0 && materials.every(m => m.opacity < 0.7),
       baseOpacity: materials.map(m => m.opacity),
       baseEmissive: materials.map(m => m.emissive.clone()),
+      spread: [],
+      anchorOff: null,
     }
     parts.push(part)
     byId.set(ps.id, part)
@@ -163,16 +196,50 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   // габаритного куба (оболочки не в счёт) встал в ноль, и от него же считаются
   // разбор и дистанция камеры.
   if (union.isEmpty()) union.setFromObject(root)
-  const modelCentre = union.getCenter(new THREE.Vector3())
+  const modelCentre = spec.frame ? new THREE.Vector3(...spec.frame.center) : union.getCenter(new THREE.Vector3())
   root.position.copy(modelCentre).negate()
-  const fitRadius = Math.max(union.getBoundingSphere(new THREE.Sphere()).radius, 0.5)
+  const fitRadius = spec.frame ? spec.frame.radius : Math.max(union.getBoundingSphere(new THREE.Sphere()).radius, 0.5)
+  root.updateMatrixWorld(true)
   for (const part of parts) {
-    if (spec.parts.find(ps => ps.id === part.id)?.explode) continue
+    const ps = spec.parts.find(p => p.id === part.id)!
+    if (ps.explodeSpread) {
+      // Сдвиг потомка задан в мировых координатах, а двигаем его в координатах
+      // объекта части (у меша может быть свой поворот и масштаб).
+      for (const child of part.obj.children) {
+        const c = new THREE.Box3().setFromObject(child).getCenter(new THREE.Vector3())
+        const worldOff = c.clone().sub(modelCentre).multiplyScalar(ps.explodeSpread)
+        const off = part.obj.worldToLocal(c.clone().add(worldOff)).sub(part.obj.worldToLocal(c.clone()))
+        part.spread.push({ o: child, home: child.position.clone(), off, centre: c.clone().add(worldOff) })
+      }
+      // Подпись стоит на одном из атомов (связей) — при разборе она должна
+      // уехать вместе с ним, а не остаться висеть в центре молекулы.
+      const a = part.obj.localToWorld(part.anchor.clone())
+      let bestD = Infinity
+      for (const ch of part.spread) {
+        const home = ch.centre.clone().sub(part.obj.localToWorld(ch.off.clone()).sub(part.obj.localToWorld(new THREE.Vector3())))
+        const d = home.distanceTo(a)
+        if (d < bestD) { bestD = d; part.anchorOff = ch.off }
+      }
+    }
+    if (ps.explode || ps.explodeSpread) continue
     const dir = part.centre.clone().sub(modelCentre)
     if (dir.lengthSq() > 1e-6) part.explode.copy(dir.normalize().multiplyScalar(fitRadius * 0.6))
   }
+  // Габарит разобранной модели: центры частей со сдвигом разбора. По нему
+  // при разборе сцена уменьшается и смещается, чтобы стопка влезала в кадр
+  // (у глаза она длиной в несколько глазных яблок).
+  const explodedBox = new THREE.Box3()
+  for (const part of parts) {
+    if (part.shell) continue
+    if (part.spread.length) for (const ch of part.spread) explodedBox.expandByPoint(ch.centre.clone().add(part.explode))
+    else explodedBox.expandByPoint(part.centre.clone().add(part.explode))
+  }
+  const explodedMid = explodedBox.isEmpty() ? modelCentre.clone() : explodedBox.getCenter(new THREE.Vector3())
+  const explodedR = explodedBox.isEmpty() ? fitRadius : explodedBox.getBoundingSphere(new THREE.Sphere()).radius + fitRadius * 0.35
+  const spreadK = Math.max(0.42, explodedR / fitRadius - 1)
   const dist = fitRadius * 2.9
-  camera.position.set(dist * 0.55, dist * 0.42, dist * 0.78)
+  if (spec.view === 'front') camera.position.set(0, dist * 0.12, dist)
+  else camera.position.set(dist * 0.55, dist * 0.42, dist * 0.78)
   controls.minDistance = fitRadius * 0.3
   controls.maxDistance = fitRadius * 6
   controls.update()
@@ -188,6 +255,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   let highlighted: string | null = null
   let marker: { part: Part; local: THREE.Vector3 } | null = null
   let emphasis: string | null = null
+  let dimLevel = 0.05
   let paused = false
   let animating = true
   let animT = 0
@@ -197,26 +265,65 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   let disposed = false
   const dim = new Map<string, number>() // текущая «погашенность» 0..1 по частям
   parts.forEach(p => dim.set(p.id, 0))
+  const shadeOf = new Map<string, number>() // затемнение при наведении на другую часть
+  parts.forEach(p => shadeOf.set(p.id, 0))
 
   const raycaster = new THREE.Raycaster()
+  /**
+   * Попадание в срезанную часть меша (глаз в разрезе, clippingPlanes). Срез
+   * прячет её только при отрисовке — луч в неё попадает, и невидимая половина
+   * кольца закрывала подпись хрусталика и перехватывала клики.
+   */
+  const tinyR = new THREE.Sphere()
+  const tiny = (o: THREE.Object3D) => {
+    const g = (o as THREE.Mesh).geometry
+    if (!g) return false
+    if (!g.boundingSphere) g.computeBoundingSphere()
+    tinyR.copy(g.boundingSphere!).applyMatrix4(o.matrixWorld)
+    return tinyR.radius < fitRadius * 0.03
+  }
+  const clippedHit = (hit: THREE.Intersection) => {
+    const m = (hit.object as THREE.Mesh).material
+    return (Array.isArray(m) ? m : [m]).some(mt => mt.clippingPlanes?.some(pl => pl.distanceToPoint(hit.point) < 0))
+  }
   const pointer = new THREE.Vector2()
   const tmp = new THREE.Vector3()
+  const tmpC = new THREE.Vector3()
 
-  function applyMaterials(part: Part, d: number, hot: boolean) {
+  /**
+   * shade — затемнение при наведении на другую часть (0…1). Наведённая часть
+   * не высветляется: гаснут остальные, она остаётся как есть (просьба Дани:
+   * подсветка вымывала цвет, а тёмный фон выделяет часть чище).
+   */
+  function applyMaterials(part: Part, d: number, hot: boolean, shade: number) {
     const shellFade = part.shell ? Math.max(explodeNow, isolated && isolated !== part.id ? 1 : 0) : 0
     part.materials.forEach((m, i) => {
       const base = part.baseOpacity[i]
       // Погашенная часть почти прозрачна, оболочка при разборе тоже тает.
       // Погашенная часть остаётся на 5 %: силуэт виден, но не спорит с выбранной.
-      const target = base * (1 - d * 0.95) * (1 - shellFade * 0.85)
+      // Оболочка при разборе исчезает целиком: её призрак склеивал разобранные части.
+      const target = base * (1 - d * (1 - dimLevel)) * (1 - shellFade)
       // Флаг прозрачности не липкий: непрозрачная часть снова рисуется как
       // непрозрачная, иначе сортировка прозрачных даёт просветы в стенках.
-      m.transparent = base < 0.999 || target < 0.999
+      // Признак прозрачности three.js вшивает в шейдер (define OPAQUE: альфа
+      // принудительно 1). Сменили флаг — материал надо пересобрать, иначе
+      // часть остаётся непрозрачной при любой opacity: так у Дани в Edge
+      // остальные части не гасли до 5 %.
+      // Материалы, прозрачность которых ведёт сам процесс (userData.anim), не трогаем.
+      const wantTransparent = m.userData.anim === true || base < 0.999 || target < 0.999
+      if (m.transparent !== wantTransparent) { m.transparent = wantTransparent; m.needsUpdate = true }
       m.opacity = target
       m.depthWrite = target > 0.5
       m.emissive.copy(part.baseEmissive[i])
-      // Подсветка едва заметная: сильный emissive вымывал цвет до пастели.
-      if (hot) m.emissive.offsetHSL(0, 0, emphasis === part.id ? 0.1 : 0.05)
+      // Выбранная часть чуть ярче; наведённая — без подсветки.
+      if (hot) m.emissive.offsetHSL(0, 0, 0.1)
+      // Базовый цвет запоминаем; если цвет с прошлого кадра сменил сам процесс
+      // (пузырёк фагоцитоза, связка глаза), новый цвет и становится базой.
+      const out = m.userData.shadeOut as THREE.Color | undefined
+      if (!m.userData.baseColor || (out && !m.color.equals(out))) m.userData.baseColor = m.color.clone()
+      m.color.copy(m.userData.baseColor as THREE.Color).multiplyScalar(1 - shade * 0.65)
+      m.userData.shadeOut = m.color.clone()
+      if (shade > 0) m.emissive.multiplyScalar(1 - shade * 0.65)
     })
   }
 
@@ -224,8 +331,11 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     explodeNow += (explodeTarget - explodeNow) * Math.min(1, dt * 7)
     // Разобранная модель шире собранной: ужимаем всю сцену, а не отъезжаем
     // камерой, чтобы не спорить с зумом пользователя.
-    const k = 1 / (1 + 0.42 * explodeNow)
+    const k = 1 / (1 + spreadK * explodeNow)
     root.scale.setScalar(k)
+    // Центр кадра едет от центра собранной модели к центру разложенной.
+    tmpC.copy(modelCentre).lerp(explodedMid, explodeNow)
+    root.position.copy(tmpC).multiplyScalar(-k)
     for (const part of parts) {
       // Акцент гасит остальное почти как изоляция: выбранное должно читаться сразу.
       const wantDim = isolated && isolated !== part.id ? 1 : emphasis && emphasis !== part.id ? 1 : 0
@@ -233,7 +343,12 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       dim.set(part.id, d)
       const k = part.shell ? 0 : explodeNow
       part.root.position.copy(part.home).addScaledVector(part.explode, k)
-      applyMaterials(part, d, highlighted === part.id || emphasis === part.id)
+      for (const ch of part.spread) ch.o.position.copy(ch.home).addScaledVector(ch.off, k)
+      // Наведение затемняет все части, кроме наведённой (при «Приблизить» не нужно).
+      const wantShade = highlighted && highlighted !== part.id && !isolated ? 1 : 0
+      const sh = shadeOf.get(part.id)! + (wantShade - shadeOf.get(part.id)!) * Math.min(1, dt * 10)
+      shadeOf.set(part.id, sh)
+      applyMaterials(part, d, emphasis === part.id, sh)
     }
     if (focus) {
       const k = Math.min(1, dt * 5)
@@ -266,26 +381,47 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       tmp.copy(marker.local)
       marker.part.obj.localToWorld(tmp)
       const ndc = tmp.project(camera)
-      out.push({ id: '__marker', x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden: ndc.z > 1 })
+      out.push({ id: '__marker', x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden: ndc.z > 1, depth: ndc.z })
     }
     return out.concat(parts.filter(p => !p.hideLabel).map(part => {
-      tmp.copy(part.anchor)
-      part.obj.localToWorld(tmp)
+      if (part.liveAnchor) { tmp.set(...part.liveAnchor()); root.localToWorld(tmp) }
+      else {
+        tmp.copy(part.anchor)
+        if (part.anchorOff) tmp.addScaledVector(part.anchorOff, explodeNow)
+        part.obj.localToWorld(tmp)
+      }
       const toAnchor = tmp.distanceTo(camPos)
       // Закрыта ли точка другой частью: луч от камеры к точке.
       raycaster.set(camPos, tmp.clone().sub(camPos).normalize())
       raycaster.far = toAnchor - 0.02
-      const hits = raycaster.intersectObjects(pickables, false)
-      const blocker = hits.find(hit => {
+      const hits = raycaster.intersectObjects(pickables, false).filter(h => !clippedHit(h))
+      // Точка внутри своей части (центр атома, сердцевина органеллы): луч
+      // сначала входит в свою поверхность, и всё, что дальше, — внутри неё
+      // (связь, упёртая в центр атома). Такие попадания подпись не закрывают.
+      const ownAt = hits.findIndex(hit => hit.object.userData.partId === part.id)
+      const blocker = (ownAt < 0 ? hits : hits.slice(0, ownAt)).find(hit => {
         const pid = hit.object.userData.partId as string
         if (pid === part.id) return false
         const other = byId.get(pid)
-        // Полупрозрачное и погашенное не закрывает.
-        return !(other?.shell) && !(other?.translucent) && (dim.get(pid) ?? 0) < 0.5
+        // Полупрозрачное и погашенное не закрывает. Прозрачность смотрим и у
+        // самого меша: протопласт в целом непрозрачен (ядро, пластиды), но его
+        // оболочка — стекло, и сквозь неё вакуоль видна.
+        const mats = (hit.object as THREE.Mesh).material
+        const glassy = (Array.isArray(mats) ? mats : [mats]).every(mt => mt.transparent && mt.opacity < 0.6)
+        // Крошка (рибосома в 0,05) подпись не закрывает: их рассыпано по клетке
+        // семьдесят, и любая на луче гасила подпись ядра или ЭПС.
+        return !(other?.shell) && !(other?.translucent) && !glassy && !tiny(hit.object) && (dim.get(pid) ?? 0) < 0.5
       })
       const ndc = tmp.project(camera)
-      const hidden = !!blocker || ndc.z > 1 || (isolated !== null && isolated !== part.id)
-      return { id: part.id, x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden }
+      // Часть, которой сейчас нет на сцене (процесс ещё не дошёл), подписи не получает.
+      let shown = false
+      // Растворённая процессом часть (ядерная оболочка в метафазе) видима для
+      // three.js, но её прозрачность — ноль: подписи у неё быть не должно.
+      const faded = (o: THREE.Object3D) => { const m = (o as THREE.Mesh).material; return (Array.isArray(m) ? m : [m]).every(mt => mt.transparent && mt.opacity < 0.04) }
+      part.obj.traverse(o => { if ((o as THREE.Mesh).isMesh && o.visible && !faded(o)) { let p: THREE.Object3D | null = o; let vis = true; while (p && p !== part.obj) { if (!p.visible) { vis = false; break } p = p.parent } if (vis) shown = true } })
+      // Оболочка при разборе тает целиком — подпись пустого места не нужна.
+      const hidden = !shown || (part.shell && explodeNow > 0.3) || !part.obj.visible || !!blocker || ndc.z > 1 || (isolated !== null && isolated !== part.id)
+      return { id: part.id, x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden, depth: ndc.z }
     }))
   }
 
@@ -296,7 +432,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     pointer.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1)
     raycaster.setFromCamera(pointer, camera)
     raycaster.far = Infinity
-    const hits = raycaster.intersectObjects(pickables, false)
+    const hits = raycaster.intersectObjects(pickables, false).filter(h => !clippedHit(h))
     for (const hit of hits) {
       const pid = hit.object.userData.partId as string
       const part = byId.get(pid)
@@ -330,10 +466,16 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   canvas.addEventListener('pointerleave', onLeave)
 
   // ── Цикл ─────────────────────────────────────────────────────────────────
+  let viewInset = 0
   function resize() {
     const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1
     renderer.setSize(w, h, false)
     camera.aspect = w / h
+    // Сдвиг на половину карточки: картинка уезжает влево, центр модели встаёт
+    // посередине свободной части. Подписи и выбор кликом считаются через ту же
+    // матрицу проекции, поэтому остаются на своих местах.
+    if (viewInset > 0) camera.setViewOffset(w, h, viewInset / 2, 0, w, h)
+    else camera.clearViewOffset()
     camera.updateProjectionMatrix()
   }
   resize()
@@ -362,6 +504,8 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     setIsolate(id) { isolated = id },
     setHighlight(id) { highlighted = id },
     setEmphasis(id) { emphasis = id },
+    setDimLevel(level) { dimLevel = Math.min(1, Math.max(0, level)) },
+    setViewInset(px) { viewInset = Math.max(0, px); resize() },
     setMarker(id, worldPoint) {
       const part = id ? byId.get(id) : null
       if (!part || !worldPoint) { marker = null; return }
@@ -383,7 +527,16 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       if (!part) { focus = { target: new THREE.Vector3(), dist }; return }
       const box = partBox(part)
       const r = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, fitRadius * 0.12)
-      focus = { target: box.getCenter(new THREE.Vector3()), dist: Math.min(controls.maxDistance, Math.max(controls.minDistance, r * 3.2)) }
+      // r·4: при угле обзора 38° описанная сфера части занимает ~70 % высоты
+      // кадра. С r·3.2 она упиралась в края, и вытянутые части (окончания
+      // нейрона, аорта) обрезались.
+      focus = { target: box.getCenter(new THREE.Vector3()), dist: Math.min(controls.maxDistance, Math.max(controls.minDistance, r * 4)) }
+    },
+    setPivot(id) {
+      const part = id ? byId.get(id) : null
+      if (!part) return
+      const target = partBox(part).getCenter(new THREE.Vector3())
+      focus = { target, dist: camera.position.distanceTo(controls.target) }
     },
     resetView() {
       focus = null

@@ -6,7 +6,8 @@ import { join } from 'node:path'
 
 const [objDir, out, partsJson, optJson] = process.argv.slice(2)
 const parts = JSON.parse(partsJson)
-// Опции: {"xMax": -5} — выкинуть треугольники правее порога (в базе «правый глаз» лежит вместе с левым).
+// Опции: {"xMax": -5} — выкинуть треугольники правее порога (в базе «правый глаз» лежит вместе с левым);
+// {"zMin": 1150} — ниже порога (мм).
 const opt = optJson ? JSON.parse(optJson) : {}
 
 function parseObj(text) {
@@ -56,10 +57,14 @@ for (const [id, files] of Object.entries(parts)) {
     pos.push(...o.pos); for (const i of o.idx) idx.push(i + base)
   }
   let keep = idx
-  if (opt.xMax !== undefined) {
+  // Обрезка: xMax — выкинуть всё правее (второй глаз), zMin — ниже (у сердца
+  // нисходящая аорта и нижняя полая вена уходят на 30 см в брюшную полость).
+  if (opt.xMax !== undefined || opt.zMin !== undefined) {
+    const xMax = opt.xMax ?? Infinity, zMin = opt.zMin ?? -Infinity
+    const ok = (v) => pos[v * 3] < xMax && pos[v * 3 + 2] > zMin
     keep = []
     for (let i = 0; i < idx.length; i += 3) {
-      if (pos[idx[i] * 3] < opt.xMax && pos[idx[i + 1] * 3] < opt.xMax && pos[idx[i + 2] * 3] < opt.xMax) keep.push(idx[i], idx[i + 1], idx[i + 2])
+      if (ok(idx[i]) && ok(idx[i + 1]) && ok(idx[i + 2])) keep.push(idx[i], idx[i + 1], idx[i + 2])
     }
   }
   // Перенумеровать вершины, чтобы не тащить неиспользуемые.
@@ -83,8 +88,10 @@ const json = {
   scene: 0, scenes: [{ nodes: nodes.map((_, i) => i) }], nodes, meshes, accessors, bufferViews: views,
   buffers: [{ byteLength: offset }],
 }
-let jsonStr = JSON.stringify(json); while (jsonStr.length % 4) jsonStr += ' '
-const jsonBuf = Buffer.from(jsonStr, 'utf8'), bin = Buffer.concat(bufs)
+// Выравнивание по БАЙТАМ: «©» в UTF-8 — два байта, по символам чанк выходил кривым.
+let jsonBuf = Buffer.from(JSON.stringify(json), 'utf8')
+if (jsonBuf.length % 4) jsonBuf = Buffer.concat([jsonBuf, Buffer.alloc(4 - (jsonBuf.length % 4), 0x20)])
+const bin = Buffer.concat(bufs)
 const header = Buffer.alloc(12); header.write('glTF', 0); header.writeUInt32LE(2, 4); header.writeUInt32LE(12 + 8 + jsonBuf.length + 8 + bin.length, 8)
 const jh = Buffer.alloc(8); jh.writeUInt32LE(jsonBuf.length, 0); jh.writeUInt32LE(0x4E4F534A, 4)
 const bh = Buffer.alloc(8); bh.writeUInt32LE(bin.length, 0); bh.writeUInt32LE(0x004E4942, 4)
