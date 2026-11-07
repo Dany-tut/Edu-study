@@ -27,6 +27,19 @@ interface GltfPart {
    * вложены друг в друга (сердце): разбор «от центра» разводит их наугад.
    */
   explode?: [number, number, number]
+  /** Разбор назад по оси explodeAxis (от роговицы к затылку) на столько единиц. */
+  explodeBack?: number
+}
+/**
+ * Часть, которой нет в базе мешей, дорисованная по размерам настоящего органа.
+ * Сейчас умеем две, обе для глаза: сетчатку внутри сосудистой оболочки и
+ * зрительный нерв, выходящий назад. Мерки — центр и радиус узла `fit`.
+ */
+interface DrawnPart {
+  id: string; name: string; color: string; info: string
+  shape: 'retina' | 'opticNerve'
+  fit: string
+  explodeBack?: number
 }
 interface GltfModel {
   key: string; url: string; title: string; subtitle: string; credit: string
@@ -37,6 +50,7 @@ interface GltfModel {
    * разбор «от центра» разводит их почти одинаково, и стопка остаётся слипшейся.
    */
   explodeAxis?: [string, string]
+  drawn?: DrawnPart[]
   /** Откуда тексты справок: файл ChemBio_KB#стр.N (правило ХимБио — только из базы). */
   sources?: string[]
 }
@@ -61,9 +75,9 @@ const MODELS: GltfModel[] = [
     ],
   },
   {
-    key: 'bp3d-eye', url: '/models/bp3d-eye.glb', title: 'Глазное яблоко · по МРТ',
+    key: 'bp3d-eye', sources: ['textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.299', 'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.322', 'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.323', 'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.325', 'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.326', 'textbooks/txt/Teylor_Grin_Staut_1_tom_2013.txt#стр.112', 'textbooks/txt/Teylor_Grin_Staut_1_tom_2013.txt#стр.157', 'textbooks/txt/Teylor_Grin_Staut_2_tom_2013.txt#стр.303'], url: '/models/bp3d-eye.glb', title: 'Глазное яблоко · по МРТ',
     explodeAxis: ['choroid', 'cornea'],
-    subtitle: 'Оболочки и преломляющие среды из базы BodyParts3D. Склера полупрозрачна, чтобы видеть хрусталик и связку.',
+    subtitle: 'Оболочки, преломляющие среды, мышцы глаза и слёзный аппарат из BodyParts3D; сетчатка и зрительный нерв дорисованы по размерам глаза.',
     credit: BP3D_CREDIT,
     parts: [
       { node: 'sclera', name: 'Склера', color: '#E9E6EE', opacity: 0.3, shell: true, info: 'Белочная оболочка — наружный каркас глаза. Спереди переходит в роговицу.' },
@@ -73,6 +87,16 @@ const MODELS: GltfModel[] = [
       { node: 'lens', explodeStep: 3, name: 'Хрусталик', color: '#F2DFA0', opacity: 0.85, info: 'Двояковыпуклая линза. Меняет кривизну — аккомодация.' },
       { node: 'ligament', explodeStep: 2, name: 'Ресничный поясок', color: '#D98A7A', info: 'Тонкие волокна, на которых хрусталик подвешен к ресничному телу. Их натяжение меняет форму хрусталика.' },
       { node: 'vitreous', explodeStep: 1, name: 'Стекловидное тело', color: '#BFE3F5', opacity: 0.15, hideLabel: true, info: 'Прозрачный гель, заполняющий глаз за хрусталиком.' },
+      { node: 'rectus', explode: [0, 2.6, -0.4], name: 'Прямые мышцы', color: '#C9665E', info: 'Четыре прямые мышцы удерживают глазное яблоко в глазнице и вместе с двумя косыми управляют его движениями.' },
+      { node: 'oblique', explode: [0, -2.6, -0.4], name: 'Косые мышцы', color: '#D98A6A', info: 'Две косые мышцы вместе с четырьмя прямыми удерживают глаз в глазнице и поворачивают его — так мы переводим взгляд с одной части предмета на другую.' },
+      // Железы и протоков в ChemBio_KB нет — справка только о слёзной жидкости.
+      { node: 'lacrimal', explode: [-1.6, 1.4, 0.6], name: 'Слёзный аппарат', color: '#8FC9E8', info: 'Слёзная жидкость защищает глаз: в ней есть фермент лизоцим, разрушающий стенки бактерий. Слёзы выделяются сильнее, когда работает парасимпатическая нервная система.' },
+    ],
+    // Сетчатки и зрительного нерва в BodyParts3D нет — дорисованы по размерам
+    // сосудистой оболочки этого же меша.
+    drawn: [
+      { id: 'retina', shape: 'retina', fit: 'choroid', explodeBack: 1.6, name: 'Сетчатка', color: '#E8A0C0', info: 'Внутренний слой глаза со светочувствительными клетками. Палочек около 120 млн, они работают в сумерках; колбочек около 6 млн, они различают цвета.' },
+      { id: 'nerve', shape: 'opticNerve', fit: 'choroid', explodeBack: 3.0, name: 'Зрительный нерв', color: '#F0D27A', info: 'Пучок аксонов, несущий импульсы от сетчатки в мозг. Там, где он выходит из глаза, лежит слепое пятно: в нём нет ни палочек, ни колбочек.' },
     ],
   },
   {
@@ -243,7 +267,7 @@ export async function gltfModelSpec(key: string): Promise<ModelSpec | null> {
   }
   const parts: ModelPartSpec[] = def.parts.filter(p => nodes.has(p.node)).map(p => ({
     id: p.node, name: p.name, color: p.color, info: p.info, shell: p.shell, hideLabel: p.hideLabel,
-    explode: p.explode ?? explodeOf.get(p.node),
+    explode: p.explode ?? explodeOf.get(p.node) ?? (axis && p.explodeBack ? axis.clone().multiplyScalar(-p.explodeBack).toArray() as [number, number, number] : undefined),
     anchor: surfaceAnchor(nodes.get(p.node)!),
     build: (T) => {
       const g = new T.Group()
@@ -266,6 +290,44 @@ export async function gltfModelSpec(key: string): Promise<ModelSpec | null> {
       return g
     },
   }))
+  for (const d of def.drawn ?? []) {
+    const fitNode = nodes.get(d.fit)
+    if (!fitNode || !axis) continue
+    // Мерки в итоговых координатах: центр и радиус оболочки, ось «вперёд».
+    const fb = new THREE.Box3().expandByObject(fitNode)
+    const c = toFinal(fb.getCenter(new THREE.Vector3()))
+    // Радиус — половина среднего размера коробки (описанная сфера коробки больше глаза в √3 раз).
+    const sz = fb.getSize(new THREE.Vector3())
+    const r = (sz.x + sz.y + sz.z) / 6 * scale
+    const back = axis.clone().negate()
+    // Нерв выходит чуть кнутри от заднего полюса (к носу; у правого глаза это +X).
+    const medial = new THREE.Vector3(1, 0, 0).sub(back.clone().multiplyScalar(back.x)).normalize()
+    const pole = c.clone().add(back.clone().multiplyScalar(r * 0.97)).add(medial.clone().multiplyScalar(r * 0.18))
+    const anchor = (d.shape === 'retina'
+      ? c.clone().add(back.clone().multiplyScalar(r * 0.55)).add(new THREE.Vector3(0, r * 0.7, 0))
+      : pole.clone().add(back.clone().multiplyScalar(r * 0.9))).toArray() as [number, number, number]
+    parts.push({
+      id: d.id, name: d.name, color: d.color, info: d.info, anchor,
+      explode: d.explodeBack ? axis.clone().multiplyScalar(-d.explodeBack).toArray() as [number, number, number] : undefined,
+      build: (T) => {
+        const mat = new T.MeshStandardMaterial({ color: d.color, roughness: 0.55, side: T.DoubleSide })
+        // Ось Y геометрии → направление назад.
+        const q = new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(back.x, back.y, back.z))
+        if (d.shape === 'retina') {
+          // Чаша на задних двух третях глаза, чуть внутри сосудистой оболочки.
+          const m = new T.Mesh(new T.SphereGeometry(r * 0.94, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.62), mat)
+          m.quaternion.copy(q)
+          m.position.copy(c)
+          return m
+        }
+        const len = r * 1.5
+        const m = new T.Mesh(new T.CylinderGeometry(r * 0.13, r * 0.15, len, 24), mat)
+        m.quaternion.copy(q)
+        m.position.copy(pole).add(back.clone().multiplyScalar(len / 2 - r * 0.15))
+        return m
+      },
+    })
+  }
   return {
     id: `gltf-${def.key}`, title: def.title, subtitle: `${def.subtitle} ${def.credit}`,
     radius: 3.2, parts, canExplode: true, sources: def.sources,
