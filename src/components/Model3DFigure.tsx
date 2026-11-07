@@ -246,7 +246,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
                 <button
                   key={st.name}
                   type="button"
-                  className="m3d__stage"
+                  className="m3d__stagebtn"
                   data-hover="own"
                   aria-pressed={progress === i}
                   onClick={() => { setPlaying(false); viewerRef.current?.setProgress(i / (spec.timeline!.stages.length - 1)) }}

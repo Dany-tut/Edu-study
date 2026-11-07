@@ -69,9 +69,15 @@
   overflow: visible;
 }
 .m3d--full .m3d__stage { aspect-ratio: auto; flex: 1; min-height: 0; }
-.m3d__canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.m3d__canvas { display: block; width: 100%; height: 100%; cursor: grab; border-radius: inherit; }
+/* Маска сцены повторяет скругление рамки один в один: при зуме модель не
+   вылезает прямоугольником за углы. Радиус = радиус рамки минус её обводка.
+   Сама сцена overflow не режет — справка к части должна выходить за край. */
+.m3d__frame > .m3d__stage:first-child { border-top-left-radius: 15px; border-top-right-radius: 15px; }
+.m3d__frame > .m3d__stage:last-child { border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
+.m3d--full .m3d__frame > .m3d__stage { border-radius: 0; }
 .m3d__canvas:active { cursor: grabbing; }
-.m3d__labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.m3d__labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; border-radius: inherit; }
 .m3d__label {
   position: absolute;
   left: 0; top: 0;
@@ -113,14 +119,14 @@
 }
 .m3d__stages { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 0; }
 .m3d__stages-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.m3d__stage {
+.m3d__stagebtn {
   font: inherit; font-size: 12px; line-height: 1; padding: 7px 10px;
   border-radius: 999px; border: 1px solid transparent;
   background: var(--color-bg-4); color: var(--color-text); cursor: pointer;
   transition: border-color .15s, background .15s, color .15s;
 }
-.m3d__stage[data-hover]:hover { border-color: var(--color-border); }
-.m3d__stage[aria-pressed="true"] { color: #786AD7; border-color: #786AD7; background: color-mix(in srgb, #786AD7 12%, var(--color-bg-4)); }
+.m3d__stagebtn[data-hover]:hover { border-color: var(--color-border); }
+.m3d__stagebtn[aria-pressed="true"] { color: #786AD7; border-color: #786AD7; background: color-mix(in srgb, #786AD7 12%, var(--color-bg-4)); }
 .m3d__track { height: 3px; border-radius: 2px; background: var(--color-bg-5); overflow: hidden; }
 .m3d__track-fill { height: 100%; width: 0; background: #786AD7; border-radius: 2px; }
 .m3d__stage-info { font-size: 12.5px; line-height: 1.4; color: var(--color-text); }
