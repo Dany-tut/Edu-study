@@ -53,6 +53,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   const progressRef = useRef<HTMLDivElement>(null)
   const [labelsOn, setLabelsOn] = useState(true)
   const stageRef = useRef<HTMLDivElement>(null)
+  const labelsRef = useRef<HTMLDivElement>(null)
   // Зеркала состояния для коллбэка сцены: он живёт вне рендера React.
   const liveRef = useRef({ selected: null as string | null, labelsOn: true, isolated: false })
   liveRef.current.selected = selected
@@ -121,6 +122,23 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
   // Выбранная часть — в полном цвете, остальное гаснет до 5 %, как в заданиях
   // на модели: сразу видно, что именно выбрано.
   useEffect(() => { viewerRef.current?.setEmphasis(selected) }, [selected, status])
+  // Подписи лежат поверх канвы и забирали колёсико: над ними сцена не
+  // приближалась. Пересылаем событие канве (его слушает OrbitControls).
+  // Обработчик не пассивный — иначе вместе с зумом прокручивалась бы страница.
+  useEffect(() => {
+    const host = labelsRef.current, c = canvasRef.current
+    if (!host || !c) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      c.dispatchEvent(new WheelEvent('wheel', {
+        deltaX: e.deltaX, deltaY: e.deltaY, deltaZ: e.deltaZ, deltaMode: e.deltaMode,
+        clientX: e.clientX, clientY: e.clientY, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey,
+        bubbles: true, cancelable: true,
+      }))
+    }
+    host.addEventListener('wheel', onWheel, { passive: false })
+    return () => host.removeEventListener('wheel', onWheel)
+  }, [status])
   useEffect(() => {
     const st = stageRef.current
     if (!st || typeof ResizeObserver === 'undefined') return
@@ -203,7 +221,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
         <div className="m3d__stage" ref={stageRef}>
           <canvas ref={canvasRef} className="m3d__canvas" aria-label={spec?.title ?? '3D-модель'} />
           {spec && status === 'ready' && (
-            <div className="m3d__labels">
+            <div className="m3d__labels" ref={labelsRef}>
               {spec.parts.filter(p => !p.hideLabel).map(p => (
                 <button
                   key={p.id}

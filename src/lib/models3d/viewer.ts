@@ -112,6 +112,9 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   controls.enablePan = true
   controls.panSpeed = 0.7
   controls.screenSpacePanning = true
+  // Колёсико приближает к точке под курсором, а не к центру модели: навёл на
+  // хрусталик — едешь к хрусталику.
+  controls.zoomToCursor = true
   controls.autoRotate = spec.view !== 'front'
   controls.autoRotateSpeed = 0.9
   controls.addEventListener('start', () => {
