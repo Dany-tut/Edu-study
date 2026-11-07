@@ -182,6 +182,14 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     const dir = part.centre.clone().sub(modelCentre)
     if (dir.lengthSq() > 1e-6) part.explode.copy(dir.normalize().multiplyScalar(fitRadius * 0.6))
   }
+  // Габарит разобранной модели: центры частей со сдвигом разбора. По нему
+  // при разборе сцена уменьшается и смещается, чтобы стопка влезала в кадр
+  // (у глаза она длиной в несколько глазных яблок).
+  const explodedBox = new THREE.Box3()
+  for (const part of parts) if (!part.shell) explodedBox.expandByPoint(part.centre.clone().add(part.explode))
+  const explodedMid = explodedBox.isEmpty() ? modelCentre.clone() : explodedBox.getCenter(new THREE.Vector3())
+  const explodedR = explodedBox.isEmpty() ? fitRadius : explodedBox.getBoundingSphere(new THREE.Sphere()).radius + fitRadius * 0.35
+  const spreadK = Math.max(0.42, explodedR / fitRadius - 1)
   const dist = fitRadius * 2.9
   if (spec.view === 'front') camera.position.set(0, dist * 0.12, dist)
   else camera.position.set(dist * 0.55, dist * 0.42, dist * 0.78)
@@ -213,6 +221,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2()
   const tmp = new THREE.Vector3()
+  const tmpC = new THREE.Vector3()
 
   function applyMaterials(part: Part, d: number, hot: boolean) {
     const shellFade = part.shell ? Math.max(explodeNow, isolated && isolated !== part.id ? 1 : 0) : 0
@@ -220,7 +229,8 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       const base = part.baseOpacity[i]
       // Погашенная часть почти прозрачна, оболочка при разборе тоже тает.
       // Погашенная часть остаётся на 5 %: силуэт виден, но не спорит с выбранной.
-      const target = base * (1 - d * 0.95) * (1 - shellFade * 0.85)
+      // Оболочка при разборе исчезает целиком: её призрак склеивал разобранные части.
+      const target = base * (1 - d * 0.95) * (1 - shellFade)
       // Флаг прозрачности не липкий: непрозрачная часть снова рисуется как
       // непрозрачная, иначе сортировка прозрачных даёт просветы в стенках.
       // Признак прозрачности three.js вшивает в шейдер (define OPAQUE: альфа
@@ -242,8 +252,11 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     explodeNow += (explodeTarget - explodeNow) * Math.min(1, dt * 7)
     // Разобранная модель шире собранной: ужимаем всю сцену, а не отъезжаем
     // камерой, чтобы не спорить с зумом пользователя.
-    const k = 1 / (1 + 0.42 * explodeNow)
+    const k = 1 / (1 + spreadK * explodeNow)
     root.scale.setScalar(k)
+    // Центр кадра едет от центра собранной модели к центру разложенной.
+    tmpC.copy(modelCentre).lerp(explodedMid, explodeNow)
+    root.position.copy(tmpC).multiplyScalar(-k)
     for (const part of parts) {
       // Акцент гасит остальное почти как изоляция: выбранное должно читаться сразу.
       const wantDim = isolated && isolated !== part.id ? 1 : emphasis && emphasis !== part.id ? 1 : 0

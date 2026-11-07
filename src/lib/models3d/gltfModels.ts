@@ -15,7 +15,10 @@ import type { ModelSpec, ModelPartSpec } from './spec'
 interface GltfPart {
   node: string; name: string; color: string; info: string
   opacity?: number; shell?: boolean; hideLabel?: boolean
-  /** Шаг вдоль оси разбора (см. GltfModel.explodeAxis): +3 — дальше всех вперёд. */
+  /**
+   * Место в стопке разбора вдоль оси (см. GltfModel.explodeAxis): 0 — самая
+   * задняя часть, стоит на месте; остальные встают перед ней по порядку.
+   */
   explodeStep?: number
 }
 interface GltfModel {
@@ -54,13 +57,13 @@ const MODELS: GltfModel[] = [
     subtitle: 'Оболочки и преломляющие среды из базы BodyParts3D. Склера полупрозрачна, чтобы видеть хрусталик и связку.',
     credit: BP3D_CREDIT,
     parts: [
-      { node: 'sclera', explodeStep: 0, name: 'Склера', color: '#E9E6EE', opacity: 0.3, shell: true, info: 'Белочная оболочка — наружный каркас глаза. Спереди переходит в роговицу.' },
-      { node: 'cornea', explodeStep: 3.2, name: 'Роговица', color: '#9FD3F0', opacity: 0.5, info: 'Прозрачная выпуклая часть наружной оболочки. Главная преломляющая среда глаза.' },
-      { node: 'choroid', explodeStep: -1.6, name: 'Сосудистая оболочка', color: '#C97A6A', opacity: 0.85, info: 'Средняя оболочка с сосудами и пигментом: питает сетчатку и гасит рассеянный свет. Спереди переходит в ресничное тело и радужку.' },
-      { node: 'iris', explodeStep: 2.4, name: 'Радужка', color: '#6B8BC7', info: 'Кольцо с пигментом и двумя мышцами; отверстие в центре — зрачок.' },
-      { node: 'lens', explodeStep: 1.6, name: 'Хрусталик', color: '#F2DFA0', opacity: 0.85, info: 'Двояковыпуклая линза. Меняет кривизну — аккомодация.' },
-      { node: 'ligament', explodeStep: 0.8, name: 'Ресничный поясок', color: '#D98A7A', info: 'Тонкие волокна, на которых хрусталик подвешен к ресничному телу. Их натяжение меняет форму хрусталика.' },
-      { node: 'vitreous', explodeStep: -0.4, name: 'Стекловидное тело', color: '#BFE3F5', opacity: 0.15, hideLabel: true, info: 'Прозрачный гель, заполняющий глаз за хрусталиком.' },
+      { node: 'sclera', name: 'Склера', color: '#E9E6EE', opacity: 0.3, shell: true, info: 'Белочная оболочка — наружный каркас глаза. Спереди переходит в роговицу.' },
+      { node: 'cornea', explodeStep: 5, name: 'Роговица', color: '#9FD3F0', opacity: 0.5, info: 'Прозрачная выпуклая часть наружной оболочки. Главная преломляющая среда глаза.' },
+      { node: 'choroid', explodeStep: 0, name: 'Сосудистая оболочка', color: '#C97A6A', opacity: 0.85, info: 'Средняя оболочка с сосудами и пигментом: питает сетчатку и гасит рассеянный свет. Спереди переходит в ресничное тело и радужку.' },
+      { node: 'iris', explodeStep: 4, name: 'Радужка', color: '#6B8BC7', info: 'Кольцо с пигментом и двумя мышцами; отверстие в центре — зрачок.' },
+      { node: 'lens', explodeStep: 3, name: 'Хрусталик', color: '#F2DFA0', opacity: 0.85, info: 'Двояковыпуклая линза. Меняет кривизну — аккомодация.' },
+      { node: 'ligament', explodeStep: 2, name: 'Ресничный поясок', color: '#D98A7A', info: 'Тонкие волокна, на которых хрусталик подвешен к ресничному телу. Их натяжение меняет форму хрусталика.' },
+      { node: 'vitreous', explodeStep: 1, name: 'Стекловидное тело', color: '#BFE3F5', opacity: 0.15, hideLabel: true, info: 'Прозрачный гель, заполняющий глаз за хрусталиком.' },
     ],
   },
 ]
@@ -118,9 +121,34 @@ export async function gltfModelSpec(key: string): Promise<ModelSpec | null> {
     const b = toFinal(new THREE.Box3().expandByObject(nodes.get(def.explodeAxis[1])!).getCenter(new THREE.Vector3()))
     axis = b.sub(a).normalize()
   }
+  // Стопка по реальной толщине: каждая часть встаёт перед предыдущей с
+  // зазором. Фиксированный шаг не годился: стекловидное тело почти с глаз
+  // размером и оставалось внутри сосудистой оболочки.
+  const explodeOf = new Map<string, [number, number, number]>()
+  if (axis) {
+    const GAP = 0.35
+    const proj = (node: THREE.Object3D) => {
+      const box = new THREE.Box3().expandByObject(node)
+      let lo = Infinity, hi = -Infinity
+      for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+        const d = toFinal(new THREE.Vector3(x, y, z)).dot(axis!)
+        lo = Math.min(lo, d); hi = Math.max(hi, d)
+      }
+      return { lo, hi }
+    }
+    const stack = def.parts.filter(p => p.explodeStep !== undefined && nodes.has(p.node)).sort((a, b) => a.explodeStep! - b.explodeStep!)
+    let cursor = -Infinity
+    for (const p of stack) {
+      const { lo, hi } = proj(nodes.get(p.node)!)
+      const target = cursor === -Infinity ? lo : cursor
+      const shift = target - lo
+      explodeOf.set(p.node, axis.clone().multiplyScalar(shift).toArray() as [number, number, number])
+      cursor = hi + shift + GAP
+    }
+  }
   const parts: ModelPartSpec[] = def.parts.filter(p => nodes.has(p.node)).map(p => ({
     id: p.node, name: p.name, color: p.color, info: p.info, shell: p.shell, hideLabel: p.hideLabel,
-    explode: axis && p.explodeStep !== undefined ? (axis.clone().multiplyScalar(p.explodeStep).toArray() as [number, number, number]) : undefined,
+    explode: explodeOf.get(p.node),
     anchor: surfaceAnchor(nodes.get(p.node)!),
     build: (T) => {
       const g = new T.Group()
