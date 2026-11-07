@@ -125,6 +125,9 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
     viewerRef.current?.focusPart(isolated && selected ? selected : null)
   }, [isolated, selected, status])
   useEffect(() => { viewerRef.current?.setHighlight(hover) }, [hover, status])
+  // Выбранная часть — в полном цвете, остальное гаснет до 5 %, как в заданиях
+  // на модели: сразу видно, что именно выбрано.
+  useEffect(() => { viewerRef.current?.setEmphasis(selected) }, [selected, status])
   useEffect(() => { viewerRef.current?.setAutoRotate(spinning) }, [spinning, status])
   useEffect(() => { viewerRef.current?.setAnimation(moving) }, [moving, status])
   useEffect(() => { viewerRef.current?.setPlaying(playing) }, [playing, status])
