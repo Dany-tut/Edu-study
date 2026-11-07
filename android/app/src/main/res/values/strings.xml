@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Искра</string>
+    <string name="title_activity_main">Искра</string>
+    <string name="package_name">com.dany.iskra</string>
+    <string name="custom_url_scheme">com.dany.iskra</string>
+</resources>
