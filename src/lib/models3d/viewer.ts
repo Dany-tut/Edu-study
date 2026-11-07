@@ -22,6 +22,8 @@ export interface LabelAnchor {
   y: number
   /** Точка закрыта другой частью или за камерой. */
   hidden: boolean
+  /** Глубина точки (NDC z, меньше — ближе к камере): кого оставить при наложении подписей. */
+  depth: number
 }
 
 export interface ViewerCallbacks {
@@ -90,6 +92,8 @@ type Part = {
   baseEmissive: THREE.Color[]
   /** Разбор вширь (explodeSpread): потомки объекта, их место и сдвиг в координатах объекта. */
   spread: Array<{ o: THREE.Object3D; home: THREE.Vector3; off: THREE.Vector3; centre: THREE.Vector3 }>
+  /** Сдвиг точки подписи при разборе вширь — она едет вместе с ближайшим потомком. */
+  anchorOff: THREE.Vector3 | null
 }
 
 const UP = new THREE.Vector3(0, 1, 0)
@@ -160,7 +164,14 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     // Центр части — для ярлыка и для направления разбора по умолчанию.
     const box = new THREE.Box3().setFromObject(obj)
     const centre = box.getCenter(new THREE.Vector3())
-    const anchor = ps.anchor ? new THREE.Vector3(...ps.anchor) : centre.clone()
+    // Точка подписи в спецификации задана в координатах модели (так её пишут
+    // авторы: «над ядром», «у края мембраны»). Переводим её в координаты
+    // объекта части: тогда она едет за ним, если процесс его двигает или
+    // сжимает. Брать её прямо как локальную нельзя — у мембраны, вакуоли,
+    // роговицы объект — это отмасштабированная или сдвинутая сфера, и
+    // подпись улетала на величину этого масштаба (у мембраны — за клетку).
+    obj.updateWorldMatrix(true, false)
+    const anchor = obj.worldToLocal(ps.anchor ? new THREE.Vector3(...ps.anchor) : centre.clone())
     // Вектор разбора считается ниже, когда известен центр всей модели.
     const explode = ps.explode ? new THREE.Vector3(...ps.explode) : new THREE.Vector3()
     if (!ps.shell) union.union(box)
@@ -171,6 +182,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       baseOpacity: materials.map(m => m.opacity),
       baseEmissive: materials.map(m => m.emissive.clone()),
       spread: [],
+      anchorOff: null,
     }
     parts.push(part)
     byId.set(ps.id, part)
@@ -198,6 +210,15 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
         const worldOff = c.clone().sub(modelCentre).multiplyScalar(ps.explodeSpread)
         const off = part.obj.worldToLocal(c.clone().add(worldOff)).sub(part.obj.worldToLocal(c.clone()))
         part.spread.push({ o: child, home: child.position.clone(), off, centre: c.clone().add(worldOff) })
+      }
+      // Подпись стоит на одном из атомов (связей) — при разборе она должна
+      // уехать вместе с ним, а не остаться висеть в центре молекулы.
+      const a = part.obj.localToWorld(part.anchor.clone())
+      let bestD = Infinity
+      for (const ch of part.spread) {
+        const home = ch.centre.clone().sub(part.obj.localToWorld(ch.off.clone()).sub(part.obj.localToWorld(new THREE.Vector3())))
+        const d = home.distanceTo(a)
+        if (d < bestD) { bestD = d; part.anchorOff = ch.off }
       }
     }
     if (ps.explode || ps.explodeSpread) continue
@@ -246,6 +267,23 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   parts.forEach(p => dim.set(p.id, 0))
 
   const raycaster = new THREE.Raycaster()
+  /**
+   * Попадание в срезанную часть меша (глаз в разрезе, clippingPlanes). Срез
+   * прячет её только при отрисовке — луч в неё попадает, и невидимая половина
+   * кольца закрывала подпись хрусталика и перехватывала клики.
+   */
+  const tinyR = new THREE.Sphere()
+  const tiny = (o: THREE.Object3D) => {
+    const g = (o as THREE.Mesh).geometry
+    if (!g) return false
+    if (!g.boundingSphere) g.computeBoundingSphere()
+    tinyR.copy(g.boundingSphere!).applyMatrix4(o.matrixWorld)
+    return tinyR.radius < fitRadius * 0.03
+  }
+  const clippedHit = (hit: THREE.Intersection) => {
+    const m = (hit.object as THREE.Mesh).material
+    return (Array.isArray(m) ? m : [m]).some(mt => mt.clippingPlanes?.some(pl => pl.distanceToPoint(hit.point) < 0))
+  }
   const pointer = new THREE.Vector2()
   const tmp = new THREE.Vector3()
   const tmpC = new THREE.Vector3()
@@ -325,16 +363,20 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       tmp.copy(marker.local)
       marker.part.obj.localToWorld(tmp)
       const ndc = tmp.project(camera)
-      out.push({ id: '__marker', x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden: ndc.z > 1 })
+      out.push({ id: '__marker', x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden: ndc.z > 1, depth: ndc.z })
     }
     return out.concat(parts.filter(p => !p.hideLabel).map(part => {
       if (part.liveAnchor) { tmp.set(...part.liveAnchor()); root.localToWorld(tmp) }
-      else { tmp.copy(part.anchor); part.obj.localToWorld(tmp) }
+      else {
+        tmp.copy(part.anchor)
+        if (part.anchorOff) tmp.addScaledVector(part.anchorOff, explodeNow)
+        part.obj.localToWorld(tmp)
+      }
       const toAnchor = tmp.distanceTo(camPos)
       // Закрыта ли точка другой частью: луч от камеры к точке.
       raycaster.set(camPos, tmp.clone().sub(camPos).normalize())
       raycaster.far = toAnchor - 0.02
-      const hits = raycaster.intersectObjects(pickables, false)
+      const hits = raycaster.intersectObjects(pickables, false).filter(h => !clippedHit(h))
       // Точка внутри своей части (центр атома, сердцевина органеллы): луч
       // сначала входит в свою поверхность, и всё, что дальше, — внутри неё
       // (связь, упёртая в центр атома). Такие попадания подпись не закрывают.
@@ -343,15 +385,25 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
         const pid = hit.object.userData.partId as string
         if (pid === part.id) return false
         const other = byId.get(pid)
-        // Полупрозрачное и погашенное не закрывает.
-        return !(other?.shell) && !(other?.translucent) && (dim.get(pid) ?? 0) < 0.5
+        // Полупрозрачное и погашенное не закрывает. Прозрачность смотрим и у
+        // самого меша: протопласт в целом непрозрачен (ядро, пластиды), но его
+        // оболочка — стекло, и сквозь неё вакуоль видна.
+        const mats = (hit.object as THREE.Mesh).material
+        const glassy = (Array.isArray(mats) ? mats : [mats]).every(mt => mt.transparent && mt.opacity < 0.6)
+        // Крошка (рибосома в 0,05) подпись не закрывает: их рассыпано по клетке
+        // семьдесят, и любая на луче гасила подпись ядра или ЭПС.
+        return !(other?.shell) && !(other?.translucent) && !glassy && !tiny(hit.object) && (dim.get(pid) ?? 0) < 0.5
       })
       const ndc = tmp.project(camera)
       // Часть, которой сейчас нет на сцене (процесс ещё не дошёл), подписи не получает.
       let shown = false
-      part.obj.traverse(o => { if ((o as THREE.Mesh).isMesh && o.visible) { let p: THREE.Object3D | null = o; let vis = true; while (p && p !== part.obj) { if (!p.visible) { vis = false; break } p = p.parent } if (vis) shown = true } })
-      const hidden = !shown || !part.obj.visible || !!blocker || ndc.z > 1 || (isolated !== null && isolated !== part.id)
-      return { id: part.id, x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden }
+      // Растворённая процессом часть (ядерная оболочка в метафазе) видима для
+      // three.js, но её прозрачность — ноль: подписи у неё быть не должно.
+      const faded = (o: THREE.Object3D) => { const m = (o as THREE.Mesh).material; return (Array.isArray(m) ? m : [m]).every(mt => mt.transparent && mt.opacity < 0.04) }
+      part.obj.traverse(o => { if ((o as THREE.Mesh).isMesh && o.visible && !faded(o)) { let p: THREE.Object3D | null = o; let vis = true; while (p && p !== part.obj) { if (!p.visible) { vis = false; break } p = p.parent } if (vis) shown = true } })
+      // Оболочка при разборе тает целиком — подпись пустого места не нужна.
+      const hidden = !shown || (part.shell && explodeNow > 0.3) || !part.obj.visible || !!blocker || ndc.z > 1 || (isolated !== null && isolated !== part.id)
+      return { id: part.id, x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden, depth: ndc.z }
     }))
   }
 
@@ -362,7 +414,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     pointer.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1)
     raycaster.setFromCamera(pointer, camera)
     raycaster.far = Infinity
-    const hits = raycaster.intersectObjects(pickables, false)
+    const hits = raycaster.intersectObjects(pickables, false).filter(h => !clippedHit(h))
     for (const hit of hits) {
       const pid = hit.object.userData.partId as string
       const part = byId.get(pid)
@@ -457,7 +509,10 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       if (!part) { focus = { target: new THREE.Vector3(), dist }; return }
       const box = partBox(part)
       const r = Math.max(box.getBoundingSphere(new THREE.Sphere()).radius, fitRadius * 0.12)
-      focus = { target: box.getCenter(new THREE.Vector3()), dist: Math.min(controls.maxDistance, Math.max(controls.minDistance, r * 3.2)) }
+      // r·4: при угле обзора 38° описанная сфера части занимает ~70 % высоты
+      // кадра. С r·3.2 она упиралась в края, и вытянутые части (окончания
+      // нейрона, аорта) обрезались.
+      focus = { target: box.getCenter(new THREE.Vector3()), dist: Math.min(controls.maxDistance, Math.max(controls.minDistance, r * 4)) }
     },
     setPivot(id) {
       const part = id ? byId.get(id) : null

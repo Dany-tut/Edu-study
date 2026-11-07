@@ -160,7 +160,8 @@ export function proteinSynthesisSpec(): ModelSpec {
   }
 
   const trna: ModelPartSpec = {
-    id: 'trna', name: 'тРНК с аминокислотой', color: '#6EC26E', anchor: [0, 1.8, 0.3],
+    // Над аминокислотой (верх молекулы — 0,56): с 1,8 подпись висела в пустоте.
+    id: 'trna', name: 'тРНК с аминокислотой', color: '#6EC26E', anchor: [0, 0.8, 0.3],
     info: 'Подносит аминокислоту к рибосоме. Свой триплет на «верхушке», антикодон, тРНК сверяет с триплетом иРНК: если они комплементарны, аминокислота присоединяется к белковой цепочке.',
     build: (T) => {
       const g = new T.Group()
@@ -287,7 +288,7 @@ export function plasmolysisSpec(): ModelSpec {
   })
 
   const wall: ModelPartSpec = {
-    id: 'wall', name: 'Клеточная стенка', color: '#A9CB74', shell: true, anchor: [-W * 0.7, H * 0.85, D * 0.6],
+    id: 'wall', name: 'Клеточная стенка', color: '#A9CB74', shell: true, anchor: [-W * 0.56, H * 0.68, D * 0.48],
     info: 'Прочная стенка держит форму клетки. При плазмолизе она остаётся на месте, а протопласт отходит от неё; при набухании протопласт давит на стенку и растягивает её.',
     build: (T) => {
       const m = new T.Mesh(new T.SphereGeometry(1, 40, 28), std(T, '#A9CB74', { transparent: true, opacity: 0.3, side: T.DoubleSide, roughness: 0.7 }))
@@ -425,6 +426,10 @@ export function phagocytosisSpec(): ModelSpec {
 
   const vesicle: ModelPartSpec = {
     id: 'vesicle', name: 'Фагоцитарный пузырёк', color: '#B4ABEF', anchor: [0, 0.65, 0],
+    // Чаша и пузырёк едут вместе с частицей — подпись за ними, справа снизу:
+    // сверху стоит подпись частицы, слева снизу — продуктов переваривания. Раньше точка оставалась в центре клетки, и на
+    // стадии «Впячивание» подпись висела вдали от чаши.
+    liveAnchor: () => { const m = refs.vesicle?.visible ? refs.vesicle : refs.cup; return m ? [m.position.x + 0.75, m.position.y - 0.35, m.position.z + 0.2] : [0, 0.65, 0] },
     info: 'Впячивание мембраны смыкается вокруг частицы — получается пузырёк. Внутрь него проникают пищеварительные ферменты, и возникает пищеварительная вакуоль.',
     build: (T) => {
       const g = new T.Group()
@@ -566,7 +571,9 @@ export function eyeAccommodationSpec(): ModelSpec {
   }
   const lens: ModelPartSpec = {
     id: 'lens', name: 'Хрусталик', color: '#F2DFA0', anchor: [LENS_X, 1.0, 0.3],
-    liveAnchor: () => [LENS_X, 1.0, 0.3],
+    // В теле хрусталика, ниже центра: над ним точку закрывали волокна связки,
+    // и подпись «Хрусталик» не появлялась ни на одной стадии.
+    liveAnchor: () => [LENS_X, -0.3, 0.3],
     info: 'Упругая двояковыпуклая линза: тонкая наводка на фокус за счёт изменения кривизны. Чем выпуклее хрусталик, тем сильнее он преломляет свет.',
     build: (T) => {
       const m = new T.Mesh(new T.SphereGeometry(1, 36, 24), std(T, '#F2DFA0', { transparent: true, opacity: 0.8, roughness: 0.2 }))
@@ -768,7 +775,8 @@ export function dnaReplicationSpec(): ModelSpec {
   }
   const enzyme: ModelPartSpec = {
     id: 'enzyme', name: 'Фермент', color: '#5FC3B8', anchor: [0, 0.8, 0.3],
-    liveAnchor: () => { const e = refs.enzyme; return e ? [e.position.x, e.position.y + 0.7, 0.3] : [0, 0, 0] },
+    // На самом ферменте: над ним точку закрывали нити ДНК, подпись не появлялась.
+    liveAnchor: () => { const e = refs.enzyme; return e ? [e.position.x, e.position.y + 0.2, e.position.z + 0.3] : [0, 0, 0] },
     info: 'Специальный фермент разрывает водородные связи между комплементарными основаниями: аденином и тимином, гуанином и цитозином. В удвоении участвует много ферментов, энергию даёт АТФ.',
     build: (T) => {
       const m = new T.Mesh(new T.SphereGeometry(0.42, 28, 20), std(T, '#5FC3B8', { transparent: true, opacity: 0.85 }))

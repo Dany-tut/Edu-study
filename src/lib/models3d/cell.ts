@@ -27,7 +27,8 @@ function ellipsoid(T: ThreeNS, rx: number, ry: number, rz: number, mat: THREE.Ma
 function membrane(rx: number, ry: number, rz: number, plant: boolean): ModelPartSpec {
   return {
     id: 'membrane', name: 'Плазматическая мембрана', color: '#8FA8E6', shell: true,
-    anchor: [rx * 0.55, ry * 0.7, rz * 0.5],
+    // У верхнего правого края силуэта: спереди подпись ложилась на органеллы.
+    anchor: [rx * 0.45, ry * 0.88, rz * 0.12],
     info: plant
       ? 'Двойной слой липидов с белками под клеточной стенкой. Избирательно пропускает вещества и держит содержимое клетки.'
       : 'Двойной слой липидов с встроенными белками. Отделяет клетку от среды, избирательно пропускает вещества, принимает сигналы — через рецепторы.',
@@ -38,7 +39,8 @@ function membrane(rx: number, ry: number, rz: number, plant: boolean): ModelPart
 function nucleus(at: V3, r: number): ModelPartSpec {
   return {
     id: 'nucleus', name: 'Ядро', color: '#7F6EDB',
-    anchor: [at[0], at[1] + r * 0.9, at[2]],
+    // Передний левый бок ядра: сверху на нём лежит митохондрия и закрывала подпись.
+    anchor: [at[0] - r * 0.55, at[1] - r * 0.2, at[2] + r * 0.75],
     info: 'Хранит ДНК — хромосомы в виде хроматина. Окружено двойной мембраной с порами. Внутри ядрышко: здесь собираются рибосомы. Ядро управляет синтезом белка через иРНК.',
     build: (T) => {
       const g = new T.Group()
@@ -60,7 +62,8 @@ function nucleus(at: V3, r: number): ModelPartSpec {
 function mitochondria(places: Array<{ at: V3; rot: V3 }>): ModelPartSpec {
   return {
     id: 'mito', name: 'Митохондрии', color: '#F09A5B',
-    anchor: places[0].at,
+    // Самая передняя митохондрия: дальние в собранной клетке закрыты органеллами.
+    anchor: places.reduce((b, p) => (p.at[2] > b.at[2] ? p : b)).at,
     info: 'Энергетические станции: здесь идёт клеточное дыхание и синтезируется АТФ. Две мембраны, внутренняя образует складки — кристы. Есть собственная кольцевая ДНК.',
     build: (T) => {
       const g = new T.Group()
@@ -87,7 +90,9 @@ function mitochondria(places: Array<{ at: V3; rot: V3 }>): ModelPartSpec {
 function roughER(centre: V3, r: number): ModelPartSpec {
   return {
     id: 'rer', name: 'Шероховатая ЭПС', color: '#6FAEE0',
-    anchor: [centre[0] + r * 1.35, centre[1] + 0.5, centre[2] - 0.6],
+    // Левый край наружной цистерны: листы огибают ядро сзади-слева, и середина
+    // дуги пряталась за хроматином ядра.
+    anchor: [centre[0] + Math.sin(4.4) * r * 1.64, centre[1] - 0.15, centre[2] + Math.cos(4.4) * r * 1.64],
     info: 'Эндоплазматическая сеть, усеянная рибосомами. Здесь синтезируются белки «на экспорт» и мембранные белки, начинается их свёртывание и гликозилирование.',
     build: (T) => {
       const g = new T.Group()
@@ -167,25 +172,33 @@ function lysosomes(places: V3[]): ModelPartSpec {
 }
 
 function ribosomes(rx: number, ry: number, rz: number, avoid: { at: V3; r: number }[]): ModelPartSpec {
+  const spots: V3[] = []
+  let seed = 7
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  let guard = 0
+  while (spots.length < 70 && guard++ < 2000) {
+    const x = (rnd() * 2 - 1) * rx * 0.9, y = (rnd() * 2 - 1) * ry * 0.9, z = (rnd() * 2 - 1) * rz * 0.9
+    if ((x / rx) ** 2 + (y / ry) ** 2 + (z / rz) ** 2 > 0.8) continue
+    if (avoid.some(a => Math.hypot(x - a.at[0], y - a.at[1], z - a.at[2]) < a.r)) continue
+    spots.push([x, y, z])
+  }
+  // Подпись — на настоящей рибосоме, ближайшей к правому нижнему краю
+  // (раньше точка висела в пустой цитоплазме рядом с ними).
+  const want: V3 = [rx * 0.55, -ry * 0.45, rz * 0.3]
+  const dist = (p: V3) => Math.hypot(p[0] - want[0], p[1] - want[1], p[2] - want[2])
+  const anchor = spots.reduce((b, p) => (dist(p) < dist(b) ? p : b), spots[0] ?? want)
   return {
     id: 'ribo', name: 'Рибосомы', color: '#9A9AB8',
-    anchor: [rx * 0.35, -ry * 0.55, rz * 0.45],
+    anchor,
     info: 'Мельчайшие немембранные органеллы из рРНК и белка. Собирают белок по иРНК. Свободные — для нужд самой клетки, на ЭПС — для секреции.',
     build: (T) => {
       const g = new T.Group()
       const geo = new T.SphereGeometry(0.05, 8, 6)
       const mat = std(T, '#9A9AB8')
-      let seed = 7
-      const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
-      let n = 0, guard = 0
-      while (n < 70 && guard++ < 2000) {
-        const x = (rnd() * 2 - 1) * rx * 0.9, y = (rnd() * 2 - 1) * ry * 0.9, z = (rnd() * 2 - 1) * rz * 0.9
-        if ((x / rx) ** 2 + (y / ry) ** 2 + (z / rz) ** 2 > 0.8) continue
-        if (avoid.some(a => Math.hypot(x - a.at[0], y - a.at[1], z - a.at[2]) < a.r)) continue
+      for (const p of spots) {
         const m = new T.Mesh(geo, mat)
-        m.position.set(x, y, z)
+        m.position.set(...p)
         g.add(m)
-        n++
       }
       return g
     },
@@ -214,7 +227,8 @@ function centrosome(at: V3): ModelPartSpec {
 function cellWall(rx: number, ry: number, rz: number): ModelPartSpec {
   return {
     id: 'wall', name: 'Клеточная стенка', color: '#A9CB74', shell: true,
-    anchor: [-rx * 0.6, ry * 0.6, rz * 0.55],
+    // У верхнего левого края — напротив подписи мембраны.
+    anchor: [-rx * 0.38, ry * 0.92, rz * 0.08],
     info: 'Жёсткая оболочка из целлюлозы снаружи мембраны. Держит форму, защищает, не даёт клетке лопнуть от напора воды. Есть у растений, грибов и бактерий, нет у животных.',
     build: (T) => ellipsoid(T, rx, ry, rz, std(T, '#A9CB74', { transparent: true, opacity: 0.3, side: T.DoubleSide, roughness: 0.7 })),
   }
@@ -255,6 +269,17 @@ function chloroplasts(places: Array<{ at: V3; rot: V3 }>): ModelPartSpec {
   }
 }
 
+/**
+ * Разбор клетки. Органеллы, которых несколько (митохондрии, хлоропласты,
+ * лизосомы, рибосомы), разлетаются каждая от центра клетки — сдвиг всей
+ * группы целиком оставлял облако рибосом и хлоропласты на вакуоли. Ядро
+ * уходит в сторону, шероховатая ЭПС — за ним и вверх, иначе её листы
+ * так и оставались на ядре.
+ */
+function withExplode(p: ModelPartSpec, e: Pick<ModelPartSpec, 'explode' | 'explodeSpread'>): ModelPartSpec {
+  return { ...p, ...e }
+}
+
 // ── Клетки ───────────────────────────────────────────────────────────────────
 
 export function animalCellSpec(): ModelSpec {
@@ -268,19 +293,20 @@ export function animalCellSpec(): ModelSpec {
     canExplode: true,
     parts: [
       membrane(RX, RY, RZ, false),
-      nucleus(nuc, 1.0),
-      roughER(nuc, 1.0),
+      withExplode(nucleus(nuc, 1.0), { explode: [-1.7, 0.4, 0.2] }),
+      withExplode(roughER(nuc, 1.0), { explode: [-2.0, 2.0, -0.6] }),
       smoothER([[1.0, 1.1, -1.3], [1.6, 1.3, -0.6], [2.0, 0.9, 0.2], [1.7, 1.3, 0.9], [1.1, 1.0, 1.4]]),
       golgi([1.5, -0.1, 0.6], -0.5),
-      mitochondria([
+      withExplode(mitochondria([
         { at: [1.6, -1.1, -0.9], rot: [0.4, 0.3, 1.1] },
         { at: [-1.4, -1.3, 1.1], rot: [1.2, 0.2, 0.4] },
         { at: [-1.9, 1.1, -0.9], rot: [0.3, 0.8, 1.9] },
         { at: [0.6, 1.4, 1.2], rot: [1.4, 0.1, 0.9] },
-      ]),
-      lysosomes([[0.3, -1.4, 1.3], [-2.2, -0.2, 0.9], [2.1, 0.8, -1.2]]),
-      centrosome([0.5, -0.9, -0.3]),
-      ribosomes(RX, RY, RZ, [{ at: nuc, r: 1.7 }, { at: [1.5, -0.1, 0.6], r: 1.1 }]),
+      ]), { explodeSpread: 0.7 }),
+      withExplode(lysosomes([[0.3, -1.4, 1.3], [-2.2, -0.2, 0.9], [2.1, 0.8, -1.2]]), { explodeSpread: 0.7 }),
+      // Клеточный центр — вверх: внизу уже лизосомы и рибосомы, подписи слипались.
+      withExplode(centrosome([0.5, -0.9, -0.3]), { explode: [1.0, 2.6, -1.0] }),
+      withExplode(ribosomes(RX, RY, RZ, [{ at: nuc, r: 1.7 }, { at: [1.5, -0.1, 0.6], r: 1.1 }]), { explodeSpread: 0.6 }),
     ],
   }
 }
@@ -298,22 +324,22 @@ export function plantCellSpec(): ModelSpec {
     parts: [
       cellWall(RX + 0.25, RY + 0.25, RZ + 0.25),
       membrane(RX, RY, RZ, true),
-      vacuole(vac, 1.55, 1.25, 1.35),
-      nucleus(nuc, 0.75),
-      roughER(nuc, 0.75),
+      withExplode(vacuole(vac, 1.55, 1.25, 1.35), { explode: [1.2, 0, 0] }),
+      withExplode(nucleus(nuc, 0.75), { explode: [-2.4, 0.7, 0.4] }),
+      withExplode(roughER(nuc, 0.75), { explode: [-2.6, 2.3, -0.4] }),
       golgi([-0.6, -1.5, 0.9], 0.6),
-      chloroplasts([
+      withExplode(chloroplasts([
         { at: [1.8, 1.3, -0.8], rot: [0.3, 0.6, 0.2] },
         { at: [-0.4, 1.6, -1.2], rot: [0.1, -0.4, 0.5] },
         { at: [2.2, -1.1, 0.9], rot: [0.5, 0.9, -0.3] },
         { at: [-1.1, -1.4, -1.3], rot: [-0.3, 0.2, 0.8] },
         { at: [0.9, 1.5, 1.3], rot: [0.9, 0.1, 0.1] },
-      ]),
-      mitochondria([
+      ]), { explodeSpread: 0.8 }),
+      withExplode(mitochondria([
         { at: [-2.3, -0.8, -0.6], rot: [0.4, 0.3, 1.1] },
         { at: [2.4, 0.4, 0.5], rot: [1.2, 0.2, 0.4] },
-      ]),
-      ribosomes(RX, RY, RZ, [{ at: nuc, r: 1.4 }, { at: vac, r: 1.75 }]),
+      ]), { explodeSpread: 0.7 }),
+      withExplode(ribosomes(RX, RY, RZ, [{ at: nuc, r: 1.4 }, { at: vac, r: 1.75 }]), { explodeSpread: 0.6 }),
     ],
   }
 }

@@ -71,20 +71,31 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
 
   const onAnchors = useCallback((anchors: LabelAnchor[]) => {
     const { selected: sel, labelsOn: on } = liveRef.current
-    for (const a of anchors) {
+    const st = stageRef.current
+    // Подписи разводим, а не кладём одну на другую: модель крутится, и при
+    // каком-то ракурсе точки двух частей всё равно совпадут на экране. Ближняя
+    // к камере (выбранная — всегда первой) стоит на месте, следующая пробует
+    // сдвинуться на строку вверх или вниз, а если и там занято — прячется.
+    const order = anchors.slice().sort((p, q) => (p.id === sel ? -1 : q.id === sel ? 1 : p.depth - q.depth))
+    const placed: Array<{ l: number; t: number; r: number; b: number }> = []
+    for (const a of order) {
       const el = labelRefs.current.get(a.id)
-      if (el) {
-        el.style.transform = `translate(${a.x.toFixed(1)}px, ${a.y.toFixed(1)}px) translate(-50%, -50%)`
-        // Подписи выключены — видна только выбранная часть.
-        const st = stageRef.current
-        // Ярлык, который край сцены отрезал бы наполовину, прячем целиком.
-        const hw = el.offsetWidth / 2, hh = el.offsetHeight / 2
-        const outside = !!st && (a.x - hw < 0 || a.y - hh < 0 || a.x + hw > st.clientWidth || a.y + hh > st.clientHeight)
-        // Выбрана часть — подпись только у неё (остальные погашены до 5 %);
-        // иначе — по переключателю «Подписи».
-        const hidden = a.hidden || outside || (sel ? sel !== a.id : !on)
-        if ((el.dataset.hidden === 'true') !== hidden) el.dataset.hidden = String(hidden)
+      if (!el) continue
+      // Ярлык, который край сцены отрезал бы наполовину, прячем целиком.
+      const hw = el.offsetWidth / 2, hh = el.offsetHeight / 2
+      const outside = !!st && (a.x - hw < 0 || a.y - hh < 0 || a.x + hw > st.clientWidth || a.y + hh > st.clientHeight)
+      // Выбрана часть — подпись только у неё (остальные погашены до 5 %);
+      // иначе — по переключателю «Подписи».
+      let hidden = a.hidden || outside || (sel ? sel !== a.id : !on)
+      let dy = 0
+      if (!hidden && a.id !== '__marker') {
+        const free = (y: number) => !placed.some(p => a.x - hw < p.r && a.x + hw > p.l && y - hh < p.b && y + hh > p.t)
+        const step = hh * 2 + 3
+        dy = [0, -step, step].find(d => free(a.y + d)) ?? NaN
+        if (Number.isNaN(dy)) { hidden = true; dy = 0 } else placed.push({ l: a.x - hw, t: a.y + dy - hh, r: a.x + hw, b: a.y + dy + hh })
       }
+      el.style.transform = `translate(${a.x.toFixed(1)}px, ${(a.y + dy).toFixed(1)}px) translate(-50%, -50%)`
+      if ((el.dataset.hidden === 'true') !== hidden) el.dataset.hidden = String(hidden)
     }
   }, [])
 

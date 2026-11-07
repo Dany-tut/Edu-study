@@ -87,6 +87,13 @@ function bond(T: ThreeNS, a: V3, b: V3, order: number, mat: THREE.Material): THR
   return g
 }
 
+/**
+ * Разбор молекулы: атомы и связи разъезжаются от центра (×(1+SPREAD)), как
+ * при растяжении. Связь короче пути до атома — между ними появляется зазор,
+ * и видно, сколько связей у каждого атома и какой они кратности.
+ */
+const SPREAD = 1.1
+
 export function moleculeSpec(key: string): ModelSpec | null {
   const mol = MOLECULES.find(m => m.key === key.toLowerCase())
   if (!mol) return null
@@ -97,7 +104,7 @@ export function moleculeSpec(key: string): ModelSpec | null {
     const first = mol.atoms.find(a => a[0] === el)!
     return {
       id: `el-${el}`, name: count > 1 ? `${cpk.name} ×${count}` : cpk.name, color: cpk.color,
-      anchor: first[1], info: mol.info[el] ?? cpk.name,
+      anchor: first[1], info: mol.info[el] ?? cpk.name, explodeSpread: SPREAD,
       build: (T) => {
         const g = new T.Group()
         const mat = new T.MeshStandardMaterial({ color: cpk.color, roughness: 0.35 })
@@ -106,10 +113,15 @@ export function moleculeSpec(key: string): ModelSpec | null {
       },
     }
   })
-  const b0 = mol.bonds[0]
-  const mid: V3 = [(mol.atoms[b0[0]][1][0] + mol.atoms[b0[1]][1][0]) / 2, (mol.atoms[b0[0]][1][1] + mol.atoms[b0[1]][1][1]) / 2, (mol.atoms[b0[0]][1][2] + mol.atoms[b0[1]][1][2]) / 2]
+  // Подпись связей — на той связи, что дальше всех от подписей элементов (они
+  // стоят на первых атомах): у бензола первая связь шла от того же углерода,
+  // и подписи «Углерод» и «Связи» ложились одна на другую.
+  const marks = elements.map(el => mol.atoms.find(a => a[0] === el)![1])
+  const mids: V3[] = mol.bonds.map(([i, j]) => [0, 1, 2].map(k => (mol.atoms[i][1][k] + mol.atoms[j][1][k]) / 2) as V3)
+  const clear = (p: V3) => Math.min(...marks.map(m => Math.hypot(p[0] - m[0], p[1] - m[1], p[2] - m[2])))
+  const mid = mids.reduce((b, p) => (clear(p) > clear(b) ? p : b), mids[0])
   parts.push({
-    id: 'bonds', name: 'Связи', color: '#A7A7B8', anchor: mid, info: mol.bondsInfo,
+    id: 'bonds', name: 'Связи', color: '#A7A7B8', anchor: mid, info: mol.bondsInfo, explodeSpread: SPREAD,
     build: (T) => {
       const g = new T.Group()
       const mat = new T.MeshStandardMaterial({ color: '#B8B8C8', roughness: 0.5 })
@@ -132,6 +144,8 @@ export function naclSpec(): ModelSpec {
   const ions = (na: boolean): ModelPartSpec => ({
     id: na ? 'na' : 'cl', name: na ? 'Ионы Na⁺' : 'Ионы Cl⁻', color: na ? CPK.Na.color : CPK.Cl.color,
     anchor: na ? pos(2, 2, 2) : pos(2, 2, 1),
+    // Разбор: подрешётки Na⁺ и Cl⁻ расходятся в стороны, каркас остаётся посередине.
+    explode: [na ? -3 * STEP : 3 * STEP, 0, 0],
     info: na
       ? 'Катион натрия: атом отдал один электрон и стал маленьким (0,10 нм). Каждый Na⁺ окружён шестью Cl⁻ — координационное число 6.'
       : 'Анион хлора: принял электрон, радиус вырос до 0,18 нм. Каждый Cl⁻ окружён шестью Na⁺. Ионов обоих знаков поровну — формула NaCl, а не молекула.',
@@ -146,7 +160,10 @@ export function naclSpec(): ModelSpec {
     },
   })
   const frame: ModelPartSpec = {
-    id: 'frame', name: 'Кубическая решётка', color: '#A7A7B8', anchor: pos(0, 2, 2),
+    id: 'frame', name: 'Кубическая решётка', color: '#A7A7B8', explode: [0, 0, 0],
+    // Точка — на видимом отрезке нижнего переднего ребра между ионами: подписи
+    // подрешёток стоят сверху, и в собранном виде каркас на них не налезает.
+    anchor: [0.62 * STEP, -STEP, STEP],
     info: 'Ионы чередуются по всем трём направлениям — кубическая гранецентрированная решётка. Сильное электростатическое притяжение даёт высокую температуру плавления (801 °C), твёрдость и хрупкость: при сдвиге слоя одноимённые ионы оказываются рядом и отталкиваются.',
     build: (T) => {
       const g = new T.Group()
@@ -178,7 +195,7 @@ export function dnaSpec(): ModelSpec {
     return [Math.cos(a) * R, (i - total / 2) * RISE, Math.sin(a) * R]
   }
   const backbone: ModelPartSpec = {
-    id: 'backbone', name: 'Сахарофосфатный остов', color: '#8FA8E6', anchor: pt(total - 1, 0),
+    id: 'backbone', name: 'Сахарофосфатный остов', color: '#8FA8E6', anchor: pt(total - 1, 0), explode: [0, 0, 0],
     info: 'Две цепи из чередующихся дезоксирибозы и фосфата, закрученные в правую спираль. Цепи антипараллельны: 5′→3′ и 3′→5′. Шаг спирали 3,4 нм, десять пар на виток.',
     build: (T) => {
       const g = new T.Group()
@@ -191,7 +208,10 @@ export function dnaSpec(): ModelSpec {
   }
   const pairs = (gc: boolean): ModelPartSpec => ({
     id: gc ? 'gc' : 'at', name: gc ? 'Пары Г–Ц' : 'Пары А–Т', color: gc ? '#F2C864' : '#E2857A',
-    anchor: pt(seq.split('').findIndex(c => (c === 'G' || c === 'C') === gc), 0),
+    // Точка — на самой ступени, ближе к первой цепи, а не на остове.
+    anchor: (() => { const i = seq.split('').findIndex(c => (c === 'G' || c === 'C') === gc); const a = pt(i, 0), b = pt(i, 1); return [a[0] * 0.7 + b[0] * 0.3, a[1], a[2] * 0.7 + b[2] * 0.3] as V3 })(),
+    // Разбор: «ступени» выезжают из спирали по обе стороны от остова.
+    explode: [gc ? -2.6 * R : 2.6 * R, 0, 0],
     info: gc
       ? 'Гуанин с цитозином держат три водородные связи. Чем больше пар Г–Ц, тем выше температура плавления ДНК.'
       : 'Аденин с тимином соединены двумя водородными связями. Правило Чаргаффа: А = Т, Г = Ц — следствие комплементарности.',

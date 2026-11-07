@@ -62,6 +62,12 @@ function nucleus(el: ElementInfo): ModelPartSpec {
   }
 }
 
+/** Поворот точки как у Euler(x, 0, z) в порядке XYZ: сначала Z, потом X. */
+function tilt([x, y, z]: [number, number, number], ax: number, az: number): [number, number, number] {
+  const x1 = x * Math.cos(az) - y * Math.sin(az), y1 = x * Math.sin(az) + y * Math.cos(az)
+  return [x1, y1 * Math.cos(ax) - z * Math.sin(ax), y1 * Math.sin(ax) + z * Math.cos(ax)]
+}
+
 function shell(n: number, count: number, outer: boolean, el: ElementInfo): ModelPartSpec {
   const r = SHELL_R0 + SHELL_STEP * (n - 1)
   const letter = SHELL_LETTERS[n - 1]
@@ -74,7 +80,9 @@ function shell(n: number, count: number, outer: boolean, el: ElementInfo): Model
     name: `${n}-й уровень (${letter})`,
     color: outer ? '#786AD7' : '#9A90DD',
     // Ярлыки уровней разводим по азимуту, иначе они встают в одну линию.
-    anchor: [Math.cos(2.1 * n) * r, 0, Math.sin(2.1 * n) * r],
+    // Точка подписи — в координатах модели, поэтому поворачиваем её так же,
+    // как кольцо (rotation ниже: XYZ, без поворота по Y).
+    anchor: tilt([Math.cos(2.1 * n) * r, 0, Math.sin(2.1 * n) * r], 0.35 * n, 0.42 * (n % 2 ? 1 : -1) * n),
     info: `${count} ${plural(count, 'электрон', 'электрона', 'электронов')} из ${cap} возможных (2n², n = ${n}).${role}`,
     build: (T) => {
       const g = new T.Group()
