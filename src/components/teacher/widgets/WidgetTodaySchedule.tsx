@@ -21,7 +21,6 @@ export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: t
       WebkitBackdropFilter: 'var(--blur-glass)',
       border: '1px solid var(--color-border-medium)',
       borderRadius: 24,
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)',
       containerType: 'inline-size', containerName: 'teacher-calendar',
     }}>
       <div className="calendar-widget-content">
