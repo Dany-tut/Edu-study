@@ -1,4 +1,5 @@
 import './lib/polyfills' // первым: заплатки API для старых iOS до Supabase и приложения
+import './lib/platform' // data-platform на <html>: iphone | ipad | android | pc
 import { initialRouteTarget } from './lib/initialRoute'
 import { initNativeCrashReporting } from './lib/nativeCrashReporting'
 import { initWebCrashReporting } from './lib/webCrashReporting'
@@ -12,6 +13,9 @@ import App from './App.tsx'
 import MfaGate from './components/mfa/MfaGate'
 import ErrorBoundary from './components/ErrorBoundary'
 import OfflineBanner from './components/OfflineBanner'
+import { WindowSoftEdges } from './components/SoftEdge'
+import { IS_IOS } from './lib/platform'
+import { startSoftEdges } from './lib/softEdges'
 import { recoverFromChunkError } from './lib/chunkError'
 import { guardStylesheet } from './lib/cssGuard'
 import './lib/pwaInstall' // register beforeinstallprompt listener ASAP (fires once)
@@ -147,6 +151,7 @@ const FeedbackTriageStand = import.meta.env.DEV && (window.location.pathname.rep
   ? lazy(() => import('./components/teacher/feedbackTriageStand/FeedbackTriageStand')) : null
 
 startTextFades()
+if (IS_IOS) startSoftEdges()
 
 // Install diagnostics before rendering; App's later call is idempotent.
 initAnalytics()
@@ -160,6 +165,7 @@ if (!(window as Window & { __iskraUnsupported?: boolean }).__iskraUnsupported) c
         сразу: без неё бесконечные repeat: Infinity её не слушали. */}
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
+      {IS_IOS && <WindowSoftEdges />}
       <ErrorBoundary>
         {FeedbackTriageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><FeedbackTriageStand /></Suspense> : LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <MfaGate><App /></MfaGate>}
       </ErrorBoundary>
