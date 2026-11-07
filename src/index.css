@@ -219,8 +219,8 @@
   /* Active segmented-tab pill — subtle accent tint so it never blends into the track */
   --tab-pill-active: rgba(120,106,215,0.12);
   --shadow-filter:   0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.85);
-  --shadow-widget:   inset 0 1px 0 rgba(255,255,255,0.80), 0 4px 16px rgba(21,18,31,0.08), 0 1px 3px rgba(21,18,31,0.05);
-  --shadow-widget-drag: inset 0 1px 0 rgba(255,255,255,0.85), 0 16px 48px rgba(21,18,31,0.18), 0 4px 12px rgba(21,18,31,0.10);
+  --shadow-widget:   0 4px 16px rgba(21,18,31,0.08), 0 1px 3px rgba(21,18,31,0.05);
+  --shadow-widget-drag: 0 16px 48px rgba(21,18,31,0.18), 0 4px 12px rgba(21,18,31,0.10);
   /* Floating points badge on lesson cards — light contrasting pill */
   --lesson-badge-bg: rgba(255,255,255,0.68);
 
@@ -361,8 +361,8 @@
   /* Stronger tint in dark so the active pill lifts off the near-black track */
   --tab-pill-active: rgba(140,128,235,0.30);
   --shadow-filter:   inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 36px rgba(0,0,0,0.45);
-  --shadow-widget:   inset 0 1px 0 rgba(255,255,255,0.09), 0 6px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.22);
-  --shadow-widget-drag: inset 0 1px 0 rgba(255,255,255,0.12), 0 20px 60px rgba(0,0,0,0.65), 0 6px 18px rgba(0,0,0,0.35);
+  --shadow-widget:   0 6px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.22);
+  --shadow-widget-drag: 0 20px 60px rgba(0,0,0,0.65), 0 6px 18px rgba(0,0,0,0.35);
   /* Darker translucent pill so the points badge sits on the card, not floats white above it */
   --lesson-badge-bg: rgba(0,0,0,0.28);
 
