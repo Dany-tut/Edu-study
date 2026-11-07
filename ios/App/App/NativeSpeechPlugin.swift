@@ -134,5 +134,21 @@ class MainViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(PasskeyPlugin())
         bridge?.registerPluginInstance(AppLockPlugin())
         bridge?.registerPluginInstance(AppIconPlugin())
+        Self.hideFormAccessoryBar()
+    }
+
+    /// Полоска «˄ ˅ ✓» над клавиатурой — это inputAccessoryView внутреннего вида
+    /// WebKit (WKContentView), Safari рисует её у любого поля. В приложении она лишняя:
+    /// между клетками кода и полями формы не ходят стрелками, а «Готово» дублирует
+    /// сворачивание клавиатуры. Отдаём nil только у WKContentView: class_replaceMethod
+    /// меняет метод этого класса, а не общий UIResponder, так что нативные поля не задеты.
+    /// Подсказки автозаполнения (код из «Сообщений», пароли) живут в самой клавиатуре и остаются.
+    private static var accessoryBarHidden = false
+    private static func hideFormAccessoryBar() {
+        guard !accessoryBarHidden, let cls = NSClassFromString(["WK", "Content", "View"].joined()) else { return }
+        accessoryBarHidden = true
+        let selector = #selector(getter: UIResponder.inputAccessoryView)
+        let block: @convention(block) (AnyObject) -> UIView? = { _ in nil }
+        class_replaceMethod(cls, selector, imp_implementationWithBlock(block), "@@:")
     }
 }
