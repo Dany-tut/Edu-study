@@ -76,6 +76,7 @@
     "check:google-form-modal": "node scripts/checkGoogleFormModal.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.3",
     "@capacitor/app": "^8.1.2",
     "@capacitor/browser": "^8.0.5",
     "@capacitor/cli": "^8.4.1",
