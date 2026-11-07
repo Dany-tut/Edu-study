@@ -24,8 +24,8 @@ const AppIcon = registerPlugin<AppIconPlugin>('AppIcon')
 export type AppIconOption = { id: string; native: string | null; title: string; preview: string }
 
 export const APP_ICONS: AppIconOption[] = [
-  { id: 'classic', native: null, title: 'Классика', preview: '/app-icons/classic.jpg' },
-  { id: 'ogonek', native: 'AppIcon-Ogonek', title: 'Огонёк', preview: '/app-icons/ogonek.jpg' },
+  { id: 'ogonek', native: null, title: 'Огонёк', preview: '/app-icons/ogonek.jpg' },
+  { id: 'classic', native: 'AppIcon-Classic', title: 'Классика', preview: '/app-icons/classic.jpg' },
   { id: 'light', native: 'AppIcon-Light', title: 'Светлая', preview: '/app-icons/light.jpg' },
   { id: 'night', native: 'AppIcon-Night', title: 'Ночная', preview: '/app-icons/night.jpg' },
   { id: 'reader', native: 'AppIcon-Reader', title: 'С книгой', preview: '/app-icons/reader.jpg' },
@@ -38,18 +38,20 @@ export const APP_ICON_NATIVE = Capacitor.isNativePlatform() && Capacitor.getPlat
 
 type State = {
   supported: boolean
-  /** id из APP_ICONS; классика, пока система не ответила. */
+  /** id из APP_ICONS; основная (Огонёк), пока система не ответила. */
   current: string
   busy: boolean
   load: () => Promise<void>
   choose: (id: string) => Promise<boolean>
 }
 
-const idOf = (native: string | null) => APP_ICONS.find(o => o.native === native)?.id ?? 'classic'
+// Неизвестное имя (набор из старой сборки, например AppIcon-Ogonek до того,
+// как Огонёк стал основной) iOS показывает основной иконкой — так и отмечаем.
+const idOf = (native: string | null) => APP_ICONS.find(o => o.native === native)?.id ?? 'ogonek'
 
 export const useAppIcon = create<State>((set, get) => ({
   supported: APP_ICON_NATIVE,
-  current: 'classic',
+  current: 'ogonek',
   busy: false,
   load: async () => {
     if (!APP_ICON_NATIVE) return
