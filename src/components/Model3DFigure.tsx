@@ -110,6 +110,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           },
         })
         if (s.timeline) setPlaying(true)
+        if (s.view === 'front') setSpinning(false)
         setStatus('ready')
       })
       .catch(() => { if (alive) setStatus('error') })
@@ -215,8 +216,11 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
               ))}
             </div>
           )}
-          {part && (
-            <div ref={popRef} className={`m3d__pop${isolated ? ' m3d__pop--docked' : ''}`} style={colorVar(part.color)} role="dialog" aria-label={part.name}>
+          {/* Справка у точки клика — только пока смотрят всю модель. В режиме
+              «Отдельно» часть приближена на весь кадр, и карточка поверх неё
+              съедала смысл приближения: там она уходит под сцену. */}
+          {part && !isolated && (
+            <div ref={popRef} className="m3d__pop" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
               <div className="m3d__pop-title">{part.name}</div>
               <div className="m3d__pop-text"><Prose text={part.info} /></div>
               <div className="m3d__card-actions">
@@ -235,6 +239,17 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           {status === 'loading' && <div className="m3d__state">Загружаем 3D-модель…</div>}
           {status === 'error' && <div className="m3d__state">3D-модель не загрузилась. Проверьте связь и обновите страницу.</div>}
         </div>
+
+        {part && isolated && (
+          <div className="m3d__card" style={colorVar(part.color)} role="dialog" aria-label={part.name}>
+            <div className="m3d__card-title">{part.name}</div>
+            <div className="m3d__card-text"><Prose text={part.info} /></div>
+            <div className="m3d__card-actions">
+              <button type="button" className="m3d__btn" data-hover="own" aria-pressed onClick={() => setIsolated(false)}>Показать всё</button>
+              <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
+            </div>
+          </div>
+        )}
 
         {spec?.timeline && status === 'ready' && (
           <div className="m3d__stages">

@@ -67,6 +67,7 @@ type Part = {
   explode: THREE.Vector3
   /** Центр части в координатах модели (до сдвига к центру габаритов). */
   centre: THREE.Vector3
+  liveAnchor?: () => [number, number, number]
   anchor: THREE.Vector3
   shell: boolean
   /** Все материалы полупрозрачны (вакуоль, оболочка ядра) — подписи за ней не прячем. */
@@ -104,7 +105,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   controls.enablePan = true
   controls.panSpeed = 0.7
   controls.screenSpacePanning = true
-  controls.autoRotate = true
+  controls.autoRotate = spec.view !== 'front'
   controls.autoRotateSpeed = 0.9
   controls.addEventListener('start', () => {
     focus = null
@@ -145,7 +146,7 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
     const explode = ps.explode ? new THREE.Vector3(...ps.explode) : new THREE.Vector3()
     if (!ps.shell) union.union(box)
     const part: Part = {
-      id: ps.id, root: group, obj, home: new THREE.Vector3(), explode, anchor, centre,
+      id: ps.id, root: group, obj, home: new THREE.Vector3(), explode, anchor, centre, liveAnchor: ps.liveAnchor,
       shell: !!ps.shell, hideLabel: !!ps.hideLabel, materials,
       translucent: materials.length > 0 && materials.every(m => m.opacity < 0.7),
       baseOpacity: materials.map(m => m.opacity),
@@ -163,16 +164,17 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
   // габаритного куба (оболочки не в счёт) встал в ноль, и от него же считаются
   // разбор и дистанция камеры.
   if (union.isEmpty()) union.setFromObject(root)
-  const modelCentre = union.getCenter(new THREE.Vector3())
+  const modelCentre = spec.frame ? new THREE.Vector3(...spec.frame.center) : union.getCenter(new THREE.Vector3())
   root.position.copy(modelCentre).negate()
-  const fitRadius = Math.max(union.getBoundingSphere(new THREE.Sphere()).radius, 0.5)
+  const fitRadius = spec.frame ? spec.frame.radius : Math.max(union.getBoundingSphere(new THREE.Sphere()).radius, 0.5)
   for (const part of parts) {
     if (spec.parts.find(ps => ps.id === part.id)?.explode) continue
     const dir = part.centre.clone().sub(modelCentre)
     if (dir.lengthSq() > 1e-6) part.explode.copy(dir.normalize().multiplyScalar(fitRadius * 0.6))
   }
   const dist = fitRadius * 2.9
-  camera.position.set(dist * 0.55, dist * 0.42, dist * 0.78)
+  if (spec.view === 'front') camera.position.set(0, dist * 0.12, dist)
+  else camera.position.set(dist * 0.55, dist * 0.42, dist * 0.78)
   controls.minDistance = fitRadius * 0.3
   controls.maxDistance = fitRadius * 6
   controls.update()
@@ -269,8 +271,8 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
       out.push({ id: '__marker', x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden: ndc.z > 1 })
     }
     return out.concat(parts.filter(p => !p.hideLabel).map(part => {
-      tmp.copy(part.anchor)
-      part.obj.localToWorld(tmp)
+      if (part.liveAnchor) { tmp.set(...part.liveAnchor()); root.localToWorld(tmp) }
+      else { tmp.copy(part.anchor); part.obj.localToWorld(tmp) }
       const toAnchor = tmp.distanceTo(camPos)
       // Закрыта ли точка другой частью: луч от камеры к точке.
       raycaster.set(camPos, tmp.clone().sub(camPos).normalize())
@@ -284,7 +286,10 @@ export function createModelViewer(canvas: HTMLCanvasElement, spec: ModelSpec, cb
         return !(other?.shell) && !(other?.translucent) && (dim.get(pid) ?? 0) < 0.5
       })
       const ndc = tmp.project(camera)
-      const hidden = !!blocker || ndc.z > 1 || (isolated !== null && isolated !== part.id)
+      // Часть, которой сейчас нет на сцене (процесс ещё не дошёл), подписи не получает.
+      let shown = false
+      part.obj.traverse(o => { if ((o as THREE.Mesh).isMesh && o.visible) { let p: THREE.Object3D | null = o; let vis = true; while (p && p !== part.obj) { if (!p.visible) { vis = false; break } p = p.parent } if (vis) shown = true } })
+      const hidden = !shown || !part.obj.visible || !!blocker || ndc.z > 1 || (isolated !== null && isolated !== part.id)
       return { id: part.id, x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, hidden }
     }))
   }

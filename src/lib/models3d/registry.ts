@@ -42,7 +42,7 @@ export function modelRefLabel(src: string): string {
   if (ref.kind === 'molecule') return ref.key === 'dna' ? '3D-модель: ДНК' : `3D-модель: молекула ${ref.key.toUpperCase()}`
   if (ref.kind === 'lattice') return '3D-модель: кристаллическая решётка'
   if (ref.kind === 'organ') return `3D-модель: ${({ eye: 'глаз', neuron: 'нейрон', heart: 'сердце' } as Record<string, string>)[ref.key] ?? 'орган'}`
-  if (ref.kind === 'stages') return '3D-модель по стадиям: митоз'
+  if (ref.kind === 'stages') return '3D-модель по стадиям'
   if (ref.kind === 'mesh') return `3D-модель из открытой базы: ${ref.key}`
   return '3D-модель'
 }
@@ -76,6 +76,10 @@ export async function loadModelSpec(src: string): Promise<ModelSpec | null> {
     return gltfModelSpec(ref.key)
   }
   if (ref.kind === 'stages') {
+    if (ref.key === 'protein' || ref.key === 'plasmolysis' || ref.key === 'phagocytosis') {
+      const mod = await import('./processes')
+      return ref.key === 'protein' ? mod.proteinSynthesisSpec() : ref.key === 'plasmolysis' ? mod.plasmolysisSpec() : mod.phagocytosisSpec()
+    }
     const { mitosisSpec } = await import('./stages')
     return ref.key === 'mitosis' || !ref.key ? mitosisSpec() : null
   }
@@ -95,6 +99,9 @@ export const MODEL_PRESETS: Array<{ ref: string; label: string; subject: 'chem' 
   { ref: 'model:cell:animal', label: 'Животная клетка', subject: 'bio' },
   { ref: 'model:cell:plant', label: 'Растительная клетка', subject: 'bio' },
   { ref: 'model:stages:mitosis', label: 'Митоз по стадиям', subject: 'bio' },
+  { ref: 'model:stages:protein', label: 'Синтез белка (процесс)', subject: 'bio' },
+  { ref: 'model:stages:plasmolysis', label: 'Плазмолиз (процесс)', subject: 'bio' },
+  { ref: 'model:stages:phagocytosis', label: 'Фагоцитоз (процесс)', subject: 'bio' },
   { ref: 'model:molecule:dna', label: 'ДНК', subject: 'bio' },
   { ref: 'model:organ:eye', label: 'Глаз', subject: 'bio' },
   { ref: 'model:organ:neuron', label: 'Нейрон', subject: 'bio' },
