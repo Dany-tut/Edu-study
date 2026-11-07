@@ -6,7 +6,8 @@ import { join } from 'node:path'
 
 const [objDir, out, partsJson, optJson] = process.argv.slice(2)
 const parts = JSON.parse(partsJson)
-// Опции: {"xMax": -5} — выкинуть треугольники правее порога (в базе «правый глаз» лежит вместе с левым).
+// Опции: {"xMax": -5} — выкинуть треугольники правее порога (в базе «правый глаз» лежит вместе с левым);
+// {"zMin": 1150} — ниже порога (мм).
 const opt = optJson ? JSON.parse(optJson) : {}
 
 function parseObj(text) {
@@ -56,10 +57,14 @@ for (const [id, files] of Object.entries(parts)) {
     pos.push(...o.pos); for (const i of o.idx) idx.push(i + base)
   }
   let keep = idx
-  if (opt.xMax !== undefined) {
+  // Обрезка: xMax — выкинуть всё правее (второй глаз), zMin — ниже (у сердца
+  // нисходящая аорта и нижняя полая вена уходят на 30 см в брюшную полость).
+  if (opt.xMax !== undefined || opt.zMin !== undefined) {
+    const xMax = opt.xMax ?? Infinity, zMin = opt.zMin ?? -Infinity
+    const ok = (v) => pos[v * 3] < xMax && pos[v * 3 + 2] > zMin
     keep = []
     for (let i = 0; i < idx.length; i += 3) {
-      if (pos[idx[i] * 3] < opt.xMax && pos[idx[i + 1] * 3] < opt.xMax && pos[idx[i + 2] * 3] < opt.xMax) keep.push(idx[i], idx[i + 1], idx[i + 2])
+      if (ok(idx[i]) && ok(idx[i + 1]) && ok(idx[i + 2])) keep.push(idx[i], idx[i + 1], idx[i + 2])
     }
   }
   // Перенумеровать вершины, чтобы не тащить неиспользуемые.
