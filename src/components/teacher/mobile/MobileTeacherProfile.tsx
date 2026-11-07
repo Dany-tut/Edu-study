@@ -6,7 +6,7 @@ import CountBadge from '../../CountBadge'
 import { useNotificationsStore } from '../../../store/notificationsStore'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -23,6 +23,8 @@ import { DEMO_TEACHER_PROFILE, type TeacherProfileModel } from '../../../data/te
 import { useT, useLang, type Lang, useTc } from '../../../lib/i18n'
 import { requestShowInstall, isStandalone } from '../../../lib/pwaInstall'
 import AppVersionRow from '../../AppVersionRow'
+import AppIconSheet, { AppIconTile } from '../../AppIconSheet'
+import { APP_ICONS, useAppIcon } from '../../../lib/appIcon'
 import { getSessionUser } from '../../../lib/owner'
 import { AvatarPhotoFill } from '../../AvatarPhoto'
 import { useMyTeacherAvatarPath } from '../../../lib/avatarPhoto'
@@ -82,6 +84,11 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const [paymentsOpen, setPaymentsOpen] = useState(false)
   const paymentClaims = usePaymentInbox(s => s.claims.length)
   useEffect(() => { if (payments) void usePaymentInbox.getState().load() }, [payments])
+  const [iconOpen, setIconOpen] = useState(false)
+  const iconSupported = useAppIcon(s => s.supported)
+  const iconCurrent = useAppIcon(s => s.current)
+  const loadIcon = useAppIcon(s => s.load)
+  useEffect(() => { void loadIcon() }, [loadIcon])
   const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
@@ -247,6 +254,23 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{dark ? t('Тёмная') : t('Светлая')}</span>
           </button>
 
+          {/* Иконка приложения — только в приложении на iOS */}
+          {iconSupported && (
+            <button
+              onClick={() => { tactile(); setIconOpen(true) }}
+              className="flex items-center justify-between cursor-pointer"
+              style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
+            >
+              <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
+                <Image size={18} style={{ color: 'var(--color-muted)' }} />{t('Иконка приложения')}
+              </span>
+              <span className="flex items-center" style={{ gap: 8 }}>
+                <AppIconTile src={(APP_ICONS.find(o => o.id === iconCurrent) ?? APP_ICONS[0]).preview} size={28} />
+                <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+              </span>
+            </button>
+          )}
+
           {/* Язык — надпись показывает текущий язык, тап переключает на другой */}
           <button data-hover="layer"
             onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
@@ -345,6 +369,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
       {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
       {paymentsOpen && <Modal title={t('Оплаты: ждут вас')} onClose={() => setPaymentsOpen(false)}><div style={{ margin: '0 -16px' }}><PaymentsInbox /></div></Modal>}
+      <AppIconSheet open={iconOpen} onClose={() => setIconOpen(false)} />
       {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
     </MobileScreen>
   )

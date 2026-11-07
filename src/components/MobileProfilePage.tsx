@@ -29,6 +29,8 @@ import { PAIR } from '../lib/mobileTokens'
 import { tactile } from '../lib/feedback'
 import { requestShowInstall, isStandalone } from '../lib/pwaInstall'
 import AppVersionRow from './AppVersionRow'
+import AppIconSheet, { AppIconTile } from './AppIconSheet'
+import { APP_ICONS, useAppIcon } from '../lib/appIcon'
 import type { LucideIcon } from './icons/appIcons'
 import type { Subject } from '../data/mockData'
 import { XP_PER_LEVEL } from '../lib/xp'
@@ -91,6 +93,11 @@ export default function MobileProfilePage() {
   const { avatarPath, savePhoto, removePhoto } = useStudentAvatarPhoto()
   const [cropFile, setCropFile] = useState<File | null>(null)
   const [tintOpen, setTintOpen] = useState(false)
+  const [iconOpen, setIconOpen] = useState(false)
+  const iconSupported = useAppIcon(s => s.supported)
+  const iconCurrent = useAppIcon(s => s.current)
+  const loadIcon = useAppIcon(s => s.load)
+  useEffect(() => { void loadIcon() }, [loadIcon])
   const [courseOrderOpen, setCourseOrderOpen] = useState(false)
   const [feedOpen, setFeedOpen] = useState(false)
   // Карточки человека (разные группы под одним логином) — переход по тапу в
@@ -379,6 +386,24 @@ export default function MobileProfilePage() {
                 </span>
               </motion.button>
 
+              {/* Иконка приложения — только в приложении на iOS */}
+              {iconSupported && (
+                <motion.button
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => { tactile(); setIconOpen(true) }}
+                  className="flex items-center justify-between cursor-pointer"
+                  style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+                >
+                  <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
+                    {t('Иконка приложения')}
+                  </span>
+                  <span className="flex items-center" style={{ gap: 8 }}>
+                    <AppIconTile src={(APP_ICONS.find(o => o.id === iconCurrent) ?? APP_ICONS[0]).preview} size={28} />
+                    <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                  </span>
+                </motion.button>
+              )}
+
               {/* Порядок курсов — только тому, у кого их несколько */}
               {subjects.length > 1 && (
                 <motion.button data-hover="layer"
@@ -507,6 +532,7 @@ export default function MobileProfilePage() {
       <MobileBottomNav />
       {feedbackOpen && <FeedbackModal role="student" onClose={() => setFeedbackOpen(false)} />}
       <CourseTintSheet open={tintOpen} onClose={() => setTintOpen(false)} />
+      <AppIconSheet open={iconOpen} onClose={() => setIconOpen(false)} />
       <CourseOrderSheet open={courseOrderOpen} onClose={() => setCourseOrderOpen(false)} />
       <FeedGesturesSheet open={feedOpen} onClose={() => setFeedOpen(false)} />
 
