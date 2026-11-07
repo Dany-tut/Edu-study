@@ -83,8 +83,10 @@ const json = {
   scene: 0, scenes: [{ nodes: nodes.map((_, i) => i) }], nodes, meshes, accessors, bufferViews: views,
   buffers: [{ byteLength: offset }],
 }
-let jsonStr = JSON.stringify(json); while (jsonStr.length % 4) jsonStr += ' '
-const jsonBuf = Buffer.from(jsonStr, 'utf8'), bin = Buffer.concat(bufs)
+// Выравнивание по БАЙТАМ: «©» в UTF-8 — два байта, по символам чанк выходил кривым.
+let jsonBuf = Buffer.from(JSON.stringify(json), 'utf8')
+if (jsonBuf.length % 4) jsonBuf = Buffer.concat([jsonBuf, Buffer.alloc(4 - (jsonBuf.length % 4), 0x20)])
+const bin = Buffer.concat(bufs)
 const header = Buffer.alloc(12); header.write('glTF', 0); header.writeUInt32LE(2, 4); header.writeUInt32LE(12 + 8 + jsonBuf.length + 8 + bin.length, 8)
 const jh = Buffer.alloc(8); jh.writeUInt32LE(jsonBuf.length, 0); jh.writeUInt32LE(0x4E4F534A, 4)
 const bh = Buffer.alloc(8); bh.writeUInt32LE(bin.length, 0); bh.writeUInt32LE(0x004E4942, 4)

@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import type { ModelSpec, ModelPartSpec } from './spec'
 
 interface GltfPart {
@@ -150,7 +151,9 @@ const MODELS: GltfModel[] = [
 
 export const GLTF_KEYS = MODELS.map(m => m.key)
 
-const loader = new GLTFLoader()
+// Меши сжаты meshopt (упрощение ×0,5 + квантование, ~×4,5 меньше): декодер
+// на чистом JS/wasm внутри модуля, отдельных файлов не тянет.
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
 
 export async function gltfModelSpec(key: string): Promise<ModelSpec | null> {
   const def = MODELS.find(m => m.key === key)
