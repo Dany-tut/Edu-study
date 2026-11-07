@@ -114,4 +114,9 @@ export const MODEL_PRESETS: Array<{ ref: string; label: string; subject: 'chem' 
   { ref: 'model:organ:heart', label: 'Сердце', subject: 'bio' },
   { ref: 'model:mesh:bp3d-heart', label: 'Сердце по МРТ (BodyParts3D)', subject: 'bio' },
   { ref: 'model:mesh:bp3d-eye', label: 'Глаз по МРТ (BodyParts3D)', subject: 'bio' },
+  { ref: 'model:mesh:bp3d-brain', label: 'Головной мозг по МРТ (BodyParts3D)', subject: 'bio' },
+  { ref: 'model:mesh:bp3d-lungs', label: 'Дыхательные пути по МРТ (BodyParts3D)', subject: 'bio' },
+  { ref: 'model:mesh:bp3d-urinary', label: 'Мочевыделительная система по МРТ (BodyParts3D)', subject: 'bio' },
+  { ref: 'model:mesh:bp3d-skull', label: 'Череп по МРТ (BodyParts3D)', subject: 'bio' },
+  { ref: 'model:mesh:bp3d-digestive', label: 'Пищеварительная система по МРТ (BodyParts3D)', subject: 'bio' },
 ]
