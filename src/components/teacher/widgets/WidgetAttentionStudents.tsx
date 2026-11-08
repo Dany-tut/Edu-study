@@ -3,6 +3,7 @@ import { AlertCircle, ChevronRight, Clock, ArrowUpRight } from '../../icons/appI
 import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
 import FadeText from '../../FadeText'
+import RetryImage from '../../RetryImage'
 import { t, useT, useTc } from '../../../lib/i18n'
 
 function initials(name: string) {
@@ -77,7 +78,7 @@ export default function WidgetAttentionStudents() {
           <span className="ww-attention-value">{atRisk.length}</span>
           <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{atRisk.length ? t('Ученики с долгом или просрочкой оплаты') : t('Все ученики в норме')}</FadeText>
         </div>
-        <img className="ww-attention-object" src="/widget-metric-objects-v1/debt.png" alt="" aria-hidden="true" />
+        <RetryImage className="ww-attention-object" src="/widget-metric-objects-v1/debt.png" alt="" aria-hidden="true" />
         <ArrowUpRight className="ww-attention-open" size={18} aria-hidden="true" />
       </button>
       {/* Header */}
