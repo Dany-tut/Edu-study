@@ -12,8 +12,43 @@ export const RELEASE = Object.freeze({
   bootstrap: { commit: '744b208fa31119c329e00595cb0eefdcacd1cae7', build: 1405 },
 })
 
-export function git(args, cwd = process.cwd()) {
-  return execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] }).trim()
+export function git(args, cwd = process.cwd(), env = undefined) {
+  return execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'], ...(env ? { env } : {}) }).trim()
+}
+
+/** Переменная окружения с GitHub-токеном (fine-grained, только Contents: read на
+ * этот репозиторий). Нужна, когда репозиторий приватный: без неё ls-remote и
+ * дозагрузка истории на Vercel идут анонимно и падают. */
+export const RELEASE_TOKEN_ENV = 'GITHUB_RELEASE_GUARD_TOKEN'
+
+/** Окружение git для запросов к GitHub. Токен идёт заголовком через
+ * GIT_CONFIG_* — не в аргументах и не в URL, поэтому не попадает ни в текст
+ * ошибки execFileSync, ни в лог сборки. Без токена — обычное окружение. */
+export function remoteGitEnv(source = process.env) {
+  const token = source[RELEASE_TOKEN_ENV]?.trim()
+  if (!token) return undefined
+  const basic = Buffer.from(`x-access-token:${token}`).toString('base64')
+  return {
+    ...source,
+    GIT_TERMINAL_PROMPT: '0',
+    GIT_CONFIG_COUNT: '1',
+    GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader',
+    GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${basic}`,
+  }
+}
+
+/** Убирает токен (и его base64-заголовок) из текста перед выводом в лог. */
+export function redactSecrets(text, source = process.env) {
+  const token = source[RELEASE_TOKEN_ENV]?.trim()
+  if (!token) return String(text)
+  const basic = Buffer.from(`x-access-token:${token}`).toString('base64')
+  return String(text).split(token).join('***').split(basic).join('***')
+}
+
+/** git к удалённому репозиторию релиза: с токеном, если он задан. */
+export function remoteGit(args, cwd = process.cwd()) {
+  try { return git(args, cwd, remoteGitEnv()) }
+  catch (error) { error.message = redactSecrets(error.message); if (error.stderr) error.stderr = redactSecrets(error.stderr); throw error }
 }
 
 /** Vercel removes .vercelignore matches after cloning, before running the build.
@@ -93,7 +128,7 @@ export function containsCommit(base, head, cwd, remote = RELEASE.remote) {
   if (contains()) return true
   // Vercel clones only ten commits. Missing history is not proof of ancestry.
   if (git(['rev-parse', '--is-shallow-repository'], cwd) === 'true') {
-    git(['fetch', '--unshallow', '--filter=blob:none', remote, RELEASE.branch], cwd)
+    remoteGit(['fetch', '--unshallow', '--filter=blob:none', remote, RELEASE.branch], cwd)
     return contains()
   }
   return false
