@@ -9,6 +9,7 @@ import type { Group, Student } from '../../data/teacherMockData'
 import TeacherSelect from './TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
+import { btn, GRAD } from '../../lib/pillStyles'
 
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
@@ -357,8 +358,11 @@ export function AddExistingIndividualModal({
                   <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 6, fontWeight: 600 }}>{t('ССЫЛКА ДЛЯ РЕГИСТРАЦИИ')}</div>
                   <div style={{ fontSize: 13, color: 'var(--color-text)', wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteLink}</div>
                 </div>
-                <button data-hover="layer" onClick={copy} style={{ width: '100%', padding: '12px 0', background: copied ? '#3FCC8A' : 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: 'pointer', transition: 'background 0.22s' }}>
-                  {copied ? <><Check size={16} strokeWidth={2.5} style={{ marginRight: 6, verticalAlign: '-2px' }} />{t('Скопировано')}</> : t('Скопировать ссылку')}
+                {/* Кнопка по шкале btn L (48): иконка и подпись в одном flex-ряду,
+                    подпись приподнята до оптического центра (−0.04em у таблеток с иконкой). */}
+                <button data-hover="layer" onClick={copy} style={btn('L', 'primary', { background: copied ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })}>
+                  {copied && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}
+                  <span style={{ position: 'relative', top: '-0.04em' }}>{copied ? t('Скопировано') : t('Скопировать ссылку')}</span>
                 </button>
               </>
             )}
