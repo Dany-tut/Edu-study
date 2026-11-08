@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { RELEASE, git, releaseCheckoutChanges, assertCommit, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
+import { RELEASE, git, remoteGit, redactSecrets, releaseCheckoutChanges, assertCommit, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
 
 const phase = process.argv[2]
 if (!['--before-build', '--after-build', '--check'].includes(phase)) {
@@ -23,7 +23,7 @@ try {
       if (production && changes.some(change => change.slice(3) === 'vercel.json')) console.error(git(['diff', '--', 'vercel.json']))
       throw new Error('Release checkout has uncommitted source files. Use a clean, isolated worktree. Changes: ' + changes.slice(0, 12).join('; '))
     }
-    const remote = git(['ls-remote', RELEASE.remote, `refs/heads/${RELEASE.branch}`])
+    const remote = remoteGit(['ls-remote', RELEASE.remote, `refs/heads/${RELEASE.branch}`])
     const main = assertCommit(remote.split(/\s/)[0])
     const live = await readProduction()
     validateProductionRelease({ head, main, live, version, contains: containsCommit, requireTip: production })
@@ -44,6 +44,6 @@ try {
     writeFileSync('dist/version.json', JSON.stringify({ ...version, commit: head }, null, 2) + '\n')
   }
 } catch (error) {
-  console.error(`Release blocked: ${error.message}`)
+  console.error(`Release blocked: ${redactSecrets(error.message)}`)
   process.exit(1)
 }

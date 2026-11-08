@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { RELEASE, git, releaseCheckoutChanges, containsCommit, readProduction, validateProductionRelease } from './releasePolicy.mjs'
+import { RELEASE, git, releaseCheckoutChanges, containsCommit, readProduction, validateProductionRelease, remoteGitEnv, redactSecrets, RELEASE_TOKEN_ENV } from './releasePolicy.mjs'
 
 const dir = mkdtempSync(join(tmpdir(), 'iskra-release-policy-test-'))
 let checks = 0
@@ -18,6 +18,19 @@ try {
     git(['add', name], dir); git(['-c', 'core.hooksPath=/dev/null', 'commit', '-m', name], dir)
     return git(['rev-parse', 'HEAD'], dir)
   }
+  // Токен сторожа: только через GIT_CONFIG_* и никогда в тексте ошибок.
+  const fakeToken = 'github_pat_TESTONLY_0123456789'
+  assert.equal(remoteGitEnv({}), undefined); checks++
+  assert.equal(remoteGitEnv({ [RELEASE_TOKEN_ENV]: '  ' }), undefined); checks++
+  const tokenEnv = remoteGitEnv({ [RELEASE_TOKEN_ENV]: fakeToken, PATH: process.env.PATH })
+  assert.equal(tokenEnv.GIT_CONFIG_KEY_0, 'http.https://github.com/.extraheader'); checks++
+  assert.ok(tokenEnv.GIT_CONFIG_VALUE_0.startsWith('AUTHORIZATION: basic ')); checks++
+  assert.ok(!tokenEnv.GIT_CONFIG_VALUE_0.includes(fakeToken)); checks++
+  assert.equal(tokenEnv.GIT_TERMINAL_PROMPT, '0'); checks++
+  const basic = Buffer.from(`x-access-token:${fakeToken}`).toString('base64')
+  const redacted = redactSecrets(`fatal: ${fakeToken} / ${basic}`, { [RELEASE_TOKEN_ENV]: fakeToken })
+  assert.ok(!redacted.includes(fakeToken) && !redacted.includes(basic) && redacted.includes('***')); checks++
+  assert.equal(redactSecrets('plain', {}), 'plain'); checks++
   const base = commit('base')
   const live = commit('live')
   const head = commit('candidate')
