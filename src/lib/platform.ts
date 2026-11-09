@@ -22,6 +22,9 @@ import { Capacitor } from '@capacitor/core'
 export type Platform = 'iphone' | 'ipad' | 'android' | 'pc'
 
 function detect(): Platform {
+  // DEV-ONLY: ?ipad=1 форсит версию iPad в превью (проверка оболочки iPad на ПК).
+  // Строго аддитивно и только в dev-сборке — прод-детект по UA не меняется.
+  if (import.meta.env?.DEV && typeof location !== 'undefined' && /[?&]ipad=1(?:&|$)/.test(location.search)) return 'ipad'
   if (typeof navigator === 'undefined') return 'pc'
   const ua = navigator.userAgent
   if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'ipad'
