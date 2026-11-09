@@ -14,8 +14,17 @@ const T1 = id(1), T2 = id(2), G = id(20), G2 = id(21)
 const ANNA = id(11), BORIS = id(12), SOLO = id(13), STRANGER = id(14), ANNA_BIO = id(15)
 const PERSON_ANNA = id(30)
 const HW = id(40), HW_LATE = id(41), HW_DONE = id(42)
-// 8 ноября 2026, 12:00 по Москве (09:00 UTC).
-const NOW = `'2026-11-08 09:00+00'::timestamptz`
+// «Сейчас» фикстуры — ЗАВТРА 12:00 по Москве (09:00 UTC), все даты — от него.
+// Раньше здесь стояло 8 ноября 2026: план строился от зашитого дня, а
+// reminders_claim и reminder_stale_reason сравнивают с настоящим now(), и
+// с 9 ноября «завтрашние» hw_late созрели сами — тест забирал лишние чаты.
+// Завтрашний день держит настоящее now() строго раньше всех событий фикстуры
+// в любое время суток, поэтому время теста согласовано всегда.
+const mskToday = new Date(Date.now() + 3 * 3600_000)
+const day = offset => new Date(Date.UTC(mskToday.getUTCFullYear(), mskToday.getUTCMonth(), mskToday.getUTCDate() + 1 + offset)).toISOString().slice(0, 10)
+const D0 = day(0), D1 = day(1), DM1 = day(-1) // фикстурные «сегодня», «завтра», «вчера»
+const dd = date => date.slice(8, 10)
+const NOW = `'${D0} 09:00+00'::timestamptz`
 const fail = msg => { throw new Error(msg) }
 
 try {
@@ -86,28 +95,28 @@ try {
 
   // ── Планирование ──
   sql(`insert into schedule_lessons(id, group_id, student_id, date, time_start, lesson_title, subject, status) values
-    ('${id(101)}','${G}',null,'2026-11-08','16:00','ОВР','Химия','upcoming'),
-    ('${id(102)}','${G}',null,'2026-11-08','16:00','ОВР','Химия','upcoming'),
-    ('${id(103)}',null,'${SOLO}','2026-11-09','7:30','Рано','Химия','upcoming'),
-    ('${id(104)}','${G}',null,'2026-11-08','12:30','Сейчас','Химия','upcoming'),
-    ('${id(105)}','${G}',null,'2026-11-08','18:00','Отменён','Химия','cancelled'),
-    ('${id(106)}','${G2}',null,'2026-11-08','16:00','Чужой','Химия','upcoming');
+    ('${id(101)}','${G}',null,'${D0}','16:00','ОВР','Химия','upcoming'),
+    ('${id(102)}','${G}',null,'${D0}','16:00','ОВР','Химия','upcoming'),
+    ('${id(103)}',null,'${SOLO}','${D1}','7:30','Рано','Химия','upcoming'),
+    ('${id(104)}','${G}',null,'${D0}','12:30','Сейчас','Химия','upcoming'),
+    ('${id(105)}','${G}',null,'${D0}','18:00','Отменён','Химия','cancelled'),
+    ('${id(106)}','${G2}',null,'${D0}','16:00','Чужой','Химия','upcoming');
   insert into lessons values ('${id(50)}', 'l-50');
   insert into homework values
-    ('${HW}','${G}','Тест по ОВР','2026-11-09','active','${T1}',null),
-    ('${HW_LATE}','${G}','Старое','2026-11-07','active','${T1}',null),
-    ('${HW_DONE}','${G}','Сданное','2026-11-09','active','${T1}','${id(50)}');
+    ('${HW}','${G}','Тест по ОВР','${D1}','active','${T1}',null),
+    ('${HW_LATE}','${G}','Старое','${DM1}','active','${T1}',null),
+    ('${HW_DONE}','${G}','Сданное','${D1}','active','${T1}','${id(50)}');
   insert into lesson_progress(student_id, lesson_ref, status) values
     ('${BORIS}','hw-${HW}','submitted'), ('${ANNA}','l-50','completed'), ('${BORIS}','${id(50)}','submitted');`)
   const added = sql(`select reminders_plan(${NOW})`)
   const rows = () => sql(`select string_agg(dedupe_key || '@' || to_char(send_at at time zone 'Europe/Moscow', 'DD HH24:MI') || '#' || status, ',' order by dedupe_key) from reminder_outbox`).split(',').filter(Boolean)
   const want = [
-    `hw_due:${ANNA}:${HW}@08 18:00#queued`,
-    `hw_late:${ANNA}:${HW_LATE}:2@09 10:00#queued`,
-    `hw_late:${BORIS}:${HW_LATE}:2@09 10:00#queued`,
-    `lesson_soon:${ANNA}:2026-11-08:16:00@08 15:00#queued`,
-    `lesson_soon:${BORIS}:2026-11-08:16:00@08 15:00#queued`,
-    `lesson_soon:${SOLO}:2026-11-09:07:30@09 07:00#queued`,
+    `hw_due:${ANNA}:${HW}@${dd(D0)} 18:00#queued`,
+    `hw_late:${ANNA}:${HW_LATE}:2@${dd(D1)} 10:00#queued`,
+    `hw_late:${BORIS}:${HW_LATE}:2@${dd(D1)} 10:00#queued`,
+    `lesson_soon:${ANNA}:${D0}:16:00@${dd(D0)} 15:00#queued`,
+    `lesson_soon:${BORIS}:${D0}:16:00@${dd(D0)} 15:00#queued`,
+    `lesson_soon:${SOLO}:${D1}:07:30@${dd(D1)} 07:00#queued`,
   ]
   const got = rows()
   if (got.join(',') !== want.join(',')) fail(`план\n  ожидалось: ${want.join('\n    ')}\n  получено:  ${got.join('\n    ')}`)

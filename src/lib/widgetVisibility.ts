@@ -59,9 +59,13 @@ export function useWidgetRelevance(subjectOverride?: string | null): (id: number
     // наше дело прятать — этим занимается сама карусель.
     if (!meta) return true
     // Пока курсы не приехали, предмет неизвестен: фильтровать нечем и незачем.
-    if (meta.subjects && scope.size > 0 && !meta.subjects.some(s => scope.has(s))) return false
+    // Курсы приехали, а предмета нет (ни одного курса, свободные теги) —
+    // предметные виджеты прячем: «Реакции Zn + 2HCl» ученику без химии
+    // не нужны. Нейтральные («Фокус», «Твои дела», вопрос дня) остаются.
+    const subjectless = loaded && scope.size === 0
+    if (meta.subjects && (subjectless || (scope.size > 0 && !meta.subjects.some(s => scope.has(s))))) return false
     // Языковой виджет — на любом языке и ни на одном экзаменационном предмете.
-    if (meta.languagesOnly && scope.size > 0 && ![...scope].some(isLanguageSubject)) return false
+    if (meta.languagesOnly && (subjectless || (scope.size > 0 && ![...scope].some(isLanguageSubject)))) return false
     if (meta.content && loaded) {
       const count = { quiz, facts, memes, reactions }[meta.content]
       if (count === 0) return false
