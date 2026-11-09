@@ -9,18 +9,21 @@
 //   3. Ни того, ни другого — предмета нет. Тогда предметные виджеты не
 //      показываются (см. widgetVisibility.ts).
 //
-// Значение — id реестра (`src/lib/subjects.ts`) или своя строка учителя.
+// Значение — название из реестра («Химия», как в groups.subject и курсах) или
+// своя строка учителя. id реестра на входе тоже принимаются и переводятся в
+// название, чтобы в базе был один формат.
 // Кабинет учителя (ПК и мобильный) и главная ученика читают предмет только
 // через этот модуль, чтобы платформы не расходились.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getSubject } from './subjects'
 
-/** id реестра для известного предмета, иначе обрезанная строка; пусто → null. */
+/** Название из реестра для известного предмета (по id или имени), иначе
+ *  обрезанная строка; пусто → null. Формат совпадает с groups.subject. */
 export function normalizeStudentSubject(value: string | null | undefined): string | null {
   const trimmed = value?.trim()
   if (!trimmed) return null
-  return getSubject(trimmed)?.id ?? trimmed
+  return getSubject(trimmed)?.name ?? trimmed
 }
 
 /** Предмет ученика: группа или карточка 1:1 главнее собственной колонки. */
@@ -33,9 +36,7 @@ export function resolveStudentSubject(input: {
 
 /** Подпись предмета для интерфейса: имя из реестра или своя строка как есть. */
 export function studentSubjectLabel(subject: string | null | undefined): string | null {
-  const normalized = normalizeStudentSubject(subject)
-  if (!normalized) return null
-  return getSubject(normalized)?.name ?? normalized
+  return normalizeStudentSubject(subject)
 }
 
 /** Поле «Предмет» обязательно при создании ученика: пустая строка не подходит. */
