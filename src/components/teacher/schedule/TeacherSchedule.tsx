@@ -245,8 +245,10 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
 
       {showGrid ? (
         <WeekGrid days={Array.from({ length: 7 }, (_, k) => addDays(start, k))} items={items} today={today}
-          onOpen={item => { if (!readOnly && onOpen) onOpen(item) }}
-          onMenu={(item, el) => { if (!readOnly) overlays.current?.openMenu(item, el.getBoundingClientRect(), el) }}
+          // Клик — карточка занятия у блока («Открыть урок» в ней первой строкой),
+          // а не уход со страницы: календарь остаётся перед глазами.
+          onOpen={(item, el) => { if (!readOnly) overlays.current?.openMenu(item, el.getBoundingClientRect(), el, 300) }}
+          onMove={readOnly ? undefined : (item, d, time) => void run(() => scheduleMove(item.id, d, time), `${item.who} → ${shortLabel(d)}, ${time}`)}
           onAdd={readOnly ? undefined : d => overlays.current?.openAdd(d)} />
       ) : (<>
         {/* Неделя */}
@@ -596,7 +598,8 @@ function Card({ item, ghost, onTap, onMenu, onDragStart, onDragMove, onDragEnd }
 // Overlay state is deliberately separate: opening a menu must not rerender
 // every animated day and lesson behind it.
 export type CalendarOverlayHandle = {
-  openMenu: (item: SchedItem, rect: DOMRect, source?: HTMLElement) => void
+  /** expand — ширина карточки, если блок у́же её (сетка недели): карточка раскрывается над блоком. */
+  openMenu: (item: SchedItem, rect: DOMRect, source?: HTMLElement, expand?: number) => void
   openAdd: (day: string) => void
 }
 
@@ -608,7 +611,7 @@ export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   onSelectDay: (day: string) => void
 }>(function CalendarOverlays({ mobile, onOpen, onAttendance, onAction, onSelectDay }, ref) {
   const t = useT()
-  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement; session: number } | null>(null)
+  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement; expand?: number; session: number } | null>(null)
   const menuSession = useRef(0)
   const pendingMenuAction = useRef<(() => void) | null>(null)
   const dismissMenu = (afterClose?: () => void) => {
@@ -619,9 +622,9 @@ export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   const [addDay, setAddDay] = useState<string | null>(null)
 
   useImperativeHandle(ref, () => ({
-    openMenu: (item, rect, source) => {
+    openMenu: (item, rect, source, expand) => {
       pendingMenuAction.current = null
-      setMenu({ item, rect, source, session: ++menuSession.current })
+      setMenu({ item, rect, source, expand, session: ++menuSession.current })
     },
     openAdd: day => setAddDay(day),
   }), [])
@@ -640,6 +643,7 @@ export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
             item={menu.item}
             rect={menu.rect}
             source={menu.source}
+            expand={menu.expand}
             onClose={() => dismissMenu()}
             onOpen={onOpen && (() => dismissMenu(() => onOpen(menu.item)))}
             onAttendance={() => dismissMenu(() => onAttendance(menu.item))}
@@ -698,10 +702,11 @@ export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
 // only after the final owner leaves, using the visibility from before any menu.
 const hiddenMenuSources = new WeakMap<HTMLElement, { visibility: string; owners: number }>()
 
-function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
+function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
   item: SchedItem
   rect: DOMRect
   source?: HTMLElement
+  expand?: number
   onClose: () => void
   onOpen?: () => void
   onAttendance: () => void
@@ -740,6 +745,21 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)
   }, [])
+  // Узкий блок сетки раскрывается в полную карточку над собой: ширина expand,
+  // высота — та, что карточка заняла на самом деле (замер до отрисовки).
+  const liftedRef = useRef<HTMLDivElement>(null)
+  const [liftedH, setLiftedH] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    if (expand && liftedRef.current) setLiftedH(liftedRef.current.offsetHeight)
+  }, [expand])
+  const rect = (() => {
+    if (!expand) return anchorRect
+    const w = Math.min(expand, viewport.width - 24)
+    const l = Math.max(12, Math.min(anchorRect.left + anchorRect.width / 2 - w / 2, viewport.width - w - 12))
+    const h = liftedH ?? anchorRect.height
+    const top = Math.max(12, Math.min(anchorRect.top, viewport.height - h - 12))
+    return new DOMRect(l, top, w, h)
+  })()
   // Keep the lesson in place and anchor actions on the side with usable space.
   const width = Math.min(rect.width, viewport.width - 24)
   const left = Math.max(12, Math.min(rect.left, viewport.width - width - 12))
@@ -803,6 +823,7 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
         style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal, pointerEvents: isPresent ? 'auto' : 'none' }}
       />
       <motion.div
+        ref={liftedRef}
         aria-hidden="true"
         className="calendar-context-lifted" data-calendar-item={item.id}
         initial={{ y: 0, scale: 1, opacity: 1 }}

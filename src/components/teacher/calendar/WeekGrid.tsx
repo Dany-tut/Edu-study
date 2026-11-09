@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { haptic } from '../../../lib/feedback'
 import { useT } from '../../../lib/i18n'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { isScheduleEnded, isScheduleLive } from '../../../lib/scheduleLive'
@@ -13,14 +14,32 @@ import './teacherCalendar.css'
 // дни, строки — часы по Москве. Занятие — блок цвета своей группы (мягкий
 // фон, полоска слева, текст того же тона), пересечения делят колонку на
 // дорожки. Сегодня — градиент выбранного дня, колонка чуть подкрашена;
-// красная линия «сейчас». Клик по занятию — открыть; правая кнопка — меню
-// переноса/отмены; клик по пустому месту дня — добавить занятие.
+// красная линия «сейчас».
+//   клик по занятию / правая кнопка — карточка занятия с действиями
+//     (открыть урок, перенести, отметить, отменить) прямо над сеткой;
+//   зажать и тащить — перенос (жест Таскли): мышь — после сдвига на 5 px,
+//     палец (iPad) — после удержания 220 мс; призрак встаёт по сетке
+//     с шагом 15 минут, Esc отменяет, после — тост «Отменить»;
+//   клик по пустому месту дня — добавить занятие.
+// Простой клик перенос не начинает: без порога блок не сдвигается ни на пиксель.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DEFAULT_FROM = 9 * 60
 const DEFAULT_TO = 21 * 60
 const MIN_ROW = 44
 const DEFAULT_LEN = 60
+const SNAP = 15
+const MOUSE_SLOP = 5
+const TOUCH_SLOP = 8
+const TOUCH_HOLD = 220
+
+type Press = {
+  item: SchedItem; start: number; len: number
+  x: number; y: number; grabDy: number
+  touch: boolean; armed: boolean; timer?: number
+  cleanup: () => void
+}
+type Drop = { item: SchedItem; day: string; start: number; len: number }
 
 type Placed = { item: SchedItem; start: number; end: number; lane: number; lanes: number }
 
@@ -56,12 +75,14 @@ function placeDay(items: SchedItem[]): Placed[] {
   return out
 }
 
-export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd }: {
+export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: {
   days: string[]
   items: SchedItem[] | null
   today: string
-  onOpen: (item: SchedItem) => void
-  onMenu: (item: SchedItem, el: HTMLElement) => void
+  /** Клик и правая кнопка: карточка занятия у блока. */
+  onOpen: (item: SchedItem, el: HTMLElement) => void
+  /** Нет — переносить нельзя (стенд). Время — «ЧЧ:ММ», длительность сервер сохраняет. */
+  onMove?: (item: SchedItem, day: string, time: string) => void
   /** Нет — только просмотр (стенд): пустое место дня не кликается. */
   onAdd?: (day: string) => void
 }) {
@@ -104,8 +125,112 @@ export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd }: 
   const cols = `44px repeat(${days.length}, minmax(0, 1fr))`
   const y = (m: number) => ((m - from) / 60) * rowH
 
+  // ── перенос зажатием ───────────────────────────────────────────────────────
+  const colRefs = useRef(new Map<string, HTMLDivElement>())
+  const press = useRef<Press | null>(null)
+  const [drop, setDrop] = useState<Drop | null>(null)
+  const dropRef = useRef<Drop | null>(null)
+  const setDropBoth = (d: Drop | null) => { dropRef.current = d; setDrop(d) }
+  // Клик, пришедший после перетаскивания, — не клик.
+  const swallowClick = useRef(false)
+  const geo = useRef({ from, to, rowH, days })
+  geo.current = { from, to, rowH, days }
+  const moveRef = useRef(onMove)
+  moveRef.current = onMove
+
+  const endPress = () => {
+    const p = press.current
+    if (!p) return
+    if (p.timer) clearTimeout(p.timer)
+    p.cleanup()
+    press.current = null
+  }
+  useEffect(() => endPress, [])
+
+  const target = (p: Press, cx: number, cy: number): Drop => {
+    const g = geo.current
+    let day = dropRef.current?.day ?? p.item.date
+    let top = 0
+    for (const d of g.days) {
+      const r = colRefs.current.get(d)?.getBoundingClientRect()
+      if (!r) continue
+      top = r.top
+      if (cx >= r.left && cx < r.right) day = d
+    }
+    const raw = g.from + ((cy - p.grabDy - top) / g.rowH) * 60
+    const start = Math.min(g.to - SNAP, Math.max(g.from, Math.round(raw / SNAP) * SNAP))
+    return { item: p.item, day, start, len: p.len }
+  }
+
+  const beginDrag = (p: Press, cx: number, cy: number) => {
+    p.armed = true
+    swallowClick.current = true
+    haptic(10)
+    setDropBoth(target(p, cx, cy))
+  }
+
+  const onPressStart = (e: React.PointerEvent<HTMLButtonElement>, item: SchedItem, start: number, end: number) => {
+    if (!onMove || item.cancelled || e.button !== 0) return
+    endPress()
+    swallowClick.current = false
+    const touch = e.pointerType === 'touch'
+    const r = e.currentTarget.getBoundingClientRect()
+    const p: Press = { item, start, len: end - start, x: e.clientX, y: e.clientY, grabDy: e.clientY - r.top, touch, armed: false, cleanup: () => {} }
+
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - p.x, dy = ev.clientY - p.y
+      const dist = Math.hypot(dx, dy)
+      if (!p.armed) {
+        // Палец двинулся раньше удержания — это прокрутка, не перенос.
+        if (p.touch) { if (dist > TOUCH_SLOP) endPress(); return }
+        if (dist <= MOUSE_SLOP) return
+        beginDrag(p, ev.clientX, ev.clientY)
+        return
+      }
+      // Край прокрутки: ведём занятие за пределы видимых часов.
+      const b = body.current?.getBoundingClientRect()
+      if (b && body.current) {
+        if (ev.clientY < b.top + 24) body.current.scrollTop -= 10
+        else if (ev.clientY > b.bottom - 24) body.current.scrollTop += 10
+      }
+      const next = target(p, ev.clientX, ev.clientY)
+      const cur = dropRef.current
+      if (!cur || cur.day !== next.day || cur.start !== next.start) {
+        if (cur && cur.day !== next.day) haptic(6)
+        setDropBoth(next)
+      }
+    }
+    const up = () => {
+      const d = dropRef.current
+      const armed = p.armed
+      endPress()
+      setDropBoth(null)
+      if (!armed || !d) return
+      if (d.day !== p.item.date || d.start !== p.start) moveRef.current?.(p.item, d.day, fmtMinutes(d.start))
+    }
+    const cancel = () => { endPress(); setDropBoth(null) }
+    const key = (ev: KeyboardEvent) => { if (ev.key === 'Escape' && p.armed) { ev.preventDefault(); cancel() } }
+    // Пока палец держит занятие, страница под ним не едет.
+    const touchMove = (ev: TouchEvent) => { if (p.armed) ev.preventDefault() }
+
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', cancel)
+    window.addEventListener('keydown', key)
+    window.addEventListener('touchmove', touchMove, { passive: false })
+    p.cleanup = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', cancel)
+      window.removeEventListener('keydown', key)
+      window.removeEventListener('touchmove', touchMove)
+    }
+    if (touch) p.timer = window.setTimeout(() => { if (press.current === p) beginDrag(p, p.x, p.y) }, TOUCH_HOLD)
+    press.current = p
+  }
+
   return (
-    <div className="tcal-grid">
+    <div className="tcal-grid" data-dragging={drop ? true : undefined}>
       <div className="tcal-days" style={{ gridTemplateColumns: cols }}>
         <div />
         {days.map(d => (
@@ -126,7 +251,9 @@ export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd }: 
             )}
           </div>
           {days.map(d => (
-            <div key={d} className="tcal-col" data-today={d === today || undefined} data-add={onAdd ? true : undefined}
+            <div key={d} ref={el => { if (el) colRefs.current.set(d, el); else colRefs.current.delete(d) }}
+              className="tcal-col" data-today={d === today || undefined} data-add={onAdd ? true : undefined}
+              data-drop={drop && drop.day === d ? true : undefined}
               onClick={e => { if (onAdd && e.target === e.currentTarget) onAdd(d) }}
               title={onAdd ? t('Добавить занятие') : undefined}>
               {hours.map((h, i) => <div key={h} className="tcal-hline" style={{ top: i * rowH }} />)}
@@ -139,19 +266,36 @@ export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd }: 
                 return (
                   <button key={item.id} type="button" data-hover="card" className="tcal-event"
                     data-live={live || undefined} data-past={past || undefined} data-cancelled={item.cancelled || undefined}
+                    data-lifted={drop?.item.id === item.id || undefined}
                     style={{
                       top, height,
                       left: `calc(${(lane / lanes) * 100}% + 4px)`, width: `calc(${100 / lanes}% - 8px)`,
                       ['--ev' as string]: item.color || 'var(--color-accent)',
                     }}
                     title={`${item.who} · ${meta}`}
-                    onClick={() => onOpen(item)}
-                    onContextMenu={e => { e.preventDefault(); onMenu(item, e.currentTarget) }}>
+                    onPointerDown={e => onPressStart(e, item, start, end)}
+                    onClick={e => {
+                      if (swallowClick.current) { swallowClick.current = false; return }
+                      onOpen(item, e.currentTarget)
+                    }}
+                    onContextMenu={e => {
+                      e.preventDefault()
+                      // Долгое касание на пальце — это перенос, не меню.
+                      if (press.current?.touch) return
+                      onOpen(item, e.currentTarget)
+                    }}>
                     <b>{item.who}</b>
                     {height > 34 && <span>{meta}</span>}
                   </button>
                 )
               })}
+              {drop && drop.day === d && (
+                <div className="tcal-event" data-ghost aria-hidden
+                  style={{ top: y(drop.start) + 2, height: Math.max(22, (drop.len / 60) * rowH - 4), left: 4, width: 'calc(100% - 8px)', ['--ev' as string]: drop.item.color || 'var(--color-accent)' }}>
+                  <b>{drop.item.who}</b>
+                  <span>{fmtMinutes(drop.start)}–{fmtMinutes(drop.start + drop.len)}</span>
+                </div>
+              )}
               {d === today && now >= from && now <= to && <div className="tcal-now" style={{ top: y(now) }} aria-hidden />}
             </div>
           ))}

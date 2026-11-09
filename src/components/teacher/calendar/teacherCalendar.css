@@ -24,7 +24,7 @@
 .tcal-event { position: absolute; z-index: 1; overflow: hidden; display: flex; flex-direction: column; gap: 1px; padding: 5px 6px 5px 9px; border: 0; border-radius: 10px; text-align: left; cursor: pointer; font-family: inherit;
   background: color-mix(in srgb, var(--ev) 16%, var(--color-bg-2));
   color: color-mix(in srgb, var(--ev) 72%, var(--color-text));
-  transition: box-shadow .15s, transform .15s, opacity .15s; }
+  transition: box-shadow .15s, opacity .15s; }
 .tcal-event::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 2px; background: var(--ev); }
 .tcal-event b, .tcal-event span { display: block; white-space: nowrap; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 78%, transparent); mask-image: linear-gradient(90deg, #000 78%, transparent); }
 .tcal-event b { font-size: 12.5px; font-weight: 700; line-height: 1.3; }
@@ -33,7 +33,14 @@
 .tcal-event[data-cancelled] b { text-decoration: line-through; }
 .tcal-event[data-cancelled] { opacity: .5; }
 .tcal-event[data-live] { box-shadow: inset 0 0 0 1.5px var(--ev); }
+/* Ховер — только обводка: блок не сдвигается, клик попадает туда, куда целился. */
 @media (hover: hover) and (pointer: fine) {
-  .tcal-event:hover { box-shadow: 0 0 0 1.5px var(--ev), var(--shadow-2); transform: translateY(-1px); z-index: 2; }
+  .tcal-grid:not([data-dragging]) .tcal-event:not([data-ghost]):hover { box-shadow: 0 0 0 1.5px var(--ev), var(--shadow-2); z-index: 2; }
 }
+.tcal-event { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.tcal-event[data-lifted] { opacity: .3; }
+.tcal-event[data-ghost] { z-index: 4; pointer-events: none; opacity: 1; box-shadow: 0 0 0 1.5px var(--ev), var(--shadow-3); background: color-mix(in srgb, var(--ev) 26%, var(--color-bg-2)); }
+.tcal-grid[data-dragging] { cursor: grabbing; }
+.tcal-grid[data-dragging] .tcal-event { cursor: grabbing; }
+.tcal-col[data-drop] { background: rgba(var(--accent-rgb), .08); }
 .tcal-event:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
