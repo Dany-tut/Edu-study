@@ -6360,4 +6360,13 @@ export const EN: Record<string, string> = {
   "Этот браузер не умеет ставить приложения. Откройте Искру в": "This browser can’t install apps. Open Iskra in",
   "и нажмите «Установить» ещё раз.": "and tap “Install” again.",
   "внизу справа, затем": "at the bottom right, then",
+  "Установить": "Install",
+  "В Safari откройте меню": "In Safari, open the menu",
+  "«Добавить в Dock…»": "“Add to Dock…”",
+  "Огонёк появится в Dock, Искра откроется отдельным окном.": "Ogonyok will appear in the Dock, and Iskra will open in its own window.",
+  "Этот браузер не умеет ставить приложения. Откройте Искру в Chrome, Edge или Safari и нажмите «Установить» ещё раз.": "This browser can’t install apps. Open Iskra in Chrome, Edge or Safari and click “Install” again.",
+  "Нажмите значок установки справа в адресной строке Edge и выберите «Установить».": "Click the install icon on the right of Edge’s address bar and choose “Install”.",
+  "Нажмите значок установки справа в адресной строке Chrome и выберите «Установить».": "Click the install icon on the right of Chrome’s address bar and choose “Install”.",
+  "Искра откроется отдельным окном, как программа, со своим значком в Dock или на панели задач": "Iskra will open in its own window, like an app — with its own icon in the Dock or taskbar",
+  "Отдельное окно": "Own window",
 }
