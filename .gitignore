@@ -40,3 +40,13 @@ supabase/.temp/
 dist-pr29-qa/
 dist-pr29-baseline/
 dist-refresh409-qa/
+
+# Архив модуля расшифровки с вложенным ffmpeg. Собирается при сборке сайта
+# (prebuild → scripts/buildTranscriptionModule.mjs) и в деплое есть, а в git не
+# коммитится — он большой из-за бинарника и раздувал бы репозиторий. Сам ffmpeg
+# тоже не коммитим: скрипт скачивает его по закреплённому URL с проверкой sha256
+# и кэширует в node_modules/.cache.
+public/downloads/iskra-transcription-mac.zip
+tools/local-transcription/ffmpeg
+tools/local-transcription/ffmpeg.gz
+tools/local-transcription/ffprobe
