@@ -124,9 +124,12 @@ body{
 .cell:hover{color:var(--color-text)}
 .cell[aria-pressed=true]{min-height:82px;background:var(--color-purple-soft);color:var(--color-accent);
   font-size:11px;font-weight:700}
-.cell .lab{display:block;max-width:100%;padding:0 5px;box-sizing:border-box;text-align:center;overflow:hidden;
-  white-space:nowrap;-webkit-mask-image:linear-gradient(to right,#000 86%,transparent);
-  mask-image:linear-gradient(to right,#000 86%,transparent);line-height:1}
+/* nav-label-fade (память проекта): активная ячейка шире подписи на боковые поля
+   ≥6px, подпись не касается краёв; длинная обрезается ФЕЙДОМ (как FadeText), не «…».
+   Слоты равной ширины (все ячейки 64) — RU/EN не ездят; фейд виден в обеих темах. */
+.cell .lab{display:block;max-width:100%;padding:0 6px;box-sizing:border-box;text-align:center;overflow:hidden;
+  white-space:nowrap;-webkit-mask-image:linear-gradient(to right,#000 84%,transparent 99%);
+  mask-image:linear-gradient(to right,#000 84%,transparent 99%);line-height:1}
 .cell .badge{position:absolute;top:6px;right:9px;min-width:16px;height:16px;border-radius:999px;background:#F26b6b;
   color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px}
 .cell{position:relative}
