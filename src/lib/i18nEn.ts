@@ -5690,6 +5690,8 @@ export const EN: Record<string, string> = {
   "Ещё предмет 1:1": "Another one-to-one subject",
   "Не удалось назначить группу": "Could not assign the group",
   "Учеников пока нет. Добавьте первого — достаточно имени.": "No students yet. Add your first student — a name is all you need.",
+  "Учеников пока нет. Добавьте первого — нужны имя и предмет.": "No students yet. Add your first student — a name and a subject are needed.",
+  "Предмет нужен, чтобы ученик сразу увидел свои курсы и виджеты. Группу и расписание можно назначить позже.": "A subject lets the student see their courses and widgets right away. You can assign a group and schedule later.",
   "Всех учеников можно увидеть во вкладке «Ученики»": "You can see all students in the “Students” tab",
   "Выберите фотографии или изображения": "Choose photos or images",
   "Можно прикрепить до 20 фото": "You can attach up to 20 photos",
