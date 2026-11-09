@@ -1,9 +1,9 @@
 import FadeText from '../../FadeText'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import EmptyState from '../../EmptyState'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
-import { Users, ChevronRight, Phone, Send, Wallet, CalendarCheck, Check } from '../../icons/appIcons'
+import { Users, ChevronRight, ChevronDown, Phone, Send, Wallet, CalendarCheck, Check } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import Skeleton from '../../Skeleton'
@@ -16,11 +16,13 @@ import { contactLabel } from '../../../lib/contactLink'
 import { useT, useTc } from '../../../lib/i18n'
 import TeacherSelect from '../TeacherSelect'
 import { FIELD } from '../../../lib/fieldStyle'
-import { btn } from '../../../lib/pillStyles'
+import { btn, GRAD } from '../../../lib/pillStyles'
 import { Alert } from '../../Alert'
 import { copyToClipboard } from '../../../lib/clipboard'
 import { mySubjectNames } from '../../../lib/subjects'
 import { useTeacherAccess } from '../../../lib/teacherAccess'
+import { GLASS, glassMenu } from '../../../lib/nativeGlass'
+import { studentSubjectOptions, defaultStudentSubject, isStudentSubjectValid } from '../../../lib/studentSubject'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
 import BackCircle from '../../../components/BackCircle'
@@ -266,6 +268,34 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
+// Поле «Предмет*» новой карточки ученика (вариант Б, studentSubject.ts).
+// На iOS-приложении — системное меню (nativeGlass), в вебе и на Android —
+// TeacherSelect. Значение — название предмета из реестра.
+function SubjectPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useT()
+  const subjects = useTeacherAccess(s => s.subjects)
+  const options = studentSubjectOptions(mySubjectNames(subjects), value)
+  if (GLASS) {
+    const index = options.indexOf(value)
+    return (
+      <button type="button" data-hover="layer" aria-label={t('Предмет')}
+        style={{ ...FIELD, marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, color: value ? 'var(--color-text)' : 'var(--color-muted)' }}
+        onClick={async e => {
+          const sel = await glassMenu(e.currentTarget, options.map((label, i) => ({ label: t(label), checked: i === index })), t('Предмет'))
+          if (sel >= 0) onChange(options[sel])
+        }}>
+        <FadeText style={{ flex: 1, textAlign: 'left' }}>{value ? t(value) : t('Выберите предмет')}</FadeText>
+        <ChevronDown size={16} style={{ flexShrink: 0 }} />
+      </button>
+    )
+  }
+  return (
+    <div style={{ marginTop: 8 }}>
+      <TeacherSelect value={value} onChange={onChange} clearable={false} placeholder={t('Выберите предмет')} options={options.map(s => ({ value: s, label: t(s) }))} />
+    </div>
+  )
+}
+
 export default function MobileTeacherStudents() {
   const t = useT()
   const { groups: realGroups, addUnassignedStudent } = useGroups()
@@ -322,11 +352,15 @@ export default function MobileTeacherStudents() {
   const [createError, setCreateError] = useState('')
   const [invite, setInvite] = useState('')
   const [copiedInvite, setCopiedInvite] = useState(false)
+  const teacherSubjects = useTeacherAccess(s => s.subjects)
+  const [newSubject, setNewSubject] = useState('')
+  // Один предмет у учителя — подставляем сразу (предметы догружаются асинхронно).
+  useEffect(() => { if (addOpen && !newSubject) { const d = defaultStudentSubject(mySubjectNames(teacherSubjects)); if (d) setNewSubject(d) } }, [addOpen, newSubject, teacherSubjects])
   async function createStudent() {
-    if (!newName.trim() || savingNew) return
+    if (!newName.trim() || !isStudentSubjectValid(newSubject) || savingNew) return
     setSavingNew(true); setCreateError('')
     try {
-      const result = await addUnassignedStudent({ name: newName.trim() })
+      const result = await addUnassignedStudent({ name: newName.trim(), subject: newSubject })
       if (result.error) throw result.error
       setNewName('')
       setInvite(result.inviteToken ? `${location.origin}${location.pathname}#/join?token=${result.inviteToken}` : '')
@@ -346,7 +380,7 @@ export default function MobileTeacherStudents() {
       bottomDockRaise={80}
       bottomDock={!openGroup && !addOpen && !sheetOpen ? (
         <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
-          onClick={() => { setInvite(''); setCreateError(''); setCopiedInvite(false); setAddOpen(true) }}>
+          onClick={() => { setInvite(''); setCreateError(''); setCopiedInvite(false); setNewName(''); setNewSubject(defaultStudentSubject(mySubjectNames(teacherSubjects))); setAddOpen(true) }}>
           {t('Добавить ученика')}
         </button>
       ) : undefined}>
@@ -357,10 +391,10 @@ export default function MobileTeacherStudents() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')} footer={<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {invite ? <>
-                <button data-hover="layer" style={btn('M', 'primary')} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</button>
+                <button data-hover="layer" style={btn('M', 'primary', { background: copiedInvite ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}<span style={{ position: 'relative', top: '-0.04em' }}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</span></button>
                 <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
               </> : <>
-                <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
+                <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || !isStudentSubjectValid(newSubject) || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
               </>}
             </div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -369,7 +403,11 @@ export default function MobileTeacherStudents() {
 
               </> : <>
                 <label>{t('Имя ученика')}<input style={{ ...FIELD, marginTop: 8 }} value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('Как зовут ученика?')} onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void createStudent() }} /></label>
-                <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Группу или занятия 1:1 можно назначить позже.')}</p>
+                <div>
+                  <span style={{ fontSize: 14 }}>{t('Предмет')} <span style={{ color: 'var(--color-red-text)' }}>*</span></span>
+                  <SubjectPicker value={newSubject} onChange={setNewSubject} />
+                </div>
+                <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Предмет нужен, чтобы ученик сразу увидел свои курсы и виджеты. Группу и расписание можно назначить позже.')}</p>
                 {createError && <Alert tone="danger" text={createError} />}
 
               </>}
