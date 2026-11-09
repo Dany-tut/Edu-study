@@ -6369,4 +6369,5 @@ export const EN: Record<string, string> = {
   "Нажмите значок установки справа в адресной строке Chrome и выберите «Установить».": "Click the install icon on the right of Chrome’s address bar and choose “Install”.",
   "Искра откроется отдельным окном, как программа, со своим значком в Dock или на панели задач": "Iskra will open in its own window, like an app — with its own icon in the Dock or taskbar",
   "Отдельное окно": "Own window",
+  "и выберите": "and choose",
 }

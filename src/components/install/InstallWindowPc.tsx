@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import Modal, { ModalClose } from '../Modal'
 import { Lock, Plus, Rocket, Monitor, WifiOff } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
+import { textFadeStyle } from '../../lib/textFades'
 import { btn } from '../../lib/pillStyles'
 import { OgonekIcon, type InstallViewProps } from './InstallParts'
 
@@ -15,7 +16,7 @@ import { OgonekIcon, type InstallViewProps } from './InstallParts'
 //   Chrome / Edge, окно установки доступно → кнопка «Установить» (системное окно);
 //   Chrome / Edge, окна нет               → подсказка: значок установки справа
 //                                            в адресной строке (подсвечен);
-//   Safari на Mac                          → «Файл → Добавить в Dock»;
+//   Safari на Mac                          → меню «Файл», «Добавить в Dock…»;
 //   остальные (Firefox и т. п.)            → открыть в Chrome, Edge или Safari.
 // На ПК окно само не всплывает — только по строке «Установить приложение».
 // ─────────────────────────────────────────────────────────────────────────────
@@ -50,7 +51,7 @@ function AddressBarHint({ browser }: { browser: 'chrome' | 'edge' }) {
         background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 13,
       }}>
         <Lock size={13} />
-        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--color-text-2)' }}>{host}</span>
+        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--color-text-2)', ...textFadeStyle }}>{host}</span>
         <span style={{
           display: 'grid', placeItems: 'center', width: 30, height: 30, borderRadius: 15, flexShrink: 0,
           background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
@@ -105,7 +106,7 @@ export default function InstallWindowPc({ open, onClose, support, onInstall }: I
 
   const hint = canInstall ? null
     : browser === 'chrome' || browser === 'edge' ? <AddressBarHint browser={browser} />
-    : browser === 'safari' ? <Note>{t('В Safari откройте меню')} {b(t('Файл'))} → {b(t('«Добавить в Dock…»'))}. {t('Огонёк появится в Dock, Искра откроется отдельным окном.')}</Note>
+    : browser === 'safari' ? <Note>{t('В Safari откройте меню')} {b(t('Файл'))} {t('и выберите')} {b(t('«Добавить в Dock…»'))}. {t('Огонёк появится в Dock, Искра откроется отдельным окном.')}</Note>
     : <Note>{t('Этот браузер не умеет ставить приложения. Откройте Искру в Chrome, Edge или Safari и нажмите «Установить» ещё раз.')}</Note>
 
   return (
