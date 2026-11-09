@@ -21,6 +21,9 @@ import { useStudentData } from '../store/studentDataStore'
 import MobileSheet from '../components/MobileSheet'
 import HScrollFade, { HSCROLL_PAD_TOP } from '../components/HScrollFade'
 import { useT, useTc } from '../lib/i18n'
+import { GLASS } from '../lib/nativeGlass'
+import { PLATFORM } from '../lib/platform'
+import HomeworkListIphone from '../components/iphone/HomeworkListIphone'
 
 type StatusFilter = 'all' | 'active' | 'done'
 const FILTER_OPTIONS: Array<{ id: StatusFilter; label: string }> = [
@@ -196,6 +199,24 @@ export default function CoursesPage() {
         )}
         {!loaded && <Skeleton.Text lines={3} style={{ width: '100%', maxWidth: 320 }} />}
       </div>
+    )
+  }
+
+  // Приложение на iPhone: свой экран с нативным стеклянным баром (курс сверху,
+  // модуль/поиск/фильтры снизу). Safari, Android, iPad и ПК — разметка ниже.
+  if (GLASS && PLATFORM === 'iphone' && !isDesktop) {
+    return (
+      <HomeworkListIphone
+        subject={subject}
+        subjects={subjects}
+        activeSubjectId={activeSubjectId}
+        onSubject={setActiveSubject}
+        moduleTab={moduleTab}
+        onModule={id => { setModuleTab(id); if (id !== ALL) setActiveModule(id) }}
+        openLesson={openLesson}
+        now={now}
+        focusLessonId={focusLessonId}
+      />
     )
   }
 

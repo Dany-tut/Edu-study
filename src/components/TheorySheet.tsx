@@ -28,6 +28,7 @@ import { useT } from '../lib/i18n'
 import { tidyProse, proseWrap, proseLines } from '../lib/typography'
 import Prose from './Prose'
 import GlossedText from './GlossedText'
+import { useNativeOverlay } from '../lib/nativeGlass'
 
 export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject }: {
   open: boolean
@@ -55,6 +56,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
   // (--glass-rgb), а не белым: белая растушёвка в тёмной теме невидима.
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [fade, setFade] = useState({ top: false, bottom: false })
+  useNativeOverlay(open)
   const syncFade = () => {
     const el = scrollRef.current
     if (!el) return

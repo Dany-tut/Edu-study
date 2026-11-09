@@ -88,8 +88,8 @@ export function WindowSoftEdges() {
   }, [])
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 45 }}>
-      <SoftEdge edge="top" size="calc(env(safe-area-inset-top, 0px) + 20px)" strength={fade.top} zIndex={0} />
-      {!desktop && <SoftEdge edge="bottom" size="calc(env(safe-area-inset-bottom, 0px) + 76px)" strength={fade.bottom} zIndex={0} />}
+      <SoftEdge edge="top" size="calc(env(safe-area-inset-top, 0px) + var(--glass-top-pad, 20px))" strength={fade.top} zIndex={0} />
+      {!desktop && <SoftEdge edge="bottom" size="calc(env(safe-area-inset-bottom, 0px) + 76px + var(--glass-bottom-pad, 0px))" strength={fade.bottom} zIndex={0} />}
     </div>,
     document.body,
   )

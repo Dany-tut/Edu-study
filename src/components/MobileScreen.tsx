@@ -1,6 +1,6 @@
 import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
+import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER, SAFE_TOP } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
 import { GLASS, type GlassHeader } from '../lib/nativeGlass'
@@ -100,8 +100,8 @@ export default function MobileScreen({
   const entered = useEnterAfterPaint()
   // Both chrome zones dissolve content alpha; controls stay outside the mask.
   const topPadding = (topZone != null || (GLASS && glassHeader))
-    ? `calc(env(safe-area-inset-top, 0px) + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)`
-    : `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
+    ? `calc(${SAFE_TOP} + ${TOP_ZONE + MOBILE_TOP_GAP - 8}px)`
+    : `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`
   // Keep the ramp inside the initial padding. Only content moving into that
   // space is faded, including the first frame of compositor-driven scrolling.
   const topFadeEnd = `min(${topPadding}, ${topClearance + 24}px)`
@@ -171,7 +171,6 @@ export default function MobileScreen({
   // content scrolls EDGE-TO-EDGE under it (paddingTop = safe-area + bar height),
   // so the notch/home-indicator zones are filled by content, never an empty band.
   void topRaise
-  const SAFE_TOP = 'env(safe-area-inset-top, 0px)'
   const SAFE_BOTTOM = 'env(safe-area-inset-bottom, 0px)'
   // Зазор, а не вплотную к safe-area: у статус-бара iPhone своё размытие, и
   // шапка, прижатая к границе, читается как заехавшая под чёлку.
