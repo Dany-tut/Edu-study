@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import ScrollFade from '../components/ScrollFade'
 import Skeleton from '../components/Skeleton'
 import Checkbox from '../components/Checkbox'
+import { TermsLink, PrivacyLink } from '../components/LegalLinks'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from '../components/icons/appIcons'
 import { supabase } from '../lib/supabase'
@@ -57,7 +58,6 @@ export default function JoinTeacherPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [consent, setConsent] = useState(false)
-  const [analyticsOptIn, setAnalyticsOptIn] = useState(true)
 
   useEffect(() => {
     if (!token) { setStep('error'); return }
@@ -94,7 +94,8 @@ export default function JoinTeacherPage() {
           last_name: lastName.trim(),
           // Старое поле — подпись в Админке; источник правды — profiles.subjects.
           subject: subjects.map(v => getSubject(v)?.name ?? v).join(', '),
-          analytics_consent: analyticsOptIn,
+          // analytics_consent не пишем: отдельного выбора (opt-in) пока нет,
+          // а принудительное true для всех оператор запретил (07–09.11.2026).
           consent_at: new Date().toISOString(),
         },
       },
@@ -202,10 +203,11 @@ export default function JoinTeacherPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
               <ConsentRow checked={consent} onChange={setConsent}>
-                {t('Я соглашаюсь на обработку персональных данных платформы «Искра».')}
-              </ConsentRow>
-              <ConsentRow checked={analyticsOptIn} onChange={setAnalyticsOptIn}>
-                {t('Разрешаю анонимный сбор аналитики использования, чтобы платформа становилась лучше.')}
+                <span>
+                  {t('Принимаю')} <TermsLink>{t('Условия использования')}</TermsLink>{' '}
+                  {t('и соглашаюсь на обработку данных, включая техническую аналитику: действия в интерфейсе, запросы и ошибки, — по')}{' '}
+                  <PrivacyLink>{t('Политике конфиденциальности')}</PrivacyLink>.
+                </span>
               </ConsentRow>
             </div>
 
@@ -239,7 +241,7 @@ function ConsentRow({ checked, onChange, children }: { checked: boolean; onChang
       checked={checked}
       onChange={onChange}
       align="start"
-      labelStyle={{ display: 'flex', fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.45 }}
+      labelStyle={{ display: 'flex', fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.45 }}
     >
       {children}
     </Checkbox>

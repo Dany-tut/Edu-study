@@ -4,6 +4,7 @@ import { usePasskeyAvailable } from '../lib/passkey'
 import { KeyRound } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { authFailureFeedback, useAuthFeedback } from './AuthFeedback'
+import { TermsLink, PrivacyLink } from './LegalLinks'
 
 const providers = [
   { id: 'apple' as const, label: 'Apple' },
@@ -125,12 +126,16 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
   )
 }
 
-export function AuthLegalLinks() {
+/** Согласие одной фразой под формой: нажатие «Войти»/«Зарегистрироваться» =
+ *  принятие условий и обработки данных, включая техническую аналитику. */
+export function AuthLegalLinks({ action = 'login' }: { action?: 'login' | 'register' }) {
+  const t = useT()
   return <p className="auth-legal">
-        <a data-hover="link" href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
-        {' · '}
-        <a data-hover="link" href="https://edu-study-app.vercel.app/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Условия использования</a>
-      </p>
+    {action === 'register' ? t('Регистрируясь, вы принимаете') : t('Входя, вы принимаете')}{' '}
+    <TermsLink>{t('Условия использования')}</TermsLink>{' '}
+    {t('и соглашаетесь на обработку данных, включая техническую аналитику: действия в интерфейсе, запросы и ошибки. Подробнее — в')}{' '}
+    <PrivacyLink>{t('Политике конфиденциальности')}</PrivacyLink>.
+  </p>
 }
 
 export function AppleMark({ size = 20 }: { size?: number }) {
