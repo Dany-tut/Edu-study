@@ -169,3 +169,22 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
   [data-platform="iphone"] .lh-header { flex-basis:calc(44px + max(env(safe-area-inset-top,0px), 6px)); padding-top:max(env(safe-area-inset-top,0px), 6px); padding-bottom:0; }
   [data-platform="iphone"] .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:calc(72px + max(env(safe-area-inset-top,0px), 6px)); }
 }
+
+/* iPad: шапка главной под строкой состояния (блок от iPad-чата; уберут, когда
+   управление переедет в капсулу справа). Портрет (<1024) — мобильная шапка,
+   как у iPhone; ландшафт (≥1024) — десктопная, к ней только отступ сверху.
+   Низкие окна (Split View, ≤800 и ≤660) держат свои высоты шапки + safe-area,
+   иначе этот блок перебил бы их. Только [data-platform="ipad"]. */
+@media(max-width:1023px) {
+  [data-platform="ipad"] .lh-header { flex-basis:calc(44px + max(env(safe-area-inset-top,0px), 6px)); padding-top:max(env(safe-area-inset-top,0px), 6px); padding-bottom:0; }
+  [data-platform="ipad"] .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:calc(72px + max(env(safe-area-inset-top,0px), 6px)); }
+}
+@media(min-width:1024px) {
+  [data-platform="ipad"] .lh-header { padding-top:calc(12px + env(safe-area-inset-top,0px)); flex-basis:calc(84px + env(safe-area-inset-top,0px)); }
+}
+@media(min-width:1024px) and (max-height:800px) {
+  [data-platform="ipad"] .lh-header { flex-basis:calc(70px + env(safe-area-inset-top,0px)); }
+}
+@media(min-width:1024px) and (max-height:660px) {
+  [data-platform="ipad"] .lh-header { flex-basis:calc(58px + env(safe-area-inset-top,0px)); }
+}

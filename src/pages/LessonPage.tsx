@@ -42,6 +42,7 @@ import { resolveSubjectPalette } from '../lib/subjects'
 import { useTheme } from '../store/themeStore'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useSwipeBack } from '../lib/useSwipeBack'
+import { useScreenBack } from '../lib/useScreenBack'
 
 /** «1 файл / 2 файла / 5 файлов». */
 function plural(n: number, one: string, few: string, many: string) {
@@ -709,6 +710,8 @@ export default function LessonPage() {
   const closeLesson = useDashboard(s => s.closeLesson)
   // Свайп от левого края = кнопка «Назад» (жест живёт только на тач-экранах).
   useSwipeBack(closeLesson, !isDesktop)
+  // Тот же шаг для системной «Назад» (Android) — общий стек overlayStack.
+  useScreenBack('lesson', closeLesson)
   const openHomework = useDashboard(s => s.openHomework)
   const highlightReactionId = useDashboard(s => s.highlightReactionId)
   const clearHighlightReaction = useDashboard(s => s.clearHighlightReaction)

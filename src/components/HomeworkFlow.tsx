@@ -47,6 +47,7 @@ import { useStudentData, ownerStudentIdFor, subjectSlugFor, subjectAliases } fro
 import { useTint } from '../store/tintStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
+import { useScreenBack } from '../lib/useScreenBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic, tc as tcStatic } from '../lib/i18n'
 import { setVoiceScene, clearVoiceScene, speak, stopSpeech, hasVoiceFor } from '../lib/speech'
@@ -1714,7 +1715,10 @@ export default function HomeworkFlow({
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
   // Свайп от левого края = кнопка «Назад» в шапке домашки.
-  useSwipeBack(() => { clearHomeworkWidgetFeedback(); onBack() }, isMobile)
+  const backFromHomework = () => { clearHomeworkWidgetFeedback(); onBack() }
+  useSwipeBack(backFromHomework, isMobile)
+  // Тот же шаг для системной «Назад» (Android) — общий стек overlayStack.
+  useScreenBack('homework', backFromHomework)
   const setAnswerFlight = useDashboard(s => s.setAnswerFlight)
   const openCourses = useDashboard(s => s.openCourses)
   const currentLessonId = useDashboard(s => s.currentLessonId)
