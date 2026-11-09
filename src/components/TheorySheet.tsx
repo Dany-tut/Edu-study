@@ -29,6 +29,8 @@ import { tidyProse, proseWrap, proseLines } from '../lib/typography'
 import Prose from './Prose'
 import GlossedText from './GlossedText'
 import { useNativeOverlay } from '../lib/nativeGlass'
+import { IS_IOS } from '../lib/platform'
+import SoftEdge from './SoftEdge'
 
 export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject }: {
   open: boolean
@@ -323,6 +325,11 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                 ))}</Fragment>
               ))}
             </div>
+              {/* iPhone/iPad — мягкий край (размытие без цвета); Android/ПК — фейд. */}
+              {IS_IOS ? <>
+                <SoftEdge edge="top" size="28px" strength={fade.top ? 1 : 0} zIndex={1} />
+                <SoftEdge edge="bottom" size="36px" strength={fade.bottom ? 1 : 0} zIndex={1} />
+              </> : <>
               <div
                 aria-hidden
                 style={{
@@ -339,6 +346,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   opacity: fade.bottom ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none',
                 }}
               />
+              </>}
             </div>
           </motion.aside>
         </>

@@ -10,6 +10,8 @@ import {
 } from '../store/feedGesturesStore'
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
+import { IS_IOS } from '../lib/platform'
+import SoftEdge from './SoftEdge'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // «Лента и жесты» — экран, где раскладку собирают руками
@@ -329,7 +331,9 @@ export function FeedGesturesSettings() {
             engagement={engagement}
           />
         </div>
-        <div style={{ height: 14, background: 'linear-gradient(to bottom, rgb(var(--glass-rgb)), transparent)' }} />
+        {IS_IOS
+          ? <div style={{ position: 'relative', height: 14 }}><SoftEdge edge="top" size="14px" zIndex={0} /></div>
+          : <div style={{ height: 14, background: 'linear-gradient(to bottom, rgb(var(--glass-rgb)), transparent)' }} />}
       </div>
 
       <div style={{ marginTop: -12 }}>
