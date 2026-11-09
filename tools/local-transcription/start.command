@@ -1,7 +1,21 @@
 #!/bin/zsh
 set -eu
 cd "${0:A:h}"
-export PATH="/opt/homebrew/bin:$PATH"
+# macOS помечает скачанные файлы карантином и отказывается их открывать
+# («Файл не был открыт?»). Снимаем метку со всей распакованной папки — тогда
+# и start.command, и вложенный ffmpeg запускаются без вопросов.
+xattr -dr com.apple.quarantine "$PWD" 2>/dev/null || true
+chmod +x "$PWD/ffmpeg" 2>/dev/null || true
+# Вложенный ffmpeg (статический, Apple Silicon) — первым в PATH, чтобы его
+# нашли и наши скрипты, и распознавание речи (mlx-whisper зовёт ffmpeg из PATH).
+# Homebrew — запасной путь для машин, где ffmpeg уже стоит.
+export PATH="$PWD:/opt/homebrew/bin:$PATH"
+if [[ -x "$PWD/ffmpeg" ]]; then
+  export ISKRA_FFMPEG="$PWD/ffmpeg"
+elif ! command -v ffmpeg >/dev/null; then
+  echo 'FFmpeg не найден. Скачайте модуль заново из профиля Искры.'
+  exit 1
+fi
 runtime="$HOME/Library/Application Support/Iskra/transcription-runtime"
 mkdir -p "$runtime"
 if [[ ! -x "$runtime/bin/python" ]]; then python3 -m venv "$runtime"; fi
@@ -27,7 +41,12 @@ for model in mlx-community/whisper-large-v3-turbo mlx-community/Qwen2.5-3B-Instr
  if (( ${#weights} )); then continue; fi
  "$runtime/bin/hf" download "$model" --include '*.json' '*.safetensors' '*.txt' '*.jinja' >/dev/null
 done
-command -v ffmpeg >/dev/null || { echo 'Установите FFmpeg (brew install ffmpeg)'; exit 1; }
-swiftc frame_text.swift -o "$runtime/frame-text"
-export ISKRA_FRAME_TEXT="$runtime/frame-text"
+# Слайды: заголовки читает маленькая программа на Swift, её собирает swiftc из
+# Xcode Command Line Tools. Нет компилятора — модуль работает как обычно, только
+# заголовки слайдов не распознаются; расшифровка, паузы и голоса не зависят от него.
+if command -v swiftc >/dev/null 2>&1 && swiftc frame_text.swift -o "$runtime/frame-text" 2>/dev/null; then
+  export ISKRA_FRAME_TEXT="$runtime/frame-text"
+else
+  echo 'Слайды: компилятор Swift недоступен — заголовки слайдов не распознаются.'
+fi
 exec "$runtime/bin/python" server.py
