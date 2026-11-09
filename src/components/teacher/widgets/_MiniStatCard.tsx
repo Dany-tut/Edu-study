@@ -5,6 +5,7 @@ import { useTeacher } from '../../../store/teacherStore'
 import { ArrowUpRight } from '../../icons/appIcons'
 import { metricNavigationTarget, widgetNavigationProps } from './widgetNavigation'
 import Skeleton from '../../Skeleton'
+import RetryImage from '../../RetryImage'
 
 type Props = {
   widgetId?: string
@@ -96,7 +97,7 @@ export default function MiniStatCard({ widgetId, icon: Icon, label, value, sub, 
           {sub}
         </div>
       )}
-      {widgetId && metricObjects[widgetId] && <img className="iskra-mini-stat-object" src={metricObjects[widgetId]} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
+      {widgetId && metricObjects[widgetId] && <RetryImage className="iskra-mini-stat-object" src={metricObjects[widgetId]} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
       {open && <span className="iskra-mini-stat-open" aria-hidden="true"><ArrowUpRight size={16}/></span>}
     </div>
   )
