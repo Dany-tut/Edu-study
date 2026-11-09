@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { CalendarDays, Plus } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
+import FadeText from '../../FadeText'
 import type { SchedItem } from '../../../lib/teacherSchedule'
 import { CalendarTodayList, todaySubtitle } from './CalendarTodayPanel'
 
@@ -37,7 +38,8 @@ export default function CalendarIpadRail({ today, todayItems, todayOpen, onToggl
         <div className="tcal-capsule">
           <button type="button" className="tcal-cell" aria-pressed={todayOpen} onClick={onToggleToday} aria-label={t('Сегодня')}>
             <CalendarDays size={22} />
-            {todayOpen && <span>{t('Сегодня')}</span>}
+            {/* Подпись не касается краёв таблетки: поле 6 px с боков, длинное — фейдом. */}
+            {todayOpen && <FadeText className="tcal-cell-label">{t('Сегодня')}</FadeText>}
           </button>
         </div>
         <button type="button" className="tcal-primary" onClick={onAdd} aria-label={t('Встреча')}>
