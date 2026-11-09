@@ -1,19 +1,19 @@
 /* Сетка недели в виджете «Расписание» (ПК и iPad-ландшафт). Только токены темы. */
 
 /* Внутри виджета — без своей рамки: рамка у виджета. */
-.tcal-grid { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; margin: 0 -4px; }
+.tcal-grid { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 .tcal-days { display: grid; height: 56px; flex-shrink: 0; border-bottom: 1px solid var(--color-border); }
 .tcal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .tcal-day small { font-size: 11px; font-weight: 600; color: var(--color-text-3); text-transform: uppercase; letter-spacing: .04em; }
 .tcal-day b { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: var(--color-text); font-variant-numeric: tabular-nums; }
 .tcal-day[data-today] small { color: var(--color-accent); }
 .tcal-day[data-today] b { background: var(--grad-purple); color: #fff; }
-.tcal-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.tcal-body { flex: 1; min-height: 0; padding: 10px 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .tcal-body::-webkit-scrollbar { display: none; }
 .tcal-rows { position: relative; display: grid; }
 .tcal-hours { position: relative; }
 .tcal-hours span { position: absolute; right: 7px; transform: translateY(-50%); font-size: 11px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
-.tcal-hours .tcal-now-tag { right: 4px; z-index: 3; padding: 1px 6px; border-radius: 6px; background: var(--color-red-text); color: var(--color-bg-2); font-size: 10.5px; font-weight: 700; opacity: 1 !important; }
+.tcal-hours .tcal-now-tag { right: 5px; z-index: 3; padding: 1px 5px; border-radius: 6px; line-height: 1.35; background: var(--color-red-text); color: var(--color-bg-2); font-size: 10.5px; font-weight: 700; opacity: 1 !important; }
 .tcal-col { position: relative; border-left: 1px solid var(--color-border); }
 .tcal-col[data-add] { cursor: copy; }
 .tcal-col[data-today] { background: rgba(var(--accent-rgb), .05); }

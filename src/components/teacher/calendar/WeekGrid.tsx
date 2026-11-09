@@ -26,9 +26,11 @@ import './teacherCalendar.css'
 
 const DEFAULT_FROM = 9 * 60
 const DEFAULT_TO = 21 * 60
-const MIN_ROW = 44
+const MIN_ROW = 36
 const DEFAULT_LEN = 60
 const SNAP = 15
+/** Поля сетки сверху и снизу: подпись часа и пилюля «сейчас» у края не режутся. */
+const BODY_PAD = 10
 const MOUSE_SLOP = 5
 const TOUCH_SLOP = 8
 const TOUCH_HOLD = 220
@@ -102,12 +104,16 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
     return map
   }, [days, items])
 
-  // Диапазон часов: 09–21, раздвигается под ранние и поздние занятия.
+  // Диапазон часов: 09–21, раздвигается под ранние и поздние занятия и под
+  // «сейчас» с запасом в час, чтобы линия времени не липла к краю сетки.
+  const showNow = days.includes(today)
+  const nowHour = Math.floor(now / 60)
   const [from, to] = useMemo(() => {
     let a = DEFAULT_FROM, b = DEFAULT_TO
     for (const placed of byDay.values()) for (const p of placed) { a = Math.min(a, Math.floor(p.start / 60) * 60); b = Math.max(b, Math.ceil(p.end / 60) * 60) }
+    if (showNow) { a = Math.min(a, Math.max(0, (nowHour - 1) * 60)); b = Math.max(b, Math.min(24 * 60, (nowHour + 2) * 60)) }
     return [a, b]
-  }, [byDay])
+  }, [byDay, showNow, nowHour])
   const hours = Array.from({ length: (to - from) / 60 }, (_, i) => from + i * 60)
 
   // Высота часа — сколько влезает (неделя без прокрутки), но не ниже MIN_ROW.
@@ -115,12 +121,22 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
   useEffect(() => {
     const el = body.current
     if (!el) return
-    const fit = () => setRowH(Math.max(MIN_ROW, Math.floor(el.clientHeight / hours.length)))
+    const fit = () => setRowH(Math.max(MIN_ROW, Math.floor((el.clientHeight - BODY_PAD * 2) / hours.length)))
     fit()
     const ro = new ResizeObserver(fit)
     ro.observe(el)
     return () => ro.disconnect()
   }, [hours.length])
+
+  // Неделя с сегодняшним днём открывается так, чтобы «сейчас» было на виду, а не под фейдом.
+  const scrolledFor = useRef<string | null>(null)
+  useEffect(() => {
+    const el = body.current
+    if (!el || !showNow || scrolledFor.current === days[0]) return
+    scrolledFor.current = days[0]
+    const lineY = BODY_PAD + ((now - from) / 60) * rowH
+    if (lineY > el.clientHeight - 48 || lineY < 48) el.scrollTop = Math.max(0, lineY - el.clientHeight * 0.6)
+  }, [days, showNow, now, from, rowH])
 
   const cols = `44px repeat(${days.length}, minmax(0, 1fr))`
   const y = (m: number) => ((m - from) / 60) * rowH
