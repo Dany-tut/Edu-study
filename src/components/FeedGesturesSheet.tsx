@@ -11,7 +11,7 @@ import {
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
 import { IS_IOS } from '../lib/platform'
-import SoftEdge from './SoftEdge'
+import { ScrollSoftStrip } from './SoftEdge'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // «Лента и жесты» — экран, где раскладку собирают руками
@@ -332,7 +332,7 @@ export function FeedGesturesSettings() {
           />
         </div>
         {IS_IOS
-          ? <div style={{ position: 'relative', height: 14 }}><SoftEdge edge="top" size="14px" zIndex={0} /></div>
+          ? <ScrollSoftStrip />
           : <div style={{ height: 14, background: 'linear-gradient(to bottom, rgb(var(--glass-rgb)), transparent)' }} />}
       </div>
 

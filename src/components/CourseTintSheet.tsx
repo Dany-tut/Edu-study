@@ -15,7 +15,7 @@ import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
 import { useScrollLock } from '../lib/useScrollLock'
 import { IS_IOS } from '../lib/platform'
-import SoftEdge from './SoftEdge'
+import { ScrollSoftStrip } from './SoftEdge'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Настройки ученика «Цвет курса»: глубина перекраски + личные цвета предметов.
@@ -75,7 +75,7 @@ export function CourseTintSettings({ surface = 'rgba(var(--glass-rgb), 0.98)' }:
         {/* Ряды уходят под макет растворяясь, а не срезом по линейке: без этой
             полоски «Подложки» разрезало пополам ровно по нижнему краю. */}
         {IS_IOS
-          ? <div style={{ position: 'relative', height: 14 }}><SoftEdge edge="top" size="14px" zIndex={0} /></div>
+          ? <ScrollSoftStrip />
           : <div style={{ height: 14, background: `linear-gradient(to bottom, ${surface}, transparent)` }} />}
       </div>
 
