@@ -5,9 +5,11 @@ import { useT } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
 import { trackEvent } from '../lib/analytics'
 import { useNativeOverlay } from '../lib/nativeGlass'
+import { TermsLink, PrivacyLink } from './LegalLinks'
 
 // Consent version — bump to re-prompt everyone after a material wording change.
-const CONSENT_VERSION = 'v1'
+// v2 (07.11.2026): согласие явно включает техническую аналитику и ссылки на документы.
+const CONSENT_VERSION = 'v2'
 function consentKey(id: string) { return `student_consent_${CONSENT_VERSION}_${id}` }
 
 export function hasStudentConsent(): boolean {
@@ -26,8 +28,8 @@ export function hasStudentConsent(): boolean {
  * dashboard stays mounted behind it. Records consent as an append-only
  * analytics event (timestamped, tied to student_id) — no schema change needed.
  *
- * NOTE: the legal wording below is a sensible default — have it reviewed by a
- * lawyer and link a real privacy policy before launch.
+ * Текст совпадает со строкой согласия на входе и в регистрации; ссылки ведут
+ * на terms.html / privacy.html. Формулировку стоит показать юристу.
  */
 export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
   const t = useT()
@@ -55,9 +57,11 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', padding: '22px 20px 18px' }}>
-          <Checkbox checked={checked} onChange={setChecked} accent="var(--color-purple, #786AD7)" labelStyle={{ display: 'flex' }}>
+          <Checkbox checked={checked} onChange={setChecked} align="start" accent="var(--color-purple, #786AD7)" labelStyle={{ display: 'flex' }}>
             <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-2)' }}>
-              {t('Согласен(а) на обработку данных.')}
+              {t('Принимаю')} <TermsLink>{t('Условия использования')}</TermsLink>{' '}
+              {t('и соглашаюсь на обработку данных, включая техническую аналитику: действия в интерфейсе, запросы и ошибки, — по')}{' '}
+              <PrivacyLink>{t('Политике конфиденциальности')}</PrivacyLink>.
             </span>
           </Checkbox>
 

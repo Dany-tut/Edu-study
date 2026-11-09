@@ -79,6 +79,11 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
     if (mode !== 'newpassword' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       feedback.begin({ tone: 'danger', title: 'Проверьте email', text: 'Например, name@example.com.', invalid: 'email' }); return
     }
+    // Логины вида имя-xxxx@uchenik.iskra создаёт учитель — почтового ящика у
+    // них нет, письмо никуда не придёт. Новый пароль выдаёт учитель.
+    if (mode === 'reset' && /@uchenik\.iskra$/i.test(email.trim())) {
+      feedback.begin({ tone: 'info', title: 'Письмо сюда не придёт', text: 'Новый пароль выдаёт учитель.', invalid: 'email' }); return
+    }
     if (mode === 'login' && !password) {
       feedback.begin({ tone: 'danger', title: 'Введите пароль', invalid: 'password' }); return
     }
@@ -232,7 +237,7 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
 
         {mode === 'login' && !(switchingCabinet && loading) && <SocialLoginButtons role="student" />}
 
-        {mode === 'login' && <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Если забыли пароль — обратитесь к учителю')}</div>}
+        {mode === 'reset' && <div style={{ marginTop: 10, fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)', textAlign: 'center' }}>{t('Нет доступа к почте или логин выдал учитель — попросите учителя выдать новый пароль.')}</div>}
       </motion.div>
       {mode === 'login' && <AuthLegalLinks />}
     </div>

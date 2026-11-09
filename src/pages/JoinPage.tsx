@@ -10,7 +10,7 @@ import { useT } from '../lib/i18n'
 import { authErrorRu } from '../lib/authErrors'
 import { Alert } from '../components/Alert'
 import { btn } from '../lib/pillStyles'
-import SocialLoginButtons from '../components/SocialLoginButtons'
+import SocialLoginButtons, { AuthLegalLinks } from '../components/SocialLoginButtons'
 import { AuthFeedbackProvider, AuthFeedbackSlot } from '../components/AuthFeedback'
 
 function getToken() {
@@ -236,6 +236,7 @@ export default function JoinPage() {
               <SocialLoginButtons role="student" joinToken={token} />
               <div style={{ marginTop: 10 }}><AuthFeedbackSlot idleText={t('Google или Apple сразу привяжутся к твоему профилю.')} /></div>
             </AuthFeedbackProvider>}
+            <AuthLegalLinks action="register" />
           </>
         )}
       </motion.div>
