@@ -30,9 +30,12 @@ type Props = {
   hoverBg?: string
   /** Called when bell is clicked so parent can open popup */
   onClick?: () => void
+  /** Попап уведомлений открыт — тот же «активный» фон, что у вкладки топбара
+   *  и выбранной даты календаря (--grad-purple, белая иконка). */
+  active?: boolean
 }
 
-export default function NotificationBell({ friendCount = 0, size = 16, hoverBg = 'rgba(var(--accent-rgb), 0.14)', onClick }: Props) {
+export default function NotificationBell({ friendCount = 0, size = 16, hoverBg = 'rgba(var(--accent-rgb), 0.14)', onClick, active = false }: Props) {
   const t = useT()
   const notifications   = useNotificationsStore(s => s.notifications)
   const dismissLive     = useNotificationsStore(s => s.dismissLive)
@@ -60,15 +63,17 @@ export default function NotificationBell({ friendCount = 0, size = 16, hoverBg =
 
   return (
     <motion.button
-      whileHover={{ scale: 1.08, backgroundColor: hoverBg }}
+      whileHover={active ? { scale: 1.08 } : { scale: 1.08, backgroundColor: hoverBg }}
       whileTap={{ scale: 0.94 }}
       onClick={handleClick}
       aria-label={t('Уведомления')}
+      aria-expanded={active || undefined}
       style={{
         position: 'relative',
         width: 36, height: 44, borderRadius: 14,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', background: 'none', border: 'none',
+        cursor: 'pointer', background: active ? 'var(--grad-purple)' : 'none', border: 'none',
+        ...(active ? { color: '#fff' } : {}),
         flexShrink: 0,
       }}
     >
