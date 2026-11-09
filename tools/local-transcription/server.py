@@ -93,6 +93,10 @@ UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
 # Исполняемые файлы архива: им нужен бит +x и больший лимит размера (вложенный
 # ffmpeg ~66 МБ). В отпечаток версии они не входят — см. is_code/fingerprint.
 BINARIES = {'ffmpeg', 'ffprobe'}
+# Бандл строки меню лежит в архиве вложенной папкой. В отпечаток версии он не
+# входит и в самообновление кода не участвует — пропускаем его целиком (иначе
+# UPDATE_NAME отверг бы путь со слэшами). Обновляется переустановкой архива.
+APP_BUNDLE_PREFIX = 'Искра · Расшифровка.app/'
 
 def install(data, expected):
     """Разложить архив с сайта поверх папки модуля. Сначала всё проверить, потом писать."""
@@ -101,6 +105,7 @@ def install(data, expected):
         for info in archive.infolist():
             name=info.filename.removeprefix('Iskra/')
             if info.is_dir() or name==info.filename: continue
+            if name.startswith(APP_BUNDLE_PREFIX): continue
             limit=200*1024**2 if name in BINARIES else 8*1024**2
             if not UPDATE_NAME.fullmatch(name) or info.file_size>limit: raise ValueError('В архиве лишний файл: '+info.filename)
             files[name]=archive.read(info)

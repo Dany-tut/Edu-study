@@ -115,6 +115,21 @@ if (process.argv.includes('--check')) {
   const ffmpeg = await ensureFfmpeg()
   const entries = [...code, 'README.md'].map(name => ({ name, data: readFileSync(join(MODULE, name)), mode: name === 'start.command' ? 0o100755 : 0o100644 }))
   entries.push({ name: FFMPEG.name, data: ffmpeg, mode: 0o100755 })
+
+  // Бандл строки меню «Искра · Расшифровка.app»: учитель запускает его, а не
+  // start.command — никакого окна Терминала. Это обычные текстовые файлы (в git
+  // нет бинарников), собираются из tools/local-transcription/app в структуру
+  // .app. В отпечаток версии (codeFiles) НЕ входят: server.py при самообновлении
+  // их пропускает (см. install), .app обновляется переустановкой архива.
+  const APP = 'Искра · Расшифровка.app'
+  const APP_SRC = join(MODULE, 'app')
+  const appFiles = [
+    { src: 'Info.plist', dest: `${APP}/Contents/Info.plist`, mode: 0o100644 },
+    { src: 'launcher.sh', dest: `${APP}/Contents/MacOS/launcher`, mode: 0o100755 },
+    { src: 'menubar.py', dest: `${APP}/Contents/Resources/menubar.py`, mode: 0o100644 },
+  ]
+  for (const f of appFiles) entries.push({ name: f.dest, data: readFileSync(join(APP_SRC, f.src)), mode: f.mode })
+
   entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
 
   // ── ZIP без зависимостей: deflate + центральный каталог. Дата фиксированная,
