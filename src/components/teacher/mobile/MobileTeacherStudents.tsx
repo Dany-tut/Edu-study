@@ -1,5 +1,5 @@
 import FadeText from '../../FadeText'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, type ReactNode, type CSSProperties } from 'react'
 import EmptyState from '../../EmptyState'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
@@ -15,7 +15,7 @@ import { useHomework } from '../../../lib/useHomework'
 import { contactLabel } from '../../../lib/contactLink'
 import { useT, useTc } from '../../../lib/i18n'
 import TeacherSelect from '../TeacherSelect'
-import { FIELD } from '../../../lib/fieldStyle'
+import { FIELD, FIELD_LABEL_INSET } from '../../../lib/fieldStyle'
 import { btn, GRAD } from '../../../lib/pillStyles'
 import { Alert } from '../../Alert'
 import { copyToClipboard } from '../../../lib/clipboard'
@@ -217,8 +217,8 @@ function StudentAssignments({ student }: { student: Student }) {
       <button data-hover="layer" style={{ ...btn('S', mode === 'individual' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'individual'} onClick={() => setMode('individual')}>{t('Занятия 1:1')}</button>
     </div>
     {mode === 'group'
-      ? <TeacherSelect value={groupId} onChange={setGroupId} placeholder={t('Выберите группу')} options={groups.filter(g => !g.isIndividual && !memberships.some(s => s.groupId === g.id)).map(g => ({value:g.id,label:g.name}))} />
-      : <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет для занятий 1:1')} options={mySubjectNames(useTeacherAccess.getState().subjects).map(s => ({value:s,label:t(s)}))} />}
+      ? <TeacherSelect value={groupId} onChange={setGroupId} placeholder={t('Выберите группу')} triggerStyle={{ minHeight: 48 }} options={groups.filter(g => !g.isIndividual && !memberships.some(s => s.groupId === g.id)).map(g => ({value:g.id,label:g.name}))} />
+      : <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет для занятий 1:1')} triggerStyle={{ minHeight: 48 }} options={mySubjectNames(useTeacherAccess.getState().subjects).map(s => ({value:s,label:t(s)}))} />}
     <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }} disabled={busy || !(mode === 'group' ? groupId : subject)} onClick={() => void assign(mode === 'individual')}>{busy ? t('Сохранение...') : mode === 'group' ? t('Добавить в группу') : t('Назначить занятия 1:1')}</button>
     {error && <Alert tone="danger" text={error} />}
   </section>
@@ -268,31 +268,53 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-// Поле «Предмет*» новой карточки ученика (вариант Б, studentSubject.ts).
+// Плавающая подпись поля: в покое стоит внутри поля как плейсхолдер, при
+// значении/фокусе уезжает наверх и уменьшается — подпись не исчезает при наборе
+// (правило «подпись внутри поля», a11y). Высота поля = 48 (как у кнопок).
+const FLOAT_FIELD: CSSProperties = { ...FIELD, minHeight: 48, boxSizing: 'border-box' }
+function FloatingField({ label, required, floated, children }: { label: string; required?: boolean; floated: boolean; children: ReactNode }) {
+  const t = useT()
+  return (
+    <div style={{ position: 'relative' }}>
+      {children}
+      <span aria-hidden style={{
+        position: 'absolute', left: FIELD_LABEL_INSET, pointerEvents: 'none',
+        top: floated ? 7 : '50%', transform: floated ? 'none' : 'translateY(-50%)',
+        fontSize: floated ? 11 : 13, lineHeight: 1, color: 'var(--color-muted)',
+        transition: 'top .14s ease, font-size .14s ease',
+      }}>{t(label)}{required && <span style={{ color: 'var(--color-red-text)' }}> *</span>}</span>
+    </div>
+  )
+}
+
+// Поле «Предмет» новой карточки ученика (вариант Б, studentSubject.ts).
 // На iOS-приложении — системное меню (nativeGlass), в вебе и на Android —
-// TeacherSelect. Значение — название предмета из реестра.
+// TeacherSelect. Значение — название предмета из реестра. Плейсхолдер пустой:
+// подпись рисует FloatingField снаружи. При выборе значение прижато к низу,
+// чтобы не наехать на уехавшую вверх подпись.
 function SubjectPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const t = useT()
   const subjects = useTeacherAccess(s => s.subjects)
   const options = studentSubjectOptions(mySubjectNames(subjects), value)
+  const floated = !!value
   if (GLASS) {
     const index = options.indexOf(value)
     return (
       <button type="button" data-hover="layer" aria-label={t('Предмет')}
-        style={{ ...FIELD, marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, color: value ? 'var(--color-text)' : 'var(--color-muted)' }}
+        style={{ ...FLOAT_FIELD, display: 'flex', alignItems: floated ? 'flex-end' : 'center', justifyContent: 'space-between', gap: 8, paddingTop: floated ? 20 : 9, paddingBottom: floated ? 6 : 9, color: 'var(--color-text)' }}
         onClick={async e => {
           const sel = await glassMenu(e.currentTarget, options.map((label, i) => ({ label: t(label), checked: i === index })), t('Предмет'))
           if (sel >= 0) onChange(options[sel])
         }}>
-        <FadeText style={{ flex: 1, textAlign: 'left' }}>{value ? t(value) : t('Выберите предмет')}</FadeText>
+        <FadeText style={{ flex: 1, textAlign: 'left' }}>{value ? t(value) : ''}</FadeText>
         <ChevronDown size={16} style={{ flexShrink: 0 }} />
       </button>
     )
   }
   return (
-    <div style={{ marginTop: 8 }}>
-      <TeacherSelect value={value} onChange={onChange} clearable={false} placeholder={t('Выберите предмет')} options={options.map(s => ({ value: s, label: t(s) }))} />
-    </div>
+    <TeacherSelect value={value} onChange={onChange} clearable={false} placeholder=""
+      triggerStyle={{ minHeight: 48, ...(floated ? { alignItems: 'flex-end', paddingTop: 20, paddingBottom: 6 } : {}) }}
+      options={options.map(s => ({ value: s, label: t(s) }))} />
   )
 }
 
@@ -354,6 +376,7 @@ export default function MobileTeacherStudents() {
   const [copiedInvite, setCopiedInvite] = useState(false)
   const teacherSubjects = useTeacherAccess(s => s.subjects)
   const [newSubject, setNewSubject] = useState('')
+  const [nameFocused, setNameFocused] = useState(false)
   // Один предмет у учителя — подставляем сразу (предметы догружаются асинхронно).
   useEffect(() => { if (addOpen && !newSubject) { const d = defaultStudentSubject(mySubjectNames(teacherSubjects)); if (d) setNewSubject(d) } }, [addOpen, newSubject, teacherSubjects])
   async function createStudent() {
@@ -402,11 +425,12 @@ export default function MobileTeacherStudents() {
                 <p>{t('Отправьте ссылку ученику, чтобы он создал свой аккаунт.')}</p>
 
               </> : <>
-                <label>{t('Имя ученика')}<input style={{ ...FIELD, marginTop: 8 }} value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('Как зовут ученика?')} onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void createStudent() }} /></label>
-                <div>
-                  <span style={{ fontSize: 14 }}>{t('Предмет')} <span style={{ color: 'var(--color-red-text)' }}>*</span></span>
+                <FloatingField label="Имя ученика" floated={nameFocused || !!newName}>
+                  <input aria-label={t('Имя ученика')} value={newName} onFocus={() => setNameFocused(true)} onBlur={() => setNameFocused(false)} onChange={e => setNewName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void createStudent() }} style={{ ...FLOAT_FIELD, paddingTop: 20, paddingBottom: 4 }} />
+                </FloatingField>
+                <FloatingField label="Предмет" required floated={!!newSubject}>
                   <SubjectPicker value={newSubject} onChange={setNewSubject} />
-                </div>
+                </FloatingField>
                 <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Предмет нужен, чтобы ученик сразу увидел свои курсы и виджеты. Группу и расписание можно назначить позже.')}</p>
                 {createError && <Alert tone="danger" text={createError} />}
 
