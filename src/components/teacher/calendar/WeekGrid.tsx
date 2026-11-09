@@ -138,7 +138,7 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
     if (lineY > el.clientHeight - 48 || lineY < 48) el.scrollTop = Math.max(0, lineY - el.clientHeight * 0.6)
   }, [days, showNow, now, from, rowH])
 
-  const cols = `44px repeat(${days.length}, minmax(0, 1fr))`
+  const cols = `50px repeat(${days.length}, minmax(0, 1fr))`
   const y = (m: number) => ((m - from) / 60) * rowH
 
   // ── перенос зажатием ───────────────────────────────────────────────────────
@@ -260,7 +260,7 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
         <div className="tcal-rows" style={{ gridTemplateColumns: cols, height: hours.length * rowH }}>
           <div className="tcal-hours" aria-hidden>
             {hours.map((h, i) => (
-              <span key={h} style={{ top: i * rowH, opacity: i === 0 || (days.includes(today) && Math.abs(h - now) < 20) ? 0 : 1 }}>{fmtMinutes(h)}</span>
+              <span key={h} style={{ top: i * rowH, opacity: i === 0 || (days.includes(today) && Math.abs(h - now) < 30) ? 0 : 1 }}>{fmtMinutes(h)}</span>
             ))}
             {days.includes(today) && now >= from && now <= to && (
               <span className="tcal-now-tag" style={{ top: y(now) }}>{fmtMinutes(now)}</span>

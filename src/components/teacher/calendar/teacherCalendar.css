@@ -13,7 +13,8 @@
 .tcal-rows { position: relative; display: grid; }
 .tcal-hours { position: relative; }
 .tcal-hours span { position: absolute; right: 7px; transform: translateY(-50%); font-size: 11px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
-.tcal-hours .tcal-now-tag { right: 5px; z-index: 3; padding: 1px 5px; border-radius: 6px; line-height: 1.35; background: var(--color-red-text); color: var(--color-bg-2); font-size: 10.5px; font-weight: 700; opacity: 1 !important; }
+/* Пилюля «сейчас» — внутри колонки часов целиком (поля по 4 px), поверх подписи часа. */
+.tcal-hours .tcal-now-tag { left: 4px; right: 4px; text-align: center; z-index: 3; padding: 1px 0; border-radius: 6px; line-height: 1.35; background: var(--color-red-text); color: var(--color-bg-2); font-size: 10.5px; font-weight: 700; opacity: 1 !important; }
 .tcal-col { position: relative; border-left: 1px solid var(--color-border); }
 .tcal-col[data-add] { cursor: copy; }
 .tcal-col[data-today] { background: rgba(var(--accent-rgb), .05); }
