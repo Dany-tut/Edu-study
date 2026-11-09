@@ -3,6 +3,7 @@ import { diagnosticFetch } from './diagnosticFetch'
 import { teacherViewFetch } from './teacherView'
 import { withRequestTiming } from './platformPerformance'
 import { authTransport } from './authTransport'
+import { ruFailoverFetch, ruFailoverEnabled, PROXY_URL, registerProxyFailoverHook } from './supabaseFailover'
 
 // Public client used from the browser. The publishable key is safe to ship —
 // all access is enforced server-side by Row Level Security policies.
@@ -57,6 +58,12 @@ function withRestDeadline(base: typeof fetch, backend: string): typeof fetch {
   }
 }
 
+// Российский резерв (docs/infra/ru-proxy.md §3.3). Клиент ОСТАЁТСЯ на прямом URL
+// (storageKey/сессии не трогаем), а самый нижний слой fetch при недоступности
+// прямого адреса из сети клиента уходит на прокси. Без VITE_SUPABASE_PROXY_URL —
+// обычный teacherViewFetch, поведение не меняется.
+const networkFetch = ruFailoverEnabled ? ruFailoverFetch(teacherViewFetch, url, PROXY_URL!) : teacherViewFetch
+
 // OAuth returns a one-time query code, leaving the application's hash router intact.
 export const supabase = createClient(url, key, {
   auth: {
@@ -71,8 +78,36 @@ export const supabase = createClient(url, key, {
     // «Проверяем доступ…» for the full wait. Steal after the SDK's 5s default:
     // a rare overlapping refresh is cheaper than a frozen cabinet.
     ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: requeueStolenLock, lockAcquireTimeout: 5_000 } : {}),
-  }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(withRestDeadline(teacherViewFetch, url), url), url)) },
+  }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(withRestDeadline(networkFetch, url), url), url)) },
 })
+
+// Когда fetch впервые ушёл на прокси (прямой недоступен — РФ), переключаем на
+// прокси и Realtime: его websocket строится из прямого URL клиента и через
+// fetch-обёртку НЕ фейловерится. storageKey это НЕ затрагивает (он в auth-
+// хранилище, не в realtime endpoint). Пересобираем realtime-клиент на
+// wss://<proxy>/realtime/v1 публичным конструктором, старый отключаем.
+// ВНИМАНИЕ РЕВЬЮ: внутренний setAuth при рефреше токена supabase-js шлёт на
+// исходный realtime-клиент; здесь токен берётся колбэком accessToken на connect.
+// Realtime некритичен для входа — если пересборка окажется ненадёжной на новой
+// версии realtime-js, он просто не поднимется в РФ, вход при этом работает.
+if (ruFailoverEnabled) {
+  registerProxyFailoverHook(() => {
+    const prev = supabase.realtime
+    // Тот же класс, что уже использует клиент (его точная версия) — без прямой
+    // зависимости на @supabase/realtime-js (она транзитивная).
+    const Ctor = prev.constructor as new (
+      endpoint: string,
+      options: { params?: Record<string, string>; accessToken?: () => Promise<string> },
+    ) => typeof supabase.realtime
+    const wss = `${PROXY_URL!.replace(/^http/, 'ws')}/realtime/v1`
+    const next = new Ctor(wss, {
+      params: { apikey: key },
+      accessToken: async () => (await supabase.auth.getSession()).data.session?.access_token ?? key,
+    })
+    ;(supabase as unknown as { realtime: typeof supabase.realtime }).realtime = next
+    void prev.disconnect()
+  })
+}
 
 // Адрес и ключ отдельно: на выгрузке страницы обычный клиент не годится —
 // его fetch умирает вместе со страницей. Телеметрия досылает последнюю пачку
