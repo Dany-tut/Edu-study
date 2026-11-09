@@ -63,7 +63,7 @@ const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 
-export default function TeacherSchedule({ mobile = false, embedded = false, readOnly = false, useWeek = useTeacherWeek, onOpen, onAttendance, onExplore }: {
+export default function TeacherSchedule({ mobile = false, embedded = false, readOnly = false, useWeek = useTeacherWeek, onOpen, onAttendance, onExplore, onExpand }: {
   mobile?: boolean
   readOnly?: boolean
   useWeek?: typeof useTeacherWeek
@@ -73,6 +73,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
   onExplore?: () => void
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
+  /** ПК: открыть полный календарь (#/teacher/calendar) — заголовок и круг со стрелкой. */
+  onExpand?: () => void
 }) {
   const t = useT()
   const today = todayMsk()
@@ -197,7 +199,15 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
     <div className={embedded ? 'calendar-widget-schedule' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: embedded ? 10 : 12, height: embedded ? '100%' : undefined, minHeight: 0, userSelect: drag ? 'none' : undefined }}>
       {/* Шапка: месяц, «Сегодня», недели стрелками */}
       <div className="calendar-widget-header" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px' }}>
-        <div className="calendar-widget-title" style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
+        {onExpand ? (
+          // Заголовок ведёт в полный календарь — вход без новой кнопки в навбаре.
+          <button type="button" data-hover="link" className="calendar-widget-title" onClick={onExpand} title={t('Открыть календарь')}
+            style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 0, padding: 0, cursor: 'pointer', fontFamily: 'inherit' }}>
+            {monthTitle}
+          </button>
+        ) : (
+          <div className="calendar-widget-title" style={{ fontSize: mobile ? 24 : embedded ? 17 : 22, fontWeight: 800, color: 'var(--color-text)', flex: 1 }}>{monthTitle}</div>
+        )}
         <div className="calendar-widget-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {!mobile && !readOnly && (
             <button data-hover="layer"
@@ -214,6 +224,13 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
               <button data-hover="layer" aria-label={t('Прошлая неделя')} onClick={() => moveVisibleWeek(-1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
               <button data-hover="layer" aria-label={t('Следующая неделя')} onClick={() => moveVisibleWeek(1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
             </>
+          )}
+          {onExpand && (
+            // «Открыть раздел» — тот же круг со стрелкой, что у виджетов-метрик (#108).
+            <button type="button" data-hover="layer" aria-label={t('Открыть календарь')} onClick={onExpand}
+              style={{ width: 28, height: 28, minHeight: 0, padding: 0, border: 0, borderRadius: '50%', display: 'grid', placeItems: 'center', flexShrink: 0, cursor: 'pointer', background: 'var(--color-bg-input)', color: 'var(--color-accent)' }}>
+              <ArrowUpRight size={16} />
+            </button>
           )}
         </div>
       </div>

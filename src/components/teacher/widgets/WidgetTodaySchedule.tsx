@@ -12,6 +12,7 @@ export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: t
   const teacherGuides = useTeacherGuides()
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
   const openGradebook = useTeacher(s => s.openGradebook)
+  const setActivePage = useTeacher(s => s.setActivePage)
   return (
     <div className="calendar-widget" style={{
       height: '100%', width: '100%', overflow: 'hidden',
@@ -31,6 +32,7 @@ export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: t
           readOnly={readOnly}
           onOpen={item => openLessonEditor(item.id)}
           onAttendance={item => openGradebook(item.id)}
+          onExpand={readOnly ? undefined : () => setActivePage('calendar')}
         />
       </div>
     </div>

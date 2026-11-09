@@ -411,7 +411,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
         {visibleNav.map(item => {
-          const isActive = activePage === item.id
+          // Полный календарь открывается из виджета на Главной — в меню он под ней.
+          const isActive = activePage === item.id || (item.id === 'home' && activePage === 'calendar')
           const badgeCount = item.id === 'gradebook' ? pendingJournalCount : 0
           return (
             <motion.button
