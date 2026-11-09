@@ -119,6 +119,11 @@ body{
 .capsule{width:72px;padding:4px;border-radius:36px;display:flex;flex-direction:column;gap:2px;
   background:rgba(var(--glass-rgb),.72);backdrop-filter:var(--blur-glass);-webkit-backdrop-filter:var(--blur-glass);
   border:1px solid var(--color-border-glass);box-shadow:var(--shadow-pill)}
+/* Тёмная: на почти-чёрном фоне контур капсулы держим чуть плотнее + нежным
+   хайрлайн-кольцом (0.06), БЕЗ белой врезки-бордюра (glass-no-white-inset).
+   На устройстве это нативное Liquid Glass; тут — веб-приближение. */
+.dark .capsule{background:rgba(var(--glass-rgb),.86);
+  box-shadow:var(--shadow-pill), 0 0 0 1px rgba(255,255,255,.06)}
 .cell{width:64px;min-height:64px;border:0;border-radius:32px;background:none;color:var(--color-text-3);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;
   font-family:inherit;padding:0;transition:background .22s,color .18s,min-height .28s cubic-bezier(.32,.72,0,1)}
