@@ -84,7 +84,7 @@ export default function WidgetAttentionStudents() {
       </button>
       {/* Header */}
       <div className="ww-header" style={{
-        padding: '14px 14px 10px 16px',
+        padding: '14px 16px 10px',
         display: 'flex', alignItems: 'center', gap: 8,
         borderBottom: '1px solid var(--color-border)',
         flexShrink: 0,
