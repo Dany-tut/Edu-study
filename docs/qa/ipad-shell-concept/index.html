@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Концепт оболочки iPad — кадры</title>
+<style>
+  body{margin:0;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;background:#161619;color:#e9e9ee;padding:28px 22px 80px}
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:-.02em}
+  p.lead{margin:0 0 4px;color:#b8b8c2;font-size:14px;line-height:1.6;max-width:900px}
+  p.note{margin:10px 0 24px;color:#8c8c95;font-size:12.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:22px;max-width:1300px}
+  figure{margin:0;background:#1f1f24;border:1px solid #33333b;border-radius:16px;padding:14px}
+  figure img{width:100%;height:auto;display:block;border-radius:10px;background:#000}
+  figcaption{margin-top:10px;font-size:13px;color:#cfcfd8;font-weight:600}
+  figcaption small{display:block;color:#8c8c95;font-weight:400;margin-top:2px}
+  a{color:#b3a6f7}
+</style>
+</head>
+<body>
+  <h1>Концепт оболочки iPad — кабинет учителя</h1>
+  <p class="lead">Разделы приложения уезжают из десктопного топбара в одну стеклянную капсулу
+  у правого края (docs/platforms.md §1.1): <b>общее</b> (разделы + профиль) → <b>экран</b>
+  (0–3 действия раздела) → <b>главный круг</b> под капсулой («+»/«Сдать»). Поповеры открываются
+  влево. Обе ориентации × обе темы.</p>
+  <p class="note">Интерактивный стенд с переключателями: <a href="../../../dev-ipad-shell.html">dev-ipad-shell.html</a> (в корне репо).
+  Иконки здесь — заглушки; в коде будут Loop.</p>
+  <div class="grid" id="g"></div>
+  <script>
+    const F=[
+      ['01-land-light-home','Ландшафт · светлая · Главная','капсула справа, главный круг «+»'],
+      ['02-land-dark-home','Ландшафт · тёмная · Главная','та же оболочка в тёмной'],
+      ['03-port-light-home','Портрет · светлая · Главная','капсула держит место под главную кнопку'],
+      ['04-port-dark-home','Портрет · тёмная · Главная',''],
+      ['05-land-light-groups-profile','Ландшафт · светлая · Группы','профиль-поповер открывается влево'],
+      ['06-land-dark-journal-add','Ландшафт · тёмная · Журнал','«Сдать» → быстрые действия влево; бейдж на разделе'],
+      ['07-port-light-groups-today','Портрет · светлая · Группы','«Сегодня» поповером влево; per-screen действия'],
+      ['08-port-dark-constructor','Портрет · тёмная · Конструктор','длинная подпись «Конструктор» фейдом (не «…»)'],
+    ];
+    document.getElementById('g').innerHTML=F.map(([n,t,s])=>`
+      <figure><img src="${n}.png" alt="${t}"/><figcaption>${t}${s?`<small>${s}</small>`:''}</figcaption></figure>`).join('');
+  </script>
+</body>
+</html>
