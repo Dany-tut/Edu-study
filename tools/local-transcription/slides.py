@@ -2,11 +2,21 @@
 import json, os, re, subprocess, sys
 from difflib import SequenceMatcher
 from pathlib import Path
+from media_tools import FFMPEG, duration as media_duration
 from progress import record
 
 source, dest=map(Path,sys.argv[1:])
 safe=['-protocol_whitelist','file,pipe','-format_whitelist','mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac']
-duration=float(subprocess.check_output(['ffprobe','-v','error',*safe,'-show_entries','format=duration','-of','csv=p=0',str(source)]))
+# Чтение слайдов — необязательный этап: нет компилятора Swift (ISKRA_FRAME_TEXT)
+# или не удалось узнать длительность — просто нет заголовков, расшифровка цела.
+frame_text=os.environ.get('ISKRA_FRAME_TEXT')
+try:
+    duration=media_duration(source, safe)
+except ValueError:
+    duration=0.0
+if not frame_text or duration<=0:
+    dest.write_text('[]')
+    sys.exit(0)
 step=max(4,int(duration/240))
 pending=None
 last=''
@@ -21,10 +31,10 @@ def meaningful(line):
 times=range(0,int(duration),step)
 for index,t in enumerate(times):
     record(dest.parent,'Читаем слайды',index,len(times),'frames')
-    image=subprocess.run(['ffmpeg','-nostdin','-v','error',*safe,'-ss',str(t),'-i',str(source),'-frames:v','1','-vf','scale=min(1000\\,iw):-2','-f','image2pipe','-c:v','mjpeg','-'],capture_output=True,timeout=30)
+    image=subprocess.run([FFMPEG,'-nostdin','-v','error',*safe,'-ss',str(t),'-i',str(source),'-frames:v','1','-vf','scale=min(1000\\,iw):-2','-f','image2pipe','-c:v','mjpeg','-'],capture_output=True,timeout=30)
     if not image.stdout: continue
     try:
-        out=subprocess.run([os.environ["ISKRA_FRAME_TEXT"]],input=image.stdout,capture_output=True,timeout=4)
+        out=subprocess.run([frame_text],input=image.stdout,capture_output=True,timeout=4)
         lines=json.loads(out.stdout)
     except (ValueError,subprocess.TimeoutExpired):lines=[]
     heading=next((line for line in lines[:3] if meaningful(line)), '')

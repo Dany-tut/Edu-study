@@ -17,6 +17,7 @@ import zipfile
 
 from flask import Flask, abort, jsonify, request
 from link_video import fetch, downloaded, LIMIT, DownloadUnavailable
+from media_tools import FFMPEG
 import job_store
 
 app = Flask(__name__)
@@ -89,6 +90,9 @@ def version():
     return jsonify(version=VERSION, update=True)
 
 UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
+# Исполняемые файлы архива: им нужен бит +x и больший лимит размера (вложенный
+# ffmpeg ~66 МБ). В отпечаток версии они не входят — см. is_code/fingerprint.
+BINARIES = {'ffmpeg', 'ffprobe'}
 
 def install(data, expected):
     """Разложить архив с сайта поверх папки модуля. Сначала всё проверить, потом писать."""
@@ -97,7 +101,8 @@ def install(data, expected):
         for info in archive.infolist():
             name=info.filename.removeprefix('Iskra/')
             if info.is_dir() or name==info.filename: continue
-            if not UPDATE_NAME.fullmatch(name) or info.file_size>8*1024**2: raise ValueError('В архиве лишний файл: '+info.filename)
+            limit=200*1024**2 if name in BINARIES else 8*1024**2
+            if not UPDATE_NAME.fullmatch(name) or info.file_size>limit: raise ValueError('В архиве лишний файл: '+info.filename)
             files[name]=archive.read(info)
     if 'server.py' not in files or 'start.command' not in files: raise ValueError('Архив модуля неполный.')
     version=fingerprint(files)
@@ -105,7 +110,7 @@ def install(data, expected):
     for name,body in files.items():
         tmp=ROOT/('.'+name+'.new')
         tmp.write_bytes(body)
-        tmp.chmod(0o755 if name=='start.command' else 0o644)
+        tmp.chmod(0o755 if name=='start.command' or name in BINARIES else 0o644)
         os.replace(tmp, ROOT/name)
     # Код, которого в новой версии нет, иначе отпечаток навсегда разойдётся с сайтом.
     for p in ROOT.iterdir():
@@ -167,7 +172,7 @@ def process(job,folder,link):
                     stage('Загрузка на паузе: ждём интернет. Повторим автоматически.', paused=True)
                     time.sleep(15)
         stage('Готовим звуковую дорожку')
-        cmd=['ffmpeg','-nostdin','-v','error','-protocol_whitelist','file,pipe','-format_whitelist','mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(folder/'audio-%05d.wav')]
+        cmd=[FFMPEG,'-nostdin','-v','error','-protocol_whitelist','file,pipe','-format_whitelist','mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(folder/'audio-%05d.wav')]
         if 'audio' not in job['completed']:
             for old in folder.glob('audio-*.wav'): old.unlink()
             if subprocess.run(cmd,capture_output=True,pass_fds=(worker_lock.fileno(),)).returncode:
@@ -178,7 +183,7 @@ def process(job,folder,link):
             # Сжатая копия звука переживёт уборку папки задания: из неё потом
             # вырезаются исправленные учителем реплики. ~7 МБ на час записи.
             training_audio(job['id']).parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-            subprocess.run(['ffmpeg','-nostdin','-v','error','-y','-protocol_whitelist','file,pipe','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-c:a','libopus','-b:a','16k',str(training_audio(job['id']))],
+            subprocess.run([FFMPEG,'-nostdin','-v','error','-y','-protocol_whitelist','file,pipe','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-c:a','libopus','-b:a','16k',str(training_audio(job['id']))],
                            capture_output=True,pass_fds=(worker_lock.fileno(),))
         env=dict(os.environ,HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false')
         if job.get('tracks') and 'recognize.py' not in job['completed']:
@@ -217,7 +222,7 @@ def recognize_tracks(job,folder,env,worker_lock):
     for i,name in enumerate(job['tracks']):
         sub=folder/f'track{i}'
         sub.mkdir(exist_ok=True)
-        cmd=['ffmpeg','-nostdin','-v','error','-i',str(folder/f'track-{i}'),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(sub/'audio-%05d.wav')]
+        cmd=[FFMPEG,'-nostdin','-v','error','-i',str(folder/f'track-{i}'),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(sub/'audio-%05d.wav')]
         if subprocess.run(cmd,capture_output=True,pass_fds=(worker_lock.fileno(),)).returncode:
             raise ValueError(f'Не удалось прочитать дорожку «{name}».')
         python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable)
@@ -337,7 +342,7 @@ def training():
             text=str(item.get('text','')).strip()[:1000]
             if not text or not 0<end-start<=30: continue
             clip=clips/f'{jid}-{int(start*1000)}.wav'
-            if subprocess.run(['ffmpeg','-nostdin','-v','error','-y','-ss',f'{start:.3f}','-to',f'{end:.3f}','-i',str(audio),'-ac','1','-ar','16000',str(clip)],capture_output=True).returncode: continue
+            if subprocess.run([FFMPEG,'-nostdin','-v','error','-y','-ss',f'{start:.3f}','-to',f'{end:.3f}','-i',str(audio),'-ac','1','-ar','16000',str(clip)],capture_output=True).returncode: continue
             # Одна строка — один отрывок: звук, правильный текст и как было распознано.
             manifest.write(json.dumps({'audio':str(clip.relative_to(TRAINING)),'text':text,'before':str(item.get('before',''))[:1000],
                                        'subject':subject,'job':jid,'start':round(start,3),'end':round(end,3),'at':int(time.time())},ensure_ascii=False)+'\n')
