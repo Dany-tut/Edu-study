@@ -45,6 +45,9 @@
 .iskra-widget .ww-task-card{padding:14px!important;min-height:0;gap:0}
 .iskra-widget .ww-task-heading{min-height:32px;gap:8px!important;flex-shrink:0}
 .iskra-widget .ww-task-heading>svg{flex-shrink:0}
+/* «Открыть раздел» больших виджетов — тот же вид, что «+» у «Моих задач» (WidgetOpenButton). */
+.ww-open{margin-left:auto;flex:0 0 32px;box-sizing:border-box;width:32px;height:32px;min-width:32px;min-height:32px;padding:0;border:0;border-radius:10px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
+.ww-open svg{display:block;width:17px;height:17px;margin:0}
 .iskra-widget .ww-task-add{margin-left:auto;flex:0 0 32px;width:32px;height:32px;padding:0;border:0;border-radius:10px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
 .iskra-widget .ww-task-add svg{display:block;width:17px;height:17px;margin:0}
 .iskra-widget .ww-task-list{min-height:0;flex:1 1 0;max-height:none!important;overflow-y:auto!important;mask-image:none!important;-webkit-mask-image:none!important}

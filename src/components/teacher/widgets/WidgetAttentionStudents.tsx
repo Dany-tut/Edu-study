@@ -4,6 +4,7 @@ import { useAllStudents, useGroups } from '../../../lib/useGroups'
 import { useTeacher } from '../../../store/teacherStore'
 import FadeText from '../../FadeText'
 import RetryImage from '../../RetryImage'
+import WidgetOpenButton from './WidgetOpenButton'
 import { t, useT, useTc } from '../../../lib/i18n'
 
 function initials(name: string) {
@@ -83,7 +84,7 @@ export default function WidgetAttentionStudents() {
       </button>
       {/* Header */}
       <div className="ww-header" style={{
-        padding: '14px 16px 10px',
+        padding: '14px 14px 10px 16px',
         display: 'flex', alignItems: 'center', gap: 8,
         borderBottom: '1px solid var(--color-border)',
         flexShrink: 0,
@@ -104,6 +105,7 @@ export default function WidgetAttentionStudents() {
             {atRisk.length}
           </span>
         )}
+        <WidgetOpenButton onOpen={() => setActivePage('groups')} />
       </div>
 
       {/* Content */}

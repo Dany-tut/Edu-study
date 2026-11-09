@@ -31,12 +31,11 @@
   .teacher-reminder-stack-toggle { flex-wrap: wrap; gap: 4px 10px; }
 }
 .teacher-reminders-panel{container:teacher-reminders/size;display:flex;flex-direction:column;width:100%;height:100%;min-height:0;overflow:hidden;border:1px solid var(--color-border-medium);border-radius:24px;background:rgba(var(--glass-rgb),.88);padding:0!important}
-.widget-panel-header{display:flex;align-items:center;gap:9px;min-height:52px;padding:12px 15px;flex-shrink:0;color:var(--color-text-3)}
+/* Поля как у «Моих задач»: кнопка шапки в 15 px от верха и правого края карточки. */
+.widget-panel-header{display:flex;align-items:center;gap:9px;min-height:52px;padding:14px 14px 12px 15px;flex-shrink:0;color:var(--color-text-3)}
 .widget-panel-header h3{font-size:13px;font-weight:650;flex:1;min-width:0;margin:0;color:var(--color-text)}
 .widget-panel-header button,.widget-panel-footer button{border:0;background:none;color:var(--color-accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;min-height:30px}
 .widget-panel-header button{min-width:30px;border-radius:9px}
-/* Открыть раздел — тот же круг 28, что .iskra-mini-stat-open у метрик. */
-.widget-panel-header button[data-open]{width:28px;height:28px;min-width:28px;min-height:28px;padding:0;border-radius:50%;background:var(--color-bg-input);color:var(--color-accent);flex-shrink:0}
 .reminder-category-tabs{display:flex;flex-shrink:0;gap:5px;padding:3px;margin:0 13px 11px;background:var(--color-bg-3);border-radius:10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
 .reminder-category-tabs button{flex:1 0 auto;border:0;background:none;border-radius:8px;min-height:32px;padding:6px 10px;font-size:11px;color:var(--color-text-3);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
 /* Выбранная вкладка — поднятая плашка: светлее дорожки в обеих темах (раньше
@@ -63,4 +62,3 @@
 .widget-panel-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 14px;min-height:35px;flex-shrink:0;color:var(--color-text-4);font-size:10px;background:rgba(var(--glass-rgb),.88)}.widget-panel-footer button{font-size:11px;font-weight:600}.widget-panel-empty{min-height:100%;display:grid;place-items:center;font-size:13px;color:var(--color-text-3);padding:15px}
 @container teacher-reminders (min-width:600px){.reminder-queue-hero{display:flex}.teacher-reminder-queue{display:flex;flex-direction:column}.reminder-queue-copy{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:18px;row-gap:5px}.reminder-queue-copy strong{grid-column:1;grid-row:1}.reminder-queue-copy>span{grid-column:1;grid-row:2}.reminder-queue-copy small{grid-column:2;grid-row:1/3;align-self:center;justify-self:end;text-align:right}}
 @media(pointer:coarse){.reminder-category-tabs button,.widget-panel-header button,.widget-panel-footer button{min-height:44px}.reminder-queue-row{min-height:52px}}
-@media(pointer:coarse){.widget-panel-header button[data-open]{min-width:44px;min-height:44px}}
