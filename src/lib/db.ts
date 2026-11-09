@@ -1,4 +1,5 @@
 import { readTranscript } from './localTranscription'
+import { resolveStudentSubject } from './studentSubject'
 /**
  * Typed Supabase query functions for the student dashboard.
  * All functions return typed data; errors are swallowed and return null/[].
@@ -1166,6 +1167,25 @@ export async function fetchScienceMemes(): Promise<ScienceMeme[]> {
   if (error) reportDbError('fetchScienceMemes', error)
   if (error || !data || data.length === 0) return []
   return data as ScienceMeme[]
+}
+
+/**
+ * Предмет ученика из его строки `students`: предмет группы или карточки 1:1,
+ * иначе собственная колонка `subject` (вариант Б, миграция 20261108130000).
+ * Терпит базу без колонки и закрытую RLS: любой отказ — null, главная просто
+ * не получит запасного предмета. Тихо, без reportDbError: это необязательный
+ * слой поверх курсов.
+ */
+export async function fetchStudentOwnSubject(studentId: string): Promise<string | null> {
+  if (!studentId) return null
+  const withGroup = await supabase.from('students').select('subject, groups(subject)').eq('id', studentId).maybeSingle()
+  if (!withGroup.error) {
+    const row = withGroup.data as { subject?: string | null; groups?: { subject?: string | null } | null } | null
+    return resolveStudentSubject({ groupSubject: row?.groups?.subject, ownSubject: row?.subject })
+  }
+  const own = await supabase.from('students').select('subject').eq('id', studentId).maybeSingle()
+  if (own.error) return null
+  return resolveStudentSubject({ ownSubject: (own.data as { subject?: string | null } | null)?.subject })
 }
 
 export async function fetchCourseReactions(): Promise<CourseReaction[]> {

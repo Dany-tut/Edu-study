@@ -67,7 +67,7 @@
     "check:lesson-montage": "esbuild scripts/checkLessonMontage.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLessonMontage.mjs --log-level=error && node node_modules/.cache/checkLessonMontage.mjs && npm run check:lesson-recap",
     "check:lesson-recap": "esbuild scripts/checkLessonRecap.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLessonRecap.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkLessonRecap.mjs",
     "check:homework-facts": "esbuild scripts/checkHomeworkFacts.mjs --packages=external --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkFacts.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkHomeworkFacts.mjs",
-    "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs",
+    "check:student-widgets": "node scripts/checkStudentWidgetMatrix.mjs && node scripts/checkStudentSubject.mjs",
     "check:mobile": "node scripts/checkMobileGestures.mjs && node scripts/checkMobileHomeworkReview.mjs && npm run check:standalone-homework",
     "check:calendar-browser": "node scripts/checkTeacherCalendarDay.mjs",
     "check:shelf-filters-browser": "node scripts/checkShelfFiltersBrowser.mjs",

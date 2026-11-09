@@ -1279,3 +1279,24 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 [data-hover=row] strong {transition:color .15s}
 [data-hover=row] > svg:last-child {transition:color .15s,transform .15s}
 [data-hover=layer]:active:not(:disabled)::after {opacity:.18}
+
+/* ══════════════════════════════════════════════════════════
+   iPhone · тёмная тема: стекло и поверхности не тонут в фоне
+   ══════════════════════════════════════════════════════════
+   Графитовое стекло 22,22,24 на фоне #111113 почти совпадало с ним: верхние
+   таблетки, колокольчик и сегменты читались плоскими пятнами, а невидимая
+   рамка стекла (alpha 0) не давала им края. На iPhone стекло на ступень
+   светлее, у него волосяной край и освещённая верхняя грань, как у
+   системных контролов iOS. Мягкие подложки статусов подтянуты к шагу ~0.22,
+   чтобы пары фон/текст (amber, green) не терялись. Только iPhone: Android,
+   iPad и ПК остаются на общих значениях. */
+[data-platform="iphone"][data-theme="dark"] {
+  --glass-rgb: 40, 40, 44;
+  --color-border-glass: rgba(255,255,255,0.10);
+  --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 24px rgba(0,0,0,0.50), 0 2px 6px rgba(0,0,0,0.25);
+  --color-bg-2: #1C1C1F;
+  --color-border: rgba(255,255,255,0.10);
+  --color-text-3: #9A9AA3;
+  --color-amber-soft: rgba(224,163,66,0.22);
+  --color-green-soft: rgba(74,222,128,0.18);
+}

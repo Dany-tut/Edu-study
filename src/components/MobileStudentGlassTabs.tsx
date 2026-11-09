@@ -3,6 +3,7 @@ import { setGlassTabs, removeGlassTabs, onGlassTab, setGlassKeyboard } from '../
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
 import { useT } from '../lib/i18n'
+import { useDashboard } from '../store/dashboardStore'
 
 // Нижняя навигация ученика в приложении на iOS (iPhone и iPad в телефонной
 // раскладке) — системный UITabBar со стеклом Liquid Glass, как у преподавателя
@@ -41,12 +42,20 @@ export default function MobileStudentGlassTabs({ items, active, onSelect, hwBadg
   const kbOpen = useKeyboardOpen()
   useEffect(() => { setGlassKeyboard(kbOpen) }, [kbOpen])
 
+  // Урок и домашка — не вкладки, а вложенные экраны. Пока они открыты,
+  // выбранной остаётся вкладка, откуда пришли (lessonReturnPage): урок из ДЗ
+  // подсвечивает «ДЗ», а не первую вкладку, на которую иначе падает UITabBar.
+  const returnPage = useDashboard(s => s.lessonReturnPage)
+  const selected = items.some(it => it.id === active)
+    ? active
+    : items.some(it => it.id === returnPage) ? returnPage : 'home'
+
   useEffect(() => {
     setGlassTabs(items.map(it => ({
       id: it.id, title: t(it.label), symbol: SYMBOL[it.id] ?? 'circle',
       badge: it.id === 'homeworkList' ? hwBadge : it.id === 'trainer' ? feedBadge : 0,
-    })), active, TINT)
-  }, [items, active, hwBadge, feedBadge, t])
+    })), selected, TINT)
+  }, [items, selected, hwBadge, feedBadge, t])
 
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
