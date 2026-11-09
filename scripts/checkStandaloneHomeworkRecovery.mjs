@@ -23,7 +23,7 @@ const mocks = {
     export const fetchQuizQuestions=async()=>[];
     export const fetchScienceFacts=async()=>[];
     export const fetchScienceMemes=async()=>[];
-    export const fetchCourseReactions=async()=>[];`,
+    export const fetchCourseReactions=async()=>[];export const fetchStudentOwnSubject=async()=>null;`,
   '../data/personalStudentDemoData':
     'export const buildPersonalStudentDemo=()=>({})',
   '../data/devStudentDemo':
