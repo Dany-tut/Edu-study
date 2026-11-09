@@ -36,6 +36,17 @@ public class SystemChromePlugin extends Plugin {
     /** Последняя тема от JS; null — ещё не приходила (тогда ничего не трогаем). */
     private Boolean dark = null;
 
+    private final Handler main = new Handler(Looper.getMainLooper());
+
+    @Override
+    public void load() {
+        // Возврат в приложение: система перекрашивает иконки полос по новой
+        // конфигурации ПОСЛЕ onResume — фокус окна приходит последним, на нём и
+        // возвращаем тему приложения.
+        getActivity().getWindow().getDecorView().getViewTreeObserver()
+            .addOnWindowFocusChangeListener(hasFocus -> { if (hasFocus) reapplyLater(); });
+    }
+
     @PluginMethod
     public void setAppearance(PluginCall call) {
         dark = call.getBoolean("dark", false);
@@ -59,10 +70,21 @@ public class SystemChromePlugin extends Plugin {
         reapplyLater();
     }
 
+    /**
+     * Повторяем тему приложения после системных перекрасок: сразу, следующим
+     * кадром и с запасом — система и встроенный SystemBars могут выставить
+     * иконки по своей теме уже после нас (найдено тестовой сборкой: светлое
+     * приложение, смена системы тёмная→светлая в фоне → белые иконки).
+     */
     private void reapplyLater() {
         if (dark == null) return;
-        new Handler(Looper.getMainLooper()).post(this::apply);
+        main.removeCallbacks(applyTask);
+        main.post(applyTask);
+        main.postDelayed(applyTask, 150);
+        main.postDelayed(applyTask, 400);
     }
+
+    private final Runnable applyTask = this::apply;
 
     private void apply() {
         if (dark == null || getActivity() == null) return;
