@@ -79,7 +79,7 @@ export default function WidgetAttentionStudents() {
           <FadeText style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{atRisk.length ? t('Ученики с долгом или просрочкой оплаты') : t('Все ученики в норме')}</FadeText>
         </div>
         <RetryImage className="ww-attention-object" src="/widget-metric-objects-v1/debt.png" alt="" aria-hidden="true" />
-        <ArrowUpRight className="ww-attention-open" size={18} aria-hidden="true" />
+        <ArrowUpRight className="ww-attention-open" size={16} aria-hidden="true" />
       </button>
       {/* Header */}
       <div className="ww-header" style={{

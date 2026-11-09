@@ -238,7 +238,7 @@ html:has(.ww-gallery-dialog),body:has(.ww-gallery-dialog){overflow:hidden;oversc
 .iskra-widget .ww-attention-summary{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
 .iskra-widget .ww-attention-value{font-size:30px;font-weight:750;line-height:1}
 .iskra-widget .ww-attention-object{width:96px;height:96px;max-width:34%;object-fit:contain;flex-shrink:0}
-.iskra-widget .ww-attention-open{position:absolute;bottom:12px;right:12px;color:var(--color-accent)}
+.iskra-widget .ww-attention-open{position:absolute;right:10px;bottom:9px;box-sizing:border-box;width:28px;height:28px;padding:6px;border-radius:50%;background:var(--color-bg-input);color:var(--color-accent)}
 @container iskra-widget (max-height:160px){
 .iskra-widget .ww-attention-card>.ww-header,.iskra-widget .ww-attention-card>.ww-list{display:none!important}
 .iskra-widget .ww-attention-compact{display:flex}
