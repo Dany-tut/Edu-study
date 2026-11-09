@@ -5,6 +5,7 @@ import type { InstallViewProps } from './install/InstallParts'
 import InstallSheetIphone from './install/InstallSheetIphone'
 import InstallPopoverIpad from './install/InstallPopoverIpad'
 import InstallSheetLegacy from './install/InstallSheetLegacy'
+import InstallWindowPc from './install/InstallWindowPc'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Лист «Установить „Искру“» — ДИСПЕТЧЕР. Здесь только решение «показывать или
@@ -13,7 +14,7 @@ import InstallSheetLegacy from './install/InstallSheetLegacy'
 //   iPhone  — InstallSheetIphone.tsx (нижний лист, стекло iOS, без ×)
 //   iPad    — InstallPopoverIpad.tsx (поповер справа, ×)
 //   Android — пока InstallSheetLegacy.tsx; свой вью добавит Android-чат
-//   ПК      — пока InstallSheetLegacy.tsx; своё окно добавит ПК-чат
+//   ПК      — InstallWindowPc.tsx (окно по центру, ×)
 // Общее содержимое (Огонёк, заголовок, плашки, шаги) — ./install/InstallParts.
 //
 // Не показываем вовсе, если уже установлено: приложение Capacitor или PWA с
@@ -25,7 +26,7 @@ const VIEWS: Record<Platform, ComponentType<InstallViewProps>> = {
   iphone: InstallSheetIphone,
   ipad: InstallPopoverIpad,
   android: InstallSheetLegacy,
-  pc: InstallSheetLegacy,
+  pc: InstallWindowPc,
 }
 
 const DISMISS_KEY = 'pwa_install_dismissed_v1'
