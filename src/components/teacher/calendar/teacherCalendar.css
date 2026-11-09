@@ -1,17 +1,8 @@
-/* Календарь учителя (ПК и iPad-ландшафт). Только токены темы. */
+/* Сетка недели в виджете «Расписание» (ПК и iPad-ландшафт). Только токены темы. */
 
-.tcal-page { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: var(--teacher-header-space) 24px 24px; margin-top: calc(-1 * var(--teacher-header-space)); }
-.tcal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
-.tcal-head-left, .tcal-head-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.tcal-period { display: flex; align-items: center; gap: 2px; height: 40px; padding: 0 4px; border-radius: 20px; background: var(--color-bg-2); border: 1px solid var(--color-border); }
-.tcal-period b { padding: 0 6px; font-size: 15px; font-weight: 700; color: var(--color-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tcal-arrow { width: 32px; height: 32px; border: 0; border-radius: 16px; background: none; color: var(--color-text-2); display: grid; place-items: center; cursor: pointer; }
-.tcal-count { font-size: 13px; color: var(--color-text-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
-
-.tcal-main { flex: 1; min-height: 0; display: flex; gap: 16px; }
-
-.tcal-grid { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--color-bg-2); border: 1px solid var(--color-border); border-radius: 24px; box-shadow: var(--shadow-widget); overflow: hidden; }
-.tcal-days { display: grid; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--color-border); }
+/* Внутри виджета — без своей рамки: рамка у виджета. */
+.tcal-grid { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; margin: 0 -4px; }
+.tcal-days { display: grid; height: 56px; flex-shrink: 0; border-bottom: 1px solid var(--color-border); }
 .tcal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .tcal-day small { font-size: 11px; font-weight: 600; color: var(--color-text-3); text-transform: uppercase; letter-spacing: .04em; }
 .tcal-day b { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: var(--color-text); font-variant-numeric: tabular-nums; }
@@ -21,15 +12,16 @@
 .tcal-body::-webkit-scrollbar { display: none; }
 .tcal-rows { position: relative; display: grid; }
 .tcal-hours { position: relative; }
-.tcal-hours span { position: absolute; right: 10px; transform: translateY(-50%); font-size: 11px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
+.tcal-hours span { position: absolute; right: 7px; transform: translateY(-50%); font-size: 11px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
 .tcal-hours .tcal-now-tag { right: 4px; z-index: 3; padding: 1px 6px; border-radius: 6px; background: var(--color-red-text); color: var(--color-bg-2); font-size: 10.5px; font-weight: 700; opacity: 1 !important; }
-.tcal-col { position: relative; border-left: 1px solid var(--color-border); cursor: copy; }
+.tcal-col { position: relative; border-left: 1px solid var(--color-border); }
+.tcal-col[data-add] { cursor: copy; }
 .tcal-col[data-today] { background: rgba(var(--accent-rgb), .05); }
 .tcal-hline { position: absolute; left: 0; right: 0; height: 1px; background: var(--color-border); pointer-events: none; }
 .tcal-now { position: absolute; left: 0; right: 0; height: 2px; background: var(--color-red-text); z-index: 3; pointer-events: none; }
 .tcal-now::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 5px; background: var(--color-red-text); }
 
-.tcal-event { position: absolute; z-index: 1; overflow: hidden; display: flex; flex-direction: column; gap: 1px; padding: 6px 8px 6px 11px; border: 0; border-radius: 12px; text-align: left; cursor: pointer; font-family: inherit;
+.tcal-event { position: absolute; z-index: 1; overflow: hidden; display: flex; flex-direction: column; gap: 1px; padding: 5px 6px 5px 9px; border: 0; border-radius: 10px; text-align: left; cursor: pointer; font-family: inherit;
   background: color-mix(in srgb, var(--ev) 16%, var(--color-bg-2));
   color: color-mix(in srgb, var(--ev) 72%, var(--color-text));
   transition: box-shadow .15s, transform .15s, opacity .15s; }
@@ -45,35 +37,3 @@
   .tcal-event:hover { box-shadow: 0 0 0 1.5px var(--ev), var(--shadow-2); transform: translateY(-1px); z-index: 2; }
 }
 .tcal-event:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
-
-/* Панель «Сегодня» (ПК) */
-.tcal-today { width: 316px; flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; background: var(--color-bg-2); border: 1px solid var(--color-border); border-radius: 24px; box-shadow: var(--shadow-widget); padding: 18px 14px 14px; }
-.tcal-today h3 { margin: 0 4px 2px; font-size: 16px; font-weight: 800; color: var(--color-text); }
-.tcal-today-sub { margin: 0 4px 12px; font-size: 12px; color: var(--color-text-3); }
-.tcal-today-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; gap: 6px; }
-.tcal-today-list::-webkit-scrollbar { display: none; }
-.tcal-today-item { display: flex; gap: 10px; align-items: stretch; width: 100%; padding: 10px; border: 0; border-radius: 14px; background: var(--color-bg-3); text-align: left; cursor: pointer; font-family: inherit; color: var(--color-text); }
-.tcal-today-item[data-past] { opacity: .55; }
-.tcal-today-item[data-live] { background: rgba(var(--accent-rgb), .10); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), .35); }
-.tcal-today-dot { width: 4px; border-radius: 2px; flex-shrink: 0; background: var(--ev); }
-.tcal-today-time { width: 46px; flex-shrink: 0; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.tcal-today-time small { display: block; font-size: 11px; font-weight: 500; color: var(--color-text-3); }
-.tcal-today-name { min-width: 0; flex: 1; font-size: 13px; font-weight: 600; }
-.tcal-today-name small { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 500; color: var(--color-text-3); }
-.tcal-today-name > *:not(.tcal-live-chip) { white-space: nowrap; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); }
-.tcal-live-chip { display: inline-block; margin-top: 5px; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 7px; background: var(--status-now-soft); color: var(--status-now-text); box-shadow: inset 0 0 0 1px var(--status-now); }
-.tcal-today-empty { padding: 24px 8px; text-align: center; font-size: 13px; color: var(--color-text-3); }
-
-/* iPad-ландшафт: период в стеклянной шапке, управление — в капсуле справа. */
-.tcal-page[data-ipad] { padding-right: 116px; }
-.tcal-page[data-ipad] .tcal-head { position: relative; z-index: 5; height: 56px; padding: 0 8px; border-radius: 28px; background: rgba(var(--glass-rgb), .72); backdrop-filter: var(--blur-glass); -webkit-backdrop-filter: var(--blur-glass); border: 1px solid var(--color-border-glass); box-shadow: var(--shadow-pill); }
-.tcal-page[data-ipad] .tcal-period { background: transparent; border: 0; }
-.tcal-page[data-ipad] .tcal-arrow { width: 44px; height: 44px; border-radius: 22px; }
-.tcal-rail { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 20px); top: 50%; transform: translateY(-42%); z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.tcal-capsule { width: 72px; padding: 4px; border-radius: 36px; display: flex; flex-direction: column; gap: 2px; background: rgba(var(--glass-rgb), .72); backdrop-filter: var(--blur-glass); -webkit-backdrop-filter: var(--blur-glass); border: 1px solid var(--color-border-glass); box-shadow: var(--shadow-pill); }
-.tcal-cell { width: 64px; height: 64px; border: 0; border-radius: 32px; background: none; color: var(--color-text-3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-family: inherit; }
-.tcal-cell[aria-pressed=true] { height: 88px; background: var(--color-purple-soft); color: var(--color-accent); font-size: 11px; font-weight: 700; }
-.tcal-cell-label { display: block; max-width: 100%; padding: 0 6px; box-sizing: border-box; text-align: center; }
-.tcal-capsule-divider { height: 1px; margin: 4px 12px; background: var(--color-border); }
-.tcal-primary { width: 64px; height: 64px; border: 0; border-radius: 32px; display: grid; place-items: center; background: var(--grad-purple); color: #fff; cursor: pointer; box-shadow: 0 8px 22px rgba(var(--accent-rgb), .45); }
-.tcal-rail-popover { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 104px); top: 50%; transform: translateY(-50%); z-index: 61; width: 300px; max-height: min(520px, 80vh); display: flex; flex-direction: column; border-radius: 24px; padding: 16px 12px 12px; background: rgba(var(--glass-rgb), .86); backdrop-filter: var(--blur-glass); -webkit-backdrop-filter: var(--blur-glass); border: 1px solid var(--color-border-glass); box-shadow: var(--shadow-5); }

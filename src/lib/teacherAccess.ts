@@ -20,8 +20,6 @@ export const TEACHER_TABS: { id: TeacherTabId; label: string }[] = [
 // always allowed (self-service / admin-only pages guard themselves).
 const PAGE_TAB: Record<TeacherPage, TeacherTabId | null> = {
   home: 'home',
-  // Календарь — развёрнутое расписание с Главной: скрыта Главная — скрыт и он.
-  calendar: 'home',
   groups: 'groups',
   student: 'groups',
   homework: 'homework',

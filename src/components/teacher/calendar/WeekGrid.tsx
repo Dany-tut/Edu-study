@@ -4,9 +4,12 @@ import { useScrollFades } from '../../../lib/useScrollFades'
 import { isScheduleEnded, isScheduleLive } from '../../../lib/scheduleLive'
 import type { SchedItem } from '../../../lib/teacherSchedule'
 import { WEEKDAYS, dayNum, weekdayIdx, minutes, nowMinutesMsk, fmtMinutes } from './calendarTime'
+import './teacherCalendar.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Сетка календаря учителя (концепт ONIX, согласован 09.11.2026): колонки —
+// Сетка недели в виджете «Расписание» (концепт ONIX, согласован 09.11.2026;
+// по просьбе Дани 10.11 — не отдельной страницей, а видом виджета: кому нужна
+// основная, растягивает виджет на Главной). Колонки —
 // дни, строки — часы по Москве. Занятие — блок цвета своей группы (мягкий
 // фон, полоска слева, текст того же тона), пересечения делят колонку на
 // дорожки. Сегодня — градиент выбранного дня, колонка чуть подкрашена;
@@ -53,15 +56,14 @@ function placeDay(items: SchedItem[]): Placed[] {
   return out
 }
 
-export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd, compactHeader = false }: {
+export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd }: {
   days: string[]
   items: SchedItem[] | null
   today: string
   onOpen: (item: SchedItem) => void
   onMenu: (item: SchedItem, el: HTMLElement) => void
-  onAdd: (day: string) => void
-  /** iPad: шапка дней ниже — над сеткой стеклянная шапка периода. */
-  compactHeader?: boolean
+  /** Нет — только просмотр (стенд): пустое место дня не кликается. */
+  onAdd?: (day: string) => void
 }) {
   const t = useT()
   const body = useRef<HTMLDivElement>(null)
@@ -99,11 +101,11 @@ export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd, co
     return () => ro.disconnect()
   }, [hours.length])
 
-  const cols = `56px repeat(${days.length}, minmax(0, 1fr))`
+  const cols = `44px repeat(${days.length}, minmax(0, 1fr))`
   const y = (m: number) => ((m - from) / 60) * rowH
 
   return (
-    <div className="tcal-grid" data-compact={compactHeader || undefined}>
+    <div className="tcal-grid">
       <div className="tcal-days" style={{ gridTemplateColumns: cols }}>
         <div />
         {days.map(d => (
@@ -124,9 +126,9 @@ export default function WeekGrid({ days, items, today, onOpen, onMenu, onAdd, co
             )}
           </div>
           {days.map(d => (
-            <div key={d} className="tcal-col" data-today={d === today || undefined}
-              onClick={e => { if (e.target === e.currentTarget) onAdd(d) }}
-              title={t('Добавить занятие')}>
+            <div key={d} className="tcal-col" data-today={d === today || undefined} data-add={onAdd ? true : undefined}
+              onClick={e => { if (onAdd && e.target === e.currentTarget) onAdd(d) }}
+              title={onAdd ? t('Добавить занятие') : undefined}>
               {hours.map((h, i) => <div key={h} className="tcal-hline" style={{ top: i * rowH }} />)}
               {(byDay.get(d) ?? []).map(({ item, start, end, lane, lanes }) => {
                 const live = isScheduleLive(item)

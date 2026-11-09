@@ -25,7 +25,6 @@ const TeacherAdminPage = lazy(() => retryImport(() => import('./TeacherAdminPage
 const TeacherProfileSettingsPage = lazy(() => retryImport(() => import('./TeacherProfileSettingsPage'), 3, 'teacher_profile'))
 const TeacherPaymentPage = lazy(() => retryImport(() => import('./TeacherPaymentPage')))
 const TeacherFinancesPage = lazy(() => retryImport(() => import('./TeacherFinancesPage')))
-const TeacherCalendarPage = lazy(() => retryImport(() => import('./TeacherCalendarPage')))
 const TeacherParentReportsPage = lazy(() => retryImport(() => import('./TeacherParentReportsPage')))
 const MobileTeacherApp = lazy(() => retryImport(() => import('../../components/teacher/mobile/MobileTeacherApp')))
 import DeskSwitcher from '../../components/teacher/DeskSwitcher'
@@ -263,7 +262,6 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage friends={friends} />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
-        {activePage === 'calendar'         && <TeacherCalendarPage />}
         {activePage === 'parent-reports'   && <TeacherParentReportsPage />}
         </Suspense>
       </motion.div>

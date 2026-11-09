@@ -6,7 +6,7 @@ import { t } from '../lib/i18n'
 import { supabase } from '../lib/supabase'
 import { LOAD_FIXTURE, fixtureTasks } from '../lib/loadFixture'
 
-export type TeacherPage = 'home' | 'calendar' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'cards-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances' | 'parent-reports'
+export type TeacherPage = 'home' | 'groups' | 'homework' | 'homework-create' | 'homework-review' | 'hard-review' | 'lesson-editor' | 'gradebook' | 'constructor' | 'student' | 'course-editor' | 'cards-editor' | 'storage' | 'admin' | 'profile-settings' | 'payment' | 'finances' | 'parent-reports'
 
 export type StudentTrainerStats = {
   doneCount: number
@@ -163,7 +163,6 @@ type TeacherStore = {
 // lands the teacher back on the same section — including admin/finances/storage.
 export const HASH_TO_PAGE: Record<string, TeacherPage> = {
   '#/teacher':             'home',
-  '#/teacher/calendar':    'calendar',
   '#/teacher/groups':      'groups',
   '#/teacher/homework':    'gradebook',
   '#/teacher/gradebook':   'gradebook',
