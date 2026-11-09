@@ -44,6 +44,7 @@ import { signOutAndReload } from '../../lib/signOutAndReload'
 
 const navItems: { id: TeacherPage; label: string; icon: React.ElementType }[] = [
   { id: 'home',        label: 'Главная',     icon: Home },
+  { id: 'calendar',    label: 'Календарь',   icon: CalendarDays },
   { id: 'groups',      label: 'Группы',      icon: Users },
   { id: 'gradebook',   label: 'Журнал',      icon: BookOpen },
   { id: 'constructor', label: 'Конструктор', icon: Layers },

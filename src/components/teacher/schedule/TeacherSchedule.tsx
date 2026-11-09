@@ -563,12 +563,12 @@ function Card({ item, ghost, onTap, onMenu, onDragStart, onDragMove, onDragEnd }
 
 // Overlay state is deliberately separate: opening a menu must not rerender
 // every animated day and lesson behind it.
-type CalendarOverlayHandle = {
+export type CalendarOverlayHandle = {
   openMenu: (item: SchedItem, rect: DOMRect, source?: HTMLElement) => void
   openAdd: (day: string) => void
 }
 
-const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
+export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   mobile: boolean
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
