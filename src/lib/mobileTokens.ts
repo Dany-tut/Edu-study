@@ -5,6 +5,8 @@
 // See docs/MOBILE_SPEC.md §2.5 (pairs) / §2.6 (buttons).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { PLATFORM } from './platform'
+
 /** Semantic background-soft ↔ on-soft-text pairs. One pair per meaning — no dups. */
 export type PairName =
   | 'success' | 'warning' | 'error' | 'review' | 'focus' | 'info' | 'accent2' | 'rose'
@@ -102,9 +104,22 @@ export function buttonStyle(variant: ButtonVariant, opts?: { pair?: PairName; ac
  */
 export const MOBILE_PILL_H = 40
 
-export const MOBILE_TOP_GAP = 22
+/**
+ * Зазор от safe-area до таблеток шапки.
+ * iPhone: ряд стоит как системный навбар iOS — сразу под часами и Dynamic
+ * Island/чёлкой (таблетка 40 в строке 44 → зазор 2). Остальные версии — 22.
+ * Главная iPhone (studentHome.css, .lh-header) держит ту же строку 44.
+ */
+export const MOBILE_TOP_GAP = PLATFORM === 'iphone' ? 2 : 22
+/**
+ * Верх безопасной зоны. iPhone в Safari с адресной строкой отдаёт inset = 0 —
+ * тогда минимум 6, чтобы ряд (6 + 2 = 8) не лип к краю окна.
+ */
+export const SAFE_TOP = PLATFORM === 'iphone'
+  ? 'max(env(safe-area-inset-top, 0px), 6px)'
+  : 'env(safe-area-inset-top, 0px)'
 /** Полный отступ сверху: safe-area + зазор (в браузере без выреза — просто зазор). */
-export const MOBILE_TOP_INSET = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
+export const MOBILE_TOP_INSET = `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`
 
 // ── Нижний зазор над домашней полосой ───────────────────────────────────────
 // ПОЧЕМУ КОНСТАНТА, А НЕ env(safe-area-inset-bottom).

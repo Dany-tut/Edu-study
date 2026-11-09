@@ -22,6 +22,7 @@ import {
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
+import { defaultStudentSubject, isStudentSubjectValid, normalizeStudentSubject, studentSubjectOptions } from '../../lib/studentSubject'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import { useScrollEdges } from '../../components/teacher/journalStand/useScrollEdges'
@@ -331,7 +332,7 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
 
 function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   onClose: () => void
-  onSave: (groupId: string, s: { name: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null; studentId: string | null; error: string | null }>
+  onSave: (groupId: string, s: { name: string; subject: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null; studentId: string | null; error: string | null }>
   groups: Group[]
   initialGroupId: string | null
 }) {
@@ -340,6 +341,18 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [selectedGroup, setSelectedGroup] = usePersistentState<string>('groups.addStudent.v2.group', initialGroupId ?? '')
   const [name, setName] = usePersistentState('groups.addStudent.name', '')
+  // Предмет обязателен (вариант Б): список — предметы учителя (profiles.subjects;
+  // пусто = ещё не выбрал = все из реестра), единственный подставлен сразу.
+  // Выбрана группа — предмет её; другие группы скрыты, чтобы не разошлись.
+  // Тот же список, что у «Предмет» в окнах 1:1 и групп: mySubjectNames.
+  const teacherSubjects = useTeacherAccess(st => st.subjects)
+  const subjectPool = mySubjectNames(teacherSubjects)
+  const [subject, setSubject] = usePersistentState('groups.addStudent.subject', defaultStudentSubject(subjectPool))
+  const pickedGroup = groups.find(g => g.id === selectedGroup)
+  const effectiveSubject = normalizeStudentSubject(pickedGroup?.subject) ?? normalizeStudentSubject(subject)
+  const subjectOptions = studentSubjectOptions(subjectPool, effectiveSubject)
+  const groupsForSubject = effectiveSubject ? groups.filter(g => normalizeStudentSubject(g.subject) === effectiveSubject) : groups
+  const canSave = !!name.trim() && isStudentSubjectValid(effectiveSubject)
   const [phone, setPhone] = usePersistentState('groups.addStudent.phone', '')
   const [telegram, setTelegram] = usePersistentState('groups.addStudent.telegram', '')
   const [parent, setParent] = usePersistentState('groups.addStudent.parent', '')
@@ -357,10 +370,10 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   const [newStudentId, setNewStudentId] = useState<string | null>(null)
 
   async function handleSave() {
-    if (!name.trim() || saving) return
+    if (!canSave || saving) return
     setSaving(true)
     setSaveErr(null)
-    const { inviteToken, studentId, error } = await onSave(selectedGroup, { name: name.trim(), phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
+    const { inviteToken, studentId, error } = await onSave(selectedGroup, { name: name.trim(), subject: effectiveSubject ?? '', phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
     setSaving(false)
     // Ученик не создан — форма остаётся, причина (например, лимит тарифа) — текстом.
     if (!studentId) { setSaveErr(error ?? t('Не удалось добавить ученика — попробуйте ещё раз.')); return }
@@ -460,15 +473,29 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); void handleSave() } }}
               style={inputStyle} />
           </label>
-          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)' }}>{t('Достаточно имени. Группу или занятия 1:1 можно назначить позже.')}</p>
-          {groups.length > 0 && (
+          <label style={labelStyle}>
+            {t('Предмет')}
+            <TeacherSelect
+              value={effectiveSubject ?? ''}
+              placeholder={t('Выберите предмет')}
+              onChange={value => {
+                setSubject(value)
+                if (pickedGroup && normalizeStudentSubject(pickedGroup.subject) !== normalizeStudentSubject(value)) setSelectedGroup('')
+              }}
+              options={subjectOptions.map(value => ({ value, label: t(value), icon: <SubjectMark subject={value} size={16} /> }))}
+              clearable={false}
+              triggerStyle={selectTriggerStyle}
+            />
+          </label>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)' }}>{t('Предмет нужен, чтобы ученик сразу увидел свои курсы и виджеты. Группу и расписание можно назначить позже.')}</p>
+          {groupsForSubject.length > 0 && (
             <label style={labelStyle}>
               {t('Группа (необязательно)')}
               <TeacherSelect
                 value={selectedGroup}
                 placeholder={t('Пока без занятий')}
                 onChange={setSelectedGroup}
-                options={[{ value: '', label: t('Пока без занятий') }, ...groups.map(g => ({ value: g.id, label: g.name, icon: <SubjectMark subject={g.subject} size={16} /> }))]}
+                options={[{ value: '', label: t('Пока без занятий') }, ...groupsForSubject.map(g => ({ value: g.id, label: g.name, icon: <SubjectMark subject={g.subject} size={16} /> }))]}
                 clearable={false}
                 triggerStyle={selectTriggerStyle}
               />
@@ -517,15 +544,10 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         <div style={{ flexShrink: 0, paddingTop: 16 }}>
         <button data-hover="layer"
           onClick={handleSave}
-          disabled={!name.trim() || saving}
-          style={{ height: 48,
-            marginTop: 0, width: '100%', padding: '0 22px',
-            background: 'var(--grad-purple)', opacity: name.trim() ? 1 : 0.45,
-            color: '#fff', fontWeight: 700, fontSize: 15,
-            border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
-          }}
+          disabled={!canSave || saving}
+          style={btn('L', 'primary', { opacity: canSave ? 1 : 0.45, cursor: canSave && !saving ? 'pointer' : 'not-allowed' })}
         >
-          {saving ? t('Сохранение...') : t('Добавить ученика')}
+          <span style={{ position: 'relative', top: '-0.04em' }}>{saving ? t('Сохранение...') : t('Добавить ученика')}</span>
         </button>
         </div>
           </>
@@ -2869,7 +2891,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                     </thead>
                     <tbody>
                       {groupStudents.length === 0 && <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
-                        {searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено') : t('Учеников пока нет. Добавьте первого — достаточно имени.')}
+                        {searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено') : t('Учеников пока нет. Добавьте первого — нужны имя и предмет.')}
                       </td></tr>}
                       {groupStudents.map((student, i) => {
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)

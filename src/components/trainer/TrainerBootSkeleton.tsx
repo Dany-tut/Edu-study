@@ -20,7 +20,7 @@
 // меняя их там, поправь и здесь.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { MOBILE_TOP_GAP } from '../../lib/mobileTokens'
+import { MOBILE_TOP_GAP, SAFE_TOP } from '../../lib/mobileTokens'
 
 function Bar({ w = '100%', h = 14, r = 8 }: { w?: number | string; h?: number; r?: number }) {
   return <span aria-hidden className="skeleton" style={{ display: 'block', width: w, height: h, borderRadius: r }} />
@@ -29,7 +29,7 @@ function Bar({ w = '100%', h = 14, r = 8 }: { w?: number | string; h?: number; r
 /** TrainerShell.RAIL_W */
 const RAIL_W = 300
 /** TrainerShell.PAD_TOP */
-const PAD_TOP = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
+const PAD_TOP = `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`
 
 const CARD = {
   display: 'flex', flexDirection: 'column' as const, gap: 10,
@@ -135,7 +135,7 @@ export default function TrainerBootSkeleton({ desktop }: { desktop: boolean }) {
       aria-busy="true"
       style={narrow ? {
         minHeight: '100dvh', background: 'var(--color-bg)',
-        paddingTop: `calc(env(safe-area-inset-top, 0px) + ${58 + MOBILE_TOP_GAP}px)`,
+        paddingTop: `calc(${SAFE_TOP} + ${58 + MOBILE_TOP_GAP}px)`,
         paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)',
       } : { minHeight: '60vh', background: 'var(--color-bg)' }}
     >
