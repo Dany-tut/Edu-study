@@ -6353,4 +6353,11 @@ export const EN: Record<string, string> = {
   "По порядку уроков": "Lesson order",
   "По баллу": "By score",
   "Скрыть закрытые уроки": "Hide locked lessons",
+  "Огонёк появится на экране «Домой» — Искра откроется сразу, на весь экран": "Ogonek lands on your Home Screen — Iskra opens instantly, full screen",
+  "внизу": "at the bottom",
+  "вверху справа": "at the top right",
+  "— готово": "— done",
+  "Этот браузер не умеет ставить приложения. Откройте Искру в": "This browser can’t install apps. Open Iskra in",
+  "и нажмите «Установить» ещё раз.": "and tap “Install” again.",
+  "внизу справа, затем": "at the bottom right, then",
 }
