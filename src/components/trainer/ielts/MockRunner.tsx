@@ -21,6 +21,7 @@ import { textFadeStyle } from '../../../lib/textFades'
 // пробника перестал бы что-то значить.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { useNativeOverlay } from '../../../lib/nativeGlass'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Clock, Headphones, LogOut, Mic, Square, Volume2, Pause, Play, Highlighter } from '../../icons/appIcons'
@@ -87,6 +88,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
 }) {
   const t = useT()
   const [d, setD] = useState<MockDraft>(initial)
+  useNativeOverlay(true)
   // Сданная попытка открывается сразу результатом — так из истории смотрят разбор.
   const [done, setDone] = useState<MockAttempt | null>(initial.attempt.finishedAt ? initial.attempt : null)
   const [confirmExit, setConfirmExit] = useState(false)

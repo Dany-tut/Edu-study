@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useSeason, setSeasonChoice, openSeasonPicker, seasonImg, VARIANTS, type SeasonVariant } from '../../lib/season'
 import { useT } from '../../lib/i18n'
 import './season.css'
+import { useNativeOverlay } from '../../lib/nativeGlass'
 
 /*
  * «Сейчас Хэллоуин — выбери тему». Каждый ученик сам выбирает одну из трёх или
@@ -31,6 +32,7 @@ export default function SeasonAsk() {
   // Само при первом входе (asking) или по строке «Хэллоуин-тема» в настройках (picking).
   const open = ((s.asking && !dismissed) || s.picking) && !!s.season
   const close = () => { setDismissed(true); openSeasonPicker(false) }
+  useNativeOverlay(open)
   // Вызвано из настроек: подсвечиваем текущую тему, вторая кнопка — «Без темы».
   const current = s.picking && s.active ? s.variant : null
 

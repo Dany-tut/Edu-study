@@ -22,6 +22,7 @@ import { useLang, useT } from '../../../lib/i18n'
 import { isAsrAvailable, listenLong, type AsrSession } from '../../../lib/asr'
 import { wordCount } from '../../../lib/ieltsScore'
 import { loadArcade, saveArcade } from '../../../lib/ieltsMocks'
+import { useNativeOverlay } from '../../../lib/nativeGlass'
 
 const TOPICS = [
   'Describe a place in your city where you like to spend time.',
@@ -60,6 +61,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
   const t = useT()
   const lang = useLang(s => s.lang)
   const [level, setLevel] = useState<(typeof LEVELS)[number]>(LEVELS[1])
+  useNativeOverlay(true)
   const [topic, setTopic] = useState(() => TOPICS[Math.floor(Math.random() * TOPICS.length)])
   const [phase, setPhase] = useState<Phase>('ready')
   const [now, setNow] = useState(Date.now())

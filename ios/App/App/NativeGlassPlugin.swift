@@ -7,7 +7,7 @@ private enum LoopNativeIcons {
     private static let names = [
         "house": "Home", "calendar": "CalendarCheck", "person.2": "Users",
         "checkmark.rectangle.stack": "CheckCircle2", "checklist": "NotebookPen",
-        "person.crop.circle": "UserCircle", "book": "BookOpen", "dumbbell": "Dumbbell",
+        "person.crop.circle": "UserCircle", "book": "BookOpen", "dumbbell": "Dumbbell", "magnifyingglass": "Search", "slider.horizontal.3": "SlidersHorizontal",
     ]
     private static var images: [String: UIImage] = [:]
 
@@ -60,6 +60,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         CAPPluginMethod(name: "headerHidden", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "headerRemove", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setAppearance", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "barSet", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "barHidden", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "barRemove", returnType: CAPPluginReturnPromise),
     ]
 
     private var tabBar: UITabBar?
@@ -73,6 +76,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
     private var trailingPill: GlassPillView?
     private var headerBackButton: UIButton?
     private var headerTitleWidth: NSLayoutConstraint?
+    // Стеклянный бар экрана (ученик, iPhone): таблетка сверху + ряд снизу.
+    private var barTopView: UIButton?
+    private var barBottomView: UIStackView?
+    private var barLastOptions: JSObject?
+    private var barLastKey = ""
 
     private var host: UIViewController? { bridge?.viewController }
 
@@ -191,6 +199,172 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         }
     }
 
+
+    // MARK: — стеклянный бар экрана (ученик, iPhone)
+
+    // Органы управления экраном — настоящими кнопками Liquid Glass: таблетка
+    // по центру сверху (переключатель, обычно с меню) и ряд над вкладками
+    // (круги и таблетки). Пункт с `menu` открывает системное UIMenu прямо от
+    // кнопки и сообщает выбор событием barMenu {id, value}; без меню — barTap
+    // {id}. Шапка и вкладки учителя (headerSet/tabBarSet) не затрагиваются.
+    @objc func barSet(_ call: CAPPluginCall) {
+        let opts = call.options as? JSObject ?? [:]
+        DispatchQueue.main.async {
+            guard let host = self.host else { call.resolve(); return }
+            // Тот же состав — ничего не пересоздаём: иначе кнопки мигали бы на
+            // каждом рендере экрана.
+            let key = (try? JSONSerialization.data(withJSONObject: opts, options: [.sortedKeys])).map { String(decoding: $0, as: UTF8.self) } ?? ""
+            if key == self.barLastKey { call.resolve(); return }
+            self.barLastKey = key
+            self.barLastOptions = opts
+            self.buildBar(opts, traits: host.traitCollection)
+            call.resolve()
+        }
+    }
+
+    private func buildBar(_ opts: JSObject, traits: UITraitCollection) {
+        guard let host = self.host else { return }
+        self.barTopView?.removeFromSuperview(); self.barTopView = nil
+        self.barBottomView?.removeFromSuperview(); self.barBottomView = nil
+
+        if let top = opts["top"] as? JSObject {
+            let b = self.barButton(top, traits: traits)
+            b.translatesAutoresizingMaskIntoConstraints = false
+            host.view.addSubview(b)
+            NSLayoutConstraint.activate([
+                b.centerXAnchor.constraint(equalTo: host.view.centerXAnchor),
+                b.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 22),
+                b.heightAnchor.constraint(equalToConstant: 44),
+                b.widthAnchor.constraint(lessThanOrEqualTo: host.view.widthAnchor, constant: -120),
+            ])
+            self.barTopView = b
+        }
+
+        let items = opts["bottom"] as? [JSObject] ?? []
+        if !items.isEmpty {
+            let row = UIStackView()
+            row.axis = .horizontal
+            row.spacing = 10
+            row.alignment = .center
+            row.distribution = .fill
+            row.translatesAutoresizingMaskIntoConstraints = false
+            for it in items {
+                let b = self.barButton(it, traits: traits)
+                b.translatesAutoresizingMaskIntoConstraints = false
+                b.heightAnchor.constraint(equalToConstant: 48).isActive = true
+                if (it["kind"] as? String) == "circle" {
+                    b.widthAnchor.constraint(equalToConstant: 48).isActive = true
+                    b.setContentHuggingPriority(.required, for: .horizontal)
+                } else {
+                    b.setContentHuggingPriority(.defaultLow, for: .horizontal)
+                }
+                row.addArrangedSubview(b)
+            }
+            host.view.addSubview(row)
+            // Над системными вкладками: капсула UITabBar начинается ~48 pt выше
+            // нижней безопасной зоны, ряд встаёт с зазором 10.
+            NSLayoutConstraint.activate([
+                row.leadingAnchor.constraint(equalTo: host.view.leadingAnchor, constant: 16),
+                row.trailingAnchor.constraint(equalTo: host.view.trailingAnchor, constant: -16),
+                row.bottomAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.bottomAnchor, constant: -(self.tabBar == nil ? 10 : 58)),
+            ])
+            self.barBottomView = row
+        }
+    }
+
+    private func barButton(_ it: JSObject, traits: UITraitCollection) -> UIButton {
+        let id = it["id"] as? String ?? ""
+        let title = it["title"] as? String
+        let symbol = it["symbol"] as? String
+        let active = it["active"] as? Bool ?? false
+        let menuItems = it["menu"] as? [JSObject]
+        let accent = UIColor(red: 0x78/255, green: 0x6A/255, blue: 0xD7/255, alpha: 1)
+
+        var config: UIButton.Configuration
+        if #available(iOS 26.0, *) { config = .glass() } else { config = .gray() }
+        config.cornerStyle = .capsule
+        config.baseForegroundColor = active ? accent : .label
+        if let title {
+            var text = AttributedString(title)
+            text.font = .systemFont(ofSize: 15, weight: .semibold)
+            config.attributedTitle = text
+            config.titleLineBreakMode = .byClipping
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 18, bottom: 0, trailing: 16)
+            if menuItems != nil {
+                config.image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(accent, renderingMode: .alwaysOriginal)
+                config.imagePlacement = .trailing
+                config.imagePadding = 6
+            }
+        } else if let symbol {
+            config.image = LoopNativeIcons.image(symbol, traits: traits)
+            config.contentInsets = .zero
+        }
+        let button = GlassBarButton(configuration: config)
+        button.accessibilityLabel = (it["label"] as? String) ?? title
+        // Точка «фильтр включён» у круга.
+        if active && title == nil {
+            let dot = UIView()
+            dot.backgroundColor = accent
+            dot.layer.cornerRadius = 4
+            dot.translatesAutoresizingMaskIntoConstraints = false
+            dot.isUserInteractionEnabled = false
+            button.addSubview(dot)
+            NSLayoutConstraint.activate([
+                dot.widthAnchor.constraint(equalToConstant: 8), dot.heightAnchor.constraint(equalToConstant: 8),
+                dot.topAnchor.constraint(equalTo: button.topAnchor, constant: 8),
+                dot.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -8),
+            ])
+        }
+        if let menuItems {
+            let actions: [UIMenuElement] = menuItems.map { m in
+                let value = m["value"] as? String ?? ""
+                let action = UIAction(title: m["title"] as? String ?? "") { [weak self] _ in
+                    UISelectionFeedbackGenerator().selectionChanged()
+                    self?.notifyListeners("barMenu", data: ["id": id, "value": value])
+                }
+                action.state = (m["checked"] as? Bool == true) ? .on : .off
+                return action
+            }
+            button.menu = UIMenu(title: (it["menuTitle"] as? String) ?? "", options: .singleSelection, children: actions)
+            button.showsMenuAsPrimaryAction = true
+            // Порядок пунктов — как задан, сверху вниз, даже когда меню
+            // раскрывается вверх от нижнего ряда.
+            if #available(iOS 16.0, *) { button.preferredMenuElementOrder = .fixed }
+        } else {
+            button.addAction(UIAction { [weak self] _ in
+                UISelectionFeedbackGenerator().selectionChanged()
+                self?.notifyListeners("barTap", data: ["id": id])
+            }, for: .touchUpInside)
+        }
+        return button
+    }
+
+    @objc func barHidden(_ call: CAPPluginCall) {
+        let top = call.getBool("top") ?? false
+        let bottom = call.getBool("bottom") ?? false
+        DispatchQueue.main.async {
+            UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut, .beginFromCurrentState]) {
+                self.barTopView?.alpha = top ? 0 : 1
+                self.barTopView?.transform = top ? CGAffineTransform(translationX: 0, y: -24) : .identity
+                self.barBottomView?.alpha = bottom ? 0 : 1
+                self.barBottomView?.transform = bottom ? CGAffineTransform(translationX: 0, y: 40) : .identity
+            }
+            self.barTopView?.isUserInteractionEnabled = !top
+            self.barBottomView?.isUserInteractionEnabled = !bottom
+            call.resolve()
+        }
+    }
+
+    @objc func barRemove(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.barTopView?.removeFromSuperview(); self.barTopView = nil
+            self.barBottomView?.removeFromSuperview(); self.barBottomView = nil
+            self.barLastOptions = nil
+            self.barLastKey = ""
+            call.resolve()
+        }
+    }
+
     // MARK: — тема
 
     /// Тема кабинета своя (data-theme), системные контролы смотрят на тему
@@ -210,6 +384,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             self.leadingPill?.refreshIcon(traits: traits)
             self.headerBackButton?.setImage(LoopNativeIcons.image("chevron.left", traits: traits) ?? UIImage(systemName: "chevron.left"), for: .normal)
             self.trailingPill?.refreshIcon(traits: traits)
+            if let opts = self.barLastOptions { self.buildBar(opts, traits: traits) }
             call.resolve()
         }
     }
@@ -483,6 +658,26 @@ private final class GlassPillView: UIView {
         }
         positionConstraints = [centerYAnchor.constraint(equalTo: container.centerYAnchor), horizontal]
         NSLayoutConstraint.activate(positionConstraints)
+    }
+}
+
+/// Кнопка стеклянного бара: длинная подпись гаснет фейдом у края (TEXT-01),
+/// а не многоточием; стекло и шеврон остаются чёткими.
+private final class GlassBarButton: UIButton {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard let label = titleLabel, label.bounds.width > 0 else { return }
+        guard label.intrinsicContentSize.width > label.bounds.width + 0.5 else {
+            label.layer.mask = nil
+            return
+        }
+        let fade = CAGradientLayer()
+        fade.frame = label.bounds
+        fade.startPoint = CGPoint(x: 0, y: 0.5)
+        fade.endPoint = CGPoint(x: 1, y: 0.5)
+        fade.colors = [UIColor.black.cgColor, UIColor.black.cgColor, UIColor.clear.cgColor]
+        fade.locations = [0, NSNumber(value: max(0, 1 - 18 / label.bounds.width)), 1]
+        label.layer.mask = fade
     }
 }
 
