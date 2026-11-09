@@ -18,6 +18,8 @@
 import array, json, math, re, subprocess, sys, wave
 from pathlib import Path
 
+from media_tools import FFMPEG
+
 try:
     import numpy as np  # есть в окружении Whisper; без него — медленнее, но так же
 except ImportError:
@@ -97,7 +99,7 @@ def motion(source, start, end):
     if not source or not Path(source).exists():
         return None
     try:
-        out = subprocess.run(['ffmpeg', '-nostdin', '-v', 'info', '-ss', f'{start:.2f}', '-t', f'{end - start:.2f}', '-i', str(source),
+        out = subprocess.run([FFMPEG, '-nostdin', '-v', 'info', '-ss', f'{start:.2f}', '-t', f'{end - start:.2f}', '-i', str(source),
                               '-map', '0:v:0?', '-vf', "fps=2,scale=160:-1,select='gt(scene,0.03)',showinfo", '-f', 'null', '-'],
                              capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.SubprocessError):
