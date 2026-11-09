@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Локальный плагин из папки приложения регистрируется вручную, до super.
         registerPlugin(NativeSpeechPlugin.class);
+        registerPlugin(SystemChromePlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

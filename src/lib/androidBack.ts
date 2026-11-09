@@ -28,8 +28,8 @@ export function onAndroidBack(canGoBack = false): void {
 
   if (STUDENT_HASH.test(window.location.hash)) {
     const s = useDashboard.getState()
-    // Урок и задание — вложенные экраны. Пока общая история экранов не
-    // построена (шаг 3 iOS), выходим туда, откуда урок открыли.
+    // Урок и задание: обычно шаг делает handleBack() выше (useScreenBack, #111).
+    // Страховка — пока экран не зарегистрировал шаг (ленивый HomeworkFlow ещё грузится).
     if (s.activePage === 'lesson' || s.activePage === 'homework') {
       s.closeLesson()
       return
