@@ -1,7 +1,6 @@
 import FadeText from './FadeText'
 import { useEffect, useRef, useId } from 'react'
 import { useT } from '../lib/i18n'
-import { X } from './icons/appIcons'
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { createPortal } from 'react-dom'
@@ -299,7 +298,10 @@ export default function MobileSheet({
           >
             {/* Грабер и заголовок. Свой обработчик им не нужен — жест ловится
                 на всей шторке; touch-action:none оставлен, чтобы здесь браузер
-                вообще не пытался ничего листать. */}
+                вообще не пытался ничего листать.
+                КРЕСТИКА НЕТ (SHEET-01, решение Дани 09.11.2026): у шторки с
+                граббером закрытие — свайп вниз, тап по затемнению, Escape и
+                системная «Назад» (useBackClose). × — только у окон без граббера. */}
             <div
               style={{ position: 'relative', flexShrink: 0, cursor: 'grab', touchAction: 'none', paddingBottom: 2, minHeight: 56 }}
             >
@@ -311,7 +313,6 @@ export default function MobileSheet({
                   <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{title}</FadeText>
                 </div>
               )}
-              <button data-hover="layer" type="button" data-sheet-nodrag aria-label={t('Закрыть')} onClick={onClose} style={{ position: 'absolute', right: 8, top: 8, width: 44, height: 44, border: 'none', borderRadius: 999, display: 'grid', placeItems: 'center', background: 'var(--color-bg-3)', color: 'var(--color-muted)', cursor: 'pointer', touchAction: 'manipulation' }}><X size={20} /></button>
             </div>
             <div
               ref={scrollRef}
