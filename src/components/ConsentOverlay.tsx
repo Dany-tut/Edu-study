@@ -4,6 +4,7 @@ import Checkbox from './Checkbox'
 import { useT } from '../lib/i18n'
 import { getStudentSession } from '../lib/studentSession'
 import { trackEvent } from '../lib/analytics'
+import { useNativeOverlay } from '../lib/nativeGlass'
 
 // Consent version — bump to re-prompt everyone after a material wording change.
 const CONSENT_VERSION = 'v1'
@@ -32,6 +33,8 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
   const t = useT()
   const [checked, setChecked] = useState(false)
   const session = getStudentSession()
+  // Нативные вкладки iPhone лежат над WebView — пока окно согласия на экране, их прячем.
+  useNativeOverlay(!!session)
   if (!session) return null
 
   function accept() {

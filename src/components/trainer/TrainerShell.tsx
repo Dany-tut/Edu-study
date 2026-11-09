@@ -60,7 +60,7 @@ import ScrollFade from '../ScrollFade'
 import { DROPDOWN_GLASS, dropdownRow, dropdownRowHover, dropdownSurface } from '../../lib/dropdownStyle'
 import MobileSheet from '../MobileSheet'
 import MobileDock, { DockCircle, DockSegment, DockSlot, useSmoothCollapse, COLLAPSE } from '../MobileDock'
-import { MOBILE_TOP_GAP, MOBILE_PILL_H } from '../../lib/mobileTokens'
+import { MOBILE_TOP_GAP, MOBILE_PILL_H, SAFE_TOP } from '../../lib/mobileTokens'
 import BackCircle from '../../components/BackCircle'
 
 const RAIL_W = 300
@@ -90,7 +90,7 @@ const RAIL_BOTTOM = 24
 // Раньше здесь стоял max(8px, safe-area): на телефоне это ровно граница выреза,
 // и строка управления вставала под собственное размытие статус-бара — «всё
 // скрылось под чёлку». Зазор берём общий для всех мобильных экранов.
-const PAD_TOP = `calc(env(safe-area-inset-top, 0px) + ${MOBILE_TOP_GAP}px)`
+const PAD_TOP = `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP}px)`
 
 /**
  * Имя переменной, которой полоса сообщает свою высоту содержимому.
