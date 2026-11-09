@@ -6348,4 +6348,9 @@ export const EN: Record<string, string> = {
   "новый ученик": "new student",
   "первые недели": "first weeks",
   "родитель не подключён": "parent not connected",
+  "Исправить": "Fix",
+  "Текущие": "In progress",
+  "По порядку уроков": "Lesson order",
+  "По баллу": "By score",
+  "Скрыть закрытые уроки": "Hide locked lessons",
 }

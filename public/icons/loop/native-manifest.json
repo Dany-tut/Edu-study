@@ -34,6 +34,14 @@
     "dumbbell": {
       "name": "Dumbbell",
       "sourceSha256": "252cf331caa49865312d946a90a6bd589ce6ff39769196197c86b84897a89cce"
+    },
+    "magnifyingglass": {
+      "name": "Search",
+      "sourceSha256": "971bb2d44cea6622318d32ab8cfabc11542b5ca57097081a3a7b01b1b3154d16"
+    },
+    "slider.horizontal.3": {
+      "name": "SlidersHorizontal",
+      "sourceSha256": "4f5c65beacfb176b980e11a7eee15b2edce957c7fb9815d978d38df4230b1a1a"
     }
   }
 }
