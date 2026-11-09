@@ -1,0 +1,177 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   iPad: оболочка кабинета учителя — всё управление в одной стеклянной капсуле
+   у правого края (docs/platforms.md §1.1). Образец — капсула календаря
+   (CalendarIpadRail) и согласованный концепт dev-ipad-shell.html.
+   Состав сверху вниз: общее (разделы + профиль) → экран (0–3 действия) →
+   главный круг «+» под капсулой. Поповеры открываются ВЛЕВО.
+   Концентрично: капсула 72 / отступ 4 / ячейка 64 / радиус 32.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.tir-rail {
+  position: fixed;
+  right: calc(env(safe-area-inset-right, 0px) + 20px);
+  top: 50%;
+  transform: translateY(-44%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.tir-capsule {
+  width: 72px;
+  padding: 4px;
+  border-radius: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(var(--glass-rgb), .72);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--color-border-glass);
+  box-shadow: var(--shadow-pill);
+}
+/* Тёмная: контур капсулы на почти-чёрном фоне держим чуть плотнее + нежным
+   хайрлайн-кольцом 0.06, БЕЗ белой врезки-бордюра (glass-no-white-inset). */
+[data-theme="dark"] .tir-capsule {
+  background: rgba(var(--glass-rgb), .86);
+  box-shadow: var(--shadow-pill), 0 0 0 1px rgba(255, 255, 255, .06);
+}
+
+.tir-cell {
+  position: relative;
+  width: 64px;
+  min-height: 64px;
+  border: 0;
+  border-radius: 32px;
+  background: none;
+  color: var(--color-text-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: background .22s, color .18s, min-height .28s cubic-bezier(.32, .72, 0, 1);
+}
+.tir-cell:hover { color: var(--color-text); }
+.tir-cell[aria-current="page"],
+.tir-cell[aria-pressed="true"] {
+  min-height: 82px;
+  background: var(--color-purple-soft);
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+/* Видимый фокус клавиатуры/трекпада (iPad §1.1). */
+.tir-cell:focus-visible,
+.tir-primary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Подпись активной ячейки: поле ≥6px (не касается краёв), обрезка фейдом
+   (FadeText), не «…». Слоты равной ширины — RU/EN не ездят. */
+.tir-cell-label {
+  display: block;
+  max-width: 100%;
+  padding: 0 6px;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 1;
+}
+
+.tir-badge {
+  position: absolute;
+  top: 6px;
+  right: 9px;
+  z-index: 2;
+}
+
+.tir-divider {
+  height: 1px;
+  margin: 4px 14px;
+  background: var(--color-border);
+}
+
+.tir-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Главный круг — отдельно под капсулой, ближе всех к пальцу. */
+.tir-primary {
+  width: 64px;
+  height: 64px;
+  border: 0;
+  border-radius: 32px;
+  display: grid;
+  place-items: center;
+  background: var(--grad-purple);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(var(--accent-rgb), .45);
+  transition: transform .15s;
+}
+.tir-primary:active { transform: scale(.94); }
+
+/* Поповер/лист — открывается ВЛЕВО от капсулы. */
+.tir-popover {
+  position: fixed;
+  right: calc(env(safe-area-inset-right, 0px) + 104px);
+  z-index: 61;
+  width: 288px;
+  max-height: min(560px, 78vh);
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  padding: 10px 8px;
+  background: rgba(var(--glass-rgb), .92);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--color-border-glass);
+  box-shadow: var(--shadow-5);
+}
+[data-theme="dark"] .tir-popover {
+  box-shadow: var(--shadow-5), 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.tir-pop-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 8px;
+  border-radius: 12px;
+  border: 0;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+  font: inherit;
+}
+.tir-pop-row:hover { background: var(--color-bg-5); }
+.tir-pop-tile {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--color-purple-soft);
+  color: var(--color-accent);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.tir-pop-tile.is-green { background: var(--color-green-soft); color: var(--color-green-text); }
+.tir-pop-row b { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.tir-pop-row span { font-size: 11.5px; color: var(--color-text-3); line-height: 1.3; }
+.tir-pop-sep { height: 1px; background: var(--color-border); margin: 5px 8px; }
+.tir-pop-head { padding: 6px 8px 8px; }
+.tir-pop-head h3 { margin: 0; font-size: 16px; font-weight: 800; color: var(--color-text); }
+.tir-pop-head p { margin: 2px 0 0; font-size: 12px; color: var(--color-text-3); }
