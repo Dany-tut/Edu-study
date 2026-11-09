@@ -8,7 +8,7 @@ import { useOverlayScroll } from './teacher/OverlayScroll'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
 import SoftEdge from './SoftEdge'
-import { IS_IOS } from '../lib/platform'
+import { IS_IOS, PLATFORM } from '../lib/platform'
 import './mobileInteraction.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -112,9 +112,17 @@ export default function MobileScreen({
   const bottomFadeEnd = dockClearance > 0 && !keyboardOpen ? `calc(100% - ${dockClearance}px)` : '100%'
   // iPhone/iPad: мягкий край (SoftEdge) вместо растворения — контент под
   // шапкой и вкладками размывается, а гаснет только в полосе статус-бара, где
-  // поверх него системные часы. Android: прежние фейды SCROLL-01.
+  // поверх него системные часы. ПК и прочие: прежние фейды SCROLL-01.
+  // Android (решение Дани, 09.11.2026): сверху контент не обрывается сплошной
+  // полосой над таблетками шапки, а тает к краю экрана так же плавно, как к
+  // нижней навигации: прозрачен в полосе статус-бара, дальше — пологий спуск до
+  // полной видимости чуть ниже шапки.
+  const androidTop = `calc(${topPadding} + 12px)`
+  const androidMid = `calc(${SAFE_TOP} + (${topPadding} - ${SAFE_TOP}) * 0.5)`
   const contentMask = IS_IOS
     ? (fade.top > 0 ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0px, #000 env(safe-area-inset-top, 0px))` : undefined)
+    : PLATFORM === 'android' && (fade.top > 0 || fade.bottom > 0)
+    ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}) 0px, rgba(0,0,0,${1 - fade.top}) ${SAFE_TOP}, rgba(0,0,0,${1 - fade.top * 0.6}) ${androidMid}, #000 ${androidTop}, #000 max(${androidTop}, ${bottomFadeStart}), rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
     : fade.top > 0 || fade.bottom > 0
     ? `linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) ${topFadeStart}, #000 ${topFadeEnd}, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
     : undefined
