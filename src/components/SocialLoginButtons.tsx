@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { startSocialLogin, startSocialLoginCustom, cancelSocialLogin, isCustomProvider, startPasskeyLogin, type LoginRole } from '../lib/socialAuth'
+import { startSocialLogin, startSocialLoginCustom, cancelSocialLogin, resetSocialLoginState, hasPendingSocialAuth, isCustomProvider, startPasskeyLogin, type LoginRole } from '../lib/socialAuth'
 import { usePasskeyAvailable } from '../lib/passkey'
 import { KeyRound } from './icons/appIcons'
 import { useT } from '../lib/i18n'
@@ -25,6 +25,14 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
   const passkeyOn = usePasskeyAvailable() && !joinToken
 
   useEffect(() => {
+    // Сбой входа ПОСЛЕ установки сессии (напр. роль не преподаватель → signOut)
+    // раньше молча ронял на лендинг: обработчик ниже там не смонтирован. App
+    // кладёт причину в sessionStorage и уводит на вход — показываем её тут.
+    try {
+      const deferred = sessionStorage.getItem('iskra:social-error')
+      if (deferred) { sessionStorage.removeItem('iskra:social-error'); feedback.report(authFailureFeedback(deferred)) }
+    } catch { /* sessionStorage недоступен — не критично */ }
+
     const onError = (event: Event) => {
       if (started.current && !pending.current) return
       started.current = true; pending.current = false
@@ -38,6 +46,27 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
     window.addEventListener('iskra:auth-error', onError)
     return () => { sequence.current++; window.removeEventListener('iskra:auth-error', onError); window.removeEventListener('iskra:auth-cancelled', cancelled) }
   }, [feedback.report])
+
+  useEffect(() => {
+    // Браузерный «Назад» со страницы провайдера возвращает нас из bfcache с
+    // замороженным «Открываем…» — обмен уже не случится, кнопка висела навсегда.
+    // На возврате (event.persisted) снимаем busy и чистим неоконченную попытку,
+    // чтобы сразу можно было нажать снова. На своём колбэке /auth/* не трогаем —
+    // там обмен ведёт SocialCallbackPage.
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return
+      if (!pending.current && !hasPendingSocialAuth()) return
+      if (/^\/auth\/(yandex|vk)\/?$/.test(window.location.pathname)) return
+      resetSocialLoginState()
+      sequence.current++
+      pending.current = false
+      started.current = false
+      setBusy(null)
+      feedback.reset()
+    }
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, [feedback.reset])
 
   async function begin(provider: ProviderId) {
     const id = ++sequence.current
