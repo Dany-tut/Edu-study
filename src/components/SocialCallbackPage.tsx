@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { completeCustomOAuthFromUrl } from '../lib/socialAuth'
+import { completeCustomOAuthFromUrl, type LinkCandidate } from '../lib/socialAuth'
 import { useT } from '../lib/i18n'
+import SocialLinkPrompt from './SocialLinkPrompt'
 
 /**
  * Экран системного колбэка своего OAuth (/auth/yandex | /auth/vk).
@@ -14,15 +15,20 @@ import { useT } from '../lib/i18n'
  */
 export default function SocialCallbackPage() {
   const t = useT()
-  const [status, setStatus] = useState<'loading' | 'cancelled' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'cancelled' | 'error' | 'link'>('loading')
   const [message, setMessage] = useState('')
+  const [candidate, setCandidate] = useState<LinkCandidate | null>(null)
   const ran = useRef(false)
 
   useEffect(() => {
     if (ran.current) return // один обмен на монтирование (в т.ч. StrictMode)
     ran.current = true
     completeCustomOAuthFromUrl()
-      .then(ok => { if (ok === false) setStatus('cancelled') })
+      .then(outcome => {
+        if (outcome.kind === 'cancelled') setStatus('cancelled')
+        else if (outcome.kind === 'link') { setCandidate(outcome.candidate); setStatus('link') }
+        // 'done' → App ловит SIGNED_IN и уводит в кабинет, экран исчезает
+      })
       .catch(err => {
         setMessage(err instanceof Error ? err.message : '')
         setStatus('error')
@@ -31,6 +37,10 @@ export default function SocialCallbackPage() {
 
   // Полный переход на вход: заодно сбрасывает системный путь /auth/<provider>.
   const goToLogin = () => { window.location.replace(`${window.location.origin}/#/login`) }
+
+  // Найден аккаунт с этой почтой — показываем экран «Вы Данил? Связать».
+  if (status === 'link' && candidate) return <SocialLinkPrompt candidate={candidate} onCancel={goToLogin} />
+
   const done = status !== 'loading'
 
   return (
