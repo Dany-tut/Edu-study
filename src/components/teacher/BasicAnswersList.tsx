@@ -256,7 +256,7 @@ export default function BasicAnswersList({ payload, studentId, teacherReviewed =
           const tl = testlyOf(r, live[r.testly!.testId])
           if (tl?.got == null || tl.max == null) return null
           return (
-            <span key={r.n} style={{
+            <span key={r.n} className="bal-chip" style={{
               padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
               background: tl.pending ? 'var(--color-yellow-soft)' : 'var(--color-green-soft)',
               color: tl.pending ? 'var(--color-yellow-text)' : 'var(--color-green-text)',
@@ -266,7 +266,7 @@ export default function BasicAnswersList({ payload, studentId, teacherReviewed =
           )
         })}
         {reviewCount > 0 && (
-          <span style={{
+          <span className="bal-chip" style={{
             padding: '4px 10px', borderRadius: 999,
             background: 'var(--color-purple-soft)', color: 'var(--color-accent)',
             fontSize: 12, fontWeight: 700,
@@ -275,7 +275,7 @@ export default function BasicAnswersList({ payload, studentId, teacherReviewed =
           </span>
         )}
         {hintCount > 0 && (
-          <span style={{
+          <span className="bal-chip" style={{
             padding: '4px 10px', borderRadius: 999,
             background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)',
             fontSize: 12, fontWeight: 700,
