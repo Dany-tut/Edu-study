@@ -20,6 +20,7 @@ export const motion=new Proxy({}, {get:(_,key)=>key});export const AnimatePresen
 export const useMotionValue=()=>env.motion;export const useDragControls=()=>({start:()=>{}});
 export const animate=(value,to)=>{value.set(to);return {stop(){}}};
 export const X=()=>null;export const Capacitor={isNativePlatform:()=>env.native};
+export const IS_IOS=false;
 export default ()=>null;`
 const plugins=[{name:'fixture-adapters',setup(builder){
   builder.onResolve({filter:/.*/},args=>args.kind==='entry-point'?undefined:{path:args.path,namespace:'fixture'})

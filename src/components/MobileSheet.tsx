@@ -8,6 +8,7 @@ import { useNativeOverlay } from '../lib/nativeGlass'
 import { useBackClose } from '../lib/overlayStack'
 import { motion, AnimatePresence, useMotionValue, useDragControls, animate } from 'framer-motion'
 import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
+import { IS_IOS } from '../lib/platform'
 
 // Bottom sheet (MOBILE ONLY). Slides up from the bottom, glass surface, drag
 // handle, optional title. Backdrop tap closes. Content scrolls with contained
