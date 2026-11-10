@@ -1026,3 +1026,25 @@
   mask-image: linear-gradient(to bottom, #000 calc(100% - 110px), transparent);
 }
 .student-diary .ds-load-sentinel { height: 1px; }
+
+/* ── iPhone: дневник к safe-area ───────────────────────────────────────────
+   Дани (скрины SMM): дату-заголовок «Вторник, 10 ноября» убрать (число и день
+   видны в плане на неделю), переключатель «Задания / Журнал работ» поднять на
+   ровный safe-area-отступ — как таблетки соседних экранов (правило safe-area,
+   lib/mobileTokens.ts: оболочка даёт paddingTop = safe + 22). Пустое состояние
+   «Ближайших занятий пока нет» — строкой с иконкой, не отдельной карточкой.
+   Только [data-platform="iphone"] — Android/iPad/ПК со своей раскладкой. */
+[data-platform="iphone"] .student-diary > .ds-page-heading { display: none; }
+[data-platform="iphone"] .student-diary .ds-diary-navigation { margin-top: 0; }
+[data-platform="iphone"] .student-diary .ds-no-lesson {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 2px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+[data-platform="iphone"] .student-diary .ds-no-lesson > svg { margin-bottom: 0; width: 20px; height: 20px; color: var(--ds-muted); }
+[data-platform="iphone"] .student-diary .ds-no-lesson > h3 { font-size: 14px; font-weight: 600; margin: 0; }
+[data-platform="iphone"] .student-diary .ds-no-lesson > p { display: none; }

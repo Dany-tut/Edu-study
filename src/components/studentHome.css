@@ -188,3 +188,14 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
 @media(min-width:1024px) and (max-height:660px) {
   [data-platform="ipad"] .lh-header { flex-basis:calc(58px + env(safe-area-inset-top,0px)); }
 }
+
+/* ── iPhone: воздух между блоками главной ──────────────────────────────────
+   Дани (скрины SMM): трек/плеер стоит вплотную к «Твоим делам» и к календарю —
+   «посвободнее». Главная без прокрутки сохраняется: прибавку забирает гибкая
+   строка расписания (1fr), фиксированные блоки (виджеты/трек) не двигаются.
+   Только высокие экраны (>700px) — на низких окнах раскладка уже ужимается
+   своими правилами, и там воздух добавлять нельзя. Только [data-platform="iphone"]
+   — Android/iPad/ПК не трогаем. */
+@media(max-width:1023px) and (min-height:701px) {
+  [data-platform="iphone"] .lh-content { gap:18px; }
+}
