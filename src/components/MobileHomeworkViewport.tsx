@@ -97,10 +97,10 @@ export default function MobileHomeworkViewport({
     }
   }, [ref, keyboardOpen])
   // The top ramp occupies only initial empty padding: no state-dependent first frame.
-  // Дани (скрины SMM): «Назад» стояла очень низко — лишние 48px убраны, строка
-  // «Назад»/заголовок встаёт на ровный safe-area-отступ, как таблетки соседних
-  // экранов (докнутый близнец и так на MOBILE_TOP_INSET).
-  const top = `calc(${MOBILE_TOP_INSET} + 8px)`
+  // Канон safe+22 (решение Дани): «Назад»/заголовок встают ровно на MOBILE_TOP_INSET
+  // (safe + 22) — как верхние таблетки всех iPhone-экранов и докнутый близнец.
+  // (Было +48, в #131 стало +8, теперь ровно +0.)
+  const top = MOBILE_TOP_INSET
   const mask =
     fade.top > 0 || fade.bottom > 0
       ? `linear-gradient(to bottom, transparent 0px, transparent calc(${top} - 24px), #000 ${top}, #000 max(${top}, calc(100% - ${clearance + 48}px)), rgba(0,0,0,${1 - fade.bottom}) calc(100% - ${clearance}px), rgba(0,0,0,${1 - fade.bottom}) 100%)`
