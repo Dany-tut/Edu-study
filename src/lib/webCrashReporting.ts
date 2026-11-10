@@ -21,7 +21,10 @@ import { redactCrashEvent } from './crashEventPrivacy'
  */
 const DSN = (import.meta.env.VITE_SENTRY_DSN as string | undefined)
   ?? 'https://981646c4808164d724ed815afdba3d04@o4512368290168832.ingest.de.sentry.io/4512368339386448'
-const PROD_HOST = 'edu-study-app.vercel.app'
+// Боевые домены: исходный Vercel и российский iskra-study.ru (миграция домена,
+// docs/infra/domain-migration.md). Оба считаем production.
+const PROD_HOSTS = ['edu-study-app.vercel.app', 'iskra-study.ru']
+const isProdHost = (h: string) => PROD_HOSTS.includes(h)
 
 type Sentry = typeof import('@sentry/react')
 let sentry: Sentry | null = null
@@ -39,7 +42,7 @@ async function start() {
     mod.init({
       dsn: DSN,
       release: __APP_VERSION__,
-      environment: location.hostname === PROD_HOST ? 'production' : 'preview',
+      environment: isProdHost(location.hostname) ? 'production' : 'preview',
       sendDefaultPii: false,
       maxBreadcrumbs: 0,
       // Шум, который уже обработан самим приложением или не наш:
@@ -53,7 +56,7 @@ async function start() {
         /^TypeError: (Load failed|Failed to fetch|NetworkError when attempting to fetch resource\.?)$/,
         /^(AbortError|TimeoutError)\b/,
       ],
-      initialScope: { tags: { event_source: eventSource(), app_host_kind: location.hostname === PROD_HOST ? 'canonical_production' : 'preview' } },
+      initialScope: { tags: { event_source: eventSource(), app_host_kind: isProdHost(location.hostname) ? 'canonical_production' : 'preview' } },
       beforeSend(event, hint) {
         if (hint.attachments) hint.attachments = []
         return redactCrashEvent(event)
@@ -67,7 +70,7 @@ async function start() {
 export function initWebCrashReporting() {
   if (!DSN || Capacitor.isNativePlatform()) return
   const host = location.hostname
-  if (host !== PROD_HOST && !host.endsWith('.vercel.app')) return
+  if (!isProdHost(host) && !host.endsWith('.vercel.app')) return
   const go = () => { void start() }
   const idle = () => ('requestIdleCallback' in window ? window.requestIdleCallback(go, { timeout: 4000 }) : setTimeout(go, 1500))
   if (document.readyState === 'complete') idle()

@@ -127,9 +127,9 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
 
 export function AuthLegalLinks() {
   return <p className="auth-legal">
-        <a data-hover="link" href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
+        <a data-hover="link" href="/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Политика конфиденциальности</a>
         {' · '}
-        <a data-hover="link" href="https://edu-study-app.vercel.app/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Условия использования</a>
+        <a data-hover="link" href="/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>Условия использования</a>
       </p>
 }
 
