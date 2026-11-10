@@ -343,18 +343,41 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
   }
   localStorage.removeItem(CUSTOM_KEY)
 
+  // Роль выбранного экрана (препод/ученик) — edge решает самрег/привязку по ней.
+  const role = localStorage.getItem(OAUTH_ROLE_KEY)
   const { data, error } = await supabase.functions.invoke('social-oauth', {
-    body: { provider, code, code_verifier: pending.verifier, device_id: deviceId, redirect_uri: pending.redirectUri },
+    body: { action: 'resolve', provider, code, code_verifier: pending.verifier, device_id: deviceId, redirect_uri: pending.redirectUri, role },
   })
-  if (error || !data?.token_hash) {
+  if (error) {
     endOAuthAttempt('auth_failed')
     throw new Error('Не удалось завершить вход через ' + CUSTOM_LABEL[provider] + '. Попробуйте ещё раз.')
   }
-  // Успех. Уводим адрес с /auth/<provider> на корень ДО verifyOtp: дальше
-  // SIGNED_IN → finishSocialLogin сам встанет на нужный маршрут (и reload
-  // ученика пойдёт уже с корня, а не с системного пути колбэка).
+  const result = data as { status?: string; token_hash?: string } | null
+  const status = result?.status
+  const tokenHash = result?.token_hash
+
+  // Нет сессии — показываем причину, НЕ входим.
+  if (status === 'no_student') {
+    endOAuthAttempt('auth_failed')
+    throw new Error('Этот аккаунт ещё не подключён к ученику. Попросите учителя дать доступ или привязать ваш аккаунт.')
+  }
+  if (status === 'link_candidate') {
+    // b2 заменит на экран «Вы Данил? Связать». Временный понятный текст — в прод НЕ
+    // попадёт: b1+b2 выкатываются вместе с edge #144 одним моментом.
+    endOAuthAttempt('auth_failed')
+    throw new Error('С этой почтой уже есть аккаунт Искры. Войдите им — привязку соц-входа добавим в ближайшем обновлении.')
+  }
+
+  // login / created_teacher (и старый edge без status) → ставим сессию.
+  if (!tokenHash) {
+    endOAuthAttempt('auth_failed')
+    throw new Error('Не удалось завершить вход через ' + CUSTOM_LABEL[provider] + '. Попробуйте ещё раз.')
+  }
+  // Уводим адрес с /auth/<provider> на корень ДО verifyOtp: дальше SIGNED_IN →
+  // finishSocialLogin сам встанет на нужный маршрут (самрег-препод получил
+  // app_metadata.role=teacher на сервере → попадёт в кабинет учителя).
   window.history.replaceState(null, '', `${window.location.origin}/`)
-  const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: data.token_hash as string, type: 'magiclink' })
+  const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' })
   if (otpError) {
     endOAuthAttempt('auth_failed')
     throw otpError
