@@ -327,7 +327,9 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
   try { pending = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '') }
   catch { resetUrl(); return false }
   const code = query.get('code')
-  const state = query.get('state')
+  // VK ID переименовывает наш state в redirect_state на своей authorize-странице и
+  // так же может вернуть его в колбэке — принимаем оба имени, иначе сверка падала бы.
+  const state = query.get('state') ?? query.get('redirect_state')
   const deviceId = query.get('device_id') // VK ID отдаёт device_id в редиректе
   if (!code || !state || pending.provider !== provider || pending.state !== state || Date.now() - pending.at > 15 * 60 * 1000) {
     localStorage.removeItem(CUSTOM_KEY)
