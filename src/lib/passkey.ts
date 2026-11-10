@@ -3,9 +3,18 @@ import { useEffect, useState } from 'react'
 import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
 
 /**
- * Вход по ключу доступа (passkey, Supabase Auth). Ключ навсегда привязан к
- * домену PASSKEY_HOST (Relying Party ID в Supabase → Authentication → Passkeys):
- * сменится домен — пользователи пересоздадут ключ в «Способах входа».
+ * Вход по ключу доступа (passkey, Supabase Auth). Ключ привязан к домену
+ * (Relying Party ID в Supabase → Authentication → Passkeys): WebAuthn-ключ
+ * с одного домена НЕ работает на другом — сменится домен, пользователи
+ * пересоздадут ключ в «Способах входа».
+ *
+ * Переезд app на iskra-study.ru (docs/infra/domain-migration.md): кнопку ключа
+ * показываем на ОБОИХ доменах из PASSKEY_HOSTS, чтобы при переключении RP ID в
+ * Supabase не требовался второй деплой. Реально сработает только тот домен, что
+ * сейчас выставлен RP ID в дашборде; на другом — вход по паролю/коду (он всегда
+ * основной на переходе). Мост для старых ключей — Related Origin Requests
+ * (public/.well-known/webauthn, отдаётся с домена RP ID), но поддержка браузеров
+ * неполная, поэтому на него НЕ закладываемся.
  *
  * В браузере системное окно открывает сам supabase-js (navigator.credentials).
  * В приложении iOS страница живёт на capacitor://localhost, где WebAuthn не
@@ -13,7 +22,12 @@ import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
  * (ios/App/App/PasskeyPlugin.swift), а запрос и проверку делает тот же
  * supabase-js двумя шагами — сессия остаётся в общем клиенте.
  */
-export const PASSKEY_HOST = 'edu-study-app.vercel.app'
+export const PASSKEY_HOSTS = ['edu-study-app.vercel.app', 'iskra-study.ru'] as const
+/** Домен RP ID по умолчанию (совместимость; UI ориентируется на PASSKEY_HOSTS). */
+export const PASSKEY_HOST = PASSKEY_HOSTS[0]
+function isPasskeyHost(hostname: string): boolean {
+  return (PASSKEY_HOSTS as readonly string[]).includes(hostname)
+}
 
 type CredentialJSON = Record<string, unknown>
 const nativePasskey = registerPlugin<{
@@ -28,7 +42,7 @@ let enabledCache: Promise<boolean> | null = null
 export function passkeyAvailable(): Promise<boolean> {
   if (typeof window === 'undefined') return Promise.resolve(false)
   // На превью и localhost ключи этого домена не работают — кнопку не показываем.
-  if (!native() && (!window.PublicKeyCredential || window.location.hostname !== PASSKEY_HOST)) return Promise.resolve(false)
+  if (!native() && (!window.PublicKeyCredential || !isPasskeyHost(window.location.hostname))) return Promise.resolve(false)
   enabledCache ??= fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_KEY! } })
     .then(r => (r.ok ? r.json() : {}))
     .then((d: { passkeys_enabled?: boolean }) => d.passkeys_enabled === true)

@@ -29,7 +29,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.clarity.ms https://*.clarity.ms https://eu-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://igsdwvwiqnozgwczzycx.supabase.co wss://igsdwvwiqnozgwczzycx.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.ingest.de.sentry.io https://*.clarity.ms https://*.r2.cloudflarestorage.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://rutube.ru https://testly-sigma.vercel.app https://wordwall.net https://quizlet.com https://genial.ly https://*.genial.ly https://genially.com https://learningapps.org https://miro.com https://h5p.org https://*.h5p.com https://liveworksheets.com https://www.liveworksheets.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri https://o4512368290168832.ingest.de.sentry.io/api/4512368339386448/security/?sentry_key=981646c4808164d724ed815afdba3d04"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.clarity.ms https://*.clarity.ms https://eu-assets.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://igsdwvwiqnozgwczzycx.supabase.co wss://igsdwvwiqnozgwczzycx.supabase.co https://api.iskra-study.ru wss://api.iskra-study.ru https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.ingest.de.sentry.io https://*.clarity.ms https://*.r2.cloudflarestorage.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://rutube.ru https://testly-sigma.vercel.app https://wordwall.net https://quizlet.com https://genial.ly https://*.genial.ly https://genially.com https://learningapps.org https://miro.com https://h5p.org https://*.h5p.com https://liveworksheets.com https://www.liveworksheets.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri https://o4512368290168832.ingest.de.sentry.io/api/4512368339386448/security/?sentry_key=981646c4808164d724ed815afdba3d04"
         },
         {
           "key": "X-Content-Type-Options",
@@ -78,6 +78,19 @@
     },
     {
       "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/.well-known/webauthn",
       "headers": [
         {
           "key": "Content-Type",
