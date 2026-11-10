@@ -9,6 +9,7 @@ import { useT } from '../../../lib/i18n'
 import { useTeacher } from '../../../store/teacherStore'
 import { decideReports, FLAG_LABEL, useReportFocus, useReportSummary, weekLabel } from '../../../lib/parentReports'
 import { widgetNavigationProps } from './widgetNavigation'
+import WidgetOpenButton from './WidgetOpenButton'
 
 export default function WidgetParentReports() {
   const t = useT()
@@ -39,6 +40,7 @@ export default function WidgetParentReports() {
         <FadeText style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
           {s ? `${t('Отчёты родителям')} · ${weekLabel(s.week_start)}` : t('Отчёты родителям')}
         </FadeText>
+        <WidgetOpenButton onOpen={() => open()} />
       </div>
 
       {!s ? (
