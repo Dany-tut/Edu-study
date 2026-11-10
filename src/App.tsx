@@ -47,7 +47,7 @@ import type { Session } from '@supabase/supabase-js'
 import { Capacitor } from '@capacitor/core'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
-import { finishSocialLogin, initializeNativeOAuth, hasPendingSocialAuth, isCustomOAuthCallback } from './lib/socialAuth'
+import { finishSocialLogin, initializeNativeOAuth, hasPendingSocialAuth, isCustomOAuthCallback, takePendingLink, confirmSocialLink } from './lib/socialAuth'
 import SocialCallbackPage from './components/SocialCallbackPage'
 import {
   bootTrainerLink, parseTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink,
@@ -243,8 +243,17 @@ function AppRoutes() {
         if (!isCustomOAuthCallback() && !window.location.hash.startsWith(target)) window.location.hash = target
       }
     }
+    // VK-привязка: пользователь вошёл в существующий аккаунт на #/login (ticket
+    // лежит в pending-link ≤5 мин). На SIGNED_IN завершаем привязку — edge
+    // проверит, что его сессия == ticket.user_id, и запишет связь VK→аккаунт.
+    // Молча: вход уже состоялся, непривязка не должна его ронять.
+    const resumePendingLink = async () => {
+      const ticket = takePendingLink()
+      if (!ticket) return
+      try { await confirmSocialLink(ticket) } catch { /* связь не записана — пользователь всё равно вошёл */ }
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') window.setTimeout(() => { void finishWebOAuth() }, 0)
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') window.setTimeout(() => { void finishWebOAuth(); void resumePendingLink() }, 0)
     })
     if (!IS_NATIVE) {
       // Свой OAuth (Яндекс/VK): обмен кода и его UI держит SocialCallbackPage на
