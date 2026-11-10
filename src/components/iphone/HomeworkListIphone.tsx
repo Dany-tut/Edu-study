@@ -120,8 +120,9 @@ export default function HomeworkListIphone({
       display: 'flex', flexDirection: 'column', gap: 10,
       // Обёртка страницы (DashboardPage) уже даёт safe-area + 22 сверху и
       // safe-area + 110 снизу. Добираем до низа нативной таблетки курса
-      // (safe + 66) с зазором и до верха нижнего ряда над вкладками.
-      paddingTop: 58,
+      // (safe + 66) с зазором и до верха нижнего ряда над вкладками. Дани
+      // (скрины SMM): первая секция стояла вплотную к таблетке — добавили воздух.
+      paddingTop: 72,
       paddingBottom: 24,
     }}>
       {groups.length === 0 && (

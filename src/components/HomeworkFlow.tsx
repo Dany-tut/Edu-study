@@ -108,6 +108,7 @@ import {
 } from '../lib/basicAnswers'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
+import { PLATFORM } from '../lib/platform'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { useHomeworkKeyboardScroll, scrollHomeworkFlowToStart } from '../lib/useHomeworkKeyboardScroll'
 import { Alert } from './Alert'
@@ -1682,7 +1683,9 @@ function getInitialState(): PersistedHomeworkState {
  */
 function hwTitle(title: string, tr: (s: string) => string): string {
   const m = title.match(/^Домашка по теме\s*«(.+)»$/)
-  if (m) return `${tr('Домашка по теме')} «${tcStatic(m[1])}»`
+  // Айфон (скрины SMM): короткий заголовок «ДЗ: <тема>» вместо «Домашка по теме
+  // «…»». Остальные платформы — прежний заголовок (правка iPhone-gated).
+  if (m) return PLATFORM === 'iphone' ? `${tr('ДЗ')}: ${tcStatic(m[1])}` : `${tr('Домашка по теме')} «${tcStatic(m[1])}»`
   // Доп. домашка: «Доп 2 · <урок>» (см. getExtraHomeworks).
   const x = title.match(EXTRA_TITLE_RE)
   return x ? `${tr('Доп')}${x[1] ?? ''} · ${tcStatic(x[2])}` : tcStatic(title)
@@ -3240,7 +3243,7 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
+                  {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : PLATFORM === 'iphone' ? <>{t('ДЗ')}:&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
                 </motion.span>
                 <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                   {tcStatic(extraTitle ? extraTitle[2] : homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
@@ -3251,7 +3254,7 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  {extraTitle ? '' : '»'}
+                  {extraTitle || PLATFORM === 'iphone' ? '' : '»'}
                 </motion.span>
               </span>
               {!isMobile && levelPill(true)}
@@ -4593,7 +4596,9 @@ export default function HomeworkFlow({
               ) : <motion.div
                 initial={false}
                 animate={isMobile
-                  ? { bottom: navCollapsed ? 92 : 104, scale: navCollapsed ? 0.94 : 1 }
+                  // Дани (скрины SMM): плашка прогресса стояла высоко — опускаем
+                  // ближе к нав-бару (тот же зазор, что у полосы режима одного экрана).
+                  ? { bottom: navCollapsed ? 76 : 88, scale: navCollapsed ? 0.94 : 1 }
                   : { bottom: 24, scale: 1 }}
                 transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
                 style={{
