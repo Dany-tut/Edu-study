@@ -7,7 +7,8 @@ import './calendarWidget.css'
 // Виджет «Расписание» на Главной — та же живая лента, что была отдельной
 // вкладкой: неделя в шапке, занятие зажал-и-перетащил на день, зажал-и-отпустил
 // (на ПК правая кнопка) — меню переноса. Отдельной вкладки «Расписание» больше
-// нет, перенос делается прямо отсюда.
+// нет, перенос делается прямо отсюда. Кнопка в шапке переключает виджет на
+// сетку недели — растяни виджет, и это полный календарь.
 export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: typeof useTeacherWeek; readOnly?: boolean } = {}) {
   const teacherGuides = useTeacherGuides()
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
@@ -31,6 +32,7 @@ export default function WidgetTodaySchedule({ useWeek, readOnly }: { useWeek?: t
           readOnly={readOnly}
           onOpen={item => openLessonEditor(item.id)}
           onAttendance={item => openGradebook(item.id)}
+          gridToggle
         />
       </div>
     </div>
