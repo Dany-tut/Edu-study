@@ -397,8 +397,10 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
   return (
     <div className={`calendar-widget-lesson${preview ? ' calendar-widget-lesson-preview' : ''}`} data-live={live || undefined} data-ended={ended || undefined} style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 22,
+      // «Идёт сейчас» — статус, а не выбор: на ПК рамка — токен статуса
+      // --status-now (как «сейчас» у трека), а не акцент выбранного дня.
       background: live ? 'var(--color-accent-soft)' : 'var(--color-bg-2)',
-      border: `1px solid ${live ? 'var(--color-purple)' : 'var(--color-border)'}`,
+      border: `1px solid ${live ? (mobile ? 'var(--color-purple)' : 'var(--status-now)') : 'var(--color-border)'}`,
       transition: 'background-color 0.2s ease, border-color 0.2s ease',
       boxShadow: lifted ? 'var(--shadow-4)' : 'var(--shadow-1)',
     }}>
@@ -415,7 +417,7 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
           {preview ? <span className="calendar-widget-preview-name">{item.who}</span> : <span className="calendar-widget-name" style={{
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
           }}>{item.who}</span>}
-          {live && <Chip tone="live">{t('ИДЁТ СЕЙЧАС')}</Chip>}
+          {live && <Chip tone={mobile ? 'live' : 'now'}>{t('ИДЁТ СЕЙЧАС')}</Chip>}
           {item.rec && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
@@ -433,12 +435,15 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
   )
 }
 
-function Chip({ children, tone }: { children: React.ReactNode; tone?: 'danger' | 'live' }) {
+/** tone: live — прежний мобильный бейдж; now — статус «идёт сейчас» на ПК
+ *  системной парой --status-now-soft / --status-now-text (как статусы трека). */
+function Chip({ children, tone }: { children: React.ReactNode; tone?: 'danger' | 'live' | 'now' }) {
   return (
     <span style={{
       fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, flexShrink: 0,
-      background: tone === 'live' ? 'var(--color-purple)' : tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
-      color: tone === 'live' ? '#fff' : tone === 'danger' ? 'var(--color-red-text)' : 'var(--color-text-3)',
+      background: tone === 'live' ? 'var(--color-purple)' : tone === 'now' ? 'var(--status-now-soft)' : tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
+      color: tone === 'live' ? '#fff' : tone === 'now' ? 'var(--status-now-text)' : tone === 'danger' ? 'var(--color-red-text)' : 'var(--color-text-3)',
+      ...(tone === 'now' ? { boxShadow: 'inset 0 0 0 1px var(--status-now)' } : {}),
     }}>{children}</span>
   )
 }
