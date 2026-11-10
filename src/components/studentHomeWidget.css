@@ -168,3 +168,18 @@
    текст получает больше ширины (резерв под арт тоже сжимается). Только
    [data-platform="iphone"]. */
 [data-platform="iphone"] .live-student-home .ihw-card { --ihw-art-scale:.65; }
+
+/* iPhone (скрины SMM, уточнение Дани): 3D-объект целиком ВНУТРИ карточки —
+   отступ ~16px от верха и правого края, как у текста, и не ближе 8px к тексту/
+   стрелке. Штатно объект свисает за край (отрицательные top/right «наклейкой»);
+   на мобильной главной iPhone ставим его внутрь и расширяем резерв под текст,
+   чтобы текст заканчивался за 8px до объекта. Только [data-platform="iphone"]. */
+@media(max-width:1023px) {
+  [data-platform="iphone"] .live-student-home .ihw-card {
+    --ihw-art-reserve: calc(16px + var(--ihw-art-gutter) * var(--ihw-art-scale, 1) + 8px);
+  }
+  [data-platform="iphone"] .live-student-home .ihw-card > .ihw-object {
+    top: calc(16px - var(--ihw-render-size) * var(--art-top-inset, 0));
+    right: calc(16px - var(--ihw-render-size) * var(--art-right-inset, 0));
+  }
+}
