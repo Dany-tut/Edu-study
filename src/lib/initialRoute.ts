@@ -5,6 +5,12 @@ export function initialRouteTarget(location: { pathname: string; search: string;
   // OAuth authorization is a system pathname, not a cabinet hash route.
   // Keep its query (authorization_id/code) and only canonicalize a trailing slash.
   if (route === '/oauth/consent') return pathname === route ? null : `${route}${search}${hash}`
+  // Свой OAuth Яндекс/VK возвращается на /auth/<provider> с ?code&state&device_id —
+  // системный путь, не хеш-маршрут кабинета. Оставляем pathname как есть (только
+  // убираем хвостовой слеш), чтобы completeCustomOAuthFromUrl прочитал pathname и
+  // код. Иначе путь уезжал в hash (#/auth/vk), isCustomOAuthCallback по pathname
+  // не срабатывал и колбэк терялся — вход через Яндекс/VK молча не завершался.
+  if (route === '/auth/yandex' || route === '/auth/vk') return pathname === route ? null : `${route}${search}${hash}`
   if (development && route === '/journal-stand') return hash ? null : `${pathname}${search}#/teacher/gradebook`
   // DEV-стенд монтажа записи живёт вне хеш-маршрутов, как стенды виджетов.
   if (development && route === '/lesson-montage-stand') return null
