@@ -110,7 +110,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
                 NSLayoutConstraint.activate([
                     container.leadingAnchor.constraint(equalTo: host.view.leadingAnchor, constant: 16),
                     container.trailingAnchor.constraint(equalTo: host.view.trailingAnchor, constant: -16),
-                    container.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 22),
+                    // Канон iPhone «туго-к-верху» (Дани): нативный хедер на той же
+                    // линии, что веб-шапки (mobileTokens MOBILE_TOP_GAP=2). Было 22.
+                    container.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 2),
                     container.heightAnchor.constraint(equalToConstant: 44),
                 ])
                 self.headerHost = container
@@ -233,7 +235,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             host.view.addSubview(b)
             NSLayoutConstraint.activate([
                 b.centerXAnchor.constraint(equalTo: host.view.centerXAnchor),
-                b.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 22),
+                // Канон iPhone «туго-к-верху» (Дани): таблетка бара на той же линии,
+                // что и веб-шапки (mobileTokens MOBILE_TOP_GAP=2). Было 22 — ниже веба.
+                b.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 2),
                 b.heightAnchor.constraint(equalToConstant: 44),
                 b.widthAnchor.constraint(lessThanOrEqualTo: host.view.widthAnchor, constant: -120),
             ])
