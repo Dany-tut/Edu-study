@@ -4597,8 +4597,10 @@ export default function HomeworkFlow({
                 initial={false}
                 animate={isMobile
                   // Дани (скрины SMM): плашка прогресса стояла высоко — опускаем
-                  // ближе к нав-бару (тот же зазор, что у полосы режима одного экрана).
-                  ? { bottom: navCollapsed ? 76 : 88, scale: navCollapsed ? 0.94 : 1 }
+                  // ближе к нав-бару. На iPhone — ровно на отступ нативного нижнего
+                  // дока ДЗ (NativeGlassPlugin: safe-bottom + 58), чтобы все нижние
+                  // панели ученика стояли на одной линии над нав-баром (канон Дани).
+                  ? { bottom: PLATFORM === 'iphone' ? 58 : (navCollapsed ? 76 : 88), scale: navCollapsed ? 0.94 : 1 }
                   : { bottom: 24, scale: 1 }}
                 transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
                 style={{
