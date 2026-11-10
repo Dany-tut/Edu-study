@@ -282,13 +282,18 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
 
   const callbackError = query.get('error_description') || query.get('error')
   if (callbackError) {
+    // Яндекс/VK на отказе возвращают error=access_denied. Отмену показываем мягко
+    // отдельным событием (как у google/apple), а не как ошибку входа.
     const cancelled = query.get('error') === 'access_denied'
-    endOAuthAttempt(cancelled ? 'auth_cancelled' : 'auth_failed')
     localStorage.removeItem(CUSTOM_KEY)
     resetUrl()
-    throw new Error(cancelled
-      ? 'Вход отменён. Можно попробовать ещё раз.'
-      : authErrorRu({ code: query.get('error'), message: callbackError }, 'Не удалось завершить вход. Попробуйте ещё раз.'))
+    if (cancelled) {
+      endOAuthAttempt('auth_cancelled')
+      window.dispatchEvent(new Event('iskra:auth-cancelled'))
+      return false
+    }
+    endOAuthAttempt('auth_failed')
+    throw new Error(authErrorRu({ code: query.get('error'), message: callbackError }, 'Не удалось завершить вход. Попробуйте ещё раз.'))
   }
 
   let pending: { provider: CustomProvider; verifier: string; state: string; redirectUri: string; at: number }

@@ -50,6 +50,7 @@
     "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
     "check:student-journal": "node scripts/checkStudentWorkJournal.mjs",
     "check:drive-video": "deno test --no-lock --node-modules-dir=auto --allow-env supabase/functions/_shared/driveVideo_test.ts supabase/functions/drive-video/index_test.ts",
+    "check:social-oauth": "deno test --no-lock --node-modules-dir=auto --allow-env supabase/functions/social-oauth/handler_test.ts",
     "check:video-access": "node scripts/checkHomeworkVideoAccess.mjs",
     "check:student-home": "node scripts/checkStudentHomeWork.mjs",
     "check:student-topbar": "node scripts/checkStudentTopbarBrowser.mjs",
