@@ -39,7 +39,10 @@ for model in mlx-community/whisper-large-v3-turbo mlx-community/Qwen2.5-3B-Instr
  cache="$HOME/.cache/huggingface/hub/models--${model//\//--}/snapshots"
  weights=("$cache"/*/*.safetensors(N))
  if (( ${#weights} )); then continue; fi
- "$runtime/bin/hf" download "$model" --include '*.json' '*.safetensors' '*.txt' '*.jinja' >/dev/null
+ # huggingface_hub 2.x читает ТОЛЬКО первый паттерн после одного --include —
+ # остальные молча игнорируются, и config.json не скачивается (на чистой машине
+ # recognize.py падает). Повторяем флаг на каждый паттерн.
+ "$runtime/bin/hf" download "$model" --include '*.json' --include '*.safetensors' --include '*.txt' --include '*.jinja' >/dev/null
 done
 # Слайды: заголовки читает маленькая программа на Swift, её собирает swiftc из
 # Xcode Command Line Tools. Нет компилятора — модуль работает как обычно, только
