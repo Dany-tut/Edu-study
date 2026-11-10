@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import { IS_IOS } from '../lib/platform'
 
 // Фейд для экранов, где прокручивается сам документ (урок, ДЗ на телефоне).
 // Маску на обёртку не повесить: внутри фиксированные доки, их бы тоже погасило.
 // Полоса лежит под доками и видна, только пока ниже есть содержимое.
-export default function WindowBottomFade({ clearance }: { clearance: string }) {
+function WindowBottomFadeBar({ clearance }: { clearance: string }) {
   const [more, setMore] = useState(false)
   useEffect(() => {
     let frame = 0
@@ -37,3 +38,8 @@ export default function WindowBottomFade({ clearance }: { clearance: string }) {
     />
   )
 }
+
+// iPhone/iPad: край прокрутки документа — мягкий край WindowSoftEdges (main.tsx),
+// без цветной полосы. Android и ПК — прежний фейд.
+const WindowBottomFade = IS_IOS ? (_: { clearance: string }) => null : WindowBottomFadeBar
+export default WindowBottomFade

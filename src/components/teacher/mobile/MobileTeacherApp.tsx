@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import MobileTeacherNav, { type MTab } from './MobileTeacherNav'
 import MobileTeacherDay from './MobileTeacherDay'
+import MobileTeacherCalendar from './MobileTeacherCalendar'
 import MobileTeacherStudents from './MobileTeacherStudents'
 import MobileTeacherGradebook from './MobileTeacherGradebook'
 import MobileTeacherProfile from './MobileTeacherProfile'
@@ -16,6 +17,7 @@ import './mobileTeacher.css'
 // available). Hiding the matching desktop tab hides the mobile one too.
 const MTAB_TAB: Record<MTab, TeacherTabId | null> = {
   home: 'home',
+  calendar: 'home',
   students: 'groups',
   review: 'gradebook',
   gradebook: 'gradebook',
@@ -58,7 +60,7 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
   // is always available, so there is always a target).
   useEffect(() => {
     if (!isHidden(tab)) return
-    const first = (['home', 'students', 'gradebook', 'profile'] as MTab[]).find(t => !isHidden(t))
+    const first = (['home', 'calendar', 'students', 'gradebook', 'profile'] as MTab[]).find(t => !isHidden(t))
     setTab(first ?? 'profile')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, canTab])
@@ -66,6 +68,7 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
   return (
     <div inert={libraryOpen} className="mobile-teacher-app lg:hidden">
       {tab === 'home'      && <MobileTeacherDay onNavigate={next => setTab(next === 'review' ? 'gradebook' : next)} onDetailChange={setDayDetailOpen} onOpenNotifications={() => setNotifOpen(true)} />}
+      {tab === 'calendar'  && <MobileTeacherCalendar />}
       {tab === 'students'  && <MobileTeacherStudents />}
 
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
@@ -74,7 +77,7 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
       {showReports && <MobileTeacherParentReports onBack={closeReports} />}
 
       <NotificationSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
-      {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
+      {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','calendar','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
     </div>
   )
 }

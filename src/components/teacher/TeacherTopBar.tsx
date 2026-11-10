@@ -727,7 +727,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
             {/* Подвал меню: номер сборки этого устройства + проверка обновления */}
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
-            <AppVersionRow variant="compact" />
+            <AppVersionRow variant="compact" style={{ borderRadius: 7 }} />
           </motion.div>
           </div>
         )}

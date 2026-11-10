@@ -2033,6 +2033,7 @@ export const EN: Record<string, string> = {
   "УРОК": "LESSON",
   "Нет уроков в расписании — оценки запишутся на сегодня": "No lessons in the schedule — grades will be recorded for today",
   "Выберите урок": "Select a lesson",
+  "Выберите день, чтобы открыть расписание.": "Pick a day to open its schedule.",
   "СТУДЕНТ": "STUDENT",
   "ПРИСУТСТВИЕ": "ATTENDANCE",
   "ОЦЕНКА ЗА УРОК": "LESSON GRADE",
@@ -6360,4 +6361,6 @@ export const EN: Record<string, string> = {
   "Этот браузер не умеет ставить приложения. Откройте Искру в": "This browser can’t install apps. Open Iskra in",
   "и нажмите «Установить» ещё раз.": "and tap “Install” again.",
   "внизу справа, затем": "at the bottom right, then",
+  "Неделя сеткой": "Week grid",
+  "Списком по дням": "Day list",
 }
