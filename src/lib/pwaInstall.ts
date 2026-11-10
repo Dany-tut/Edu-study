@@ -79,3 +79,43 @@ export function getPlatform(): Platform {
   if (/android/i.test(ua)) return 'android'
   return 'other'
 }
+
+// ── Что умеет этот браузер ──────────────────────────────────────────────────
+// Лист установки показывает одно главное действие, а какое — решает браузер:
+//   native      — Chrome/Edge поймали beforeinstallprompt: кнопка «Установить»
+//                 вызывает системное окно;
+//   manual      — Safari на iPhone/iPad/Mac: шаги «Поделиться → На экран
+//                 „Домой“» (своего API у Apple нет);
+//   unsupported — встроенные браузеры (Telegram, Instagram, Facebook, VK) и
+//                 Firefox на Android: поставить нельзя, просим открыть в
+//                 Safari / Chrome.
+// Уже установлено (isStandalone) — ни листа, ни строки в профиле; это решает
+// вызывающий код до вопроса о поддержке.
+
+export type InstallSupport = 'native' | 'manual' | 'unsupported'
+
+/** Встроенный браузер мессенджера или соцсети: «На экран Домой» там нет. */
+export function isInAppBrowser(): boolean {
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  return /Telegram|Instagram|FBAN|FBAV|FB_IAB|VKClient|Line\//i.test(ua)
+}
+
+export function installSupport(canPrompt = hasInstallPrompt()): InstallSupport {
+  if (canPrompt) return 'native'
+  if (isInAppBrowser()) return 'unsupported'
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  if (/android/i.test(ua) && /firefox/i.test(ua)) return 'unsupported'
+  return getPlatform() === 'ios' || /Macintosh.*Safari/i.test(ua) ? 'manual' : 'unsupported'
+}
+
+/**
+ * Safari 26 на iPhone убрал «Поделиться» из нижней панели в меню «•••» справа
+ * внизу (Safari сам показывает об этом подсказку). Версию iOS в строке
+ * браузера Apple заморозила на 18_x, поэтому смотрим версию Safari
+ * («Version/26.0»). На iPad «Поделиться» осталась вверху справа.
+ */
+export function shareInMoreMenu(): boolean {
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  const v = ua.match(/Version\/(\d+)/)
+  return /iPhone|iPod/.test(ua) && !!v && Number(v[1]) >= 26
+}

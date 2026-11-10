@@ -5,6 +5,15 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Check, ChevronDown, Search } from './icons/appIcons'
 import type { Subject } from '../data/mockData'
 import Tooltip from './Tooltip'
+
+// Подсказка над таблеткой модуля — только там, где есть наведение (ПК, мышь).
+// На касании (iPhone, iPad, Android) Tooltip всё равно мог всплыть по фокусу:
+// после тапа и возврата назад WebKit отдаёт кнопке :focus-visible. Имя модуля
+// и долги там и так видны на самой таблетке и в aria-label.
+const CAN_HOVER = typeof window !== 'undefined' && !!window.matchMedia?.('(hover: hover)').matches
+const ModuleTip = CAN_HOVER
+  ? Tooltip
+  : ({ children }: { label: string; children: React.ReactElement<Record<string, unknown>> }) => children
 import ScrollFade from './ScrollFade'
 import { DROPDOWN_GLASS, dropdownSurface, dropdownRow, dropdownRowHover } from '../lib/dropdownStyle'
 import { Z } from '../lib/layers'
@@ -279,7 +288,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
         return (
           <div key={mod.id}
             style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', height: BAR_H, flexShrink: 0, marginRight: debts ? 10 : 0 }}>
-            <Tooltip label={debts ? `${label} · несданных работ: ${debts}` : label}>
+            <ModuleTip label={debts ? `${label} · несданных работ: ${debts}` : label}>
               <motion.button data-hover="layer"
                 type="button"
                 data-module-tab={mod.id}
@@ -317,7 +326,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                   </span>
                 </motion.span>
               </motion.button>
-            </Tooltip>
+            </ModuleTip>
             {/* Anchor to the number, independent of the expanding module title. */}
             {debts > 0 && <motion.button data-hover="layer" type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`}
               whileTap={reduceMotion ? undefined : { scale: 0.9 }}
