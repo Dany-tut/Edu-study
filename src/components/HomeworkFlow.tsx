@@ -1732,7 +1732,12 @@ export default function HomeworkFlow({
   // Same scroll-dock logic as the lesson page: when the pane scrolls, the
   // Back/title row docks onto the topbar line (a fixed twin), the topbar
   // auto-compacts, and the rest-state row fades out.
-  const navCollapsed = useNavCollapse()
+  // iPhone: нижний нав — НАТИВНЫЙ таб-бар, он не сворачивается на скролле, поэтому
+  // синхрон нижних панелей здесь дал бы рассинхрон с нативом. Держим навбар-свёртку
+  // как источник только для Android/веб (MobileBottomNav); на iPhone панели стоят
+  // неподвижно (стиль mini-бара остаётся).
+  const navCollapsedRaw = useNavCollapse()
+  const navCollapsed = PLATFORM === 'iphone' ? false : navCollapsedRaw
   const docked = useDashboard(s => s.lessonScrolled)
   const topBarCompact = useDashboard(s => s.topBarCompact)
   const topBarBox = useDashboard(s => s.topBarBox)
@@ -4596,11 +4601,16 @@ export default function HomeworkFlow({
               ) : <motion.div
                 initial={false}
                 animate={isMobile
-                  // Дани (скрины SMM): плашка прогресса стояла высоко — опускаем
-                  // ближе к нав-бару. На iPhone — ровно на отступ нативного нижнего
-                  // дока ДЗ (NativeGlassPlugin: safe-bottom + 58), чтобы все нижние
-                  // панели ученика стояли на одной линии над нав-баром (канон Дани).
-                  ? { bottom: PLATFORM === 'iphone' ? 58 : (navCollapsed ? 76 : 88), scale: navCollapsed ? 0.94 : 1 }
+                  // Канон Дани: нижние панели — одна семья с нав-баром и
+                  // синхронно с ним сворачиваются (Android/веб, где нав —
+                  // MobileBottomNav: 88→76 вниз за верхом mini-бара + scale 0.94,
+                  // та же кривая useNavCollapse · 0.22s). На iPhone нижний нав —
+                  // НАТИВНЫЙ таб-бар, он не сворачивается, поэтому панель стоит
+                  // неподвижно на отступе нативного дока ДЗ (safe-bottom + 58),
+                  // без привязки к скроллу — иначе рассинхрон с нативом.
+                  ? PLATFORM === 'iphone'
+                    ? { bottom: 58, scale: 1 }
+                    : { bottom: navCollapsed ? 76 : 88, scale: navCollapsed ? 0.94 : 1 }
                   : { bottom: 24, scale: 1 }}
                 transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
                 style={{

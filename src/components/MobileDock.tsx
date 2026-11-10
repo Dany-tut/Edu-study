@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { useRef, useState, useLayoutEffect, useCallback, useEffect } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
 import { useNavCollapse } from '../lib/useNavCollapse'
+import { PLATFORM } from '../lib/platform'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { tactile } from '../lib/feedback'
 import { TAP_SCALE, MOBILE_DOCK_EDGE } from '../lib/mobileTokens'
@@ -40,34 +41,30 @@ export function useSmoothCollapse() {
     timer.current = window.setTimeout(() => setVal(raw), 150)
     return () => clearTimeout(timer.current)
   }, [raw])
-  return val
+  // iPhone: нижний нав — НАТИВНЫЙ таб-бар, он не сворачивается на скролле. Синхрон
+  // привязал бы доковые таблетки к несуществующей свёртке и дал рассинхрон, поэтому
+  // на iPhone панели остаются полными (стиль mini-бара даёт glassBase). Свёртка —
+  // только Android/веб, где нав — MobileBottomNav.
+  return PLATFORM === 'iphone' ? false : val
 }
 
-// Disappear/appear on nav-collapse: blur + shrink + drop, ending fully hidden
-// (opacity 0) so no ghost lingers. The blur lives on the glass element itself
-// (same node as its backdrop-filter). Opacity is timed to fall only at the TAIL
-// (see collapseTransition) — the pill blurs/shrinks away while still opaque, so
-// the frost never flashes, then fades to 0 once it's already gone visually.
+// Канон Дани: панели над нав-баром — одна семья с ним и сворачиваются ВМЕСТЕ с
+// ним, а НЕ исчезают. При свёртке нав-бар уходит в mini (62→50, уже), и
+// таблетки дока остаются видимыми, лишь чуть сужаются (scale 0.94) и опускаются
+// за верхом нав-бара (это делает marginBottom 86→74 у внутреннего слоя) — та же
+// кривая/длительность. Раньше док гас (opacity 0, blur, уезжал под навигацию);
+// теперь он живёт как мини-бар.
 function collapseAnim(collapsed: boolean) {
   return {
-    opacity: collapsed ? 0 : 1,
-    filter: collapsed ? 'blur(9px)' : 'blur(0px)',
-    scale: collapsed ? 0.9 : 1,
-    // Slide DOWN far enough to slip behind the bottom nav (which sits at a
-    // higher z-index) — the pill disappears under the nav, not over it.
-    y: collapsed ? 46 : 0,
+    opacity: 1,
+    filter: 'blur(0px)',
+    scale: collapsed ? 0.94 : 1,
+    y: 0,
   }
 }
 
-function collapseTransition(collapsed: boolean) {
-  return {
-    ...COLLAPSE,
-    // Hide: hold opacity until the blur/scale has done the disappearing, then
-    // snap to 0 over the last beat. Show: fade in together with the un-blur.
-    opacity: collapsed
-      ? { delay: 0.16, duration: 0.14, ease: 'linear' as const }
-      : { duration: 0.22 },
-  }
+function collapseTransition(_collapsed: boolean) {
+  return COLLAPSE
 }
 
 // Стеклянная основа таблеток дока. Экспортируется, потому что в ряду живут и
@@ -140,9 +137,9 @@ export default function MobileDock({ children, fill }: {
           display: 'flex', gap: 10, alignItems: 'center',
           maxWidth: '100%',
           width: fill ? '100%' : undefined,
-          // Non-interactive while collapsed so it never blocks taps on the list.
-          // Ребёнок с pointerEvents:'auto' (плеер) при этом остаётся живым.
-          pointerEvents: collapsed ? 'none' : 'auto',
+          // Остаётся живым и в mini: панель видима и кликабельна после свёртки
+          // (канон Дани — панель не исчезает, а становится мини-баром).
+          pointerEvents: 'auto',
         }}
       >
         {children}
@@ -318,7 +315,7 @@ export function DockSlot({ children }: { children: ReactNode }) {
   return (
     <motion.div
       initial={false}
-      animate={{ opacity: collapsed ? 0 : 1, scale: collapsed ? 0.9 : 1, y: collapsed ? 46 : 0 }}
+      animate={{ opacity: 1, scale: collapsed ? 0.94 : 1, y: 0 }}
       transition={collapseTransition(collapsed)}
       // flexShrink:0 — как у кругов DockCircle: без него тесный ряд ужимал
       // ОБЁРТКУ, а кнопка фиксированной ширины внутри вылезала из неё и
