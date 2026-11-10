@@ -2033,6 +2033,7 @@ export const EN: Record<string, string> = {
   "УРОК": "LESSON",
   "Нет уроков в расписании — оценки запишутся на сегодня": "No lessons in the schedule — grades will be recorded for today",
   "Выберите урок": "Select a lesson",
+  "Выберите день, чтобы открыть расписание.": "Pick a day to open its schedule.",
   "СТУДЕНТ": "STUDENT",
   "ПРИСУТСТВИЕ": "ATTENDANCE",
   "ОЦЕНКА ЗА УРОК": "LESSON GRADE",
