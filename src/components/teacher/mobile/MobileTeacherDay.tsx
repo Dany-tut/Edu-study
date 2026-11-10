@@ -102,17 +102,26 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
   useEffect(() => { onDetailChange(!!selected); return () => onDetailChange(false) }, [!!selected, onDetailChange])
 
+  // Набор занятий дня — ключ по СОДЕРЖИМОМУ (список id через запятую), не по
+  // ссылке массива. Эффект ниже перезапрашивает сессии только при реальной
+  // смене состава занятий (или по tick/входу), а не на каждый рендер.
+  const scheduleIdsKey = (items ?? []).map(i => i.id).join(',')
+
   useEffect(() => {
     let current = true
-    if (!items?.length || import.meta.env.DEV && signedIn === false) { setSessions({}); return }
+    if (!scheduleIdsKey || (import.meta.env.DEV && signedIn === false)) { setSessions({}); return }
     supabase.from('teacher_lesson_sessions').select('schedule_id, started_at, completed_at, homework_id')
-      .in('schedule_id', items.map(i => i.id)).then(({ data, error: e }) => {
+      .in('schedule_id', scheduleIdsKey.split(',')).then(({ data, error: e }) => {
         if (!current) return
-        if (e) { setError(t('Не удалось загрузить данные занятий. Попробуйте ещё раз.')); return }
+        // Кладём русский ключ, а не t(...): сообщение переводит рендер через
+        // t(error). Если звать t() здесь, t пришлось бы держать в зависимостях,
+        // а useT() отдаёт НОВУЮ функцию каждый рендер — отсюда был бесконечный
+        // цикл запросов (setSessions → ре-рендер → новый t → эффект снова).
+        if (e) { setError('Не удалось загрузить данные занятий. Попробуйте ещё раз.'); return }
         setSessions(Object.fromEntries((data ?? []).map(s => [s.schedule_id, s as TeacherLessonSession])))
       })
     return () => { current = false }
-  }, [items, tick, signedIn, t])
+  }, [scheduleIdsKey, tick, signedIn])
 
   useEffect(() => {
     let current = true

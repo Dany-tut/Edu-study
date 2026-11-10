@@ -20,6 +20,8 @@ import { speak, speechLines, type SpeechHandle } from '../../lib/speech'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import { TRAINER_STICK_FALLBACK, useTrainerPlayerSlot } from './TrainerShell'
 import type { Gloss } from '../../data/readingLibrary'
+import { IS_IOS } from '../../lib/platform'
+import SoftEdge from '../SoftEdge'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Партитура текста — второй режим читалки рядом с обычной прозой.
@@ -568,10 +570,16 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
           // Фон обязателен и непрозрачен: под шапкой едет текст, и полупрозрачная
           // подложка превращала бы строки в кашу ровно там, где нужны кнопки.
           background: 'var(--color-bg-2)',
-          boxShadow: stuck ? '0 14px 22px -18px rgba(0,0,0,0.55)' : 'none',
+          // iPhone/iPad: под прилипшей шапкой мягкий край вместо тени-черты.
+          boxShadow: stuck && !IS_IOS ? '0 14px 22px -18px rgba(0,0,0,0.55)' : 'none',
           transition: 'box-shadow 0.15s ease',
         }}
       >
+        {IS_IOS && (
+          <div aria-hidden style={{ position: 'absolute', left: 0, right: 0, top: '100%', height: 16, pointerEvents: 'none' }}>
+            <SoftEdge edge="top" size="16px" strength={stuck ? 1 : 0} zIndex={0} />
+          </div>
+        )}
         {/* Плеер — шапкой над текстом: он ведёт по строкам, а не просто читает.
             На телефоне этой строки здесь нет вовсе: плеер стоит внизу, в ряду
             дока (см. «Плеер телефона» выше). */}

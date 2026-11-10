@@ -1,0 +1,47 @@
+/* Сетка недели в виджете «Расписание» (ПК и iPad-ландшафт). Только токены темы. */
+
+/* Внутри виджета — без своей рамки: рамка у виджета. */
+.tcal-grid { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.tcal-days { display: grid; height: 56px; flex-shrink: 0; border-bottom: 1px solid var(--color-border); }
+.tcal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.tcal-day small { font-size: 11px; font-weight: 600; color: var(--color-text-3); text-transform: uppercase; letter-spacing: .04em; }
+.tcal-day b { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: var(--color-text); font-variant-numeric: tabular-nums; }
+.tcal-day[data-today] small { color: var(--color-accent); }
+.tcal-day[data-today] b { background: var(--grad-purple); color: #fff; }
+.tcal-body { flex: 1; min-height: 0; padding: 10px 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.tcal-body::-webkit-scrollbar { display: none; }
+.tcal-rows { position: relative; display: grid; }
+.tcal-hours { position: relative; }
+.tcal-hours span { position: absolute; right: 7px; transform: translateY(-50%); font-size: 11px; color: var(--color-text-3); font-variant-numeric: tabular-nums; }
+/* Пилюля «сейчас» — внутри колонки часов целиком (поля по 4 px), поверх подписи часа. */
+.tcal-hours .tcal-now-tag { left: 4px; right: 4px; text-align: center; z-index: 3; padding: 1px 0; border-radius: 6px; line-height: 1.35; background: var(--color-red-text); color: var(--color-bg-2); font-size: 10.5px; font-weight: 700; opacity: 1 !important; }
+.tcal-col { position: relative; border-left: 1px solid var(--color-border); }
+.tcal-col[data-add] { cursor: copy; }
+.tcal-col[data-today] { background: rgba(var(--accent-rgb), .05); }
+.tcal-hline { position: absolute; left: 0; right: 0; height: 1px; background: var(--color-border); pointer-events: none; }
+.tcal-now { position: absolute; left: 0; right: 0; height: 2px; background: var(--color-red-text); z-index: 3; pointer-events: none; }
+.tcal-now::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 5px; background: var(--color-red-text); }
+
+.tcal-event { position: absolute; z-index: 1; overflow: hidden; display: flex; flex-direction: column; gap: 1px; padding: 5px 6px 5px 9px; border: 0; border-radius: 10px; text-align: left; cursor: pointer; font-family: inherit;
+  background: color-mix(in srgb, var(--ev) 16%, var(--color-bg-2));
+  color: color-mix(in srgb, var(--ev) 72%, var(--color-text));
+  transition: box-shadow .15s, opacity .15s; }
+.tcal-event::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 2px; background: var(--ev); }
+.tcal-event b, .tcal-event span { display: block; white-space: nowrap; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, #000 78%, transparent); mask-image: linear-gradient(90deg, #000 78%, transparent); }
+.tcal-event b { font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+.tcal-event span { font-size: 11.5px; line-height: 1.3; opacity: .78; font-variant-numeric: tabular-nums; }
+.tcal-event[data-past] { opacity: .55; }
+.tcal-event[data-cancelled] b { text-decoration: line-through; }
+.tcal-event[data-cancelled] { opacity: .5; }
+.tcal-event[data-live] { box-shadow: inset 0 0 0 1.5px var(--ev); }
+/* Ховер — только обводка: блок не сдвигается, клик попадает туда, куда целился. */
+@media (hover: hover) and (pointer: fine) {
+  .tcal-grid:not([data-dragging]) .tcal-event:not([data-ghost]):hover { box-shadow: 0 0 0 1.5px var(--ev), var(--shadow-2); z-index: 2; }
+}
+.tcal-event { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.tcal-event[data-lifted] { opacity: .3; }
+.tcal-event[data-ghost] { z-index: 4; pointer-events: none; opacity: 1; box-shadow: 0 0 0 1.5px var(--ev), var(--shadow-3); background: color-mix(in srgb, var(--ev) 26%, var(--color-bg-2)); }
+.tcal-grid[data-dragging] { cursor: grabbing; }
+.tcal-grid[data-dragging] .tcal-event { cursor: grabbing; }
+.tcal-col[data-drop] { background: rgba(var(--accent-rgb), .08); }
+.tcal-event:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
