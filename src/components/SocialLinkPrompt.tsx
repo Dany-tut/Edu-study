@@ -3,9 +3,11 @@ import { confirmSocialLink, stashPendingLink, type LinkCandidate } from '../lib/
 import { IS_IOS } from '../lib/platform'
 import { useT } from '../lib/i18n'
 import { X } from './icons/appIcons'
-import { AppleMark, GoogleMark, YandexMark, VkMark } from './SocialLoginButtons'
+import { YandexMark, VkMark } from './SocialLoginButtons'
 
-const LABEL: Record<string, string> = { yandex: 'Яндекс', vk: 'VK', apple: 'Apple', google: 'Google' }
+// link_candidate приходит только от своих провайдеров (Яндекс/VK); Google/Apple
+// идут нативной привязкой Supabase и сюда не попадают.
+const LABEL: Record<LinkCandidate['provider'], string> = { yandex: 'Яндекс', vk: 'VK' }
 
 /**
  * Экран «Вы Данил? Связать» — по email-совпадению (edge v2 link_candidate).
@@ -40,10 +42,7 @@ export default function SocialLinkPrompt({ candidate, onCancel }: { candidate: L
     window.location.replace(`${window.location.origin}/#/login`)
   }
 
-  const mark = candidate.provider === 'apple' ? <AppleMark size={13} />
-    : candidate.provider === 'google' ? <GoogleMark size={14} />
-    : candidate.provider === 'yandex' ? <YandexMark size={14} />
-    : <VkMark size={14} />
+  const mark = candidate.provider === 'yandex' ? <YandexMark size={14} /> : <VkMark size={14} />
   const primary: React.CSSProperties = { width: '100%', minHeight: 50, borderRadius: 14, border: 0, background: 'var(--color-text)', color: 'var(--color-bg)', fontSize: 15, fontWeight: 650, cursor: 'pointer', opacity: busy ? 0.6 : 1 }
   const ghost: React.CSSProperties = { width: '100%', minHeight: 46, marginTop: 9, borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: 14, fontWeight: 650, cursor: 'pointer' }
 
