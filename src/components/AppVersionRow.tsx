@@ -134,7 +134,7 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
             pct={updating ? Math.min(100, Math.round(progress * 100)) : null}
             boxStyle={{ display: 'inline-flex', alignItems: 'center', padding: PILL_PAD }}
           >
-            {label}
+            <span data-version-label>{label}</span>
           </ProgressFill>
         </span>
       )}
