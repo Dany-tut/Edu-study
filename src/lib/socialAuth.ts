@@ -110,6 +110,15 @@ export function cancelSocialLogin() {
   void Browser.close().catch(() => undefined)
 }
 
+/** Тихий сброс неоконченной попытки соц-входа: чистит pending-состояние без
+ *  события и без закрытия браузера. Нужен при возврате из bfcache (браузерный
+ *  «Назад» со страницы провайдера): страница оживает с замороженным
+ *  «Открываем…», а обмен уже не случится — сбрасываем, чтобы кнопка снова
+ *  стала рабочей. */
+export function resetSocialLoginState() {
+  endOAuthAttempt('auth_cancelled')
+}
+
 export async function connectLoginProvider(provider: 'google' | 'apple') {
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) throw new Error('Войдите в аккаунт ещё раз перед подключением.')
@@ -476,7 +485,7 @@ async function finishSocialLoginImpl() {
   localStorage.removeItem(OAUTH_ROLE_KEY)
   throw new Error(selectedRole === 'student'
     ? 'Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.'
-    : 'Аккаунт преподавателя создаётся по приглашению. Войдите адресом из приглашения или попросите администратора связать Google/Apple ID.')
+    : 'Аккаунт преподавателя создаётся по приглашению. Войдите адресом из приглашения или попросите администратора связать ваш аккаунт.')
 }
 
 /** Handles OAuth deep links on warm and cold native launches. */

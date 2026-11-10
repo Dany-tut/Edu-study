@@ -226,7 +226,14 @@ function AppRoutes() {
       try { completed = await finishSocialLogin() }
       catch (error) {
         completed = false
-        notifyError(error instanceof Error ? error.message : 'Не удалось завершить вход')
+        const message = error instanceof Error ? error.message : 'Не удалось завершить вход'
+        // Отказ роли и прочие сбои ПОСЛЕ установки сессии (finishSocialLogin делает
+        // signOut) раньше молча роняли на лендинг — обработчик ошибки там не
+        // смонтирован. Кладём причину и уводим на вход, где SocialLoginButtons её
+        // покажет; событие — для случая, когда экран входа уже открыт.
+        try { sessionStorage.setItem('iskra:social-error', message) } catch { /* no-op */ }
+        notifyError(message)
+        if (!isCustomOAuthCallback() && !window.location.hash.startsWith('#/login')) window.location.hash = '#/login'
       }
     }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
