@@ -1,8 +1,10 @@
 /* Меню профиля: ряд с плиткой-иконкой. Ховер ряда — bg-3, а плитка на ховере
    темнеет: раньше ряд красился bg-5 (#EBEBEF), почти как плитка bg-3
    (#F0F0F2), и плитка на наведении сливалась с рядом. */
-/* Ховер ряда скруглён как плашка тарифа «Безлимит» (12 px), а не 8 px. */
-.profile-menu-row {transition:background .15s;border-radius:12px !important}
+/* Ховер ряда концентричен с меню: радиус меню 14 − рамка 1 − отступ 6 = 7 px
+   (dropdownSurface). С 12 px подсветка последнего ряда не повторяла нижние
+   углы меню. Тот же радиус — у строки версии внизу (TeacherTopBar). */
+.profile-menu-row {transition:background .15s;border-radius:7px !important}
 .profile-menu-tile {width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--color-bg-3);color:var(--color-text-2);transition:background .15s,color .15s}
 .profile-menu-row:hover:not(:disabled) {background:var(--color-bg-3) !important}
 .profile-menu-row:hover:not(:disabled) .profile-menu-tile {background:color-mix(in srgb,var(--color-bg-3),var(--color-text) 9%);color:var(--color-text)}
