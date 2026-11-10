@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-motion'
-import { ArrowUpRight, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
+import { ArrowUpRight, CalendarDays, LayoutList, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
 import Modal, { ModalClose } from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
@@ -9,6 +9,7 @@ import DateTimeField from '../../DateTimeField'
 import { wallDateTimeInTz, convertWallTime, isMsk, useTeacherTz } from '../../../lib/teacherTz'
 import QuickAddLesson from './QuickAddLesson'
 import WeekStrip, { type WeekNavigation } from './WeekStrip'
+import WeekGrid from '../calendar/WeekGrid'
 import { CALENDAR_BACKDROP, CALENDAR_EASE } from './calendarMotion'
 import { isScheduleLive, isScheduleEnded, scheduleLiveWindow } from '../../../lib/scheduleLive'
 import { scheduleDurationMinutes } from '../../../lib/scheduleDuration'
@@ -46,6 +47,7 @@ const WEEKDAYS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
 const MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь']
 const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
 const SPRING = { type: 'spring' as const, stiffness: 420, damping: 32 }
+const GRID_KEY = 'iskra.teacherSchedule.grid'
 
 const dayNum = (d: string) => Number(d.slice(8, 10))
 const monthIdx = (d: string) => Number(d.slice(5, 7)) - 1
@@ -63,7 +65,7 @@ const fromIso = (iso: string) => wallDateTimeInTz(iso, 'Europe/Moscow')
 
 type Toast = { text: string; undo?: SchedUndo; tone?: 'danger' }
 
-export default function TeacherSchedule({ mobile = false, embedded = false, readOnly = false, useWeek = useTeacherWeek, onOpen, onAttendance, onExplore }: {
+export default function TeacherSchedule({ mobile = false, embedded = false, readOnly = false, useWeek = useTeacherWeek, onOpen, onAttendance, onExplore, gridToggle = false }: {
   mobile?: boolean
   readOnly?: boolean
   useWeek?: typeof useTeacherWeek
@@ -73,6 +75,8 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
   onExplore?: () => void
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
+  /** ПК и iPad на Главной: кнопка «Неделя сеткой» — вид прямо в виджете. */
+  gridToggle?: boolean
 }) {
   const t = useT()
   const today = todayMsk()
@@ -86,6 +90,17 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
   const list = (items ?? []).filter(i => i.date === day).sort((a,b)=>a.date.localeCompare(b.date)||(a.time??'').localeCompare(b.time??''))
 
   const overlays = useRef<CalendarOverlayHandle>(null)
+  // Вид виджета: лента дня или сетка недели. Выбор помнится на устройстве;
+  // кому сетка — основной календарь, растягивает виджет на Главной.
+  const [grid, setGrid] = useState(() => {
+    if (!gridToggle) return false
+    try { return localStorage.getItem(GRID_KEY) === '1' } catch { return false }
+  })
+  const showGrid = gridToggle && !mobile && grid
+  const toggleGrid = () => setGrid(g => {
+    try { localStorage.setItem(GRID_KEY, g ? '0' : '1') } catch { /* приватный режим */ }
+    return !g
+  })
   const [toast, setToast] = useState<Toast | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -188,7 +203,9 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) { haptic(6); go(addDays(day, dx < 0 ? 1 : -1)) }
   }
   const monthTitle = (() => {
-    const a = monthIdx(visibleDates.first), b = monthIdx(visibleDates.last)
+    const first = showGrid ? start : visibleDates.first
+    const last = showGrid ? addDays(start, 6) : visibleDates.last
+    const a = monthIdx(first), b = monthIdx(last)
     const s = a === b ? MONTHS[a] : `${MONTHS[a].slice(0, 3)} — ${MONTHS[b].slice(0, 3)}`
     return s[0].toUpperCase() + s.slice(1)
   })()
@@ -206,100 +223,117 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
               style={btn('S', 'primary', { width: 32, padding: 0 })}
             ><Plus size={17} /></button>
           )}
-          {(visibleDates.first !== weekStart(today) || visibleDates.last !== addDays(weekStart(today), 6)) && (
+          {(showGrid ? start !== weekStart(today) : visibleDates.first !== weekStart(today) || visibleDates.last !== addDays(weekStart(today), 6)) && (
             <button data-hover="layer" onClick={returnToToday} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
           )}
           {!mobile && (
             <>
-              <button data-hover="layer" aria-label={t('Прошлая неделя')} onClick={() => moveVisibleWeek(-1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
-              <button data-hover="layer" aria-label={t('Следующая неделя')} onClick={() => moveVisibleWeek(1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
+              <button data-hover="layer" aria-label={t('Прошлая неделя')} onClick={() => showGrid ? go(addDays(day, -7)) : moveVisibleWeek(-1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronLeft size={16} /></button>
+              <button data-hover="layer" aria-label={t('Следующая неделя')} onClick={() => showGrid ? go(addDays(day, 7)) : moveVisibleWeek(1)} style={btn('S', 'secondary', { width: 32, padding: 0 })}><ChevronRight size={16} /></button>
             </>
+          )}
+          {gridToggle && !mobile && (
+            // Тот же вид, что у стрелок рядом (btn S, 32×32); иконка — вид, в который переключит.
+            <button type="button" data-hover="layer" aria-pressed={grid} onClick={toggleGrid}
+              aria-label={t(grid ? 'Списком по дням' : 'Неделя сеткой')} title={t(grid ? 'Списком по дням' : 'Неделя сеткой')}
+              style={btn('S', 'secondary', { width: 32, padding: 0 })}>
+              {grid ? <LayoutList size={16} /> : <CalendarDays size={16} />}
+            </button>
           )}
         </div>
       </div>
 
-      {/* Неделя */}
-      <WeekStrip
-        navigation={weekNavigation}
-        label={t('Выбор недели')}
-        onVisibleRangeChange={(first, last) => setVisibleDates({ first, last })}
-        renderDay={(d, i) => {
-          const sel = d === day
-          const hot = target === d && drag?.item.date !== d
-          const dots = (items ?? []).filter(x => x.date === d && !x.cancelled).slice(0, 3)
-          return (
-            <motion.button data-hover="layer"
-              key={d}
-              type="button"
-              aria-label={dayLabel(d)}
-              aria-pressed={sel}
-              aria-current={d === today ? 'date' : undefined}
-              ref={el => { if (el) cellRefs.current.set(d, el); else cellRefs.current.delete(d) }}
-              onMouseDown={event => {
-                event.preventDefault()
-                event.currentTarget.focus({ preventScroll: true })
-              }}
-              onClick={() => { go(d, false); onExplore?.() }}
-              animate={{ scale: hot ? 1.08 : 1 }}
-              transition={SPRING}
-              style={{
-                flex: 1, minWidth: 0, margin: '0 3px', cursor: 'pointer', borderRadius: 16, border: 0, outline: 'none', font: 'inherit',
-                padding: '6px 0 7px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                background: sel ? (mobile ? 'var(--color-purple)' : 'var(--grad-purple)') : hot ? 'color-mix(in srgb, var(--color-purple) 30%, transparent)' : 'transparent',
-                boxShadow: d === today && !sel ? 'inset 0 0 0 2px var(--color-purple)' : undefined,
-                transition: 'background 0.15s',
-              }}
+      {showGrid ? (
+        <WeekGrid days={Array.from({ length: 7 }, (_, k) => addDays(start, k))} items={items} today={today}
+          // Клик — карточка занятия у блока («Открыть урок» в ней первой строкой),
+          // а не уход со страницы: календарь остаётся перед глазами.
+          onOpen={(item, el) => { if (!readOnly) overlays.current?.openMenu(item, el.getBoundingClientRect(), el, 300) }}
+          onMove={readOnly ? undefined : (item, d, time) => void run(() => scheduleMove(item.id, d, time), `${item.who} → ${shortLabel(d)}, ${time}`)}
+          onAdd={readOnly ? undefined : d => overlays.current?.openAdd(d)} />
+      ) : (<>
+        {/* Неделя */}
+        <WeekStrip
+          navigation={weekNavigation}
+          label={t('Выбор недели')}
+          onVisibleRangeChange={(first, last) => setVisibleDates({ first, last })}
+          renderDay={(d, i) => {
+            const sel = d === day
+            const hot = target === d && drag?.item.date !== d
+            const dots = (items ?? []).filter(x => x.date === d && !x.cancelled).slice(0, 3)
+            return (
+              <motion.button data-hover="layer"
+                key={d}
+                type="button"
+                aria-label={dayLabel(d)}
+                aria-pressed={sel}
+                aria-current={d === today ? 'date' : undefined}
+                ref={el => { if (el) cellRefs.current.set(d, el); else cellRefs.current.delete(d) }}
+                onMouseDown={event => {
+                  event.preventDefault()
+                  event.currentTarget.focus({ preventScroll: true })
+                }}
+                onClick={() => { go(d, false); onExplore?.() }}
+                animate={{ scale: hot ? 1.08 : 1 }}
+                transition={SPRING}
+                style={{
+                  flex: 1, minWidth: 0, margin: '0 3px', cursor: 'pointer', borderRadius: 16, border: 0, outline: 'none', font: 'inherit',
+                  padding: '6px 0 7px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                  background: sel ? (mobile ? 'var(--color-purple)' : 'var(--grad-purple)') : hot ? 'color-mix(in srgb, var(--color-purple) 30%, transparent)' : 'transparent',
+                  boxShadow: d === today && !sel ? 'inset 0 0 0 2px var(--color-purple)' : undefined,
+                  transition: 'background 0.15s',
+                }}
+              >
+                <span style={{ fontSize: 11, fontWeight: 600, color: sel ? 'rgba(255,255,255,0.8)' : 'var(--color-text-3)' }}>{t(WEEKDAYS[i])}</span>
+                <span style={{
+                  fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                  color: sel ? '#fff' : d === today ? 'var(--color-purple-text)' : 'var(--color-text)',
+                }}>{dayNum(d)}</span>
+                <span style={{ display: 'flex', gap: 3, height: 5 }}>
+                  {dots.map(x => <span key={x.id} style={{ width: 5, height: 5, borderRadius: '50%', background: sel ? '#fff' : x.color }} />)}
+                </span>
+              </motion.button>
+            )
+          }}
+        />
+
+        <div className="calendar-widget-date" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', padding: '4px 4px 0' }}>
+          {day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}
+        </div>
+
+        {/* Лента дня */}
+        <div
+          ref={feed}
+          data-calendar-feed
+          data-calendar-selected-date={day}
+          onTouchStart={onFeedTouchStart}
+          onTouchEnd={onFeedTouchEnd}
+          className={embedded ? 'no-scrollbar' : undefined}
+          style={embedded
+            ? { flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', paddingRight: 4 }
+            : { minHeight: mobile ? 150 : 280, position: 'relative' }}
+        >
+            <div
+              key={day}
+              style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
             >
-              <span style={{ fontSize: 11, fontWeight: 600, color: sel ? 'rgba(255,255,255,0.8)' : 'var(--color-text-3)' }}>{t(WEEKDAYS[i])}</span>
-              <span style={{
-                fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                color: sel ? '#fff' : d === today ? 'var(--color-purple-text)' : 'var(--color-text)',
-              }}>{dayNum(d)}</span>
-              <span style={{ display: 'flex', gap: 3, height: 5 }}>
-                {dots.map(x => <span key={x.id} style={{ width: 5, height: 5, borderRadius: '50%', background: sel ? '#fff' : x.color }} />)}
-              </span>
-            </motion.button>
-          )
-        }}
-      />
-
-      <div className="calendar-widget-date" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', padding: '4px 4px 0' }}>
-        {day === today ? `${t('Сегодня')}, ` : day === addDays(today, 1) ? `${t('Завтра')}, ` : ''}{dayLabel(day)}
-      </div>
-
-      {/* Лента дня */}
-      <div
-        ref={feed}
-        data-calendar-feed
-        data-calendar-selected-date={day}
-        onTouchStart={onFeedTouchStart}
-        onTouchEnd={onFeedTouchEnd}
-        className={embedded ? 'no-scrollbar' : undefined}
-        style={embedded
-          ? { flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', position: 'relative', paddingRight: 4 }
-          : { minHeight: mobile ? 150 : 280, position: 'relative' }}
-      >
-          <div
-            key={day}
-            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-          >
-            {items === null ? null : list.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: mobile ? '36px 0' : '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
-            ) : list.map(item => (
-              <div key={item.id} data-calendar-entry-id={item.id} data-calendar-entry-date={item.date}>
-              <Card
-                key={item.id}
-                item={item}
-                ghost={drag?.item.id === item.id}
-                onTap={el => readOnly ? undefined : onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect(), el)}
-                onMenu={el => { if (readOnly) return; haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect(), el); onExplore?.() }}
-                onDragStart={(el, x, y) => { if (readOnly) return; haptic(10); startDrag(item, el, x, y) }}
-                onDragMove={moveDrag}
-                onDragEnd={endDrag}
-              /></div>
-            ))}
-          </div>
-      </div>
+              {items === null ? null : list.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: mobile ? '36px 0' : '56px 0', fontSize: 14, color: 'var(--color-text-4)' }}>{t('Занятий нет')}</div>
+              ) : list.map(item => (
+                <div key={item.id} data-calendar-entry-id={item.id} data-calendar-entry-date={item.date}>
+                <Card
+                  key={item.id}
+                  item={item}
+                  ghost={drag?.item.id === item.id}
+                  onTap={el => readOnly ? undefined : onOpen ? onOpen(item) : overlays.current?.openMenu(item, el.getBoundingClientRect(), el)}
+                  onMenu={el => { if (readOnly) return; haptic(10); overlays.current?.openMenu(item, el.getBoundingClientRect(), el); onExplore?.() }}
+                  onDragStart={(el, x, y) => { if (readOnly) return; haptic(10); startDrag(item, el, x, y) }}
+                  onDragMove={moveDrag}
+                  onDragEnd={endDrag}
+                /></div>
+              ))}
+            </div>
+        </div>
+      </>)}
 
       {/* Карточка под пальцем */}
       {drag && createPortal(
@@ -397,8 +431,10 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
   return (
     <div className={`calendar-widget-lesson${preview ? ' calendar-widget-lesson-preview' : ''}`} data-live={live || undefined} data-ended={ended || undefined} style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 22,
+      // «Идёт сейчас» — статус, а не выбор: на ПК рамка — токен статуса
+      // --status-now (как «сейчас» у трека), а не акцент выбранного дня.
       background: live ? 'var(--color-accent-soft)' : 'var(--color-bg-2)',
-      border: `1px solid ${live ? 'var(--color-purple)' : 'var(--color-border)'}`,
+      border: `1px solid ${live ? (mobile ? 'var(--color-purple)' : 'var(--status-now)') : 'var(--color-border)'}`,
       transition: 'background-color 0.2s ease, border-color 0.2s ease',
       boxShadow: lifted ? 'var(--shadow-4)' : 'var(--shadow-1)',
     }}>
@@ -415,7 +451,7 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
           {preview ? <span className="calendar-widget-preview-name">{item.who}</span> : <span className="calendar-widget-name" style={{
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
           }}>{item.who}</span>}
-          {live && <Chip tone="live">{t('ИДЁТ СЕЙЧАС')}</Chip>}
+          {live && <Chip tone={mobile ? 'live' : 'now'}>{t('ИДЁТ СЕЙЧАС')}</Chip>}
           {item.rec && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
@@ -433,12 +469,15 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
   )
 }
 
-function Chip({ children, tone }: { children: React.ReactNode; tone?: 'danger' | 'live' }) {
+/** tone: live — прежний мобильный бейдж; now — статус «идёт сейчас» на ПК
+ *  системной парой --status-now-soft / --status-now-text (как статусы трека). */
+function Chip({ children, tone }: { children: React.ReactNode; tone?: 'danger' | 'live' | 'now' }) {
   return (
     <span style={{
       fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, flexShrink: 0,
-      background: tone === 'live' ? 'var(--color-purple)' : tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
-      color: tone === 'live' ? '#fff' : tone === 'danger' ? 'var(--color-red-text)' : 'var(--color-text-3)',
+      background: tone === 'live' ? 'var(--color-purple)' : tone === 'now' ? 'var(--status-now-soft)' : tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
+      color: tone === 'live' ? '#fff' : tone === 'now' ? 'var(--status-now-text)' : tone === 'danger' ? 'var(--color-red-text)' : 'var(--color-text-3)',
+      ...(tone === 'now' ? { boxShadow: 'inset 0 0 0 1px var(--status-now)' } : {}),
     }}>{children}</span>
   )
 }
@@ -563,12 +602,13 @@ function Card({ item, ghost, onTap, onMenu, onDragStart, onDragMove, onDragEnd }
 
 // Overlay state is deliberately separate: opening a menu must not rerender
 // every animated day and lesson behind it.
-type CalendarOverlayHandle = {
-  openMenu: (item: SchedItem, rect: DOMRect, source?: HTMLElement) => void
+export type CalendarOverlayHandle = {
+  /** expand — ширина карточки, если блок у́же её (сетка недели): карточка раскрывается над блоком. */
+  openMenu: (item: SchedItem, rect: DOMRect, source?: HTMLElement, expand?: number) => void
   openAdd: (day: string) => void
 }
 
-const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
+export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   mobile: boolean
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
@@ -576,7 +616,7 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   onSelectDay: (day: string) => void
 }>(function CalendarOverlays({ mobile, onOpen, onAttendance, onAction, onSelectDay }, ref) {
   const t = useT()
-  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement; session: number } | null>(null)
+  const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement; expand?: number; session: number } | null>(null)
   const menuSession = useRef(0)
   const pendingMenuAction = useRef<(() => void) | null>(null)
   const dismissMenu = (afterClose?: () => void) => {
@@ -587,9 +627,9 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   const [addDay, setAddDay] = useState<string | null>(null)
 
   useImperativeHandle(ref, () => ({
-    openMenu: (item, rect, source) => {
+    openMenu: (item, rect, source, expand) => {
       pendingMenuAction.current = null
-      setMenu({ item, rect, source, session: ++menuSession.current })
+      setMenu({ item, rect, source, expand, session: ++menuSession.current })
     },
     openAdd: day => setAddDay(day),
   }), [])
@@ -608,6 +648,7 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
             item={menu.item}
             rect={menu.rect}
             source={menu.source}
+            expand={menu.expand}
             onClose={() => dismissMenu()}
             onOpen={onOpen && (() => dismissMenu(() => onOpen(menu.item)))}
             onAttendance={() => dismissMenu(() => onAttendance(menu.item))}
@@ -666,10 +707,11 @@ const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
 // only after the final owner leaves, using the visibility from before any menu.
 const hiddenMenuSources = new WeakMap<HTMLElement, { visibility: string; owners: number }>()
 
-function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
+function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
   item: SchedItem
   rect: DOMRect
   source?: HTMLElement
+  expand?: number
   onClose: () => void
   onOpen?: () => void
   onAttendance: () => void
@@ -708,6 +750,21 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)
   }, [])
+  // Узкий блок сетки раскрывается в полную карточку над собой: ширина expand,
+  // высота — та, что карточка заняла на самом деле (замер до отрисовки).
+  const liftedRef = useRef<HTMLDivElement>(null)
+  const [liftedH, setLiftedH] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    if (expand && liftedRef.current) setLiftedH(liftedRef.current.offsetHeight)
+  }, [expand])
+  const rect = (() => {
+    if (!expand) return anchorRect
+    const w = Math.min(expand, viewport.width - 24)
+    const l = Math.max(12, Math.min(anchorRect.left + anchorRect.width / 2 - w / 2, viewport.width - w - 12))
+    const h = liftedH ?? anchorRect.height
+    const top = Math.max(12, Math.min(anchorRect.top, viewport.height - h - 12))
+    return new DOMRect(l, top, w, h)
+  })()
   // Keep the lesson in place and anchor actions on the side with usable space.
   const width = Math.min(rect.width, viewport.width - 24)
   const left = Math.max(12, Math.min(rect.left, viewport.width - width - 12))
@@ -771,6 +828,7 @@ function ContextMenu({ item, rect, source, onClose, onOpen, onAttendance, onMove
         style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal, pointerEvents: isPresent ? 'auto' : 'none' }}
       />
       <motion.div
+        ref={liftedRef}
         aria-hidden="true"
         className="calendar-context-lifted" data-calendar-item={item.id}
         initial={{ y: 0, scale: 1, opacity: 1 }}
