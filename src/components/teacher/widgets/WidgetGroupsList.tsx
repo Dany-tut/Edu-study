@@ -1,6 +1,6 @@
 import { widgetNavigationProps } from './widgetNavigation'
 import { textFadeStyle } from '../../../lib/textFades'
-import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
+import WidgetOpenButton from './WidgetOpenButton'
 import { SubjectMark } from '../../icons/SubjectMark'
 import { Users, ChevronRight } from '../../icons/appIcons'
 import { useGroups } from '../../../lib/useGroups'
@@ -48,16 +48,7 @@ export default function WidgetGroupsList() {
             {groups.length}
           </span>
         </div>
-        <button data-hover="layer"
-          onClick={() => setActivePage('groups')}
-          style={{
-            fontSize: 12, fontWeight: 600, color: 'var(--color-accent)',
-            background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px',
-            opacity: 0.85,
-          }}
-        >
-          {t('Все')} <LoopUiArrowRight size={12} style={{display:'inline-block',verticalAlign:'middle'}} />
-        </button>
+        <WidgetOpenButton onOpen={() => setActivePage('groups')} />
       </div>
 
       {/* List */}
