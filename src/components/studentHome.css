@@ -213,3 +213,17 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
   [data-platform="iphone"] .lh-header { flex-basis:calc(44px + max(env(safe-area-inset-top,0px), 6px) + 22px); padding-top:calc(max(env(safe-area-inset-top,0px), 6px) + 22px); }
   [data-platform="iphone"] .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:calc(72px + max(env(safe-area-inset-top,0px), 6px) + 22px); }
 }
+
+/* ── iPhone: трек курса ниже, по центру свободного места ───────────────────
+   Дани (скрины SMM): трек («Строение вещества» + кружки уроков) стоял кучно под
+   «Твоими делами», а под ним до нав-бара пустота. Отдаём слабину не верхней
+   строке расписания, а строке трека, и центрируем трек в ней — он опускается в
+   середину свободного места между «Твоими делами» и нав-баром. Расписание
+   получает компактную фиксированную высоту (день и так помещается). Только
+   высокие экраны (>700px): главная без прокрутки сохраняется; на низких окнах
+   раскладка ужата своими правилами и трек не трогаем, чтобы не наехать на
+   нав-бар. Только [data-platform="iphone"]. */
+@media(max-width:1023px) and (min-height:701px) {
+  [data-platform="iphone"] .lh-content { grid-template-rows:clamp(150px,22vh,210px) 180px minmax(216px,1fr); }
+  [data-platform="iphone"] .lh-course { display:flex; flex-direction:column; justify-content:center; }
+}
