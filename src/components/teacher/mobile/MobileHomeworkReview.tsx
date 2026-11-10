@@ -11,18 +11,44 @@ import BackCircle from '../../BackCircle'
 import { GlassPill } from '../../mobileChrome'
 import BasicAnswersList from '../BasicAnswersList'
 import { Alert } from '../../Alert'
-import { Check, ChevronRight, Loader2, RotateCcw } from '../../icons/appIcons'
+import { Check, ChevronDown, ChevronRight, Loader2, RotateCcw } from '../../icons/appIcons'
+import FadeText from '../../FadeText'
+import { GLASS, glassMenu } from '../../../lib/nativeGlass'
 import { FIELD } from '../../../lib/fieldStyle'
 import { btn } from '../../../lib/pillStyles'
 import '../journalStand/homeworkReview.css'
 import './mobileHomeworkReview.css'
 
+/** Выбор ученика — строка списка с нашим шевроном, а не системное поле:
+ *  в приложении iOS открывает системное меню, в браузере — нативный список
+ *  поверх строки (прозрачный select ловит касание). */
+function StudentPicker({ options, value, disabled, onChange }: {
+  options: { id: string; name: string }[]; value: string; disabled: boolean; onChange: (id: string) => void
+}) {
+  const t = useT()
+  const current = options.find(o => o.id === value)
+  const label = t('Выбрать ученика в полной проверке')
+  const body = <><span className="mhr-pick-label">{t('Ученик')}</span>
+    <FadeText className="mhr-pick-value">{current?.name ?? ''}</FadeText>
+    <ChevronDown size={18} className="mhr-pick-chevron" aria-hidden="true" /></>
+  if (GLASS) return <button data-hover="layer" type="button" className="mhr-pick" disabled={disabled} aria-label={label} onClick={async e => {
+    const i = await glassMenu(e.currentTarget, options.map(o => ({ label: o.name, checked: o.id === value })), t('Ученик'))
+    if (i >= 0) { tactile(); onChange(options[i].id) }
+  }}>{body}</button>
+  return <label className="mhr-pick" data-hover="layer" data-disabled={disabled || undefined}>{body}
+    <select disabled={disabled} aria-label={label} value={value} onChange={e => { tactile(); onChange(e.target.value) }}>
+      {options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select>
+  </label>
+}
+
 type Draft = { score: string; comment: string; taskScores: Record<string, string> }
 const emptyDraft: Draft = { score: '', comment: '', taskScores: {} }
 
 /** Reuses production publication and answer snapshots; demo writes stay in memory. */
-export default function MobileHomeworkReview({ homework, demoSubmissions, onBack, onPublished, onReview }: {
+export default function MobileHomeworkReview({ homework, demoSubmissions, onBack, onPublished, onReview, demoNote = true }: {
   onReview?: typeof reviewHomework
+  /** Плашка «Учебный пример» над демо-сдачами; стенд в режиме ?shot её прячет. */
+  demoNote?: boolean
   homework: HomeworkItem; demoSubmissions?: HwSubmission[]; onBack: () => void; onPublished: (id: string, verdict: 'accepted' | 'returned') => void
 }) {
   const t = useT()
@@ -91,15 +117,18 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
   </div> : undefined
   return <div className="mobile-homework-review"><MobileScreen
     glassHeader={{ leading: t('Проверка работы'), onBack: back, backLabel: t('К списку ДЗ') }}
-    topZone={<div className="mhr-top"><BackCircle onClick={back} label="К списку ДЗ" /><GlassPill>{t('Проверка работы')}</GlassPill></div>}
-    topPad={64} bottomDock={footer} bottomDockRaise={16} scrollKey={current?.id ?? 'loading'}>
+    topZone={<div className="mhr-top"><BackCircle onClick={back} label="К списку ДЗ" style={{ position: 'absolute', left: 0 }} /><GlassPill>{t('Проверка работы')}</GlassPill></div>}
+    topPad={64} bottomDock={footer} scrollKey={current?.id ?? 'loading'}>
     <div className="mhr-content">
-      {demo && <Alert tone="info" text={t('Учебный пример')} />}
+      {demo && demoNote && <Alert tone="info" text={t('Учебный пример')} />}
       {loadError && <Alert tone="danger" text={t(loadError)} action={{label:t('Повторить'),onClick:()=>void reload()}} />}
       {loading && !demo ? <p role="status" className="mhr-muted">{t('Загрузка…')}</p> : current ? <>
-        <section className="mhr-card"><p className="mhr-muted">{tc(homework.title)}</p><h1>{tn(current.studentName)}</h1><p className="mhr-muted">{homework.groupName}</p>
-          <span className="mhr-status">{t(done === 'accepted' ? 'Проверено' : done === 'returned' ? 'На доработке' : 'На проверке')}</span>
-          {!done && pending.length > 1 && <label className="mhr-label">{t('Ученик')}<select style={FIELD} disabled={busy} aria-label={t('Выбрать ученика в полной проверке')} value={current.id} onChange={e => setSelectedId(e.target.value)}>{pending.map(s => <option key={s.id} value={s.id}>{tn(s.studentName)}</option>)}</select></label>}
+        <section className="mhr-card mhr-identity">
+          <p className="mhr-muted">{tc(homework.title)}</p>
+          <h1>{tn(current.studentName)}</h1>
+          <p className="mhr-muted">{homework.groupName}</p>
+          <span className={'mhr-chip' + (done === 'accepted' ? ' mhr-chip-green' : done === 'returned' ? ' mhr-chip-yellow' : ' mhr-chip-purple')}>{t(done === 'accepted' ? 'Проверено' : done === 'returned' ? 'На доработке' : 'На проверке')}</span>
+          {!done && pending.length > 1 && <StudentPicker options={pending.map(s => ({ id: s.id, name: tn(s.studentName) }))} value={current.id} disabled={busy} onChange={setSelectedId} />}
         </section>
         {done ? <section className="mhr-card" role="status"><h2>{t('Проверка сохранена')}</h2><p className="mhr-muted">{t(done === 'accepted' ? 'Проверено' : 'На доработке')}{done === 'accepted' ? ` · ${score}%` : ''}</p></section> : <>
           <section className="mhr-card"><h2>{t('Ответы ученика')}</h2>
