@@ -6,6 +6,7 @@ import type { Provider } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { clearStudentSession, setStudentSession } from './studentSession'
 import { rememberCabinet } from './cabinetChoice'
+import { rememberLastLogin } from './lastLogin'
 import { trackNow, trackEvent } from './analytics'
 import { authErrorRu } from './authErrors'
 import { fenceAuthCode, fenceAuthCommit } from './authTransport'
@@ -420,6 +421,10 @@ async function finishSocialLoginImpl() {
   if (!selectedRole) return false
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
+  // Провайдер этой попытки — для «Последнего входа» (карточка на экране входа).
+  // Читаем до endOAuthAttempt, который чистит ATTEMPT_KEY.
+  let attemptProvider = ''
+  try { attemptProvider = String(JSON.parse(localStorage.getItem(ATTEMPT_KEY) || '{}').provider ?? '') } catch { /* no-op */ }
 
   if (selectedRole === 'student') {
     const joinToken = localStorage.getItem(JOIN_KEY)
@@ -449,6 +454,7 @@ async function finishSocialLoginImpl() {
     if (student) {
       setStudentSession({ id: student.id, name: student.name, groupId: student.group_id ?? '' })
       rememberCabinet('student')
+      rememberLastLogin({ provider: attemptProvider, name: student.name, role: 'student' })
       localStorage.removeItem(OAUTH_ROLE_KEY)
       endOAuthAttempt('auth_completed')
       void trackNow('login', { role: 'student', method: 'oauth' })
@@ -467,6 +473,7 @@ async function finishSocialLoginImpl() {
     if (accountRole === 'teacher' || accountRole === 'admin') {
       localStorage.removeItem(OAUTH_ROLE_KEY)
       clearStudentSession()
+      rememberLastLogin({ provider: attemptProvider, name: (user.user_metadata?.name as string) || user.email || 'Аккаунт', role: 'teacher' })
       endOAuthAttempt('auth_completed')
       void trackNow('login', { role: 'teacher', method: 'oauth' })
       const friendReturn = sessionStorage.getItem(FRIEND_RETURN_KEY) ?? ''

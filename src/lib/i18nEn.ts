@@ -174,6 +174,7 @@ export const EN: Record<string, string> = {
   "Код принят": "Code accepted",
   "Назад ко входу": "Back to sign in",
   "Вход отменён": "Sign-in cancelled",
+  "Это не я · другой аккаунт": "Not me · another account",
   "Завершаем вход…": "Finishing sign-in…",
   "Не удалось войти": "Couldn’t sign in",
   "Войти ещё раз": "Try again",

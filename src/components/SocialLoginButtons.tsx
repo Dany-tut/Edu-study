@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { startSocialLogin, startSocialLoginCustom, cancelSocialLogin, resetSocialLoginState, hasPendingSocialAuth, isCustomProvider, startPasskeyLogin, type LoginRole } from '../lib/socialAuth'
 import { usePasskeyAvailable } from '../lib/passkey'
-import { KeyRound } from './icons/appIcons'
+import { KeyRound, ChevronRight } from './icons/appIcons'
+import { readLastLogin, clearLastLogin } from '../lib/lastLogin'
+import { textFadeLines } from '../lib/textFades'
 import { useT } from '../lib/i18n'
 import { authFailureFeedback, useAuthFeedback } from './AuthFeedback'
 
@@ -23,6 +25,9 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
   const pending = useRef(false)
   // ключ доступа — вход в уже готовый аккаунт; на странице приглашения его нет
   const passkeyOn = usePasskeyAvailable() && !joinToken
+  // «Последний вход» этого устройства для ЭТОЙ роли (на приглашении — не показываем:
+  // там привязка к конкретной карточке, а не вход своим прошлым аккаунтом).
+  const [lastLogin, setLastLogin] = useState(() => (joinToken ? null : readLastLogin(role)))
 
   useEffect(() => {
     // Сбой входа ПОСЛЕ установки сессии (напр. роль не преподаватель → signOut)
@@ -126,7 +131,50 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
         {t('или продолжить с')}
         <span style={{ height: 1, flex: 1, background: 'var(--color-border-medium)' }} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
+      {lastLogin && (
+        <>
+          <button data-hover="card"
+            type="button"
+            data-auth-provider={lastLogin.provider}
+            onClick={() => void begin(lastLogin.provider)}
+            disabled={busy !== null || feedback.busy}
+            aria-label={`${t('Продолжить как')} ${lastLogin.name} · ${providers.find(p => p.id === lastLogin.provider)?.label ?? ''}`}
+            aria-busy={busy === lastLogin.provider}
+            style={{
+              minHeight: 58, borderRadius: 16, padding: '10px 14px', textAlign: 'left',
+              display: 'flex', alignItems: 'center', gap: 12,
+              border: '1.5px solid var(--color-accent)', background: 'var(--color-surface)',
+              color: 'var(--color-text)', opacity: busy && busy !== lastLogin.provider ? 0.55 : 1,
+            }}
+          >
+            <span aria-hidden="true" style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-accent-soft)', color: 'var(--color-accent)', fontWeight: 700, fontSize: 16 }}>
+              {lastLogin.name.trim().charAt(0).toUpperCase()}
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 15, fontWeight: 650, ...textFadeLines(1) }}>{t('Продолжить как')} {lastLogin.name}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-2)', marginTop: 1 }}>
+                <span aria-hidden="true" style={{ display: 'inline-flex', width: 14, height: 14 }}>
+                  {lastLogin.provider === 'apple' ? <AppleMark size={13} />
+                    : lastLogin.provider === 'google' ? <GoogleMark size={14} />
+                    : lastLogin.provider === 'yandex' ? <YandexMark size={14} />
+                    : <VkMark size={14} />}
+                </span>
+                {providers.find(p => p.id === lastLogin.provider)?.label ?? ''}
+              </span>
+            </span>
+            <span aria-hidden="true" style={{ display: 'flex', color: 'var(--color-muted)', flexShrink: 0 }}><ChevronRight size={18} /></span>
+          </button>
+          <button data-hover="link"
+            type="button"
+            onClick={() => { clearLastLogin(); setLastLogin(null) }}
+            disabled={busy !== null}
+            style={{ border: 0, background: 'transparent', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600, padding: 4, minHeight: 36, cursor: 'pointer', justifySelf: 'center' }}
+          >
+            {t('Это не я · другой аккаунт')}
+          </button>
+        </>
+      )}
+      {!lastLogin && <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
       {providers.map(({ id, label }) => (
         <button data-hover="layer"
           key={id}
@@ -170,7 +218,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}><KeyRound size={19} /></span>
           <span style={{ display: 'block', lineHeight: '20px' }}>{t('Войти с ключом доступа')}</span>
         </button>}
-      </div>
+      </div>}
     </div>
   )
 }
