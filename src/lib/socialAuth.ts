@@ -29,6 +29,10 @@ const ATTEMPT_KEY = 'iskra:oauth-attempt'
 const CUSTOM_KEY = 'iskra:custom-oauth'
 export const CUSTOM_PROVIDERS = ['yandex', 'vk'] as const
 export type CustomProvider = (typeof CUSTOM_PROVIDERS)[number]
+/** Найденный по email аккаунт для экрана «Вы Данил? Связать» (edge v2 link_candidate). */
+export type LinkCandidate = { provider: CustomProvider; emailMasked: string; requiresCode: boolean; name: string | null; ticket: string }
+/** Исход своего OAuth-колбэка: вход завершён, отменён, или нужна привязка (показать экран). */
+export type CustomOAuthOutcome = { kind: 'done' } | { kind: 'cancelled' } | { kind: 'link'; candidate: LinkCandidate }
 const CUSTOM_LABEL: Record<CustomProvider, string> = { yandex: 'Яндекс', vk: 'ВКонтакте' }
 const CUSTOM_CFG: Record<CustomProvider, { authorize: string; scope: string; clientId: () => string }> = {
   // client_id публичен (secret — только в edge env). Если env не задан, вход
@@ -308,9 +312,9 @@ export function isCustomOAuthCallback(): boolean {
 /** Завершение своего OAuth на вебе: код → edge-функция → token_hash → verifyOtp.
  *  После установки сессии App ловит SIGNED_IN и зовёт finishSocialLogin —
  *  роутинг (ученик/учитель, приглашение) переиспользуется как есть. */
-export async function completeCustomOAuthFromUrl(): Promise<boolean> {
+export async function completeCustomOAuthFromUrl(): Promise<CustomOAuthOutcome> {
   const match = window.location.pathname.match(/^\/auth\/(yandex|vk)\/?$/)
-  if (!match) return false
+  if (!match) return { kind: 'cancelled' }
   const provider = match[1] as CustomProvider
   const query = new URLSearchParams(window.location.search)
   // Адрес НЕ трогаем до самого конца: страница /auth/<provider> остаётся
@@ -324,13 +328,13 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
     const cancelled = query.get('error') === 'access_denied'
     localStorage.removeItem(CUSTOM_KEY)
     endOAuthAttempt(cancelled ? 'auth_cancelled' : 'auth_failed')
-    if (cancelled) return false
+    if (cancelled) return { kind: 'cancelled' }
     throw new Error(authErrorRu({ code: query.get('error'), message: callbackError }, 'Не удалось завершить вход. Попробуйте ещё раз.'))
   }
 
   let pending: { provider: CustomProvider; verifier: string; state: string; redirectUri: string; at: number }
   try { pending = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '') }
-  catch { return false }
+  catch { return { kind: 'cancelled' } }
   const code = query.get('code')
   // VK ID переименовывает наш state в redirect_state на своей authorize-странице и
   // так же может вернуть его в колбэке — принимаем оба имени, иначе сверка падала бы.
@@ -343,23 +347,85 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
   }
   localStorage.removeItem(CUSTOM_KEY)
 
+  // Роль выбранного экрана (препод/ученик) — edge решает самрег/привязку по ней.
+  const role = localStorage.getItem(OAUTH_ROLE_KEY)
   const { data, error } = await supabase.functions.invoke('social-oauth', {
-    body: { provider, code, code_verifier: pending.verifier, device_id: deviceId, redirect_uri: pending.redirectUri },
+    body: { action: 'resolve', provider, code, code_verifier: pending.verifier, device_id: deviceId, redirect_uri: pending.redirectUri, role },
   })
-  if (error || !data?.token_hash) {
+  if (error) {
     endOAuthAttempt('auth_failed')
     throw new Error('Не удалось завершить вход через ' + CUSTOM_LABEL[provider] + '. Попробуйте ещё раз.')
   }
-  // Успех. Уводим адрес с /auth/<provider> на корень ДО verifyOtp: дальше
-  // SIGNED_IN → finishSocialLogin сам встанет на нужный маршрут (и reload
-  // ученика пойдёт уже с корня, а не с системного пути колбэка).
+  const result = data as { status?: string; token_hash?: string; email_masked?: string; requires_code?: boolean; name?: string | null; ticket?: string } | null
+  const status = result?.status
+  const tokenHash = result?.token_hash
+
+  // Нет сессии — показываем причину, НЕ входим.
+  if (status === 'no_student') {
+    endOAuthAttempt('auth_failed')
+    throw new Error('Этот аккаунт ещё не подключён к ученику. Попросите учителя дать доступ или привязать ваш аккаунт.')
+  }
+  if (status === 'link_candidate' && result?.ticket && result?.email_masked) {
+    // Нашёлся аккаунт с этой почтой. НЕ входим — отдаём кандидата экрану
+    // «Вы Данил? Связать» (SocialCallbackPage его рендерит). Привязку завершит
+    // confirmSocialLink с проверкой владения (verified-IdP — согласие; VK — вход
+    // в существующий аккаунт). Попытку не закрываем: экран сам решит исход.
+    return { kind: 'link', candidate: { provider, emailMasked: result.email_masked, requiresCode: !!result.requires_code, name: result.name ?? null, ticket: result.ticket } }
+  }
+
+  // login / created_teacher (и старый edge без status) → ставим сессию.
+  if (!tokenHash) {
+    endOAuthAttempt('auth_failed')
+    throw new Error('Не удалось завершить вход через ' + CUSTOM_LABEL[provider] + '. Попробуйте ещё раз.')
+  }
+  // Уводим адрес с /auth/<provider> на корень ДО verifyOtp: дальше SIGNED_IN →
+  // finishSocialLogin сам встанет на нужный маршрут (самрег-препод получил
+  // app_metadata.role=teacher на сервере → попадёт в кабинет учителя).
   window.history.replaceState(null, '', `${window.location.origin}/`)
-  const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: data.token_hash as string, type: 'magiclink' })
+  const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' })
   if (otpError) {
     endOAuthAttempt('auth_failed')
     throw otpError
   }
+  return { kind: 'done' }
+}
+
+/** Завершить привязку соц-входа к найденному аккаунту (экран «Вы Данил? Связать»).
+ *  verified-IdP (Яндекс): edge линкует по тикету. VK/непроверенный: edge требует,
+ *  чтобы вызывающий уже вошёл в существующий аккаунт (его сессия == ticket.user_id),
+ *  поэтому для VK сперва вход в аккаунт (см. PENDING_LINK_KEY ниже), потом сюда.
+ *  Возвращает true на успех (сессия поставлена), иначе бросает. */
+export async function confirmSocialLink(ticket: string): Promise<boolean> {
+  // Если сессия уже есть — это VK-путь: пользователь вошёл в существующий аккаунт,
+  // edge записал связь по его сессии (session == ticket.user_id). Сессию не трогаем
+  // и НЕ переустанавливаем, иначе собьём уже открытый маршрут.
+  const { data: { session: existing } } = await supabase.auth.getSession()
+  const { data, error } = await supabase.functions.invoke('social-oauth', { body: { action: 'confirm-link', ticket } })
+  if (error) throw new Error('Не удалось связать аккаунт. Попробуйте ещё раз.')
+  if (existing) return true
+  // verified-IdP (Яндекс): сессии ещё нет — поднимаем её по magic-link от edge.
+  const tokenHash = (data as { token_hash?: string } | null)?.token_hash
+  if (!tokenHash) throw new Error('Не удалось связать аккаунт. Попробуйте ещё раз.')
+  window.history.replaceState(null, '', `${window.location.origin}/`)
+  const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' })
+  if (otpError) throw otpError
   return true
+}
+
+// ── Отложенная привязка (VK): пользователь входит в существующий аккаунт, затем
+//    App по SIGNED_IN завершает привязку confirmSocialLink. Тикет ≤5 мин. ───────
+const PENDING_LINK_KEY = 'iskra:pending-link'
+export function stashPendingLink(ticket: string): void {
+  try { sessionStorage.setItem(PENDING_LINK_KEY, JSON.stringify({ ticket, at: Date.now() })) } catch { /* no-op */ }
+}
+export function takePendingLink(): string | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_LINK_KEY)
+    if (!raw) return null
+    sessionStorage.removeItem(PENDING_LINK_KEY)
+    const p = JSON.parse(raw)
+    return p?.ticket && Date.now() - p.at < 5 * 60 * 1000 ? String(p.ticket) : null
+  } catch { return null }
 }
 
 /** Exchanges the PKCE callback delivered by the native app URL scheme. */
