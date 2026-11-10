@@ -13,32 +13,42 @@ import BasicAnswersList from '../BasicAnswersList'
 import { Alert } from '../../Alert'
 import { Check, ChevronDown, ChevronRight, Loader2, RotateCcw } from '../../icons/appIcons'
 import FadeText from '../../FadeText'
-import { GLASS, glassMenu } from '../../../lib/nativeGlass'
+import MobileSheet from '../../MobileSheet'
 import { FIELD } from '../../../lib/fieldStyle'
 import { btn } from '../../../lib/pillStyles'
 import '../journalStand/homeworkReview.css'
 import './mobileHomeworkReview.css'
 
-/** Выбор ученика — строка списка с нашим шевроном, а не системное поле:
- *  в приложении iOS открывает системное меню, в браузере — нативный список
- *  поверх строки (прозрачный select ловит касание). */
+/** Выбор ученика — строка-поле с подписью внутри (FIELD-01) и нашим шевроном.
+ *  Тап открывает наш стеклянный лист снизу (MobileSheet: граббер, без ×,
+ *  закрытие свайпом, фоном и «Назад»); текущий ученик отмечен галочкой.
+ *  Нативных select и системного меню нет — правило custom-controls. */
 function StudentPicker({ options, value, disabled, onChange }: {
   options: { id: string; name: string }[]; value: string; disabled: boolean; onChange: (id: string) => void
 }) {
   const t = useT()
+  const [open, setOpen] = useState(false)
   const current = options.find(o => o.id === value)
-  const label = t('Выбрать ученика в полной проверке')
-  const body = <><span className="mhr-pick-label">{t('Ученик')}</span>
-    <FadeText className="mhr-pick-value">{current?.name ?? ''}</FadeText>
-    <ChevronDown size={18} className="mhr-pick-chevron" aria-hidden="true" /></>
-  if (GLASS) return <button data-hover="layer" type="button" className="mhr-pick" disabled={disabled} aria-label={label} onClick={async e => {
-    const i = await glassMenu(e.currentTarget, options.map(o => ({ label: o.name, checked: o.id === value })), t('Ученик'))
-    if (i >= 0) { tactile(); onChange(options[i].id) }
-  }}>{body}</button>
-  return <label className="mhr-pick" data-hover="layer" data-disabled={disabled || undefined}>{body}
-    <select disabled={disabled} aria-label={label} value={value} onChange={e => { tactile(); onChange(e.target.value) }}>
-      {options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select>
-  </label>
+  return <>
+    <button data-hover="layer" type="button" className="mhr-pick" disabled={disabled} aria-haspopup="dialog" aria-expanded={open}
+      aria-label={`${t('Выбрать ученика в полной проверке')}: ${current?.name ?? ''}`}
+      onClick={() => { tactile(); setOpen(true) }}>
+      <span className="mhr-pick-text">
+        <span className="mhr-pick-label">{t('Ученик')}</span>
+        <FadeText className="mhr-pick-value">{current?.name ?? ''}</FadeText>
+      </span>
+      <ChevronDown size={18} className="mhr-pick-chevron" aria-hidden="true" />
+    </button>
+    <MobileSheet open={open} onClose={() => setOpen(false)} title={t('Ученик')}>
+      <div className="mhr-pick-list" role="listbox" aria-label={t('Ученик')}>
+        {options.map(o => <button data-hover="layer" key={o.id} type="button" role="option" aria-selected={o.id === value}
+          className="mhr-pick-option" onClick={() => { tactile(); onChange(o.id); setOpen(false) }}>
+          <FadeText>{o.name}</FadeText>
+          {o.id === value && <Check size={18} className="mhr-pick-check" aria-hidden="true" />}
+        </button>)}
+      </div>
+    </MobileSheet>
+  </>
 }
 
 type Draft = { score: string; comment: string; taskScores: Record<string, string> }
