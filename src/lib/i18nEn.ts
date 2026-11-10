@@ -6353,4 +6353,6 @@ export const EN: Record<string, string> = {
   "По порядку уроков": "Lesson order",
   "По баллу": "By score",
   "Скрыть закрытые уроки": "Hide locked lessons",
+  "Неделя сеткой": "Week grid",
+  "Списком по дням": "Day list",
 }
