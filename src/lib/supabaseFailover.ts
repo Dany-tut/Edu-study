@@ -21,7 +21,23 @@
 
 /** Прокси-адрес из окружения; пусто → резерв выключен, поведение не меняется. */
 export const PROXY_URL = (import.meta.env.VITE_SUPABASE_PROXY_URL as string | undefined) || undefined
-export const ruFailoverEnabled = !!PROXY_URL
+
+// Прокси реально обслуживает ТОЛЬКО свой origin: nginx на api.iskra-study.ru
+// отдаёт `Access-Control-Allow-Origin` для РФ-домена iskra-study.ru (и своим же
+// нативным сборкам на capacitor://localhost / localhost — у них свой dist с этим
+// env). На edu-study-app.vercel.app прямой Supabase доступен всегда, а прокси
+// для origin *.vercel.app CORS НЕ разрешает → любой фейловер туда ловит 503 и
+// ошибку CORS в консоли и роняет вставку (аналитика, телеметрия). env
+// `VITE_SUPABASE_PROXY_URL` выставлен и в Vercel Production (боевой бандл), так
+// что одного наличия env мало: резерв держим выключенным на *.vercel.app, даже
+// если env протёк в сборку. РФ-домен и нативка работают как раньше.
+// docs/infra/domain-migration.md, ru-proxy.md.
+function failoverAllowedHere(): boolean {
+  if (typeof location === 'undefined') return true // нет window (native prerender/SSR) — доверяем сборке
+  return !location.hostname.endsWith('.vercel.app')
+}
+
+export const ruFailoverEnabled = !!PROXY_URL && failoverAllowedHere()
 
 /** Короткий потолок на пробу прямого пути перед уходом на прокси. */
 const DIRECT_PROBE_MS = 2500
