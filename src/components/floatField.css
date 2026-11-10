@@ -1,0 +1,77 @@
+/* Поле с плавающей подписью — FloatField.tsx (FIELD-01). Общая геометрия,
+   затем отличия версий по <html data-platform>. Цвета — только токены. */
+
+.ff { display: flex; flex-direction: column; gap: 6px; width: 100%; min-width: 0; }
+
+.ff-box {
+  position: relative;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border-medium);
+  background: var(--color-bg-input);
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.ff[data-focused] .ff-box { border-color: var(--color-control-accent); }
+.ff[data-error] .ff-box { border-color: var(--color-red-text); }
+.ff[data-disabled] .ff-box { opacity: .55; }
+
+.ff-control {
+  display: block; width: 100%; box-sizing: border-box; min-height: 52px;
+  margin: 0; border: 0; outline: none; border-radius: inherit;
+  /* Сверху место под уехавшую подпись, снизу — равновесие. */
+  padding: 22px 13px 7px;
+  font: inherit; font-size: 14px; line-height: 1.35; color: var(--color-text);
+}
+.ff[data-multiline] .ff-control { padding-top: 24px; }
+/* Пример значения виден только когда подпись уже наверху — иначе он лёг бы
+   поверх подписи. */
+.ff:not([data-floated]) .ff-control::placeholder { color: transparent; }
+.ff-control::placeholder { color: var(--color-text-4); }
+
+.ff-label {
+  position: absolute; left: 13px; right: 13px; top: 16px;
+  font-size: 14px; line-height: 20px; color: var(--color-text-3);
+  white-space: nowrap; overflow: hidden; pointer-events: none;
+  transform-origin: left top;
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), color .15s ease;
+}
+/* Наверх: подпись уменьшается до 11/14 и поднимается к верхней кромке. */
+.ff[data-floated] .ff-label { transform: translateY(-9px) scale(.786); font-weight: 600; }
+.ff[data-focused] .ff-label { color: var(--color-accent); }
+.ff[data-error] .ff-label { color: var(--color-red-text); }
+.ff-req { color: var(--color-red-text); }
+
+.ff-note { padding: 0 13px; font-size: 12px; line-height: 1.35; color: var(--color-text-3); }
+.ff[data-error] .ff-note { color: var(--color-red-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-label, .ff-box { transition: none; }
+}
+
+/* ПК: наведение подсвечивает рамку (на тач-устройствах наведения нет). */
+@media (hover: hover) {
+  [data-platform="pc"] .ff:not([data-focused]):not([data-error]):not([data-disabled]) .ff-box:hover {
+    border-color: var(--color-border-strong);
+  }
+}
+
+/* Телефон и планшет: текст 16 px — iOS не приближает страницу при фокусе. */
+:is([data-platform="iphone"], [data-platform="ipad"], [data-platform="android"]) .ff-control { font-size: 16px; }
+:is([data-platform="iphone"], [data-platform="ipad"], [data-platform="android"]) .ff-label { font-size: 16px; top: 15px; }
+:is([data-platform="iphone"], [data-platform="ipad"], [data-platform="android"]) .ff[data-floated] .ff-label { transform: translateY(-9px) scale(.75); }
+
+/* iPhone/iPad: как системные поля iOS — мягкая заливка, тонкая рамка,
+   радиус крупнее. Без тени и свечения (стекло — у хрома, не у полей). */
+:is([data-platform="iphone"], [data-platform="ipad"]) .ff-box {
+  border-radius: 14px; border-width: 1px;
+  background: var(--color-bg-input);
+}
+
+/* Android: Material «filled» — заливка, скругление только сверху, линия
+   снизу; при фокусе линия толще и акцентная. Шрифт системный (Roboto). */
+[data-platform="android"] .ff-box {
+  border: 0; border-radius: 12px 12px 4px 4px;
+  background: var(--color-bg-3);
+  box-shadow: inset 0 -1px 0 var(--color-border-strong);
+}
+[data-platform="android"] .ff[data-focused] .ff-box { box-shadow: inset 0 -2px 0 var(--color-control-accent); }
+[data-platform="android"] .ff[data-error] .ff-box { box-shadow: inset 0 -2px 0 var(--color-red-text); }
