@@ -303,29 +303,24 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
   if (!match) return false
   const provider = match[1] as CustomProvider
   const query = new URLSearchParams(window.location.search)
-  // Возвращаем адрес на корень с hash-роутером, чтобы дальнейший роутинг работал.
-  const resetUrl = (hash = window.location.hash || '#/entry') =>
-    window.history.replaceState(null, '', `${window.location.origin}/${hash}`)
+  // Адрес НЕ трогаем до самого конца: страница /auth/<provider> остаётся
+  // смонтированной под SocialCallbackPage («Завершаем вход…»), иначе был бы
+  // белый экран. На успехе уводим на корень перед verifyOtp (ниже), на
+  // ошибке/отмене адрес чинит сам экран кнопкой «Войти ещё раз».
 
   const callbackError = query.get('error_description') || query.get('error')
   if (callbackError) {
-    // Яндекс/VK на отказе возвращают error=access_denied. Отмену показываем мягко
-    // отдельным событием (как у google/apple), а не как ошибку входа.
+    // Яндекс/VK на отказе возвращают error=access_denied — это отмена, не ошибка.
     const cancelled = query.get('error') === 'access_denied'
     localStorage.removeItem(CUSTOM_KEY)
-    resetUrl()
-    if (cancelled) {
-      endOAuthAttempt('auth_cancelled')
-      window.dispatchEvent(new Event('iskra:auth-cancelled'))
-      return false
-    }
-    endOAuthAttempt('auth_failed')
+    endOAuthAttempt(cancelled ? 'auth_cancelled' : 'auth_failed')
+    if (cancelled) return false
     throw new Error(authErrorRu({ code: query.get('error'), message: callbackError }, 'Не удалось завершить вход. Попробуйте ещё раз.'))
   }
 
   let pending: { provider: CustomProvider; verifier: string; state: string; redirectUri: string; at: number }
   try { pending = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '') }
-  catch { resetUrl(); return false }
+  catch { return false }
   const code = query.get('code')
   // VK ID переименовывает наш state в redirect_state на своей authorize-странице и
   // так же может вернуть его в колбэке — принимаем оба имени, иначе сверка падала бы.
@@ -334,11 +329,9 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
   if (!code || !state || pending.provider !== provider || pending.state !== state || Date.now() - pending.at > 15 * 60 * 1000) {
     localStorage.removeItem(CUSTOM_KEY)
     endOAuthAttempt('auth_failed')
-    resetUrl()
     throw new Error('Время входа истекло. Попробуйте ещё раз.')
   }
   localStorage.removeItem(CUSTOM_KEY)
-  resetUrl()
 
   const { data, error } = await supabase.functions.invoke('social-oauth', {
     body: { provider, code, code_verifier: pending.verifier, device_id: deviceId, redirect_uri: pending.redirectUri },
@@ -347,7 +340,10 @@ export async function completeCustomOAuthFromUrl(): Promise<boolean> {
     endOAuthAttempt('auth_failed')
     throw new Error('Не удалось завершить вход через ' + CUSTOM_LABEL[provider] + '. Попробуйте ещё раз.')
   }
-  // verifyOtp ставит сессию на общий клиент → SIGNED_IN → finishSocialLogin.
+  // Успех. Уводим адрес с /auth/<provider> на корень ДО verifyOtp: дальше
+  // SIGNED_IN → finishSocialLogin сам встанет на нужный маршрут (и reload
+  // ученика пойдёт уже с корня, а не с системного пути колбэка).
+  window.history.replaceState(null, '', `${window.location.origin}/`)
   const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: data.token_hash as string, type: 'magiclink' })
   if (otpError) {
     endOAuthAttempt('auth_failed')
