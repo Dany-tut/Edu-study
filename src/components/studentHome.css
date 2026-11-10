@@ -199,3 +199,17 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
 @media(max-width:1023px) and (min-height:701px) {
   [data-platform="iphone"] .lh-content { gap:18px; }
 }
+
+/* ── iPhone: хедер главной на канон safe+22 ────────────────────────────────
+   Решение Дани: верхняя таблетка/хедер на ВСЕХ iPhone-экранах на одном отступе
+   от выреза — safe + 22 (нативные бары и MOBILE_TOP_INSET уже там). Хедер
+   главной был сделан «как iOS-навбар» от самой safe-area (top = safe+0) и
+   выбивался. Подтягиваем его top к safe+22 (+22 к padding и высоте строки).
+   Только высокие экраны (>700px): главная без прокрутки, лишние 22px забирает
+   гибкая строка расписания (1fr); на низких окнах раскладка и так ужата своими
+   правилами — там хедер не растим, чтобы не обрезать контент. Только
+   [data-platform="iphone"] — Android/iPad/ПК не трогаем. */
+@media(max-width:1023px) and (min-height:701px) {
+  [data-platform="iphone"] .lh-header { flex-basis:calc(44px + max(env(safe-area-inset-top,0px), 6px) + 22px); padding-top:calc(max(env(safe-area-inset-top,0px), 6px) + 22px); }
+  [data-platform="iphone"] .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:calc(72px + max(env(safe-area-inset-top,0px), 6px) + 22px); }
+}
