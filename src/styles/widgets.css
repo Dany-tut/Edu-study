@@ -17,7 +17,8 @@
 .iskra-widget[data-grid-w="2"][data-stat] .iskra-mini-stat-icon{display:none!important}
 .iskra-widget[data-grid-w="2"][data-stat] .iskra-mini-stat-sub{display:block;align-self:flex-start!important;font-size:11px!important}
 .iskra-widget[data-grid-w="2"] .iskra-mini-stat-object{display:block;position:absolute;right:18px;top:50%;transform:translateY(-50%);width:100px;height:100px;object-fit:contain;pointer-events:none}
-.iskra-widget[data-grid-w="2"] .iskra-mini-stat-open{display:grid;place-items:center;position:absolute;right:10px;bottom:9px;width:28px;height:28px;border:0;border-radius:50%;background:var(--color-bg-input);color:var(--color-accent);cursor:pointer}
+/* Кликабельная метрика — кружок со стрелкой внизу справа в любом размере (узкая тоже). */
+.iskra-widget .iskra-mini-stat-open{display:grid;place-items:center;position:absolute;right:10px;bottom:9px;width:28px;height:28px;border:0;border-radius:50%;background:var(--color-bg-input);color:var(--color-accent);cursor:pointer}
 .iskra-widget{--ww-gap:10px}
 .iskra-widget .ww-header{padding:12px 14px!important;min-height:48px;gap:8px!important;flex-wrap:wrap}
 .iskra-widget .ww-header>div{min-width:0;gap:6px!important}
@@ -45,6 +46,10 @@
 .iskra-widget .ww-task-card{padding:14px!important;min-height:0;gap:0}
 .iskra-widget .ww-task-heading{min-height:32px;gap:8px!important;flex-shrink:0}
 .iskra-widget .ww-task-heading>svg{flex-shrink:0}
+/* «Открыть раздел» больших виджетов — тот же вид, что «+» у «Моих задач» (WidgetOpenButton). */
+/* button.ww-open[data-hover] — сильнее стилей шапок вроде .widget-panel-header button {background:none}. */
+button.ww-open[data-hover]{margin-left:auto;flex:0 0 32px;box-sizing:border-box;width:32px;height:32px;min-width:32px;min-height:32px;padding:0;border:0;border-radius:10px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
+button.ww-open[data-hover] svg{display:block;width:17px;height:17px;margin:0}
 .iskra-widget .ww-task-add{margin-left:auto;flex:0 0 32px;width:32px;height:32px;padding:0;border:0;border-radius:10px;background:var(--color-bg-3);color:var(--color-accent);display:grid;place-items:center;cursor:pointer}
 .iskra-widget .ww-task-add svg{display:block;width:17px;height:17px;margin:0}
 .iskra-widget .ww-task-list{min-height:0;flex:1 1 0;max-height:none!important;overflow-y:auto!important;mask-image:none!important;-webkit-mask-image:none!important}
@@ -210,6 +215,8 @@ html:has(.ww-gallery-dialog),body:has(.ww-gallery-dialog){overflow:hidden;oversc
 /* Teacher widget redesign: common rhythm, stable scroll space and full primary text. */
 .desk-widget-shell .ww-list,.desk-widget-shell .ww-task-list,.desk-widget-shell .teacher-reminder-queue,.desk-widget-shell .calendar-widget-schedule>div[style*="overflow-y"],.ww-gallery-list,.size-review-scroll{scrollbar-gutter:stable;scrollbar-width:thin}
 .desk-widget-shell .ww-header{border-bottom:0!important;padding:13px 15px!important}
+/* Шапка с «Открыть раздел»: кнопка в 15 px от верха и правого края карточки (рамка 1 + поле 14), как «+» у «Моих задач». */
+.iskra-widget .ww-header:has(> button.ww-open),.desk-widget-shell .ww-header:has(> button.ww-open){padding:14px 14px 12px 15px!important}
 .desk-widget-shell .ww-header>div>div:first-child{background:none!important;width:auto!important;height:auto!important}
 .desk-widget-shell .ww-header span{font-weight:600!important}
 .desk-widget-shell .ww-row{border-bottom:1px solid var(--color-border)!important;border-radius:0!important;background:none!important;padding:12px 3px!important}
@@ -238,7 +245,7 @@ html:has(.ww-gallery-dialog),body:has(.ww-gallery-dialog){overflow:hidden;oversc
 .iskra-widget .ww-attention-summary{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
 .iskra-widget .ww-attention-value{font-size:30px;font-weight:750;line-height:1}
 .iskra-widget .ww-attention-object{width:96px;height:96px;max-width:34%;object-fit:contain;flex-shrink:0}
-.iskra-widget .ww-attention-open{position:absolute;bottom:12px;right:12px;color:var(--color-accent)}
+.iskra-widget .ww-attention-open{position:absolute;right:10px;bottom:9px;box-sizing:border-box;width:28px;height:28px;padding:6px;border-radius:50%;background:var(--color-bg-input);color:var(--color-accent)}
 @container iskra-widget (max-height:160px){
 .iskra-widget .ww-attention-card>.ww-header,.iskra-widget .ww-attention-card>.ww-list{display:none!important}
 .iskra-widget .ww-attention-compact{display:flex}
