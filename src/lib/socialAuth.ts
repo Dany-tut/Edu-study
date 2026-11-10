@@ -20,6 +20,45 @@ const JOIN_KEY = 'iskra:oauth-join'
 const FRIEND_RETURN_KEY = 'iskra:friend-return'
 const friendRoute = /^#\/friend\?token=[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
 const ATTEMPT_KEY = 'iskra:oauth-attempt'
+// Яндекс/VK — не нативные провайдеры Supabase, поэтому свой OAuth через
+// edge-функцию `social-oauth`. Здесь храним PKCE-verifier и state между
+// редиректом на провайдера и возвратом на /auth/<provider>.
+const CUSTOM_KEY = 'iskra:custom-oauth'
+export const CUSTOM_PROVIDERS = ['yandex', 'vk'] as const
+export type CustomProvider = (typeof CUSTOM_PROVIDERS)[number]
+const CUSTOM_LABEL: Record<CustomProvider, string> = { yandex: 'Яндекс', vk: 'ВКонтакте' }
+const CUSTOM_CFG: Record<CustomProvider, { authorize: string; scope: string; clientId: () => string }> = {
+  // client_id публичен (secret — только в edge env). Если env не задан, вход
+  // ещё не настроен — кнопка отдаёт понятную ошибку, а не молча падает.
+  yandex: {
+    authorize: 'https://oauth.yandex.ru/authorize',
+    scope: 'login:email login:info',
+    clientId: () => String(import.meta.env.VITE_YANDEX_CLIENT_ID ?? ''),
+  },
+  vk: {
+    authorize: 'https://id.vk.com/authorize',
+    scope: 'email',
+    clientId: () => String(import.meta.env.VITE_VK_CLIENT_ID ?? ''),
+  },
+}
+export function isCustomProvider(p: string): p is CustomProvider {
+  return (CUSTOM_PROVIDERS as readonly string[]).includes(p)
+}
+/** Настроен ли провайдер (есть публичный client_id в сборке). */
+export function customProviderConfigured(provider: CustomProvider): boolean {
+  return CUSTOM_CFG[provider].clientId() !== ''
+}
+
+function base64url(bytes: ArrayBuffer): string {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+function randomVerifier(): string {
+  return base64url(crypto.getRandomValues(new Uint8Array(48)).buffer)
+}
+async function pkceChallenge(verifier: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
+  return base64url(digest)
+}
 const googleAuth = registerPlugin<{
   open(options: { url: string }): Promise<{ url: string } | { cancelled: true }>
   cancel(): Promise<void>
@@ -187,6 +226,100 @@ export async function startSocialLogin(provider: Provider, role: LoginRole, join
     if (!data.url) throw new Error('Не удалось открыть страницу входа')
     window.location.assign(data.url)
   } catch (error) { if (id !== generation) return; endOAuthAttempt('auth_failed'); throw error }
+}
+
+/** Запуск входа через Яндекс/VK (свой OAuth). Веб-поток: редирект на провайдера
+ *  с PKCE, возврат на /auth/<provider>, обмен кода через edge-функцию. Нативку
+ *  (deep-link) добавим отдельной фазой — пока на телефоне ведём в веб. */
+export async function startSocialLoginCustom(provider: CustomProvider, role: LoginRole, joinToken?: string) {
+  if (Capacitor.isNativePlatform()) {
+    throw new Error(`Вход через ${CUSTOM_LABEL[provider]} пока доступен в веб-версии — в приложении добавим позже.`)
+  }
+  if (!customProviderConfigured(provider)) {
+    throw new Error(`Вход через ${CUSTOM_LABEL[provider]} ещё настраивается. Попробуйте другой способ.`)
+  }
+  localStorage.removeItem(LINK_KEY)
+  if (joinToken) localStorage.setItem(JOIN_KEY, joinToken)
+  else localStorage.removeItem(JOIN_KEY)
+  if (friendRoute.test(location.hash)) sessionStorage.setItem(FRIEND_RETURN_KEY, location.hash)
+  else sessionStorage.removeItem(FRIEND_RETURN_KEY)
+  localStorage.setItem(OAUTH_ROLE_KEY, role)
+  const verifier = randomVerifier()
+  const challenge = await pkceChallenge(verifier)
+  const state = crypto.randomUUID()
+  const redirectUri = `${window.location.origin}/auth/${provider}`
+  localStorage.setItem(CUSTOM_KEY, JSON.stringify({ provider, verifier, state, redirectUri, at: Date.now() }))
+  beginOAuthAttempt(provider, 'login')
+  const cfg = CUSTOM_CFG[provider]
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: cfg.clientId(),
+    redirect_uri: redirectUri,
+    scope: cfg.scope,
+    state,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+  })
+  window.location.assign(`${cfg.authorize}?${params.toString()}`)
+}
+
+/** На свежей загрузке: мы на /auth/yandex|vk с кодом провайдера? */
+export function isCustomOAuthCallback(): boolean {
+  return /^\/auth\/(yandex|vk)\/?$/.test(window.location.pathname)
+}
+
+/** Завершение своего OAuth на вебе: код → edge-функция → token_hash → verifyOtp.
+ *  После установки сессии App ловит SIGNED_IN и зовёт finishSocialLogin —
+ *  роутинг (ученик/учитель, приглашение) переиспользуется как есть. */
+export async function completeCustomOAuthFromUrl(): Promise<boolean> {
+  const match = window.location.pathname.match(/^\/auth\/(yandex|vk)\/?$/)
+  if (!match) return false
+  const provider = match[1] as CustomProvider
+  const query = new URLSearchParams(window.location.search)
+  // Возвращаем адрес на корень с hash-роутером, чтобы дальнейший роутинг работал.
+  const resetUrl = (hash = window.location.hash || '#/entry') =>
+    window.history.replaceState(null, '', `${window.location.origin}/${hash}`)
+
+  const callbackError = query.get('error_description') || query.get('error')
+  if (callbackError) {
+    const cancelled = query.get('error') === 'access_denied'
+    endOAuthAttempt(cancelled ? 'auth_cancelled' : 'auth_failed')
+    localStorage.removeItem(CUSTOM_KEY)
+    resetUrl()
+    throw new Error(cancelled
+      ? 'Вход отменён. Можно попробовать ещё раз.'
+      : authErrorRu({ code: query.get('error'), message: callbackError }, 'Не удалось завершить вход. Попробуйте ещё раз.'))
+  }
+
+  let pending: { provider: CustomProvider; verifier: string; state: string; redirectUri: string; at: number }
+  try { pending = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '') }
+  catch { resetUrl(); return false }
+  const code = query.get('code')
+  const state = query.get('state')
+  const deviceId = query.get('device_id') // VK ID отдаёт device_id в редиректе
+  if (!code || !state || pending.provider !== provider || pending.state !== state || Date.now() - pending.at > 15 * 60 * 1000) {
+    localStorage.removeItem(CUSTOM_KEY)
+    endOAuthAttempt('auth_failed')
+    resetUrl()
+    throw new Error('Время входа истекло. Попробуйте ещё раз.')
+  }
+  localStorage.removeItem(CUSTOM_KEY)
+  resetUrl()
+
+  const { data, error } = await supabase.functions.invoke('social-oauth', {
+    body: { provider, code, code_verifier: pending.verifier, device_id: deviceId, redirect_uri: pending.redirectUri },
+  })
+  if (error || !data?.token_hash) {
+    endOAuthAttempt('auth_failed')
+    throw new Error('Не удалось завершить вход через ' + CUSTOM_LABEL[provider] + '. Попробуйте ещё раз.')
+  }
+  // verifyOtp ставит сессию на общий клиент → SIGNED_IN → finishSocialLogin.
+  const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: data.token_hash as string, type: 'magiclink' })
+  if (otpError) {
+    endOAuthAttempt('auth_failed')
+    throw otpError
+  }
+  return true
 }
 
 /** Exchanges the PKCE callback delivered by the native app URL scheme. */

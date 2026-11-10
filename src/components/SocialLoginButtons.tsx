@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { startSocialLogin, cancelSocialLogin, type LoginRole } from '../lib/socialAuth'
+import { startSocialLogin, startSocialLoginCustom, cancelSocialLogin, isCustomProvider, type LoginRole } from '../lib/socialAuth'
 import { useT } from '../lib/i18n'
 import { authFailureFeedback, useAuthFeedback } from './AuthFeedback'
 
-const providers = [
-  { id: 'apple' as const, label: 'Apple' },
-  { id: 'google' as const, label: 'Google' },
+type ProviderId = 'apple' | 'google' | 'yandex' | 'vk'
+const providers: { id: ProviderId; label: string }[] = [
+  { id: 'apple', label: 'Apple' },
+  { id: 'google', label: 'Google' },
+  { id: 'yandex', label: 'Яндекс' },
+  { id: 'vk', label: 'VK' },
 ]
 
 /** joinToken — вход со страницы приглашения: аккаунт Google/Apple привяжется к карточке ученика. */
@@ -32,13 +35,15 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
     return () => { sequence.current++; window.removeEventListener('iskra:auth-error', onError); window.removeEventListener('iskra:auth-cancelled', cancelled) }
   }, [feedback.report])
 
-  async function begin(provider: 'apple' | 'google') {
+  async function begin(provider: ProviderId) {
     const id = ++sequence.current
+    const label = providers.find(p => p.id === provider)?.label ?? ''
     setBusy(provider)
     started.current = true; pending.current = true
-    feedback.begin({ tone: 'info', title: provider === 'apple' ? 'Открываем Apple…' : 'Открываем Google…', busy: true, onCancel: cancelSocialLogin })
+    feedback.begin({ tone: 'info', title: `Открываем ${label}…`, busy: true, onCancel: cancelSocialLogin })
     try {
-      await startSocialLogin(provider, role, joinToken)
+      if (isCustomProvider(provider)) await startSocialLoginCustom(provider, role, joinToken)
+      else await startSocialLogin(provider, role, joinToken)
     } catch (err) {
       if (sequence.current !== id) return
       pending.current = false
@@ -62,7 +67,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           type="button"
           onClick={() => void begin(id)}
           disabled={busy !== null || feedback.busy}
-          aria-label={busy === id ? `${t('Открываем…')} ${label}` : `${t('Продолжить с')} ${id === 'apple' ? 'Apple' : label}`}
+          aria-label={busy === id ? `${t('Открываем…')} ${label}` : `${t('Продолжить с')} ${label}`}
           aria-busy={busy === id}
           style={{
             minHeight: 48, minWidth: 0, borderRadius: 14, padding: '8px 10px',
@@ -73,7 +78,10 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           }}
         >
           <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0, transform: id === 'apple' ? 'translateY(-0.5px)' : undefined }}>
-            {id === 'apple' ? <AppleMark size={18} /> : <GoogleMark size={20} />}
+            {id === 'apple' ? <AppleMark size={18} />
+              : id === 'google' ? <GoogleMark size={20} />
+              : id === 'yandex' ? <YandexMark size={20} />
+              : <VkMark size={20} />}
           </span>
           <span style={{ display: 'block', lineHeight: '20px' }}>{label}</span>
         </button>
@@ -95,6 +103,24 @@ export function AppleMark({ size = 20 }: { size?: number }) {
   return (
     <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
       <path d="M12.15 6.9c-.95 0-2.42-1.08-3.96-1.05-2.04.03-3.91 1.18-4.96 3.01-2.12 3.67-.54 9.09 1.52 12.07 1.01 1.45 2.21 3.08 3.8 3.02 1.52-.06 2.1-.98 3.95-.98 1.83 0 2.36.98 3.95.95 1.64-.03 2.68-1.49 3.68-2.95 1.16-1.69 1.64-3.33 1.67-3.41-.04-.01-3.19-1.23-3.23-4.87-.03-3.05 2.49-4.51 2.6-4.57-1.42-2.08-3.63-2.31-4.4-2.36-2-.16-3.68 1.13-4.62 1.13Zm3.3-3.92c.83-1 1.39-2.38 1.23-3.76-1.34-.07-2.96.89-3.92 2.04-.85 1.01-1.6 2.41-1.4 3.76 1.49.11 3.02-.76 4.09-2.04Z" transform="translate(-.4 1.2) scale(.96)" />
+    </svg>
+  )
+}
+
+export function YandexMark({ size = 20 }: { size?: number }) {
+  return (
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="12" fill="#FC3F1D" />
+      <path fill="#fff" d="M13.3 6.4h-1.2c-1.9 0-3.1 1-3.1 2.8 0 1.4.6 2.1 1.9 3l.8.6-2.4 3.7h1.6l2.6-4-.9-.6c-1-.7-1.5-1.2-1.5-2.3 0-1 .6-1.6 1.6-1.6h.6v8.5h1.4V6.4h-1.4Z" />
+    </svg>
+  )
+}
+
+export function VkMark({ size = 20 }: { size?: number }) {
+  return (
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24">
+      <rect width="24" height="24" rx="6" fill="#0077FF" />
+      <path fill="#fff" d="M12.6 16.2c-4.4 0-7-3-7.1-8h2.2c.1 3.6 1.7 5.1 3 5.4V8.2h2.1v3.2c1.2-.1 2.5-1.5 2.9-3.2h2.1c-.3 1.5-1.3 2.9-2.4 3.5 1.1.5 2.3 1.8 2.8 3.5h-2.3c-.4-1.3-1.5-2.3-3-2.5v2.5h-.3Z" />
     </svg>
   )
 }
