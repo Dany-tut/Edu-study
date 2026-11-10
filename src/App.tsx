@@ -47,7 +47,8 @@ import type { Session } from '@supabase/supabase-js'
 import { Capacitor } from '@capacitor/core'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
-import { finishSocialLogin, initializeNativeOAuth, hasPendingSocialAuth, isCustomOAuthCallback, completeCustomOAuthFromUrl } from './lib/socialAuth'
+import { finishSocialLogin, initializeNativeOAuth, hasPendingSocialAuth, isCustomOAuthCallback } from './lib/socialAuth'
+import SocialCallbackPage from './components/SocialCallbackPage'
 import {
   bootTrainerLink, parseTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink,
   trainerHash,
@@ -232,13 +233,9 @@ function AppRoutes() {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') window.setTimeout(() => { void finishWebOAuth() }, 0)
     })
     if (!IS_NATIVE) {
-      // Свой OAuth (Яндекс/VK) возвращается на /auth/<provider> с кодом провайдера.
-      // Обмен через edge-функцию ставит сессию → SIGNED_IN → finishWebOAuth.
-      if (isCustomOAuthCallback()) {
-        void completeCustomOAuthFromUrl().catch(error => {
-          notifyError(error instanceof Error ? error.message : 'Не удалось завершить вход')
-        })
-      }
+      // Свой OAuth (Яндекс/VK): обмен кода и его UI держит SocialCallbackPage на
+      // /auth/<provider> (чтобы не было белого экрана). Здесь — только общий путь
+      // google/apple: SIGNED_IN после verifyOtp сам поднимет finishWebOAuth.
       void supabase.auth.getSession().then(({ data }) => {
         if (hasPendingSocialAuth() && (data.session || window.location.search.includes('error') || window.location.hash.includes('error'))) {
           void finishWebOAuth()
@@ -330,6 +327,11 @@ function AppRoutes() {
   if (window.location.pathname === '/oauth/consent') {
     return <Chunk><OAuthConsentPage /></Chunk>
   }
+
+  // Системный колбэк своего OAuth (Яндекс/VK). Свой экран «Завершаем вход…» /
+  // ошибки — на нём же идёт обмен кода, иначе страница /auth/* оставалась белой
+  // (кнопки входа с обработчиком ошибки тут не смонтированы).
+  if (isCustomOAuthCallback()) return <SocialCallbackPage />
 
   // Отчёт родителю по личной ссылке — без входа, вне кабинетов.
   if (hash.startsWith('#/r/')) return <Chunk><ParentReportPage token={hash.slice(4).split(/[?#/]/)[0]} /></Chunk>
