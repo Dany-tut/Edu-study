@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AlertCircle, CheckCircle2, Info, Loader2 } from './icons/appIcons'
-import ScrollFade from './ScrollFade'
 import { authErrorRu } from '../lib/authErrors'
 import { useT } from '../lib/i18n'
 import './authLayout.css'
@@ -105,10 +104,10 @@ export function AuthFeedbackSlot({ idleText }: { idleText: string }) {
     <div id={context.descriptionId} className={`auth-feedback${message ? '' : ' auth-feedback--idle'}`} data-tone={message?.tone ?? 'idle'}
       role={message?.tone === 'danger' ? 'alert' : 'status'} aria-live={message?.tone === 'danger' ? 'assertive' : 'polite'} aria-atomic="true">
       <span className={message?.busy ? 'auth-feedback-icon auth-feedback-spinner' : 'auth-feedback-icon'} aria-hidden="true"><Icon size={18} strokeWidth={2} /></span>
-      <ScrollFade maxHeight={40} fadeHeight={10} style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         {message && <strong>{t(message.title)}</strong>}
         {(message?.text || !message) && <p>{t(message?.text ?? idleText)}</p>}
-      </ScrollFade>
+      </div>
       {message?.busy && message.onCancel && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.onCancel}>{t('Отмена')}</button>}
     </div>
   </div>

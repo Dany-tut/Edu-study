@@ -223,17 +223,24 @@ function AppRoutes() {
         const { data } = await supabase.auth.getSession()
         if (!data.session) { completed = false; return }
       }
+      // Роль попытки нужна ДО finishSocialLogin: он её чистит, а при отказе мы
+      // хотим увести на вход ИМЕННО той роли (препод → #/teacher, ученик → #/login),
+      // чтобы сообщение не висело на чужом экране.
+      let attemptedRole: string | null = null
+      try { attemptedRole = localStorage.getItem('iskra:oauth-role') } catch { /* no-op */ }
       try { completed = await finishSocialLogin() }
       catch (error) {
         completed = false
         const message = error instanceof Error ? error.message : 'Не удалось завершить вход'
         // Отказ роли и прочие сбои ПОСЛЕ установки сессии (finishSocialLogin делает
         // signOut) раньше молча роняли на лендинг — обработчик ошибки там не
-        // смонтирован. Кладём причину и уводим на вход, где SocialLoginButtons её
-        // покажет; событие — для случая, когда экран входа уже открыт.
-        try { sessionStorage.setItem('iskra:social-error', message) } catch { /* no-op */ }
+        // смонтирован. Кладём причину (с ролью и временем) и уводим на вход нужной
+        // роли, где SocialLoginButtons её покажет один раз. Событие — для случая,
+        // когда экран входа уже открыт.
+        try { sessionStorage.setItem('iskra:social-error', JSON.stringify({ message, role: attemptedRole ?? 'student', at: Date.now() })) } catch { /* no-op */ }
         notifyError(message)
-        if (!isCustomOAuthCallback() && !window.location.hash.startsWith('#/login')) window.location.hash = '#/login'
+        const target = attemptedRole === 'teacher' ? '#/teacher' : '#/login'
+        if (!isCustomOAuthCallback() && !window.location.hash.startsWith(target)) window.location.hash = target
       }
     }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {

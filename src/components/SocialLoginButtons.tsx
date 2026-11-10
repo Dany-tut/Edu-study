@@ -27,10 +27,23 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
   useEffect(() => {
     // Сбой входа ПОСЛЕ установки сессии (напр. роль не преподаватель → signOut)
     // раньше молча ронял на лендинг: обработчик ниже там не смонтирован. App
-    // кладёт причину в sessionStorage и уводит на вход — показываем её тут.
+    // кладёт причину в sessionStorage (с ролью и временем) и уводит на вход —
+    // показываем ОДИН раз и только на экране своей роли, протухшее убираем.
     try {
-      const deferred = sessionStorage.getItem('iskra:social-error')
-      if (deferred) { sessionStorage.removeItem('iskra:social-error'); feedback.report(authFailureFeedback(deferred)) }
+      const raw = sessionStorage.getItem('iskra:social-error')
+      if (raw) {
+        let payload: { message?: string; role?: string; at?: number }
+        try { payload = JSON.parse(raw) } catch { payload = { message: raw } } // старый формат — простая строка
+        const fresh = !payload.at || Date.now() - payload.at < 60_000
+        const roleMatches = !payload.role || payload.role === role
+        if (payload.message && fresh && roleMatches) {
+          sessionStorage.removeItem('iskra:social-error')
+          feedback.report(authFailureFeedback(payload.message))
+        } else if (!fresh) {
+          sessionStorage.removeItem('iskra:social-error') // протухшее — чтобы не всплыло позже
+        }
+        // свежее, но роль чужая — оставляем для экрана нужной роли
+      }
     } catch { /* sessionStorage недоступен — не критично */ }
 
     const onError = (event: Event) => {
@@ -45,7 +58,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
     window.addEventListener('iskra:auth-cancelled', cancelled)
     window.addEventListener('iskra:auth-error', onError)
     return () => { sequence.current++; window.removeEventListener('iskra:auth-error', onError); window.removeEventListener('iskra:auth-cancelled', cancelled) }
-  }, [feedback.report])
+  }, [feedback.report, role])
 
   useEffect(() => {
     // Браузерный «Назад» со страницы провайдера возвращает нас из bfcache с
