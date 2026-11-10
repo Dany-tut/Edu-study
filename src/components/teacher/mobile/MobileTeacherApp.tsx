@@ -10,6 +10,7 @@ import { useFeature } from '../../../lib/teacherFeatures'
 import { useTeacherAccess, type TeacherTabId } from '../../../lib/teacherAccess'
 import { useDeskStore } from '../../../store/deskStore'
 import { useTeacher } from '../../../store/teacherStore'
+import { PLATFORM } from '../../../lib/platform'
 import NotificationSheet from '../../NotificationSheet'
 import './mobileTeacher.css'
 
@@ -77,7 +78,9 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
       {showReports && <MobileTeacherParentReports onBack={closeReports} />}
 
       <NotificationSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
-      {!(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','calendar','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
+      {/* iPad (§1.1): нижней навигации айфона нет — её заменяет капсула справа
+          (TeacherIpadRail). iPhone/Android — без изменений. */}
+      {PLATFORM !== 'ipad' && !(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','calendar','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
     </div>
   )
 }

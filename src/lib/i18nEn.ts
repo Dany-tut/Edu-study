@@ -2079,6 +2079,8 @@ export const EN: Record<string, string> = {
   "сообщить об ошибке": "report a bug",
   "аналитика, хранилище": "analytics, storage",
   "Действия": "Actions",
+  "Разделы": "Sections",
+  "Быстрые действия": "Quick actions",
   "Развернуть": "Expand",
   "Главная": "Home",
   "Финансы": "Finances",

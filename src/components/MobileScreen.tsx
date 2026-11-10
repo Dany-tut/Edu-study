@@ -8,7 +8,7 @@ import { useOverlayScroll } from './teacher/OverlayScroll'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
 import SoftEdge from './SoftEdge'
-import { IS_IOS } from '../lib/platform'
+import { IS_IOS, PLATFORM } from '../lib/platform'
 import './mobileInteraction.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -247,7 +247,9 @@ export default function MobileScreen({
           WebkitMaskImage: contentMask,
           paddingTop: topPadding,
           paddingLeft: 16,
-          paddingRight: 16,
+          // iPad: контент тела прокрутки не заходит под капсулу справа
+          // (docs/platforms.md §1.1). Строго iPad-gated — iPhone/Android без изменений.
+          paddingRight: PLATFORM === 'ipad' ? 'calc(env(safe-area-inset-right, 0px) + 112px)' : 16,
           // Bottom: home-indicator safe-area + dock/nav clearance.
           paddingBottom: dockClearance > 0 && !keyboardOpen ? dockClearance + 24 : `calc(${SAFE_BOTTOM} + ${MOBILE_EDGE + 92 + bottomDockRaise}px)`,
         }}
