@@ -42,7 +42,7 @@ export interface ReviewCardInput {
  * Свободный ответ (`extended`) сюда входит только с эталоном — без него
  * повторять нечего, и такие задания всё равно уходят учителю.
  */
-const TEXTUAL_TYPES = new Set(['single', 'multi', 'fill', 'extended'])
+const TEXTUAL_TYPES = new Set(['single', 'multi', 'fill', 'numeric', 'extended'])
 
 /** Есть ли у задания стимул, который карточка не унесёт (звук, картинка, отрывок). */
 function hasCarriedStimulus(q: HomeworkQuizQuestion): boolean {

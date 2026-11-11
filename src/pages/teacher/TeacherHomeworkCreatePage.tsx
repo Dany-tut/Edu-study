@@ -111,7 +111,7 @@ function hwTaskFromImported(q: ImportedQuestion): HWTask {
 
 function needsAnswerFlag(t: HWTask): boolean {
   if (t.type === 'single' || t.type === 'multi') return (t.correctChoices ?? []).length === 0
-  if (t.type === 'fill' || t.type === 'extended') return !t.answer?.trim()
+  if (t.type === 'fill' || t.type === 'extended' || t.type === 'numeric') return !t.answer?.trim()
   return false
 }
 
@@ -538,13 +538,13 @@ function TaskCard({
                   withPassage
                 />
 
-                {/* Answer (for extended/fill) */}
-                {(task.type === 'extended' || task.type === 'fill') && (
+                {/* Answer (for extended/fill/numeric) */}
+                {(task.type === 'extended' || task.type === 'fill' || task.type === 'numeric') && (
                   <div>
                     <GrowTextarea
                       value={task.answer}
                       onChange={updateAnswer}
-                      placeholder={t('Правильный ответ…')}
+                      placeholder={task.type === 'numeric' ? t('Правильный ответ, число…') : t('Правильный ответ…')}
                       minHeight={growMinHeight(3, 13, 9, 0)}
                       style={inputStyle}
                     />
@@ -1168,7 +1168,7 @@ function PreviewTab({
                   </div>
                 )}
 
-                {(task.type === 'extended' || task.type === 'fill') && (
+                {(task.type === 'extended' || task.type === 'fill' || task.type === 'numeric') && (
                   <button data-hover="layer"
                     onClick={() => toggleAnswer(task.id)}
                     style={{

@@ -29,6 +29,7 @@ import {
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import FadeText from '../../components/FadeText'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
+import Switch from '../../components/Switch'
 import { LessonLinkPanel } from '../../components/teacher/LessonLinkAttach'
 import { detectDisk, DiskLogo } from '../../components/teacher/DiskLink'
 import { useTeacher } from '../../store/teacherStore'
@@ -3559,6 +3560,48 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                   minHeight={TASK_TEXT_MIN_H}
                   style={taskTextSt}
                 />
+              )}
+
+              {/* Число (numeric): эталон + допуск ± + единицы, подписи внутри полей, свои тумблеры */}
+              {task.type === 'numeric' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input
+                      style={inputSt} inputMode="decimal"
+                      value={task.answer ?? ''}
+                      onChange={e => onUpdate({ ...task, answer: e.target.value })}
+                      placeholder={t('Правильный ответ, число')} aria-label={t('Правильный ответ, число')}
+                    />
+                    <input
+                      style={inputSt} inputMode="decimal"
+                      value={task.numTolerance ?? ''}
+                      onChange={e => { const v = e.target.value.replace(',', '.').trim(); onUpdate({ ...task, numTolerance: v ? Number(v) : undefined }) }}
+                      placeholder={t('Допуск ±')} aria-label={t('Допуск ±')}
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input
+                      style={inputSt}
+                      value={task.unit ?? ''}
+                      onChange={e => onUpdate({ ...task, unit: e.target.value || undefined })}
+                      placeholder={t('Единицы — покажем ученику')} aria-label={t('Единицы измерения')}
+                    />
+                    <input
+                      style={inputSt} inputMode="numeric"
+                      value={task.decimals ?? ''}
+                      onChange={e => { const v = e.target.value.replace(/\D/g, ''); onUpdate({ ...task, decimals: v ? Number(v) : undefined }) }}
+                      placeholder={t('Знаков после запятой')} aria-label={t('Знаков после запятой')}
+                    />
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={task.decimal ?? true} onChange={v => onUpdate({ ...task, decimal: v })} label={t('Десятичное число')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Десятичное число')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('принимать 69,94 и 69.94')}</span></span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={task.numpad ?? true} onChange={v => onUpdate({ ...task, numpad: v })} label={t('Нампад на телефоне')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Нампад на телефоне')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('цифровая клавиатура у ученика')}</span></span>
+                  </label>
+                </div>
               )}
 
               {/* wordBank / listenBank — reference sentence + optional distractor tiles (listenBank adds audio) */}

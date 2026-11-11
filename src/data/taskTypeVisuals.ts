@@ -29,6 +29,8 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   multi:      { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',     fill: 'var(--color-green-fill)' },
   // fill-in → peach
   fill:       { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)',     fill: 'var(--color-peach-fill)' },
+  // число с допуском — тоже ввод ответа → peach, рядом с fill
+  numeric:    { color: 'var(--color-peach-text)',     bg: 'var(--color-peach-soft)',     fill: 'var(--color-peach-fill)' },
   // matching → rose
   matching:   { color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)',      fill: 'var(--color-rose-fill)' },
   // sequence → yellow
