@@ -217,6 +217,9 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
           )}
 
           <AuthFeedbackSlot reserve
+            // Высота слота — константа по режиму (не по длине текста): login с
+            // двухстрочной подсказкой+вторичной = 70, короткие reset/newpassword = 56.
+            reserveHeight={mode === 'login' ? 70 : 56}
             idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Новый преподаватель? Войдите через Яндекс или VK — кабинет создастся сам'}
             idleSecondary={mode === 'login' ? 'По приглашению — почтой и паролем' : undefined} />
           {mode === 'login' && (

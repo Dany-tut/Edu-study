@@ -1,9 +1,9 @@
 import FadeText from '../../FadeText'
-import { useState, useMemo, useEffect, type ReactNode, type CSSProperties } from 'react'
+import { useState, useMemo, useEffect, useRef, type ReactNode, type CSSProperties } from 'react'
 import EmptyState from '../../EmptyState'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
-import { Users, ChevronRight, ChevronDown, Phone, Send, Wallet, CalendarCheck, Check } from '../../icons/appIcons'
+import { Users, ChevronRight, ChevronDown, Phone, Send, Wallet, CalendarCheck, Check, X } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import Skeleton from '../../Skeleton'
@@ -21,7 +21,10 @@ import { Alert } from '../../Alert'
 import { copyToClipboard } from '../../../lib/clipboard'
 import { mySubjectNames } from '../../../lib/subjects'
 import { useTeacherAccess } from '../../../lib/teacherAccess'
-import { GLASS, glassMenu } from '../../../lib/nativeGlass'
+import { GLASS, glassMenu, useGlassBar, type GlassBar } from '../../../lib/nativeGlass'
+import { PLATFORM } from '../../../lib/platform'
+import { useKeyboardInset } from '../../../lib/useKeyboardInset'
+import { tactile } from '../../../lib/feedback'
 import { studentSubjectOptions, defaultStudentSubject, isStudentSubjectValid } from '../../../lib/studentSubject'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
@@ -335,6 +338,13 @@ export default function MobileTeacherStudents() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [filter, setFilter] = useState<StudentsFilter>('all')
   const [search, setSearch] = useState('')
+  // Нативный стеклянный бар экрана — только в приложении на iPhone. iPad
+  // (капсула TeacherIpadRail) и веб/Android остаются на веб-доке и инлайн-поиске.
+  const nativeBar = GLASS && PLATFORM === 'iphone'
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const kbInset = useKeyboardInset()
+  useEffect(() => { if (searchOpen) searchRef.current?.focus({ preventScroll: true }) }, [searchOpen])
 
   const openStudent = (student: Student) => {
     const group = groups.find(g => g.id === student.groupId) ?? { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', studentCount: 0, totalLessons: 0, lessonsCompleted: 0 }
@@ -392,6 +402,35 @@ export default function MobileTeacherStudents() {
     finally { setSavingNew(false) }
   }
 
+  const openAdd = () => {
+    setInvite(''); setCreateError(''); setCopiedInvite(false); setNewName('')
+    setNewSubject(defaultStudentSubject(mySubjectNames(teacherSubjects))); setAddOpen(true)
+  }
+
+  // Системный бар экрана (useGlassBar): таблетка-фильтр сверху + ряд над
+  // вкладками (поиск · «Добавить»). Прячется в под-экранах (ростер группы,
+  // карточка, лист добавления). На вебе/Android/iPad ничего не рисует — там
+  // работают инлайн-поиск, чипы и веб-док ниже.
+  const barActive = nativeBar && !openGroup && !addOpen && !sheetOpen
+  const studentsBar: GlassBar = {
+    top: {
+      id: 'filter', kind: 'pill', title: t(FILTERS.find(f => f.key === filter)?.label ?? 'Все'), menuTitle: t('Показать'),
+      menu: FILTERS.map(f => ({ value: f.key, title: t(f.label), checked: f.key === filter })),
+    },
+    bottom: [
+      { id: 'search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск'), active: !!search },
+      { id: 'add', kind: 'pill', title: t('Добавить') },
+    ],
+  }
+  useGlassBar(barActive ? studentsBar : null, {
+    onTap: id => {
+      tactile()
+      if (id === 'search') setSearchOpen(true)
+      if (id === 'add') openAdd()
+    },
+    onMenu: (id, value) => { if (id === 'filter') setFilter(value as StudentsFilter) },
+  }, searchOpen)
+
   const topZone = (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
       <GlassPill><Users size={16} /> {t('Ученики')}</GlassPill>
@@ -399,11 +438,25 @@ export default function MobileTeacherStudents() {
   )
 
   return (
+    <>
+    {/* Поиск в нативном режиме — веб-поле на месте нижнего стеклянного ряда
+        (он прячется), над вкладками; с клавиатурой поднимается вместе с ней. */}
+    {nativeBar && searchOpen && (
+      <div style={{ position: 'fixed', left: 16, right: 16, bottom: kbInset > 0 ? kbInset + 12 : 'calc(env(safe-area-inset-bottom, 0px) + 58px)', zIndex: 60, display: 'flex', alignItems: 'center', gap: 8, height: 48, padding: '0 8px 0 16px', borderRadius: 24, background: 'rgba(var(--glass-rgb), var(--glass-fill))', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', boxShadow: 'var(--shadow-pill)', border: '1px solid var(--color-border-glass)' }}>
+        <TaskliIcon name="search" size={20} />
+        <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('Поиск учеников и групп')} aria-label={t('Поиск учеников и групп')} enterKeyHint="search"
+          style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }} />
+        <button onClick={() => { tactile(); setSearch(''); setSearchOpen(false) }} aria-label={t('Закрыть поиск')}
+          style={{ width: 36, height: 36, borderRadius: 18, border: 0, background: 'transparent', display: 'grid', placeItems: 'center', color: 'var(--color-text-3)', cursor: 'pointer' }}>
+          <X size={18} />
+        </button>
+      </div>
+    )}
     <MobileScreen topZone={topZone} glassHeader={{ leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}
       bottomDockRaise={80}
-      bottomDock={!openGroup && !addOpen && !sheetOpen ? (
+      bottomDock={!nativeBar && !openGroup && !addOpen && !sheetOpen ? (
         <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
-          onClick={() => { setInvite(''); setCreateError(''); setCopiedInvite(false); setNewName(''); setNewSubject(defaultStudentSubject(mySubjectNames(teacherSubjects))); setAddOpen(true) }}>
+          onClick={openAdd}>
           {t('Добавить ученика')}
         </button>
       ) : undefined}>
@@ -437,6 +490,9 @@ export default function MobileTeacherStudents() {
               </>}
             </div>
           </MobileSheet>
+          {/* Инлайн-поиск и чипы — только вне нативного режима. В приложении на
+              iPhone их заменяет системный бар (поиск-круг + таблетка-фильтр). */}
+          {!nativeBar && <>
           <label style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 12px', minHeight: 42, borderRadius: 13, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', color: 'var(--color-muted)' }}>
             <TaskliIcon name="search" size={18} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('Поиск учеников и групп')} aria-label={t('Поиск учеников и групп')} style={{ flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: 'var(--color-text)', fontSize: 14 }} />
@@ -461,6 +517,7 @@ export default function MobileTeacherStudents() {
               )
             })}
           </div>
+          </>}
 
           {filter === 'all' && allStudents.length > 0 && (
             <div style={{ display: 'flex', gap: 8, margin: '4px 0 2px' }}>
@@ -503,5 +560,6 @@ export default function MobileTeacherStudents() {
         </div>
       )}
     </MobileScreen>
+    </>
   )
 }

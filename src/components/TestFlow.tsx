@@ -39,6 +39,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import QuestionTable from './QuestionTable'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
+import CellsInput from './CellsInput'
 import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './ScriptKeyboard'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
@@ -229,12 +230,40 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   </div>
                 )}
 
+                {/* Число — одно поле с родным нампадом (inputMode) и единицей
+                    суффиксом; сверка по значению с допуском идёт через gradeTask().
+                    Шрифт ≥16px — иначе iOS зумит при фокусе (no-jank-screen). */}
+                {tp === 'numeric' && (
+                  <div style={{ paddingLeft: 36, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <input
+                      value={(answers[task.id] as string) ?? ''}
+                      onChange={e => setAnswer(task.id, e.target.value)}
+                      inputMode={task.numpad === false ? undefined : ((task.decimal ?? true) ? 'decimal' : 'numeric')}
+                      placeholder={t('Число…')}
+                      aria-label={t('Твой ответ — число')}
+                      style={{ flex: '0 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 17, fontWeight: 600, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                    />
+                    {!!task.unit && <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>{task.unit}</span>}
+                  </div>
+                )}
+
                 {/* fill / extended — растущее поле ответа (разница только в
                     подсказке: короткий ответ или развёрнутый).
                     Сюда же падает недозаполненная письменность (тип выбран, а
                     буква или слог не указаны): без этого запаса такое задание
                     осталось бы вовсе без поля ответа — решить его нельзя. */}
-                {(tp === 'fill' || tp === 'extended'
+                {/* Клетки бланка ЕГЭ: ответ fill по клеткам, цифры по порядку. */}
+                {tp === 'fill' && !!task.cells && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <CellsInput
+                      value={(answers[task.id] as string) ?? ''}
+                      count={task.cells}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {((tp === 'fill' && !task.cells) || tp === 'extended'
                   || (tp === 'trace' && !task.chamo)
                   || (tp === 'buildSyllable' && !task.syllable)
                   || ((tp === 'unscramble' || tp === 'charBank') && charUnits(task.answer ?? '').length < 2)

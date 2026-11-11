@@ -6520,4 +6520,30 @@ export const EN: Record<string, string> = {
   "ОВР · ответ рядом с эталоном": "Redox · answer next to the key",
   "Оплаты": "Payments",
   "Долги и просрочки — рядом": "Debts and overdue — right here",
+
+  // Тип задания «Число» (numeric)
+  "Правильный ответ, число": "Correct answer, a number",
+  "Правильный ответ, число…": "Correct answer, a number…",
+  "Допуск ±": "Tolerance ±",
+  "Единицы — покажем ученику": "Units — shown to the student",
+  "Единицы измерения": "Units",
+  "Знаков после запятой": "Decimal places",
+  "Десятичное число": "Decimal number",
+  "принимать 69,94 и 69.94": "accept 69.94 and 69,94",
+  "Нампад на телефоне": "Number pad on phone",
+  "цифровая клавиатура у ученика": "numeric keyboard for the student",
+  "Число…": "Number…",
+  "Твой ответ — число": "Your answer — a number",
+  "Ваш ответ — число": "Your answer — a number",
+
+  // Клетки бланка ЕГЭ (fill + cells)
+  "Клеток бланка ЕГЭ": "Exam answer cells",
+  "Число клеток бланка": "Number of answer cells",
+  "ответ по клеткам, цифры по порядку": "answer in cells, digits in order",
+
+  // Пикер «ЕГЭ / ОГЭ · Каталог ФИПИ»
+  "Скрыть ФИПИ": "Hide FIPI",
+  "ЕГЭ / ОГЭ · ФИПИ": "Exam catalog · FIPI",
+  "Номер задания или тема": "Task number or topic",
+  "Источник: ФИПИ · спецификация и демоверсия": "Source: FIPI · specification and demo",
 }

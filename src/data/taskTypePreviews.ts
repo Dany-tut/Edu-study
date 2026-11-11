@@ -125,6 +125,15 @@ export const TASK_TYPE_PREVIEWS: Record<TaskTypeId, TaskTypePreview> = {
     ],
   },
 
+  numeric: {
+    teaches: 'Ответ — число: сверяется по значению с допуском ±, запятая и точка равны, единицы не в счёт.',
+    blocks: [
+      { kind: 'prompt', text: 'Массовая доля железа в Fe₂O₃, %' },
+      { kind: 'field', text: '69,94' },
+      { kind: 'verdict', text: 'Верно · ±0,1', ok: true },
+    ],
+  },
+
   extended: {
     teaches: 'Свободный текст: мысль, а не форма. Проверяет учитель.',
     blocks: [

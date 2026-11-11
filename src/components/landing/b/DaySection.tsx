@@ -15,6 +15,7 @@ import { useT } from '../../../lib/i18n'
 import './landing-motion.css'
 import { useTheme } from '../../../store/themeStore'
 import { asset, IPhone, Mac, Section, SectionHead } from './kit'
+import OgonekModel from './OgonekModel'
 
 type Device =
   | { kind: 'mac'; src: string; srcDark?: string; x: number; y: number; w: number; screenBg?: string }
@@ -30,7 +31,7 @@ const TABS: Tab[] = [
     points: ['Ближайшее занятие и неделя', 'Переносы без переписки в чате', 'Отметки «был» и «пропуск» прямо с урока'],
     devices: [
       { kind: 'mac', src: 'day-mac-attendance-light.webp', srcDark: 'day-mac-attendance-dark.webp', x: 61, y: 141, w: 440 },
-      { kind: 'iphone', src: 'day-iphone-myday.webp', x: 600, y: 135, w: 150 },
+      { kind: 'iphone', src: 'day-iphone-myday.webp', srcDark: 'day-iphone-myday-dark.webp', x: 600, y: 135, w: 150 },
     ],
   },
   {
@@ -59,8 +60,8 @@ const TABS: Tab[] = [
     text: 'Карточки учеников, оплаченные занятия, долги и доход за месяц — без отдельной таблицы.',
     points: ['Кто оплатил, а у кого просрочка', 'Доход за месяц', 'Ученики по группам и индивидуальные'],
     devices: [
-      { kind: 'iphone', src: 'day-iphone-students.webp', x: 215, y: 100, w: 175 },
-      { kind: 'iphone', src: 'day-iphone-finance.webp', x: 425, y: 112, w: 175 },
+      { kind: 'iphone', src: 'day-iphone-students.webp', srcDark: 'day-iphone-students-dark.webp', x: 215, y: 100, w: 175 },
+      { kind: 'iphone', src: 'day-iphone-finance.webp', srcDark: 'day-iphone-finance-dark.webp', x: 425, y: 112, w: 175 },
     ],
   },
   {
@@ -386,7 +387,7 @@ export default function DaySection() {
         className="mt-9 flex flex-col items-center gap-8 xl:flex-row xl:justify-center xl:gap-14"
       >
         <div className="flex w-full max-w-[560px] flex-col items-start gap-4 xl:w-[380px] xl:shrink-0">
-          <img src={asset('day-ogonek-pointing.webp')} alt="" aria-hidden loading="lazy" decoding="async" className="h-[110px] w-[70px] object-contain" />
+          <OgonekModel pose="day" fallback="day-ogonek-pointing.webp" className="relative h-[110px] w-[70px]" />
           <div className="grid w-full">
             {TABS.map(x => (
               <div key={`size-${x.id}`} aria-hidden className={`${layer} invisible`}><TabText tab={x} t={t} /></div>

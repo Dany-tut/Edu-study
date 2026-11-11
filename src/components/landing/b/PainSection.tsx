@@ -6,15 +6,8 @@
 
 import { Check } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
-import { asset, Section, SectionHead } from './kit'
-import OgonekEyes from './OgonekEyes'
-
-const PAIN_IMG = asset('pain-ogonek-thinking.webp')
-// Глазницы и радужки картинки 390 × 700 (в долях).
-const PAIN_EYES = [
-  { l: 0.2, t: 0.476, w: 0.221, h: 0.127, cx: 0.346, cy: 0.521 },
-  { l: 0.615, t: 0.44, w: 0.205, h: 0.123, cx: 0.746, cy: 0.483 },
-] as const
+import { Section, SectionHead } from './kit'
+import OgonekModel from './OgonekModel'
 
 const USUAL = [
   'Расписание — в заметках, переносы — в чате',
@@ -44,12 +37,8 @@ export default function PainSection() {
           ))}
         </div>
 
-        {/* Задумчивый Огонёк: поворачивается влево-вправо-вверх, и глаза
-            смотрят туда же (lp-ponder синхронен с lp-think). */}
-        <div aria-hidden className="lp-think relative h-[140px] w-[78px] shrink-0 md:h-[150px] md:w-[84px] lg:h-[200px] lg:w-[111px]">
-          <img src={PAIN_IMG} alt="" loading="lazy" decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
-          <OgonekEyes src={PAIN_IMG} sockets={PAIN_EYES} iris={[8, 4.8]} irisClass="lp-ponder" />
-        </div>
+        {/* Задумчивый Огонёк: 3D-модель смотрит по сторонам и думает. */}
+        <OgonekModel pose="why" fallback="pain-ogonek-thinking.webp" className="relative h-[140px] w-[78px] shrink-0 md:h-[150px] md:w-[84px] lg:h-[200px] lg:w-[111px]" />
 
         <div className="flex w-full flex-col gap-[14px] rounded-[24px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] p-6 sm:p-7 md:max-w-[470px] md:flex-1">
           <p className="text-[12px] font-bold tracking-[0.96px] text-[var(--color-accent)]">{t('В ИСКРЕ')}</p>

@@ -83,6 +83,15 @@
   mask: var(--lp-mask) center / contain no-repeat;
 }
 
+/* Свечение под 3D-предметом карточки — для глубины; темнее фона ярче. */
+.lp-obj-glow {
+  background: radial-gradient(closest-side, rgba(120, 107, 214, .26), rgba(120, 107, 214, .07) 55%, transparent 75%);
+  transition: filter .3s ease, transform .3s cubic-bezier(.2, .8, .2, 1);
+}
+:root[data-theme="dark"] .lp-obj-glow {
+  background: radial-gradient(closest-side, rgba(150, 128, 255, .34), rgba(150, 128, 255, .1) 55%, transparent 75%);
+}
+
 @media (hover: hover) {
   .lp-feat:hover {
     transform: translateY(-6px);
@@ -90,6 +99,10 @@
   }
   .lp-feat:hover .lp-obj-in {
     transform: translateY(-10px) rotate(-7deg) scale(1.08);
+  }
+  .lp-feat:hover .lp-obj-glow {
+    transform: translate(-50%, -50%) scale(1.12);
+    filter: brightness(1.3);
   }
   .lp-feat:hover .lp-glint {
     opacity: 1;
@@ -320,3 +333,9 @@
   animation: lp-skeleton 1.1s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) { .lp-skeleton { animation: none; background: rgba(255,255,255,0.18); } }
+
+/* ── «Версии»: свечение под устройством ярче при наведении ── */
+.lp-plat-glow { transition: filter .5s ease, transform .5s cubic-bezier(.2, .8, .2, 1); transform-origin: 50% 100%; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .lp-plat-card:hover .lp-plat-glow { transform: scale(1.1); filter: brightness(1.25) saturate(1.2); }
+}

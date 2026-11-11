@@ -2,6 +2,7 @@ import './lessonRow.css'
 import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
 import Model3DPicker from '../../components/teacher/Model3DPicker'
+import FipiPicker from '../../components/teacher/FipiPicker'
 import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
@@ -29,6 +30,7 @@ import {
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import FadeText from '../../components/FadeText'
 import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
+import Switch from '../../components/Switch'
 import { LessonLinkPanel } from '../../components/teacher/LessonLinkAttach'
 import { detectDisk, DiskLogo } from '../../components/teacher/DiskLink'
 import { useTeacher } from '../../store/teacherStore'
@@ -3561,6 +3563,61 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 />
               )}
 
+              {/* Число (numeric): эталон + допуск ± + единицы, подписи внутри полей, свои тумблеры */}
+              {task.type === 'numeric' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input
+                      style={inputSt} inputMode="decimal"
+                      value={task.answer ?? ''}
+                      onChange={e => onUpdate({ ...task, answer: e.target.value })}
+                      placeholder={t('Правильный ответ, число')} aria-label={t('Правильный ответ, число')}
+                    />
+                    <input
+                      style={inputSt} inputMode="decimal"
+                      value={task.numTolerance ?? ''}
+                      onChange={e => { const v = e.target.value.replace(',', '.').trim(); onUpdate({ ...task, numTolerance: v ? Number(v) : undefined }) }}
+                      placeholder={t('Допуск ±')} aria-label={t('Допуск ±')}
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input
+                      style={inputSt}
+                      value={task.unit ?? ''}
+                      onChange={e => onUpdate({ ...task, unit: e.target.value || undefined })}
+                      placeholder={t('Единицы — покажем ученику')} aria-label={t('Единицы измерения')}
+                    />
+                    <input
+                      style={inputSt} inputMode="numeric"
+                      value={task.decimals ?? ''}
+                      onChange={e => { const v = e.target.value.replace(/\D/g, ''); onUpdate({ ...task, decimals: v ? Number(v) : undefined }) }}
+                      placeholder={t('Знаков после запятой')} aria-label={t('Знаков после запятой')}
+                    />
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={task.decimal ?? true} onChange={v => onUpdate({ ...task, decimal: v })} label={t('Десятичное число')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Десятичное число')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('принимать 69,94 и 69.94')}</span></span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={task.numpad ?? true} onChange={v => onUpdate({ ...task, numpad: v })} label={t('Нампад на телефоне')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Нампад на телефоне')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('цифровая клавиатура у ученика')}</span></span>
+                  </label>
+                </div>
+              )}
+
+              {/* fill — ответ по клеткам бланка ЕГЭ: число клеток (пусто — обычное поле) */}
+              {task.type === 'fill' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+                  <input
+                    style={{ ...inputSt, width: 160 }} inputMode="numeric"
+                    value={task.cells ?? ''}
+                    onChange={e => { const v = e.target.value.replace(/\D/g, ''); onUpdate({ ...task, cells: v ? Number(v) : undefined }) }}
+                    placeholder={t('Клеток бланка ЕГЭ')} aria-label={t('Число клеток бланка')}
+                  />
+                  {!!task.cells && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('ответ по клеткам, цифры по порядку')}</span>}
+                </div>
+              )}
+
               {/* wordBank / listenBank — reference sentence + optional distractor tiles (listenBank adds audio) */}
               {(task.type === 'wordBank' || task.type === 'listenBank') && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -4417,13 +4474,15 @@ function TestlyLockedButton() {
 // ─── LEFT: Homework meta + task-type picker ──────────────────────────────────
 
 function HomeworkLeftPanel({
-  lesson, onUpdate, hwTab, setHwTab, isLanguage = false,
+  lesson, onUpdate, hwTab, setHwTab, isLanguage = false, courseSubject,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
   hwTab: string
   setHwTab: (t: string) => void
   isLanguage?: boolean
+  /** Предмет курса — для подстановки в пикер ФИПИ по умолчанию. */
+  courseSubject?: string
 }) {
   const t = useT()
   const slot = hwSlot(lesson, hwTab)
@@ -4435,8 +4494,8 @@ function HomeworkLeftPanel({
   const [hardMode, setHardMode] = useState(false)
   // Закреплённый низ: «Из тренажёра» / «Из Тестли» не уезжают с прокруткой типов.
   // Раскрыт максимум один список, иначе два по 260 px вытесняют палитру целиком.
-  const [footOpen, setFootOpen] = useState<'bank' | 'testly' | null>(null)
-  const toggleFoot = (k: 'bank' | 'testly') => setFootOpen(o => (o === k ? null : k))
+  const [footOpen, setFootOpen] = useState<'bank' | 'testly' | 'fipi' | null>(null)
+  const toggleFoot = (k: 'bank' | 'testly' | 'fipi') => setFootOpen(o => (o === k ? null : k))
   const { ref: hwScrollRef, fade: hwFade, thumb: hwThumb, onScroll: onHwScroll } = useOverlayScroll()
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
@@ -4544,6 +4603,16 @@ function HomeworkLeftPanel({
             {testlyOn
               ? <TestlyButton open={footOpen === 'testly'} onToggle={() => toggleFoot('testly')} addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />
               : testlyLoaded && <TestlyLockedButton />}
+            {/* Каталог ФИПИ: линия → готовое типизированное задание с меткой examTag */}
+            <FipiPicker
+              open={footOpen === 'fipi'} onToggle={() => toggleFoot('fipi')}
+              courseSubject={courseSubject}
+              onAdd={(st, line, cat) => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, {
+                ...makeHWTask(st.type, false), question: st.prompt,
+                ...(st.cells ? { cells: st.cells } : {}),
+                examTag: { exam: cat.exam, subject: cat.subject, line: line.number },
+              }] }))}
+            />
           </>
         ) : (
           <BankPicker hard open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, true)} />
@@ -7512,6 +7581,7 @@ export default function TeacherCourseEditorPage() {
                     hwTab={hwTab}
                     setHwTab={setHwTab}
                     isLanguage={isLanguageSubject(course.subject)}
+                    courseSubject={course.subject}
                   />
                 )}
                 {lessonMode === 'students' && (

@@ -93,6 +93,10 @@ export function taskStage(t: AnyTask): Stage {
     case 'fill':
       return t.answerSkeleton ? 5 : 6
 
+    // Число достаётся расчётом и пишется в пустое поле — продукция без опор.
+    case 'numeric':
+      return 6
+
     case 'jamoType':
     case 'listenType':
     case 'tableFill':
