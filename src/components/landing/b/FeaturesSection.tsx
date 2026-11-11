@@ -30,6 +30,8 @@ function Obj({ name, className, delay = 0 }: { name: string; className: string; 
   const src = asset(name)
   return (
     <span aria-hidden className={`lp-obj pointer-events-none absolute select-none ${className}`} style={{ '--lp-delay': `${-delay}s` } as CSSProperties}>
+      {/* мягкое свечение под предметом — даёт глубину; при наведении ярче */}
+      <span className="lp-obj-glow absolute left-1/2 top-1/2 -z-10 h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2 rounded-full" />
       <span className="lp-obj-in">
         <img src={src} alt="" loading="lazy" decoding="async" draggable={false} className="h-full w-full object-contain" />
         <span className="lp-glint" style={{ '--lp-mask': `url(${src})` } as CSSProperties} />
