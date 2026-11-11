@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
+import SoftEdge from '../../SoftEdge'
 import { GlassPill } from '../../mobileChrome'
 import { ChevronLeft, ChevronRight, CalendarDays } from '../../icons/appIcons'
 import { Alert } from '../../Alert'
 import { PAIR } from '../../../lib/mobileTokens'
+import { IS_IOS } from '../../../lib/platform'
 import { tactile } from '../../../lib/feedback'
 import { useT, useTc, useLang } from '../../../lib/i18n'
 import { addDays, todayMsk, weekStart, useTeacherWeek, type SchedItem } from '../../../lib/teacherSchedule'
+import { useOverlayScroll, fadeMask } from '../OverlayScroll'
 import { textFadeStyle, textFadeLines } from '../../../lib/textFades'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -164,6 +167,14 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
   const single = days.length === 1
   const dow = (d: string) => new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(`${d}T12:00:00`))
   const cols = `${AXIS_W}px repeat(${days.length}, minmax(0, 1fr))`
+  // Край вложенного скролла (SCROLL-01): за верхом/низом есть ещё часы сетки,
+  // поэтому нужен край. iOS — мягкий край (SoftEdge), Android/ПК — растворение
+  // маской (fadeMask). Нарастает с прокруткой через useOverlayScroll.
+  const { ref: osRef, fade, onScroll } = useOverlayScroll<HTMLDivElement>()
+  const setScroll = useCallback((el: HTMLDivElement | null) => {
+    osRef.current = el
+    scrollRef.current = el
+  }, [osRef, scrollRef])
   return (
     <div>
       {/* липкая шапка дней */}
@@ -179,8 +190,14 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
         })}
       </div>
 
-      <div ref={scrollRef} style={{ position: 'relative', overflowY: 'auto', maxHeight: 'calc(100vh - 320px)' }}>
-        <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: cols, height: gridH }}>
+      <div style={{ position: 'relative' }}>
+        {IS_IOS && <>
+          <SoftEdge edge="top" size="30px" strength={fade.top} zIndex={5} />
+          <SoftEdge edge="bottom" size="30px" strength={fade.bottom} zIndex={5} />
+        </>}
+        <div ref={setScroll} onScroll={onScroll} className={IS_IOS ? undefined : 'no-scrollbar'}
+          style={{ position: 'relative', overflowY: 'auto', maxHeight: 'calc(100dvh - 320px)', ...(IS_IOS ? {} : fadeMask(fade)) }}>
+          <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: cols, height: gridH }}>
           {/* ось времени */}
           <div style={{ position: 'relative' }}>
             {hours.map(h => <div key={h} style={{ position: 'absolute', top: (h * 60 - lo) / 60 * ROW_H - 6, right: 6, fontSize: 10, color: 'var(--color-muted)' }}>{p2(h)}:00</div>)}
@@ -215,6 +232,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
               </div>
             )
           })}
+          </div>
         </div>
       </div>
     </div>
