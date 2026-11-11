@@ -33,6 +33,12 @@ function canUseModel(): boolean {
   } catch { return false }
 }
 
+// Кадрирование под место: у растровой генерации пламя выше, поэтому 3D-модель
+// (пропорции v4) отводим чуть дальше, чтобы размеры совпали. Подобрано по проду.
+const FIT: Partial<Record<OgonekPoseName, number>> = {
+  hero: 1.2, why: 1.12, day: 1.12, student: 1.12, eco: 1.12, faq: 1.12, cta: 1.18, price: 1.12,
+}
+
 export default function OgonekModel({ pose, fallback, alt = '', className = '', style, onReady }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const dark = useTheme(s => s.dark)
@@ -53,7 +59,7 @@ export default function OgonekModel({ pose, fallback, alt = '', className = '', 
       try {
         const { mountOgonek } = await import('../../../lib/ogonek3d/ogonekViewer')
         if (cancelled || !host.current) return
-        const h = mountOgonek(host.current, { pose, dark: useTheme.getState().dark })
+        const h = mountOgonek(host.current, { pose, dark: useTheme.getState().dark, fitScale: FIT[pose] ?? 1.12 })
         handle.current = h
         onReady?.(h)
       } catch { /* нет модели — остаётся картинка */ }
