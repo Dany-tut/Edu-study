@@ -229,6 +229,23 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   </div>
                 )}
 
+                {/* Число — одно поле с родным нампадом (inputMode) и единицей
+                    суффиксом; сверка по значению с допуском идёт через gradeTask().
+                    Шрифт ≥16px — иначе iOS зумит при фокусе (no-jank-screen). */}
+                {tp === 'numeric' && (
+                  <div style={{ paddingLeft: 36, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <input
+                      value={(answers[task.id] as string) ?? ''}
+                      onChange={e => setAnswer(task.id, e.target.value)}
+                      inputMode={task.numpad === false ? undefined : ((task.decimal ?? true) ? 'decimal' : 'numeric')}
+                      placeholder={t('Число…')}
+                      aria-label={t('Твой ответ — число')}
+                      style={{ flex: '0 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--color-border-soft)', background: 'var(--color-bg-input)', fontSize: 17, fontWeight: 600, color: 'var(--color-text)', outline: 'none', fontFamily: 'inherit' }}
+                    />
+                    {!!task.unit && <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>{task.unit}</span>}
+                  </div>
+                )}
+
                 {/* fill / extended — растущее поле ответа (разница только в
                     подсказке: короткий ответ или развёрнутый).
                     Сюда же падает недозаполненная письменность (тип выбран, а

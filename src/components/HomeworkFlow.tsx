@@ -68,7 +68,7 @@ import { homeworkStorageKey } from '../lib/homeworkReset'
 import VoiceRecorder from './VoiceRecorder'
 import SpeechHeard from './SpeechHeard'
 import {
-  answerMap, charUnits, gapChoiceRows, sentenceTokens, sortRows, tfRows, EMBED_DONE, testlyDoneAt, testlyCredit, testlyScoreOf,
+  answerMap, charUnits, gapChoiceRows, parseNumeric, sentenceTokens, sortRows, tfRows, EMBED_DONE, testlyDoneAt, testlyCredit, testlyScoreOf,
 } from '../data/taskTypes'
 import TrueFalseSolver from './TrueFalseSolver'
 import DropdownGapSolver from './DropdownGapSolver'
@@ -1025,6 +1025,8 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   // imageDescribe / imageCompare — только учителем.
   const tp = qType(q)
   if (tp === 'fill' || tp === 'extended') return !!q.referenceAnswer?.trim()
+  // Число: автопроверяемо, когда эталон-число задан; сверка — по значению.
+  if (tp === 'numeric') return parseNumeric(q.referenceAnswer) !== null
   if (tp === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
   // Сопоставление проверяется машиной: ответ — выбор пар, а не свободный текст.
   if (tp === 'matching') return (q.pairs?.length ?? 0) >= 2
@@ -1212,6 +1214,14 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
     // altAnswers учитываются и здесь: раньше их читал только диктант, и заданное
     // учителем «принимается ещё и так» молча пропадало во «Вписать ответ».
     return questionAutoGradable(q) && matchesAnyAnswer(ans, [q.referenceAnswer, ...(q.altAnswers ?? [])])
+  }
+  if (tp === 'numeric') {
+    // Сверка по ЗНАЧЕНИЮ: «69,94» ≡ «69.94», единицы и пробелы не в счёт,
+    // попадание в ±numTolerance засчитывается (ровно как TASK_TYPES.numeric.grade).
+    const want = parseNumeric(q.referenceAnswer)
+    const got = parseNumeric(ans)
+    if (want === null || got === null) return false
+    return Math.abs(got - want) <= Math.abs(q.numTolerance ?? 0) + 1e-9
   }
   if (tp === 'sequence') {
     const items = q.sequenceItems ?? []
@@ -4284,6 +4294,30 @@ export default function HomeworkFlow({
                             {question.afterNote}
                           </div>
                         </div>
+                      )}
+                    </div>
+                    ) : qType(question) === 'numeric' ? (
+                    <div className="flex items-center" style={{ gap: 10 }}>
+                      {/* Число: одно поле, родной нампад (inputMode), единица
+                          суффиксом. Шрифт ≥16px — иначе iOS зумит страницу при
+                          фокусе (см. skill no-jank-screen, приём 5). */}
+                      <input
+                        value={selectedAnswer ?? ''}
+                        onChange={e => setFreeAnswer(question.id, e.target.value)}
+                        disabled={locked}
+                        inputMode={question.numpad === false ? undefined : ((question.decimal ?? true) ? 'decimal' : 'numeric')}
+                        placeholder={t('Число…')}
+                        aria-label={t('Ваш ответ — число')}
+                        style={{
+                          flex: '0 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '12px 14px',
+                          borderRadius: 16, fontFamily: 'inherit', fontSize: 17, fontWeight: 600,
+                          color: 'var(--color-text)', background: 'var(--color-bg-input)', outline: 'none',
+                          border: `1px solid ${showVerdict ? (isCorrect ? 'var(--color-green-border)' : 'var(--color-red-border)') : 'var(--color-border)'}`,
+                          opacity: locked ? 0.85 : 1,
+                        }}
+                      />
+                      {!!question.unit && (
+                        <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>{question.unit}</span>
                       )}
                     </div>
                     ) : (
