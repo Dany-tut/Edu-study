@@ -6520,4 +6520,9 @@ export const EN: Record<string, string> = {
   "ОВР · ответ рядом с эталоном": "Redox · answer next to the key",
   "Оплаты": "Payments",
   "Долги и просрочки — рядом": "Debts and overdue — right here",
+
+  // Клетки бланка ЕГЭ (fill + cells)
+  "Клеток бланка ЕГЭ": "Exam answer cells",
+  "Число клеток бланка": "Number of answer cells",
+  "ответ по клеткам, цифры по порядку": "answer in cells, digits in order",
 }
