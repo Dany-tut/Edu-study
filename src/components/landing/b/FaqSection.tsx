@@ -6,7 +6,8 @@
 import { useId, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useT } from '../../../lib/i18n'
-import { Section, SectionHead, asset } from './kit'
+import { Section, SectionHead } from './kit'
+import OgonekModel from './OgonekModel'
 
 const FAQ: { q: string; a: string }[] = [
   {
@@ -47,17 +48,7 @@ export default function FaqSection() {
       <SectionHead eyebrow={t('Вопросы')} title={t('Частые вопросы')} />
 
       <div className="mx-auto mt-8 flex w-full max-w-[970px] items-start justify-center gap-10 sm:mt-10">
-        <img
-          src={asset('faq-ogonek-think.webp')}
-          alt=""
-          aria-hidden
-          width={150}
-          height={266}
-          loading="lazy"
-          decoding="async"
-          draggable={false}
-          className="hidden h-[266px] w-[150px] shrink-0 select-none object-contain md:block"
-        />
+        <OgonekModel pose="faq" fallback="faq-ogonek-think.webp" className="relative hidden h-[266px] w-[150px] shrink-0 md:block" />
 
         <div className="flex w-full min-w-0 max-w-[780px] flex-col gap-[10px]">
           {FAQ.map((item, i) => {

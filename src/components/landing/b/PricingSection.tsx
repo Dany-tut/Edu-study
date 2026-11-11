@@ -5,6 +5,7 @@
 import { useLang, useT } from '../../../lib/i18n'
 import { PLAN_TIERS, planPrice, type PlanTier } from '../../../lib/plan'
 import { PrimaryButton, SecondaryButton, Section, SectionHead, asset } from './kit'
+import OgonekModel from './OgonekModel'
 
 const btn = 'w-full !px-2 !py-3'
 
@@ -72,7 +73,7 @@ export default function PricingSection() {
           <div className="rounded-[16px] border border-[var(--color-border-soft)] bg-[var(--color-bg-card)] whitespace-nowrap px-[14px] py-[11px] text-[13px] leading-[1.4] text-[var(--color-text)] shadow-[0px_10px_24px_-6px_rgba(38,26,89,0.18)]">
             {t('Начать можно бесплатно —')}<br />{t('до двух учеников.')}
           </div>
-          <img src={asset('price-ogonek-coin.webp')} alt="" aria-hidden loading="lazy" className="lp-sway h-[100px] w-[62px] shrink-0 select-none object-contain" />
+          <OgonekModel pose="price" fallback="price-ogonek-coin.webp" className="lp-sway relative h-[100px] w-[62px] shrink-0" />
         </div>
       </div>
     </Section>
