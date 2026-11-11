@@ -50,6 +50,18 @@ export function passkeyAvailable(): Promise<boolean> {
   return enabledCache
 }
 
+/**
+ * Синхронная проверка: МОЖЕТ ли это устройство/домен показать ключ доступа —
+ * ещё ДО асинхронного подтверждения серверного флага passkeys_enabled. Совпадает
+ * с синхронной отсечкой в passkeyAvailable (строка выше). Нужна, чтобы с первого
+ * кадра зарезервировать место под кнопку «Войти с ключом доступа» и не прыгать,
+ * когда асинхронная проверка завершится (на непригодных доменах — false, слота нет).
+ */
+export function passkeyMaybeAvailable(): boolean {
+  if (typeof window === 'undefined') return false
+  return native() || (!!window.PublicKeyCredential && isPasskeyHost(window.location.hostname))
+}
+
 export function usePasskeyAvailable(): boolean {
   const [on, setOn] = useState(false)
   useEffect(() => {
