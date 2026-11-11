@@ -4470,6 +4470,10 @@ export const EN: Record<string, string> = {
   'Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.': 'This account is not linked to a student profile yet. Ask your teacher to link it.',
   'Вход для ученика': 'Student sign in',
   'Аккаунт — по приглашению администратора': 'Account by administrator invitation',
+  'Новый преподаватель? Войдите через Яндекс или VK — кабинет создастся сам':
+    'New teacher? Sign in with Yandex or VK — your workspace is created automatically',
+  'По приглашению администратора — вход почтой и паролем':
+    'Invited by an administrator — sign in with email and password',
   'Поиск ученика': 'Find a student',
   'живое демо — переключайте вкладки, проверяйте работы, правьте журнал':
     'a live demo — switch tabs, review papers, edit the gradebook',

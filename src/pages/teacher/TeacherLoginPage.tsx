@@ -1,7 +1,7 @@
 import { LoopActionLabel } from '../../components/icons/LoopIcon'
 import { ArrowLeft as LoopBackArrow } from '../../components/icons/appIcons'
 import { clearStudentSession } from '../../lib/studentSession'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Eye, EyeOff } from '../../components/icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
@@ -15,7 +15,6 @@ import ScrollFade from '../../components/ScrollFade'
 import { useKeyboardState } from '../../lib/useKeyboardInset'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { teacherPasswordSignIn } from '../../lib/authActions'
-import { Alert } from '../../components/Alert'
 
 type TeacherLoginProps = { onLogin: () => void; recovery?: boolean; linkExpired?: boolean; accessNotice?: 'denied' | 'error'; onRetryAccess?: () => void }
 export default function TeacherLoginPage(props: TeacherLoginProps) {
@@ -40,6 +39,20 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
   useEffect(() => {
     if (linkExpired) feedback.begin({ tone: 'danger', title: 'Ссылка устарела', text: 'Запросите новую ссылку.' })
   }, [linkExpired, feedback.begin])
+  // Отказ/сбой проверки доступа показываем в том же слоте под полями (не над
+  // полями — иначе карточка прыгает) и прячем сам через ~5 с. Для сбоя проверки
+  // даём действие «Ещё раз». retryRef — чтобы новая ссылка onRetryAccess на каждый
+  // рендер не перезапускала эффект и не сбрасывала таймер.
+  const retryRef = useRef(onRetryAccess)
+  retryRef.current = onRetryAccess
+  useEffect(() => {
+    if (!accessNotice) return
+    feedback.begin(accessNotice === 'denied'
+      ? { tone: 'danger', title: 'Нет доступа к кабинету преподавателя', text: 'Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.' }
+      : { tone: 'danger', title: 'Не удалось проверить доступ', text: 'Проверьте подключение и попробуйте ещё раз или войдите под другой учётной записью.', action: { label: 'Ещё раз', onClick: () => retryRef.current?.() } })
+    const timer = window.setTimeout(() => feedback.clear(), 5000)
+    return () => window.clearTimeout(timer)
+  }, [accessNotice, feedback.begin, feedback.clear])
 
   function switchMode(next: 'login' | 'reset' | 'code') {
     action.cancel(); feedback.reset(); setMode(next); setMailSent(false)
@@ -114,14 +127,6 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
           title={mode === 'code' ? t('Вход по коду') : mode === 'newpassword' ? t('Придумайте новый пароль') : mode === 'reset' ? t('Восстановить пароль') : t('Вход для препода')}
           subtitle={titles[mode]}
         />
-        {accessNotice && <Alert tone="danger" stacked
-          title={t(accessNotice === 'denied' ? 'Нет доступа к кабинету преподавателя' : 'Не удалось проверить доступ')}
-          text={t(accessNotice === 'denied' ? 'Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.' : 'Проверьте подключение и попробуйте ещё раз или войдите под другой учётной записью.')} />}
-        {accessNotice === 'error' && onRetryAccess && <button data-hover="layer" type="button" onClick={onRetryAccess}
-          style={{ width: '100%', minHeight: 44, margin: '8px 0', padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600 }}>
-          {t('Попробовать ещё раз')}
-        </button>}
-
         {mode === 'code' ? <TeacherEmailCodeLogin onLogin={() => { clearStudentSession(); onLogin() }} onBack={() => switchMode('login')} /> : <form noValidate aria-busy={feedback.busy} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <input
               className="auth-input" aria-describedby={feedback.descriptionId}
@@ -211,7 +216,9 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
           </div>
           )}
 
-          <AuthFeedbackSlot idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Аккаунт — по приглашению администратора'} />
+          <AuthFeedbackSlot reserve
+            idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Новый преподаватель? Войдите через Яндекс или VK — кабинет создастся сам'}
+            idleSecondary={mode === 'login' ? 'По приглашению администратора — вход почтой и паролем' : undefined} />
           {mode === 'login' && (
             <button data-hover="layer" disabled={feedback.busy} type="button"
               onClick={() => switchMode('reset')}
