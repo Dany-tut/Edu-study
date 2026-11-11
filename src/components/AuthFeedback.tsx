@@ -110,7 +110,8 @@ export function AuthFeedbackSlot({ idleText, idleSecondary, reserve }: { idleTex
   // остальные экраны (ученик/код/приглашение) используют классический слот ниже.
   if (reserve) {
     return <div className="auth-feedback-slot auth-feedback-slot--reserve" data-auth-feedback-slot>
-      <div id={context.descriptionId} className="auth-feedback auth-feedback--idle" data-tone="idle" aria-hidden={message ? true : undefined}>
+      <div id={context.descriptionId} className="auth-feedback auth-feedback--idle" data-tone="idle" aria-hidden={message ? true : undefined}
+        style={{ visibility: message ? 'hidden' : undefined }}>
         <span className="auth-feedback-icon" aria-hidden="true"><Info size={18} strokeWidth={2} /></span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p>{t(idleText)}</p>

@@ -218,7 +218,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
 
           <AuthFeedbackSlot reserve
             idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Новый преподаватель? Войдите через Яндекс или VK — кабинет создастся сам'}
-            idleSecondary={mode === 'login' ? 'По приглашению администратора — вход почтой и паролем' : undefined} />
+            idleSecondary={mode === 'login' ? 'По приглашению — почтой и паролем' : undefined} />
           {mode === 'login' && (
             <button data-hover="layer" disabled={feedback.busy} type="button"
               onClick={() => switchMode('reset')}
