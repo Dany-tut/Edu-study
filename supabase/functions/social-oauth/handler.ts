@@ -243,6 +243,14 @@ export async function handler(req: Request): Promise<Response> {
     })
     if (createErr || !created?.user) return json({ error: 'user_create_failed: ' + (createErr?.message ?? '?') }, 500)
     await recordIdentity(admin, provider, profile.id, created.user.id, profile.email)
+    // Триггер handle_new_user срабатывает на INSERT в auth.users ДО того, как GoTrue
+    // домешивает role в raw_app_meta_data (provider/providers пишутся отдельным шагом),
+    // поэтому читает role=null и ставит profiles.role='student'. Явно приводим профиль
+    // к teacher под service_role (guard_profile_role это разрешает). Идемпотентно,
+    // строго ДО sessionForUser — иначе препод входит со student-профилем и гейт его
+    // выбрасывает через секунду. Триггер не трогаем: student по умолчанию — верно.
+    const { error: roleErr } = await admin.from('profiles').update({ role: 'teacher' }).eq('id', created.user.id)
+    if (roleErr) return json({ error: 'role_set_failed: ' + roleErr.message }, 500)
     const tokenHash = await sessionForUser(admin, created.user.id)
     if (!tokenHash) return json({ error: 'session_link_failed' }, 500)
     return json({ status: 'created_teacher', token_hash: tokenHash, name: profile.name })
