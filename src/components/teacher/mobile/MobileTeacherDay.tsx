@@ -17,7 +17,8 @@ import { PAIR } from '../../../lib/mobileTokens'
 import { tactile } from '../../../lib/feedback'
 import { useT, useTc, useLang } from '../../../lib/i18n'
 import { useSwipeBack } from '../../../lib/useSwipeBack'
-import { GLASS, glassMenu } from '../../../lib/nativeGlass'
+import { GLASS, glassMenu, useGlassBar, type GlassBar } from '../../../lib/nativeGlass'
+import { PLATFORM } from '../../../lib/platform'
 import { useHomework } from '../../../lib/useHomework'
 import { getViewAs } from '../../../lib/owner'
 import { supabase } from '../../../lib/supabase'
@@ -216,14 +217,29 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
       </div>}
     </div>
   )
-  const footer = selected && detail && !loading ? <div style={stack}>
-    {view === 'detail' && selectedStatus === 'upcoming' && !selected.cancelled && <Action disabled={busy || readOnly} onClick={() => { void mutate({ action: 'start', note }, 'detail') }}>{t('Начать занятие')}</Action>}
-    {view === 'detail' && selectedStatus === 'live' && <Action disabled={busy || readOnly} onClick={() => setView('finish')}>{t('Завершить занятие')}</Action>}
-    {view === 'detail' && selectedStatus === 'completed' && <Action disabled={busy || readOnly} onClick={() => setView(isPublished ? 'receipt' : 'homework')}>{t(isPublished ? 'Сводка выдачи' : 'Подготовить ДЗ')}</Action>}
-    {view === 'attendance' && <Action disabled={busy || readOnly} onClick={() => { void mutate({ attendance }, 'detail') }}>{busy ? <Loader2 size={18} className="animate-spin" /> : null}{t('Сохранить отметки')}</Action>}
-    {view === 'finish' && <><Action disabled={busy || readOnly} onClick={() => { void mutate({ action: 'complete', note }, 'detail') }}>{t(unmarked ? 'Завершить без отметок' : 'Завершить занятие')}</Action><Action secondary disabled={busy} onClick={() => setView('detail')}>{t('Продолжить занятие')}</Action></>}
-    {view === 'homework' && <Action disabled={busy || readOnly || !draft.tasks.length || !rosterCount || !dueDate || dueDate < todayMsk()} onClick={() => setPublishOpen(true)}>{t('Проверить перед выдачей')}</Action>}
-    {view === 'receipt' && <Action onClick={() => setSelected(null)}>{t('К моему дню')}</Action>}
+  // Действия нижнего дока — единым списком: из него рисуется и веб-футер, и
+  // нативный стеклянный бар (ряд пилюль над вкладками) в приложении на iPhone.
+  type DayAct = { id: string; label: string; run: () => void; disabled?: boolean; busy?: boolean; secondary?: boolean }
+  const dayActs: DayAct[] = []
+  if (selected && detail && !loading) {
+    if (view === 'detail' && selectedStatus === 'upcoming' && !selected.cancelled) dayActs.push({ id: 'start', label: t('Начать занятие'), run: () => { void mutate({ action: 'start', note }, 'detail') }, disabled: busy || readOnly })
+    if (view === 'detail' && selectedStatus === 'live') dayActs.push({ id: 'finish', label: t('Завершить занятие'), run: () => setView('finish'), disabled: busy || readOnly })
+    if (view === 'detail' && selectedStatus === 'completed') dayActs.push({ id: 'ready', label: t(isPublished ? 'Сводка выдачи' : 'Подготовить ДЗ'), run: () => setView(isPublished ? 'receipt' : 'homework'), disabled: busy || readOnly })
+    if (view === 'attendance') dayActs.push({ id: 'save', label: t('Сохранить отметки'), run: () => { void mutate({ attendance }, 'detail') }, disabled: busy || readOnly, busy })
+    if (view === 'finish') {
+      dayActs.push({ id: 'complete', label: t(unmarked ? 'Завершить без отметок' : 'Завершить занятие'), run: () => { void mutate({ action: 'complete', note }, 'detail') }, disabled: busy || readOnly })
+      dayActs.push({ id: 'continue', label: t('Продолжить занятие'), run: () => setView('detail'), disabled: busy, secondary: true })
+    }
+    if (view === 'homework') dayActs.push({ id: 'prepare', label: t('Проверить перед выдачей'), run: () => setPublishOpen(true), disabled: busy || readOnly || !draft.tasks.length || !rosterCount || !dueDate || dueDate < todayMsk() })
+    if (view === 'receipt') dayActs.push({ id: 'toDay', label: t('К моему дню'), run: () => setSelected(null) })
+  }
+  const nativeBar = GLASS && PLATFORM === 'iphone'
+  const dayBar: GlassBar = { bottom: dayActs.map(a => ({ id: a.id, kind: 'pill', title: a.label })) }
+  useGlassBar(nativeBar && dayActs.length ? dayBar : null, {
+    onTap: id => { const a = dayActs.find(x => x.id === id); if (a && !a.disabled) { tactile(); a.run() } },
+  })
+  const footer = !nativeBar && dayActs.length ? <div style={stack}>
+    {dayActs.map(a => <Action key={a.id} secondary={a.secondary} disabled={a.disabled} onClick={a.run}>{a.busy ? <Loader2 size={18} className="animate-spin" /> : null}{a.label}</Action>)}
   </div> : undefined
 
   return <>
