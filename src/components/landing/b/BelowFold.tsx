@@ -13,6 +13,7 @@ import PricingSection from './PricingSection'
 import FaqSection from './FaqSection'
 import FinalCtaSection from './FinalCtaSection'
 import FooterSection from './FooterSection'
+import './landing-motion.css'
 
 export default function BelowFold() {
   return (

@@ -1,11 +1,12 @@
 // «Финальный призыв» лендинга B (Figma «Искра», стр. «11 · Сайт — редизайн»,
 // узел 303:541). Фиолетовая плашка 1100×360, Огонёк «радуется» выходит за её
-// верхний край. «Оставить заявку» открывает форму заявки поверх страницы — то же
-// поведение, что у LeadModal старого лендинга (submitLead → feedback_requests,
-// обязателен только контакт, ошибки через Alert). «Войти в кабинет» — выбор роли,
-// как на старом лендинге: ученик → #/login, преподаватель → #/teacher.
+// верхний край. «Зарегистрироваться» ведёт на вход преподавателя (#/teacher):
+// вход через Яндекс или VK сам создаёт кабинет. «Войти в кабинет» — выбор роли:
+// ученик → #/login, преподаватель → #/teacher.
 //
-// Другие секции могут открыть ту же форму событием:
+// Здесь же живёт форма заявки (submitLead → feedback_requests, обязателен только
+// контакт, ошибки через Alert) — она нужна для платных тарифов. Секции открывают
+// её ссылкой #lead или событием:
 //   window.dispatchEvent(new CustomEvent('iskra:lead', { detail: { plan: 'Про · 990 ₽' } }))
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
@@ -48,16 +49,15 @@ export default function FinalCtaSection() {
             {t('Зажгите Искру в своей практике')}
           </h2>
           <p className="m-0 max-w-[520px] text-[16px] leading-[1.55] text-[rgba(255,255,255,0.88)] sm:text-[17px]">
-            {t('Оставьте контакт — расскажем, как начать, и поможем перенести учеников. Первые два — бесплатно.')}
+            {t('Войдите через Яндекс или VK — кабинет преподавателя откроется сразу. Первые два ученика — бесплатно.')}
           </p>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <button
-              type="button"
-              onClick={() => setLead({ plan: '' })}
+            <a
+              href="#/teacher"
               className="inline-flex items-center justify-center whitespace-nowrap rounded-[14px] bg-white px-7 py-4 text-[16px] font-semibold text-[#6f3fbf] shadow-[0_14px_34px_-12px_rgba(0,0,0,0.4)] transition-transform hover:-translate-y-px active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              {t('Оставить заявку')}
-            </button>
+              {t('Зарегистрироваться')}
+            </a>
             <button
               type="button"
               onClick={() => setChooser(true)}
@@ -68,17 +68,28 @@ export default function FinalCtaSection() {
           </div>
         </div>
 
-        <img
-          src={asset('cta-ogonek-joy.webp')}
-          alt=""
+        {/* Огонёк выходит за верх плашки, а низ уходит за её край — будто
+            выглядывает. За ним белое свечение: оттеняет и даёт объём. */}
+        <div
           aria-hidden
-          width={280}
-          height={466}
-          loading="lazy"
-          decoding="async"
-          draggable={false}
-          className="pointer-events-none absolute right-4 top-[-80px] h-[160px] w-[96px] select-none object-contain md:right-6 md:top-[-110px] md:h-[466px] md:w-[280px] lg:right-[60px]"
-        />
+          className="pointer-events-none absolute inset-0 select-none"
+          style={{ clipPath: 'inset(-320px -80px 0 -80px round 0 0 36px 36px)' }}
+        >
+          <div
+            className="absolute right-[-10px] top-[-40px] size-[200px] rounded-full md:right-[-40px] md:top-[-30px] md:size-[440px] lg:right-[0px]"
+            style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.8), rgba(255,255,255,0.32) 50%, rgba(255,255,255,0) 100%)', filter: 'blur(6px)' }}
+          />
+          <img
+            src={asset('cta-ogonek-joy.webp')}
+            alt=""
+            width={280}
+            height={466}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            className="absolute right-4 top-[-80px] h-[160px] w-[96px] object-contain md:right-6 md:top-[-56px] md:h-[466px] md:w-[280px] lg:right-[60px]"
+          />
+        </div>
       </div>
 
       <AnimatePresence>

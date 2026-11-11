@@ -28,7 +28,7 @@ const TABS: Tab[] = [
     text: 'Ближайшее занятие, неделя и что ждёт проверки — на одном экране. Посещаемость отмечается в журнале за пару касаний.',
     points: ['Ближайшее занятие и неделя', 'Переносы без переписки в чате', 'Отметки «был» и «пропуск» прямо с урока'],
     devices: [
-      { kind: 'mac', src: 'day-mac-attendance.webp', x: 61, y: 141, w: 440 },
+      { kind: 'mac', src: 'day-mac-attendance-light.webp', srcDark: 'day-mac-attendance-dark.webp', x: 61, y: 141, w: 440 },
       { kind: 'iphone', src: 'day-iphone-myday.webp', x: 600, y: 135, w: 150 },
     ],
   },
@@ -38,7 +38,7 @@ const TABS: Tab[] = [
     text: 'Ответ ученика стоит рядом с эталоном. Оценка, комментарий, «На доработку» и пометки прямо поверх работы или фото.',
     points: ['Очередь сдач по ученикам', 'Порог зачёта и итог, который увидит ученик', 'История попыток каждой работы'],
     devices: [
-      { kind: 'mac', src: 'day-mac-review-light.webp', srcDark: 'day-mac-review-dark.webp', x: 61, y: 141, w: 440, screenBg: '#f5f5f6' },
+      { kind: 'mac', src: 'day-mac-review-light.webp', srcDark: 'day-mac-review-dark.webp', x: 61, y: 141, w: 440 },
       { kind: 'iphone', src: 'day-iphone-review-light.webp', srcDark: 'day-iphone-review-dark.webp', x: 600, y: 135, w: 150 },
     ],
   },
@@ -48,7 +48,7 @@ const TABS: Tab[] = [
     text: 'Все домашки по ученикам и датам: проценты, «Проверить», «Просрочено». Ученик видит свой журнал у себя в кабинете.',
     points: ['Работы по ученикам и по домашкам', 'Статусы сдачи видны сразу', 'Свой журнал работ у каждого ученика'],
     devices: [
-      { kind: 'mac', src: 'day-mac-journal.webp', x: 61, y: 141, w: 440 },
+      { kind: 'mac', src: 'day-mac-journal-light.webp', srcDark: 'day-mac-journal-dark.webp', x: 61, y: 141, w: 440 },
       { kind: 'iphone', src: 'day-iphone-student-journal.webp', x: 600, y: 135, w: 150 },
     ],
   },
@@ -68,7 +68,7 @@ const TABS: Tab[] = [
     text: 'Средний результат, проверенные работы и темы, которые стоит разобрать на следующем занятии.',
     points: ['Средний процент по группе', 'Тема для разбора — подсказкой', 'Ученик видит свой прогресс на главной'],
     devices: [
-      { kind: 'mac', src: 'day-mac-summary.webp', x: 61, y: 141, w: 440 },
+      { kind: 'mac', src: 'day-mac-summary-light.webp', srcDark: 'day-mac-summary-dark.webp', x: 61, y: 141, w: 440 },
       { kind: 'iphone', src: 'day-iphone-student-home.webp', x: 600, y: 135, w: 150 },
     ],
   },

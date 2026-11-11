@@ -10,7 +10,7 @@ const btn = 'w-full !px-2 !py-3'
 
 function Cta({ tier, t }: { tier: PlanTier; t: (s: string) => string }) {
   if (tier.code === 'pro') return <PrimaryButton href="#lead" className={btn}>{t('Оставить заявку')}</PrimaryButton>
-  if (tier.code === 'free') return <SecondaryButton href="#lead" className={btn}>{t('Начать бесплатно')}</SecondaryButton>
+  if (tier.code === 'free') return <SecondaryButton href="#/teacher" className={btn}>{t('Начать бесплатно')}</SecondaryButton>
   return <SecondaryButton href="#login" className={btn}>{t('Войти в кабинет')}</SecondaryButton>
 }
 
@@ -33,7 +33,7 @@ export default function PricingSection() {
             return (
               <div
                 key={tier.code}
-                className={`relative flex w-full flex-col items-start gap-2 rounded-[24px] border px-[22px] py-6 sm:w-[calc(50%-7px)] lg:w-[calc((100%-28px)/3)] xl:w-auto xl:min-w-0 xl:max-w-[228px] xl:flex-1 ${
+                className={`${tier.code === 'free' ? 'lp-press ' : ''}relative flex w-full flex-col items-start gap-2 rounded-[24px] border px-[22px] py-6 sm:w-[calc(50%-7px)] lg:w-[calc((100%-28px)/3)] xl:w-auto xl:min-w-0 xl:max-w-[228px] xl:flex-1 ${
                   pro
                     ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
                     : 'border-[var(--color-border-soft)] bg-[var(--color-bg-card)]'
@@ -59,7 +59,7 @@ export default function PricingSection() {
                     alt=""
                     aria-hidden
                     loading="lazy"
-                    className="pointer-events-none absolute right-[5px] top-[-151px] hidden h-[156px] w-[96px] select-none object-contain xl:block"
+                    className="lp-hop pointer-events-none absolute right-[5px] top-[-151px] hidden h-[156px] w-[96px] select-none object-contain xl:block"
                   />
                 )}
               </div>
@@ -72,7 +72,7 @@ export default function PricingSection() {
           <div className="rounded-[16px] border border-[var(--color-border-soft)] bg-[var(--color-bg-card)] whitespace-nowrap px-[14px] py-[11px] text-[13px] leading-[1.4] text-[var(--color-text)] shadow-[0px_10px_24px_-6px_rgba(38,26,89,0.18)]">
             {t('Начать можно бесплатно —')}<br />{t('до двух учеников.')}
           </div>
-          <img src={asset('price-ogonek-coin.webp')} alt="" aria-hidden loading="lazy" className="h-[100px] w-[62px] shrink-0 select-none object-contain" />
+          <img src={asset('price-ogonek-coin.webp')} alt="" aria-hidden loading="lazy" className="lp-sway h-[100px] w-[62px] shrink-0 select-none object-contain" />
         </div>
       </div>
     </Section>

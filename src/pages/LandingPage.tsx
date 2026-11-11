@@ -37,8 +37,8 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-clip bg-[var(--color-bg)] text-[var(--color-text)]">
-      <LandingHeader onLead={() => openLead()} onLogin={openLogin} />
-      <HeroSection onLead={() => openLead()} onLogin={openLogin} />
+      <LandingHeader onLogin={openLogin} />
+      <HeroSection onLogin={openLogin} />
       <Suspense fallback={<div style={{ minHeight: '100vh' }} />}>
         <BelowFold />
       </Suspense>
