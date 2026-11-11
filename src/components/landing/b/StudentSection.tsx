@@ -77,8 +77,8 @@ export default function StudentSection() {
             <div className="lp-rock lp-rock-r absolute left-[289.46px] top-[50px] flex h-[458.6px] w-[258.6px] items-center justify-center">
               <IPhone src={asset('student-phone-right.webp')} width={200} className="rotate-[8deg]" />
             </div>
-            <div className="lp-rock lp-rock-c absolute left-[135px] top-[-34px]">
-              <IPhone src={asset('student-phone-center.webp')} width={270} alt={t('Главная ученика в Искре')} />
+            <div className="lp-rock lp-rock-c absolute left-[148px] top-[-24px]">
+              <IPhone src={asset('student-phone-center.webp')} width={245} alt={t('Главная ученика в Искре')} />
             </div>
             <img
               data-mascot="student"
