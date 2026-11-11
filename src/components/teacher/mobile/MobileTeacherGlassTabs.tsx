@@ -14,7 +14,7 @@ import { useT } from '../../../lib/i18n'
 // The native UITabBar retains its system glass, gestures and accessibility.
 const SYMBOL: Record<string, string> = {
   home: 'house',
-  schedule: 'calendar',
+  calendar: 'calendar',
   students: 'person.2',
   review: 'checkmark.rectangle.stack',
   gradebook: 'checklist',

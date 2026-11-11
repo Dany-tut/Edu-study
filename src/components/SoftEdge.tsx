@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { useIsDesktop } from '../lib/useIsDesktop'
 
@@ -88,9 +88,39 @@ export function WindowSoftEdges() {
   }, [])
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 45 }}>
-      <SoftEdge edge="top" size="calc(env(safe-area-inset-top, 0px) + 20px)" strength={fade.top} zIndex={0} />
-      {!desktop && <SoftEdge edge="bottom" size="calc(env(safe-area-inset-bottom, 0px) + 76px)" strength={fade.bottom} zIndex={0} />}
+      <SoftEdge edge="top" size="calc(env(safe-area-inset-top, 0px) + var(--glass-top-pad, 20px))" strength={fade.top} zIndex={0} />
+      {!desktop && <SoftEdge edge="bottom" size="calc(env(safe-area-inset-bottom, 0px) + 76px + var(--glass-bottom-pad, 0px))" strength={fade.bottom} zIndex={0} />}
     </div>,
     document.body,
+  )
+}
+
+/**
+ * Мягкий край под липким блоком внутри прокручиваемого листа (макет в «Цвете
+ * курса», «Ленте и жестах»). Полоса высотой `height` стоит в потоке, размытие
+ * свисает ниже на `size`. В покое (лист не прокручен) края нет: под макетом
+ * ещё ничего не уехало, а размытие у самой границы захватывало бы соседнюю
+ * подпись и рисовало её смазанный «призрак». Нарастает с прокруткой.
+ */
+export function ScrollSoftStrip({ height = 14, size = '28px' }: { height?: number; size?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [strength, setStrength] = useState(0)
+  useEffect(() => {
+    let box: HTMLElement | null = ref.current?.parentElement ?? null
+    while (box && !/(auto|scroll)/.test(getComputedStyle(box).overflowY)) box = box.parentElement
+    if (!box) return
+    const scroller = box
+    const measure = () => {
+      const v = Math.round(Math.min(1, Math.max(0, scroller.scrollTop / 24)) * 20) / 20
+      setStrength(s => (s === v ? s : v))
+    }
+    measure()
+    scroller.addEventListener('scroll', measure, { passive: true })
+    return () => scroller.removeEventListener('scroll', measure)
+  }, [])
+  return (
+    <div ref={ref} style={{ position: 'relative', height }}>
+      <SoftEdge edge="top" size={size} strength={strength} zIndex={0} />
+    </div>
   )
 }

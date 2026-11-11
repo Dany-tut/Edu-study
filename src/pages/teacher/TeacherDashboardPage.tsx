@@ -5,6 +5,8 @@ import TeacherSubjectsPrompt from '../../components/teacher/TeacherSubjectsPromp
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useDesktopFriends } from '../../lib/desktopFriends'
 import TeacherTopBar from '../../components/teacher/TeacherTopBar'
+import TeacherIpadRail from '../../components/teacher/TeacherIpadRail'
+import { PLATFORM } from '../../lib/platform'
 import NotificationToastContainer from '../../components/NotificationToast'
 import { useNotificationsInit } from '../../lib/notificationsSync'
 import { retryImport } from '../../lib/chunkError'
@@ -54,6 +56,9 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
   const isDesktop = useIsDesktop()
+  // iPad: всё управление в капсуле справа (docs/platforms.md §1.1), не в топбаре.
+  // Версия по PLATFORM, не по ширине: айпад в ландшафте получает десктоп-контент.
+  const isIpad = PLATFORM === 'ipad'
   const friends = useDesktopFriends(isDesktop)
   // Deep links to tools without a separate mobile screen still open that tool.
   const mobileTool = !isDesktop && ['constructor', 'course-editor', 'lesson-editor', 'cards-editor', 'finances', 'payment', 'admin', 'storage'].includes(activePage)
@@ -169,7 +174,11 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
       </Suspense>)}</AnimatePresence>
 
     <TeacherSubjectsPrompt />
-    {(isDesktop || mobileTool) && <div inert={showWidgetLibrary} className="dashboard-root teacher-dashboard-root" style={{ display: 'flex', position: 'relative' }}>
+    {/* iPad (§1.1): одна капсула справа — общая оболочка в ОБЕИХ ориентациях.
+        Висит fixed поверх контента (ландшафт — десктоп-ветка, портрет —
+        MobileTeacherApp), заменяя и десктопный топбар, и нижнюю навигацию айфона. */}
+    {isIpad && <TeacherIpadRail />}
+    {(isDesktop || mobileTool) && <div inert={showWidgetLibrary} className="dashboard-root teacher-dashboard-root" data-platform-shell={isIpad ? 'ipad' : undefined} style={{ display: 'flex', position: 'relative', paddingRight: isIpad ? 'calc(env(safe-area-inset-right, 0px) + 112px)' : undefined }}>
       {/* Progressive blur+fade strip behind the floating topbar — masks content
           scrolling up through the gaps around the pills. */}
       {!editMode && <div aria-hidden className="edge-progressive-blur--top" />}
@@ -186,8 +195,10 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         />
       )}
 
-      {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget */}
-      {mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
+      {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget.
+          iPad (§1.1): топбара нет — разделы и действия живут в капсуле справа
+          (TeacherIpadRail), которая висит fixed у правого края в обеих ориентациях. */}
+      {isIpad ? null : mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
         <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}>{t('На главную')}</button>
       </div> : <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}

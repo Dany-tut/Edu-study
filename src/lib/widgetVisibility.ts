@@ -18,13 +18,16 @@
 // СКОУП ПРЕДМЕТА — активный курс, тот же, что у статистики. Если у него нет
 // предмета из реестра (внекурсовая домашка, курс со свободным тегом), берём
 // предметы всех курсов ученика: лучше показать лишнее, чем спрятать нужное.
+// Курсов с предметом нет — собственный предмет ученика (students.subject).
+// Правило живёт в studentSubject.ts → widgetSubjectScope.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useMemo } from 'react'
 import { WIDGET_META } from '../data/widgets'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
-import { getSubject, isLanguageSubject } from './subjects'
+import { isLanguageSubject } from './subjects'
+import { widgetSubjectScope } from './studentSubject'
 
 /**
  * Предикат «показывать ли виджет с таким id».
@@ -43,15 +46,11 @@ export function useWidgetRelevance(subjectOverride?: string | null): (id: number
   const reactions = useStudentData(s => s.courseReactions.length)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
 
-  const scope = useMemo(() => {
-    const override = getSubject(subjectOverride)?.id
-    if (override) return new Set([override])
-    const active = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
-    const one = getSubject(active?.subject)?.id
-    if (one) return new Set([one])
-    const all = subjects.map(s => getSubject(s.subject)?.id).filter((x): x is string => !!x)
-    return new Set(all)
-  }, [subjects, activeSubjectId, subjectOverride])
+  const profileSubject = useStudentData(s => s.profileSubject)
+
+  const scope = useMemo(() => widgetSubjectScope({
+    courses: subjects, activeCourseId: activeSubjectId, override: subjectOverride, profileSubject,
+  }), [subjects, activeSubjectId, subjectOverride, profileSubject])
 
   return useCallback((id: number) => {
     const meta = WIDGET_META.find(w => w.id === id)
@@ -59,9 +58,13 @@ export function useWidgetRelevance(subjectOverride?: string | null): (id: number
     // наше дело прятать — этим занимается сама карусель.
     if (!meta) return true
     // Пока курсы не приехали, предмет неизвестен: фильтровать нечем и незачем.
-    if (meta.subjects && scope.size > 0 && !meta.subjects.some(s => scope.has(s))) return false
+    // Курсы приехали, а предмета нет (ни одного курса, свободные теги) —
+    // предметные виджеты прячем: «Реакции Zn + 2HCl» ученику без химии
+    // не нужны. Нейтральные («Фокус», «Твои дела», вопрос дня) остаются.
+    const subjectless = loaded && scope.size === 0
+    if (meta.subjects && (subjectless || (scope.size > 0 && !meta.subjects.some(s => scope.has(s))))) return false
     // Языковой виджет — на любом языке и ни на одном экзаменационном предмете.
-    if (meta.languagesOnly && scope.size > 0 && ![...scope].some(isLanguageSubject)) return false
+    if (meta.languagesOnly && (subjectless || (scope.size > 0 && ![...scope].some(isLanguageSubject)))) return false
     if (meta.content && loaded) {
       const count = { quiz, facts, memes, reactions }[meta.content]
       if (count === 0) return false

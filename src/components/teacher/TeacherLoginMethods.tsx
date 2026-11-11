@@ -145,7 +145,7 @@ export default function TeacherLoginMethods({ student = false }: { student?: boo
       </div>
       {error && <Alert tone="danger" text={t(error)} />}
       {notice && <Alert tone="info" text={t(notice)} />}
-      <a data-hover="link" href="https://edu-study-app.vercel.app/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-muted)', fontSize: 12 }}>Политика конфиденциальности</a>
+      <a data-hover="link" href="/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-muted)', fontSize: 12 }}>Политика конфиденциальности</a>
     </section>
   )
 }

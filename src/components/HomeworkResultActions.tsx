@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { ArrowRight, ChevronLeft, ChevronUp, ExternalLink, RotateCcw } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { btn } from '../lib/pillStyles'
+import { IS_IOS } from '../lib/platform'
 
 /** Портал держит панель у окна даже внутри анимированного контейнера урока. */
 export default function HomeworkResultActions({ isMobile, navCollapsed, onSummary, onBack, onReview, reviewUrl, onHard, onNext, onHeightChange }: {
@@ -35,8 +36,16 @@ export default function HomeworkResultActions({ isMobile, navCollapsed, onSummar
       boxSizing: 'border-box', position: 'fixed', bottom: isMobile ? (navCollapsed ? 92 : 104) : 24,
       marginBottom: 'env(safe-area-inset-bottom, 0px)', left: '50%', transform: 'translateX(-50%)',
       zIndex: 100, width: 'min(620px, calc(100vw - 24px))', display: 'flex', flexWrap: 'wrap', gap: 6,
-      padding: 8, borderRadius: 24, background: 'var(--color-bg)',
-      border: '1px solid var(--color-border-medium)', boxShadow: 'var(--shadow-lg)',
+      padding: 8, borderRadius: 24,
+      // iPhone/iPad — стекло, как у остальной плавающей хромировки; Android/ПК — плашка.
+      ...(IS_IOS ? {
+        background: 'rgba(var(--glass-rgb), var(--glass-fill-strong))',
+        backdropFilter: 'var(--blur-glass)', WebkitBackdropFilter: 'var(--blur-glass)',
+        border: '1px solid var(--color-border-glass)', boxShadow: 'var(--shadow-pill)',
+      } : {
+        background: 'var(--color-bg)',
+        border: '1px solid var(--color-border-medium)', boxShadow: 'var(--shadow-lg)',
+      }),
     }}>
       <button data-hover="layer" type="button" onClick={onSummary} style={actionStyle}><ChevronUp size={16} style={{ flexShrink: 0 }} />{t('К результату')}</button>
       {onReview ? (

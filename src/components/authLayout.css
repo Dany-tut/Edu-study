@@ -39,8 +39,11 @@
 }
 
 /* The status keeps the same geometry for hints, errors, pending actions and success. */
-.auth-feedback-slot { height: 56px; flex: 0 0 56px; }
-.auth-feedback { box-sizing: border-box; height: 56px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; color: var(--color-purple-text); background: var(--color-accent-soft); }
+/* Высота зарезервирована (min-height 56px — чтобы появление сообщения не дёргало
+   раскладку), но РАСТЁТ под длинный текст: ошибка-плашка больше не режется.
+   Иконка сверху, текст переносится (overflow-wrap ниже). */
+.auth-feedback-slot { min-height: 56px; flex: 0 0 auto; }
+.auth-feedback { box-sizing: border-box; min-height: 56px; display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 12px; color: var(--color-purple-text); background: var(--color-accent-soft); }
 .auth-feedback[data-tone="danger"] { color: var(--color-red-text); background: var(--color-red-soft); }
 .auth-feedback[data-tone="success"] { color: var(--color-green-text); background: var(--color-green-soft); }
 .auth-feedback--idle { color: var(--color-muted); background: transparent; }
@@ -52,6 +55,14 @@
 .auth-feedback-spinner { animation: auth-feedback-spin 1.2s linear infinite; }
 @keyframes auth-feedback-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .auth-feedback-spinner { animation: none; } }
+
+/* Зарезервированный слот (вход препода): высоту держит idle-подсказка в потоке, а
+   сообщение (ошибка/успех/занятость) накладывается поверх — состояния меняются
+   БЕЗ сдвига разметки. Длинная ошибка уходит вниз, перекрывая «Забыли пароль». */
+.auth-feedback-slot--reserve { position: relative; }
+.auth-feedback-slot--reserve .auth-feedback-overlay { position: absolute; inset: 0; border-radius: 12px; background: var(--color-bg); }
+.auth-feedback-slot--reserve .auth-feedback-overlay .auth-feedback { min-height: 100%; align-items: flex-start; }
+.auth-feedback-secondary { display: block; margin-top: 3px; font-size: 12px; line-height: 15px; color: var(--color-muted); overflow-wrap: anywhere; }
 
 .auth-page-card .auth-input[aria-invalid="true"] { border-color: var(--color-red-text) !important; }
 .auth-page-card button:disabled { cursor: not-allowed; }

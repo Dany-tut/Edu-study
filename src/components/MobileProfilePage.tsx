@@ -169,14 +169,17 @@ export default function MobileProfilePage() {
               печаталось дважды (подпись под именем и заголовок XP-плашки). */}
           <div style={{ borderRadius: 24, padding: 16, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
             <div className="flex items-center" style={{ gap: 14 }}>
-              {/* Тап по кружку — загрузить или сменить фото. */}
+              {/* Тап по кружку — загрузить или сменить фото. Круг 58×58: minHeight 0
+                  гасит общее правило «кнопка ≥ 44» (mobileInteraction.css), иначе
+                  аватар сплющивался в 58×44, а бейдж камеры — в таблетку 22×44.
+                  У бейджа видимые 22, область касания 44 — псевдоэлементом. */}
               <div className="flex-shrink-0" style={{ position: 'relative', width: 58, height: 58 }}>
                 <button data-hover="layer"
                   type="button"
                   onClick={() => { tactile(); pickImageFile(setCropFile) }}
                   aria-label={avatarPath ? t('Сменить фото') : t('Загрузить фото')}
                   className="flex items-center justify-center"
-                  style={{ height: 40, position: 'relative', width: 58, borderRadius: 12, padding: '0 16px', border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
+                  style={{ position: 'relative', width: 58, height: 58, minHeight: 0, borderRadius: 999, padding: 0, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 24, fontWeight: 700, boxShadow: 'var(--glow-accent)', fontFamily: 'inherit' }}
                 >
                   {initial}
                   <AvatarPhotoFill path={avatarPath} />
@@ -186,7 +189,7 @@ export default function MobileProfilePage() {
                   onClick={() => { tactile(); if (avatarPath) void removePhoto(); else pickImageFile(setCropFile) }}
                   aria-label={avatarPath ? t('Убрать фото') : t('Загрузить фото')}
                   className="flex items-center justify-center"
-                  style={{ position: 'absolute', right: -3, bottom: -3, width: 22, height: 22, borderRadius: 999, padding: 0, cursor: 'pointer', border: '2px solid var(--color-bg-3)', background: 'var(--color-bg-5)', color: 'var(--color-text-2)' }}
+                  data-hit-44 style={{ position: 'absolute', right: -3, bottom: -3, width: 22, height: 22, minHeight: 0, borderRadius: 999, padding: 0, cursor: 'pointer', border: '2px solid var(--color-bg-3)', background: 'var(--color-bg-5)', color: 'var(--color-text-2)' }}
                 >
                   {avatarPath ? <X size={12} strokeWidth={2.5} /> : <Camera size={12} strokeWidth={2.5} />}
                 </button>

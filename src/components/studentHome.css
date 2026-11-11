@@ -163,6 +163,53 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
 /* iPhone (приложение и PWA): шапка главной начинается под строкой состояния.
    В Safari inset = 0. Только [data-platform="iphone"] — Android и iPad не трогаем. */
 @media(max-width:1023px) {
-  [data-platform="iphone"] .lh-header { flex-basis:calc(56px + env(safe-area-inset-top,0px)); padding-top:calc(8px + env(safe-area-inset-top,0px)); }
-  [data-platform="iphone"] .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:calc(84px + env(safe-area-inset-top,0px)); }
+  /* Как системный навбар iOS: строка 44 pt начинается ровно от нижней границы
+     safe-area — сразу под часами и Dynamic Island/чёлкой, не под ними. В Safari
+     с адресной строкой inset = 0 — минимум 6 px (как SAFE_TOP в mobileTokens), центр ряда совпадает с таблетками других экранов. */
+  [data-platform="iphone"] .lh-header { flex-basis:calc(44px + max(env(safe-area-inset-top,0px), 6px)); padding-top:max(env(safe-area-inset-top,0px), 6px); padding-bottom:0; }
+  [data-platform="iphone"] .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:calc(72px + max(env(safe-area-inset-top,0px), 6px)); }
+}
+
+/* iPad: шапка главной под строкой состояния (блок от iPad-чата; уберут, когда
+   управление переедет в капсулу справа). Портрет (<1024) — мобильная шапка,
+   как у iPhone; ландшафт (≥1024) — десктопная, к ней только отступ сверху.
+   Низкие окна (Split View, ≤800 и ≤660) держат свои высоты шапки + safe-area,
+   иначе этот блок перебил бы их. Только [data-platform="ipad"]. */
+@media(max-width:1023px) {
+  [data-platform="ipad"] .lh-header { flex-basis:calc(44px + max(env(safe-area-inset-top,0px), 6px)); padding-top:max(env(safe-area-inset-top,0px), 6px); padding-bottom:0; }
+  [data-platform="ipad"] .live-student-home:has(.lh-assignments button) .lh-header { flex-basis:calc(72px + max(env(safe-area-inset-top,0px), 6px)); }
+}
+@media(min-width:1024px) {
+  [data-platform="ipad"] .lh-header { padding-top:calc(12px + env(safe-area-inset-top,0px)); flex-basis:calc(84px + env(safe-area-inset-top,0px)); }
+}
+@media(min-width:1024px) and (max-height:800px) {
+  [data-platform="ipad"] .lh-header { flex-basis:calc(70px + env(safe-area-inset-top,0px)); }
+}
+@media(min-width:1024px) and (max-height:660px) {
+  [data-platform="ipad"] .lh-header { flex-basis:calc(58px + env(safe-area-inset-top,0px)); }
+}
+
+/* ── iPhone: воздух между блоками главной ──────────────────────────────────
+   Дани (скрины SMM): трек/плеер стоит вплотную к «Твоим делам» и к календарю —
+   «посвободнее». Главная без прокрутки сохраняется: прибавку забирает гибкая
+   строка расписания (1fr), фиксированные блоки (виджеты/трек) не двигаются.
+   Только высокие экраны (>700px) — на низких окнах раскладка уже ужимается
+   своими правилами, и там воздух добавлять нельзя. Только [data-platform="iphone"]
+   — Android/iPad/ПК не трогаем. */
+@media(max-width:1023px) and (min-height:701px) {
+  [data-platform="iphone"] .lh-content { gap:18px; }
+}
+
+/* ── iPhone: трек курса ниже, по центру свободного места ───────────────────
+   Дани (скрины SMM): трек («Строение вещества» + кружки уроков) стоял кучно под
+   «Твоими делами», а под ним до нав-бара пустота. Отдаём слабину не верхней
+   строке расписания, а строке трека, и центрируем трек в ней — он опускается в
+   середину свободного места между «Твоими делами» и нав-баром. Расписание
+   получает компактную фиксированную высоту (день и так помещается). Только
+   высокие экраны (>700px): главная без прокрутки сохраняется; на низких окнах
+   раскладка ужата своими правилами и трек не трогаем, чтобы не наехать на
+   нав-бар. Только [data-platform="iphone"]. */
+@media(max-width:1023px) and (min-height:701px) {
+  [data-platform="iphone"] .lh-content { grid-template-rows:clamp(150px,22vh,210px) 180px minmax(216px,1fr); }
+  [data-platform="iphone"] .lh-course { display:flex; flex-direction:column; justify-content:center; }
 }

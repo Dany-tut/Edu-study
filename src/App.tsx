@@ -47,7 +47,8 @@ import type { Session } from '@supabase/supabase-js'
 import { Capacitor } from '@capacitor/core'
 import './store/themeStore' // initialise theme + apply data-theme before first render
 import { useStudentData } from './store/studentDataStore'
-import { finishSocialLogin, initializeNativeOAuth, hasPendingSocialAuth } from './lib/socialAuth'
+import { finishSocialLogin, initializeNativeOAuth, hasPendingSocialAuth, isCustomOAuthCallback, takePendingLink, confirmSocialLink } from './lib/socialAuth'
+import SocialCallbackPage from './components/SocialCallbackPage'
 import {
   bootTrainerLink, parseTrainerLink, queueTrainerLink, stashTrainerLink, takeStashedTrainerLink,
   trainerHash,
@@ -222,16 +223,42 @@ function AppRoutes() {
         const { data } = await supabase.auth.getSession()
         if (!data.session) { completed = false; return }
       }
+      // Роль попытки нужна ДО finishSocialLogin: он её чистит, а при отказе мы
+      // хотим увести на вход ИМЕННО той роли (препод → #/teacher, ученик → #/login),
+      // чтобы сообщение не висело на чужом экране.
+      let attemptedRole: string | null = null
+      try { attemptedRole = localStorage.getItem('iskra:oauth-role') } catch { /* no-op */ }
       try { completed = await finishSocialLogin() }
       catch (error) {
         completed = false
-        notifyError(error instanceof Error ? error.message : 'Не удалось завершить вход')
+        const message = error instanceof Error ? error.message : 'Не удалось завершить вход'
+        // Отказ роли и прочие сбои ПОСЛЕ установки сессии (finishSocialLogin делает
+        // signOut) раньше молча роняли на лендинг — обработчик ошибки там не
+        // смонтирован. Кладём причину (с ролью и временем) и уводим на вход нужной
+        // роли, где SocialLoginButtons её покажет один раз. Событие — для случая,
+        // когда экран входа уже открыт.
+        try { sessionStorage.setItem('iskra:social-error', JSON.stringify({ message, role: attemptedRole ?? 'student', at: Date.now() })) } catch { /* no-op */ }
+        notifyError(message)
+        const target = attemptedRole === 'teacher' ? '#/teacher' : '#/login'
+        if (!isCustomOAuthCallback() && !window.location.hash.startsWith(target)) window.location.hash = target
       }
     }
+    // VK-привязка: пользователь вошёл в существующий аккаунт на #/login (ticket
+    // лежит в pending-link ≤5 мин). На SIGNED_IN завершаем привязку — edge
+    // проверит, что его сессия == ticket.user_id, и запишет связь VK→аккаунт.
+    // Молча: вход уже состоялся, непривязка не должна его ронять.
+    const resumePendingLink = async () => {
+      const ticket = takePendingLink()
+      if (!ticket) return
+      try { await confirmSocialLink(ticket) } catch { /* связь не записана — пользователь всё равно вошёл */ }
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') window.setTimeout(() => { void finishWebOAuth() }, 0)
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') window.setTimeout(() => { void finishWebOAuth(); void resumePendingLink() }, 0)
     })
     if (!IS_NATIVE) {
+      // Свой OAuth (Яндекс/VK): обмен кода и его UI держит SocialCallbackPage на
+      // /auth/<provider> (чтобы не было белого экрана). Здесь — только общий путь
+      // google/apple: SIGNED_IN после verifyOtp сам поднимет finishWebOAuth.
       void supabase.auth.getSession().then(({ data }) => {
         if (hasPendingSocialAuth() && (data.session || window.location.search.includes('error') || window.location.hash.includes('error'))) {
           void finishWebOAuth()
@@ -323,6 +350,11 @@ function AppRoutes() {
   if (window.location.pathname === '/oauth/consent') {
     return <Chunk><OAuthConsentPage /></Chunk>
   }
+
+  // Системный колбэк своего OAuth (Яндекс/VK). Свой экран «Завершаем вход…» /
+  // ошибки — на нём же идёт обмен кода, иначе страница /auth/* оставалась белой
+  // (кнопки входа с обработчиком ошибки тут не смонтированы).
+  if (isCustomOAuthCallback()) return <SocialCallbackPage />
 
   // Отчёт родителю по личной ссылке — без входа, вне кабинетов.
   if (hash.startsWith('#/r/')) return <Chunk><ParentReportPage token={hash.slice(4).split(/[?#/]/)[0]} /></Chunk>

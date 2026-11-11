@@ -47,6 +47,7 @@ import { useStudentData, ownerStudentIdFor, subjectSlugFor, subjectAliases } fro
 import { useTint } from '../store/tintStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
+import { useScreenBack } from '../lib/useScreenBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useT, t as tStatic, tc as tcStatic } from '../lib/i18n'
 import { setVoiceScene, clearVoiceScene, speak, stopSpeech, hasVoiceFor } from '../lib/speech'
@@ -107,6 +108,7 @@ import {
 } from '../lib/basicAnswers'
 import { DEFAULT_IMAGE_SIZE } from '../data/taskTypes'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
+import { PLATFORM } from '../lib/platform'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import { useHomeworkKeyboardScroll, scrollHomeworkFlowToStart } from '../lib/useHomeworkKeyboardScroll'
 import { Alert } from './Alert'
@@ -1681,7 +1683,9 @@ function getInitialState(): PersistedHomeworkState {
  */
 function hwTitle(title: string, tr: (s: string) => string): string {
   const m = title.match(/^Домашка по теме\s*«(.+)»$/)
-  if (m) return `${tr('Домашка по теме')} «${tcStatic(m[1])}»`
+  // Айфон (скрины SMM): короткий заголовок «ДЗ: <тема>» вместо «Домашка по теме
+  // «…»». Остальные платформы — прежний заголовок (правка iPhone-gated).
+  if (m) return PLATFORM === 'iphone' ? `${tr('ДЗ')}: ${tcStatic(m[1])}` : `${tr('Домашка по теме')} «${tcStatic(m[1])}»`
   // Доп. домашка: «Доп 2 · <урок>» (см. getExtraHomeworks).
   const x = title.match(EXTRA_TITLE_RE)
   return x ? `${tr('Доп')}${x[1] ?? ''} · ${tcStatic(x[2])}` : tcStatic(title)
@@ -1714,7 +1718,10 @@ export default function HomeworkFlow({
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
   // Свайп от левого края = кнопка «Назад» в шапке домашки.
-  useSwipeBack(() => { clearHomeworkWidgetFeedback(); onBack() }, isMobile)
+  const backFromHomework = () => { clearHomeworkWidgetFeedback(); onBack() }
+  useSwipeBack(backFromHomework, isMobile)
+  // Тот же шаг для системной «Назад» (Android) — общий стек overlayStack.
+  useScreenBack('homework', backFromHomework)
   const setAnswerFlight = useDashboard(s => s.setAnswerFlight)
   const openCourses = useDashboard(s => s.openCourses)
   const currentLessonId = useDashboard(s => s.currentLessonId)
@@ -1725,7 +1732,12 @@ export default function HomeworkFlow({
   // Same scroll-dock logic as the lesson page: when the pane scrolls, the
   // Back/title row docks onto the topbar line (a fixed twin), the topbar
   // auto-compacts, and the rest-state row fades out.
-  const navCollapsed = useNavCollapse()
+  // iPhone: нижний нав — НАТИВНЫЙ таб-бар, он не сворачивается на скролле, поэтому
+  // синхрон нижних панелей здесь дал бы рассинхрон с нативом. Держим навбар-свёртку
+  // как источник только для Android/веб (MobileBottomNav); на iPhone панели стоят
+  // неподвижно (стиль mini-бара остаётся).
+  const navCollapsedRaw = useNavCollapse()
+  const navCollapsed = PLATFORM === 'iphone' ? false : navCollapsedRaw
   const docked = useDashboard(s => s.lessonScrolled)
   const topBarCompact = useDashboard(s => s.topBarCompact)
   const topBarBox = useDashboard(s => s.topBarBox)
@@ -3236,7 +3248,7 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
+                  {extraTitle ? <>{t('Доп')}{extraTitle[1] ?? ''}&nbsp;·&nbsp;</> : PLATFORM === 'iphone' ? <>{t('ДЗ')}:&nbsp;</> : <>{t('Домашка по теме')}&nbsp;«</>}
                 </motion.span>
                 <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
                   {tcStatic(extraTitle ? extraTitle[2] : homework.title.replace(/^Домашка по теме\s*«(.+)»$/, '$1'))}
@@ -3247,7 +3259,7 @@ export default function HomeworkFlow({
                   transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   style={{ display: 'inline-block', overflow: 'hidden', whiteSpace: 'nowrap', flexShrink: 0 }}
                 >
-                  {extraTitle ? '' : '»'}
+                  {extraTitle || PLATFORM === 'iphone' ? '' : '»'}
                 </motion.span>
               </span>
               {!isMobile && levelPill(true)}
@@ -4589,7 +4601,16 @@ export default function HomeworkFlow({
               ) : <motion.div
                 initial={false}
                 animate={isMobile
-                  ? { bottom: navCollapsed ? 92 : 104, scale: navCollapsed ? 0.94 : 1 }
+                  // Канон Дани: нижние панели — одна семья с нав-баром и
+                  // синхронно с ним сворачиваются (Android/веб, где нав —
+                  // MobileBottomNav: 88→76 вниз за верхом mini-бара + scale 0.94,
+                  // та же кривая useNavCollapse · 0.22s). На iPhone нижний нав —
+                  // НАТИВНЫЙ таб-бар, он не сворачивается, поэтому панель стоит
+                  // неподвижно на отступе нативного дока ДЗ (safe-bottom + 58),
+                  // без привязки к скроллу — иначе рассинхрон с нативом.
+                  ? PLATFORM === 'iphone'
+                    ? { bottom: 58, scale: 1 }
+                    : { bottom: navCollapsed ? 76 : 88, scale: navCollapsed ? 0.94 : 1 }
                   : { bottom: 24, scale: 1 }}
                 transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
                 style={{

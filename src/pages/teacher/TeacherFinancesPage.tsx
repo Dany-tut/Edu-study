@@ -20,6 +20,8 @@ import { useAllStudents, useGroups, reloadAllStudents } from '../../lib/useGroup
 import { usePayments, useFinanceSummary, addPayment, deletePayment } from '../../lib/useFinances'
 import { useT, useTc } from '../../lib/i18n'
 import type { Student } from '../../data/teacherMockData'
+import { DEMO_GROUPS, isDemoId } from '../../data/teacherDevDemo'
+import { DEMO_FINANCE_STUDENTS, DEMO_FINANCE_SUMMARY, demoPaymentsFor } from '../../data/teacherFinanceDemo'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -75,6 +77,8 @@ export function AddPaymentModal({ student, students, onClose, onSaved }: {
     if (amt === null) { setError(t('Укажите положительную сумму в целых рублях, не больше 2 147 483 647.')); return }
     if (count === null) { setError(t('Укажите целое неотрицательное количество занятий.')); return }
     setError('')
+    // DEV-демо: платёж демо-ученика в базу не уходит.
+    if (isDemoId(selected.id)) { onSaved(); onClose(); return }
     void action.run(signal => addPayment({ studentId: selected.id, amount: amt, lessonsPaid: count, note }, signal),
       () => { onSaved(); onClose() },
       () => setError(t('Не удалось подтвердить сохранение платежа.\nПроверьте список оплат перед повтором. Введённые данные сохранены.')))
@@ -122,7 +126,8 @@ function StudentRow({
   const t = useT()
   const { tn } = useTc()
   const status = getStatus(student)
-  const { payments } = usePayments(student.id)
+  const live = usePayments(student.id)
+  const payments = isDemoId(student.id) ? demoPaymentsFor(student.id) : live.payments
   const deletion = useAsyncTask()
   const [deleteError, setDeleteError] = useState('')
 
@@ -138,6 +143,7 @@ function StudentRow({
   const balance = student.lessonBalance ?? 0
 
   function handleDelete(id: string) {
+    if (isDemoId(id)) return
     setDeleteError('')
     void deletion.run(signal => deletePayment(id, signal),
       () => { onChanged() },
@@ -293,14 +299,19 @@ function StudentRow({
 export default function TeacherFinancesPage() {
   const t = useT()
   const desktop = useIsDesktop()
-  const students = useAllStudents()
-  const { groups } = useGroups()
+  const realStudents = useAllStudents()
+  const { groups: realGroups } = useGroups()
+  // DEV-only: без входа учителя показываем демо-кабинет Дарьи (teacherFinanceDemo.ts).
+  const demo = import.meta.env.DEV && realStudents.length === 0
+  const students = demo ? DEMO_FINANCE_STUDENTS : realStudents
+  const groups = demo && realGroups.length === 0 ? DEMO_GROUPS : realGroups
   const [filter, setFilter]       = useState<FilterTab>('all')
   const [paying, setPaying]       = useState<Student | null | undefined>(undefined)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
-  const summary = useFinanceSummary(reloadKey)
+  const liveSummary = useFinanceSummary(reloadKey)
+  const summary = demo ? DEMO_FINANCE_SUMMARY : liveSummary
   function handlePaid() {
     setReloadKey(k => k + 1)
     void reloadAllStudents()

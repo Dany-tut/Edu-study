@@ -28,6 +28,9 @@ import { useT } from '../lib/i18n'
 import { tidyProse, proseWrap, proseLines } from '../lib/typography'
 import Prose from './Prose'
 import GlossedText from './GlossedText'
+import { useNativeOverlay } from '../lib/nativeGlass'
+import { IS_IOS } from '../lib/platform'
+import SoftEdge from './SoftEdge'
 
 export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject }: {
   open: boolean
@@ -55,6 +58,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
   // (--glass-rgb), а не белым: белая растушёвка в тёмной теме невидима.
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [fade, setFade] = useState({ top: false, bottom: false })
+  useNativeOverlay(open)
   const syncFade = () => {
     const el = scrollRef.current
     if (!el) return
@@ -321,6 +325,11 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                 ))}</Fragment>
               ))}
             </div>
+              {/* iPhone/iPad — мягкий край (размытие без цвета); Android/ПК — фейд. */}
+              {IS_IOS ? <>
+                <SoftEdge edge="top" size="28px" strength={fade.top ? 1 : 0} zIndex={1} />
+                <SoftEdge edge="bottom" size="36px" strength={fade.bottom ? 1 : 0} zIndex={1} />
+              </> : <>
               <div
                 aria-hidden
                 style={{
@@ -337,6 +346,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                   opacity: fade.bottom ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: 'none',
                 }}
               />
+              </>}
             </div>
           </motion.aside>
         </>

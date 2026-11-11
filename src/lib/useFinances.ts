@@ -25,6 +25,8 @@ export function usePayments(studentId?: string) {
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
+    // DEV-демо (id `demo-…`): платежей в базе нет, не спрашиваем.
+    if (studentId?.startsWith('demo-')) { setLoading(false); return }
     setLoading(true)
     let q = supabase
       .from('payments')

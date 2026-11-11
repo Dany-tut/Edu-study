@@ -487,22 +487,25 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <div ref={bellRef} style={{ display: 'inline-flex' }}>
-          <NotificationBell friendCount={friends.incoming.length} onClick={() => { void friends.refresh(); setNotifOpen(o => !o) }} />
+          <NotificationBell active={notifOpen} friendCount={friends.incoming.length} onClick={() => { void friends.refresh(); setNotifOpen(o => !o) }} />
         </div>
 
         <motion.button
           ref={addBtnRef}
-          whileHover={{ scale: 1.06, backgroundColor: 'rgba(155,109,255,0.14)' }}
+          // Открытое меню — тот же активный фон, что у вкладки и выбранной даты
+          // (--grad-purple); наведение — тинт акцента темы, а не свой фиолетовый.
+          whileHover={addOpen ? { scale: 1.06 } : { scale: 1.06, backgroundColor: 'rgba(var(--accent-rgb), 0.14)' }}
           whileTap={{ scale: 0.96 }}
           onClick={() => setAddOpen(o => !o)}
           aria-label={t('Действия')}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 44, borderRadius: 14, border: 'none', cursor: 'pointer', background: 'none', color: 'var(--color-muted)' }}
+          aria-expanded={addOpen}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 44, borderRadius: 14, border: 'none', cursor: 'pointer', background: addOpen ? 'var(--grad-purple)' : 'none', color: addOpen ? '#fff' : 'var(--color-muted)' }}
         >
           <LayoutGrid size={18} strokeWidth={2} />
         </motion.button>
 
         <motion.button
-          whileHover={{ scale: 1.06, backgroundColor: 'rgba(155,109,255,0.14)' }}
+          whileHover={{ scale: 1.06, backgroundColor: 'rgba(var(--accent-rgb), 0.14)' }}
           whileTap={{ scale: 0.96 }}
           onClick={() => setCollapsed(c => !c)}
           aria-label={collapsed ? t('Развернуть') : t('Свернуть')}
@@ -724,7 +727,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
             {/* Подвал меню: номер сборки этого устройства + проверка обновления */}
             <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 8px' }} />
-            <AppVersionRow variant="compact" />
+            <AppVersionRow variant="compact" style={{ borderRadius: 7 }} />
           </motion.div>
           </div>
         )}

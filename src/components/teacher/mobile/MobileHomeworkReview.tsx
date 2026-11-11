@@ -11,18 +11,54 @@ import BackCircle from '../../BackCircle'
 import { GlassPill } from '../../mobileChrome'
 import BasicAnswersList from '../BasicAnswersList'
 import { Alert } from '../../Alert'
-import { Check, ChevronRight, Loader2, RotateCcw } from '../../icons/appIcons'
+import { Check, ChevronDown, ChevronRight, Loader2, RotateCcw } from '../../icons/appIcons'
+import FadeText from '../../FadeText'
+import MobileSheet from '../../MobileSheet'
 import { FIELD } from '../../../lib/fieldStyle'
 import { btn } from '../../../lib/pillStyles'
 import '../journalStand/homeworkReview.css'
 import './mobileHomeworkReview.css'
 
+/** Выбор ученика — строка-поле с подписью внутри (FIELD-01) и нашим шевроном.
+ *  Тап открывает наш стеклянный лист снизу (MobileSheet: граббер, без ×,
+ *  закрытие свайпом, фоном и «Назад»); текущий ученик отмечен галочкой.
+ *  Нативных select и системного меню нет — правило custom-controls. */
+function StudentPicker({ options, value, disabled, onChange }: {
+  options: { id: string; name: string }[]; value: string; disabled: boolean; onChange: (id: string) => void
+}) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const current = options.find(o => o.id === value)
+  return <>
+    <button data-hover="layer" type="button" className="mhr-pick" disabled={disabled} aria-haspopup="dialog" aria-expanded={open}
+      aria-label={`${t('Выбрать ученика в полной проверке')}: ${current?.name ?? ''}`}
+      onClick={() => { tactile(); setOpen(true) }}>
+      <span className="mhr-pick-text">
+        <span className="mhr-pick-label">{t('Ученик')}</span>
+        <FadeText className="mhr-pick-value">{current?.name ?? ''}</FadeText>
+      </span>
+      <ChevronDown size={18} className="mhr-pick-chevron" aria-hidden="true" />
+    </button>
+    <MobileSheet open={open} onClose={() => setOpen(false)} title={t('Ученик')}>
+      <div className="mhr-pick-list" role="listbox" aria-label={t('Ученик')}>
+        {options.map(o => <button data-hover="layer" key={o.id} type="button" role="option" aria-selected={o.id === value}
+          className="mhr-pick-option" onClick={() => { tactile(); onChange(o.id); setOpen(false) }}>
+          <FadeText>{o.name}</FadeText>
+          {o.id === value && <Check size={18} className="mhr-pick-check" aria-hidden="true" />}
+        </button>)}
+      </div>
+    </MobileSheet>
+  </>
+}
+
 type Draft = { score: string; comment: string; taskScores: Record<string, string> }
 const emptyDraft: Draft = { score: '', comment: '', taskScores: {} }
 
 /** Reuses production publication and answer snapshots; demo writes stay in memory. */
-export default function MobileHomeworkReview({ homework, demoSubmissions, onBack, onPublished, onReview }: {
+export default function MobileHomeworkReview({ homework, demoSubmissions, onBack, onPublished, onReview, demoNote = true }: {
   onReview?: typeof reviewHomework
+  /** Плашка «Учебный пример» над демо-сдачами; стенд в режиме ?shot её прячет. */
+  demoNote?: boolean
   homework: HomeworkItem; demoSubmissions?: HwSubmission[]; onBack: () => void; onPublished: (id: string, verdict: 'accepted' | 'returned') => void
 }) {
   const t = useT()
@@ -91,15 +127,18 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
   </div> : undefined
   return <div className="mobile-homework-review"><MobileScreen
     glassHeader={{ leading: t('Проверка работы'), onBack: back, backLabel: t('К списку ДЗ') }}
-    topZone={<div className="mhr-top"><BackCircle onClick={back} label="К списку ДЗ" /><GlassPill>{t('Проверка работы')}</GlassPill></div>}
-    topPad={64} bottomDock={footer} bottomDockRaise={16} scrollKey={current?.id ?? 'loading'}>
+    topZone={<div className="mhr-top"><BackCircle onClick={back} label="К списку ДЗ" style={{ position: 'absolute', left: 0 }} /><GlassPill>{t('Проверка работы')}</GlassPill></div>}
+    topPad={64} bottomDock={footer} scrollKey={current?.id ?? 'loading'}>
     <div className="mhr-content">
-      {demo && <Alert tone="info" text={t('Учебный пример')} />}
+      {demo && demoNote && <Alert tone="info" text={t('Учебный пример')} />}
       {loadError && <Alert tone="danger" text={t(loadError)} action={{label:t('Повторить'),onClick:()=>void reload()}} />}
       {loading && !demo ? <p role="status" className="mhr-muted">{t('Загрузка…')}</p> : current ? <>
-        <section className="mhr-card"><p className="mhr-muted">{tc(homework.title)}</p><h1>{tn(current.studentName)}</h1><p className="mhr-muted">{homework.groupName}</p>
-          <span className="mhr-status">{t(done === 'accepted' ? 'Проверено' : done === 'returned' ? 'На доработке' : 'На проверке')}</span>
-          {!done && pending.length > 1 && <label className="mhr-label">{t('Ученик')}<select style={FIELD} disabled={busy} aria-label={t('Выбрать ученика в полной проверке')} value={current.id} onChange={e => setSelectedId(e.target.value)}>{pending.map(s => <option key={s.id} value={s.id}>{tn(s.studentName)}</option>)}</select></label>}
+        <section className="mhr-card mhr-identity">
+          <p className="mhr-muted">{tc(homework.title)}</p>
+          <h1>{tn(current.studentName)}</h1>
+          <p className="mhr-muted">{homework.groupName}</p>
+          <span className={'mhr-chip' + (done === 'accepted' ? ' mhr-chip-green' : done === 'returned' ? ' mhr-chip-yellow' : ' mhr-chip-purple')}>{t(done === 'accepted' ? 'Проверено' : done === 'returned' ? 'На доработке' : 'На проверке')}</span>
+          {!done && pending.length > 1 && <StudentPicker options={pending.map(s => ({ id: s.id, name: tn(s.studentName) }))} value={current.id} disabled={busy} onChange={setSelectedId} />}
         </section>
         {done ? <section className="mhr-card" role="status"><h2>{t('Проверка сохранена')}</h2><p className="mhr-muted">{t(done === 'accepted' ? 'Проверено' : 'На доработке')}{done === 'accepted' ? ` · ${score}%` : ''}</p></section> : <>
           <section className="mhr-card"><h2>{t('Ответы ученика')}</h2>
