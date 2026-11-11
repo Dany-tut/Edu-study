@@ -3,33 +3,46 @@
 // Огонёк по центру и четыре карточки-подсказки вокруг. Ниже 1024 карточки
 // уходят в сетку под Огоньком, а сцена не обрезает текст.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { useT } from '../../../lib/i18n'
 import ThemeToggleBtn from '../../ThemeToggleBtn'
 import IskraMark from '../IskraMark'
 import { asset, PrimaryButton, SecondaryButton } from './kit'
+import './landing-motion.css'
 
-type Actions = { onLead: () => void; onLogin: () => void }
+type Actions = { onLogin: () => void }
 
-// Искорки — точные места и размеры из макета (x, y, размер).
-const SPARKS: Array<[number, number, 2 | 3 | 4]> = [
-  [10, 110, 2], [243, 207, 3], [476, 304, 4], [709, 401, 2], [942, 498, 3], [1175, 205, 4], [1408, 302, 2],
-  [221, 399, 3], [454, 496, 4], [687, 203, 2], [920, 300, 3], [1153, 397, 4], [1386, 494, 2], [199, 201, 3],
-  [432, 298, 4], [665, 395, 2], [898, 492, 3], [1131, 199, 4], [1364, 296, 2], [177, 393, 3], [410, 490, 4],
-  [643, 197, 2], [876, 294, 3], [1109, 391, 4], [1342, 488, 2], [155, 195, 3],
-]
+// Регистрация преподавателя — экран входа учителя: вход через Яндекс или VK сам
+// создаёт кабинет (самрег). Заявка осталась только для платных тарифов.
+export const SIGNUP_HREF = '#/teacher'
+
+// Искорки: россыпь без узора (детерминированный разброс, одинаковый при каждой
+// загрузке), каждая дрейфует и мерцает в своём ритме.
+type Spark = { x: number; y: number; s: 2 | 3 | 4; dur: number; delay: number; dx: number; o: number }
+const SPARKS: Spark[] = (() => {
+  let seed = 7
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646 }
+  const out: Spark[] = []
+  while (out.length < 34) {
+    const x = Math.round(rnd() * 1400 + 20), y = Math.round(rnd() * 760 + 90)
+    // не сыпем прямо на заголовок и кнопки
+    if (x > 300 && x < 1140 && y > 110 && y < 420) continue
+    out.push({ x, y, s: ([2, 3, 4] as const)[Math.floor(rnd() * 3)], dur: 6 + rnd() * 6, delay: -rnd() * 10, dx: Math.round((rnd() - 0.5) * 28), o: 0.45 + rnd() * 0.5 })
+  }
+  return out
+})()
 
 const CARDS = [
-  { key: 'next', img: 'obj-calendar.webp', eyebrow: 'Ближайшее занятие', title: '12:00 — 13:30', sub: 'Хим ЕГЭ 2027 · Электролиз', x: 150, y: 560 },
-  { key: 'group', img: 'obj-results.webp', eyebrow: 'Итоги группы', title: '77%', sub: 'Проверено работ · 260', x: 230, y: 730 },
-  { key: 'review', img: 'obj-review.webp', eyebrow: 'Проверка ДЗ', title: 'Анна Соколова', sub: 'ОВР · ответ рядом с эталоном', x: 930, y: 540 },
-  { key: 'pay', img: 'obj-wallet.webp', eyebrow: 'Оплаты', title: 'Доход за месяц', sub: 'Долги и просрочки — рядом', x: 990, y: 720 },
+  { key: 'next', img: 'obj-calendar.webp', eyebrow: 'Ближайшее занятие', title: '12:00 — 13:30', sub: 'Хим ЕГЭ 2027 · Электролиз', x: 150, y: 560, dur: 5.6, delay: 0, ry: 9 },
+  { key: 'group', img: 'obj-results.webp', eyebrow: 'Итоги группы', title: '77%', sub: 'Проверено работ · 260', x: 230, y: 730, dur: 6.4, delay: -2.1, ry: 9 },
+  { key: 'review', img: 'obj-review.webp', eyebrow: 'Проверка ДЗ', title: 'Анна Соколова', sub: 'ОВР · ответ рядом с эталоном', x: 930, y: 540, dur: 6, delay: -1.2, ry: -9 },
+  { key: 'pay', img: 'obj-wallet.webp', eyebrow: 'Оплаты', title: 'Доход за месяц', sub: 'Долги и просрочки — рядом', x: 990, y: 720, dur: 5.2, delay: -3.4, ry: -9 },
 ] as const
 
-function HintCard({ img, eyebrow, title, sub }: { img: string; eyebrow: string; title: string; sub: string }) {
+function HintCard({ img, eyebrow, title, sub, ry = -9 }: { img: string; eyebrow: string; title: string; sub: string; ry?: number }) {
   const t = useT()
   return (
-    <div className="flex items-center gap-[14px] rounded-[22px] border border-[var(--color-border-soft)] bg-[var(--color-bg-card)] py-4 pl-[18px] pr-5 shadow-[0px_18px_36px_-12px_rgba(38,26,89,0.22)] backdrop-blur-[12px]">
+    <div style={{ '--lp-ry': `${ry}deg` } as CSSProperties} className="lp-tilt flex items-center gap-[14px] rounded-[22px] border border-[var(--color-border-soft)] bg-[var(--color-bg-card)] py-4 pl-[18px] pr-5 shadow-[0px_18px_36px_-12px_rgba(38,26,89,0.22)] backdrop-blur-[12px]">
       <img src={asset(img)} alt="" aria-hidden className="size-16 shrink-0 object-contain" loading="eager" />
       <div className="flex min-w-0 flex-col gap-0.5">
         <p className="text-[11px] font-bold uppercase tracking-[0.66px] text-[var(--color-accent)]">{t(eyebrow)}</p>
@@ -41,7 +54,7 @@ function HintCard({ img, eyebrow, title, sub }: { img: string; eyebrow: string; 
 }
 
 /** Фиксированная шапка «Сайт / Шапка»: при прокрутке получает стеклянную подложку. */
-export function LandingHeader({ onLead, onLogin }: Actions) {
+export function LandingHeader({ onLogin }: Actions) {
   const t = useT()
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
@@ -72,62 +85,73 @@ export function LandingHeader({ onLead, onLogin }: Actions) {
             <span className="hidden sm:inline">{t('Личный кабинет')}</span>
             <span className="sm:hidden">{t('Войти')}</span>
           </SecondaryButton>
-          <PrimaryButton size="sm" onClick={onLead} className="hidden md:inline-flex">{t('Оставить заявку')}</PrimaryButton>
+          <PrimaryButton size="sm" href={SIGNUP_HREF} className="hidden md:inline-flex">{t('Зарегистрироваться')}</PrimaryButton>
         </div>
       </div>
     </header>
   )
 }
 
-export default function HeroSection({ onLead, onLogin }: Actions) {
+export default function HeroSection({ onLogin }: Actions) {
   const t = useT()
   return (
-    <section id="top" className="relative w-full overflow-hidden">
+    <section id="top" className="relative w-full overflow-x-clip">
       {/* Декор сцены 1440: свечения и искорки стоят там же, где в макете. */}
-      <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[900px] w-[1440px] -translate-x-1/2">
-        <img src={asset('hero-glow-top.svg')} alt="" className="absolute max-w-none" style={{ left: 220 - 120, top: -300 - 120, width: 1240, height: 860 }} />
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[960px] w-[1440px] -translate-x-1/2">
+        {/* Верхнее свечение приглушено: под заголовком оно делало градиент грязным. */}
+        <img src={asset('hero-glow-top.svg')} alt="" className="absolute max-w-none opacity-60" style={{ left: 220 - 120, top: -300 - 120, width: 1240, height: 860 }} />
         <img src={asset('hero-glow-mid.svg')} alt="" className="absolute max-w-none" style={{ left: 520 - 90, top: 560 - 90, width: 600, height: 480 }} />
         <img src={asset('hero-glow-left.svg')} alt="" className="absolute max-w-none" style={{ left: -200 - 120, top: 400 - 120, width: 740, height: 740 }} />
-        {SPARKS.map(([x, y, s], i) => (
-          <img key={i} src={asset(`spark-${s}.svg`)} alt="" className="absolute" style={{ left: x, top: y, width: s, height: s }} />
+        {SPARKS.map((p, i) => (
+          <img
+            key={i}
+            src={asset(`spark-${p.s}.svg`)}
+            alt=""
+            className="lp-spark absolute"
+            style={{ left: p.x, top: p.y, width: p.s, height: p.s, '--lp-dur': `${p.dur}s`, '--lp-delay': `${p.delay}s`, '--lp-dx': `${p.dx}px`, '--lp-o': p.o } as CSSProperties}
+          />
         ))}
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-[1440px] flex-col items-center px-4 pt-[112px] sm:px-8 lg:h-[900px] lg:pt-[130px]">
+      <div className="relative mx-auto flex w-full max-w-[1440px] flex-col items-center px-4 pt-[112px] sm:px-8 lg:h-[960px] lg:pt-[130px]">
         <div className="flex w-full max-w-[900px] flex-col items-center gap-[22px] text-center">
           <h1 className="text-[38px] font-bold leading-[1.04] tracking-[-1px] text-[var(--color-text)] sm:text-[52px] lg:text-[68px] lg:tracking-[-1.7px]">
             {t('Учите с огоньком —')}
             <br />
-            <span className="bg-gradient-to-r from-[#8c78f2] to-[#ed993d] bg-clip-text text-transparent">{t('рутину возьмёт Искра')}</span>
+            <span className="bg-gradient-to-r from-[#7a5cff] via-[#c35cf2] to-[#ff9a3c] bg-clip-text text-transparent">{t('рутину возьмёт Искра')}</span>
           </h1>
           <p className="max-w-[640px] text-[17px] leading-[1.5] text-[var(--color-muted)] sm:text-[20px]">
             {t('Расписание, домашки с проверкой, журнал и оплаты — вокруг вас, а не в пяти чатах. Огонёк покажет, как всё устроено.')}
           </p>
           <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-start">
-            <PrimaryButton onClick={onLead}>{t('Оставить заявку')}</PrimaryButton>
+            <PrimaryButton href={SIGNUP_HREF}>{t('Зарегистрироваться')}</PrimaryButton>
             <SecondaryButton onClick={onLogin}>{t('Войти в кабинет')}</SecondaryButton>
           </div>
         </div>
 
-        {/* Огонёк: в макете 250 × 430, низ уходит под край экрана. */}
-        <img
-          src={asset('ogonek-wave.webp')}
-          alt={t('Огонёк машет рукой')}
-          loading="eager"
-          className="pointer-events-none relative mt-8 h-[260px] w-[150px] object-contain sm:h-[340px] sm:w-[200px] lg:absolute lg:left-1/2 lg:top-[500px] lg:mt-0 lg:h-[430px] lg:w-[250px] lg:-translate-x-1/2"
-        />
+        {/* Огонёк стоит на стеклянной подставке и не уходит за край экрана:
+            дышит, а верх пламени колышется отдельным слоем той же картинки. */}
+        <div className="pointer-events-none relative mt-8 flex flex-col items-center lg:absolute lg:left-1/2 lg:top-[468px] lg:mt-0 lg:-translate-x-1/2">
+          <div className="lp-breathe relative h-[260px] w-[150px] sm:h-[340px] sm:w-[200px] lg:h-[410px] lg:w-[238px]">
+            <img src={asset('ogonek-wave.webp')} alt={t('Огонёк машет рукой')} loading="eager" className="lp-flame-body absolute inset-0 h-full w-full object-contain" />
+            <img src={asset('ogonek-wave.webp')} alt="" aria-hidden loading="eager" className="lp-flame-tip absolute inset-0 h-full w-full object-contain" />
+          </div>
+          <div aria-hidden className="relative -mt-5 h-[34px] w-[190px] rounded-[999px] border border-[var(--color-border-soft)] bg-[var(--color-bg-card)] shadow-[0_18px_30px_-12px_rgba(38,26,89,0.35),inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-[10px] sm:w-[230px] lg:h-[40px] lg:w-[270px]">
+            <div className="absolute inset-x-6 top-1.5 h-2 rounded-full bg-[rgba(120,107,214,0.18)] blur-[4px]" />
+          </div>
+        </div>
 
         {/* ПК: карточки на своих местах сцены 1440. */}
-        <div className="pointer-events-none absolute left-1/2 top-0 hidden h-[900px] w-[1440px] -translate-x-1/2 lg:block">
+        <div className="pointer-events-none absolute left-1/2 top-0 hidden h-[960px] w-[1440px] -translate-x-1/2 lg:block">
           {CARDS.map(c => (
-            <div key={c.key} className="pointer-events-auto absolute" style={{ left: c.x, top: c.y }}>
-              <HintCard img={c.img} eyebrow={c.eyebrow} title={c.title} sub={c.sub} />
+            <div key={c.key} className="lp-drift pointer-events-auto absolute" style={{ left: c.x, top: c.y, '--lp-dur': `${c.dur}s`, '--lp-delay': `${c.delay}s` } as CSSProperties}>
+              <HintCard img={c.img} eyebrow={c.eyebrow} title={c.title} sub={c.sub} ry={c.ry} />
             </div>
           ))}
         </div>
 
         {/* Планшет и телефон: те же карточки сеткой под Огоньком. */}
-        <div className="relative -mt-6 mb-16 grid w-full max-w-[720px] grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
+        <div className="relative mb-16 mt-6 grid w-full max-w-[720px] grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
           {CARDS.map(c => <HintCard key={c.key} img={c.img} eyebrow={c.eyebrow} title={c.title} sub={c.sub} />)}
         </div>
       </div>

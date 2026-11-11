@@ -1,0 +1,171 @@
+/* Живые детали лендинга B: Огонёк прыгает и покачивается, карточка под ним
+   проседает в момент приземления, 3D-предметы возможностей оживают при
+   наведении. Всё выключается при «Уменьшить движение». */
+
+/* ── Огонёк: подскок с приседанием (2.6 с, приземление на 50 %) ─────────── */
+@keyframes lp-hop {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1, 1); }
+  10%      { transform: translateY(2px) rotate(0deg) scale(1.07, 0.92); }
+  30%      { transform: translateY(-26px) rotate(-3deg) scale(0.95, 1.06); }
+  50%      { transform: translateY(0) rotate(0deg) scale(1.09, 0.9); }
+  58%      { transform: translateY(-3px) rotate(0deg) scale(0.97, 1.03); }
+  66%      { transform: translateY(0) rotate(0deg) scale(1, 1); }
+  80%      { transform: translateY(0) rotate(-2.5deg) scale(1, 1); }
+  92%      { transform: translateY(0) rotate(2.5deg) scale(1, 1); }
+}
+
+/* Карточка, на которой он стоит: прогиб ровно в момент приземления. */
+@keyframes lp-press {
+  0%, 46%, 72%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(5px) scaleY(0.985); }
+  57% { transform: translateY(-2px) scaleY(1.004); }
+  64% { transform: translateY(1px) scaleY(1); }
+}
+
+/* Огонёк-спутник: переминается с ноги на ногу. */
+@keyframes lp-sway {
+  0%, 100% { transform: rotate(-5deg) translateY(0); }
+  25%      { transform: rotate(0deg) translateY(-4px); }
+  50%      { transform: rotate(5deg) translateY(0); }
+  75%      { transform: rotate(0deg) translateY(-4px); }
+}
+
+.lp-hop {
+  transform-origin: 50% 100%;
+  animation: lp-hop 2.6s cubic-bezier(.45, 0, .35, 1) infinite;
+}
+/* Огонёк на карточке виден только с 1280 px — и прогиб только там. */
+@media (min-width: 1280px) {
+  .lp-press {
+    transform-origin: 50% 100%;
+    animation: lp-press 2.6s cubic-bezier(.45, 0, .35, 1) infinite;
+  }
+}
+.lp-sway {
+  transform-origin: 50% 100%;
+  animation: lp-sway 2.4s ease-in-out infinite;
+}
+
+/* ── Возможности: карточка приподнимается, предмет взлетает, по нему блик ─ */
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-5px) rotate(-1.5deg); }
+}
+@keyframes lp-glint {
+  from { background-position: 160% 0; }
+  to   { background-position: -60% 0; }
+}
+
+.lp-feat {
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1), box-shadow .35s ease;
+}
+.lp-obj {
+  animation: lp-float 6s ease-in-out infinite;
+  animation-delay: var(--lp-delay, 0s);
+}
+.lp-obj > .lp-obj-in {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform .55s cubic-bezier(.2, .9, .25, 1.25);
+}
+/* Блик идёт только по самому предмету: маска — та же картинка. */
+.lp-glint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, .85) 50%, transparent 62%) no-repeat;
+  background-size: 260% 100%;
+  background-position: 160% 0;
+  -webkit-mask: var(--lp-mask) center / contain no-repeat;
+  mask: var(--lp-mask) center / contain no-repeat;
+}
+
+@media (hover: hover) {
+  .lp-feat:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 44px -20px rgba(38, 26, 89, .3);
+  }
+  .lp-feat:hover .lp-obj-in {
+    transform: translateY(-10px) rotate(-7deg) scale(1.08);
+  }
+  .lp-feat:hover .lp-glint {
+    opacity: 1;
+    animation: lp-glint .9s ease-out forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-hop, .lp-press, .lp-sway, .lp-obj { animation: none; }
+  .lp-feat, .lp-obj > .lp-obj-in { transition: none; }
+  .lp-feat:hover, .lp-feat:hover .lp-obj-in { transform: none; }
+  .lp-feat:hover .lp-glint { animation: none; opacity: 0; }
+}
+
+/* ── «Зачем»: Огонёк поглядывает по сторонам и задумывается (6 с) ─────── */
+@keyframes lp-think {
+  0%, 100% { transform: translateX(0) rotate(0deg) scale(1); }
+  12%      { transform: translateX(-4px) rotate(-7deg) scale(1); }
+  28%      { transform: translateX(-4px) rotate(-7deg) scale(1); }
+  42%      { transform: translateX(4px) rotate(6deg) scale(1); }
+  58%      { transform: translateX(4px) rotate(6deg) scale(1); }
+  70%      { transform: translateY(-4px) rotate(-2deg) scale(1.03); }
+  86%      { transform: translateY(-4px) rotate(-2deg) scale(1.03); }
+}
+.lp-think { transform-origin: 50% 100%; animation: lp-think 6s ease-in-out infinite; }
+
+/* ── Первый экран: Огонёк дышит, верх пламени колышется ──────────────── */
+@keyframes lp-breathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50%      { transform: translateY(-6px) scale(1.015, 0.99); }
+}
+@keyframes lp-flame {
+  0%, 100% { transform: skewX(-3deg) rotate(-1.5deg) scaleY(1); }
+  33%      { transform: skewX(2.5deg) rotate(1deg) scaleY(1.03); }
+  66%      { transform: skewX(-1deg) rotate(2deg) scaleY(0.99); }
+}
+.lp-breathe { transform-origin: 50% 100%; animation: lp-breathe 3.2s ease-in-out infinite; }
+/* Пламя — та же картинка вторым слоем: низ тела у нижнего слоя, верх у
+   верхнего, стык размыт масками, верх колышется вокруг основания огня. */
+.lp-flame-body {
+  -webkit-mask: linear-gradient(to bottom, transparent 22%, #000 40%);
+  mask: linear-gradient(to bottom, transparent 22%, #000 40%);
+}
+.lp-flame-tip {
+  transform-origin: 50% 40%;
+  animation: lp-flame 1.9s ease-in-out infinite;
+  -webkit-mask: linear-gradient(to bottom, #000 26%, transparent 42%);
+  mask: linear-gradient(to bottom, #000 26%, transparent 42%);
+}
+
+/* Карточки-подсказки: плавают, при наведении наклоняются к курсору. */
+@keyframes lp-drift {
+  0%, 100% { transform: translateY(0) rotate(var(--lp-r0, 0deg)); }
+  50%      { transform: translateY(-9px) rotate(var(--lp-r1, 0.6deg)); }
+}
+.lp-drift { animation: lp-drift var(--lp-dur, 5.5s) ease-in-out infinite; animation-delay: var(--lp-delay, 0s); }
+.lp-tilt { transition: transform .45s cubic-bezier(.2, .9, .25, 1.2), box-shadow .45s ease; transform-style: preserve-3d; }
+@media (hover: hover) {
+  .lp-tilt:hover {
+    transform: perspective(700px) rotateX(var(--lp-rx, 7deg)) rotateY(var(--lp-ry, -9deg)) scale(1.04);
+    box-shadow: 0 30px 50px -18px rgba(38, 26, 89, .35);
+  }
+}
+
+/* Искорки: каждая дрейфует вверх-вбок и мерцает в своём ритме. */
+@keyframes lp-spark {
+  0%   { transform: translate(0, 0) scale(.6); opacity: 0; }
+  20%  { opacity: var(--lp-o, .9); }
+  50%  { transform: translate(var(--lp-dx, 8px), -18px) scale(1); opacity: calc(var(--lp-o, .9) * .5); }
+  80%  { opacity: var(--lp-o, .9); }
+  100% { transform: translate(calc(var(--lp-dx, 8px) * -0.5), -36px) scale(.6); opacity: 0; }
+}
+.lp-spark { animation: lp-spark var(--lp-dur, 7s) ease-in-out infinite; animation-delay: var(--lp-delay, 0s); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-think, .lp-breathe, .lp-flame-tip, .lp-drift, .lp-spark { animation: none; }
+  .lp-spark { opacity: .7; }
+  .lp-tilt:hover { transform: none; }
+}

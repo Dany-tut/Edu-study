@@ -1,14 +1,15 @@
 // «27 режимов заданий» (Figma «Искра», стр. 290:2: секция 303:356 / тёмная
 // 303:742, блок «Постеры режимов» 347:600 / 347:768). Жанры фильтруют постеры,
 // лента листается вбок со щелчками, фейдами по краям и стрелками. Наведение или
-// фокус на любом постере — подъём, цветная рамка со свечением и стеклянная
-// кнопка «Смотреть пример» (пока без адреса).
+// фокус на любом постере — подъём, цветная рамка со свечением, и мини-макет
+// «проигрывается»: анимированный WebP из трёх стадий задания (пусто → в процессе
+// → готово), отрисованных с TaskTypePreviewCard. На телефоне играет по касанию.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useT } from '../../../lib/i18n'
 import { useTheme } from '../../../store/themeStore'
-import { Play, ChevronLeft, ChevronRight } from '../../icons/appIcons'
+import { ChevronLeft, ChevronRight } from '../../icons/appIcons'
 import { asset, Section, SectionHead } from './kit'
 
 type Genre = 'listen' | 'build' | 'write' | 'speech' | 'words'
@@ -86,6 +87,10 @@ function Poster({ n, genre, subject, dark }: { n: number; genre: Genre; subject:
   const t = useT()
   const g = genreOf(genre)
   const c = g.rgb
+  // Анимация стартует заново при каждом наведении: новый key пересоздаёт <img>.
+  const [play, setPlay] = useState(0)
+  const start = () => setPlay(v => (v > 0 ? v : Math.abs(v) + 1))
+  const stop = () => setPlay(v => -Math.abs(v))
   const style = {
     '--pc': c,
     backgroundImage: dark
@@ -97,7 +102,14 @@ function Poster({ n, genre, subject, dark }: { n: number; genre: Genre; subject:
 
   return (
     <article
-      className={`mode-poster group relative h-[336px] w-[300px] shrink-0 snap-start overflow-hidden rounded-[24px] border transition-[transform,box-shadow,border-color] duration-200 ease-out
+      tabIndex={0}
+      aria-label={`${pad(n)} · ${t(g.label)} · ${t(subject)}`}
+      onMouseEnter={start}
+      onMouseLeave={stop}
+      onFocus={start}
+      onBlur={stop}
+      onPointerUp={e => { if (e.pointerType === 'touch') setPlay(v => (v > 0 ? -v : Math.abs(v) + 1)) }}
+      className={`mode-poster group outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] relative h-[336px] w-[300px] shrink-0 snap-start overflow-hidden rounded-[24px] border transition-[transform,box-shadow,border-color] duration-200 ease-out
         hover:-translate-y-[14px] focus-within:-translate-y-[14px]
         hover:![border-color:rgba(var(--pc),0.9)] focus-within:![border-color:rgba(var(--pc),0.9)]
         ${dark
@@ -121,7 +133,8 @@ function Poster({ n, genre, subject, dark }: { n: number; genre: Genre; subject:
         </p>
       </div>
       <img
-        src={asset(`modes-${dark ? 'dark' : 'light'}-${pad(n)}.webp`)}
+        key={play > 0 ? `play-${play}` : 'still'}
+        src={asset(`modes-${dark ? 'dark' : 'light'}-${pad(n)}${play > 0 ? '-play' : ''}.webp`)}
         alt=""
         loading="lazy"
         decoding="async"
@@ -132,19 +145,6 @@ function Poster({ n, genre, subject, dark }: { n: number; genre: Genre; subject:
         className="pointer-events-none absolute bottom-0 left-0 h-[56px] w-full"
         style={{ backgroundImage: `linear-gradient(180deg, rgba(${fade},0) 0%, rgba(${fade},0.95) 100%)` }}
       />
-      <button
-        type="button"
-        aria-label={`${t('Смотреть пример')} ${pad(n)}`}
-        className="absolute left-1/2 top-[276px] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-[rgba(255,255,255,0.55)] py-2.5 pl-3.5 pr-4 text-[14px] font-semibold text-white opacity-0 outline-none backdrop-blur-[7px] transition-opacity duration-200
-          focus-visible:ring-2 focus-visible:ring-white group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
-        style={{
-          backgroundImage: `linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0) 100%), linear-gradient(rgba(${c},0.62), rgba(${c},0.62))`,
-          boxShadow: `0 8px 20px -4px rgba(${c},0.35)`,
-        }}
-      >
-        <Play size={18} color="#fff" aria-hidden style={{ '--loop-soft': 'rgba(255,255,255,0.25)' } as CSSProperties} />
-        {t('Смотреть пример')}
-      </button>
     </article>
   )
 }
@@ -230,7 +230,7 @@ export default function ModesSection() {
           <div
             ref={stripRef}
             onScroll={measure}
-            className="flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto overscroll-x-contain px-4 py-5 [scrollbar-width:none] sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+            className="flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto overscroll-x-contain px-4 pb-14 pt-5 -mb-9 [scrollbar-width:none] sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
             aria-label={t('Постеры режимов')}
             role="region"
             tabIndex={-1}
