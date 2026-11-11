@@ -39,6 +39,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import QuestionTable from './QuestionTable'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
+import CellsInput from './CellsInput'
 import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './ScriptKeyboard'
 import { useT } from '../lib/i18n'
 import { bindShortWords, proseWrap } from '../lib/typography'
@@ -251,7 +252,18 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     Сюда же падает недозаполненная письменность (тип выбран, а
                     буква или слог не указаны): без этого запаса такое задание
                     осталось бы вовсе без поля ответа — решить его нельзя. */}
-                {(tp === 'fill' || tp === 'extended'
+                {/* Клетки бланка ЕГЭ: ответ fill по клеткам, цифры по порядку. */}
+                {tp === 'fill' && !!task.cells && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <CellsInput
+                      value={(answers[task.id] as string) ?? ''}
+                      count={task.cells}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {((tp === 'fill' && !task.cells) || tp === 'extended'
                   || (tp === 'trace' && !task.chamo)
                   || (tp === 'buildSyllable' && !task.syllable)
                   || ((tp === 'unscramble' || tp === 'charBank') && charUnits(task.answer ?? '').length < 2)

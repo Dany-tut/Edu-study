@@ -53,6 +53,8 @@ export interface HomeworkQuizQuestion {
   decimal?: boolean
   numpad?: boolean
   decimals?: number
+  /** fill — показать ответ клетками бланка ЕГЭ: число клеток (см. TaskPayload.cells). */
+  cells?: number
   /** Пары сопоставления; сторона может быть картинкой (см. MatchingSolver). */
   pairs?: Array<{ left: string; right: string; leftImage?: string; rightImage?: string }>
   /** Items in the correct order for a 'sequence' task (shown shuffled). */
@@ -400,6 +402,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     decimal: t.decimal,
     numpad: t.numpad,
     decimals: t.decimals,
+    cells: t.cells,
     pairs: tp === 'matching' ? t.pairs : undefined,
     // blockOrder собирается из тех же авторских блоков, что и sequence, — без
     // переноса задание доезжало бы до ученика пустым полем текста.
