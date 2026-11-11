@@ -77,7 +77,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
     private var headerBackButton: UIButton?
     private var headerTitleWidth: NSLayoutConstraint?
     // Стеклянный бар экрана (ученик, iPhone): таблетка сверху + ряд снизу.
-    private var barTopView: UIButton?
+    private var barTopViews: [UIButton] = []
     private var barBottomView: UIStackView?
     private var barLastOptions: JSObject?
     private var barLastKey = ""
@@ -226,22 +226,30 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
 
     private func buildBar(_ opts: JSObject, traits: UITraitCollection) {
         guard let host = self.host else { return }
-        self.barTopView?.removeFromSuperview(); self.barTopView = nil
+        self.barTopViews.forEach { $0.removeFromSuperview() }; self.barTopViews.removeAll()
         self.barBottomView?.removeFromSuperview(); self.barBottomView = nil
 
-        if let top = opts["top"] as? JSObject {
-            let b = self.barButton(top, traits: traits)
-            b.translatesAutoresizingMaskIntoConstraints = false
-            host.view.addSubview(b)
+        let topItems = opts["top"] as? [JSObject] ?? (opts["top"] as? JSObject).map { [$0] } ?? []
+        for item in topItems {
+            let button = self.barButton(item, traits: traits)
+            button.translatesAutoresizingMaskIntoConstraints = false
+            host.view.addSubview(button)
+            let horizontal: NSLayoutConstraint
+            switch item["position"] as? String {
+            case "leading": horizontal = button.leadingAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.leadingAnchor, constant: 16)
+            case "trailing": horizontal = button.trailingAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
+            default: horizontal = button.centerXAnchor.constraint(equalTo: host.view.centerXAnchor)
+            }
             NSLayoutConstraint.activate([
-                b.centerXAnchor.constraint(equalTo: host.view.centerXAnchor),
-                // Канон iPhone «туго-к-верху» (Дани): таблетка бара на той же линии,
-                // что и веб-шапки (mobileTokens MOBILE_TOP_GAP=2). Было 22 — ниже веба.
-                b.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 2),
-                b.heightAnchor.constraint(equalToConstant: 44),
-                b.widthAnchor.constraint(lessThanOrEqualTo: host.view.widthAnchor, constant: -120),
+                horizontal,
+                button.topAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.topAnchor, constant: 2),
+                button.heightAnchor.constraint(equalToConstant: 44),
+                button.widthAnchor.constraint(lessThanOrEqualTo: host.view.widthAnchor, constant: topItems.count > 1 ? -136 : -120),
             ])
-            self.barTopView = b
+            if (item["kind"] as? String) == "circle" {
+                button.widthAnchor.constraint(equalToConstant: 44).isActive = true
+            }
+            self.barTopViews.append(button)
         }
 
         let items = opts["bottom"] as? [JSObject] ?? []
@@ -294,6 +302,10 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             config.attributedTitle = text
             config.titleLineBreakMode = .byClipping
             config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 18, bottom: 0, trailing: 16)
+            if let symbol, menuItems == nil {
+                config.image = LoopNativeIcons.image(symbol, traits: traits)
+                config.imagePadding = 6
+            }
             if menuItems != nil {
                 config.image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(accent, renderingMode: .alwaysOriginal)
                 config.imagePlacement = .trailing
@@ -305,10 +317,16 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         }
         let button = GlassBarButton(configuration: config)
         button.accessibilityLabel = (it["label"] as? String) ?? title
+        if it["passive"] as? Bool == true {
+            button.accessibilityTraits = .staticText
+            button.isUserInteractionEnabled = false
+            return button
+        }
         // Точка «фильтр включён» у круга.
-        if active && title == nil {
+        let unread = it["unread"] as? Bool ?? false
+        if (active || unread) && title == nil {
             let dot = UIView()
-            dot.backgroundColor = accent
+            dot.backgroundColor = unread ? .systemRed : accent
             dot.layer.cornerRadius = 4
             dot.translatesAutoresizingMaskIntoConstraints = false
             dot.isUserInteractionEnabled = false
@@ -348,12 +366,14 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         let bottom = call.getBool("bottom") ?? false
         DispatchQueue.main.async {
             UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut, .beginFromCurrentState]) {
-                self.barTopView?.alpha = top ? 0 : 1
-                self.barTopView?.transform = top ? CGAffineTransform(translationX: 0, y: -24) : .identity
+                self.barTopViews.forEach { button in
+                    button.alpha = top ? 0 : 1
+                    button.transform = top ? CGAffineTransform(translationX: 0, y: -24) : .identity
+                }
                 self.barBottomView?.alpha = bottom ? 0 : 1
                 self.barBottomView?.transform = bottom ? CGAffineTransform(translationX: 0, y: 40) : .identity
             }
-            self.barTopView?.isUserInteractionEnabled = !top
+            self.barTopViews.forEach { $0.isUserInteractionEnabled = !top && !$0.accessibilityTraits.contains(.staticText) }
             self.barBottomView?.isUserInteractionEnabled = !bottom
             call.resolve()
         }
@@ -361,7 +381,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
 
     @objc func barRemove(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            self.barTopView?.removeFromSuperview(); self.barTopView = nil
+            self.barTopViews.forEach { $0.removeFromSuperview() }; self.barTopViews.removeAll()
             self.barBottomView?.removeFromSuperview(); self.barBottomView = nil
             self.barLastOptions = nil
             self.barLastKey = ""

@@ -32,11 +32,14 @@ export type GlassBarItem = {
   symbol?: string
   label?: string
   active?: boolean
+  unread?: boolean
+  passive?: boolean
+  position?: 'leading' | 'center' | 'trailing'
   menuTitle?: string
   menu?: { value: string; title: string; checked?: boolean }[]
 }
 /** Бар экрана: таблетка по центру сверху и ряд над вкладками. */
-export type GlassBar = { top?: GlassBarItem; bottom?: GlassBarItem[] }
+export type GlassBar = { top?: GlassBarItem | GlassBarItem[]; bottom?: GlassBarItem[] }
 
 export type GlassHeader = { leading: string; leadingSymbol?: string; trailingText?: string; trailingSymbol?: string; onBack?: () => void; backLabel?: string }
 

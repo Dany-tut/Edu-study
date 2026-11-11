@@ -2,13 +2,17 @@ import { textFadeLines, textFadeStyle } from '../lib/textFades'
 import { LoopSelect } from './icons/LoopSelect'
 import { motion } from 'framer-motion'
 import { SubjectMark } from './icons/SubjectMark'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Flame, CheckCircle2, Star, TrendingUp, TrendingDown, Zap, Moon, Sun, Download, ChevronRight, ChevronDown, Check, BookOpen, ListChecks, Camera, X } from './icons/appIcons'
 import MobileScreen from './MobileScreen'
 import MobileBottomNav from './MobileBottomNav'
 import HScrollFade from './HScrollFade'
 import { DynamicIsland } from './mobileChrome'
 import MobileBell from './MobileBell'
+import NotificationPopup from './NotificationPopup'
+import { useNotificationsStore } from '../store/notificationsStore'
+import { GLASS, useGlassBar, useNativeOverlay } from '../lib/nativeGlass'
+import { PLATFORM } from '../lib/platform'
 import FeedbackModal from './FeedbackModal'
 import { useMyPayment } from '../lib/paymentClaims'
 import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
@@ -147,12 +151,34 @@ export default function MobileProfilePage() {
   const rankSubject = scopeSubject ?? subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
   const rank = t(subjectRank(rankSubject?.subject, level))
 
-  const topZone = (
+  const nativeChrome = GLASS && PLATFORM === 'iphone'
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const notificationAnchor = useRef<HTMLSpanElement>(null)
+  const unread = useNotificationsStore(s => s.notifications.some(notification => !notification.read))
+  const streakLabel = `${stats.streak} ${plural(stats.streak, ['день', 'дня', 'дней'], ['day', 'days'], lang)}`
+  useGlassBar(nativeChrome ? {
+    top: [
+      { id: 'profile-stats', kind: 'pill', passive: true, symbol: 'flame', title: `${streakLabel} · ${stats.totalPoints}` },
+      { id: 'profile-notifications', kind: 'circle', position: 'trailing', symbol: 'bell', label: t('Уведомления'), unread },
+    ],
+  } : null, {
+    onTap: id => {
+      if (id === 'profile-notifications') setNotificationsOpen(open => !open)
+    },
+  })
+  useNativeOverlay(nativeChrome && notificationsOpen)
+
+  const topZone = nativeChrome ? (
+    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <span ref={notificationAnchor} aria-hidden="true" style={{ width: 44, height: 44 }} />
+      <NotificationPopup open={notificationsOpen} anchorRef={notificationAnchor} onClose={() => setNotificationsOpen(false)} />
+    </div>
+  ) : (
     <div className="flex items-center justify-between" style={{ gap: 8 }}>
       <div style={{ width: 38, flexShrink: 0 }} />
       <DynamicIsland>
         <Flame size={16} style={{ color: '#F8A23B' }} />
-        <span>{stats.streak} {plural(stats.streak, ['день', 'дня', 'дней'], ['day', 'days'], lang)}</span>
+        <span>{streakLabel}</span>
         <span style={{ opacity: 0.35 }}>·</span>
         <Zap size={14} style={{ color: 'var(--color-accent)' }} />
         <span>{stats.totalPoints}</span>
