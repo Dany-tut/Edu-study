@@ -42,7 +42,7 @@ export default function PainSection() {
           aria-hidden
           loading="lazy"
           decoding="async"
-          className="h-[140px] w-[84px] shrink-0 object-contain md:h-[150px] md:w-[90px] lg:h-[200px] lg:w-[120px]"
+          className="lp-think h-[140px] w-[84px] shrink-0 object-contain md:h-[150px] md:w-[90px] lg:h-[200px] lg:w-[120px]"
         />
 
         <div className="flex w-full flex-col gap-[14px] rounded-[24px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] p-6 sm:p-7 md:max-w-[470px] md:flex-1">

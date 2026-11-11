@@ -6387,6 +6387,9 @@ export const EN: Record<string, string> = {
   "Списком по дням": "Day list",
 
   // Лендинг B · «Огонёк-проводник» (src/components/landing/b)
+  "Зарегистрироваться": "Sign up",
+  "Войдите через Яндекс или VK — кабинет преподавателя откроется сразу. Первые два ученика — бесплатно.": "Sign in with Yandex or VK — your teacher workspace opens right away. Your first two students are free.",
+  "Нажмите «Зарегистрироваться» и войдите через Яндекс или VK — кабинет преподавателя откроется сразу. До двух учеников — бесплатно, платный тариф подключим по заявке.": "Click “Sign up” and sign in with Yandex or VK — your teacher workspace opens right away. Up to two students is free; paid plans are activated on request.",
   "Зажгите Искру в своей практике": "Spark up your teaching practice",
   "Оставьте контакт — расскажем, как начать, и поможем перенести учеников. Первые два — бесплатно.": "Leave your contact — we'll show you how to start and help move your students over. The first two are free.",
   "НАСТОЯЩИЕ ЭКРАНЫ": "REAL SCREENS",
