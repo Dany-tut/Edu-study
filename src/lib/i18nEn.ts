@@ -6540,4 +6540,10 @@ export const EN: Record<string, string> = {
   "Клеток бланка ЕГЭ": "Exam answer cells",
   "Число клеток бланка": "Number of answer cells",
   "ответ по клеткам, цифры по порядку": "answer in cells, digits in order",
+
+  // Пикер «ЕГЭ / ОГЭ · Каталог ФИПИ»
+  "Скрыть ФИПИ": "Hide FIPI",
+  "ЕГЭ / ОГЭ · ФИПИ": "Exam catalog · FIPI",
+  "Номер задания или тема": "Task number or topic",
+  "Источник: ФИПИ · спецификация и демоверсия": "Source: FIPI · specification and demo",
 }

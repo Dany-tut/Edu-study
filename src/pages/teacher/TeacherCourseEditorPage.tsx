@@ -2,6 +2,7 @@ import './lessonRow.css'
 import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
 import Model3DPicker from '../../components/teacher/Model3DPicker'
+import FipiPicker from '../../components/teacher/FipiPicker'
 import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
@@ -4473,13 +4474,15 @@ function TestlyLockedButton() {
 // ─── LEFT: Homework meta + task-type picker ──────────────────────────────────
 
 function HomeworkLeftPanel({
-  lesson, onUpdate, hwTab, setHwTab, isLanguage = false,
+  lesson, onUpdate, hwTab, setHwTab, isLanguage = false, courseSubject,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
   hwTab: string
   setHwTab: (t: string) => void
   isLanguage?: boolean
+  /** Предмет курса — для подстановки в пикер ФИПИ по умолчанию. */
+  courseSubject?: string
 }) {
   const t = useT()
   const slot = hwSlot(lesson, hwTab)
@@ -4491,8 +4494,8 @@ function HomeworkLeftPanel({
   const [hardMode, setHardMode] = useState(false)
   // Закреплённый низ: «Из тренажёра» / «Из Тестли» не уезжают с прокруткой типов.
   // Раскрыт максимум один список, иначе два по 260 px вытесняют палитру целиком.
-  const [footOpen, setFootOpen] = useState<'bank' | 'testly' | null>(null)
-  const toggleFoot = (k: 'bank' | 'testly') => setFootOpen(o => (o === k ? null : k))
+  const [footOpen, setFootOpen] = useState<'bank' | 'testly' | 'fipi' | null>(null)
+  const toggleFoot = (k: 'bank' | 'testly' | 'fipi') => setFootOpen(o => (o === k ? null : k))
   const { ref: hwScrollRef, fade: hwFade, thumb: hwThumb, onScroll: onHwScroll } = useOverlayScroll()
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
@@ -4600,6 +4603,16 @@ function HomeworkLeftPanel({
             {testlyOn
               ? <TestlyButton open={footOpen === 'testly'} onToggle={() => toggleFoot('testly')} addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />
               : testlyLoaded && <TestlyLockedButton />}
+            {/* Каталог ФИПИ: линия → готовое типизированное задание с меткой examTag */}
+            <FipiPicker
+              open={footOpen === 'fipi'} onToggle={() => toggleFoot('fipi')}
+              courseSubject={courseSubject}
+              onAdd={(st, line, cat) => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, {
+                ...makeHWTask(st.type, false), question: st.prompt,
+                ...(st.cells ? { cells: st.cells } : {}),
+                examTag: { exam: cat.exam, subject: cat.subject, line: line.number },
+              }] }))}
+            />
           </>
         ) : (
           <BankPicker hard open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, true)} />
@@ -7568,6 +7581,7 @@ export default function TeacherCourseEditorPage() {
                     hwTab={hwTab}
                     setHwTab={setHwTab}
                     isLanguage={isLanguageSubject(course.subject)}
+                    courseSubject={course.subject}
                   />
                 )}
                 {lessonMode === 'students' && (
