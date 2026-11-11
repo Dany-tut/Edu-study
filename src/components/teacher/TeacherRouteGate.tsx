@@ -7,6 +7,7 @@ import { useNativeOverlay } from '../../lib/nativeGlass'
 import { useT } from '../../lib/i18n'
 import TeacherLoginPage from '../../pages/teacher/TeacherLoginPage'
 import ScrollFade from '../ScrollFade'
+import IskraMark from '../landing/IskraMark'
 import { likelyStaff, writeStaffHint } from '../../lib/cabinetChoice'
 
 function accessScope(session: Session | null | undefined) {
@@ -80,13 +81,20 @@ export default function TeacherRouteGate({ session, children }: { session: Sessi
 
   const login = (accessNotice?: 'denied' | 'error') => <TeacherLoginPage accessNotice={accessNotice}
     onRetryAccess={() => setRetry(value => value + 1)} onLogin={() => setRetry(value => value + 1)} />
+  // Общая бренд-шапка gate-экранов: логотип «Искра» для контекста (не голая карточка),
+  // всё на токенах темы (в тёмной — тёмный фон/карточка, как на остальных auth-экранах).
+  const brand = <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+    <IskraMark size={30} tone="deep" />
+    <span style={{ fontSize: 18, fontWeight: 750, color: 'var(--color-text)' }}>{t('Искра')}</span>
+  </div>
   if (session === null) return login()
   // A changed user/session/role is fenced during render, before effects run.
   if (!allowed && (session === undefined || !current || current.status === 'loading')) {
     return <ScrollFade maxHeight="100dvh" style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
-      <div className="auth-page-layout" style={{ minHeight: '100dvh' }}>
-        <p role="status" style={{ color: 'var(--color-muted)', fontSize: 15 }}>{t('Проверяем доступ…')}</p>
-      </div>
+      <div className="auth-page-layout" style={{ minHeight: '100dvh' }}><div className="auth-page-content auth-page-card">
+        {brand}
+        <p role="status" style={{ margin: 0, color: 'var(--color-muted)', fontSize: 15 }}>{t('Проверяем доступ…')}</p>
+      </div></div>
     </ScrollFade>
   }
   return <>
@@ -94,11 +102,12 @@ export default function TeacherRouteGate({ session, children }: { session: Sessi
     {blockedDraft && <div ref={recovery}>
       <ScrollFade maxHeight="100dvh" style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)' }}>
         <div className="auth-page-layout" style={{ minHeight: '100dvh' }}><div className="auth-page-content auth-page-card">
-          <p role="status" style={{ color: 'var(--color-text)', fontSize: 15 }}>{t(current?.status === 'loading' ? 'Проверяем доступ…' : 'Не удалось проверить доступ')}</p>
-          <p style={{ color: 'var(--color-muted)', fontSize: 14 }}>{t('Повторите проверку доступа, чтобы продолжить работу.')}</p>
+          {brand}
+          <h1 role="status" style={{ margin: '0 0 6px', color: 'var(--color-text)', fontSize: 22, lineHeight: 1.15, letterSpacing: '-.02em', fontWeight: 740 }}>{t(current?.status === 'loading' ? 'Проверяем доступ…' : 'Не удалось проверить доступ')}</h1>
+          <p style={{ margin: '0 0 18px', color: 'var(--color-muted)', fontSize: 14, lineHeight: 1.4 }}>{t('Повторите проверку доступа, чтобы продолжить работу.')}</p>
           <button data-hover="layer" type="button" disabled={current?.status === 'loading'} aria-busy={current?.status === 'loading'}
             onClick={() => setRetry(value => value + 1)}
-            style={{ width: '100%', minHeight: 44, padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 14, fontWeight: 600 }}>
+            style={{ width: '100%', minHeight: 48, padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 650, cursor: 'pointer' }}>
             {t('Проверить доступ ещё раз')}
           </button>
         </div></div>
