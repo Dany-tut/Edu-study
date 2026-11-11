@@ -75,6 +75,7 @@ const STAGE_BY_TYPE: Record<string, LadderStage> = {
   speaking: 4,
   imageDescribe: 4,
   imageCompare: 4,
+  numeric: 4,
 }
 
 /**

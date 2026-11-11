@@ -47,6 +47,12 @@ export interface HomeworkQuizQuestion {
   referenceAnswer?: string
   /** fill — скелет ответа, опора ступени 5 (см. TaskPayload.answerSkeleton). */
   answerSkeleton?: string
+  /** numeric — эталон-число в referenceAnswer; здесь — допуск, единицы и формат ввода. */
+  numTolerance?: number
+  unit?: string
+  decimal?: boolean
+  numpad?: boolean
+  decimals?: number
   /** Пары сопоставления; сторона может быть картинкой (см. MatchingSolver). */
   pairs?: Array<{ left: string; right: string; leftImage?: string; rightImage?: string }>
   /** Items in the correct order for a 'sequence' task (shown shuffled). */
@@ -388,6 +394,12 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     referenceAnswer: t.answer?.trim() || undefined,
     altAnswers: t.altAnswers,
     answerSkeleton: t.answerSkeleton,
+    // numeric — число сверяется с допуском; единицы и формат ввода доезжают к ученику.
+    numTolerance: t.numTolerance,
+    unit: t.unit,
+    decimal: t.decimal,
+    numpad: t.numpad,
+    decimals: t.decimals,
     pairs: tp === 'matching' ? t.pairs : undefined,
     // blockOrder собирается из тех же авторских блоков, что и sequence, — без
     // переноса задание доезжало бы до ученика пустым полем текста.

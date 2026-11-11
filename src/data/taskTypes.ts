@@ -21,7 +21,7 @@
 
 import type { ElementType } from 'react'
 import {
-  AlignLeft, ArrowUpDown, CheckSquare, ChevronDown, Columns3, ExternalLink, Image as ImageIcon,
+  AlignLeft, ArrowUpDown, CheckSquare, ChevronDown, Columns3, ExternalLink, Hash, Image as ImageIcon,
   Images, Keyboard, Layers, LayoutGrid, ListChecks, Grid3x3, ListOrdered, MessagesSquare, Mic,
   PenLine, Play, Puzzle, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from '../components/icons/appIcons'
@@ -43,6 +43,7 @@ export type TaskTypeId =
   | 'single'        // один верный вариант
   | 'multi'         // несколько верных вариантов
   | 'fill'          // вписать слово/фразу
+  | 'numeric'       // ответ-число с допуском ± (запятая и точка равны, единицы не в счёт)
   | 'extended'      // развёрнутый ответ (проверяет учитель)
   | 'matching'      // сопоставление пар
   | 'sequence'      // расставить по порядку
@@ -253,6 +254,24 @@ export interface TaskPayload {
    * Только у `fill`. Пусто — задание остаётся ступенью 6, как и было.
    */
   answerSkeleton?: string
+
+  // ── число (numeric) ──
+  //
+  // Ответ-число хранится в `answer` строкой («69,94»), чтобы не терять форму
+  // записи автора. Сверка парсит обе стороны в число (parseNumeric) и считает
+  // верным попадание в ±numTolerance. Запятая и точка равны, пробелы и единицы
+  // отбрасываются — ученик не должен угадывать, писать «%» или нет.
+
+  /** Допуск ±: |ответ − эталон| ≤ numTolerance засчитывается. Пусто — точное совпадение. */
+  numTolerance?: number
+  /** Единицы измерения, которые показываем ученику суффиксом в поле (%, г, моль). Не влияют на сверку. */
+  unit?: string
+  /** Сколько знаков после запятой ждём — подсказка ученику, на сверку не влияет. */
+  decimals?: number
+  /** Разрешить дробное число (запятую/точку и нампад с запятой). По умолчанию true. */
+  decimal?: boolean
+  /** Показывать цифровую клавиатуру (нампад) на телефоне. По умолчанию true. */
+  numpad?: boolean
 
   // пары / порядок / таблица
   /**
@@ -487,6 +506,24 @@ export { normAnswer } from '../lib/answerForms'
 /** Совпал ли ответ с эталоном или с одним из альтернативных вариантов. */
 function matchesText(given: string, t: TaskPayload): boolean {
   return matchesAnyAnswer(given, [t.answer, ...(t.altAnswers ?? [])])
+}
+
+/**
+ * Число из записи ученика или автора: «69,94» и «69.94» одно и то же, пробелы
+ * (в т.ч. узкие и неразрывные) и хвост-единица («12 г», «3,5%») отбрасываются.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНО ОТ fill. У строкового сравнения «63,5» ≠ «63.5», «12» ≠ «12 г»,
+ * и округление ловится как ошибка. Числовому ответу нужна сверка ПО ЗНАЧЕНИЮ с
+ * допуском, а не по форме записи. Берём первое число из строки: единицы и знак
+ * процента, которые ученик мог дописать, на него не влияют.
+ */
+export function parseNumeric(s: unknown): number | null {
+  if (typeof s !== 'string') return typeof s === 'number' && Number.isFinite(s) ? s : null
+  const cleaned = s.replace(/[\s  ]/g, '').replace(',', '.')
+  const m = cleaned.match(/-?\d*\.?\d+(?:[eE][-+]?\d+)?/)
+  if (!m) return null
+  const v = Number(m[0])
+  return Number.isFinite(v) ? v : null
 }
 
 /**
@@ -829,6 +866,27 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       return { auto: true, correct: typeof a === 'string' && matchesText(a, t) }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
+
+  numeric: def({
+    id: 'numeric', family: 'input',
+    label: 'Число', hint: 'Ответ-число с допуском ±',
+    Icon: Hash,
+    // Нампад и дробное — по умолчанию включены: большинство числовых ответов на
+    // телефоне набирают цифрами, а запятую отнимать у химии/физики нельзя.
+    makeDefault: () => ({ numpad: true, decimal: true }),
+    isGradable: t => parseNumeric(t.answer) !== null,
+    grade: (t, a) => {
+      const want = parseNumeric(t.answer)
+      if (want === null) return NOT_AUTO
+      const got = parseNumeric(a)
+      if (got === null) return { auto: true, correct: false }
+      // Допуск неотрицательный; крошечный эпсилон гасит ошибку двоичной дроби
+      // (0,1 + 0,2 и подобное), иначе точный ответ на границе считался бы мимо.
+      const tol = Math.abs(t.numTolerance ?? 0)
+      return { auto: true, correct: Math.abs(got - want) <= tol + 1e-9 }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: true, languageOnly: false,
   }),
 
   extended: def({
