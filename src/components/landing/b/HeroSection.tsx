@@ -73,17 +73,17 @@ export function LandingHeader({ onLogin }: Actions) {
       {/* При прокрутке шапка плавно стягивается из полосы во всю ширину в
           плавающую капсулу по центру: морф max-width, высоты, радиуса и стекла. */}
       <div
-        className={`mx-auto flex w-full items-center gap-7 transition-[max-width,height,margin-top,border-radius,padding,background-color,box-shadow,border-color,backdrop-filter] duration-300 ease-out ${
+        className={`mx-auto flex w-full items-center transition-[max-width,height,margin-top,border-radius,padding,gap,background-color,box-shadow,border-color,backdrop-filter] duration-300 ease-out ${
           scrolled
-            ? 'mt-2.5 h-[58px] max-w-[1100px] rounded-full border border-[var(--color-border-soft)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-4 shadow-[0_14px_34px_-14px_rgba(38,26,89,0.45)] backdrop-blur-[16px] sm:px-6'
-            : 'mt-0 h-[72px] max-w-[1440px] rounded-none border border-transparent bg-transparent px-4 shadow-none sm:px-8 xl:px-14'
+            ? 'mt-2.5 h-[54px] max-w-[1080px] gap-5 rounded-full border border-[var(--color-border-soft)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] pl-5 pr-2 shadow-[0_14px_34px_-14px_rgba(38,26,89,0.45)] backdrop-blur-[16px]'
+            : 'mt-0 h-[72px] max-w-[1440px] gap-7 rounded-none border border-transparent bg-transparent px-4 shadow-none sm:px-8 xl:px-14'
         }`}
       >
-        <a href="#top" className="iskra-host flex shrink-0 items-center gap-[11px] text-[21px] font-bold text-[var(--color-text)]">
-          <IskraMark size={32} />
+        <a href="#top" className="iskra-host flex shrink-0 items-center gap-[10px] text-[20px] font-bold text-[var(--color-text)]">
+          <IskraMark size={30} />
           Искра
         </a>
-        <nav className="hidden items-center gap-[26px] text-[15px] font-medium text-[var(--color-muted)] lg:flex">
+        <nav className="hidden items-center gap-[22px] text-[14px] font-medium text-[var(--color-muted)] lg:flex">
           {links.map(([href, label]) => (
             <a key={href} href={href} data-hover="link" className="transition-colors hover:text-[var(--color-text)]">{t(label)}</a>
           ))}
