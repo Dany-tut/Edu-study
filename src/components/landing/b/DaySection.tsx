@@ -12,6 +12,7 @@
 import { Check } from '../../icons/appIcons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useT } from '../../../lib/i18n'
+import './landing-motion.css'
 import { useTheme } from '../../../store/themeStore'
 import { asset, IPhone, Mac, Section, SectionHead } from './kit'
 
@@ -94,20 +95,128 @@ function useWidth<T extends HTMLElement>() {
   return [ref, w] as const
 }
 
-function Scene({ tab, dark }: { tab: Tab; dark: boolean }) {
+// Слоты устройств: рамки остаются на месте между вкладками, меняется только
+// снимок внутри. Mac — один слот; айфоны раскладываются справа налево, чтобы
+// «главный» айфон 09:00/14:00 переезжал на ближайшее место в 18:30, а второй
+// проявлялся рядом. Отсутствующий во вкладке слот гаснет там, где стоял.
+type SlotKey = 'mac' | 'iphone-0' | 'iphone-1'
+const SLOT_KEYS: SlotKey[] = ['mac', 'iphone-0', 'iphone-1']
+
+function slotsOf(tab: Tab): Partial<Record<SlotKey, Device>> {
+  const out: Partial<Record<SlotKey, Device>> = {}
+  const mac = tab.devices.find(d => d.kind === 'mac')
+  if (mac) out.mac = mac
+  tab.devices.filter(d => d.kind === 'iphone').sort((a, b) => b.x - a.x).slice(0, 2)
+    .forEach((d, i) => { out[`iphone-${i}` as SlotKey] = d })
+  return out
+}
+
+/** Где слот стоит, когда его нет во вкладке: последнее место из ближайших вкладок. */
+function homeOf(key: SlotKey, from: number): Device | undefined {
+  for (let k = 0; k < TABS.length; k++) {
+    const d = slotsOf(TABS[(from - k + TABS.length) % TABS.length])[key]
+    if (d) return d
+  }
+  return undefined
+}
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    if (!mq) return
+    const on = () => setReduced(mq.matches)
+    mq.addEventListener?.('change', on)
+    return () => mq.removeEventListener?.('change', on)
+  }, [])
+  return reduced
+}
+
+const FLASH_IN = 180
+const FLASH_OUT = 220
+
+/** Один экран устройства: новый снимок грузится заранее, затем экран «гаснет» в
+ *  белый (в тёмной теме — почти чёрный), снимок меняется и экран загорается. */
+function DeviceSlot({ dev, src, visible, s, top, dark, reduced }: {
+  dev: Device; src: string; visible: boolean; s: number; top: number; dark: boolean; reduced: boolean
+}) {
+  const [shown, setShown] = useState(src)
+  const [flash, setFlash] = useState(false)
+  const wasVisible = useRef(visible)
+
+  useEffect(() => {
+    const hiddenBefore = !wasVisible.current
+    wasVisible.current = visible
+    if (src === shown) { setFlash(false); return }
+    // Скрытый слот и «уменьшить движение» — смена без вспышки.
+    if (reduced || hiddenBefore || !visible) { setShown(src); setFlash(false); return }
+    let cancelled = false
+    const timers: number[] = []
+    const go = () => {
+      if (cancelled) return
+      setFlash(true)
+      timers.push(window.setTimeout(() => {
+        setShown(src)
+        timers.push(window.setTimeout(() => setFlash(false), 40))
+      }, FLASH_IN))
+    }
+    const img = new Image()
+    img.src = src
+    if (typeof img.decode === 'function') img.decode().then(go, go)
+    else { img.onload = go; img.onerror = go }
+    return () => { cancelled = true; timers.forEach(clearTimeout) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, visible, reduced])
+
+  const w = dev.w * s
+  const radius = dev.kind === 'mac' ? (12 * w) / 1512 : (58 * w) / 402
+  const inner = { transition: reduced ? 'none' : undefined }
+  return (
+    <div
+      className="lp-day-dev"
+      data-reduced={reduced || undefined}
+      aria-hidden={!visible || undefined}
+      style={{
+        left: dev.x * s,
+        top: (dev.y - top) * s,
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'none' : 'scale(.94)',
+        zIndex: dev.kind === 'mac' ? 1 : 2,
+      }}
+    >
+      {dev.kind === 'mac'
+        ? <Mac src={shown} width={w} style={inner} screenBg={dev.kind === 'mac' ? dev.screenBg : undefined} alt="" className="lp-day-device" />
+        : <IPhone src={shown} width={w} style={inner} alt="" className="lp-day-device" />}
+      <span
+        aria-hidden
+        className="lp-day-flash"
+        style={{
+          borderRadius: radius,
+          background: dark ? '#16161a' : '#ffffff',
+          opacity: flash ? 1 : 0,
+          transitionDuration: reduced ? '0ms' : `${flash ? FLASH_IN : FLASH_OUT}ms`,
+          transitionTimingFunction: flash ? 'ease-out' : 'ease-in-out',
+        }}
+      />
+    </div>
+  )
+}
+
+function Scene({ active, dark }: { active: number; dark: boolean }) {
   const [ref, width] = useWidth<HTMLDivElement>()
+  const reduced = useReducedMotion()
   const full = width >= SCENE_W
   const s = Math.min(1, width / SCENE_W)
   const top = full ? 0 : TRIM_TOP
   const h = (full ? SCENE_H : TRIM_H) * s
+  const slots = slotsOf(TABS[active])
   return (
     <div ref={ref} className="relative w-full xl:w-[760px] xl:shrink-0" style={{ height: h || undefined, aspectRatio: width ? undefined : `${SCENE_W} / ${TRIM_H}` }}>
-      {width > 0 && tab.devices.map((d, i) => {
-        const src = asset(dark && d.srcDark ? d.srcDark : d.src)
-        const style = { position: 'absolute' as const, left: d.x * s, top: (d.y - top) * s }
-        return d.kind === 'mac'
-          ? <Mac key={`${tab.id}-${i}`} src={src} width={d.w * s} style={style} screenBg={d.screenBg} alt="" />
-          : <IPhone key={`${tab.id}-${i}`} src={src} width={d.w * s} style={style} alt="" />
+      {width > 0 && SLOT_KEYS.map(key => {
+        const dev = slots[key] ?? homeOf(key, active)
+        if (!dev) return null
+        const src = asset(dark && dev.srcDark ? dev.srcDark : dev.src)
+        return <DeviceSlot key={key} dev={dev} src={src} visible={!!slots[key]} s={s} top={top} dark={dark} reduced={reduced} />
       })}
     </div>
   )
@@ -213,22 +322,49 @@ function TabRow({ active, onPick }: { active: number; onPick: (i: number) => voi
   )
 }
 
+/** Текст вкладки: заголовок, абзац и пункты; `--i` — номер строки для задержки входа. */
+function TabText({ tab, t }: { tab: Tab; t: (s: string) => string }) {
+  return (
+    <>
+      <h3 style={{ ['--i' as string]: 0 }} className="text-[24px] font-bold leading-[1.18] tracking-[-0.224px] text-[var(--color-text)] sm:text-[28px]">{t(tab.title)}</h3>
+      <p style={{ ['--i' as string]: 1 }} className="text-[16px] leading-[1.5] text-[var(--color-muted)]">{t(tab.text)}</p>
+      {tab.points.map((p, i) => (
+        <p key={p} style={{ ['--i' as string]: i + 2 }} className="flex items-start gap-2 text-[15px] text-[var(--color-text)]"><Check size={16} className="mt-[3px] shrink-0" aria-hidden />{t(p)}</p>
+      ))}
+    </>
+  )
+}
+
+const TEXT_OUT = 190
+
 export default function DaySection() {
   const t = useT()
   const { dark } = useTheme()
   const [active, setActive] = useState(1) // в макете открыта «14:00 · Проверка ДЗ»
+  const [leaving, setLeaving] = useState<{ index: number; n: number } | null>(null)
+  const [switched, setSwitched] = useState(false)
+  const seq = useRef(0)
+  const leaveTimer = useRef<number | undefined>(undefined)
   const tab = TABS[active]
-  const panel = useRef<HTMLDivElement>(null)
-  const first = useRef(true)
 
-  // Мягкая смена содержимого вкладки (без движения при «уменьшить движение»).
-  useEffect(() => {
-    if (first.current) { first.current = false; return }
-    const el = panel.current
-    if (!el || typeof el.animate !== 'function') return
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    el.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2,.7,.2,1)' })
-  }, [active])
+  // Смена вкладки: старый текст уходит вверх с размытием, новый входит построчно.
+  // Без AnimatePresence — слои лежат в одной ячейке сетки, высоту держит невидимый
+  // «замерщик» со всеми вкладками, поэтому страница не прыгает.
+  const activeRef = useRef(active)
+  const pick = useCallback((i: number) => {
+    const prev = activeRef.current
+    if (prev === i) return
+    activeRef.current = i
+    seq.current += 1
+    setLeaving({ index: prev, n: seq.current })
+    setSwitched(true)
+    setActive(i)
+    window.clearTimeout(leaveTimer.current)
+    leaveTimer.current = window.setTimeout(() => setLeaving(null), TEXT_OUT + 20)
+  }, [])
+  useEffect(() => () => window.clearTimeout(leaveTimer.current), [])
+
+  const layer = 'flex flex-col items-start gap-4 [grid-area:1/1]'
 
   return (
     <Section className="pb-[10px] pt-20 sm:pt-[110px]">
@@ -240,11 +376,10 @@ export default function DaySection() {
       />
 
       <div className="mt-9">
-        <TabRow active={active} onPick={setActive} />
+        <TabRow active={active} onPick={pick} />
       </div>
 
       <div
-        ref={panel}
         id="day-panel"
         role="tabpanel"
         aria-labelledby={`day-tab-${tab.id}`}
@@ -252,13 +387,17 @@ export default function DaySection() {
       >
         <div className="flex w-full max-w-[560px] flex-col items-start gap-4 xl:w-[380px] xl:shrink-0">
           <img src={asset('day-ogonek-pointing.webp')} alt="" aria-hidden loading="lazy" decoding="async" className="h-[110px] w-[70px] object-contain" />
-          <h3 className="text-[24px] font-bold leading-[1.18] tracking-[-0.224px] text-[var(--color-text)] sm:text-[28px]">{t(tab.title)}</h3>
-          <p className="text-[16px] leading-[1.5] text-[var(--color-muted)]">{t(tab.text)}</p>
-          {tab.points.map(p => (
-            <p key={p} className="flex items-start gap-2 text-[15px] text-[var(--color-text)]"><Check size={16} className="mt-[3px] shrink-0" aria-hidden />{t(p)}</p>
-          ))}
+          <div className="grid w-full">
+            {TABS.map(x => (
+              <div key={`size-${x.id}`} aria-hidden className={`${layer} invisible`}><TabText tab={x} t={t} /></div>
+            ))}
+            {leaving && leaving.index !== active && (
+              <div key={`out-${leaving.n}`} aria-hidden className={`${layer} lp-day-out pointer-events-none`}><TabText tab={TABS[leaving.index]} t={t} /></div>
+            )}
+            <div key={`in-${tab.id}`} className={`${layer} ${switched ? 'lp-day-in' : ''}`}><TabText tab={tab} t={t} /></div>
+          </div>
         </div>
-        <Scene tab={tab} dark={dark} />
+        <Scene active={active} dark={dark} />
       </div>
 
       <p className="mt-9 text-center text-[13px] text-[var(--color-muted)]">{t('Демо-кабинет: ученики, оценки и суммы вымышленные')}</p>

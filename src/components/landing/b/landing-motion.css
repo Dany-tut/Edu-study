@@ -169,3 +169,154 @@
   .lp-spark { opacity: .7; }
   .lp-tilt:hover { transform: none; }
 }
+
+/* ── Огонёк первого экрана (HeroOgonek): цикл 7 с — дышит, потом прыжок ── */
+@keyframes lp-life {
+  0%, 30%, 60% { transform: translateY(0) scale(1, 1); }
+  15%, 45%     { transform: translateY(-6px) scale(1.012, .99); }
+  66%          { transform: translateY(2px) scale(1.07, .92); }
+  74%          { transform: translateY(-36px) rotate(-3deg) scale(.95, 1.07); }
+  82%          { transform: translateY(0) scale(1.1, .88); }
+  86%          { transform: translateY(-4px) scale(.97, 1.04); }
+  90%, 100%    { transform: translateY(0) scale(1, 1); }
+}
+/* Подставка проседает ровно в момент приземления (82 %). */
+@keyframes lp-podium {
+  0%, 79%, 92%, 100% { transform: translateY(0) scale(1, 1); }
+  82% { transform: translateY(4px) scale(1.05, .82); }
+  86% { transform: translateY(-1px) scale(.99, 1.05); }
+}
+@keyframes lp-blink {
+  0%, 88%, 93%, 100% { transform: scaleY(0); }
+  90%, 91% { transform: scaleY(1); }
+}
+@keyframes lp-glow {
+  0%, 100% { opacity: .55; transform: scale(.9); }
+  50%      { opacity: 1; transform: scale(1.1); }
+}
+@keyframes lp-boing {
+  0%   { transform: translateY(0) scale(1, 1); }
+  20%  { transform: translateY(-30px) scale(.92, 1.1); }
+  45%  { transform: translateY(0) scale(1.12, .88); }
+  65%  { transform: translateY(-6px) scale(.96, 1.04); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+@keyframes lp-burst {
+  0%   { transform: translate(0, 0) scale(1.2); opacity: 1; }
+  100% { transform: translate(var(--bx), var(--by)) scale(.3); opacity: 0; }
+}
+.lp-lean { transform-origin: 50% 100%; transition: transform .7s cubic-bezier(.2, .8, .2, 1); }
+.lp-life { transform-origin: 50% 100%; animation: lp-life 7s cubic-bezier(.45, 0, .35, 1) infinite; }
+.lp-podium { transform-origin: 50% 50%; animation: lp-podium 7s cubic-bezier(.45, 0, .35, 1) infinite; }
+.lp-blink { transform: scaleY(0); transform-origin: 50% 0%; animation: lp-blink 4.6s ease-in-out infinite; }
+.lp-glow { animation: lp-glow 2.6s ease-in-out infinite; }
+.lp-boing { transform-origin: 50% 100%; animation: lp-boing .7s cubic-bezier(.3, .7, .3, 1.2); }
+.lp-burst { left: 0; top: 0; animation: lp-burst .8s cubic-bezier(.2, .8, .3, 1) forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-life, .lp-podium, .lp-blink, .lp-glow, .lp-boing, .lp-burst { animation: none; }
+  .lp-burst { opacity: 0; }
+  .lp-lean { transition: none; transform: none !important; }
+}
+
+/* ── Огонёк первого экрана: зрачки и пол ─────────────────────────────── */
+.lp-iris { transform: translate(var(--ex, 0px), var(--ey, 0px)); transition: transform .35s cubic-bezier(.25, .8, .3, 1); }
+/* Тень на полу в такт прыжку lp-life (7 с, приземление на 82 %). */
+@keyframes lp-floor {
+  0%, 60%, 92%, 100% { transform: scale(1, 1); opacity: 1; }
+  15%, 45%           { transform: scale(.96, .96); opacity: .92; }
+  66%                { transform: scale(1.1, 1); opacity: 1; }
+  74%                { transform: scale(.55, .7); opacity: .45; }
+  82%                { transform: scale(1.18, 1.05); opacity: 1; }
+}
+@keyframes lp-floor-light {
+  0%, 100% { opacity: .75; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.06); }
+}
+.lp-floor { animation: lp-floor 7s cubic-bezier(.45, 0, .35, 1) infinite; }
+.lp-floor-light { animation: lp-floor-light 2.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .lp-floor, .lp-floor-light { animation: none; }
+  .lp-iris { transition: none; }
+}
+
+/* ── Student & Platforms ── */
+/* «Для ученика»: при наведении айфоны покачиваются, каждый со своей фазой.
+   Возврат в покой при уходе курсора — в StudentSection (WAAPI из текущей позы). */
+@keyframes lp-rock {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25%      { transform: rotate(var(--lp-sa, 2.5deg)) translateY(calc(var(--lp-sy, 5px) * -1)); }
+  75%      { transform: rotate(calc(var(--lp-sa, 2.5deg) * -1)) translateY(calc(var(--lp-sy, 5px) * .5)); }
+}
+.lp-rock { transform-origin: 50% 85%; will-change: transform; }
+.lp-rock-l { --lp-sa: -2.4deg; --lp-sy: 5px; --lp-sd: 3.4s; }
+.lp-rock-c { --lp-sa: 2deg;    --lp-sy: 7px; --lp-sd: 3s; }
+.lp-rock-r { --lp-sa: 2.8deg;  --lp-sy: 4px; --lp-sd: 3.8s; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .lp-rock-group.is-swaying .lp-rock { animation: lp-rock var(--lp-sd, 3.4s) cubic-bezier(.45, 0, .55, 1) infinite; }
+  .lp-rock-group.is-swaying .lp-rock-c { animation-delay: .18s; }
+  .lp-rock-group.is-swaying .lp-rock-r { animation-delay: .32s; }
+}
+
+/* «Одна Искра — четыре версии»: устройство в карточке приподнимается при наведении. */
+.lp-plat-device { transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .lp-plat-card:hover .lp-plat-device { transform: translateY(-10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-plat-device { transition: none; }
+}
+
+/* ── DaySection ── «Один день в Искре»: смена текста, рамок и снимков ─────── */
+@keyframes lp-day-out {
+  from { opacity: 1; transform: none; filter: blur(0); }
+  to   { opacity: 0; transform: translateY(-8px); filter: blur(4px); }
+}
+@keyframes lp-day-in {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+.lp-day-out > * { animation: lp-day-out .19s cubic-bezier(.4, 0, 1, 1) forwards; }
+.lp-day-in > * {
+  opacity: 0;
+  animation: lp-day-in .34s cubic-bezier(.2, .7, .2, 1) forwards;
+  animation-delay: calc(110ms + var(--i, 0) * 45ms);
+}
+.lp-day-dev {
+  position: absolute;
+  transform-origin: 50% 60%;
+  transition: left .6s cubic-bezier(.3, .7, .2, 1), top .6s cubic-bezier(.3, .7, .2, 1), opacity .35s ease, transform .6s cubic-bezier(.3, .7, .2, 1);
+}
+.lp-day-device { transition: width .6s cubic-bezier(.3, .7, .2, 1), height .6s cubic-bezier(.3, .7, .2, 1); }
+.lp-day-flash { position: absolute; inset: 0; pointer-events: none; transition-property: opacity, border-radius; }
+.lp-day-dev[data-reduced] { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .lp-day-out { display: none; }
+  .lp-day-in > * { animation: none; opacity: 1; }
+  .lp-day-dev, .lp-day-device, .lp-day-flash { transition: none !important; }
+}
+
+/* ── «Зачем»: глаза задумчивого Огонька идут за поворотом головы (lp-think) ── */
+@keyframes lp-ponder {
+  0%, 6%, 94%, 100% { transform: translate(0, 0); }
+  12%, 28% { transform: translate(-5px, 1px); }
+  42%, 58% { transform: translate(1px, 1px); }
+  70%, 86% { transform: translate(-2px, -2px); }
+}
+.lp-ponder { animation: lp-ponder 6s ease-in-out infinite; }
+@media (max-width: 767px) { .lp-ponder { animation-name: lp-ponder-sm; } }
+@keyframes lp-ponder-sm {
+  0%, 6%, 94%, 100% { transform: translate(0, 0); }
+  12%, 28% { transform: translate(-3.5px, 1px); }
+  42%, 58% { transform: translate(1px, 1px); }
+  70%, 86% { transform: translate(-1.5px, -1.5px); }
+}
+@media (prefers-reduced-motion: reduce) { .lp-ponder { animation: none; } }
+
+/* ── Постер режима: блик-скелетон, пока догружается анимация ── */
+@keyframes lp-skeleton { from { background-position: 160% 0; } to { background-position: -60% 0; } }
+.lp-skeleton {
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%) 160% 0 / 220% 100% no-repeat;
+  animation: lp-skeleton 1.1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .lp-skeleton { animation: none; background: rgba(255,255,255,0.18); } }
