@@ -2,6 +2,7 @@
 // (Figma «Искра», стр. 290:2, узел 303:331 / тёмный 303:720). Снимки экранов
 // в макете одинаковые для обеих тем, поэтому картинки общие.
 
+import { useRef } from 'react'
 import { useT } from '../../../lib/i18n'
 import { IPhone, Section, asset } from './kit'
 
@@ -9,6 +10,23 @@ const CHIPS = ['Твои дела', 'Трек курса', 'Журнал раб�
 
 export default function StudentSection() {
   const t = useT()
+  const group = useRef<HTMLDivElement>(null)
+  // Наведение на группу айфонов: они покачиваются (CSS .lp-rock в
+  // landing-motion.css). При уходе курсора снимаем анимацию и плавно
+  // возвращаем каждый телефон из текущей позы, а не скачком.
+  const swayOn = () => group.current?.classList.add('is-swaying')
+  const swayOff = () => {
+    const root = group.current
+    if (!root || !root.classList.contains('is-swaying')) return
+    const items = Array.from(root.querySelectorAll<HTMLElement>('.lp-rock'))
+    const poses = items.map(el => getComputedStyle(el).transform)
+    root.classList.remove('is-swaying')
+    items.forEach((el, i) => {
+      const from = poses[i]
+      if (!from || from === 'none' || typeof el.animate !== 'function') return
+      el.animate([{ transform: from }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' })
+    })
+  }
   return (
     <Section id="student" className="pb-[10px] pt-16 sm:pt-[110px]">
       <div
@@ -45,16 +63,25 @@ export default function StudentSection() {
 
         {/* Три айфона и Огонёк. Группа 570×490 — как в макете (x 610, y 70 на
             плашке); на узких экранах уменьшается целиком и встаёт под текст. */}
-        <div className="relative mt-8 h-[294px] w-full sm:mt-10 sm:h-[490px] xl:absolute xl:left-[610px] xl:top-[70px] xl:mt-0 xl:h-[490px] xl:w-[570px]">
-          <div className="absolute left-1/2 top-0 ml-[-285px] h-[490px] w-[570px] origin-top scale-[0.6] sm:scale-100 xl:left-0 xl:ml-0">
-            <div className="absolute left-0 top-[52.17px] flex h-[458.6px] w-[258.6px] items-center justify-center">
+        {/* Центральный айфон поднят на 52 px над боковыми (просьба Дани). */}
+        <div className="relative mt-[60px] h-[294px] w-full sm:mt-[96px] sm:h-[490px] xl:absolute xl:left-[610px] xl:top-[70px] xl:mt-0 xl:h-[490px] xl:w-[570px]">
+          <div
+            ref={group}
+            onPointerEnter={swayOn}
+            onPointerLeave={swayOff}
+            className="lp-rock-group absolute left-1/2 top-0 ml-[-285px] h-[490px] w-[570px] origin-top scale-[0.6] sm:scale-100 xl:left-0 xl:ml-0"
+          >
+            <div className="lp-rock lp-rock-l absolute left-0 top-[52.17px] flex h-[458.6px] w-[258.6px] items-center justify-center">
               <IPhone src={asset('student-phone-left.webp')} width={200} className="rotate-[-8deg]" />
             </div>
-            <div className="absolute left-[289.46px] top-[50px] flex h-[458.6px] w-[258.6px] items-center justify-center">
+            <div className="lp-rock lp-rock-r absolute left-[289.46px] top-[50px] flex h-[458.6px] w-[258.6px] items-center justify-center">
               <IPhone src={asset('student-phone-right.webp')} width={200} className="rotate-[8deg]" />
             </div>
-            <IPhone src={asset('student-phone-center.webp')} width={220} className="!absolute left-[160px] top-0" alt={t('Главная ученика в Искре')} />
+            <div className="lp-rock lp-rock-c absolute left-[148px] top-[-24px]">
+              <IPhone src={asset('student-phone-center.webp')} width={245} alt={t('Главная ученика в Искре')} />
+            </div>
             <img
+              data-mascot="student"
               src={asset('student-ogonek-book.webp')}
               alt=""
               aria-hidden

@@ -91,6 +91,22 @@ function Poster({ n, genre, subject, dark }: { n: number; genre: Genre; subject:
   const [play, setPlay] = useState(0)
   const start = () => setPlay(v => (v > 0 ? v : Math.abs(v) + 1))
   const stop = () => setPlay(v => -Math.abs(v))
+  const [ready, setReady] = useState(0)
+  const theme = dark ? 'dark' : 'light'
+  const still = asset(`modes-${theme}-${pad(n)}.webp`)
+  const anim = asset(`modes-${theme}-${pad(n)}-play.webp`)
+  // Анимацию подгружаем заранее, как только постер рядом с экраном, —
+  // к наведению она уже в кеше и стартует сразу.
+  const root = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = root.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(es => {
+      if (es.some(e => e.isIntersecting)) { const im = new Image(); im.src = anim; io.disconnect() }
+    }, { rootMargin: '200px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [anim])
   const style = {
     '--pc': c,
     backgroundImage: dark
@@ -102,6 +118,7 @@ function Poster({ n, genre, subject, dark }: { n: number; genre: Genre; subject:
 
   return (
     <article
+      ref={root}
       tabIndex={0}
       aria-label={`${pad(n)} · ${t(g.label)} · ${t(subject)}`}
       onMouseEnter={start}
@@ -132,14 +149,28 @@ function Poster({ n, genre, subject, dark }: { n: number; genre: Genre; subject:
           {t(subject)}
         </p>
       </div>
+      {/* Неподвижный кадр виден всегда; анимация ложится сверху, только когда
+          догрузилась, — без пустоты при наведении. Пока грузится — блик-скелетон. */}
       <img
-        key={play > 0 ? `play-${play}` : 'still'}
-        src={asset(`modes-${dark ? 'dark' : 'light'}-${pad(n)}${play > 0 ? '-play' : ''}.webp`)}
+        src={still}
         alt=""
         loading="lazy"
         decoding="async"
         className="absolute left-[9px] top-[75px] h-[254px] w-[280px] rounded-[16px] object-contain"
       />
+      {play > 0 && (
+        <img
+          key={`play-${play}`}
+          src={anim}
+          alt=""
+          decoding="async"
+          onLoad={() => setReady(play)}
+          className={`absolute left-[9px] top-[75px] h-[254px] w-[280px] rounded-[16px] object-contain transition-opacity duration-200 ${ready === play ? 'opacity-100' : 'opacity-0'}`}
+        />
+      )}
+      {play > 0 && ready !== play && (
+        <span aria-hidden className="lp-skeleton pointer-events-none absolute left-[9px] top-[75px] h-[254px] w-[280px] rounded-[16px]" />
+      )}
       <div
         aria-hidden
         className="pointer-events-none absolute bottom-0 left-0 h-[56px] w-full"
@@ -226,11 +257,11 @@ export default function ModesSection() {
           ))}
         </div>
 
-        <div className="relative -mx-4 sm:mx-0">
+        <div className="relative -mx-4 sm:-mx-10">
           <div
             ref={stripRef}
             onScroll={measure}
-            className="flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto overscroll-x-contain px-4 pb-14 pt-5 -mb-9 [scrollbar-width:none] sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+            className="flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto overscroll-x-contain px-4 pb-14 pt-5 -mb-9 [scrollbar-width:none] sm:scroll-px-10 sm:px-10 [&::-webkit-scrollbar]:hidden"
             aria-label={t('Постеры режимов')}
             role="region"
             tabIndex={-1}
@@ -253,7 +284,7 @@ export default function ModesSection() {
           />
 
           {!(edges.start && edges.end) && (
-            <div className="flex justify-end gap-3 px-4 sm:absolute sm:right-0 sm:top-[164px] sm:px-0">
+            <div className="flex justify-end gap-3 px-4 sm:absolute sm:right-10 sm:top-[164px] sm:px-0">
               <ArrowButton dir="prev" label={t('Назад')} dark={dark} disabled={edges.start} onClick={() => scrollBy(-1)} />
               <ArrowButton dir="next" label={t('Вперёд')} dark={dark} disabled={edges.end} onClick={() => scrollBy(1)} />
             </div>
