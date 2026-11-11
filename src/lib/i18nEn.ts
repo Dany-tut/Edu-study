@@ -6496,6 +6496,7 @@ export const EN: Record<string, string> = {
   "Скоро приложением": "App coming soon",
   "Всё управление — в капсуле справа.": "All controls in a capsule on the right.",
   "Таблетки навигации, плавные края.": "Navigation pills and soft edges.",
+  "Сложен — как iPhone, раскрыт — как iPad.": "Folded, it's an iPhone; unfolded, an iPad.",
   "Светлая и тёмная тема во всех версиях — попробуйте прямо здесь.": "Light and dark themes in every version — try it right here.",
   "Начните бесплатно": "Start for free",
   "Оплата подключается вручную: оставьте заявку — мы активируем тариф.": "Payment is set up manually: send a request and we'll activate your plan.",
