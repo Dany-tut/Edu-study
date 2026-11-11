@@ -25,7 +25,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 
-export type OgonekEmotion = 'base' | 'smile' | 'joy' | 'surprise' | 'think' | 'sad' | 'angry'
+export type OgonekEmotion = 'base' | 'smile' | 'joy' | 'cheer' | 'surprise' | 'think' | 'sad' | 'angry'
 export type OgonekClip = 'idle' | 'wave' | 'think' | 'point' | 'read' | 'joy' | 'coin' | 'turn' | 'jump' | 'cheer'
 
 /** Места лендинга: петля, эмоция, куда смотрит без курсора, разовый акцент раз в N секунд. */
@@ -39,13 +39,14 @@ export const POSES: Record<OgonekPoseName, OgonekPose> = {
   eco: { loop: 'idle', emotion: 'smile', follow: true },
   faq: { loop: 'think', emotion: 'think', gaze: [-0.5, 0.65], follow: false },
   cta: { loop: 'joy', emotion: 'joy', follow: true },
-  price: { loop: 'coin', emotion: 'joy', follow: true },
+  price: { loop: 'coin', emotion: 'cheer', gaze: [0, 0.6], follow: false },
 }
 
 export const EMOTIONS: Record<OgonekEmotion, Record<string, number>> = {
   base: {},
   smile: { mouth_smile: 1 },
   joy: { mouth_joy: 1, happy: 1, lid_closed: 1, brow_joy: 1 },
+  cheer: { mouth_joy: 1, brow_up: 0.7 },
   surprise: { mouth_o: 1, brow_up: 1 },
   think: { mouth_o: 0.55, brow_up: 0.5 },
   sad: { mouth_sad: 1, brow_sad: 1, lid_sad: 1 },
@@ -368,7 +369,7 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
     if ((target.lid_closed ?? 0) < 0.5) setMorph('blink', blink)
     // глаза
     // ход радужки ограничен: дальше она выходит за край белка
-    const LX = 0.7, LY = 0.65
+    const LX = 0.7, LY = 0.5
     setMorph('look_left', Math.min(Math.max(look.x, 0), LX))
     setMorph('look_right', Math.min(Math.max(-look.x, 0), LX))
     setMorph('look_up', Math.min(Math.max(look.y, 0), LY))
