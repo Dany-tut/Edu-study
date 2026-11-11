@@ -31,7 +31,7 @@ const TABS: Tab[] = [
     points: ['Ближайшее занятие и неделя', 'Переносы без переписки в чате', 'Отметки «был» и «пропуск» прямо с урока'],
     devices: [
       { kind: 'mac', src: 'day-mac-attendance-light.webp', srcDark: 'day-mac-attendance-dark.webp', x: 61, y: 141, w: 440 },
-      { kind: 'iphone', src: 'day-iphone-myday.webp', x: 600, y: 135, w: 150 },
+      { kind: 'iphone', src: 'day-iphone-myday.webp', srcDark: 'day-iphone-myday-dark.webp', x: 600, y: 135, w: 150 },
     ],
   },
   {
@@ -60,8 +60,8 @@ const TABS: Tab[] = [
     text: 'Карточки учеников, оплаченные занятия, долги и доход за месяц — без отдельной таблицы.',
     points: ['Кто оплатил, а у кого просрочка', 'Доход за месяц', 'Ученики по группам и индивидуальные'],
     devices: [
-      { kind: 'iphone', src: 'day-iphone-students.webp', x: 215, y: 100, w: 175 },
-      { kind: 'iphone', src: 'day-iphone-finance.webp', x: 425, y: 112, w: 175 },
+      { kind: 'iphone', src: 'day-iphone-students.webp', srcDark: 'day-iphone-students-dark.webp', x: 215, y: 100, w: 175 },
+      { kind: 'iphone', src: 'day-iphone-finance.webp', srcDark: 'day-iphone-finance-dark.webp', x: 425, y: 112, w: 175 },
     ],
   },
   {
