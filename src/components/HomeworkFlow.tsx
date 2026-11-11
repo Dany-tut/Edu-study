@@ -55,6 +55,7 @@ import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typ
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
 import ScriptKeyboard, { needsScriptKeyboard, scriptKeyboardCovers } from './ScriptKeyboard'
 import QuestionTable from './QuestionTable'
+import CellsInput from './CellsInput'
 import WordBankSolver from './WordBankSolver'
 import MatchingSolver, {
   parseMatchingCsv, matchingCsv, matchingIsComplete, matchingIsCorrect, formatMatching,
@@ -4351,6 +4352,16 @@ export default function HomeworkFlow({
                           )}
                         </div>
                       )}
+                      {qType(question) === 'fill' && !!question.cells ? (
+                        /* Клетки бланка ЕГЭ: ответ по одной клетке, цифры по порядку. */
+                        <CellsInput
+                          value={selectedAnswer ?? ''}
+                          count={question.cells}
+                          onChange={v => setFreeAnswer(question.id, v)}
+                          disabled={locked}
+                          status={showVerdict ? (isCorrect ? 'ok' : 'bad') : 'none'}
+                        />
+                      ) : (
                       <GrowTextarea
                         value={selectedAnswer ?? ''}
                         onChange={v => setFreeAnswer(question.id, v)}
@@ -4371,6 +4382,7 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
+                      )}
                       {/* Ответ ждут письмом, которого нет на клавиатуре ученика
                           (см. ScriptKeyboard). */}
                       {needsScriptKeyboard(question.referenceAnswer) && !locked && (

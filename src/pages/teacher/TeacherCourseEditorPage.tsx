@@ -3561,6 +3561,19 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                 />
               )}
 
+              {/* fill — ответ по клеткам бланка ЕГЭ: число клеток (пусто — обычное поле) */}
+              {task.type === 'fill' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+                  <input
+                    style={{ ...inputSt, width: 160 }} inputMode="numeric"
+                    value={task.cells ?? ''}
+                    onChange={e => { const v = e.target.value.replace(/\D/g, ''); onUpdate({ ...task, cells: v ? Number(v) : undefined }) }}
+                    placeholder={t('Клеток бланка ЕГЭ')} aria-label={t('Число клеток бланка')}
+                  />
+                  {!!task.cells && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('ответ по клеткам, цифры по порядку')}</span>}
+                </div>
+              )}
+
               {/* wordBank / listenBank — reference sentence + optional distractor tiles (listenBank adds audio) */}
               {(task.type === 'wordBank' || task.type === 'listenBank') && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
