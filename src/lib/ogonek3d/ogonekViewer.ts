@@ -60,6 +60,10 @@ export interface OgonekOptions {
   follow?: boolean
   /** место лендинга: задаёт петлю, эмоцию и взгляд */
   pose?: OgonekPoseName
+  /** кадрирование: 1 — модель целиком с запасом под прыжок; >1 — мельче в кадре, <1 — крупнее */
+  fitScale?: number
+  /** смещение точки взгляда камеры по вертикали, в единицах модели (рост ≈ 2.2) */
+  lookOffsetY?: number
 }
 
 export interface OgonekHandle {
@@ -100,10 +104,12 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
   const key = new THREE.DirectionalLight(0xffffff, 1.6)
   key.position.set(-2.6, 4.4, 3.6)
   key.castShadow = true
-  key.shadow.mapSize.set(1024, 1024)
-  key.shadow.radius = 8
-  key.shadow.camera.left = -1.5; key.shadow.camera.right = 1.5
-  key.shadow.camera.top = 2.6; key.shadow.camera.bottom = -0.5
+  key.shadow.mapSize.set(2048, 2048)
+  key.shadow.radius = 10
+  key.shadow.blurSamples = 16
+  // широкая область карты теней — без прямоугольной обрезки тени у ног
+  key.shadow.camera.left = -3.5; key.shadow.camera.right = 3.5
+  key.shadow.camera.top = 4; key.shadow.camera.bottom = -2.5
   key.shadow.bias = -0.0005
   scene.add(key)
   const rim = new THREE.DirectionalLight(0xe6d2ff, 1.4)
@@ -113,10 +119,33 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
   fill.position.set(3.4, 1.4, 3.4)
   scene.add(fill)
 
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), new THREE.ShadowMaterial({ opacity: 0.16 }))
+  // пол: тень растворяется по радиусу от Огонька, без жёсткого края
+  const floorMat = new THREE.ShadowMaterial({ opacity: 0.16 })
+  floorMat.onBeforeCompile = sh => {
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vFloorXZ;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFloorXZ = (modelMatrix * vec4(position, 1.0)).xz;')
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vFloorXZ;')
+      .replace('#include <fog_fragment>', 'gl_FragColor.a *= 1.0 - smoothstep(0.25, 1.7, length(vFloorXZ));\n#include <fog_fragment>')
+  }
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), floorMat)
   floor.rotation.x = -Math.PI / 2
   floor.receiveShadow = true
   scene.add(floor)
+  // мягкое контактное пятно под ножками — заземляет модель
+  const blobTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 128
+    const g = c.getContext('2d')!
+    const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64)
+    grd.addColorStop(0, 'rgba(0,0,0,1)'); grd.addColorStop(0.45, 'rgba(0,0,0,0.55)'); grd.addColorStop(1, 'rgba(0,0,0,0)')
+    g.fillStyle = grd; g.fillRect(0, 0, 128, 128)
+    return new THREE.CanvasTexture(c)
+  })()
+  const blob = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.8), new THREE.MeshBasicMaterial({ color: 0x1a1030, alphaMap: blobTex, transparent: true, opacity: 0.22, depthWrite: false }))
+  blob.rotation.x = -Math.PI / 2
+  blob.position.set(0, 0.002, -0.02)
+  scene.add(blob)
 
   const root = new THREE.Group()
   scene.add(root)
@@ -140,10 +169,12 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
   const pointer = new THREE.Vector2(0, 0)
   const look = new THREE.Vector2(0, 0)
   const glowUniform = { value: 0.22 }
+  const timeUniform = { value: 0 }
 
   function setDark(dark: boolean) {
     hemi.intensity = dark ? 0.6 : 0.9
-    ;(floor.material as THREE.ShadowMaterial).opacity = dark ? 0.32 : 0.16
+    floorMat.opacity = dark ? 0.3 : 0.14
+    ;(blob.material as THREE.MeshBasicMaterial).opacity = dark ? 0.42 : 0.2
     glowUniform.value = dark ? 0.36 : 0.22
   }
   setDark(!!opts.dark)
@@ -181,12 +212,28 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
         if (name === 'Body') {
           mat.onBeforeCompile = sh => {
             sh.uniforms.uGlowK = glowUniform
+            sh.uniforms.uTime = timeUniform
+            // vTipH — высота вершины в позе привязки (до скелета): кончик пламени > 1.35
             sh.vertexShader = sh.vertexShader
-              .replace('#include <common>', '#include <common>\nattribute float _glow;\nvarying float vGlow;')
-              .replace('#include <begin_vertex>', '#include <begin_vertex>\nvGlow = _glow;')
+              .replace('#include <common>', '#include <common>\nattribute float _glow;\nvarying float vGlow;\nvarying float vTipH;')
+              .replace('#include <begin_vertex>', '#include <begin_vertex>\nvGlow = _glow;\nvTipH = position.y;')
             sh.fragmentShader = sh.fragmentShader
-              .replace('#include <common>', '#include <common>\nvarying float vGlow;\nuniform float uGlowK;')
-              .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vColor.rgb * vGlow * uGlowK;')
+              .replace('#include <common>', '#include <common>\nvarying float vGlow;\nvarying float vTipH;\nuniform float uGlowK;\nuniform float uTime;')
+              .replace('#include <color_fragment>', [
+                '#include <color_fragment>',
+                // живой кончик: светлые волны бегут вверх по язычку, между ними цвет глубже, всё мерцает
+                'float tipK = smoothstep(1.3, 2.15, vTipH);',
+                'float flick = 0.75 + 0.25 * sin(uTime * 7.3) * sin(uTime * 3.1 + 1.3);',
+                'float run1 = exp(-pow((vTipH - (1.3 + fract(uTime * 0.45) * 1.05)) / 0.12, 2.0));',
+                'float run2 = exp(-pow((vTipH - (1.3 + fract(uTime * 0.45 + 0.5) * 1.05)) / 0.1, 2.0));',
+                'float tipRun = max(run1, 0.75 * run2);',
+                'diffuseColor.rgb *= 1.0 - tipK * (1.0 - tipRun) * 0.28 * flick;',
+              ].join('\n'))
+              .replace('#include <emissivemap_fragment>', [
+                '#include <emissivemap_fragment>',
+                'totalEmissiveRadiance += vColor.rgb * vGlow * uGlowK;',
+                'totalEmissiveRadiance += vec3(0.95, 0.66, 1.0) * tipK * (0.06 * flick + 0.42 * tipRun) * (0.55 + uGlowK);',
+              ].join('\n'))
           }
         }
         m.material = mat
@@ -308,13 +355,15 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
     renderer.setSize(w, h, false)
     camera.aspect = w / h
     // модель целиком в кадре и в узком, и в широком окне
-    const fitH = 3.15, fitW = 2.0
+    const k = opts.fitScale ?? 1
+    const fitH = 3.15 * k, fitW = 2.0 * k
     const vFov = THREE.MathUtils.degToRad(camera.fov)
     const distH = fitH / 2 / Math.tan(vFov / 2)
     const distW = fitW / 2 / Math.tan(vFov / 2) / camera.aspect
     const d = Math.max(distH, distW)
-    camera.position.set(0, 1.35, d)
-    camera.lookAt(0, 1.22, 0)
+    const ly = 1.22 + (opts.lookOffsetY ?? 0)
+    camera.position.set(0, ly + 0.13, d)
+    camera.lookAt(0, ly, 0)
     camera.updateProjectionMatrix()
   }
   const ro = new ResizeObserver(resize)
@@ -330,6 +379,7 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
     raf = requestAnimationFrame(tick)
     const dt = Math.min(clock.getDelta(), 0.05)
     mixer?.update(dt)
+    timeUniform.value += dt
 
     // взгляд: мягко догоняет курсор
     if (accent) {
