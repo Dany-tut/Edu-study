@@ -44,6 +44,9 @@ export default function OgonekModel({ pose, fallback, alt = '', className = '', 
   const dark = useTheme(s => s.dark)
   const handle = useRef<OgonekHandle | null>(null)
   const [capable] = useState(canUseModel)
+  // Модель реально живая: GLB загружен в сцену И отрисован хотя бы один кадр.
+  // Только тогда прячем фолбэк-картинку, иначе на экране два Огонька сразу.
+  const [loaded, setLoaded] = useState(false)
 
   // Монтируем движок, только когда блок рядом с экраном; размонтируем, когда ушёл.
   useEffect(() => {
@@ -62,10 +65,17 @@ export default function OgonekModel({ pose, fallback, alt = '', className = '', 
         const h = mountOgonek(host.current, { pose, dark: useTheme.getState().dark, fitScale: FIT[pose] ?? 1.12 })
         handle.current = h
         onReady?.(h)
+        // Прячем картинку только после первого отрисованного кадра с моделью:
+        // ready — модель добавлена в сцену, rAF — кадр реально нарисован. В превью
+        // без requestAnimationFrame rAF не сработает, и фолбэк останется виден.
+        void h.ready.then(() => {
+          if (cancelled || handle.current !== h) return
+          requestAnimationFrame(() => { if (!cancelled && handle.current === h) setLoaded(true) })
+        }).catch(() => {})
       } catch { /* нет модели — остаётся картинка */ }
       finally { mounting = false }
     }
-    const unmount = () => { handle.current?.dispose(); handle.current = null }
+    const unmount = () => { handle.current?.dispose(); handle.current = null; setLoaded(false) }
 
     const io = new IntersectionObserver(
       es => { for (const e of es) e.isIntersecting ? void mount() : unmount() },
@@ -82,7 +92,7 @@ export default function OgonekModel({ pose, fallback, alt = '', className = '', 
 
   return (
     <div ref={host} className={`[&>canvas]:absolute [&>canvas]:inset-0 ${className}`} style={style}>
-      <img src={asset(fallback)} alt={alt} aria-hidden={alt ? undefined : true} decoding="async" draggable={false} className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain" />
+      <img src={asset(fallback)} alt={alt} aria-hidden={alt ? undefined : true} decoding="async" draggable={false} className={`pointer-events-none absolute inset-0 h-full w-full select-none object-contain transition-opacity duration-500 ${capable && loaded ? 'opacity-0' : 'opacity-100'}`} />
     </div>
   )
 }

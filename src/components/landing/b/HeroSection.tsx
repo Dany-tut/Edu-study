@@ -75,7 +75,7 @@ export function LandingHeader({ onLogin }: Actions) {
       <div
         className={`mx-auto flex w-full items-center transition-[max-width,height,margin-top,border-radius,padding,gap,background-color,box-shadow,border-color,backdrop-filter] duration-300 ease-out ${
           scrolled
-            ? 'mt-2.5 h-[54px] max-w-[1080px] gap-5 rounded-full border border-[var(--color-border-soft)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] pl-5 pr-2 shadow-[0_14px_34px_-14px_rgba(38,26,89,0.45)] backdrop-blur-[16px]'
+            ? 'mt-2.5 h-[54px] max-w-[1080px] gap-5 rounded-[22px] border border-[var(--color-border-soft)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] pl-5 pr-2 shadow-[0_14px_34px_-14px_rgba(38,26,89,0.45)] backdrop-blur-[16px]'
             : 'mt-0 h-[72px] max-w-[1440px] gap-7 rounded-none border border-transparent bg-transparent px-4 shadow-none sm:px-8 xl:px-14'
         }`}
       >
