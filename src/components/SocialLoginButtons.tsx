@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { startSocialLogin, startSocialLoginCustom, cancelSocialLogin, resetSocialLoginState, hasPendingSocialAuth, isCustomProvider, startPasskeyLogin, type LoginRole } from '../lib/socialAuth'
 import { usePasskeyAvailable, passkeyMaybeAvailable } from '../lib/passkey'
-import { KeyRound, ChevronRight } from './icons/appIcons'
+import { KeyRound, ChevronRight, Loader2 } from './icons/appIcons'
 import { readLastLogin, clearLastLogin } from '../lib/lastLogin'
 import { textFadeLines } from '../lib/textFades'
 import { useT } from '../lib/i18n'
@@ -92,10 +92,10 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
 
   async function begin(provider: ProviderId) {
     const id = ++sequence.current
-    const label = providers.find(p => p.id === provider)?.label ?? ''
     setBusy(provider)
     started.current = true; pending.current = true
-    feedback.begin({ tone: 'info', title: `Открываем ${label}…`, busy: true, onCancel: cancelSocialLogin })
+    // Индикатор прогресса — в самой нажатой кнопке (спиннер + «Отмена» по месту),
+    // НЕ в среднем слоте email/пароля: фидбэк там, где клик, и форма не дёргается.
     try {
       if (isCustomProvider(provider)) await startSocialLoginCustom(provider, role, joinToken)
       else await startSocialLogin(provider, role, joinToken)
@@ -111,7 +111,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
     const id = ++sequence.current
     setBusy('passkey')
     started.current = true; pending.current = true
-    feedback.begin({ tone: 'info', title: 'Проверяем ключ доступа…', busy: true })
+    // Прогресс — спиннером в самой кнопке ключа, не в среднем слоте.
     try {
       const signedIn = await startPasskeyLogin(role)
       if (sequence.current !== id) return
@@ -140,9 +140,9 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           <button data-hover="card"
             type="button"
             data-auth-provider={lastLogin.provider}
-            onClick={() => void begin(lastLogin.provider)}
-            disabled={busy !== null || feedback.busy}
-            aria-label={`${t('Продолжить как')} ${lastLogin.name} · ${providers.find(p => p.id === lastLogin.provider)?.label ?? ''}`}
+            onClick={() => busy === lastLogin.provider ? cancelSocialLogin() : void begin(lastLogin.provider)}
+            disabled={(busy !== null && busy !== lastLogin.provider) || feedback.busy}
+            aria-label={busy === lastLogin.provider ? t('Отмена') : `${t('Продолжить как')} ${lastLogin.name} · ${providers.find(p => p.id === lastLogin.provider)?.label ?? ''}`}
             aria-busy={busy === lastLogin.provider}
             style={{
               minHeight: 58, borderRadius: 16, padding: '10px 14px', textAlign: 'left',
@@ -166,7 +166,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
                 {providers.find(p => p.id === lastLogin.provider)?.label ?? ''}
               </span>
             </span>
-            <span aria-hidden="true" style={{ display: 'flex', color: 'var(--color-muted)', flexShrink: 0 }}><ChevronRight size={18} /></span>
+            <span aria-hidden="true" style={{ display: 'flex', color: 'var(--color-muted)', flexShrink: 0 }}>{busy === lastLogin.provider ? <Loader2 size={18} className="auth-feedback-spinner" /> : <ChevronRight size={18} />}</span>
           </button>
           <button data-hover="link"
             type="button"
@@ -184,9 +184,9 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           key={id}
           data-auth-provider={id}
           type="button"
-          onClick={() => void begin(id)}
-          disabled={busy !== null || feedback.busy}
-          aria-label={busy === id ? `${t('Открываем…')} ${label}` : `${t('Продолжить с')} ${label}`}
+          onClick={() => busy === id ? cancelSocialLogin() : void begin(id)}
+          disabled={(busy !== null && busy !== id) || feedback.busy}
+          aria-label={busy === id ? t('Отмена') : `${t('Продолжить с')} ${label}`}
           aria-busy={busy === id}
           style={{
             minHeight: 48, minWidth: 0, borderRadius: 14, padding: '8px 10px',
@@ -196,13 +196,14 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
             opacity: busy && busy !== id ? 0.55 : 1,
           }}
         >
-          <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0, transform: id === 'apple' ? 'translateY(-0.5px)' : undefined }}>
-            {id === 'apple' ? <AppleMark size={18} />
+          <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0, transform: id === 'apple' && busy !== id ? 'translateY(-0.5px)' : undefined }}>
+            {busy === id ? <Loader2 size={18} className="auth-feedback-spinner" />
+              : id === 'apple' ? <AppleMark size={18} />
               : id === 'google' ? <GoogleMark size={20} />
               : id === 'yandex' ? <YandexMark size={20} />
               : <VkMark size={20} />}
           </span>
-          <span style={{ display: 'block', lineHeight: '20px' }}>{label}</span>
+          <span style={{ display: 'block', lineHeight: '20px' }}>{busy === id ? t('Отмена') : label}</span>
         </button>
       ))}
       {(passkeyOn || passkeyReserve) && <button
@@ -225,7 +226,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
             opacity: busy && busy !== 'passkey' ? 0.55 : 1,
           }}
         >
-          <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}><KeyRound size={19} /></span>
+          <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}>{busy === 'passkey' ? <Loader2 size={18} className="auth-feedback-spinner" /> : <KeyRound size={19} />}</span>
           <span style={{ display: 'block', lineHeight: '20px' }}>{t('Войти с ключом доступа')}</span>
         </button>}
       </div>}
