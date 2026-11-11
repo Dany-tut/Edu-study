@@ -9,6 +9,7 @@ import ThemeToggleBtn from '../../ThemeToggleBtn'
 import IskraMark from '../IskraMark'
 import { asset, PrimaryButton, SecondaryButton } from './kit'
 import './landing-motion.css'
+import HeroOgonek from './HeroOgonek'
 
 type Actions = { onLogin: () => void }
 
@@ -129,17 +130,8 @@ export default function HeroSection({ onLogin }: Actions) {
           </div>
         </div>
 
-        {/* Огонёк стоит на стеклянной подставке и не уходит за край экрана:
-            дышит, а верх пламени колышется отдельным слоем той же картинки. */}
-        <div className="pointer-events-none relative mt-8 flex flex-col items-center lg:absolute lg:left-1/2 lg:top-[468px] lg:mt-0 lg:-translate-x-1/2">
-          <div className="lp-breathe relative h-[260px] w-[150px] sm:h-[340px] sm:w-[200px] lg:h-[410px] lg:w-[238px]">
-            <img src={asset('ogonek-wave.webp')} alt={t('Огонёк машет рукой')} loading="eager" className="lp-flame-body absolute inset-0 h-full w-full object-contain" />
-            <img src={asset('ogonek-wave.webp')} alt="" aria-hidden loading="eager" className="lp-flame-tip absolute inset-0 h-full w-full object-contain" />
-          </div>
-          <div aria-hidden className="relative -mt-5 h-[34px] w-[190px] rounded-[999px] border border-[var(--color-border-soft)] bg-[var(--color-bg-card)] shadow-[0_18px_30px_-12px_rgba(38,26,89,0.35),inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-[10px] sm:w-[230px] lg:h-[40px] lg:w-[270px]">
-            <div className="absolute inset-x-6 top-1.5 h-2 rounded-full bg-[rgba(120,107,214,0.18)] blur-[4px]" />
-          </div>
-        </div>
+        {/* Огонёк на стеклянной подставке — живой (HeroOgonek). */}
+        <HeroOgonek />
 
         {/* ПК: карточки на своих местах сцены 1440. */}
         <div className="pointer-events-none absolute left-1/2 top-0 hidden h-[960px] w-[1440px] -translate-x-1/2 lg:block">
