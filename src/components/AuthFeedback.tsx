@@ -96,7 +96,7 @@ export function authFailureFeedback(error: unknown): AuthFeedbackMessage {
   return { tone: 'danger', title: 'Не удалось выполнить действие', text }
 }
 
-export function AuthFeedbackSlot({ idleText, idleSecondary, reserve }: { idleText: string; idleSecondary?: string; reserve?: boolean }) {
+export function AuthFeedbackSlot({ idleText, idleSecondary, reserve, reserveHeight = 70 }: { idleText: string; idleSecondary?: string; reserve?: boolean; reserveHeight?: number }) {
   const context = useContext(Context)
   if (!context) throw new Error('Auth feedback requires a page provider')
   const t = useT()
@@ -109,7 +109,10 @@ export function AuthFeedbackSlot({ idleText, idleSecondary, reserve }: { idleTex
   // необходимости перекрывая «Забыли пароль». Поведение включается пропом reserve;
   // остальные экраны (ученик/код/приглашение) используют классический слот ниже.
   if (reserve) {
-    return <div className="auth-feedback-slot auth-feedback-slot--reserve" data-auth-feedback-slot>
+    // Высоту слота задаёт КОНСТАНТА (reserveHeight), а не длина idle-текста:
+    // правка подсказок или сообщений об ошибке не двигает submit/соц-кнопки.
+    return <div className="auth-feedback-slot auth-feedback-slot--reserve" data-auth-feedback-slot
+      style={{ ['--auth-feedback-reserve-h' as string]: `${reserveHeight}px` }}>
       <div id={context.descriptionId} className="auth-feedback auth-feedback--idle" data-tone="idle" aria-hidden={message ? true : undefined}
         style={{ visibility: message ? 'hidden' : undefined }}>
         <span className="auth-feedback-icon" aria-hidden="true"><Info size={18} strokeWidth={2} /></span>

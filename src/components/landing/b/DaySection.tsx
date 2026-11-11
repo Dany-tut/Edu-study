@@ -15,6 +15,7 @@ import { useT } from '../../../lib/i18n'
 import './landing-motion.css'
 import { useTheme } from '../../../store/themeStore'
 import { asset, IPhone, Mac, Section, SectionHead } from './kit'
+import OgonekModel from './OgonekModel'
 
 type Device =
   | { kind: 'mac'; src: string; srcDark?: string; x: number; y: number; w: number; screenBg?: string }
@@ -386,7 +387,7 @@ export default function DaySection() {
         className="mt-9 flex flex-col items-center gap-8 xl:flex-row xl:justify-center xl:gap-14"
       >
         <div className="flex w-full max-w-[560px] flex-col items-start gap-4 xl:w-[380px] xl:shrink-0">
-          <img src={asset('day-ogonek-pointing.webp')} alt="" aria-hidden loading="lazy" decoding="async" className="h-[110px] w-[70px] object-contain" />
+          <OgonekModel pose="day" fallback="day-ogonek-pointing.webp" className="relative h-[110px] w-[70px]" />
           <div className="grid w-full">
             {TABS.map(x => (
               <div key={`size-${x.id}`} aria-hidden className={`${layer} invisible`}><TabText tab={x} t={t} /></div>

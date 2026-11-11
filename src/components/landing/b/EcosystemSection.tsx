@@ -11,6 +11,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { useT } from '../../../lib/i18n'
 import { useTheme } from '../../../store/themeStore'
 import { asset, IPad, IPhone, Mac } from './kit'
+import OgonekModel from './OgonekModel'
 
 type ProductId = 'testli' | 'iskra' | 'taskli' | 'onix' | 'finansli'
 
@@ -233,10 +234,11 @@ function Stage({ dark }: { dark: boolean }) {
           )
         })}
 
-        <img
-          src={asset('eco-ogonek.webp')}
+        <OgonekModel
+          pose="eco"
+          fallback="eco-ogonek.webp"
           alt={t('Огонёк')}
-          className={`pointer-events-none absolute object-contain transition-opacity duration-200 ${dim}`}
+          className={`pointer-events-none absolute transition-opacity duration-200 ${dim}`}
           style={{ left: 581, top: 508 - STAGE_TOP, width: 96, height: 166 }}
         />
 
