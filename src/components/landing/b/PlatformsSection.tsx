@@ -26,7 +26,7 @@ const VERSIONS: Version[] = [
 // чёрная рамка экрана, скругления меньше, чем у iPhone, камера-точка по центру
 // и кнопки справа. Строка состояния — андроидная (время слева), а айфонная
 // строка снимка прикрыта ею.
-function AndroidPhone({ src, width }: { src: string; width: number }) {
+function AndroidPhone({ src, width, dark }: { src: string; width: number; dark?: boolean }) {
   const h = (width * 874) / 402
   const r = Math.round(width * 0.12)
   return (
@@ -37,10 +37,10 @@ function AndroidPhone({ src, width }: { src: string; width: number }) {
       {/* металлическая рамка */}
       <div className="absolute inset-0 p-[2.5px]" style={{ borderRadius: r, background: 'linear-gradient(135deg, #d9d9de 0%, #9a9aa2 35%, #e4e4e8 55%, #8e8e96 80%, #c8c8ce 100%)' }}>
         <div className="relative h-full w-full overflow-hidden bg-[#0b0b0f] p-[3.5px]" style={{ borderRadius: r - 2.5 }}>
-          <div className="relative h-full w-full overflow-hidden bg-[#f6f6f6]" style={{ borderRadius: r - 6 }}>
+          <div className={`relative h-full w-full overflow-hidden ${dark ? 'bg-[#111113]' : 'bg-[#f6f6f6]'}`} style={{ borderRadius: r - 6 }}>
             <img src={src} alt="" loading="lazy" decoding="async" className="absolute inset-x-0 top-0 w-full max-w-none" />
             {/* строка состояния Android */}
-            <div className="absolute inset-x-0 top-0 flex h-[5.8%] items-center justify-between bg-[#f6f6f6] px-[9%] text-[6.5px] font-semibold text-[#1d1b24]">
+            <div className={`absolute inset-x-0 top-0 flex h-[5.8%] items-center justify-between px-[9%] text-[6.5px] font-semibold ${dark ? 'bg-[#111113] text-[#f2f2f5]' : 'bg-[#f6f6f6] text-[#1d1b24]'}`}>
               <span>12:30</span>
               <span className="flex items-center gap-[2.5px]">
                 <svg width="7" height="6" viewBox="0 0 14 12" aria-hidden><path d="M7 11.5 0.2 4.2a10 10 0 0 1 13.6 0Z" fill="currentColor" /></svg>
@@ -84,23 +84,23 @@ function DeviceArt({ device, dark }: { device: Device; dark: boolean }) {
   switch (device) {
     case 'mac':
       art = <Mac src={asset(`day-mac-summary-${tone}.webp`)} width={300} />
-      place = 'left-[40px] top-[186px]'
+      place = 'left-[40px] top-[176px]'
       break
     case 'iphone':
-      art = <IPhone src={asset(`day-iphone-review-${tone}.webp`)} width={150} />
-      place = 'right-[34px] top-[176px]'
+      art = <IPhone src={asset(`day-iphone-homework-${tone}.webp`)} width={150} />
+      place = 'right-[34px] top-[178px]'
       break
     case 'ipad':
       art = <IPad src={asset(`day-mac-journal-${tone}.webp`)} width={210} position="left top" />
-      place = 'right-[-22px] top-[180px]'
+      place = 'right-[-22px] top-[181px]'
       break
     case 'duo':
       art = <DuoPhone src={asset(`day-mac-attendance-${tone}.webp`)} width={262} />
-      place = 'left-[24px] top-[186px] sm:left-auto sm:right-[56px] sm:top-[150px] xl:left-[24px] xl:right-auto xl:top-[186px]'
+      place = 'left-[24px] top-[186px] sm:left-auto sm:right-[56px] sm:top-[150px] xl:left-[24px] xl:right-auto xl:top-[178px]'
       break
     default:
-      art = <AndroidPhone src={asset('day-iphone-student-home.webp')} width={150} />
-      place = 'right-[34px] top-[176px]'
+      art = <AndroidPhone src={asset(dark ? 'day-iphone-student-home-dark.webp' : 'day-iphone-student-home.webp')} width={150} dark={dark} />
+      place = 'right-[34px] top-[171px]'
   }
   return (
     <div aria-hidden className={`lp-plat-device pointer-events-none absolute ${place}`}>
@@ -129,6 +129,12 @@ export default function PlatformsSection() {
         <div className="grid w-full max-w-[1200px] grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {VERSIONS.map(v => (
             <div key={v.name} className={`${card} lp-plat-card relative ${v.device === 'duo' ? 'sm:col-span-2 xl:col-span-1' : ''} flex h-[340px] flex-col items-start gap-3 overflow-hidden p-6 sm:h-[360px]`}>
+              {/* Свечение под устройством — даёт глубину: устройство «стоит» в свете карточки. */}
+              <span
+                aria-hidden
+                className="lp-plat-glow pointer-events-none absolute inset-x-0 bottom-0 h-[70%]"
+                style={{ background: `radial-gradient(ellipse 75% 62% at 50% 92%, rgba(${dark ? '142,120,255,0.34' : '120,107,214,0.2'}) 0%, rgba(${dark ? '142,120,255,0.1' : '120,107,214,0.07'}) 45%, transparent 75%)` }}
+              />
               <DeviceArt device={v.device} dark={dark} />
               <h3 className="relative text-[20px] font-bold text-[var(--color-text)]">{v.name === 'Компьютер' ? t(v.name) : v.name}</h3>
               <span
