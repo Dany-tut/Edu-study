@@ -36,7 +36,7 @@ export const POSES: Record<OgonekPoseName, OgonekPose> = {
   why: { loop: 'think', emotion: 'think', gaze: [0.5, 0.65], follow: false },
   day: { loop: 'point', emotion: 'base', gaze: [0.6, 0.15], follow: false },
   student: { loop: 'read', emotion: 'base', gaze: [0.1, 0.15], follow: false },
-  eco: { loop: 'idle', emotion: 'smile', follow: true },
+  eco: { loop: 'idle', emotion: 'base', follow: true },
   faq: { loop: 'think', emotion: 'think', gaze: [-0.5, 0.65], follow: false },
   cta: { loop: 'joy', emotion: 'joy', follow: true },
   price: { loop: 'coin', emotion: 'cheer', gaze: [0, 0.6], follow: false },
@@ -247,12 +247,8 @@ export function mountOgonek(host: HTMLElement, opts: OgonekOptions = {}): Ogonek
       } else if (src && 'vertexColors' in src) {
         src.vertexColors = !!m.geometry.getAttribute('color')
         if (name.startsWith('Iris')) {
-          // радужка светится своим цветом: фиолетовый низ и чёрный зрачок читаются при любом свете
-          const iris = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.4, envMapIntensity: 0.12 })
-          iris.onBeforeCompile = sh => {
-            sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vColor.rgb * 0.9;')
-          }
-          m.material = iris
+          // радужка без отражений и серого отлива: цвет ровно из модели (блики — отдельные меши)
+          m.material = new THREE.MeshBasicMaterial({ vertexColors: true })
         }
       }
       if (m.morphTargetDictionary) morphMeshes.push(m)
