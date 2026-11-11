@@ -56,5 +56,13 @@
 @keyframes auth-feedback-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .auth-feedback-spinner { animation: none; } }
 
+/* Зарезервированный слот (вход препода): высоту держит idle-подсказка в потоке, а
+   сообщение (ошибка/успех/занятость) накладывается поверх — состояния меняются
+   БЕЗ сдвига разметки. Длинная ошибка уходит вниз, перекрывая «Забыли пароль». */
+.auth-feedback-slot--reserve { position: relative; }
+.auth-feedback-slot--reserve .auth-feedback-overlay { position: absolute; inset: 0; border-radius: 12px; background: var(--color-bg); }
+.auth-feedback-slot--reserve .auth-feedback-overlay .auth-feedback { min-height: 100%; align-items: flex-start; }
+.auth-feedback-secondary { display: block; margin-top: 3px; font-size: 12px; line-height: 15px; color: var(--color-muted); overflow-wrap: anywhere; }
+
 .auth-page-card .auth-input[aria-invalid="true"] { border-color: var(--color-red-text) !important; }
 .auth-page-card button:disabled { cursor: not-allowed; }

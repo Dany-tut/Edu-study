@@ -10,6 +10,8 @@ export type AuthFeedbackMessage = {
   text?: string
   busy?: boolean
   onCancel?: () => void
+  // Необязательное действие в сообщении (напр. «Ещё раз» при сбое проверки доступа).
+  action?: { label: string; onClick: () => void }
   invalid?: 'credentials' | 'email' | 'password' | 'code'
 }
 type Entry = { id: number; source: string; message: AuthFeedbackMessage }
@@ -94,12 +96,42 @@ export function authFailureFeedback(error: unknown): AuthFeedbackMessage {
   return { tone: 'danger', title: 'Не удалось выполнить действие', text }
 }
 
-export function AuthFeedbackSlot({ idleText }: { idleText: string }) {
+export function AuthFeedbackSlot({ idleText, idleSecondary, reserve }: { idleText: string; idleSecondary?: string; reserve?: boolean }) {
   const context = useContext(Context)
   if (!context) throw new Error('Auth feedback requires a page provider')
   const t = useT()
   const message = context.entry?.message
   const Icon = message?.busy ? Loader2 : message?.tone === 'danger' ? AlertCircle : message?.tone === 'success' ? CheckCircle2 : Info
+
+  // Зарезервированный слот: idle-подсказка держит высоту в потоке, сообщение
+  // накладывается поверх (overlay). Состояния (idle / ошибка / успех / занятость)
+  // не двигают разметку — карточка не прыгает. Длинная ошибка уходит вниз, при
+  // необходимости перекрывая «Забыли пароль». Поведение включается пропом reserve;
+  // остальные экраны (ученик/код/приглашение) используют классический слот ниже.
+  if (reserve) {
+    return <div className="auth-feedback-slot auth-feedback-slot--reserve" data-auth-feedback-slot>
+      <div id={context.descriptionId} className="auth-feedback auth-feedback--idle" data-tone="idle" aria-hidden={message ? true : undefined}>
+        <span className="auth-feedback-icon" aria-hidden="true"><Info size={18} strokeWidth={2} /></span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p>{t(idleText)}</p>
+          {idleSecondary && <span className="auth-feedback-secondary">{t(idleSecondary)}</span>}
+        </div>
+      </div>
+      {message && <div className="auth-feedback-overlay">
+        <div className="auth-feedback" data-tone={message.tone}
+          role={message.tone === 'danger' ? 'alert' : 'status'} aria-live={message.tone === 'danger' ? 'assertive' : 'polite'} aria-atomic="true">
+          <span className={message.busy ? 'auth-feedback-icon auth-feedback-spinner' : 'auth-feedback-icon'} aria-hidden="true"><Icon size={18} strokeWidth={2} /></span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <strong>{t(message.title)}</strong>
+            {message.text && <p>{t(message.text)}</p>}
+          </div>
+          {message.busy && message.onCancel && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.onCancel}>{t('Отмена')}</button>}
+          {!message.busy && message.action && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.action.onClick}>{t(message.action.label)}</button>}
+        </div>
+      </div>}
+    </div>
+  }
+
   return <div className="auth-feedback-slot" data-auth-feedback-slot>
     <div id={context.descriptionId} className={`auth-feedback${message ? '' : ' auth-feedback--idle'}`} data-tone={message?.tone ?? 'idle'}
       role={message?.tone === 'danger' ? 'alert' : 'status'} aria-live={message?.tone === 'danger' ? 'assertive' : 'polite'} aria-atomic="true">
