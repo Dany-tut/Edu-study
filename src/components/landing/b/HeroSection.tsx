@@ -67,10 +67,18 @@ export function LandingHeader({ onLogin }: Actions) {
   const links: Array<[string, string]> = [['#how', 'Как работает'], ['#features', 'Возможности'], ['#student', 'Ученику'], ['#pricing', 'Тарифы'], ['#faq', 'Вопросы']]
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-30 transition-[background-color,box-shadow,backdrop-filter] duration-200 ${scrolled ? 'bg-[color-mix(in_srgb,var(--color-bg)_78%,transparent)] shadow-[0_1px_0_var(--color-border-soft)] backdrop-blur-[14px]' : ''}`}
+      className={`fixed inset-x-0 top-0 z-30 transition-[padding] duration-300 ease-out ${scrolled ? 'px-4' : 'px-0'}`}
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="mx-auto flex h-[72px] w-full max-w-[1440px] items-center gap-7 px-4 sm:px-8 xl:px-14">
+      {/* При прокрутке шапка плавно стягивается из полосы во всю ширину в
+          плавающую капсулу по центру: морф max-width, высоты, радиуса и стекла. */}
+      <div
+        className={`mx-auto flex w-full items-center gap-7 transition-[max-width,height,margin-top,border-radius,padding,background-color,box-shadow,border-color,backdrop-filter] duration-300 ease-out ${
+          scrolled
+            ? 'mt-2.5 h-[58px] max-w-[1100px] rounded-full border border-[var(--color-border-soft)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] px-4 shadow-[0_14px_34px_-14px_rgba(38,26,89,0.45)] backdrop-blur-[16px] sm:px-6'
+            : 'mt-0 h-[72px] max-w-[1440px] rounded-none border border-transparent bg-transparent px-4 shadow-none sm:px-8 xl:px-14'
+        }`}
+      >
         <a href="#top" className="iskra-host flex shrink-0 items-center gap-[11px] text-[21px] font-bold text-[var(--color-text)]">
           <IskraMark size={32} />
           Искра
