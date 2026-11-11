@@ -6535,4 +6535,9 @@ export const EN: Record<string, string> = {
   "Число…": "Number…",
   "Твой ответ — число": "Your answer — a number",
   "Ваш ответ — число": "Your answer — a number",
+
+  // Клетки бланка ЕГЭ (fill + cells)
+  "Клеток бланка ЕГЭ": "Exam answer cells",
+  "Число клеток бланка": "Number of answer cells",
+  "ответ по клеткам, цифры по порядку": "answer in cells, digits in order",
 }
