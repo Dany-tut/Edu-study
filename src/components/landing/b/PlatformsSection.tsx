@@ -1,5 +1,6 @@
 // «Одна Искра — четыре версии» (Figma «Искра», стр. 290:2, узел 303:418 /
-// тёмный 303:804): четыре карточки версий и строка с живым переключателем темы.
+// тёмный 303:804): карточки версий (плюс складной iPhone Duo — это iPhone-версия
+// в развороте) и строка с живым переключателем темы.
 // В каждой карточке снизу выглядывает своё устройство с настоящим снимком
 // Искры (обрезается карточкой); при наведении на карточку приподнимается.
 
@@ -8,7 +9,7 @@ import { useT } from '../../../lib/i18n'
 import { useTheme } from '../../../store/themeStore'
 import { IPad, IPhone, Mac, Section, SectionHead, asset } from './kit'
 
-type Device = 'mac' | 'iphone' | 'ipad' | 'android'
+type Device = 'mac' | 'iphone' | 'ipad' | 'android' | 'duo'
 type Version = { name: string; status: string; note: string; tone: 'green' | 'accent'; device: Device }
 
 const VERSIONS: Version[] = [
@@ -16,6 +17,9 @@ const VERSIONS: Version[] = [
   { name: 'iPhone', status: 'Бета-тест', note: 'Стекло, нижняя панель под большой палец.', tone: 'accent', device: 'iphone' },
   { name: 'iPad', status: 'Скоро приложением', note: 'Всё управление — в капсуле справа.', tone: 'accent', device: 'ipad' },
   { name: 'Android', status: 'Бета-тест', note: 'Таблетки навигации, плавные края.', tone: 'accent', device: 'android' },
+  // Складной iPhone (Apple, сентябрь 2026) — та же iPhone-версия, но в развороте
+  // раскладка становится планшетной.
+  { name: 'iPhone Duo', status: 'Скоро', note: 'Сложен — как iPhone, раскрыт — как iPad.', tone: 'accent', device: 'duo' },
 ]
 
 // Android — корпус в духе Galaxy S: плоская металлическая рамка, тонкая ровная
@@ -52,6 +56,27 @@ function AndroidPhone({ src, width }: { src: string; width: number }) {
   )
 }
 
+// iPhone Duo в развороте — корпус из мокапа Figma (Star White, landscape):
+// экран 1.43 : 1, корпус выходит за экран неравномерно (кнопки сверху и справа),
+// поэтому отступы рамки заданы по сторонам. width — ширина экрана.
+const DUO = { l: 2.2, r: 2.49, t: 3.53, b: 3.15, radius: 0.0594 }
+function DuoPhone({ src, width }: { src: string; width: number }) {
+  const h = Math.round(width / 1.43)
+  return (
+    <div className="relative shrink-0" style={{ width, height: h, filter: 'drop-shadow(0px 30px 28px rgba(51,38,115,0.26))' }}>
+      <img src={src} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-left-top" style={{ borderRadius: width * DUO.radius }} />
+      <img
+        src={asset('bezel-iphone-duo.webp')}
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="pointer-events-none absolute max-w-none select-none"
+        style={{ left: `-${DUO.l}%`, top: `-${DUO.t}%`, width: `${100 + DUO.l + DUO.r}%`, height: `${100 + DUO.t + DUO.b}%` }}
+      />
+    </div>
+  )
+}
+
 function DeviceArt({ device, dark }: { device: Device; dark: boolean }) {
   const tone = dark ? 'dark' : 'light'
   let art: ReactNode
@@ -68,6 +93,10 @@ function DeviceArt({ device, dark }: { device: Device; dark: boolean }) {
     case 'ipad':
       art = <IPad src={asset(`day-mac-journal-${tone}.webp`)} width={210} position="left top" />
       place = 'right-[-22px] top-[180px]'
+      break
+    case 'duo':
+      art = <DuoPhone src={asset(`day-mac-attendance-${tone}.webp`)} width={262} />
+      place = 'left-[24px] top-[186px] sm:left-auto sm:right-[56px] sm:top-[150px] xl:left-[24px] xl:right-auto xl:top-[186px]'
       break
     default:
       art = <AndroidPhone src={asset('day-iphone-student-home.webp')} width={150} />
@@ -97,9 +126,9 @@ export default function PlatformsSection() {
           lead={t('Не растянутый сайт, а своя раскладка под каждое устройство. Данные общие.')}
         />
 
-        <div className="grid w-full max-w-[1200px] grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid w-full max-w-[1200px] grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {VERSIONS.map(v => (
-            <div key={v.name} className={`${card} lp-plat-card relative flex h-[340px] flex-col items-start gap-3 overflow-hidden p-6 sm:h-[360px]`}>
+            <div key={v.name} className={`${card} lp-plat-card relative ${v.device === 'duo' ? 'sm:col-span-2 xl:col-span-1' : ''} flex h-[340px] flex-col items-start gap-3 overflow-hidden p-6 sm:h-[360px]`}>
               <DeviceArt device={v.device} dark={dark} />
               <h3 className="relative text-[20px] font-bold text-[var(--color-text)]">{v.name === 'Компьютер' ? t(v.name) : v.name}</h3>
               <span
