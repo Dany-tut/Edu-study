@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { startSocialLogin, startSocialLoginCustom, cancelSocialLogin, resetSocialLoginState, hasPendingSocialAuth, isCustomProvider, startPasskeyLogin, type LoginRole } from '../lib/socialAuth'
-import { usePasskeyAvailable } from '../lib/passkey'
+import { usePasskeyAvailable, passkeyMaybeAvailable } from '../lib/passkey'
 import { KeyRound, ChevronRight } from './icons/appIcons'
 import { readLastLogin, clearLastLogin } from '../lib/lastLogin'
 import { textFadeLines } from '../lib/textFades'
@@ -25,6 +25,10 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
   const pending = useRef(false)
   // ключ доступа — вход в уже готовый аккаунт; на странице приглашения его нет
   const passkeyOn = usePasskeyAvailable() && !joinToken
+  // Место под кнопку ключа держим с первого кадра на пригодных доменах, пока идёт
+  // асинхронная проверка passkeys_enabled — иначе кнопка всплывает позже и толкает
+  // низ карточки. На непригодных доменах (false) слота нет — ничего не прыгает.
+  const passkeyReserve = passkeyMaybeAvailable() && !joinToken
   // «Последний вход» этого устройства для ЭТОЙ роли (на приглашении — не показываем:
   // там привязка к конкретной карточке, а не вход своим прошлым аккаунтом).
   const [lastLogin, setLastLogin] = useState(() => (joinToken ? null : readLastLogin(role)))
@@ -201,17 +205,23 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           <span style={{ display: 'block', lineHeight: '20px' }}>{label}</span>
         </button>
       ))}
-      {passkeyOn && <button
+      {(passkeyOn || passkeyReserve) && <button
           data-auth-provider="passkey"
           type="button"
           onClick={() => void withPasskey()}
-          disabled={busy !== null || feedback.busy}
+          disabled={!passkeyOn || busy !== null || feedback.busy}
           aria-busy={busy === 'passkey'}
+          // Пока проверка не подтвердила ключ — кнопка на месте, но visibility:hidden:
+          // занимает СВОЮ точную высоту с первого кадра (место не угадываем), поэтому
+          // её появление не двигает низ карточки. Не фокусируется и не читается.
+          aria-hidden={passkeyOn ? undefined : true}
+          tabIndex={passkeyOn ? undefined : -1}
           style={{
             gridColumn: '1 / -1', minHeight: 48, minWidth: 0, borderRadius: 14, padding: '8px 10px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             border: '1px solid var(--color-border-medium)', background: 'var(--color-surface)',
             color: 'var(--color-text)', fontSize: 14, fontWeight: 650,
+            visibility: passkeyOn ? undefined : 'hidden',
             opacity: busy && busy !== 'passkey' ? 0.55 : 1,
           }}
         >
