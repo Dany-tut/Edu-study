@@ -7,7 +7,7 @@
 import { Check } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { Section, SectionHead } from './kit'
-import OgonekModel from './OgonekModel'
+import OgonekImage from './OgonekImage'
 
 const USUAL = [
   'Расписание — в заметках, переносы — в чате',
@@ -38,7 +38,7 @@ export default function PainSection() {
         </div>
 
         {/* Задумчивый Огонёк: 3D-модель смотрит по сторонам и думает. */}
-        <OgonekModel pose="why" fallback="pain-ogonek-thinking.webp" className="relative h-[140px] w-[78px] shrink-0 md:h-[150px] md:w-[84px] lg:h-[200px] lg:w-[111px]" />
+        <OgonekImage image="pain-ogonek-thinking.webp" className="relative h-[140px] w-[78px] shrink-0 md:h-[150px] md:w-[84px] lg:h-[200px] lg:w-[111px]" />
 
         <div className="flex w-full flex-col gap-[14px] rounded-[24px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] p-6 sm:p-7 md:max-w-[470px] md:flex-1">
           <p className="text-[12px] font-bold tracking-[0.96px] text-[var(--color-accent)]">{t('В ИСКРЕ')}</p>

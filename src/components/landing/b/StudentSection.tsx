@@ -5,7 +5,7 @@
 import { useRef } from 'react'
 import { useT } from '../../../lib/i18n'
 import { IPhone, Section, asset } from './kit'
-import OgonekModel from './OgonekModel'
+import OgonekImage from './OgonekImage'
 
 const CHIPS = ['Твои дела', 'Трек курса', 'Журнал работ', 'Тренажёр', 'Тёмная тема']
 
@@ -81,7 +81,7 @@ export default function StudentSection() {
             <div className="lp-rock lp-rock-c absolute left-[148px] top-[-24px]">
               <IPhone src={asset('student-phone-center.webp')} width={245} alt={t('Главная ученика в Искре')} />
             </div>
-            <OgonekModel pose="student" fallback="student-ogonek-book.webp" className="pointer-events-none absolute left-[420px] top-[260px] h-[258px] w-[150px]" />
+            <OgonekImage image="student-ogonek-book.webp" className="pointer-events-none absolute left-[420px] top-[260px] h-[258px] w-[150px]" />
           </div>
         </div>
       </div>

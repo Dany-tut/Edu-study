@@ -75,7 +75,7 @@ export function LandingHeader({ onLogin }: Actions) {
       <div
         className={`mx-auto flex w-full items-center transition-[max-width,height,margin-top,border-radius,padding,gap,background-color,box-shadow,border-color,backdrop-filter] duration-300 ease-out ${
           scrolled
-            ? 'mt-2.5 h-[54px] max-w-[1080px] gap-5 rounded-[22px] border border-[var(--color-border-soft)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] pl-5 pr-2 shadow-[0_14px_34px_-14px_rgba(38,26,89,0.45)] backdrop-blur-[16px]'
+            ? 'mt-2.5 h-[64px] max-w-[1080px] gap-5 rounded-[22px] border border-[var(--color-border-soft)] bg-[color-mix(in_srgb,var(--color-bg)_82%,transparent)] py-2 pl-4 pr-2 shadow-[0_14px_34px_-14px_rgba(38,26,89,0.45)] backdrop-blur-[16px]'
             : 'mt-0 h-[72px] max-w-[1440px] gap-7 rounded-none border border-transparent bg-transparent px-4 shadow-none sm:px-8 xl:px-14'
         }`}
       >
@@ -90,11 +90,11 @@ export function LandingHeader({ onLogin }: Actions) {
         </nav>
         <div className="ml-auto flex min-w-0 items-center gap-2.5">
           <ThemeToggleBtn />
-          <SecondaryButton size="sm" onClick={onLogin}>
+          <SecondaryButton size="sm" onClick={onLogin} className="h-[46px]">
             <span className="hidden sm:inline">{t('Личный кабинет')}</span>
             <span className="sm:hidden">{t('Войти')}</span>
           </SecondaryButton>
-          <PrimaryButton size="sm" href={SIGNUP_HREF} className="hidden md:inline-flex">{t('Зарегистрироваться')}</PrimaryButton>
+          <PrimaryButton size="sm" href={SIGNUP_HREF} className="hidden h-[46px] md:inline-flex">{t('Зарегистрироваться')}</PrimaryButton>
         </div>
       </div>
     </header>

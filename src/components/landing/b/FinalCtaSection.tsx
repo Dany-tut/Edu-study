@@ -18,7 +18,7 @@ import { Alert } from '../../Alert'
 import ScrollFade from '../../ScrollFade'
 import { GraduationCap, User, X } from '../../icons/appIcons'
 import { PrimaryButton, Section, asset } from './kit'
-import OgonekModel from './OgonekModel'
+import OgonekImage from './OgonekImage'
 
 const LEAD_EVENT = 'iskra:lead'
 const LOGIN_EVENT = 'iskra:login'
@@ -80,7 +80,7 @@ export default function FinalCtaSection() {
             className="absolute right-[-10px] top-[-40px] size-[200px] rounded-full md:right-[-40px] md:top-[-30px] md:size-[440px] lg:right-[0px]"
             style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.8), rgba(255,255,255,0.32) 50%, rgba(255,255,255,0) 100%)', filter: 'blur(6px)' }}
           />
-          <OgonekModel pose="cta" fallback="cta-ogonek-joy.webp" className="absolute right-4 top-[-80px] h-[160px] w-[96px] md:right-6 md:top-[-56px] md:h-[466px] md:w-[280px] lg:right-[60px]" />
+          <OgonekImage image="cta-ogonek-joy.webp" className="absolute right-4 top-[-80px] h-[160px] w-[96px] md:right-6 md:top-[-56px] md:h-[466px] md:w-[280px] lg:right-[60px]" />
         </div>
       </div>
 
