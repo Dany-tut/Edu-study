@@ -1,6 +1,8 @@
 .teacher-more {
   display: grid;
   gap: 14px;
+  /* Leave room below the native status-bar blur at the top of the list. */
+  padding-block-start: 24px;
   color: var(--color-text);
 }
 
