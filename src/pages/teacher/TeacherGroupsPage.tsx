@@ -2441,6 +2441,10 @@ type GroupRosterProps = {
   initialStripTab?: 'groups' | 'students'
   onStripChange?: (tab: 'groups' | 'students') => void
 }
+const rosterInset = 32
+const studentPanelWidth = 332
+const studentPanelGap = 12
+
 export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
   // The journal, group strip and report drawer own their inner scroll fades.
@@ -2746,7 +2750,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
 
   return (
     <div ref={scrollRoot} className={renderRoster ? 'js-journal-host' : undefined} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'visible', position: 'relative' }}>
-      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: renderRoster ? -100 : 0, padding: renderRoster ? '100px 32px 32px' : '0 32px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: renderRoster ? -100 : 0, padding: `${renderRoster ? 100 : 0}px ${rosterInset}px ${rosterInset}px`, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <motion.div {...fadeUp(0.04)} className={renderRoster || onOpenStudent ? 'js-stand-strip' : undefined}>
           <GroupStrip
             mergePersons
@@ -2776,7 +2780,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
               className="teacher-roster-card-wrap"
               key="student-table"
               initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0, marginRight: activeStudentId ? 344 : 0 }}
+              animate={{ opacity: 1, y: 0, marginRight: activeStudentId ? studentPanelWidth + studentPanelGap - rosterInset : 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
             >
@@ -3044,7 +3048,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 340, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 332, zIndex: 10, display: 'flex', flexDirection: 'column' }}
+            style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: studentPanelWidth, zIndex: 10, display: 'flex', flexDirection: 'column' }}
           >
             <StudentPanel
               student={activeStudent}
