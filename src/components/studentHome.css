@@ -222,12 +222,25 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
   [data-platform="iphone"] .lh-notification-anchor { width: 44px; height: 44px; }
   [data-platform="iphone"] .lh-schedule { margin-inline: -16px; }
   [data-platform="iphone"] .lh-schedule .schedule-card:not(.schedule-card--center) { overflow: clip; }
-  [data-platform="iphone"] .lh-widgets { margin-inline: -12px; }
-  [data-platform="iphone"] .lh-widgets .widget-carousel { padding-inline: 46px; }
-  [data-platform="iphone"] .lh-widgets .carousel-nav {
-    width: 44px;
-    height: 44px;
+  [data-platform="iphone"] .lh-widgets { margin-inline: -16px; }
+  [data-platform="iphone"] .lh-widgets .widget-carousel { padding-inline: 0; }
+  .iphone-widget-strip {
+    position: absolute;
+    inset: 0;
+    --widget-peek: 32px;
   }
-  [data-platform="iphone"] .lh-widgets .carousel-nav--left { left: 0; }
-  [data-platform="iphone"] .lh-widgets .carousel-nav--right { right: 0; }
+  .iphone-widget-slot {
+    position: absolute;
+    top: 0;
+    left: var(--widget-peek);
+    width: calc(100% - 2 * var(--widget-peek));
+    height: 100%;
+  }
+  .iphone-widget-slot[data-offset="-1"] { left: calc(-100% + 3 * var(--widget-peek) - 8px); }
+  .iphone-widget-slot[data-offset="1"] { left: calc(100% - var(--widget-peek) + 8px); }
+  .iphone-widget-slot[data-offset]:not([data-offset="0"]) > div {
+    transform: scaleY(.9);
+    opacity: .55;
+  }
+  .iphone-widget-peek { position: absolute; inset: 0; width: 100%; cursor: pointer; }
 }

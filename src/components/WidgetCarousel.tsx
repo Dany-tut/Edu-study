@@ -47,8 +47,9 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
 }
 
-export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets }: {
+export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets, swipeOnly = false }: {
   columnsOverride?: number
+  swipeOnly?: boolean
   /** Leading widget IDs use their original renderer unless custom content is supplied. */
   leadingWidgets?: { id: number; content?: ReactNode }[]
   /** In-memory stand content, in the home page's original carousel geometry. */
@@ -132,7 +133,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
 
   const goTo = (next: number, direction: number) => {
     // Wrap around both ends so the carousel loops infinitely.
-    const wrapped = ((next % pageCount) + pageCount) % pageCount
+    const wrapped = swipeOnly ? Math.max(0, Math.min(pageCount - 1, next)) : ((next % pageCount) + pageCount) % pageCount
     if (wrapped === page) return
     setPage([wrapped, direction])
     revealDots()
@@ -142,7 +143,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
   const goRight = () => goTo(page + 1, 1)
 
   const onDragEnd = (_e: unknown, info: PanInfo) => {
-    const swipe = info.offset.x + info.velocity.x * 120
+    const swipe = info.offset.x + info.velocity.x * (swipeOnly ? 0.12 : 120)
     if (swipe < -80) goRight()
     else if (swipe > 80) goLeft()
     scheduleHide()
@@ -169,10 +170,22 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
   const start = safePage * perPage
   const pageWidgets = widgetOrder.slice(start, start + perPage)
 
+  const renderFrame = (idx: number, active: boolean, style?: React.CSSProperties) => (
+    <WidgetFrame
+      id={idx}
+      adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined)}
+      key={idx}
+      style={{ minWidth: 0, height: '100%', ...style }}
+    >
+      <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
+        {leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined) ? renderWidget(idx, active) : home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, active)}
+      </Suspense>
+    </WidgetFrame>
+  )
+
   return (
     <div ref={carouselRef} className="widget-carousel relative" data-widget={page} data-widget-columns={pageWidgets.length}>
-      {/* Left nav */}
-      <motion.button
+      {!swipeOnly && <motion.button
         whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
         onClick={goLeft}
         style={{ y: '-50%' }}
@@ -180,8 +193,36 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
         aria-label={t('Предыдущий виджет')}
       >
         <ChevronLeft size={16} />
-      </motion.button>
+      </motion.button>}
 
+      {swipeOnly ? (
+        <motion.div
+          className="iphone-widget-strip"
+          drag={pageCount > 1 ? 'x' : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.45}
+          dragSnapToOrigin
+          dragMomentum={false}
+          onDragStart={revealDots}
+          onDragEnd={onDragEnd}
+        >
+          {widgetOrder.slice(Math.max(0, safePage - 1), safePage + 2).map((id, index) => {
+            const target = Math.max(0, safePage - 1) + index
+            const offset = target - safePage
+            return (
+              <motion.div key={id} layout="position" className="iphone-widget-slot" data-offset={offset}
+                transition={{ layout: { type: 'spring', stiffness: 320, damping: 34 } }}
+              >
+                <div inert={offset !== 0} style={{ height: '100%' }}>{renderFrame(id, offset === 0)}</div>
+                {offset !== 0 && <button type="button" className="iphone-widget-peek"
+                  aria-label={t(offset < 0 ? 'Предыдущий виджет' : 'Следующий виджет')}
+                  onClick={() => goTo(target, offset)}
+                />}
+              </motion.div>
+            )
+          })}
+        </motion.div>
+      ) : <>
       {/* Real padding reserves room for artwork and shadows in Safari too.
           overflow-clip-margin is not supported consistently across browsers. */}
       <div className="relative h-full w-full">
@@ -207,26 +248,11 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
             className="absolute inset-0 flex"
             style={{ gap: 16 }}
           >
-            {pageWidgets.map(idx => (
-              <WidgetFrame
-                id={idx}
-                adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined)}
-                key={idx}
-                style={{
-                  flex: pageWidgets.length < perPage
-                    ? '1 1 0'
-                    : `0 0 calc((100% - ${(perPage - 1) * 16}px) / ${perPage})`,
-                  minWidth: 0,
-                  height: '100%',
-                }}
-              >
-                {/* Пустая стойка на время чанка: своя на каждый виджет,
-                    чтобы приехавший сосед не сбрасывал уже показанный. */}
-                <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
-                  {leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined) ? renderWidget(idx, true) : home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
-                </Suspense>
-              </WidgetFrame>
-            ))}
+            {pageWidgets.map(idx => renderFrame(idx, true, {
+              flex: pageWidgets.length < perPage
+                ? '1 1 0'
+                : `0 0 calc((100% - ${(perPage - 1) * 16}px) / ${perPage})`,
+            }))}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -243,6 +269,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
       >
         <ChevronRight size={16} />
       </motion.button>
+      </>}
 
       {/* Dots — hidden while idle, revealed while flipping */}
       <div
