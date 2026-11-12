@@ -1951,10 +1951,8 @@ function TracksSection({
     } catch (error) { setAddError((error as { message?: string }).message ?? t('Не удалось назначить занятия')) } finally { setBusy(false) }
   }
 
-  const chip = (icon: string, subj: string, lvl: string, color: string): React.CSSProperties => ({
-    display: 'inline-flex', alignItems: 'center', gap: 6,
-    background: color + '22', border: `1px solid ${color}44`,
-    borderRadius: 9, padding: '6px 10px', fontSize: 12, fontWeight: 600, color: 'var(--color-text)',
+  const trackSurface = (color: string): React.CSSProperties => ({
+    background: color + '22', borderColor: color + '44',
   })
 
   return (
@@ -1966,8 +1964,8 @@ function TracksSection({
         {/* Текущая карточка. Крестик есть и у неё — иначе направление, на котором
             стоишь, снять было нельзя вовсе (приходилось открывать соседнее).
             Последнее направление не удаляем: это уже «Удалить ученика». */}
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <div style={{ ...chip(group.icon, group.subject, group.level, group.color), flex: 1 }}>
+        <div className="student-track-row" style={trackSurface(group.color)}>
+          <div className="student-track-label">
             <span><SubjectMark subject={group.subject} size={14} /></span>
             <span>{group.id ? tc(group.subject) : tc(group.name)}{group.level ? ` · ${t(group.level)}` : ''}</span>
           </div>
@@ -1983,7 +1981,7 @@ function TracksSection({
                 })
                 if (ok) await onRemoveCard(group.id)
               }}
-              style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              className="student-track-remove" aria-label={t('Удалить карточку')}
             >
               <X size={14} />
             </button></Tooltip>
@@ -1992,17 +1990,17 @@ function TracksSection({
 
         {/* Другие карточки этого ученика — клик открывает, крестик удаляет */}
         {siblings.map(sc => (
-          <div key={sc.id} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div key={sc.id} className="student-track-row" style={trackSurface(sc.color)}>
             <button data-hover="layer"
               type="button" onClick={() => onOpenCard(sc.id)} title={t('Открыть карточку')}
-              style={{ ...chip(sc.icon, sc.subject, sc.level, sc.color), cursor: 'pointer', flex: 1, justifyContent: 'flex-start' }}
+              className="student-track-label student-track-link"
             >
               <span><SubjectMark subject={sc.subject} size={14} /></span>
               <span>{tc(sc.subject)}{sc.level ? ` · ${t(sc.level)}` : ''}</span>
             </button>
             <Tooltip label={t('Удалить карточку')}><button data-hover="layer"
               type="button" onClick={() => onRemoveCard(sc.id)}
-              style={{ width: 30, height: 30, flexShrink: 0, borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-4)', color: 'var(--color-red-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              className="student-track-remove" aria-label={t('Удалить карточку')}
             >
               <X size={14} />
             </button></Tooltip>
