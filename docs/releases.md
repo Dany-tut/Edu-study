@@ -1,6 +1,6 @@
 # Выпуск Искры
 
-Прод принимает только Git-деплои подключённого репозитория `Dany-tut/Edu-study`.
+Vercel принимает только Git-деплои подключённого репозитория `Dany-tut/Edu-study`.
 Production branch — `main`. Прямые загрузки из CLI, REST API, Deploy Hooks,
 v0 и Marketplace для production запрещены политикой Vercel. Preview остаётся
 доступным для обычной проверки веток.
@@ -23,8 +23,20 @@ v0 и Marketplace для production запрещены политикой Vercel
    `Типы, сторожа, сборка` именно для этого SHA.
 5. Обновить `main` обычным fast-forward push либо merge PR. Если `main`
    успел измениться, сначала включить его изменения и повторить проверки.
-6. Дождаться production-деплоя Vercel и сверить SHA в `/release.json`,
-   версию в `/version.json`, домен и результат функциональной проверки.
+6. Дождаться production-деплоя Vercel и успешного workflow «Зеркало production».
+   Сверить SHA и версию в `/release.json` и `/version.json` на обоих доменах.
+   Функциональную проверку выполнить на [iskra-study.ru](https://iskra-study.ru).
+
+После успешного production-деплоя Vercel GitHub Actions собирает тот же коммит
+с настройками российского зеркала и загружает статику на VPS. Запуски
+сериализованы, устаревший коммит пропускается. Резервная сверка запускается
+дважды в час. Если SHA уже совпадают, сборка и загрузка пропускаются.
+
+Ручной повтор выполняется через `workflow_dispatch` на `main` в
+[«Зеркало production»](https://github.com/Dany-tut/Edu-study/actions/workflows/sync-production-mirror.yml).
+Ключ `ISKRA_MIRROR_SSH_KEY` имеет доступ только на запись через rsync в каталог
+зеркала. В `ISKRA_MIRROR_KNOWN_HOSTS` хранится проверенный публичный ключ VPS.
+Старые статические файлы остаются доступны вкладкам, открытым до обновления.
 
 `main` защищён от force-push и удаления, включая администраторов. Перед
 обновлением `main` GitHub требует успешный check `Типы, сторожа, сборка`.
