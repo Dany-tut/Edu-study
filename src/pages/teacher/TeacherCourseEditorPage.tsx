@@ -3295,17 +3295,7 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
 
   return (
     <GlassCard
-      style={{
-        overflow: 'hidden',
-        outline: photoDragOver ? '2px solid var(--color-accent)' : undefined,
-        backgroundImage: photoDragOver ? [
-          'linear-gradient(to right, color-mix(in srgb, var(--color-accent) 15%, transparent) 1px, transparent 1px)',
-          'linear-gradient(to bottom, color-mix(in srgb, var(--color-accent) 15%, transparent) 1px, transparent 1px)',
-          'linear-gradient(var(--color-accent-soft), var(--color-accent-soft))',
-        ].join(', ') : undefined,
-        backgroundSize: photoDragOver ? '16px 16px, 16px 16px, 100% 100%' : undefined,
-        outlineOffset: -2,
-      }}
+      style={{ position: 'relative', overflow: 'hidden' }}
       onDragEnter={e => {
         if (!canDropPhoto(e.dataTransfer)) return
         e.preventDefault()
@@ -3333,6 +3323,13 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
         if (photo) attachPhoto(photo)
       }}
     >
+      {photoDragOver && (
+        <div aria-hidden="true" data-photo-drop-highlight style={{
+          position: 'absolute', inset: 0, zIndex: 5, borderRadius: 'inherit', pointerEvents: 'none',
+          background: 'linear-gradient(90deg, rgba(var(--accent-rgb), .16), rgba(var(--accent-rgb), .035) 24%, rgba(var(--accent-rgb), .035) 76%, rgba(var(--accent-rgb), .16))',
+          boxShadow: 'inset 0 0 0 1px rgba(var(--accent-rgb), .72), inset 0 0 16px rgba(var(--accent-rgb), .18)',
+        }} />
+      )}
       {/* Header */}
       <div data-hover="layer"
         onClick={() => setExpanded(e => !e)}
