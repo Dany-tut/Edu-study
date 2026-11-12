@@ -85,15 +85,7 @@ public class AppIconPlugin: CAPPlugin, CAPBridgedPlugin, UISheetPresentationCont
             controller.modalPresentationStyle = .pageSheet
             controller.view.backgroundColor = .clear
             if let sheet = controller.sheetPresentationController {
-                let medium = UISheetPresentationController.Detent.medium()
-                let large = UISheetPresentationController.Detent.large()
-                if #available(iOS 26.1, *) {
-                    medium.backgroundEffect = UIGlassEffect(style: .regular)
-                    large.backgroundEffect = UIGlassEffect(style: .regular)
-                }
-                sheet.detents = isIcon ? [large] : [medium, large]
-                sheet.prefersGrabberVisible = true
-                sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                sheet.configureIskraGlass(largeOnly: isIcon)
                 sheet.delegate = self
             }
             self.settingsCall = call

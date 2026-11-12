@@ -570,7 +570,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
       </div>}
       <DesktopFriends model={friends} bottomSheet={isIPhone} />
       <MobileSheet open={details !== null} title={details ? detailTitles[details] : undefined} softEdge onClose={() => setDetails(null)}>
-        {details === 'login' && <TeacherLoginMethods />}
+        {details === 'login' && <TeacherLoginMethods sheet />}
         {(details === 'profile' || details === 'schedule') && <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}>
           <ProfileSettings friends={friends} embedded={details} onNameSaved={setNameOverride} />
         </Suspense>}
@@ -601,7 +601,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         </Suspense>}
       </MobileSheet>
       {isIPhone ? <MobileSheet open={integrations} title={t('Интеграции')} softEdge onClose={() => setIntegrations(false)}>
-        <TeacherModules showHeading={false} />
+        <TeacherModules showHeading={false} sheet />
       </MobileSheet> : integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" bottomSheet={isIPhone} onClose={() => setFeedbackOpen(false)} />}
       {isIPhone ? <MobileSheet open={paymentsOpen} title={t('Оплаты: ждут вас')} softEdge onClose={() => setPaymentsOpen(false)}>

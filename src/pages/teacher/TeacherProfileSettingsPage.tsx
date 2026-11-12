@@ -233,7 +233,11 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
   }
 
   async function chooseInputZone(zone: 'local' | 'manual') {
-    const ok = await setInputTz(zone === 'local' ? 'local' : browserTz())
+    await changeInputZone(zone === 'local' ? 'local' : browserTz())
+  }
+
+  async function changeInputZone(zone: string) {
+    const ok = await setInputTz(zone)
     setTzNote(ok ? 'saved' : 'error')
     if (ok) setTimeout(() => setTzNote(n => (n === 'saved' ? null : n)), 2000)
   }
@@ -500,7 +504,31 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
 
         </div>}
         {section === 'integrations' && <TeacherModules showHeading={false} />}
-        {section === 'settings' && <>
+        {embedded === 'schedule' && <div className="teacher-more-schedule">
+          <label>
+            <span>{t('Часовой пояс для просмотра расписания')}</span>
+            <LoopSelect value={teacherTzMode === 'auto' ? 'auto' : teacherTz}
+              onChange={e => { const zone = e.target.value; void (zone === 'auto' ? changeTzMode('auto') : changeTz(zone)) }}
+              style={{ ...inputStyle, minHeight: 44, border: 0 }}>
+              <option value="auto">{t('По устройству')} · {tzShortLabel(browserTz())}</option>
+              {!TZ_OPTIONS.some(o => o.value === teacherTz) && <option value={teacherTz}>{tzShortLabel(teacherTz)}</option>}
+              {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </LoopSelect>
+          </label>
+          <label>
+            <span>{t('Часовой пояс для ввода времени урока')}</span>
+            <LoopSelect value={inputTz} onChange={e => { void changeInputZone(e.target.value) }}
+              style={{ ...inputStyle, minHeight: 44, border: 0 }}>
+              <option value="local">{t('По устройству')} · {tzShortLabel(browserTz())}</option>
+              {inputTz !== 'local' && !TZ_OPTIONS.some(o => o.value === inputTz) && <option value={inputTz}>{tzShortLabel(inputTz)}</option>}
+              {TZ_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </LoopSelect>
+          </label>
+          <div role="status" style={{ fontSize: 12, color: tzNote === 'error' ? 'var(--color-red-text)' : 'var(--color-muted)' }}>
+            {tzNote === 'error' ? t('Не удалось сохранить. Попробуйте ещё раз.') : tzNote === 'saved' ? t('Сохранено') : ''}
+          </div>
+        </div>}
+        {section === 'settings' && !embedded && <>
           <div className="profile-card">
           <div>
             {!embedded && <h3 style={{ marginBottom: 18 }}>{t('Время в расписании')}</h3>}

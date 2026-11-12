@@ -1,3 +1,6 @@
+import { LoopSelect } from '../icons/LoopSelect'
+import { PLATFORM } from '../../lib/platform'
+import './adminActivityIphone.css'
 import TableScrollArea from '../TableScrollArea'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import Segmented from '../Segmented'
@@ -102,14 +105,22 @@ export default function AdminUserActivity() {
     teachers: teachers.length,
   }), [people, teachers])
 
+  const onPhone = PLATFORM === 'iphone'
+  const views = [
+    { id: 'people', label: t('Все пользователи') },
+    { id: 'teachers', label: t('По учителям') },
+    { id: 'students', label: t('Ученики') },
+  ] as const
+  const mobileSelectStyle = { minHeight: 44, padding: '10px 14px', border: 0, borderRadius: 12, background: 'var(--color-bg-3)', fontSize: 16, color: 'var(--color-text)' }
+
   return (
     <div>
       {/* Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
-        <Segmented
-          variant="mode" value={view} onChange={setView}
-          items={[{ id: 'people', label: t('Все пользователи') }, { id: 'teachers', label: t('По учителям') }, { id: 'students', label: t('Ученики') }]}
-        />
+        {onPhone ? <LoopSelect aria-label={t('Пользователи')} value={view} style={mobileSelectStyle}
+          onChange={e => setView(e.target.value as View)}>
+          {views.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+        </LoopSelect> : <Segmented variant="mode" value={view} onChange={setView} items={[...views]} />}
         {view === 'people' && (
           <button data-hover="layer" onClick={() => setCleanupOpen(true)} style={{ ...uiBtn('S', 'secondary'), marginLeft: 'auto' }}>
             <Eraser size={14} strokeWidth={2} />
@@ -122,12 +133,15 @@ export default function AdminUserActivity() {
             {t('Пригласить учителя')}
           </button>
         )}
-        {view !== 'students' && (
+        {view !== 'students' && (onPhone ? <LoopSelect aria-label={t('Период')} value={String(days)} style={mobileSelectStyle}
+          onChange={e => setDays(Number(e.target.value) as typeof days)}>
+          {DAYS.map(d => <option key={d} value={d}>{d} {t('дн')}</option>)}
+        </LoopSelect> : (
         <Segmented
           variant="filter" value={String(days)} onChange={v => setDays(Number(v) as typeof days)}
           items={DAYS.map(d => ({ id: String(d), label: `${d} ${t('дн')}` }))}
         />
-        )}
+        ))}
         {loading && view !== 'students' && <RefreshCw size={14} style={{ color: 'var(--color-text-3)', animation: 'spin 1s linear infinite' }} />}
       </div>
 
@@ -193,6 +207,7 @@ const tdStyle: React.CSSProperties = { padding: '10px 12px', fontSize: 14, color
 const numTd: React.CSSProperties = { ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }
 
 function TableShell({ children }: { children: React.ReactNode }) {
+  if (PLATFORM === 'iphone') return <table className="admin-activity-iphone" role="table">{children}</table>
   return (
     <TableScrollArea style={{ border: '1px solid var(--color-border-medium)', borderRadius: 14, background: 'var(--color-bg-2)' }}>
       <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 620 }}>{children}</table>
@@ -324,11 +339,11 @@ function PeopleTable({ rows, onDeleted }: { rows: UserActivityRow[]; onDeleted: 
           return (
             <tr key={r.actor_id}>
               <NameCell name={r.name} email={r.email} />
-              <td style={tdStyle}><span style={{ color: k.color, fontWeight: 600, fontSize: 13 }}>{t(k.label)}</span></td>
-              <td style={numTd}>{fmtMin(r.active_min)}</td>
-              <td style={numTd}>{r.sessions}</td>
-              <td style={numTd}>{r.logins || '—'}</td>
-              <td style={numTd}>{fmtWhen(r.last_seen)}</td>
+              <td data-label={t('Роль')} style={tdStyle}><span style={{ color: k.color, fontWeight: 600, fontSize: 13 }}>{t(k.label)}</span></td>
+              <td data-label={t('Время')} style={numTd}>{fmtMin(r.active_min)}</td>
+              <td data-label={t('Сессий')} style={numTd}>{r.sessions}</td>
+              <td data-label={t('Входов')} style={numTd}>{r.logins || '—'}</td>
+              <td data-label={t('Был(а)')} style={numTd}>{fmtWhen(r.last_seen)}</td>
               <td style={{ ...tdStyle, textAlign: 'right', width: 1 }}>
                 {deletable && (
                   <button data-hover="layer"
@@ -400,7 +415,7 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
                 </span>
               )}
             />
-            <td style={tdStyle}>
+            <td data-label={t('Тариф')} style={tdStyle}>
               <AssignPlanButton
                 teacherId={r.teacher_id}
                 currentCode={plans[r.teacher_id]?.code ?? (plans[r.teacher_id] ? null : r.plan_code)}
@@ -409,10 +424,10 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
                 size="sm"
               />
             </td>
-            <td style={numTd}><b style={{ color: 'var(--color-text)' }}>{r.active_students}</b> / {r.total_students}</td>
-            <td style={numTd}>{fmtMin(r.active_min)}</td>
-            <td style={numTd}>{r.sessions}</td>
-            <td style={numTd}>{fmtWhen(r.last_seen)}</td>
+            <td data-label={t('Ученики')} style={numTd}><b style={{ color: 'var(--color-text)' }}>{r.active_students}</b> / {r.total_students}</td>
+            <td data-label={t('Время')} style={numTd}>{fmtMin(r.active_min)}</td>
+            <td data-label={t('Сессий')} style={numTd}>{r.sessions}</td>
+            <td data-label={t('Был(а)')} style={numTd}>{fmtWhen(r.last_seen)}</td>
             <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                 {editable && (

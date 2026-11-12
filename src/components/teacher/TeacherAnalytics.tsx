@@ -1,3 +1,6 @@
+import { LoopSelect } from '../icons/LoopSelect'
+import { PLATFORM } from '../../lib/platform'
+import HScrollFade from '../HScrollFade'
 import { Check as LoopUiCheck } from '../icons/appIcons'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import AnalyticsDiagnostics from './AnalyticsDiagnostics'
@@ -148,6 +151,31 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
     </div>
   )
 
+  const compact = PLATFORM === 'iphone'
+  const grid = (
+    <>
+        <div style={{ display:'flex', gap:compact ? 2 : 4, marginBottom:4, paddingLeft:compact ? 26 : 28 }}>
+          {Array.from({length:24}).map((_,h) => (
+            <div key={h} style={{ width:compact ? 0 : 16, flex:compact ? '1 0 0' : undefined, fontSize:compact ? 8 : 10, color:'var(--color-text-3)', textAlign:'center', flexShrink:0 }}>
+              {h%4===0 ? h : ''}
+            </div>
+          ))}
+        </div>
+        {DOW_LABELS.map((label,di) => (
+          <div key={label} style={{ display:'flex', gap:compact ? 2 : 4, alignItems:'center', marginBottom:4 }}>
+            <div style={{ width:24, flexShrink:0, fontSize:10, color:'var(--color-text-3)', fontWeight:600 }}>{t(label)}</div>
+            {Array.from({length:24}).map((_,h) => {
+              const cnt = heatMap.get(`${DOW_PG[di]}-${h}`) ?? 0
+              return (
+                <div key={h} title={`${t(label)} ${h}:00 — ${cnt} ${t('событий')}`}
+                  style={{ width:compact ? 0 : 16, flex:compact ? '1 0 0' : undefined, height:compact ? 10 : 16, borderRadius:compact ? 2 : 3, background:cellColor(cnt), flexShrink:0 }} />
+              )
+            })}
+          </div>
+        ))}
+    </>
+  )
+
   return (
     <div>
       {peakHour >= 0 && (
@@ -155,27 +183,7 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
           {t('Пик активности:')} <b style={{ color:'var(--color-text)' }}>{peakHour}:00–{peakHour+1}:00 {t('МСК')}</b>
         </div>
       )}
-      <div style={{ overflowX:'auto' }}>
-        <div style={{ display:'flex', gap:4, marginBottom:4, paddingLeft:28 }}>
-          {Array.from({length:24}).map((_,h) => (
-            <div key={h} style={{ width:16, fontSize:10, color:'var(--color-text-3)', textAlign:'center', flexShrink:0 }}>
-              {h%4===0 ? h : ''}
-            </div>
-          ))}
-        </div>
-        {DOW_LABELS.map((label,di) => (
-          <div key={label} style={{ display:'flex', gap:4, alignItems:'center', marginBottom:4 }}>
-            <div style={{ width:24, fontSize:10, color:'var(--color-text-3)', fontWeight:600 }}>{t(label)}</div>
-            {Array.from({length:24}).map((_,h) => {
-              const cnt = heatMap.get(`${DOW_PG[di]}-${h}`) ?? 0
-              return (
-                <div key={h} title={`${t(label)} ${h}:00 — ${cnt} ${t('событий')}`}
-                  style={{ width:16, height:16, borderRadius:3, background:cellColor(cnt), flexShrink:0 }} />
-              )
-            })}
-          </div>
-        ))}
-      </div>
+      {compact ? <div>{grid}</div> : <HScrollFade fadeWidth={24}>{grid}</HScrollFade>}
       <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:10, fontSize:10, color:'var(--color-text-3)' }}>
         {t('меньше')}
         {[0,0.25,0.5,0.75,1].map(a => {
@@ -286,6 +294,7 @@ function ClickHeatmap({ cells, label, total }: { cells: ClickCell[]; label: stri
 
 // ── main component ─────────────────────────────────────────────────────────
 export default function TeacherAnalytics() {
+  const onPhone = PLATFORM === 'iphone'
   const t = useT()
   const [days, setDays]                   = useState(30)
   const [loading, setLoading]             = useState(true)
@@ -657,6 +666,11 @@ export default function TeacherAnalytics() {
   const currentColor = heatRole === 'teacher' ? ACCENT : ACCENT_S
   const overview = heatRole === 'teacher' ? overviewT : overviewS
 
+  const tabs = [
+    ['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')],
+    ['digest', t('Разбор')], ['diagnostics', t('Диагностика')],
+  ] as const
+
   // ── render ────────────────────────────────────────────────────────────────
   return (
     <div>
@@ -669,13 +683,19 @@ export default function TeacherAnalytics() {
         {/* Static tabs — no width/content morphing, so the bar never twitches
             when switching. The Учителя/Ученики role split lives in its own
             stable segmented control below (see next row). */}
+        {onPhone ? <LoopSelect aria-label={t('Аналитика')} value={activeTab}
+          onChange={e => setActiveTab(e.target.value as typeof activeTab)}
+          style={{ minHeight: 44, padding: '10px 14px', border: 0, borderRadius: 12, background: 'var(--color-bg-3)', fontSize: 16, color: 'var(--color-text)' }}>
+          {tabs.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+        </LoopSelect> : (
         <Segmented
           variant="mode" value={activeTab} onChange={setActiveTab} style={{ marginLeft:'auto' }}
-          items={([['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')], ['digest', t('Разбор')], ['diagnostics', t('Диагностика')]] as const).map(([id,label]) => ({
+          items={tabs.map(([id,label]) => ({
             id, title: label,
             label, ...(id==='issues' ? { count: totalErrors, countTone: 'danger' as const } : {}),
           }))}
         />
+        )}
       </div>
 
       {/* Role split for the activity & heatmap tabs — a stable segmented control
@@ -695,7 +715,7 @@ export default function TeacherAnalytics() {
       {activeTab === 'activity' && (
         <>
           {/* KPI grid — accented by the selected role */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:24 }}>
+          <div style={{ display:'grid', gridTemplateColumns:onPhone ? 'repeat(2,minmax(0,1fr))' : 'repeat(4,1fr)', gap:10, marginBottom:24 }}>
             <Kpi icon={Activity}      label="DAU"              accent={currentColor} loading={loading} value={overview?.dau ?? '—'}      sub={t('активны за сутки')} />
             <Kpi icon={Users}         label="WAU"              accent={currentColor} loading={loading} value={overview?.wau ?? '—'}      sub={t('за 7 дней')} />
             <Kpi icon={CalendarClock} label="MAU"              accent={currentColor} loading={loading} value={overview?.mau ?? '—'}      sub={t('за 30 дней')} />
@@ -761,7 +781,7 @@ export default function TeacherAnalytics() {
           </Card>
 
           {/* Funnel + Breakdown */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+          <div style={{ display:'grid', gridTemplateColumns:onPhone ? 'minmax(0,1fr)' : '1fr 1fr', gap:16 }}>
             <div>
               <SectionTitle>{t('Воронка прогресса')}</SectionTitle>
               <Card>
@@ -857,7 +877,7 @@ export default function TeacherAnalytics() {
           </div>
 
           {/* Health overview */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
+          <div style={{ display:'grid', gridTemplateColumns:onPhone ? 'minmax(0,1fr)' : 'repeat(3,1fr)', gap:10, marginBottom:24 }}>
             <Kpi icon={AlertTriangle} label={t('JS ошибок')}
               value={totalErrors}
               sub={totalErrors===0 ? t('Всё чисто') : t('за выбранный период')}
@@ -894,28 +914,28 @@ export default function TeacherAnalytics() {
               ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Проблемных страниц не найдено.')}</div>
               : (
                 <div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 80px 80px 80px 80px', gap:8,
+                  {!onPhone && <div style={{ display:'grid', gridTemplateColumns:'1fr 80px 80px 80px 80px', gap:8,
                     fontSize:11, color:'var(--color-text-3)', fontWeight:600, paddingBottom:8,
                     borderBottom:'1px solid var(--color-border)', marginBottom:8 }}>
                     <span>{t('Страница / роль')}</span><span style={{textAlign:'center'}}>{t('Визитов')}</span>
                     <span style={{textAlign:'center'}}>Dwell</span>
                     <span style={{textAlign:'center', color:'var(--color-red-text)'}}>{t('Ошибки')}</span>
                     <span style={{textAlign:'center', color:'var(--color-peach-text)'}}>Rage</span>
-                  </div>
+                  </div>}
                   {problemPages.map((p,i) => (
-                    <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 80px 80px 80px 80px', gap:8,
+                    <div key={i} style={{ display:'grid', gridTemplateColumns:onPhone ? 'repeat(2,minmax(0,1fr))' : '1fr 80px 80px 80px 80px', gap:8,
                       fontSize:12, padding:'6px 0', borderBottom: i<problemPages.length-1 ? '1px solid var(--color-border)':undefined,
                       alignItems:'center' }}>
-                      <div>
+                      <div style={onPhone ? { gridColumn: '1 / -1', overflowWrap: 'anywhere' } : undefined}>
                         <div style={{ color:'var(--color-text)', fontWeight:500 }}>{pLabel(p.path)}</div>
                         <div style={{ fontSize:10, color:'var(--color-text-3)' }}>{p.role}</div>
                       </div>
-                      <div style={{ textAlign:'center', color:'var(--color-text-3)' }}>{p.visits}</div>
+                      <div style={{ textAlign:'center', color:'var(--color-text-3)' }}>{onPhone && <small style={{ display: 'block', color: 'var(--color-muted)' }}>{t('Визитов')}</small>}{p.visits}</div>
                       <div style={{ textAlign:'center', color: p.avg_dwell_sec!==null && p.avg_dwell_sec<5?'var(--color-peach-text)':'var(--color-text-3)' }}>
-                        {p.avg_dwell_sec!==null ? `${p.avg_dwell_sec}${t('с')}` : '—'}
+                        {onPhone && <small style={{ display: 'block', color: 'var(--color-muted)' }}>{'Dwell'}</small>}{p.avg_dwell_sec!==null ? `${p.avg_dwell_sec}${t('с')}` : '—'}
                       </div>
-                      <div style={{ textAlign:'center', color:p.errors>0?'var(--color-red-text)':'var(--color-text-3)', fontWeight:p.errors>0?700:400 }}>{p.errors||'—'}</div>
-                      <div style={{ textAlign:'center', color:p.rage_clicks>0?'var(--color-peach-text)':'var(--color-text-3)', fontWeight:p.rage_clicks>0?700:400 }}>{p.rage_clicks||'—'}</div>
+                      <div style={{ textAlign:'center', color:p.errors>0?'var(--color-red-text)':'var(--color-text-3)', fontWeight:p.errors>0?700:400 }}>{onPhone && <small style={{ display: 'block', color: 'var(--color-muted)' }}>{t('Ошибки')}</small>}{p.errors||'—'}</div>
+                      <div style={{ textAlign:'center', color:p.rage_clicks>0?'var(--color-peach-text)':'var(--color-text-3)', fontWeight:p.rage_clicks>0?700:400 }}>{onPhone && <small style={{ display: 'block', color: 'var(--color-muted)' }}>{'Rage'}</small>}{p.rage_clicks||'—'}</div>
                     </div>
                   ))}
                 </div>

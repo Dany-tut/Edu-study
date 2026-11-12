@@ -73,6 +73,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     private var tabBar: UITabBar?
     private var tabBarEdges: [NSLayoutConstraint] = []
     private var tabBarCompact = false
+    private var tabBarFollowsScroll = false
     private var tabIds: [String] = []
     private var tabSymbols: [String] = []
     private var anchor: UIButton?
@@ -123,7 +124,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 self.restoreMfaScroll?()
                 self.restoreMfaScroll = nil
             }
-            call.resolve()
+            let resized = (self.bridge?.viewController as? MainViewController)?.setMfaKeyboardLayout(locked) ?? false
+            call.resolve(["resizesWebView": resized])
         }
     }
 
@@ -217,27 +219,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             controller.modalPresentationStyle = .pageSheet
             controller.view.backgroundColor = .clear
             if let sheet = controller.sheetPresentationController {
-                let medium = UISheetPresentationController.Detent.medium()
-                let large = UISheetPresentationController.Detent.large()
-                if #available(iOS 26.1, *) {
-                    func background() -> UIGlassEffect {
-                        let effect = UIGlassEffect(style: .regular)
-                        if model.content.glass {
-                            effect.tintColor = UIColor { traits in
-                                if traits.userInterfaceStyle == .dark {
-                                    return UIColor(red: 0.17, green: 0.15, blue: 0.22, alpha: 0.82)
-                                }
-                                return UIColor(red: 0.96, green: 0.94, blue: 0.99, alpha: 0.78)
-                            }
-                        }
-                        return effect
-                    }
-                    medium.backgroundEffect = background()
-                    large.backgroundEffect = background()
-                }
-                sheet.detents = [medium, large]
-                sheet.prefersGrabberVisible = true
-                sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                sheet.configureIskraGlass()
                 sheet.delegate = self
             }
             self.contentSheetID = id
@@ -458,7 +440,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         if !items.isEmpty {
             let row = UIStackView()
             row.axis = .horizontal
-            row.spacing = 10
+            let tabBarSideInset = opts["bottomTabBarSideInset"] as? Double
+            row.spacing = tabBarSideInset == nil ? 10 : 6
             row.alignment = .center
             row.distribution = .fill
             row.translatesAutoresizingMaskIntoConstraints = false
@@ -491,7 +474,15 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             // нижней безопасной зоны, ряд встаёт с зазором 10.
             let width: NSLayoutConstraint
             let center: NSLayoutConstraint
-            if let ratio = opts["bottomTabBarWidthRatio"] as? Double, ratio > 0, ratio <= 1 {
+            if let inset = tabBarSideInset {
+                // UIKit lays out the visible tab capsule about 20 pt inside the safe area.
+                center = row.centerXAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.centerXAnchor)
+                width = row.widthAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.widthAnchor,
+                                                   constant: -2 * (20 + CGFloat(inset)))
+                // On narrow phones, leave enough room for the course pill.
+                width.priority = UILayoutPriority(999)
+                row.widthAnchor.constraint(greaterThanOrEqualToConstant: 48 + row.spacing + 4 * 44).isActive = true
+            } else if let ratio = opts["bottomTabBarWidthRatio"] as? Double, ratio > 0, ratio <= 1 {
                 // UIKit does not expose the visible capsule width. Allow 20 pt per side.
                 center = row.centerXAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.centerXAnchor)
                 width = row.widthAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.widthAnchor,
@@ -504,18 +495,18 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 self.barBottomExpandedWidthInset = width.constant
                 self.barBottomWidth = width
             }
+            self.barBottomView = row
             self.updateBarBottomSize()
             NSLayoutConstraint.activate([bottom, center, width])
             if let sections = opts["expandingSections"] as? JSObject,
                let id = sections["trigger"] as? String,
-               let index = items.firstIndex(where: { $0["id"] as? String == id }),
-               let first = row.arrangedSubviews.first, index > 0 {
+               let index = items.firstIndex(where: { $0["id"] as? String == id }) {
                 let anchor = row.arrangedSubviews[index]
                 anchor.alpha = 0
                 anchor.isUserInteractionEnabled = false
-                let covered = row.arrangedSubviews.dropFirst().filter { $0 !== anchor }
+                let covered = row.arrangedSubviews.filter { $0 !== anchor }
                 let picker = GlassSectionPicker(
-                    row: row, anchor: anchor, search: first, covered: covered,
+                    row: row, anchor: anchor, covered: covered,
                     items: sections["items"] as? [JSObject] ?? [],
                     selected: sections["selected"] as? String ?? "",
                     label: items[index]["label"] as? String ?? "", traits: traits
@@ -524,8 +515,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 }
                 row.addSubview(picker)
                 picker.install()
+                picker.setCompact(self.tabBarCompact)
             }
-            self.barBottomView = row
         }
     }
 
@@ -553,7 +544,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             }
             if menuItems != nil {
                 let chevron = it["menuChevron"] as? String == "up" ? "chevron.up" : "chevron.down"
-                config.image = UIImage(systemName: chevron, withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(accent, renderingMode: .alwaysOriginal)
+                config.image = UIImage(systemName: chevron, withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(.label, renderingMode: .alwaysOriginal)
                 config.imagePlacement = .trailing
                 config.imagePadding = 6
             }
@@ -562,6 +553,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             config.contentInsets = .zero
         }
         let button = GlassBarButton(configuration: config)
+        if id == "search", symbol == "magnifyingglass" {
+            button.searchIcon = config.image
+        }
         button.accessibilityLabel = (it["label"] as? String) ?? title
         if it["passive"] as? Bool == true {
             button.accessibilityTraits = .staticText
@@ -765,7 +759,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     private func tabImage(_ symbol: String, traits: UITraitCollection) -> UIImage? {
         let image = LoopNativeIcons.image(symbol, traits: traits)
         guard tabBarCompact, let image else { return image }
-        let size = CGSize(width: image.size.width * 0.88, height: image.size.height * 0.88)
+        return resizedIcon(image, scale: 0.88)
+    }
+
+    private func resizedIcon(_ image: UIImage, scale: CGFloat) -> UIImage {
+        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
         let format = UIGraphicsImageRendererFormat()
         format.scale = image.scale
         return UIGraphicsImageRenderer(size: size, format: format).image { _ in
@@ -777,17 +775,34 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
 
     private func updateBarBottomSize() {
         for size in barBottomButtonSizes {
-            size.constant = tabBarCompact ? 45 : 48
+            size.constant = tabBarCompact ? 44 : 48
         }
-        barBottomWidth?.constant = barBottomExpandedWidthInset - (tabBarCompact ? 16 : 0)
+        barBottomWidth?.constant = barBottomExpandedWidthInset - (tabBarCompact ? 40 : 0)
+
+        // Inset the glass while keeping the full 44 pt touch target.
+        let inset: CGFloat = tabBarCompact ? 2 : 0
+        let backgroundInsets = NSDirectionalEdgeInsets(top: inset, leading: inset, bottom: inset, trailing: inset)
+        for case let button as GlassBarButton in barBottomView?.arrangedSubviews ?? [] {
+            guard var config = button.configuration else { continue }
+            config.background.backgroundInsets = backgroundInsets
+            if let icon = button.searchIcon {
+                config.image = tabBarCompact ? resizedIcon(icon, scale: 0.90) : icon
+            }
+            button.configuration = config
+        }
+        barBottomView?.subviews.compactMap { $0 as? GlassSectionPicker }.first?.setCompact(tabBarCompact)
     }
 
     private func barBottomOffset(in view: UIView) -> CGFloat {
-        guard tabBar != nil else { return -10 }
-        // The capsule normally starts about 48 pt above the safe-area bottom.
-        // Move the row by the same distance as that edge, preserving its 10 pt gap.
-        let capsuleTop = view.safeAreaInsets.bottom + 48
-        return -58 + capsuleTop * (1 - tabBarHeightScale)
+        guard let tabBar else { return -10 }
+        guard tabBarFollowsScroll else { return -58 }
+
+        let safeBottom = view.safeAreaInsets.bottom
+        // Allow for glass extending above the bar's layout bounds. The row
+        // follows the same bottom-anchored scaling as the tab bar.
+        let expandedHeight = max(tabBar.bounds.height, safeBottom + 64)
+        let gap: CGFloat = tabBarCompact ? -2 : 6
+        return safeBottom - expandedHeight * tabBarHeightScale - gap
     }
 
     private func tabBarTransform(_ bar: UITabBar, hidden: Bool) -> CGAffineTransform {
@@ -805,7 +820,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             guard let host = self.host else { call.resolve(); return }
             let compactRequested = call.getBool("compact")
-            let compact = compactRequested == true && host.traitCollection.userInterfaceIdiom == .phone
+            self.tabBarFollowsScroll = compactRequested != nil && host.traitCollection.userInterfaceIdiom == .phone
+            let compact = compactRequested == true && self.tabBarFollowsScroll
             let compactChanged = compact != self.tabBarCompact
             let creatingBar = self.tabBar == nil
             let animate = !creatingBar && compactChanged && !UIAccessibility.isReduceMotionEnabled
@@ -864,6 +880,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                     let minimumWidth = CGFloat(tabItems.count) * 44 + 40
                     let inset = min(40, max(0, (host.view.bounds.width - minimumWidth) / 2))
                     for edge in self.tabBarEdges { edge.constant = compact ? inset : 0 }
+                    host.view.layoutIfNeeded()
                     self.barBottomConstraint?.constant = self.barBottomOffset(in: host.view)
                     self.updateBarBottomSize()
                     host.view.layoutIfNeeded()
@@ -899,7 +916,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             self.tabBar?.removeFromSuperview()
             self.tabBar = nil
-            if self.tabBarCompact {
+            if self.tabBarFollowsScroll {
+                self.tabBarFollowsScroll = false
                 self.tabBarCompact = false
                 self.barBottomConstraint?.constant = -10
                 self.updateBarBottomSize()
@@ -1023,11 +1041,10 @@ private final class GlassPillView: UIView {
 /// Кнопка стеклянного бара: длинная подпись гаснет фейдом у края (TEXT-01),
 /// а не многоточием; стекло и шеврон остаются чёткими.
 /// The same glass surface changes width, from the section circle to the
-/// space between Search and the trailing edge of the screen bar.
+/// full width of the screen bar.
 private final class GlassSectionPicker: UIVisualEffectView {
     private unowned let row: UIStackView
     private let anchor: UIView
-    private let search: UIView
     private let covered: [UIView]
     private let items: [JSObject]
     private let label: String
@@ -1039,13 +1056,13 @@ private final class GlassSectionPicker: UIVisualEffectView {
     private var expanded: [NSLayoutConstraint] = []
     private var selected: String
     private var isExpanded = false
+    private var isCompact = false
 
-    init(row: UIStackView, anchor: UIView, search: UIView, covered: [UIView],
+    init(row: UIStackView, anchor: UIView, covered: [UIView],
          items: [JSObject], selected: String, label: String, traits: UITraitCollection,
          onSelect: @escaping (String) -> Void) {
         self.row = row
         self.anchor = anchor
-        self.search = search
         self.covered = covered
         self.items = items
         self.selected = selected
@@ -1086,9 +1103,7 @@ private final class GlassSectionPicker: UIVisualEffectView {
             config.imagePlacement = .top
             config.imagePadding = 1
             config.contentInsets = .zero
-            var text = AttributedString(title)
-            text.font = .systemFont(ofSize: 10, weight: .medium)
-            config.attributedTitle = text
+            config.attributedTitle = Self.choiceTitle(title)
             config.titleLineBreakMode = .byClipping
             let choice = UIButton(configuration: config)
             choice.accessibilityIdentifier = id
@@ -1109,7 +1124,7 @@ private final class GlassSectionPicker: UIVisualEffectView {
         contentView.addSubview(choices)
         collapsed = [leadingAnchor.constraint(equalTo: anchor.leadingAnchor),
                      trailingAnchor.constraint(equalTo: anchor.trailingAnchor)]
-        expanded = [leadingAnchor.constraint(equalTo: search.trailingAnchor, constant: row.spacing),
+        expanded = [leadingAnchor.constraint(equalTo: row.leadingAnchor),
                     trailingAnchor.constraint(equalTo: row.trailingAnchor)]
         NSLayoutConstraint.activate(collapsed + [
             topAnchor.constraint(equalTo: anchor.topAnchor),
@@ -1119,11 +1134,27 @@ private final class GlassSectionPicker: UIVisualEffectView {
             trigger.topAnchor.constraint(equalTo: contentView.topAnchor),
             trigger.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             choices.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            choices.widthAnchor.constraint(equalTo: row.widthAnchor, constant: -48 - row.spacing),
+            choices.widthAnchor.constraint(equalTo: row.widthAnchor, constant: -4),
             choices.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 2),
             choices.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -2),
         ])
         updateSelection()
+    }
+
+    private static func choiceTitle(_ title: String) -> AttributedString {
+        var text = AttributedString(title)
+        text.font = .systemFont(ofSize: 10, weight: .medium)
+        return text
+    }
+
+    func setCompact(_ compact: Bool) {
+        guard isCompact != compact else { return }
+        isCompact = compact
+        for case let choice as UIButton in choices.arrangedSubviews {
+            guard var config = choice.configuration else { continue }
+            config.attributedTitle = compact ? nil : Self.choiceTitle(choice.accessibilityLabel ?? "")
+            choice.configuration = config
+        }
     }
 
     private func updateSelection() {
@@ -1183,6 +1214,8 @@ private final class GlassSectionPicker: UIVisualEffectView {
 }
 
 private final class GlassBarButton: UIButton {
+    var searchIcon: UIImage?
+
     override func layoutSubviews() {
         super.layoutSubviews()
         guard let label = titleLabel, label.bounds.width > 0 else { return }
@@ -1264,14 +1297,12 @@ private struct GlassSheetSection {
 private struct GlassSheetContent {
     let title: String
     let empty: String?
-    let glass: Bool
     let sections: [GlassSheetSection]
     let footer: GlassSheetRow?
 
     init(_ values: JSObject) {
         title = values["title"] as? String ?? ""
         empty = values["empty"] as? String
-        glass = values["glass"] as? Bool ?? false
         sections = (values["sections"] as? [JSObject] ?? []).map(GlassSheetSection.init)
         footer = (values["footer"] as? JSObject).flatMap(GlassSheetRow.init)
     }
@@ -1286,16 +1317,7 @@ private struct GlassContentSheet: View {
     @ObservedObject var model: GlassContentSheetModel
     let onAction: (String) -> Void
 
-    var body: some View {
-        sheetContent
-            .background {
-                if model.content.glass {
-                    Rectangle().fill(.regularMaterial).ignoresSafeArea()
-                }
-            }
-    }
-
-    @ViewBuilder private var sheetContent: some View {
+    @ViewBuilder var body: some View {
         if #available(iOS 26.0, *) {
             scrollContent
                 .safeAreaInset(edge: .top, spacing: 12) {
@@ -1329,7 +1351,8 @@ private struct GlassContentSheet: View {
         Text(model.content.title)
             .font(.title3.weight(.semibold))
             .accessibilityAddTraits(.isHeader)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, 20)
     }
 
@@ -1432,5 +1455,20 @@ private struct GlassContentSheet: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(row.checked == true ? .isSelected : [])
+    }
+}
+
+
+extension UISheetPresentationController {
+    func configureIskraGlass(largeOnly: Bool = false) {
+        let medium = Detent.medium()
+        let large = Detent.large()
+        if #available(iOS 26.1, *) {
+            medium.backgroundEffect = UIGlassEffect(style: .regular)
+            large.backgroundEffect = UIGlassEffect(style: .regular)
+        }
+        detents = largeOnly ? [large] : [medium, large]
+        prefersGrabberVisible = true
+        prefersScrollingExpandsWhenScrolledToEdge = false
     }
 }

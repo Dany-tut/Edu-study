@@ -14,7 +14,7 @@ import { useFeature } from '../../lib/teacherFeatures'
 
 import { TranscriptionModuleCard, useTranscriptionOwner } from './LocalTranscription'
 
-export default function TeacherModules({ showHeading = true }: { showHeading?: boolean }) {
+export default function TeacherModules({ showHeading = true, sheet = false }: { showHeading?: boolean; sheet?: boolean }) {
   const t = useT()
   const transcriptionOwner = useTranscriptionOwner()
   const transcription = useFeature('transcription')
@@ -45,7 +45,7 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
 
   async function pasteFromClipboard() {
     try { take(await navigator.clipboard.readText()) }
-    catch { setError(t('Браузер не дал прочитать буфер — вставьте код в поле сочетанием ⌘V.')) }
+    catch { setError(t(sheet ? 'Вставьте код через меню поля.' : 'Браузер не дал прочитать буфер — вставьте код в поле сочетанием ⌘V.')) }
   }
 
   async function disconnect() {
@@ -67,7 +67,7 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
   )
 
   return (
-    <div className="profile-integrations" style={{ marginTop: 12 }}>
+    <div className={sheet ? 'profile-integrations profile-integrations--sheet' : 'profile-integrations'} style={{ marginTop: sheet ? 0 : 12 }}>
       {showHeading && <><div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 10 }}>{t('Модули')}</div>
       <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--color-text-3)', marginBottom: 12 }}>
         {t('Подключённый модуль появляется в домашке, уроках курса и Конструкторе: через него можно добавлять задания.')}
@@ -75,8 +75,8 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
 
       {transcription && transcriptionOwner && <TranscriptionModuleCard key={transcriptionOwner} owner={transcriptionOwner} />}
       <div style={{
-        background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 20,
-        padding: 18, display: 'flex', flexDirection: 'column', gap: 14,
+        background: sheet ? 'transparent' : 'var(--color-bg-2)', border: sheet ? 0 : '1px solid var(--color-border-medium)', borderRadius: 20,
+        padding: sheet ? 0 : 18, display: 'flex', flexDirection: 'column', gap: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <TestlyTile size={40} />
@@ -116,23 +116,26 @@ export default function TeacherModules({ showHeading = true }: { showHeading?: b
         ) : (
           <>
             <div className="integration-code-row">
-              <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex' }}>
+              <div style={{ position: 'relative', flex: sheet ? undefined : 1, minWidth: 0, display: 'flex' }}>
                 <input
                   value={code}
                   onChange={e => { setCode(clean(e.target.value)); setError('') }}
                   onPaste={e => { e.preventDefault(); take(e.clipboardData.getData('text')) }}
                   onKeyDown={e => { if (e.key === 'Enter') void connect() }}
-                  placeholder={t('Код из Тестли, например K7P29Q')}
+                  placeholder={t(sheet ? 'Код из Тестли' : 'Код из Тестли, например K7P29Q')}
+                  aria-label={t('Код из Тестли')}
+                  autoCapitalize="characters"
+                  spellCheck={false}
                   autoComplete="off"
                   style={{
-                    flex: 1, minWidth: 0, padding: '10px 96px 10px 14px', borderRadius: 12, border: '1.5px solid var(--color-border)',
+                    flex: 1, minWidth: 0, padding: sheet ? '12px 14px' : '10px 96px 10px 14px', borderRadius: 12, border: '1.5px solid var(--color-border)',
                     background: 'var(--color-bg)', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit',
                     outline: 'none', letterSpacing: code ? 1.5 : 0, fontVariantNumeric: 'tabular-nums',
                   }}
                 />
                 {/* Вставить из буфера: код копируют в Тестли кнопкой «Скопировать». */}
                 <button data-hover="layer" onClick={() => void pasteFromClipboard()} disabled={busy} style={{
-                  position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                  position: sheet ? 'static' : 'absolute', right: 6, top: '50%', transform: sheet ? undefined : 'translateY(-50%)',
                   display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 9,
                   border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',

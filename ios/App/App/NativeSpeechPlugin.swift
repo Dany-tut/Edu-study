@@ -127,7 +127,11 @@ public class NativeSpeechPlugin: CAPPlugin, CAPBridgedPlugin, AVSpeechSynthesize
 /// Мост с нашим плагином: локальный плагин из папки приложения Capacitor сам
 /// не находит, его регистрируют вручную (Main.storyboard ссылается на этот класс).
 class MainViewController: CAPBridgeViewController {
+    private var fullWebViewBottom: NSLayoutConstraint?
+    private var keyboardWebViewBottom: NSLayoutConstraint?
+
     override open func capacitorDidLoad() {
+        installKeyboardLayoutHost()
         bridge?.registerPluginInstance(GoogleAuthPlugin())
         bridge?.registerPluginInstance(NativeSpeechPlugin())
         bridge?.registerPluginInstance(NativeGlassPlugin())
@@ -135,6 +139,38 @@ class MainViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(AppLockPlugin())
         bridge?.registerPluginInstance(AppIconPlugin())
         Self.hideFormAccessoryBar()
+    }
+
+    private func installKeyboardLayoutHost() {
+        guard #available(iOS 17.0, *), UIDevice.current.userInterfaceIdiom == .phone,
+              let webView = bridge?.webView else { return }
+
+        let host = UIView(frame: webView.frame)
+        host.backgroundColor = webView.backgroundColor ?? .systemBackground
+        view = host
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(webView)
+
+        host.keyboardLayoutGuide.usesBottomSafeArea = false
+        let fullBottom = webView.bottomAnchor.constraint(equalTo: host.bottomAnchor)
+        fullWebViewBottom = fullBottom
+        keyboardWebViewBottom = webView.bottomAnchor.constraint(equalTo: host.keyboardLayoutGuide.topAnchor)
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: host.topAnchor),
+            webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: host.trailingAnchor),
+            fullBottom,
+        ])
+    }
+
+    @discardableResult
+    func setMfaKeyboardLayout(_ enabled: Bool) -> Bool {
+        guard let fullWebViewBottom, let keyboardWebViewBottom else { return false }
+        guard enabled != keyboardWebViewBottom.isActive else { return enabled }
+        (enabled ? fullWebViewBottom : keyboardWebViewBottom).isActive = false
+        (enabled ? keyboardWebViewBottom : fullWebViewBottom).isActive = true
+        view.layoutIfNeeded()
+        return enabled
     }
 
     /// Полоска «˄ ˅ ✓» над клавиатурой — это inputAccessoryView внутреннего вида

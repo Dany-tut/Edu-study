@@ -1,3 +1,5 @@
+import MobileSheet from '../MobileSheet'
+import { PLATFORM } from '../../lib/platform'
 import { clampDeskWidget, resolveDeskCollisions, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
 import { metricObjects } from '../../lib/widgetMetricObjects'
 import { useRef } from 'react'
@@ -63,7 +65,8 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
   const t = useT()
   const title = onEditDesk ? t('Виджеты') : t('Добавить виджет')
   const dialogRef = useRef<HTMLDivElement>(null)
-  useScrollLock(true, dialogRef)
+  const sheet = PLATFORM === 'iphone'
+  useScrollLock(!sheet, dialogRef)
   useWidgetScrollFades(dialogRef)
   const registry = WIDGET_REGISTRY.filter(def => !def.legacy && !def.unavailable && !hiddenWidgets?.includes(def.type))
   const width = gridWidth ?? Math.max(1, document.documentElement.clientWidth - 64)
@@ -91,6 +94,11 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
     onAdd(item)
     onClose()
   }
+
+  const cards = registry.map(def => <WidgetCard key={def.type} def={def} onAdd={() => handleAdd(def)} />)
+  if (sheet) return <MobileSheet open title={title} softEdge onClose={onClose}>
+    <div style={{ display: 'grid', gap: 8 }}>{cards}</div>
+  </MobileSheet>
 
   // Появление и уход анимирует AnimatePresence у родителя (TeacherDashboardPage):
   // своё здесь не увидело бы ухода — компонент снимается целиком.
@@ -161,13 +169,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
 
           {/* Widget list */}
           <div className="ww-gallery-list" style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {registry.map(def => (
-              <WidgetCard
-                key={def.type}
-                def={def}
-                onAdd={() => handleAdd(def)}
-              />
-            ))}
+            {cards}
           </div>
           {onEditDesk && (
             <button data-hover="layer" type="button" className="ww-gallery-edit" onClick={onEditDesk}>

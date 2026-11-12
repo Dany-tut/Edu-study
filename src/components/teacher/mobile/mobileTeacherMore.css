@@ -1,6 +1,8 @@
 .teacher-more {
   display: grid;
   gap: 14px;
+  /* Leave room below the native status-bar blur at the top of the list. */
+  padding-block-start: 24px;
   color: var(--color-text);
 }
 
@@ -177,8 +179,12 @@
   background: var(--color-bg-3);
 }
 
+[aria-labelledby="teacher-more-settings"] .teacher-more-row,
 .teacher-more-features .teacher-more-row {
   min-height: 55px;
+}
+
+.teacher-more-features .teacher-more-row {
   gap: 10px;
 }
 
@@ -234,4 +240,20 @@
   color: var(--color-red-text);
   font-size: 12px;
   font-weight: 500;
+}
+
+.teacher-more-schedule {
+  display: grid;
+  gap: 16px;
+}
+
+.teacher-more-schedule label {
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-2);
+  font-size: 13px;
+}
+
+.teacher-more-schedule label > span {
+  padding-inline: 14px;
 }

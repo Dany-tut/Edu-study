@@ -180,7 +180,7 @@ function NativeJournalBar({ bar, onTap, onMenu }: {
 export default function CourseJournal({ mobile = false, nativeIphone = false }: { mobile?: boolean; nativeIphone?: boolean }) {
   const t = useT()
   const { tc, tn } = useTc()
-  const { data, error, loading, reload, setData } = useCourseJournal()
+  const { data, error, loading, reload, setData } = useCourseJournal(false, true, nativeIphone)
   const tz = useTeacherTz(s => s.tz)
   const [clock, setClock] = useState(() => new Date().toISOString())
   // Schedule wall dates and homework deadlines are stored in Moscow time.
@@ -198,6 +198,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [onlyAttention, setOnlyAttention] = useState(false)
   const [selected, setSelected] = useState<{ studentId: string; columnId: string } | null>(restored.current ?? null)
+  const [expandedStudents, setExpandedStudents] = useState<Record<string, boolean>>({})
   const [markId, setMarkId] = useState<string | null>(null)
   const [demoPresent, setDemoPresent] = useState<Record<string, boolean | null>>({})
   const pendingId = useTeacher(s => s.pendingGradebookLessonId)
@@ -231,9 +232,10 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
   const index = useMemo(() => data ? buildJournalIndex(data) : null, [data])
   const roster = useMemo(() => data ? courseRoster(data, courseId) : [], [data, courseId])
   const allColumns = useMemo(() => data ? journalColumns(data, courseId) : [], [data, courseId])
+  const needsEventRecords = !nativeIphone || markId !== null
   const eventRecords = useMemo(() => {
     const records: Record<string, AttendanceRecord[]> = {}
-    if (!data || !index) return records
+    if (!data || !index || !needsEventRecords) return records
     for (const column of allColumns) for (const student of roster) {
       const cell = journalCell(data, index, student, column, today, now.time)
       if (cell.present === null || !cell.event) continue
@@ -241,7 +243,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
       records[event.id] = [...(records[event.id] ?? []), { studentId: student.id, lessonDate: event.date, lessonTitle: event.lesson_title, present: cell.present, grade: cell.grade }]
     }
     return records
-  }, [data, index, allColumns, roster, today, now.time])
+  }, [data, index, allColumns, roster, today, now.time, needsEventRecords])
   const columns = useMemo(() => allColumns.filter(c => moduleId === 'all' || c.moduleId === moduleId), [allColumns, moduleId])
   const cells = useMemo(() => {
     const map = new Map<string, JournalCell[]>()
@@ -263,7 +265,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
   const markRoster = data?.students.filter(s => markedEvent && (markedEvent.student_id === s.id || markedEvent.group_id === s.groupId)) ?? []
   const scheduleIds = allColumns.flatMap(c => c.events.filter(e => e.status !== 'cancelled').map(e => e.id))
   function changeCourse(id: string) {
-    setCourseId(id); setGroupId('all'); setModuleId('all'); setSelected(null); setOnlyAttention(false)
+    setCourseId(id); setGroupId('all'); setModuleId('all'); setSelected(null); setOnlyAttention(false); setExpandedStudents({})
   }
   function openMark(id: string) {
     setSelected(null); setMarkId(id)
@@ -312,9 +314,10 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     {mobile ? <>
       {nativeIphone ? <>
         <NativeJournalBar bar={{
+          bottomTabBarSideInset: 40,
           bottom: [
             { id: 'journal-search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск ученика'), active: !!query },
-            { id: 'journal-course', kind: 'pill', title: courseTitle, menuTitle: t('Курс или интенсив'), menu: [
+            { id: 'journal-course', kind: 'pill', title: courseTitle, menuTitle: t('Курс или интенсив'), menuChevron: 'up', menu: [
               ...data.courses.map(c => ({ value: c.id, title: tc(c.title || t('Без названия')), checked: c.id === courseId })),
               { value: OUTSIDE_COURSES, title: t('Вне курсов'), checked: courseId === OUTSIDE_COURSES },
             ] },
@@ -377,8 +380,12 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     {(!students.length || !columns.length) ? <div className="cj-empty"><BookOpen size={28} /><h3>{t(!roster.length ? 'На этот курс пока не назначены ученики' : !allColumns.length ? 'В журнале пока нет занятий' : 'Ничего не найдено')}</h3><p>{t(!roster.length ? 'Назначьте курс группе или отдельным ученикам в материалах курса.' : 'Попробуйте изменить фильтры или поиск.')}</p></div>
       : mobile && mode !== 'stats' ? <div className="cj-mobile-list">{students.map(student => {
         const row = cells.get(student.id) ?? []; const stats = journalSummary(row, today)
-        return <details key={student.id} open={students.length === 1}><summary><span className="cj-avatar">{tn(student.name).split(' ').map(n => n[0]).slice(0, 2).join('')}</span><span><strong><FadeText>{tn(student.name)}</FadeText></strong><small>{t('Зачтено')}: {stats.passed}/{stats.required}{stats.attention ? ` · ${t('Внимание')}: ${stats.attention}` : ''}</small></span><ChevronRight size={16} /></summary>
-          <div>{row.map(cell => <button data-hover="row" type="button" key={cell.column.id} className="cj-mobile-lesson" onClick={() => setSelected({ studentId: student.id, columnId: cell.column.id })}><span><strong><FadeText>{tc(cell.column.title)}</FadeText></strong><small>{slotLabel(cell.event?.date ?? cell.column.date, cell.event?.time_start ?? cell.column.time, tz)} · {t(mode === 'work' ? workLabels[cell.state] : attendanceLabel(cell))}{cell.watched ? ` · ${t('Запись просмотрена')}` : ''}</small></span>{mode === 'attendance' ? <span className={`cj-badge ${cell.present === true ? 'cj-passed' : ''}`}>{t(attendanceLabel(cell))}</span> : <WorkBadge cell={cell} />}</button>)}</div>
+        const expanded = nativeIphone ? expandedStudents[student.id] ?? students.length === 1 : students.length === 1
+        return <details key={student.id} open={expanded} onToggle={nativeIphone ? e => {
+          const open = e.currentTarget.open
+          if (open !== expanded) setExpandedStudents(current => ({ ...current, [student.id]: open }))
+        } : undefined}><summary><span className="cj-avatar">{tn(student.name).split(' ').map(n => n[0]).slice(0, 2).join('')}</span><span><strong><FadeText>{tn(student.name)}</FadeText></strong><small>{t('Зачтено')}: {stats.passed}/{stats.required}{stats.attention ? ` · ${t('Внимание')}: ${stats.attention}` : ''}</small></span><ChevronRight size={16} /></summary>
+          {(!nativeIphone || expanded) && <div>{row.map(cell => <button data-hover="row" type="button" key={cell.column.id} className="cj-mobile-lesson" onClick={() => setSelected({ studentId: student.id, columnId: cell.column.id })}><span><strong><FadeText>{tc(cell.column.title)}</FadeText></strong><small>{slotLabel(cell.event?.date ?? cell.column.date, cell.event?.time_start ?? cell.column.time, tz)} · {t(mode === 'work' ? workLabels[cell.state] : attendanceLabel(cell))}{cell.watched ? ` · ${t('Запись просмотрена')}` : ''}</small></span>{mode === 'attendance' ? <span className={`cj-badge ${cell.present === true ? 'cj-passed' : ''}`}>{t(attendanceLabel(cell))}</span> : <WorkBadge cell={cell} />}</button>)}</div>}
         </details>
       })}</div>
       : mode === 'stats' ? <JournalTable mobile={mobile}><table className="cj-table cj-stats"><thead><tr>{['Ученик', 'Изучено', 'Зачтено работ', 'Результат', 'Посещение', 'Требуют внимания'].map(label => <th key={label} scope="col">{t(label)}</th>)}</tr></thead><tbody>{students.map(student => {
