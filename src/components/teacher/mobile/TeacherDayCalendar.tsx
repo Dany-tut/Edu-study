@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
-import { animate, useReducedMotion } from 'framer-motion'
+import { animate, motion, useReducedMotion } from 'framer-motion'
 import { addDays, weekStart } from '../../../lib/teacherSchedule'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { useT } from '../../../lib/i18n'
@@ -16,6 +16,15 @@ const WEEK_BUFFER = 35
 const WEEK_HEIGHT = 48
 const MONTH_BUFFER = 28
 const WINDOW_SIZE = WEEK_BUFFER * 2 + 7
+const clamp = (value: number) => Math.max(0, Math.min(1, value))
+const RUBBER_LIMIT = 18
+const RUBBER_RESISTANCE = 70
+const rubberBand = (distance: number) => Math.sign(distance) * RUBBER_LIMIT * (1 - Math.exp(-Math.abs(distance) / RUBBER_RESISTANCE))
+const rubberDistance = (offset: number) => -Math.sign(offset) * RUBBER_RESISTANCE * Math.log(1 - Math.min(.999, Math.abs(offset) / RUBBER_LIMIT))
+const easeFade = (value: number) => {
+  const t = clamp(value)
+  return t * t * (3 - 2 * t)
+}
 const datePitch = (el: HTMLElement) => (el.firstElementChild?.clientWidth ?? el.clientWidth) / 7
 const dateAtNoon = (day: string) => new Date(`${day}T12:00:00`)
 
@@ -38,7 +47,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const scroll = useRef<HTMLDivElement>(null)
   const pendingOffset = useRef<number | null>(null)
   const previousDay = useRef(day)
-  const drag = useRef<{ id: number; x: number; y: number; left: number; progress: number; hourly: number; lastY: number; lastAt: number; speed: number; axis?: 'x' | 'y' } | null>(null)
+  const drag = useRef<{ id: number; x: number; y: number; left: number; progress: number; rubber: number; hourly: number; lastY: number; lastAt: number; speed: number; axis?: 'x' | 'y' } | null>(null)
   const blockClick = useRef(0)
   const root = useRef<HTMLElement>(null)
   const gestureLayer = useRef<HTMLDivElement>(null)
@@ -49,24 +58,34 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const progress = useRef<number>(mode === 1 ? 1 : 0)
   const dayProgress = useRef<number>(mode === 2 ? 1 : 0)
   const previousMode = useRef(mode)
+  const rubber = useRef(0)
   const animation = useRef<{ stop: () => void } | null>(null)
   const reducedMotion = useReducedMotion()
   const dimensions = useRef({ week: WEEK_HEIGHT, month: 280, hours: 0, summary: 0 })
 
-  function paint(month: number, hours = dayProgress.current) {
+  function paint(month: number, hours = dayProgress.current, stretch = rubber.current) {
     progress.current = month
     dayProgress.current = hours
+    rubber.current = stretch
     const bodyStyle = root.current?.style
     const style = gestureLayer.current?.style
-    const showMonth = month >= .12
-    style?.setProperty('--day-week-opacity', String(showMonth ? 0 : (1 - month) * (1 - hours)))
-    style?.setProperty('--day-month-opacity', String(showMonth ? Math.min(1, .88 + month * .4) * (1 - hours) : 0))
-    style?.setProperty('--day-date-flight', `${hours * 90}px`)
+    const calendarOpacity = 1 - hours
     const { week, month: monthHeight, summary } = dimensions.current
-    style?.setProperty('--day-calendar-height', `${(week + (monthHeight - week) * month) * (1 - hours)}px`)
+    const dateHeight = week + (monthHeight - week) * month
+    // Fade the two sets of numerals in turn so they never sit on top of each other.
+    style?.setProperty('--day-week-opacity', String((1 - easeFade(month / .16)) * calendarOpacity))
+    style?.setProperty('--day-month-opacity', String(easeFade((month - .16) / .18) * calendarOpacity))
+    style?.setProperty('--day-month-title-opacity', String(easeFade((month - .16) / .34)))
+    style?.setProperty('--day-month-title-y', `${-4 * (1 - easeFade((month - .16) / .34))}px`)
+    style?.setProperty('--day-date-flight', `${hours * 90}px`)
+    style?.setProperty('--day-calendar-height', `${(dateHeight + stretch) * calendarOpacity}px`)
+    style?.setProperty('--day-calendar-scale', String(1 + stretch / dateHeight))
+    style?.setProperty('--day-grip-scale', String(1 + Math.abs(stretch) / 100))
+    style?.setProperty('--day-fold-fade', `${24 * Math.max(Math.sin(Math.PI * month), Math.sin(Math.PI * hours))}px`)
     bodyStyle?.setProperty('--day-hours-height', `${dimensions.current.hours * hours}px`)
     bodyStyle?.setProperty('--day-summary-height', `${summary * (1 - hours)}px`)
     bodyStyle?.setProperty('--day-summary-opacity', String(1 - hours))
+    bodyStyle?.setProperty('--day-sheet-fade', `${22 * Math.sin(Math.PI * hours)}px`)
   }
 
   function markFlightDirections() {
@@ -83,18 +102,18 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
 
   function settle(target: CalendarView) {
     animation.current?.stop()
-    const monthFrom = progress.current, dayFrom = dayProgress.current
+    const monthFrom = progress.current, dayFrom = dayProgress.current, stretchFrom = rubber.current
     const monthTo = target === 2 ? monthFrom : target
     const dayTo = target === 2 ? 1 : 0
     if (target === 2 || dayFrom > 0) markFlightDirections()
-    if (reducedMotion || (Math.abs(monthFrom - monthTo) < .001 && Math.abs(dayFrom - dayTo) < .001)) {
-      paint(monthTo, dayTo)
+    if (reducedMotion || (Math.abs(monthFrom - monthTo) < .001 && Math.abs(dayFrom - dayTo) < .001 && Math.abs(stretchFrom) < .1)) {
+      paint(monthTo, dayTo, 0)
       return
     }
     animation.current = animate(0, 1, {
-      duration: .30, ease: [0.22, 1, 0.36, 1],
-      onUpdate: frame => paint(monthFrom + (monthTo - monthFrom) * frame, dayFrom + (dayTo - dayFrom) * frame),
-      onComplete: () => paint(monthTo, dayTo),
+      duration: Math.abs(stretchFrom) > 0 ? .36 : .30, ease: [0.22, 1, 0.36, 1],
+      onUpdate: frame => paint(monthFrom + (monthTo - monthFrom) * frame, dayFrom + (dayTo - dayFrom) * frame, stretchFrom * (1 - frame)),
+      onComplete: () => paint(monthTo, dayTo, 0),
     })
   }
 
@@ -138,9 +157,11 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     setShownMonth(monthPage)
   }, [monthPage, pinnedHost])
 
-  function progressForDrag(start: number, dy: number) {
+  function positionForDrag(start: number, dy: number) {
     const distance = Math.max(48, dimensions.current.month - dimensions.current.week)
-    return Math.min(1, Math.max(0, start + dy / distance))
+    const raw = start + dy / distance
+    const position = clamp(raw)
+    return { position, overshoot: (raw - position) * distance }
   }
   const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' })
   const fullDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -193,6 +214,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
       if (gesture.axis === 'y') {
         animation.current?.stop()
         gesture.progress = progress.current
+        gesture.rubber = rubberDistance(rubber.current)
         gesture.hourly = dayProgress.current
       }
       if (gesture.axis === 'y' || event.pointerType === 'mouse') event.currentTarget.setPointerCapture(event.pointerId)
@@ -209,8 +231,11 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
       if (elapsed > 0) gesture.speed = (event.clientY - gesture.lastY) / elapsed
       gesture.lastY = event.clientY
       gesture.lastAt = event.timeStamp
-      if (mode === 2) paint(gesture.progress, Math.min(1, Math.max(0, gesture.hourly + dy / 180)))
-      else paint(progressForDrag(gesture.progress, dy), 0)
+      if (mode === 2) paint(gesture.progress, clamp(gesture.hourly + dy / 180), 0)
+      else {
+        const { position, overshoot } = positionForDrag(gesture.progress, dy + gesture.rubber)
+        paint(position, 0, reducedMotion ? 0 : rubberBand(overshoot))
+      }
     }
   }
 
@@ -233,7 +258,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
       const distance = event.clientY - gesture.y + inertia
       const next = mode === 2
         ? (gesture.hourly + distance / 180 < .5 ? 0 : 2)
-        : (Math.round(progressForDrag(gesture.progress, distance)) as CalendarView)
+        : (Math.round(positionForDrag(gesture.progress, distance + gesture.rubber).position) as CalendarView)
       if (next === mode) settle(mode)
       else onMode(next)
     }
@@ -268,7 +293,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
         if (!event.isPrimary || event.button !== 0) return
         blockClick.current = 0
         drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY,
-          left: (mode === 1 ? monthScroll.current : scroll.current)?.scrollLeft ?? 0, progress: progress.current,
+          left: (mode === 1 ? monthScroll.current : scroll.current)?.scrollLeft ?? 0, progress: progress.current, rubber: 0,
           hourly: dayProgress.current, lastY: event.clientY, lastAt: event.timeStamp, speed: 0 }
       }}
       onPointerMove={move} onPointerUp={end} onPointerCancel={end} onLostPointerCapture={end}
@@ -284,7 +309,11 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
           </div>
         </div>
         <div ref={monthLayer} className="teacher-day-month-layer" inert={mode !== 1}>
-          <h2>{monthTitle[0].toLocaleUpperCase(locale) + monthTitle.slice(1)}</h2>
+          <h2>
+            <motion.span key={shownMonth} initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .2 }}>
+              {monthTitle[0].toLocaleUpperCase(locale) + monthTitle.slice(1)}
+            </motion.span>
+          </h2>
           <div ref={monthScroll} className="teacher-day-month-scroll no-scrollbar" onScroll={event => {
             const el = event.currentTarget
             if (!el.clientWidth) return

@@ -55,7 +55,8 @@ async function signOut() {
   window.location.hash = '#/'
 }
 
-const dockKeyboard = IS_APP && (PLATFORM === 'iphone' || PLATFORM === 'android')
+const isIphoneApp = IS_APP && PLATFORM === 'iphone'
+const dockKeyboard = isIphoneApp || (IS_APP && PLATFORM === 'android')
 
 function AuthShell({ children }: { children: ReactNode }) {
   const frame = useRef<HTMLDivElement>(null)
@@ -64,15 +65,20 @@ function AuthShell({ children }: { children: ReactNode }) {
     const element = frame.current
     const viewport = window.visualViewport
     if (!element || !viewport) return
+    const root = document.documentElement
+    if (isIphoneApp) root.classList.add('mfa-iphone-open')
     let restHeight = window.innerHeight
 
     function update() {
       if (!element || !viewport || Math.abs(viewport.scale - 1) > 0.01) return
       const bounds = element.getBoundingClientRect()
-      // WKWebView can pan the visual viewport or resize the fixed containing block.
-      // Android can resize both viewports. Measure the visible slice once in either case.
-      const top = Math.max(0, viewport.offsetTop - bounds.top)
-      const height = Math.max(0, Math.min(bounds.bottom, viewport.offsetTop + viewport.height) - bounds.top - top)
+      // WKWebView reports its focus pan in offsetTop. Applying that pan to the
+      // form moves the scrollport down and clips the card while dragging.
+      // Keep the iPhone scrollport at the screen origin and only use its height.
+      const top = isIphoneApp ? 0 : Math.max(0, viewport.offsetTop - bounds.top)
+      const height = isIphoneApp
+        ? Math.min(bounds.height, viewport.height)
+        : Math.max(0, Math.min(bounds.bottom, viewport.offsetTop + viewport.height) - bounds.top - top)
       restHeight = Math.max(restHeight, bounds.height)
       element.style.setProperty('--mfa-visible-top', `${top}px`)
       element.style.setProperty('--mfa-visible-height', `${height}px`)
@@ -91,6 +97,7 @@ function AuthShell({ children }: { children: ReactNode }) {
     window.addEventListener('resize', update)
     screen.orientation?.addEventListener('change', rotate)
     return () => {
+      if (isIphoneApp) root.classList.remove('mfa-iphone-open')
       viewport.removeEventListener('resize', update)
       viewport.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)

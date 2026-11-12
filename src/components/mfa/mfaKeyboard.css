@@ -20,3 +20,12 @@
   transform: translateY(calc(-1 * max(0px, var(--mfa-visible-height, 100dvh)
     - (var(--mfa-rest-height, 100dvh) + env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 2 - 50%)));
 }
+
+/* A challenge may sit above the sign-in form, which has its own scroller.
+   Stop page panning for the lifetime of the iPhone challenge. The card can
+   still scroll within ScrollFade if it actually exceeds the available height. */
+html.mfa-iphone-open,
+html.mfa-iphone-open body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
