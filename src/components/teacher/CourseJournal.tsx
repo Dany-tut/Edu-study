@@ -317,7 +317,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
           bottomTabBarSideInset: 40,
           bottom: [
             { id: 'journal-search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск ученика'), active: !!query },
-            { id: 'journal-course', kind: 'pill', title: courseTitle, menuTitle: t('Курс или интенсив'), menu: [
+            { id: 'journal-course', kind: 'pill', title: courseTitle, menuTitle: t('Курс или интенсив'), menuChevron: 'up', menu: [
               ...data.courses.map(c => ({ value: c.id, title: tc(c.title || t('Без названия')), checked: c.id === courseId })),
               { value: OUTSIDE_COURSES, title: t('Вне курсов'), checked: courseId === OUTSIDE_COURSES },
             ] },

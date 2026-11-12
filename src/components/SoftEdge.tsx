@@ -19,7 +19,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Радиусы слоёв от дальнего (слабого) к ближнему к краю (сильному).
-const LAYERS = [1, 2, 4, 8, 14]
+const LAYERS = [1, 2, 4]
 
 export default function SoftEdge({ edge, size, strength = 1, zIndex = 55 }: {
   edge: 'top' | 'bottom'

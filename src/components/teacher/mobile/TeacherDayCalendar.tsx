@@ -101,12 +101,9 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     style?.setProperty('--day-calendar-height', `${(dateHeight + stretch) * calendarOpacity}px`)
     style?.setProperty('--day-calendar-scale', String(1 + stretch / dateHeight))
     style?.setProperty('--day-grip-scale', String(1 + Math.abs(stretch) / 100))
-    const folding = Math.max(Math.sin(Math.PI * month), Math.sin(Math.PI * hours))
-    style?.setProperty('--day-fold-fade', `${Math.min(48, dateHeight * .30) * folding}px`)
     bodyStyle?.setProperty('--day-hours-height', `${dimensions.current.hours * hours}px`)
     bodyStyle?.setProperty('--day-summary-height', `${summary * (1 - hours)}px`)
     bodyStyle?.setProperty('--day-summary-opacity', String(1 - hours))
-    bodyStyle?.setProperty('--day-sheet-fade', `${44 * Math.sin(Math.PI * hours)}px`)
   }
 
   function markFlightDirections() {

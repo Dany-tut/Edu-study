@@ -544,7 +544,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             }
             if menuItems != nil {
                 let chevron = it["menuChevron"] as? String == "up" ? "chevron.up" : "chevron.down"
-                config.image = UIImage(systemName: chevron, withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(accent, renderingMode: .alwaysOriginal)
+                config.image = UIImage(systemName: chevron, withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(.label, renderingMode: .alwaysOriginal)
                 config.imagePlacement = .trailing
                 config.imagePadding = 6
             }
