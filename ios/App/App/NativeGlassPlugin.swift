@@ -85,6 +85,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     // Стеклянный бар экрана (ученик, iPhone): таблетка сверху + ряд снизу.
     private var barTopViews: [UIButton] = []
     private var barBottomView: UIStackView?
+    private var barBottomConstraint: NSLayoutConstraint?
     private var barLastOptions: JSObject?
     private var barLastKey = ""
 
@@ -368,6 +369,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         guard let host = self.host else { return }
         self.barTopViews.forEach { $0.removeFromSuperview() }; self.barTopViews.removeAll()
         self.barBottomView?.removeFromSuperview(); self.barBottomView = nil
+        self.barBottomConstraint = nil
 
         let topItems = opts["top"] as? [JSObject] ?? (opts["top"] as? JSObject).map { [$0] } ?? []
         for item in topItems {
@@ -414,6 +416,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 row.addArrangedSubview(b)
             }
             host.view.addSubview(row)
+            let bottom = row.bottomAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.bottomAnchor,
+                                                     constant: self.barBottomOffset(in: host.view))
+            self.barBottomConstraint = bottom
             // Над системными вкладками: капсула UITabBar начинается ~48 pt выше
             // нижней безопасной зоны, ряд встаёт с зазором 10.
             if let ratio = opts["bottomTabBarWidthRatio"] as? Double, ratio > 0, ratio <= 1 {
@@ -431,9 +436,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                     row.trailingAnchor.constraint(equalTo: host.view.trailingAnchor, constant: -16),
                 ])
             }
-            NSLayoutConstraint.activate([
-                row.bottomAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.bottomAnchor, constant: -(self.tabBar == nil ? 10 : 58)),
-            ])
+            bottom.isActive = true
             self.barBottomView = row
         }
     }
@@ -537,6 +540,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             self.barTopViews.forEach { $0.removeFromSuperview() }; self.barTopViews.removeAll()
             self.barBottomView?.removeFromSuperview(); self.barBottomView = nil
+            self.barBottomConstraint = nil
             self.updateDocumentEdge(in: self.headerHost, edge: .top)
             self.barLastOptions = nil
             self.barLastKey = ""
@@ -675,8 +679,18 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         }.withRenderingMode(image.renderingMode)
     }
 
+    private var tabBarHeightScale: CGFloat { tabBarCompact ? 0.82 : 1 }
+
+    private func barBottomOffset(in view: UIView) -> CGFloat {
+        guard tabBar != nil else { return -10 }
+        // The capsule normally starts about 48 pt above the safe-area bottom.
+        // Move the row by the same distance as that edge, preserving its 10 pt gap.
+        let capsuleTop = view.safeAreaInsets.bottom + 48
+        return -58 + capsuleTop * (1 - tabBarHeightScale)
+    }
+
     private func tabBarTransform(_ bar: UITabBar, hidden: Bool) -> CGAffineTransform {
-        let scale: CGFloat = tabBarCompact ? 0.90 : 1
+        let scale = tabBarHeightScale
         // Keep the bar anchored to the bottom as its height changes.
         let bottomOffset = bar.bounds.height * (1 - scale) / 2
         let hiddenOffset = hidden ? bar.bounds.height + 40 : 0
@@ -689,9 +703,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         let selected = call.getString("selected")
         DispatchQueue.main.async {
             guard let host = self.host else { call.resolve(); return }
-            let compact = call.getBool("compact") == true && host.traitCollection.userInterfaceIdiom == .phone
+            let compactRequested = call.getBool("compact")
+            let compact = compactRequested == true && host.traitCollection.userInterfaceIdiom == .phone
             let compactChanged = compact != self.tabBarCompact
-            let animate = self.tabBar != nil && compactChanged && !UIAccessibility.isReduceMotionEnabled
+            let creatingBar = self.tabBar == nil
+            let animate = !creatingBar && compactChanged && !UIAccessibility.isReduceMotionEnabled
             self.tabBarCompact = compact
             let bar: UITabBar
             if let existing = self.tabBar {
@@ -742,11 +758,12 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                     }
                 }
                 if let sel = selected, let i = ids.firstIndex(of: sel) { bar.selectedItem = bar.items?[i] }
-                if compactChanged {
+                if compactChanged || (creatingBar && compactRequested != nil) {
                     // Leave room for the tab targets and the system capsule's margins.
                     let minimumWidth = CGFloat(tabItems.count) * 44 + 40
-                    let inset = min(30, max(0, (host.view.bounds.width - minimumWidth) / 2))
+                    let inset = min(40, max(0, (host.view.bounds.width - minimumWidth) / 2))
                     for edge in self.tabBarEdges { edge.constant = compact ? inset : 0 }
+                    self.barBottomConstraint?.constant = self.barBottomOffset(in: host.view)
                     host.view.layoutIfNeeded()
                     bar.transform = self.tabBarTransform(bar, hidden: !bar.isUserInteractionEnabled)
                 }
@@ -780,6 +797,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             self.tabBar?.removeFromSuperview()
             self.tabBar = nil
+            if self.tabBarCompact { self.barBottomConstraint?.constant = -10 }
             self.tabBarEdges = []
             self.tabBarCompact = false
             self.tabIds = []
