@@ -2897,7 +2897,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       <col style={{ width: '10%' }} />
                     </colgroup>
                     <thead>
-                      <tr style={{ background: 'var(--color-bg-2)' }}>
+                      <tr>
                         <Th label={t('Студент')}        sortKey="name"       currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                         <Th label={t('Посл. вход')}     sortKey="lastVisit"  currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                         <Th label={t('ДЗ')}             sortKey="hwScore"    currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
