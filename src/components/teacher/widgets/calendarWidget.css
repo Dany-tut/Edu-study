@@ -169,3 +169,64 @@
 .calendar-widget-details { align-self: stretch; justify-content: center; }
 
 .calendar-week-day-label{font-size:11px;font-weight:550;color:var(--color-text-3);padding:5px 3px 8px}
+
+.calendar-context-backdrop {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at var(--calendar-focus-x) var(--calendar-focus-y),
+    rgb(0 0 0 / 0.2), rgb(0 0 0 / 0.07) 45%, transparent 85%);
+}
+
+.calendar-context-backdrop::before,
+.calendar-context-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.calendar-context-backdrop::before {
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  mask-image: radial-gradient(ellipse at var(--calendar-focus-x) var(--calendar-focus-y),
+    #000 5%, rgb(0 0 0 / 0.45) 35%, transparent 72%);
+}
+
+.calendar-context-backdrop::after {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  mask-image: radial-gradient(ellipse at var(--calendar-focus-x) var(--calendar-focus-y),
+    #000, rgb(0 0 0 / 0.6) 14%, transparent 38%);
+}
+
+.calendar-context-lesson {
+  display: grid;
+  gap: 6px;
+  padding: 13px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-inline-start-width: 3px;
+  border-radius: 16px;
+  background: var(--color-bg-2);
+  color: var(--color-text);
+  box-shadow: var(--shadow-4);
+}
+
+.calendar-context-lesson-heading,
+.calendar-context-lesson-time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.calendar-context-lesson-heading { font-size: 15px; }
+.calendar-context-lesson-time { font-variant-numeric: tabular-nums; }
+.calendar-context-lesson-time strong { font-size: 17px; }
+.calendar-context-lesson-time span,
+.calendar-context-lesson-detail {
+  color: var(--color-text-2);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

@@ -3298,6 +3298,12 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
       style={{
         overflow: 'hidden',
         outline: photoDragOver ? '2px solid var(--color-accent)' : undefined,
+        backgroundImage: photoDragOver ? [
+          'linear-gradient(to right, color-mix(in srgb, var(--color-accent) 15%, transparent) 1px, transparent 1px)',
+          'linear-gradient(to bottom, color-mix(in srgb, var(--color-accent) 15%, transparent) 1px, transparent 1px)',
+          'linear-gradient(var(--color-accent-soft), var(--color-accent-soft))',
+        ].join(', ') : undefined,
+        backgroundSize: photoDragOver ? '16px 16px, 16px 16px, 100% 100%' : undefined,
         outlineOffset: -2,
       }}
       onDragEnter={e => {
@@ -3338,7 +3344,7 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
       >
         <GripVertical
           size={14}
-          style={{ color: 'var(--color-text-4)', flexShrink: 0, cursor: 'grab' }}
+          style={{ color: 'var(--color-text-2)', flexShrink: 0, cursor: 'grab' }}
           onClick={e => e.stopPropagation()}
           onMouseDown={() => onGripDown?.()}
         />
@@ -3354,11 +3360,11 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
         </div>
         <button data-hover="layer"
           onClick={e => { e.stopPropagation(); onDelete() }}
-          style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0 }}
+          style={{ width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-2)', flexShrink: 0 }}
         >
           <X size={12} />
         </button>
-        <div style={{ color: 'var(--color-text-4)', flexShrink: 0 }}>
+        <div style={{ color: 'var(--color-purple-text)', flexShrink: 0 }}>
           {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </div>
       </div>

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { haptic } from '../../../lib/feedback'
-import { useT } from '../../../lib/i18n'
+import { useLang, useT } from '../../../lib/i18n'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { isScheduleEnded, isScheduleLive } from '../../../lib/scheduleLive'
 import type { SchedItem } from '../../../lib/teacherSchedule'
@@ -89,6 +89,10 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
   onAdd?: (day: string) => void
 }) {
   const t = useT()
+  const lang = useLang(state => state.lang)
+  const grid = useRef<HTMLDivElement>(null)
+  const ghost = useRef<HTMLDivElement>(null)
+  const destination = useRef<HTMLDivElement>(null)
   const body = useRef<HTMLDivElement>(null)
   useScrollFades(body, true, ':scope')
   const [now, setNow] = useState(() => nowMinutesMsk())
@@ -146,6 +150,31 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
   const press = useRef<Press | null>(null)
   const [drop, setDrop] = useState<Drop | null>(null)
   const dropRef = useRef<Drop | null>(null)
+  useLayoutEffect(() => {
+    const frame = grid.current
+    const scroll = body.current
+    const card = ghost.current
+    const label = destination.current
+    if (!drop || !frame || !scroll || !card || !label) return
+
+    const placeLabel = () => {
+      const bounds = frame.getBoundingClientRect()
+      const target = card.getBoundingClientRect()
+      const left = target.left - bounds.left + (target.width - label.offsetWidth) / 2
+      const top = target.top - bounds.top - label.offsetHeight - 8
+      label.style.left = `${Math.max(4, Math.min(left, bounds.width - label.offsetWidth - 4))}px`
+      label.style.top = `${Math.max(4, Math.min(top, bounds.height - label.offsetHeight - 4))}px`
+    }
+
+    placeLabel()
+    scroll.addEventListener('scroll', placeLabel, { passive: true })
+    const observer = new ResizeObserver(placeLabel)
+    observer.observe(frame)
+    return () => {
+      scroll.removeEventListener('scroll', placeLabel)
+      observer.disconnect()
+    }
+  }, [drop, from, rowH, lang])
   const setDropBoth = (d: Drop | null) => { dropRef.current = d; setDrop(d) }
   // Клик, пришедший после перетаскивания, — не клик.
   const swallowClick = useRef(false)
@@ -246,7 +275,7 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
   }
 
   return (
-    <div className="tcal-grid" data-dragging={drop ? true : undefined}>
+    <div ref={grid} className="tcal-grid" data-dragging={drop ? true : undefined}>
       <div className="tcal-days" style={{ gridTemplateColumns: cols }}>
         <div />
         {days.map(d => (
@@ -306,7 +335,7 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
                 )
               })}
               {drop && drop.day === d && (
-                <div className="tcal-event" data-ghost aria-hidden
+                <div ref={ghost} className="tcal-event" data-ghost aria-hidden
                   style={{ top: y(drop.start) + 2, height: Math.max(22, (drop.len / 60) * rowH - 4), left: 4, width: 'calc(100% - 8px)', ['--ev' as string]: drop.item.color || 'var(--color-accent)' }}>
                   <b>{drop.item.who}</b>
                   <span>{fmtMinutes(drop.start)}–{fmtMinutes(drop.start + drop.len)}</span>
@@ -317,6 +346,14 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
           ))}
         </div>
       </div>
+      {drop && (
+        <div ref={destination} className="tcal-drop-label">
+          <span>{new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
+            day: 'numeric', month: 'short',
+          }).format(new Date(`${drop.day}T12:00:00`))}</span>
+          <span>{fmtMinutes(drop.start)}–{fmtMinutes(drop.start + drop.len)}</span>
+        </div>
+      )}
     </div>
   )
 }

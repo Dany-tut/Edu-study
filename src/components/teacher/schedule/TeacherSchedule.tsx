@@ -16,7 +16,6 @@ import { scheduleDurationMinutes } from '../../../lib/scheduleDuration'
 import '../widgets/calendarWidget.css'
 import { RadioMark } from '../../Radio'
 import { CheckboxMark } from '../../Checkbox'
-import { MODAL_BACKDROP } from '../../Modal'
 import { btn } from '../../../lib/pillStyles'
 import { haptic } from '../../../lib/feedback'
 import { Z } from '../../../lib/layers'
@@ -413,7 +412,7 @@ function useLiveLesson(item: SchedItem) {
   return { live: isScheduleLive(item, now), ended: isScheduleEnded(item, now) }
 }
 
-function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; lifted?: boolean; preview?: boolean }) {
+function CardBody({ item, lifted = false, preview = false, context = false }: { item: SchedItem; lifted?: boolean; preview?: boolean; context?: boolean }) {
   const t = useT()
   const mobile = !useIsDesktop()
   const { live, ended } = useLiveLesson(item)
@@ -428,6 +427,23 @@ function CardBody({ item, lifted = false, preview = false }: { item: SchedItem; 
     item.number != null && item.number >= 0 && item.fromCourse ? `${t('Урок')} ${item.number + 1}` : '',
     item.title,
   ].filter(Boolean).join(' · ')
+  if (context) {
+    return (
+      <div className="calendar-context-lesson" style={{ borderInlineStartColor: item.color || 'var(--color-accent)' }}>
+        <div className="calendar-context-lesson-heading">
+          <strong>{item.who}</strong>
+          {live && <Chip tone={mobile ? 'live' : 'now'}>{t('ИДЁТ СЕЙЧАС')}</Chip>}
+          {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
+          {item.rec && <Chip>{t('Запись')}</Chip>}
+        </div>
+        <div className="calendar-context-lesson-time">
+          <strong>{startTime}{endTime ? `–${endTime}` : ''}</strong>
+          {localStart && <span>{item.time}{item.endTime ? `–${item.endTime}` : ''} МСК</span>}
+        </div>
+        {sub && <span className="calendar-context-lesson-detail">{sub}</span>}
+      </div>
+    )
+  }
   return (
     <div className={`calendar-widget-lesson${preview ? ' calendar-widget-lesson-preview' : ''}`} data-live={live || undefined} data-ended={ended || undefined} style={{
       display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 22,
@@ -730,6 +746,8 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
   const presentRef = useRef(isPresent)
   presentRef.current = isPresent
   const panelRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  useScrollFades(contentRef, true, ':scope')
   // Restore the original before paint when the lifted layer is removed.
   useLayoutEffect(() => {
     if (!source) return
@@ -755,11 +773,16 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
   const liftedRef = useRef<HTMLDivElement>(null)
   const [liftedH, setLiftedH] = useState<number | null>(null)
   useLayoutEffect(() => {
-    if (expand && liftedRef.current) setLiftedH(liftedRef.current.offsetHeight)
-  }, [expand])
+    const card = liftedRef.current
+    if (!card) return
+    const measure = () => setLiftedH(card.offsetHeight)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(card)
+    return () => observer.disconnect()
+  }, [])
   const rect = (() => {
-    if (!expand) return anchorRect
-    const w = Math.min(expand, viewport.width - 24)
+    const w = Math.min(expand ?? anchorRect.width, viewport.width - 24)
     const l = Math.max(12, Math.min(anchorRect.left + anchorRect.width / 2 - w / 2, viewport.width - w - 12))
     const h = liftedH ?? anchorRect.height
     const top = Math.max(12, Math.min(anchorRect.top, viewport.height - h - 12))
@@ -811,10 +834,9 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
         borderTop: opts?.sub ? 'none' : '1px solid var(--color-border)',
       }}
     >
+      <Icon size={18} style={{ flexShrink: 0 }} />
       <span style={{ flex: 1 }}>{label}</span>
-      {opts?.open !== undefined
-        ? <motion.span animate={{ rotate: opts.open ? 180 : 0 }} transition={submenuTransition} style={{ display: 'flex' }}><ChevronDown size={18} color="var(--color-text-3)" /></motion.span>
-        : <Icon size={18} color={opts?.danger ? 'var(--color-red-text)' : opts?.primary ? 'var(--color-purple-text)' : 'var(--color-text-3)'} />}
+      {opts?.open !== undefined && <motion.span animate={{ rotate: opts.open ? 180 : 0 }} transition={submenuTransition} style={{ display: 'flex' }}><ChevronDown size={16} color="var(--color-text-2)" /></motion.span>}
     </button>
   )
 
@@ -825,7 +847,12 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
         transition={transition}
         onClick={() => { if (isPresent) onClose() }}
         onContextMenu={e => { e.preventDefault(); if (isPresent) onClose() }}
-        style={{ ...MODAL_BACKDROP, ...CALENDAR_BACKDROP, zIndex: Z.modal, pointerEvents: isPresent ? 'auto' : 'none' }}
+        style={{
+          '--calendar-focus-x': `${rect.left + rect.width / 2}px`,
+          '--calendar-focus-y': `${rect.top + rect.height / 2}px`,
+          zIndex: Z.modal,
+          pointerEvents: isPresent ? 'auto' : 'none',
+        } as React.CSSProperties}
       />
       <motion.div
         ref={liftedRef}
@@ -837,7 +864,7 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
         transition={transition}
         style={{ position: 'fixed', left: rect.left, top: rect.top, width: rect.width, zIndex: Z.modal + 1, pointerEvents: 'none', transformOrigin: 'center bottom' }}
       >
-        <CardBody item={item} lifted={isPresent} />
+        <CardBody item={item} context />
       </motion.div>
       <div className="calendar-context-positioner" data-side={opensAbove ? 'above' : 'below'} style={{ zIndex: Z.modal + 1, left, ...placement, width, maxHeight: availableHeight }}>
       <motion.div ref={panelRef}
@@ -848,7 +875,7 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
         onContextMenu={e => e.preventDefault()}
         style={{ width: '100%', maxHeight: availableHeight, pointerEvents: isPresent ? 'auto' : 'none' }}
       >
-        <div className="calendar-context-content no-scrollbar">
+        <div ref={contentRef} className="calendar-context-content no-scrollbar">
         <div className="calendar-context-actions">
           <div style={{ marginTop: -1 }}>
             {onOpen && row(t('Открыть урок'), ArrowUpRight, onOpen, { primary: true })}
