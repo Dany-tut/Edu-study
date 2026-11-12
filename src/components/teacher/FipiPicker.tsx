@@ -75,7 +75,7 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
         <Segmented<'2026' | '2027'>
           variant="filter"
           value={year === 2026 ? '2026' : '2027'}
-          items={[{ id: '2026', label: '2026' }, { id: '2027', label: '2027 · проект' }]}
+          items={[{ id: '2026', label: '2026' }, { id: '2027', label: t('2027 · проект') }]}
           onChange={nextYear => { setYear(nextYear === '2026' ? 2026 : 2027); setQuery('') }}
         />
 
