@@ -65,6 +65,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         CAPPluginMethod(name: "barHidden", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "barRemove", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "documentScrollEdges", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "lockMfaScroll", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sheetShow", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sheetClose", returnType: CAPPluginReturnPromise),
     ]
@@ -91,6 +92,40 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     private var barBottomExpandedWidthInset: CGFloat = 0
     private var barLastOptions: JSObject?
     private var barLastKey = ""
+
+    private var mfaOffsetObservation: NSKeyValueObservation?
+    private var restoreMfaScroll: (() -> Void)?
+
+    @objc func lockMfaScroll(_ call: CAPPluginCall) {
+        let locked = call.getBool("locked") ?? false
+        DispatchQueue.main.async {
+            if locked, UIDevice.current.userInterfaceIdiom == .phone,
+               self.restoreMfaScroll == nil, let scroll = self.bridge?.webView?.scrollView {
+                let wasEnabled = scroll.isScrollEnabled
+                let wasBouncing = scroll.bounces
+                self.restoreMfaScroll = { [weak scroll] in
+                    scroll?.isScrollEnabled = wasEnabled
+                    scroll?.bounces = wasBouncing
+                }
+                scroll.isScrollEnabled = false
+                scroll.bounces = false
+                // WebKit can still change contentOffset programmatically to reveal
+                // a focused input. The MFA layout already clears the keyboard.
+                self.mfaOffsetObservation = scroll.observe(\.contentOffset, options: [.initial, .new]) { scroll, _ in
+                    guard abs(scroll.zoomScale - 1) < 0.01 else { return }
+                    let top = -scroll.adjustedContentInset.top
+                    guard abs(scroll.contentOffset.y - top) > 0.5 else { return }
+                    scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x, y: top), animated: false)
+                }
+            } else if !locked {
+                self.mfaOffsetObservation?.invalidate()
+                self.mfaOffsetObservation = nil
+                self.restoreMfaScroll?()
+                self.restoreMfaScroll = nil
+            }
+            call.resolve()
+        }
+    }
 
     private var documentEdgesEnabled = false
     private var restoreDocumentEdges: (() -> Void)?

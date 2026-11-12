@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import { clearStudentSession } from '../../lib/studentSession'
 import { useT } from '../../lib/i18n'
+import { lockNativeMfaScroll } from '../../lib/nativeGlass'
 import { IS_APP, PLATFORM } from '../../lib/platform'
 import './mfaKeyboard.css'
 import { currentLoginCodeRequest, mfaErrorRu, recoverWithBackupCode, subscribeLoginCodeRequest, verifyCode } from '../../lib/mfa'
@@ -66,7 +67,10 @@ function AuthShell({ children }: { children: ReactNode }) {
     const viewport = window.visualViewport
     if (!element || !viewport) return
     const root = document.documentElement
-    if (isIphoneApp) root.classList.add('mfa-iphone-open')
+    if (isIphoneApp) {
+      root.classList.add('mfa-iphone-open')
+      lockNativeMfaScroll(true)
+    }
     let restHeight = window.innerHeight
 
     function update() {
@@ -97,7 +101,10 @@ function AuthShell({ children }: { children: ReactNode }) {
     window.addEventListener('resize', update)
     screen.orientation?.addEventListener('change', rotate)
     return () => {
-      if (isIphoneApp) root.classList.remove('mfa-iphone-open')
+      if (isIphoneApp) {
+        lockNativeMfaScroll(false)
+        root.classList.remove('mfa-iphone-open')
+      }
       viewport.removeEventListener('resize', update)
       viewport.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
@@ -107,7 +114,12 @@ function AuthShell({ children }: { children: ReactNode }) {
 
   const card = <div className="auth-page-content"><div className="auth-page-card">{children}</div></div>
   if (dockKeyboard) {
-    return <div ref={frame} className="mfa-keyboard-frame">
+    return <div ref={frame} className="mfa-keyboard-frame" onClick={event => {
+      if (isIphoneApp && !(event.target as Element).closest('.auth-page-card')) {
+        const input = document.activeElement
+        if (input instanceof HTMLInputElement && frame.current?.contains(input)) input.blur()
+      }
+    }}>
       <ScrollFade maxHeight="var(--mfa-visible-height, 100dvh)" style={{ top: 'var(--mfa-visible-top, 0px)' }}>
         <div className="auth-page-layout mfa-keyboard-layout">{card}</div>
       </ScrollFade>

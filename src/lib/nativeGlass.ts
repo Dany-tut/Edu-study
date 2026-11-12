@@ -78,6 +78,7 @@ interface NativeGlassPlugin {
   barSet(o: GlassBar): Promise<void>
   barHidden(o: { top: boolean; bottom: boolean }): Promise<void>
   barRemove(): Promise<void>
+  lockMfaScroll(o: { locked: boolean }): Promise<void>
   documentScrollEdges(o: { enabled: boolean }): Promise<{ enabled: boolean }>
   sheetShow(o: GlassSheetContent & { id: string }): Promise<void>
   sheetClose(o: { id: string }): Promise<void>
@@ -93,6 +94,11 @@ const NativeGlass = registerPlugin<NativeGlassPlugin>('NativeGlass')
 
 /** Системные контролы доступны: приложение на iOS. */
 export const GLASS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
+
+export function lockNativeMfaScroll(locked: boolean) {
+  // Older native shells do not expose this method and retain the CSS lock.
+  void NativeGlass.lockMfaScroll({ locked }).catch(() => undefined)
+}
 
 export function useNativeDocumentScroll(enabled: boolean) {
   const [active, setActive] = useState(false)
