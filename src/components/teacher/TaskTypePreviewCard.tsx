@@ -468,7 +468,7 @@ export default function TaskTypePreviewCard({ type, fipi }: { type: TaskTypeId; 
       {fipi && (
         <a href={fipi.source.url} target="_blank" rel="noreferrer"
           style={{ fontSize: 11, color: 'var(--color-muted)', textDecoration: 'underline' }}>
-          {t('Источник строки')} · {t('ФИПИ · спецификация и демоверсия')} {fipi.source.year}
+          {t('Источник строки · ФИПИ · спецификация и демоверсия')} {fipi.source.year}
         </a>
       )}
     </div>

@@ -6549,4 +6549,5 @@ export const EN: Record<string, string> = {
   "ЕГЭ / ОГЭ · ФИПИ": "Exam catalog · FIPI",
   "Номер задания или тема": "Task number or topic",
   "Источник: ФИПИ · спецификация и демоверсия": "Source: FIPI · specification and demo",
+  "Источник строки · ФИПИ · спецификация и демоверсия": "Source for this exam item · FIPI specification and demo",
 }
