@@ -3,6 +3,8 @@ import { animate, useReducedMotion } from 'framer-motion'
 import { addDays, weekStart } from '../../../lib/teacherSchedule'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { useT } from '../../../lib/i18n'
+import { markScrollSet } from '../../../lib/useNavCollapse'
+import { MOBILE_SCROLL_ATTR } from '../../MobileScreen'
 import { MOBILE_TOP_GAP, SAFE_TOP } from '../../../lib/mobileTokens'
 import { tactile } from '../../../lib/feedback'
 import './teacherDayCalendar.css'
@@ -44,6 +46,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const hoursLayer = useRef<HTMLDivElement>(null)
   const progress = useRef<number>(mode === 1 ? 1 : 0)
   const dayProgress = useRef<number>(mode === 2 ? 1 : 0)
+  const previousMode = useRef(mode)
   const animation = useRef<{ stop: () => void } | null>(null)
   const reducedMotion = useReducedMotion()
   const dimensions = useRef({ week: WEEK_HEIGHT, month: 280, hours: 0, summary: 0 })
@@ -94,6 +97,14 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   }
 
   useLayoutEffect(() => {
+    if ((mode === 2 || previousMode.current === 2) && mode !== previousMode.current) {
+      const scroller = root.current?.closest<HTMLElement>(`[${MOBILE_SCROLL_ATTR}]`)
+      if (scroller?.scrollTop) {
+        markScrollSet(scroller, 0)
+        scroller.scrollTop = 0
+      }
+    }
+    previousMode.current = mode
     settle(mode)
     return () => animation.current?.stop()
     // The live gesture owns progress until the selected mode changes.

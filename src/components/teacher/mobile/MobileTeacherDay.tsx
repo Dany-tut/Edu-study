@@ -352,7 +352,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   return <>
     <MobileScreen topZone={controls} glassHeader={unifiedHome ? undefined : { leading: pageTitle, onBack: selected ? () => { void back() } : undefined, backLabel: t('Мой день') }} topPad={64}
       scrollKey={selected ? `${selected.id}-${view}` : unifiedHome ? 'my-day' : `my-day-${day}`} bottomDock={footer} bottomDockRaise={selected ? 16 : 0}>
-      <div style={stack}>
+      <div data-teacher-day-home={unifiedHome || undefined} style={stack}>
         {error && <Alert tone="danger" text={t(error)} />}
         {scheduleError && !selected && <Alert tone="danger" text={t('Не удалось загрузить расписание')} action={{ label: t('Повторить'), onClick: reload }} />}
         {info && <Alert tone="info" text={info} />}

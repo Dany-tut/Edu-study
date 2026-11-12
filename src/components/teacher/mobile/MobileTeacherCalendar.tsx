@@ -166,17 +166,17 @@ export function TeacherDayHours({ day, today, items, locale, onPick }: {
   const { tn, tc } = useTc()
   const [now, setNow] = useState(nowMskMin)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const lo = Math.floor(Math.min(9 * 60, ...items.map(item => toMin(item.time))) / 60) * 60
-  const hi = Math.ceil(Math.max(20 * 60, ...items.map(item => item.endTime ? toMin(item.endTime) : toMin(item.time) + 60)) / 60) * 60
+  // The embedded day shares the page scroller. Frame the scheduled hours so
+  // the first lesson is visible as the grid opens, without a second scroll jump.
+  const starts = items.map(item => toMin(item.time))
+  const ends = items.map((item, index) => item.endTime ? toMin(item.endTime) : starts[index] + 60)
+  const lo = starts.length ? Math.max(0, Math.floor((Math.min(...starts) - 30) / 60) * 60) : 9 * 60
+  const hi = ends.length ? Math.min(24 * 60, Math.ceil(Math.max(lo + 240, Math.max(...ends) + 30) / 60) * 60) : 20 * 60
   const hours = Array.from({ length: (hi - lo) / 60 }, (_, index) => lo / 60 + index)
-  const firstTime = items.length ? Math.min(...items.map(item => toMin(item.time))) : lo
   useEffect(() => {
     const timer = window.setInterval(() => setNow(nowMskMin()), 60_000)
     return () => window.clearInterval(timer)
   }, [])
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = Math.max(0, ((day === today ? nowMskMin() : firstTime) - lo) / 60 * ROW_H - 100)
-  }, [day, today, lo, firstTime])
 
   return <GridView days={[day]} items={items} today={today} lo={lo} hours={hours} gridH={hours.length * ROW_H}
     now={now} nowShown={day === today} scrollRef={scrollRef} locale={locale} tn={tn} tc={tc} t={t} onPick={onPick} embedded />
@@ -239,12 +239,13 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
       </div>}
 
       <div style={{ position: 'relative' }}>
-        {IS_IOS && <>
+        {IS_IOS && !embedded && <>
           <SoftEdge edge="top" size="30px" strength={fade.top} zIndex={5} />
           <SoftEdge edge="bottom" size="30px" strength={fade.bottom} zIndex={5} />
         </>}
-        <div ref={setScroll} onScroll={onScroll} className={IS_IOS ? undefined : 'no-scrollbar'}
-          style={{ position: 'relative', overflowY: 'auto', maxHeight: embedded ? 'max(220px, calc(100dvh - 285px))' : 'calc(100dvh - 320px)', ...(IS_IOS ? {} : fadeMask(fade)) }}>
+        <div ref={embedded ? undefined : setScroll} onScroll={embedded ? undefined : onScroll}
+          data-teacher-hours={embedded || undefined} className={IS_IOS ? undefined : 'no-scrollbar'}
+          style={embedded ? { position: 'relative' } : { position: 'relative', overflowY: 'auto', maxHeight: 'calc(100dvh - 320px)', ...(IS_IOS ? {} : fadeMask(fade)) }}>
           <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: cols, height: gridH }}>
           {/* ось времени */}
           <div style={{ position: 'relative' }}>

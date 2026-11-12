@@ -1,3 +1,4 @@
+[data-mobile-scroll]:has(> [data-teacher-day-home]) { overflow-anchor: none; }
 .teacher-day-gesture { position: sticky; z-index: 6; background: var(--color-bg); overflow-anchor: none; user-select: none; touch-action: pan-x; }
 
 .teacher-day-calendar-layers { --date-gutter: 18px; position: relative; margin-inline: -16px; height: var(--day-calendar-height, 48px); overflow: clip; }

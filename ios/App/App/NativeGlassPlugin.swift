@@ -182,8 +182,20 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 let medium = UISheetPresentationController.Detent.medium()
                 let large = UISheetPresentationController.Detent.large()
                 if #available(iOS 26.1, *) {
-                    medium.backgroundEffect = UIGlassEffect(style: .regular)
-                    large.backgroundEffect = UIGlassEffect(style: .regular)
+                    func background() -> UIGlassEffect {
+                        let effect = UIGlassEffect(style: .regular)
+                        if model.content.glass {
+                            effect.tintColor = UIColor { traits in
+                                if traits.userInterfaceStyle == .dark {
+                                    return UIColor(red: 0.17, green: 0.15, blue: 0.22, alpha: 0.82)
+                                }
+                                return UIColor(red: 0.96, green: 0.94, blue: 0.99, alpha: 0.78)
+                            }
+                        }
+                        return effect
+                    }
+                    medium.backgroundEffect = background()
+                    large.backgroundEffect = background()
                 }
                 sheet.detents = [medium, large]
                 sheet.prefersGrabberVisible = true
@@ -999,12 +1011,14 @@ private struct GlassSheetSection {
 private struct GlassSheetContent {
     let title: String
     let empty: String?
+    let glass: Bool
     let sections: [GlassSheetSection]
     let footer: GlassSheetRow?
 
     init(_ values: JSObject) {
         title = values["title"] as? String ?? ""
         empty = values["empty"] as? String
+        glass = values["glass"] as? Bool ?? false
         sections = (values["sections"] as? [JSObject] ?? []).map(GlassSheetSection.init)
         footer = (values["footer"] as? JSObject).flatMap(GlassSheetRow.init)
     }
