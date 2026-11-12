@@ -109,3 +109,46 @@
   }
   .roster-search-actions:not([data-search-expanded]) .teacher-table-search { display: none; }
 }
+
+.student-panel-close,
+.student-panel-full-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+
+.student-panel-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-3);
+}
+
+.student-panel-close:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--color-text) 12%, transparent);
+  color: var(--color-text);
+}
+
+.student-panel-full-card {
+  min-height: 36px;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border-medium);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.student-panel-full-card:is(:hover, :focus-visible) {
+  background: var(--color-purple-soft);
+  color: var(--color-purple-text);
+}

@@ -2139,13 +2139,8 @@ function StudentPanel({
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button
-              onClick={onClose}
-              style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
-            >
-              <X size={14} />
+            <button type="button" className="student-panel-close" aria-label={t('Закрыть')} onClick={onClose}>
+              <X size={14} aria-hidden />
             </button>
           </div>
         </div>
@@ -2155,7 +2150,7 @@ function StudentPanel({
           панелей: уходящий под шапку/футер контент не обрезается ножом. */}
       <OverlayScrollArea style={{ flex: 1 }} padding="16px 20px 0" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        <button data-hover="layer" type="button" style={btn('M', 'quiet')} onClick={onOpenFullCard}>
+        <button type="button" className="student-panel-full-card" onClick={onOpenFullCard}>
           <BarChart2 size={16} aria-hidden /> {t('Расширенная карточка')}
         </button>
 
