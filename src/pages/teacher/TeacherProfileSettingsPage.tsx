@@ -288,8 +288,9 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
   const photoBtnStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6,
     padding: '8px 12px', borderRadius: 10, minHeight: 44,
-    border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)',
-    color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+    border: embedded === 'profile' ? 0 : '1px solid var(--color-border-medium)',
+    background: embedded === 'profile' ? 'transparent' : 'var(--color-bg-3)',
+    color: embedded === 'profile' ? 'var(--color-purple-text)' : 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
   }
 
   const inputStyle: React.CSSProperties = {
@@ -356,7 +357,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
         </div>}
         {section === 'main' && <div className="profile-main-grid">
         {/* Avatar preview + picker */}
-        <div className="profile-card profile-avatar-card">
+        <div className={embedded === 'profile' ? 'profile-avatar-card' : 'profile-card profile-avatar-card'}>
           {!embedded && <h3>{t('Аватар')}</h3>}
           <motion.div
             key={avatarPath ?? avatarId}
@@ -367,7 +368,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
               width: 80, height: 80, borderRadius: '50%',
               position: 'relative', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: embedded ? 'var(--shadow-sm)' : `0 4px 22px ${selectedAvatar.glow}`,
+              boxShadow: embedded ? 'none' : `0 4px 22px ${selectedAvatar.glow}`,
               marginBottom: 12,
             }}
           >
@@ -414,13 +415,14 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
                   whileTap={{ scale: 0.92 }}
                   onClick={() => { setAvatarId(opt.id); removePhoto() }}
                   aria-label={opt.id}
+                  aria-pressed={isSelected}
                   style={{
                     width: 52, height: 52, justifySelf: 'center',
                     borderRadius: '50%', overflow: 'hidden',
-                    background: embedded ? 'var(--color-accent-soft)' : opt.gradient,
+                    background: embedded ? (isSelected ? 'var(--color-control-accent)' : 'var(--color-accent-soft)') : opt.gradient,
                     cursor: 'pointer', padding: 0, border: 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: embedded ? 'var(--color-purple-text)' : '#fff',
-                    boxShadow: isSelected
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: embedded && !isSelected ? 'var(--color-purple-text)' : '#fff',
+                    boxShadow: embedded ? 'none' : isSelected
                       ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px var(--color-bg-2), 0 0 0 4px var(--color-accent)'
                       : 'inset 0 0 0 1px rgba(255,255,255,0.4)',
                   }}
@@ -433,7 +435,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
         </div>
 
         {/* Form */}
-        <div className="profile-card profile-details-card">
+        <div className={embedded === 'profile' ? 'profile-details-card' : 'profile-card profile-details-card'}>
           {!embedded && <h3>{t('Данные аккаунта')}</h3>}
           <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--color-text-2)' }}>
             {t('Имя в профиле')}
@@ -447,13 +449,13 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
               }}
               onKeyDown={e => e.key === 'Enter' && handleSave()}
               placeholder={t('Имя')}
-              style={inputStyle}
+              style={embedded === 'profile' ? { ...inputStyle, border: 0 } : inputStyle}
             />
           </label>
 
           {role !== 'admin' && (
             <div>
-              <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look="profile" />
+              <TeacherSubjectsField value={mySubjects} onChange={changeSubjects} look={embedded === 'profile' ? 'sheet' : 'profile'} />
               <div style={{ fontSize: 11, marginTop: 6, color: subjectsNote === 'error' ? 'var(--color-red-text)' : subjectsNote === 'saved' ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>
                 {subjectsNote === 'error'
                   ? t('Не удалось сохранить предметы. Попробуйте ещё раз.')
@@ -492,6 +494,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
             label={t('Сохранить')} savingLabel={t('Сохраняем…')}
             saving={saving} saved={saved} disabled={!name.trim()}
             onClick={handleSave} icon={<Save size={16} strokeWidth={2.5} />} fullWidth
+            style={embedded === 'profile' ? { height: 44, boxShadow: 'none' } : undefined}
           />
         </div>
 

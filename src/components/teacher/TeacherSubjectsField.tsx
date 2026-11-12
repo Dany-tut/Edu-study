@@ -7,13 +7,14 @@ import { useT } from '../../lib/i18n'
 // добавить своим предметом. Наружу и внутрь — формат profiles.subjects
 // (id реестра + свои строкой), имена живут только в самом поле.
 
-export type SubjectsFieldLook = 'auth' | 'profile'
+export type SubjectsFieldLook = 'auth' | 'profile' | 'sheet'
 
 const LOOKS = {
   // Как .auth-input в JoinTeacherPage (рамка 1.5px, фон surface).
   auth: { padding: '8px 14px', borderRadius: 12, background: 'var(--color-surface)', restBorder: 'var(--color-border)', borderWidth: 1.5, fontSize: 14, minHeight: 42 },
   // Как inputStyle в TeacherProfileSettingsPage.
   profile: { padding: '8px 14px', borderRadius: 12, background: 'var(--color-bg-3)', restBorder: 'var(--color-border-medium)', fontSize: 14, minHeight: 43 },
+  sheet: { padding: '8px 14px', borderRadius: 12, background: 'var(--color-bg-3)', restBorder: 'transparent', fontSize: 14, minHeight: 44 },
 } as const
 
 export default function TeacherSubjectsField({ value, onChange, look }: {

@@ -153,7 +153,7 @@
   font: inherit;
 }
 
-.teacher-more-details .profile-main-grid { gap: 12px; }
+.teacher-more-details .profile-main-grid { gap: 24px; }
 .teacher-more-details .profile-card { padding: 14px; }
 .teacher-more-details .profile-avatar-grid {
   grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
@@ -171,4 +171,9 @@
 .teacher-more-row[aria-pressed="true"] {
   color: var(--color-purple-text);
   background: var(--color-accent-soft);
+}
+
+.teacher-more-details .profile-details-card .desktop-friends input:not([type="checkbox"]) {
+  border: 0;
+  background: var(--color-bg-3);
 }
