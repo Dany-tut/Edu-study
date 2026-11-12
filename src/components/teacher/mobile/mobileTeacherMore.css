@@ -177,3 +177,51 @@
   border: 0;
   background: var(--color-bg-3);
 }
+
+.teacher-more-features .teacher-more-row {
+  min-height: 55px;
+  gap: 10px;
+}
+
+.teacher-more-features .teacher-more-row + .teacher-more-row {
+  box-shadow: none;
+  border-radius: 0;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.teacher-more-feature-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--color-purple-text);
+  background: var(--color-accent-soft);
+}
+
+.teacher-more-feature-state {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--color-bg-3);
+  color: var(--color-text-3);
+  font-size: 11px;
+}
+
+.teacher-more-feature-state[data-enabled="true"] {
+  background: var(--color-accent-soft);
+  color: var(--color-purple-text);
+}
+
+.teacher-more-feature-sheet {
+  display: grid;
+  gap: 16px;
+}
+
+.teacher-more-feature-icon--large {
+  justify-self: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 19px;
+}

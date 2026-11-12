@@ -8,7 +8,7 @@ import CountBadge from '../../CountBadge'
 import { useNotificationsStore } from '../../../store/notificationsStore'
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image, CalendarClock, Layers, Link2, LogIn, Database, BarChart3, ClipboardList } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image, CalendarClock, Layers, Link2, LogIn, Database, BarChart3, ClipboardList, AudioLines, Blocks, ListChecks, NotebookPen } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -49,6 +49,25 @@ import './mobileTeacherMore.css'
 const AdminSettings = lazy(() => import('../../../pages/teacher/TeacherAdminPage'))
 const ProfileSettings = lazy(() => import('../../../pages/teacher/TeacherProfileSettingsPage'))
 const isIPhone = PLATFORM === 'iphone'
+
+const FEATURE_ICONS = {
+  ai_hw_grade: Sparkles,
+  ai_hw_batch: ListChecks,
+  journal_push: CalendarClock,
+  transcription: AudioLines,
+  mcp: Blocks,
+  lesson_recap: NotebookPen,
+  reminders: Bell,
+  parent_report: FileText,
+  payment_reminders: Wallet,
+} satisfies Record<FeatureKey, typeof Bell>
+
+function FeatureIcon({ feature, large = false }: { feature: FeatureKey; large?: boolean }) {
+  const Icon = FEATURE_ICONS[feature]
+  return <span className={large ? 'teacher-more-feature-icon teacher-more-feature-icon--large' : 'teacher-more-feature-icon'} aria-hidden="true">
+    <Icon size={large ? 30 : 20} />
+  </span>
+}
 
 function MoreRow({ label, icon, value, compact = false, onClick }: {
   label: string
@@ -277,10 +296,11 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
             value={<CountBadge count={paymentClaims} tone="danger" />} onClick={() => setPaymentsOpen(true)} />}
         </section>
 
-        {availableFeatures.length > 0 && <section className="teacher-more-card teacher-more-settings" aria-label={t('Функции')}>
+        {availableFeatures.length > 0 && <section className="teacher-more-card teacher-more-settings teacher-more-features" aria-label={t('Функции')}>
           <h2>{t('Функции')}</h2>
           {availableFeatures.map(item => <MoreRow key={item.key} label={t(item.label)}
-            value={<span className="teacher-more-muted">{t(featureMap[item.key] ? 'Вкл.' : 'Выкл.')}</span>}
+            icon={<FeatureIcon feature={item.key} />}
+            value={<span className="teacher-more-feature-state" data-enabled={featureMap[item.key] === true}>{t(featureMap[item.key] ? 'Вкл.' : 'Выкл.')}</span>}
             onClick={() => setFeature(item.key)} />)}
         </section>}
 
@@ -526,7 +546,10 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         </div>}
       </MobileSheet>
       <MobileSheet open={Boolean(selectedFeature)} title={selectedFeature ? t(selectedFeature.label) : undefined} softEdge onClose={() => setFeature(null)}>
-        {selectedFeature && <TeacherFeatureSettings key={selectedFeature.key} feature={selectedFeature.key} />}
+        {selectedFeature && <div className="teacher-more-feature-sheet" key={selectedFeature.key}>
+          <FeatureIcon feature={selectedFeature.key} large />
+          <TeacherFeatureSettings feature={selectedFeature.key} />
+        </div>}
       </MobileSheet>
       <MobileSheet open={adminAccess && adminSection !== null} title={adminTitle} softEdge onClose={() => setAdminSection(null)}>
         {adminAccess && adminSection && <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}>
