@@ -105,12 +105,16 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 let bottomStyle = scroll.bottomEdgeEffect.style
                 let topHidden = scroll.topEdgeEffect.isHidden
                 let bottomHidden = scroll.bottomEdgeEffect.isHidden
+                let bounces = scroll.bounces
                 self.restoreDocumentEdges = { [weak scroll] in
+                    scroll?.bounces = bounces
                     scroll?.topEdgeEffect.style = topStyle
                     scroll?.bottomEdgeEffect.style = bottomStyle
                     scroll?.topEdgeEffect.isHidden = topHidden
                     scroll?.bottomEdgeEffect.isHidden = bottomHidden
                 }
+                // Capacitor disables bounce on its WebView by default.
+                scroll.bounces = true
                 scroll.topEdgeEffect.style = .soft
                 scroll.bottomEdgeEffect.style = .soft
                 scroll.topEdgeEffect.isHidden = false
