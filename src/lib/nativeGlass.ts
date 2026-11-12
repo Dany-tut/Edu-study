@@ -36,6 +36,7 @@ export type GlassBarItem = {
   passive?: boolean
   position?: 'leading' | 'center' | 'trailing'
   menuTitle?: string
+  menuChevron?: 'up' | 'down'
   menu?: { value: string; title: string; checked?: boolean }[]
 }
 /** Бар экрана: таблетка по центру сверху и ряд над вкладками. */

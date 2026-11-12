@@ -433,19 +433,20 @@ export default function MobileTeacherStudents() {
     setNewSubject(defaultStudentSubject(mySubjectNames(teacherSubjects))); setAddOpen(true)
   }
 
-  // Системный бар экрана (useGlassBar): таблетка-фильтр сверху + ряд над
-  // вкладками (поиск · «Добавить»). Прячется в под-экранах (ростер группы,
-  // карточка, лист добавления). На вебе/Android/iPad ничего не рисует — там
-  // работают инлайн-поиск, чипы и веб-док ниже.
+  // На iPhone поиск, фильтр и добавление находятся в одном ряду над вкладками.
   const barActive = nativeBar && !openGroup && !addOpen && !sheetOpen
   const studentsBar: GlassBar = {
-    top: {
-      id: 'filter', kind: 'pill', title: t(FILTERS.find(f => f.key === filter)?.label ?? 'Все'), menuTitle: t('Показать'),
-      menu: FILTERS.map(f => ({ value: f.key, title: t(f.label), checked: f.key === filter })),
-    },
     bottomTabBarWidthRatio: ACTION_ROW_RATIO,
     bottom: [
       { id: 'search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск'), active: !!search },
+      {
+        id: 'filter',
+        kind: 'pill',
+        title: t(FILTERS.find(f => f.key === filter)?.label ?? 'Все'),
+        menuTitle: t('Показать'),
+        menuChevron: 'up',
+        menu: FILTERS.map(f => ({ value: f.key, title: t(f.label), checked: f.key === filter })),
+      },
       { id: 'add', kind: 'pill', title: t('Добавить') },
     ],
   }
@@ -458,8 +459,7 @@ export default function MobileTeacherStudents() {
     onMenu: (id, value) => { if (id === 'filter') setFilter(value as StudentsFilter) },
   }, searchOpen)
 
-  // false сохраняет верхний отступ MobileScreen для нативного меню.
-  const topZone = nativeBar && !openGroup ? false : (
+  const topZone = nativeBar && !openGroup ? undefined : (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
       <GlassPill><Users size={16} /> {t('Ученики')}</GlassPill>
     </div>
@@ -519,7 +519,7 @@ export default function MobileTeacherStudents() {
             </div>
           </MobileSheet>
           {/* Инлайн-поиск и чипы — только вне нативного режима. В приложении на
-              iPhone их заменяет системный бар (поиск-круг + таблетка-фильтр). */}
+              iPhone их заменяет системный ряд над вкладками. */}
           {!nativeBar && <>
           <label style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 12px', minHeight: 42, borderRadius: 13, background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', color: 'var(--color-muted)' }}>
             <TaskliIcon name="search" size={18} />
