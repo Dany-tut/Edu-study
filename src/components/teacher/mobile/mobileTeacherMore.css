@@ -104,16 +104,15 @@
 .teacher-more-row + .teacher-more-row { box-shadow: 0 -1px 0 -0.5px var(--color-border-soft); }
 .teacher-more-shortcuts .teacher-more-row {
   background: color-mix(in srgb, var(--color-bg-2) 77%, var(--color-accent-soft));
-  padding-inline: 8px;
+  padding-inline: 12px;
   font-size: 14px;
-  gap: 5px;
+  gap: 8px;
   box-shadow: inset 0 0 0 1px var(--color-border-soft);
 }
 .teacher-more-shortcuts .teacher-more-row > svg { width: 18px; height: 18px; }
 .teacher-more-shortcuts .teacher-more-row > .teacher-more-chevron { width: 12px; height: 12px; }
 @media (max-width: 355px) {
-  .teacher-more-shortcuts .teacher-more-row { font-size: 13px; }
-  .teacher-more-shortcuts .teacher-more-row > .teacher-more-chevron { display: none; }
+  .teacher-more-shortcuts .teacher-more-row { padding-inline: 10px; gap: 6px; font-size: 13px; }
 }
 .teacher-more-shortcuts .teacher-more-row > svg:not(.teacher-more-chevron),
 .teacher-more-student,
