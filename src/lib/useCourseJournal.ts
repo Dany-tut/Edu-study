@@ -32,7 +32,13 @@ async function byIds<T>(table: string, columns: string, field: string, ids: stri
 }
 const idsCount = (ids: string) => (JSON.parse(ids) as string[]).length
 
-export function useCourseJournal(completeWorkList = false, enabled = true) {
+async function readJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal) {
+  return journalSnapshotResult(await supabase.rpc('teacher_journal_snapshot_v3', {
+    p_owner: owner, p_complete: complete,
+  }).abortSignal(signal).retry(false))
+}
+
+export function useCourseJournal(completeWorkList = false, enabled = true, parallelRoster = false) {
   const { groups, loading: groupsLoading } = useGroups()
   const { value: students, loading: studentsLoading } = useAllStudentsSnapshot()
   const rosterReady = !groupsLoading && !studentsLoading
@@ -45,6 +51,24 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
   const [loading, setLoading] = useState(true)
   const [tick, setTick] = useState(0)
   const reload = useCallback(() => setTick(n => n + 1), [])
+  const prefetch = useRef<{ tick: number; owner: Promise<string | null>; read: Promise<CourseJournalData | null> } | null>(null)
+  useEffect(() => {
+    if (!enabled || !parallelRoster) return
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 20_000)
+    const owner = getOwnerId()
+    const read = owner.then(id => id
+      ? readJournalSnapshot(id, completeWorkList, controller.signal)
+      : null).finally(() => clearTimeout(timeout))
+    // Roster may still be loading when a failed request settles.
+    void read.catch(() => {})
+    prefetch.current = { tick, owner, read }
+    return () => {
+      prefetch.current = null
+      clearTimeout(timeout)
+      controller.abort()
+    }
+  }, [completeWorkList, enabled, parallelRoster, tick])
   const studentIds = JSON.stringify(students.map(s => s.id).sort())
   const groupIds = JSON.stringify(groups.map(g => g.id).sort())
   useEffect(() => {
@@ -79,9 +103,11 @@ export function useCourseJournal(completeWorkList = false, enabled = true) {
       // task-source presence once instead of thousands of repeated task types.
       // Required failures never become a partial journal. Only a missing RPC
       // falls back to the complete paginated reader during migration rollout.
-      const snapshot = journalSnapshotResult(await supabase.rpc('teacher_journal_snapshot_v3', {
-        p_owner: owner, p_complete: completeWorkList,
-      }).abortSignal(signal).retry(false))
+      const early = prefetch.current
+      if (early?.tick === tick) prefetch.current = null
+      const snapshot = early?.tick === tick && await early.owner === owner
+        ? await early.read
+        : await readJournalSnapshot(owner, completeWorkList, signal)
       if (snapshot) return snapshot
       const [owned, shares] = await Promise.all([
         journalPages<CourseJournalData['courses'][number]>(offset => supabase.from('courses')
