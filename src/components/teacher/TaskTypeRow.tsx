@@ -28,11 +28,12 @@ const CARD_W = 318
 /** Отступ карточки от «i» и от края экрана. */
 const PAD = 10
 
-export function TaskTypeRow({ type, onClick, active = false }: {
+export function TaskTypeRow({ type, onClick, active = false, preset }: {
   type: TaskTypeId
   onClick: () => void
   /** Строка, по которой только что кликнули, — подсвечена цветом типа. */
   active?: boolean
+  preset?: { number: number; title: string; hint: string; score: string }
 }) {
   const t = useT()
   const def = TASK_TYPES[type]
@@ -109,7 +110,7 @@ export function TaskTypeRow({ type, onClick, active = false }: {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => { setHover(false); hide() }}
     >
-      <button data-hover="layer"
+      <button type="button" data-hover="layer"
         onClick={onClick}
         style={{
           display: 'flex', alignItems: 'center', gap: 10, width: '100%',
@@ -124,11 +125,11 @@ export function TaskTypeRow({ type, onClick, active = false }: {
           width: 34, height: 34, borderRadius: 9, background: bg, flexShrink: 0,
           display: 'grid', placeItems: 'center',
         }}>
-          <def.Icon size={15} style={{ color }} />
+          {preset ? <span style={{ color, fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{preset.number}</span> : <def.Icon size={15} style={{ color }} />}
         </span>
         <span style={{ minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>{t(def.label)}</span>
-          <span style={{ display: 'block', fontSize: 10, lineHeight: 1.3, color: 'var(--color-muted)', marginTop: 2 }}>{t(def.hint)}</span>
+          <span style={{ display: 'block', fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--color-text)' }}>{preset?.title ?? t(def.label)}</span>
+          <span style={{ display: 'block', fontSize: 10, lineHeight: 1.3, color: 'var(--color-muted)', marginTop: 2 }}>{preset ? `${preset.hint} · ${preset.score}` : t(def.hint)}</span>
         </span>
       </button>
 

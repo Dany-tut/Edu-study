@@ -2,7 +2,7 @@ import './lessonRow.css'
 import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
 import Model3DPicker from '../../components/teacher/Model3DPicker'
-import FipiPicker from '../../components/teacher/FipiPicker'
+import FipiPicker, { FipiToggle } from '../../components/teacher/FipiPicker'
 import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
@@ -4492,10 +4492,10 @@ function HomeworkLeftPanel({
 
   // Режим палитры: обычные типы или сложные (кнопка «★ Сложное» наверху).
   const [hardMode, setHardMode] = useState(false)
-  // Закреплённый низ: «Из тренажёра» / «Из Тестли» не уезжают с прокруткой типов.
-  // Раскрыт максимум один список, иначе два по 260 px вытесняют палитру целиком.
+  // Импорты открываются по одному. ФИПИ занимает место палитры.
   const [footOpen, setFootOpen] = useState<'bank' | 'testly' | 'fipi' | null>(null)
   const toggleFoot = (k: 'bank' | 'testly' | 'fipi') => setFootOpen(o => (o === k ? null : k))
+  const fipiOpen = !hardMode && footOpen === 'fipi'
   const { ref: hwScrollRef, fade: hwFade, thumb: hwThumb, onScroll: onHwScroll } = useOverlayScroll()
   const basicCount = tasks.filter(t => !t.isHard).length
   const hardCount = tasks.filter(t => t.isHard).length
@@ -4533,6 +4533,16 @@ function HomeworkLeftPanel({
       // 100vh вылезали за неё и обрезали низ списка типов заданий.
       maxHeight: '100%', position: 'relative', overflow: 'hidden',
     }}>
+      <FipiPicker
+        open={fipiOpen}
+        courseSubject={courseSubject}
+        onAdd={(st, line, cat) => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, {
+          ...makeHWTask(st.type, false), question: st.prompt,
+          ...(st.cells ? { cells: st.cells } : {}),
+          examTag: { exam: cat.exam, subject: cat.subject, line: line.number },
+        }] }))}
+      />
+      {!fipiOpen && <>
       <ScrollOverlays thumb={hwThumb} />
       <div ref={hwScrollRef} onScroll={onHwScroll} className="no-scrollbar" style={{
         // overflowX hidden: с overflowY auto браузер делает auto и по X — любой
@@ -4593,6 +4603,7 @@ function HomeworkLeftPanel({
       </PaletteSection>
       )}
       </div>
+      </>}
       <div style={{
         flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8,
         padding: RAIL_PAD, borderTop: '1px solid var(--color-border-soft)',
@@ -4603,16 +4614,7 @@ function HomeworkLeftPanel({
             {testlyOn
               ? <TestlyButton open={footOpen === 'testly'} onToggle={() => toggleFoot('testly')} addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />
               : testlyLoaded && <TestlyLockedButton />}
-            {/* Каталог ФИПИ: линия → готовое типизированное задание с меткой examTag */}
-            <FipiPicker
-              open={footOpen === 'fipi'} onToggle={() => toggleFoot('fipi')}
-              courseSubject={courseSubject}
-              onAdd={(st, line, cat) => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, {
-                ...makeHWTask(st.type, false), question: st.prompt,
-                ...(st.cells ? { cells: st.cells } : {}),
-                examTag: { exam: cat.exam, subject: cat.subject, line: line.number },
-              }] }))}
-            />
+            <FipiToggle open={fipiOpen} onToggle={() => toggleFoot('fipi')} />
           </>
         ) : (
           <BankPicker hard open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, true)} />
