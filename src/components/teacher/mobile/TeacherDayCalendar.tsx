@@ -1,7 +1,6 @@
 import { useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { animate, motion, useReducedMotion } from 'framer-motion'
 import { addDays, weekStart } from '../../../lib/teacherSchedule'
-import { useScrollFades } from '../../../lib/useScrollFades'
 import { useT } from '../../../lib/i18n'
 import { markScrollSet } from '../../../lib/useNavCollapse'
 import { MOBILE_SCROLL_ATTR } from '../../MobileScreen'
@@ -174,7 +173,6 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     return () => observer.disconnect()
   }, [day, monthPage, pinnedHost])
 
-  useScrollFades(monthScroll, !!pinnedHost, '.teacher-day-month-track', 48, true)
   useLayoutEffect(() => {
     const el = monthScroll.current
     if (el) el.scrollLeft = MONTH_BUFFER * datePitch(el)
@@ -190,8 +188,6 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' })
   const fullDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' })
-
-  useScrollFades(scroll, !!pinnedHost, '.teacher-day-date-track', 48, true)
 
   useLayoutEffect(() => {
     const el = scroll.current
