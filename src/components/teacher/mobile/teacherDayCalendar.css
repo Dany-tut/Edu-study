@@ -1,4 +1,4 @@
-[data-mobile-scroll]:has(> [data-teacher-day-home]) { overflow-anchor: none; }
+[data-mobile-scroll]:has(> [data-teacher-day-home]) { overflow-anchor: none; container-type: size; }
 .teacher-day-gesture { user-select: none; touch-action: pan-x; }
 
 .teacher-day-calendar-layers { --date-gutter: 18px; position: relative; margin-inline: -16px; height: var(--day-calendar-height, 48px); overflow: clip;

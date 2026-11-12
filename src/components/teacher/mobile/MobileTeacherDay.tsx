@@ -391,7 +391,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
               {!item.cancelled && <Action secondary={item.id !== next?.id} onClick={() => open(item)}>{t(state === 'live' ? 'Вернуться к занятию' : state === 'completed' ? 'Открыть итог занятия' : 'Открыть занятие')}</Action>}
             </Card>
           })}
-          <button data-hover="layer" type="button" onClick={() => onNavigate('review')} style={{ ...cardStyle, width: '100%', textAlign: 'left' }}><PersonLine icon="review"><strong>{t('Работы на проверке')}: {reviewCount}</strong><p style={muted}>{t('Открыть очередь проверки')}</p></PersonLine></button>
+          {(!unifiedHome || calendarMode !== 2) && <button data-hover="layer" type="button" onClick={() => onNavigate('review')} style={{ ...cardStyle, width: '100%', textAlign: 'left' }}><PersonLine icon="review"><strong>{t('Работы на проверке')}: {reviewCount}</strong><p style={muted}>{t('Открыть очередь проверки')}</p></PersonLine></button>}
           {!unifiedHome && <Action secondary onClick={() => setScheduleOpen(true)}><CalendarDays size={18} />{t('Расписание и переносы')}</Action>}
         </> : <>
           <p style={{ ...muted, textAlign: 'center' }}>{selected.date && dateLabel(selected.date)} · {selected.time}{selected.endTime ? `–${selected.endTime}` : ''}</p>

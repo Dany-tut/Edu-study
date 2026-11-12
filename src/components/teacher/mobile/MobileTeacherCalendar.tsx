@@ -212,6 +212,10 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
   now: number; nowShown: boolean; scrollRef: React.RefObject<HTMLDivElement | null>; locale: string
   tn: (s: string) => string; tc: (s: string) => string; t: (s: string) => string; onPick: (i: SchedItem) => void; embedded?: boolean
 }) {
+  const timeOffset = (minute: number) => (minute - lo) / 60 * ROW_H
+  const timePosition = (minute: number, inset = 0) => embedded
+    ? `calc(${timeOffset(minute) / gridH * 100}% + ${inset}px)`
+    : timeOffset(minute) + inset
   const single = days.length === 1
   const dow = (d: string) => new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(`${d}T12:00:00`))
   const cols = `${AXIS_W}px repeat(${days.length}, minmax(0, 1fr))`
@@ -246,10 +250,10 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
         <div ref={embedded ? undefined : setScroll} onScroll={embedded ? undefined : onScroll}
           data-teacher-hours={embedded || undefined} className={IS_IOS ? undefined : 'no-scrollbar'}
           style={embedded ? { position: 'relative' } : { position: 'relative', overflowY: 'auto', maxHeight: 'calc(100dvh - 320px)', ...(IS_IOS ? {} : fadeMask(fade)) }}>
-          <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: cols, height: gridH }}>
+          <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: cols, height: embedded ? `max(${gridH}px, 100cqh)` : gridH }}>
           {/* ось времени */}
           <div style={{ position: 'relative' }}>
-            {hours.map(h => <div key={h} style={{ position: 'absolute', top: (h * 60 - lo) / 60 * ROW_H - 6, right: 6, fontSize: 10, color: 'var(--color-muted)' }}>{p2(h)}:00</div>)}
+            {hours.map(h => <div key={h} style={{ position: 'absolute', top: timePosition(h * 60, embedded && h * 60 === lo ? 2 : -6), right: 6, fontSize: 10, color: 'var(--color-muted)' }}>{p2(h)}:00</div>)}
           </div>
           {/* колонки дней */}
           {days.map(d => {
@@ -258,16 +262,17 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
             const lanes = embedded ? overlapColumns(dayEvents) : undefined
             return (
               <div key={d} style={{ position: 'relative', borderLeft: '1px solid var(--color-border-soft)', background: isToday ? 'rgba(120,106,215,.06)' : 'transparent' }}>
-                {hours.map(h => <div key={h} style={{ position: 'absolute', left: 0, right: 0, top: (h * 60 - lo) / 60 * ROW_H, borderTop: '1px solid var(--color-grid, var(--color-border-soft))', opacity: .5 }} />)}
+                {hours.map(h => <div key={h} style={{ position: 'absolute', left: 0, right: 0, top: timePosition(h * 60), borderTop: '1px solid var(--color-grid, var(--color-border-soft))', opacity: .5 }} />)}
                 {dayEvents.map(ev => {
                   const s = toMin(ev.time); const e = ev.endTime ? toMin(ev.endTime) : s + 60
-                  const top = (s - lo) / 60 * ROW_H; const h = Math.max(22, (e - s) / 60 * ROW_H - 3)
+                  const duration = Math.max(0, (e - s) / 60 * ROW_H)
+                  const height = embedded ? `max(22px, calc(${duration / gridH * 100}% - 3px))` : Math.max(22, duration - 3)
                   const { accent, bg } = subjColors(ev)
                   const lane = lanes?.get(ev.id)
                   return (
                     <button key={ev.id} type="button" aria-label={embedded ? `${ev.time} · ${tn(ev.who) || tc(ev.title) || t('Занятие')}` : undefined} disabled={embedded && ev.cancelled} onClick={() => { tactile(); onPick(ev) }}
-                      style={{ position: 'absolute', top: top + 1, left: lane ? `calc(${lane.index / lane.count * 100}% + 2px)` : 2,
-                        right: lane ? `calc(${(1 - (lane.index + 1) / lane.count) * 100}% + 2px)` : 2, height: h, textAlign: 'left', cursor: 'pointer',
+                      style={{ position: 'absolute', top: timePosition(s, 1), left: lane ? `calc(${lane.index / lane.count * 100}% + 2px)` : 2,
+                        right: lane ? `calc(${(1 - (lane.index + 1) / lane.count) * 100}% + 2px)` : 2, height, textAlign: 'left', cursor: 'pointer',
                         border: 'none', borderLeft: `3px solid ${accent}`, borderRadius: 8, padding: single ? '6px 8px' : '4px 5px', overflow: 'hidden',
                         background: bg, color: accent, opacity: ev.cancelled ? .5 : 1, textDecoration: ev.cancelled ? 'line-through' : 'none' }}>
                       <div style={{ fontSize: single ? 12 : 9.5, fontWeight: 700, lineHeight: 1.15, ...textFadeStyle, ...textFadeLines(single ? 1 : 2) }}>{tn(ev.who) || tc(ev.title) || t('Занятие')}</div>
@@ -277,7 +282,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
                 })}
                 {/* линия «сейчас» */}
                 {isToday && nowShown && now >= lo && now <= lo + hours.length * 60 && (
-                  <div style={{ position: 'absolute', left: 0, right: 0, top: (now - lo) / 60 * ROW_H, height: 2, background: NOW, zIndex: 4 }}>
+                  <div style={{ position: 'absolute', left: 0, right: 0, top: timePosition(now), height: 2, background: NOW, zIndex: 4 }}>
                     <span style={{ position: 'absolute', left: -3, top: -3, width: 8, height: 8, borderRadius: '50%', background: NOW }} />
                   </div>
                 )}
