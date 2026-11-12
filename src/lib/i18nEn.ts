@@ -3889,6 +3889,8 @@ export const EN: Record<string, string> = {
   'Испарение воды листьями, движет восходящий ток': 'Water evaporating from leaves, driving the upward flow',
   'ЕГЭ по Химии — Полный курс': 'Chemistry exam — full course',
   'Подготовка к ЕГЭ по химии с нуля до 90+ баллов': 'Chemistry exam prep from scratch to 90+',
+  'Период': 'Period',
+  'Сводка по ученикам': 'Student summary',
   'Периодический закон': 'The periodic law',
   'Гидролиз солей': 'Hydrolysis of salts',
   'Органические реакции': 'Organic reactions',
