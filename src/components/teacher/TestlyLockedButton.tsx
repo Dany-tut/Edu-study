@@ -3,10 +3,10 @@ import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropd
 import { useT } from '../../lib/i18n'
 import { TESTLY_SITE } from '../../lib/testlyModule'
 import { followNotifAction } from '../../store/notificationsStore'
-import { AlertIcon } from '../Alert'
 import { ExternalLink, Lock } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import { TestlyTile } from '../TestlyMark'
+import './testlyLockedButton.css'
 
 export default function TestlyLockedButton() {
   const t = useT()
@@ -21,7 +21,7 @@ export default function TestlyLockedButton() {
     const anchor = trigger.current
     const card = panel.current
     if (!anchor || !card) return
-    const pos = viewportDropdownPosition(anchor.getBoundingClientRect(), 152, 280)
+    const pos = viewportDropdownPosition(anchor.getBoundingClientRect(), 160, 280)
     Object.assign(card.style, {
       left: `${pos.left}px`, width: `${pos.width}px`,
       top: pos.up ? 'auto' : `${pos.top}px`,
@@ -82,7 +82,7 @@ export default function TestlyLockedButton() {
         <TestlyTile size={16} tone="brand" /> {t('Из Тестли')}
         <Lock size={13} style={{ marginLeft: 'auto', color: 'var(--color-muted)', flexShrink: 0 }} />
       </button>
-      <div ref={panel} id={id} popover="auto" role="region" aria-label={t('Тестли')}
+      <div ref={panel} id={id} className="testly-notebook" popover="auto" role="region" aria-label={t('Тестли')}
         onToggle={e => {
           const visible = e.currentTarget.matches(':popover-open')
           if (!visible) pinned.current = false
@@ -91,29 +91,31 @@ export default function TestlyLockedButton() {
         onPointerEnter={() => window.clearTimeout(closeTimer.current)}
         onPointerLeave={closeSoon}
         onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) closeSoon() }}
-        style={{
-          position: 'fixed', inset: 'auto', margin: 0, padding: 0, overflow: 'hidden',
-          border: '1px solid var(--color-border-strong)', borderRadius: 16,
-          background: 'var(--color-surface)', color: 'var(--color-text)', boxShadow: 'var(--shadow-lg)',
-        }}
       >
-        <ScrollFade maxHeight="var(--testly-info-height, 152px)" fadeHeight={12}>
-          <div style={{ padding: 12, display: 'grid', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <AlertIcon tone="info" size={30} />
-              <span style={{ fontSize: 13, lineHeight: 1.4 }}>{t('Добавляйте тесты из Тестли в домашки курса.')}</span>
+        <ScrollFade maxHeight="var(--testly-info-height, 160px)" fadeHeight={12}>
+          <div className="testly-notebook-content">
+            <div className="testly-notebook-heading">
+              <TestlyTile size={23} tone="brand" />
+              <strong>{t('Тестли')}</strong>
+              <svg className="testly-notebook-drawing" viewBox="0 0 54 38" fill="none" aria-hidden="true">
+                <g stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M24 27c-6-4-13-5-21-3L8 7c7-2 13-1 19 3 6-3 13-4 20-1l-4 16c-7-1-13-1-19 2zm0 0 3-17" />
+                  <path d="M7 10 5 26c8-1 14-1 19 2 6-2 12-2 18-1M7 34c12-4 25-5 37-2" />
+                  <path d="m39 21 10-15q1-2 3-1t1 3L43 23l-5 2z" fill="var(--testly-notebook-highlight)" />
+                  <path d="m48 8 4 3m-13 10 4 2" />
+                </g>
+              </svg>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <a href={TESTLY_SITE} target="_blank" rel="noopener noreferrer" data-hover="layer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 999, color: 'var(--color-text-2)', fontSize: 12, fontWeight: 600 }}>
+            <p>{t('Добавляйте тесты в домашки курса.')}</p>
+            <div className="testly-notebook-actions">
+              <a href={TESTLY_SITE} target="_blank" rel="noopener noreferrer" data-hover="layer">
                 {t('Подробнее')} <ExternalLink size={12} />
               </a>
-              <button type="button" data-hover="layer"
+              <button type="button" className="testly-notebook-connect" data-hover="layer"
                 onClick={() => {
                   panel.current?.hidePopover()
                   followNotifAction({ label: t('Подключить'), page: '#/teacher/profile', tab: 'integrations' })
-                }}
-                style={{ border: 0, borderRadius: 999, padding: '7px 12px', background: 'var(--grad-purple)', color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700 }}>
+                }}>
                 {t('Подключить')}
               </button>
             </div>

@@ -5418,7 +5418,7 @@ export const EN: Record<string, string> = {
   "Тест из Тестли": "Test from Testly",
   "Тест целиком, со своими баллами": "A whole test, with its own scoring",
   "Из Тестли": "From Testly",
-  "Добавляйте тесты из Тестли в домашки курса.": "Add Testly tests to course homework.",
+  "Добавляйте тесты в домашки курса.": "Add tests to course homework.",
   "Скрыть Тестли": "Hide Testly",
   "Нужно подключить": "Needs connecting",
   "Тесты из вашего Тестли появляются здесь сами": "Tests from your Testly appear here automatically",

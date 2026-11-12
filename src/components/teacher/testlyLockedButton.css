@@ -1,0 +1,107 @@
+.testly-notebook {
+  --testly-notebook-radius: 12px;
+  --testly-notebook-base: #e9e4ff;
+  --testly-notebook-highlight: #f0ebff;
+  --testly-notebook-ink: #251d46;
+  --testly-notebook-edge: #c9bfe9;
+  --testly-notebook-pen: #6151bb;
+  --testly-notebook-action: #5142c5;
+  --testly-notebook-outline: #9e91ce;
+  --testly-notebook-secondary: #403292;
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--testly-notebook-edge);
+  border-radius: var(--testly-notebook-radius);
+  background: linear-gradient(135deg, var(--testly-notebook-base), var(--testly-notebook-highlight));
+  color: var(--testly-notebook-ink);
+  box-shadow: var(--shadow-lg);
+  isolation: isolate;
+}
+
+[data-theme="dark"] .testly-notebook {
+  --testly-notebook-base: #201b44;
+  --testly-notebook-highlight: #292252;
+  --testly-notebook-ink: #f3f0ff;
+  --testly-notebook-edge: #49426b;
+  --testly-notebook-pen: #ad9dff;
+  --testly-notebook-action: #6657df;
+  --testly-notebook-outline: #6c609d;
+  --testly-notebook-secondary: #e1d9ff;
+}
+
+.testly-notebook::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 118%;
+  height: 90%;
+  left: 8%;
+  top: -42%;
+  border-radius: 0 0 60% 75%;
+  background: var(--testly-notebook-highlight);
+  transform: rotate(-19deg);
+  opacity: .66;
+}
+
+.testly-notebook-content { padding: 14px; }
+
+.testly-notebook-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.testly-notebook-drawing {
+  margin-inline-start: auto;
+  width: 52px;
+  height: 33px;
+  flex-shrink: 0;
+  color: var(--testly-notebook-pen);
+}
+
+.testly-notebook-content p {
+  margin: 7px 0 13px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.testly-notebook-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.testly-notebook-actions > :is(a, button) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 5px 12px;
+  border: 1px solid var(--testly-notebook-outline);
+  border-radius: var(--testly-notebook-radius);
+  color: var(--testly-notebook-secondary);
+  line-height: 1.2;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.testly-notebook-actions > .testly-notebook-connect {
+  border-color: transparent;
+  background: var(--testly-notebook-action);
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .testly-notebook-actions > :is(a, button) {
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+}
