@@ -21,7 +21,26 @@ export default function TestlyLockedButton() {
     const anchor = trigger.current
     const card = panel.current
     if (!anchor || !card) return
-    const pos = viewportDropdownPosition(anchor.getBoundingClientRect(), 160, 280)
+    const rect = anchor.getBoundingClientRect()
+    const cardHeight = 160
+    const cardWidth = 280
+    const viewport = window.visualViewport
+    const viewportRight = (viewport?.offsetLeft ?? 0) + (viewport?.width ?? window.innerWidth)
+    const viewportTop = viewport?.offsetTop ?? 0
+    const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight)
+    const gap = 8
+    const rightSide = rect.right + gap
+
+    if (rightSide + cardWidth <= viewportRight - gap && rect.bottom > viewportTop && rect.top < viewportBottom) {
+      const maxHeight = viewportBottom - viewportTop - gap * 2
+      const height = Math.min(cardHeight, maxHeight)
+      const top = Math.max(viewportTop + gap, Math.min(rect.top, viewportBottom - gap - height))
+      Object.assign(card.style, { left: `${rightSide}px`, width: `${cardWidth}px`, top: `${top}px`, bottom: 'auto' })
+      card.style.setProperty('--testly-info-height', `${maxHeight}px`)
+      return
+    }
+
+    const pos = viewportDropdownPosition(rect, cardHeight, cardWidth)
     Object.assign(card.style, {
       left: `${pos.left}px`, width: `${pos.width}px`,
       top: pos.up ? 'auto' : `${pos.top}px`,
