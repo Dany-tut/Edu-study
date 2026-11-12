@@ -179,8 +179,12 @@
   background: var(--color-bg-3);
 }
 
+[aria-labelledby="teacher-more-settings"] .teacher-more-row,
 .teacher-more-features .teacher-more-row {
   min-height: 55px;
+}
+
+.teacher-more-features .teacher-more-row {
   gap: 10px;
 }
 
