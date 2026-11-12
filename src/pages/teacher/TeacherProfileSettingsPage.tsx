@@ -69,11 +69,16 @@ function CopyProfileLabel({ value, isHandle }: { value: string; isHandle: boolea
   </button>
 }
 
-export default function TeacherProfileSettingsPage({ friends }: { friends: FriendsModel }) {
+export default function TeacherProfileSettingsPage({ friends, embedded, onNameSaved }: {
+  friends: FriendsModel
+  embedded?: 'profile' | 'schedule'
+  onNameSaved?: (name: string) => void
+}) {
   const teacherGuides = useTeacherGuides()
   const t = useT()
   // Переход из уведомления («обновите модуль») открывает сразу «Интеграции».
   const [page, setPage] = useState<'main' | 'integrations' | 'settings'>(() => {
+    if (embedded) return embedded === 'schedule' ? 'settings' : 'main'
     try {
       const wanted = sessionStorage.getItem('profile_section')
       sessionStorage.removeItem('profile_section')
@@ -88,7 +93,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
     window.addEventListener('iskra:profile-section', open)
     return () => window.removeEventListener('iskra:profile-section', open)
   }, [])
-  const section = friends.account && friends.tab ? 'friends' : page
+  const section = embedded ? (embedded === 'schedule' ? 'settings' : 'main') : friends.account && friends.tab ? 'friends' : page
   const sections = [
     { id: 'main' as const, label: t('Главное') },
     ...(friends.account ? [{ id: 'friends' as const, label: t('Друзья') }] : []),
@@ -274,6 +279,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
     setSaving(false)
     if (err) { setError(t(authErrorRu(err, 'Не удалось сохранить профиль. Попробуйте ещё раз.'))); return }
     setSavedName(name.trim())
+    onNameSaved?.(name.trim())
     clearDrafts('profile.')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
@@ -294,11 +300,10 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
     fontSize: 16, fontFamily: 'inherit',
   }
 
-  return (
-    <>
-      <TeacherPageScroll>
-      <div className="teacher-profile-page" style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px clamp(16px, 3vw, 24px) 60px' }}>
+  const content = (
+      <div className={embedded ? "teacher-profile-page teacher-more-details" : "teacher-profile-page"} style={embedded ? undefined : { maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px clamp(16px, 3vw, 24px) 60px' }}>
 
+        {!embedded && <>
         <header className="teacher-profile-header">
           <div className="teacher-profile-identity">
             <BackCircle onClick={() => setActivePage('home')} label="На главную" />
@@ -329,6 +334,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
           <h2>{t(section === 'main' ? 'Личные данные' : section === 'friends' ? 'Друзья' : section === 'integrations' ? 'Интеграции' : 'Настройки')}</h2>
           <p>{t(section === 'main' ? 'Как вас видят в Искре.' : section === 'friends' ? 'Поиск людей, заявки и ваш ник.' : section === 'integrations' ? 'Сервисы и инструменты для ваших занятий.' : 'Расписание, вход в аккаунт и оформление.')}</p>
         </div>
+        </>}
         {section === 'friends' && <div className="profile-social-grid">
           <div className="profile-social-list">
             <FriendsContent model={{ ...friends, tab: 'contacts' }} overview polished suggestedName={friends.account === profileOwner ? savedName : ''}/>
@@ -351,7 +357,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         {section === 'main' && <div className="profile-main-grid">
         {/* Avatar preview + picker */}
         <div className="profile-card profile-avatar-card">
-          <h3>{t('Аватар')}</h3>
+          {!embedded && <h3>{t('Аватар')}</h3>}
           <motion.div
             key={avatarPath ?? avatarId}
             initial={{ scale: 0.8, opacity: 0 }}
@@ -371,9 +377,9 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
             <AvatarPhotoFill path={avatarPath} />
           </motion.div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 12 }}>
+          {!embedded && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 12 }}>
             {role === 'admin' ? t('Администратор') : t('Учитель')}
-          </div>
+          </div>}
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
             <motion.button data-hover="layer"
@@ -428,7 +434,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
 
         {/* Form */}
         <div className="profile-card profile-details-card">
-          <h3>{t('Данные аккаунта')}</h3>
+          {!embedded && <h3>{t('Данные аккаунта')}</h3>}
           <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--color-text-2)' }}>
             {t('Имя в профиле')}
             <input
@@ -458,7 +464,12 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
             </div>
           )}
 
-          <div>
+          {embedded && friends.account && <FriendsContent model={{ ...friends, tab: 'profile' }}
+            suggestedName={friends.account === profileOwner ? savedName : ''} />}
+          {embedded ? <div>
+            <div style={{ color: 'var(--color-text-3)', fontSize: 13 }}>Email</div>
+            <div style={{ overflowWrap: 'anywhere' }}>{email}</div>
+          </div> : <div>
             <div style={{ position: 'relative' }}>
               <input aria-label="Email" value={email} readOnly placeholder="Email" style={{ ...inputStyle, paddingRight: 114, color: 'var(--color-text-3)', cursor: 'not-allowed' }} />
               <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: 'var(--color-text-3)', background: 'var(--color-bg-3)', padding: '2px 6px', borderRadius: 6, border: '1px solid var(--color-border)' }}>
@@ -466,12 +477,12 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
               </div>
             </div>
             <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Для смены email обратитесь в поддержку')}</div>
-          </div>
+          </div>}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
+          {!embedded && <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)' }}>
             <User size={16} strokeWidth={2} style={{ color: 'var(--color-text-3)' }} />
             <span style={{ fontSize: 14, color: 'var(--color-text-3)' }}>{role === 'admin' ? t('Администратор') : t('Учитель')}</span>
-          </div>
+          </div>}
 
           {error && (
             <Alert tone="danger" text={error} />
@@ -489,7 +500,7 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
         {section === 'settings' && <>
           <div className="profile-card">
           <div>
-            <h3 style={{ marginBottom: 18 }}>{t('Время в расписании')}</h3>
+            {!embedded && <h3 style={{ marginBottom: 18 }}>{t('Время в расписании')}</h3>}
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для просмотра расписания')}</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
               <button data-hover="layer" type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
@@ -516,11 +527,11 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
           </div>
 
           </div>
-          <TeacherFeatureSettings />
-          <div style={{ marginTop: 20 }}><TeacherLoginMethods /></div>
+          {!embedded && <TeacherFeatureSettings />}
+          {!embedded && <div style={{ marginTop: 20 }}><TeacherLoginMethods /></div>}
         {/* Цвета предметов — сохраняются сразу по выбору, отдельно от имени:
             менять цвет и жать «Сохранить» внизу формы — лишний шаг. */}
-        {colorSubjects.length > 0 && (
+        {!embedded && colorSubjects.length > 0 && (
           <div className="profile-card" style={{ marginTop: 20 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
               <h3>{t('Цвета предметов')}</h3>
@@ -541,7 +552,11 @@ export default function TeacherProfileSettingsPage({ friends }: { friends: Frien
 
         </>}
       </div>
-      </TeacherPageScroll>
+  )
+
+  return (
+    <>
+      {embedded ? content : <TeacherPageScroll>{content}</TeacherPageScroll>}
       {cropFile && (
         <AvatarCropModal file={cropFile} onCancel={() => setCropFile(null)} onSave={savePhoto} />
       )}

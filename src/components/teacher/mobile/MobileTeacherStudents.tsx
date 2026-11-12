@@ -33,6 +33,10 @@ import { AvatarPhotoFill } from '../../AvatarPhoto'
 import { TaskliIcon } from '../../icons/TaskliIcon'
 import { SubjectMark } from '../../icons/SubjectMark'
 
+const IPHONE_GLASS = GLASS && PLATFORM === 'iphone'
+const ACTION_ROW_RATIO = 0.8
+type StatusFilter = 'debt' | 'review'
+
 // MOBILE ONLY students browser: groups list → tap → roster → tap student →
 // detail sheet (contacts, attendance, scores, debt). Read-focused; editing the
 // roster stays on desktop.
@@ -68,8 +72,8 @@ function PersonRow({ student, subject, onClick }: { student: Student; subject?: 
   const { tc, tn } = useTc()
   const signal = studentSignal(student, t)
   return (
-    <motion.button data-hover="layer"
-      whileTap={{ scale: 0.98 }}
+    <motion.button type="button" data-hover={IPHONE_GLASS ? undefined : 'layer'}
+      whileTap={IPHONE_GLASS ? undefined : { scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
@@ -97,8 +101,8 @@ type GroupAgg = { avgHw: number | null; debtCount: number; pending: number }
 function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClick: () => void }) {
   const t = useT()
   return (
-    <motion.button data-hover="layer"
-      whileTap={{ scale: 0.98 }}
+    <motion.button type="button" data-hover={IPHONE_GLASS ? undefined : 'layer'}
+      whileTap={IPHONE_GLASS ? undefined : { scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
@@ -121,17 +125,27 @@ function GroupRow({ group, agg, onClick }: { group: Group; agg: GroupAgg; onClic
   )
 }
 
-// Small tappable summary tile for the "Все" header (debtors / to-review / total).
-function SummaryTile({ value, label, tone }: { value: number; label: string; tone: 'danger' | 'warning' | 'accent' }) {
+function SummaryTile({ value, label, tone, pressed, onClick }: {
+  value: number
+  label: string
+  tone: 'danger' | 'warning' | 'accent'
+  pressed?: boolean
+  onClick?: () => void
+}) {
   const c = tone === 'danger' ? { bg: PAIR.error.bg, text: PAIR.error.text }
     : tone === 'warning' ? { bg: PAIR.review.bg, text: PAIR.review.text }
     : { bg: 'var(--color-bg-4)', text: 'var(--color-accent)' }
-  return (
-    <div style={{ flex: 1, background: c.bg, borderRadius: 12, padding: '8px 4px', textAlign: 'center' }}>
-      <div style={{ fontSize: 18, fontWeight: 700, color: c.text }}>{value}</div>
-      <div style={{ fontSize: 10, fontWeight: 600, color: c.text, opacity: 0.9 }}>{label}</div>
-    </div>
-  )
+  const style: CSSProperties = {
+    flex: 1, background: c.bg, borderRadius: 12, padding: '8px 4px', textAlign: 'center',
+    boxShadow: pressed ? `inset 0 0 0 2px ${c.text}` : undefined,
+  }
+  const content = <>
+    <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: c.text }}>{value}</span>
+    <span style={{ display: 'block', fontSize: 10, fontWeight: 600, color: c.text, opacity: 0.9 }}>{label}</span>
+  </>
+  return onClick
+    ? <button type="button" aria-pressed={pressed} style={{ ...style, border: 0 }} onClick={onClick}>{content}</button>
+    : <div style={style}>{content}</div>
 }
 
 function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; label: string; value: string; danger?: boolean }) {
@@ -338,9 +352,11 @@ export default function MobileTeacherStudents() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [filter, setFilter] = useState<StudentsFilter>('all')
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter | null>(null)
+  const toggleStatus = (status: StatusFilter) => setStatusFilter(current => current === status ? null : status)
   // Нативный стеклянный бар экрана — только в приложении на iPhone. iPad
   // (капсула TeacherIpadRail) и веб/Android остаются на веб-доке и инлайн-поиске.
-  const nativeBar = GLASS && PLATFORM === 'iphone'
+  const nativeBar = IPHONE_GLASS
   const [searchOpen, setSearchOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
   const kbInset = useKeyboardInset()
@@ -352,7 +368,7 @@ export default function MobileTeacherStudents() {
   }
 
   // Per-group aggregates (avg homework, debtors, pending review) + top-line totals.
-  const { aggFor, totals } = useMemo(() => {
+  const { aggFor, totals, pendingByGroup } = useMemo(() => {
     const pendingByGroup = new Map<string, number>()
     for (const h of homework) {
       if (h.status === 'closed') continue
@@ -369,12 +385,22 @@ export default function MobileTeacherStudents() {
       pending: [...pendingByGroup.values()].reduce((a, b) => a + b, 0),
       students: new Set(allStudents.map(personKey)).size,
     }
-    return { aggFor, totals }
-  }, [groups, allStudents, homework])
+    return { aggFor, totals, pendingByGroup }
+  }, [allStudents, homework])
 
   const needle = search.trim().toLocaleLowerCase()
-  const groupList = groups.filter(g => !g.isIndividual && (!needle || g.name.toLocaleLowerCase().includes(needle)))
-  const individuals = allStudents.filter(s => s.isIndividual && (!needle || s.name.toLocaleLowerCase().includes(needle)))
+  const groupList = groups.filter(g => {
+    if (g.isIndividual || (needle && !g.name.toLocaleLowerCase().includes(needle))) return false
+    if (statusFilter === 'debt') return aggFor(g).debtCount > 0
+    if (statusFilter === 'review') return (pendingByGroup.get(g.id) ?? 0) > 0
+    return true
+  })
+  const individuals = allStudents.filter(s => {
+    if (!s.isIndividual || (needle && !s.name.toLocaleLowerCase().includes(needle))) return false
+    if (statusFilter === 'debt') return (s.debt ?? 0) > 0
+    if (statusFilter === 'review') return (pendingByGroup.get(s.groupId) ?? 0) > 0
+    return true
+  })
   const showGroups = filter === 'all' || filter === 'groups'
   const showIndividuals = filter === 'all' || filter === 'individual'
 
@@ -417,6 +443,7 @@ export default function MobileTeacherStudents() {
       id: 'filter', kind: 'pill', title: t(FILTERS.find(f => f.key === filter)?.label ?? 'Все'), menuTitle: t('Показать'),
       menu: FILTERS.map(f => ({ value: f.key, title: t(f.label), checked: f.key === filter })),
     },
+    bottomTabBarWidthRatio: ACTION_ROW_RATIO,
     bottom: [
       { id: 'search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск'), active: !!search },
       { id: 'add', kind: 'pill', title: t('Добавить') },
@@ -431,7 +458,8 @@ export default function MobileTeacherStudents() {
     onMenu: (id, value) => { if (id === 'filter') setFilter(value as StudentsFilter) },
   }, searchOpen)
 
-  const topZone = (
+  // false сохраняет верхний отступ MobileScreen для нативного меню.
+  const topZone = nativeBar && !openGroup ? false : (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
       <GlassPill><Users size={16} /> {t('Ученики')}</GlassPill>
     </div>
@@ -442,7 +470,7 @@ export default function MobileTeacherStudents() {
     {/* Поиск в нативном режиме — веб-поле на месте нижнего стеклянного ряда
         (он прячется), над вкладками; с клавиатурой поднимается вместе с ней. */}
     {nativeBar && searchOpen && (
-      <div style={{ position: 'fixed', left: 16, right: 16, bottom: kbInset > 0 ? kbInset + 12 : 'calc(env(safe-area-inset-bottom, 0px) + 58px)', zIndex: 60, display: 'flex', alignItems: 'center', gap: 8, height: 48, padding: '0 8px 0 16px', borderRadius: 24, background: 'rgba(var(--glass-rgb), var(--glass-fill))', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', boxShadow: 'var(--shadow-pill)', border: '1px solid var(--color-border-glass)' }}>
+      <div style={{ position: 'fixed', left: '50%', transform: 'translateX(-50%)', width: `calc((100% - 40px) * ${ACTION_ROW_RATIO})`, boxSizing: 'border-box', bottom: kbInset > 0 ? kbInset + 12 : 'calc(env(safe-area-inset-bottom, 0px) + 58px)', zIndex: 60, display: 'flex', alignItems: 'center', gap: 8, height: 48, padding: '0 8px 0 16px', borderRadius: 24, background: 'rgba(var(--glass-rgb), var(--glass-fill))', backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)', boxShadow: 'var(--shadow-pill)', border: '1px solid var(--color-border-glass)' }}>
         <TaskliIcon name="search" size={20} />
         <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('Поиск учеников и групп')} aria-label={t('Поиск учеников и групп')} enterKeyHint="search"
           style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: 'var(--color-text)' }} />
@@ -452,7 +480,7 @@ export default function MobileTeacherStudents() {
         </button>
       </div>
     )}
-    <MobileScreen topZone={topZone} glassHeader={{ leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}
+    <MobileScreen topZone={topZone} glassHeader={nativeBar && !openGroup ? undefined : { leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}
       bottomDockRaise={80}
       bottomDock={!nativeBar && !openGroup && !addOpen && !sheetOpen ? (
         <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
@@ -519,10 +547,10 @@ export default function MobileTeacherStudents() {
           </div>
           </>}
 
-          {filter === 'all' && allStudents.length > 0 && (
+          {(nativeBar || filter === 'all') && allStudents.length > 0 && (
             <div style={{ display: 'flex', gap: 8, margin: '4px 0 2px' }}>
-              <SummaryTile value={totals.debtors} label={t('долги')} tone="danger" />
-              <SummaryTile value={totals.pending} label={t('проверить')} tone="warning" />
+              <SummaryTile value={totals.debtors} label={t('долги')} tone="danger" pressed={statusFilter === 'debt'} onClick={nativeBar ? () => toggleStatus('debt') : undefined} />
+              <SummaryTile value={totals.pending} label={t('проверить')} tone="warning" pressed={statusFilter === 'review'} onClick={nativeBar ? () => toggleStatus('review') : undefined} />
               <SummaryTile value={totals.students} label={t('учеников')} tone="accent" />
             </div>
           )}
@@ -545,13 +573,11 @@ export default function MobileTeacherStudents() {
             </>
           )}
 
-          {((showGroups && groupList.length === 0 && !showIndividuals) ||
-            (showIndividuals && individuals.length === 0 && !showGroups) ||
-            (groupList.length === 0 && individuals.length === 0)) && (
+          {!(showGroups && groupList.length > 0) && !(showIndividuals && individuals.length > 0) && (
             <EmptyState
               icon={Users}
-              title={filter === 'all' ? t('Учеников пока нет') : groups.length === 0 ? t('Групп пока нет') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
-              text={filter === 'all' ? t('Добавьте первого — достаточно имени.') : undefined}
+              title={statusFilter ? t('Ничего не найдено') : filter === 'all' ? t('Учеников пока нет') : groups.length === 0 ? t('Групп пока нет') : filter === 'individual' ? t('Нет индивидуальных учеников') : t('Нет групп')}
+              text={!statusFilter && filter === 'all' ? t('Добавьте первого — достаточно имени.') : undefined}
               style={{ marginTop: 8 }}
             />
           )}

@@ -158,11 +158,59 @@ export default function MobileTeacherCalendar() {
   </>
 }
 
+/** Hourly view inside the iPhone teacher home. */
+export function TeacherDayHours({ day, today, items, locale, onPick }: {
+  day: string; today: string; items: SchedItem[]; locale: string; onPick: (item: SchedItem) => void
+}) {
+  const t = useT()
+  const { tn, tc } = useTc()
+  const [now, setNow] = useState(nowMskMin)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const lo = Math.floor(Math.min(9 * 60, ...items.map(item => toMin(item.time))) / 60) * 60
+  const hi = Math.ceil(Math.max(20 * 60, ...items.map(item => item.endTime ? toMin(item.endTime) : toMin(item.time) + 60)) / 60) * 60
+  const hours = Array.from({ length: (hi - lo) / 60 }, (_, index) => lo / 60 + index)
+  const firstTime = items.length ? Math.min(...items.map(item => toMin(item.time))) : lo
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(nowMskMin()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = Math.max(0, ((day === today ? nowMskMin() : firstTime) - lo) / 60 * ROW_H - 100)
+  }, [day, today, lo, firstTime])
+
+  return <GridView days={[day]} items={items} today={today} lo={lo} hours={hours} gridH={hours.length * ROW_H}
+    now={now} nowShown={day === today} scrollRef={scrollRef} locale={locale} tn={tn} tc={tc} t={t} onPick={onPick} embedded />
+}
+
+/** Allocate a column to every overlapping lesson, including transitive overlaps. */
+function overlapColumns(items: SchedItem[]) {
+  const columns = new Map<string, { index: number; count: number }>()
+  const sorted = items.slice().sort((a, b) => toMin(a.time) - toMin(b.time))
+  let group: { id: string; index: number }[] = []
+  let ends: number[] = []
+  const finish = () => {
+    for (const { id, index } of group) columns.set(id, { index, count: ends.length })
+    group = []
+    ends = []
+  }
+  for (const item of sorted) {
+    const start = toMin(item.time)
+    if (ends.every(end => end <= start)) finish()
+    const reusable = ends.findIndex(end => end <= start)
+    const index = reusable < 0 ? ends.length : reusable
+    const end = item.endTime ? toMin(item.endTime) : start + 60
+    ends[index] = Math.max(start + 24, end)
+    group.push({ id: item.id, index })
+  }
+  finish()
+  return columns
+}
+
 // ── Недельная / дневная сетка день×время ──
-function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollRef, locale, tn, tc, t, onPick }: {
+function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollRef, locale, tn, tc, t, onPick, embedded = false }: {
   days: string[]; items: SchedItem[]; today: string; lo: number; hours: number[]; gridH: number
   now: number; nowShown: boolean; scrollRef: React.RefObject<HTMLDivElement | null>; locale: string
-  tn: (s: string) => string; tc: (s: string) => string; t: (s: string) => string; onPick: (i: SchedItem) => void
+  tn: (s: string) => string; tc: (s: string) => string; t: (s: string) => string; onPick: (i: SchedItem) => void; embedded?: boolean
 }) {
   const single = days.length === 1
   const dow = (d: string) => new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(`${d}T12:00:00`))
@@ -178,7 +226,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
   return (
     <div>
       {/* липкая шапка дней */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 3, display: 'grid', gridTemplateColumns: cols, background: 'var(--color-bg)', paddingBottom: 4 }}>
+      {!embedded && <div style={{ position: 'sticky', top: 0, zIndex: 3, display: 'grid', gridTemplateColumns: cols, background: 'var(--color-bg)', paddingBottom: 4 }}>
         <div />
         {days.map(d => {
           const isToday = d === today
@@ -188,7 +236,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
               fontSize: 15, fontWeight: 700, background: isToday ? 'var(--color-purple)' : 'transparent', color: isToday ? '#fff' : 'var(--color-text)' }}>{Number(d.slice(-2))}{single ? ` ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(new Date(`${d}T12:00:00`)).replace('.', '')}` : ''}</div>
           </div>
         })}
-      </div>
+      </div>}
 
       <div style={{ position: 'relative' }}>
         {IS_IOS && <>
@@ -196,7 +244,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
           <SoftEdge edge="bottom" size="30px" strength={fade.bottom} zIndex={5} />
         </>}
         <div ref={setScroll} onScroll={onScroll} className={IS_IOS ? undefined : 'no-scrollbar'}
-          style={{ position: 'relative', overflowY: 'auto', maxHeight: 'calc(100dvh - 320px)', ...(IS_IOS ? {} : fadeMask(fade)) }}>
+          style={{ position: 'relative', overflowY: 'auto', maxHeight: embedded ? 'max(220px, calc(100dvh - 285px))' : 'calc(100dvh - 320px)', ...(IS_IOS ? {} : fadeMask(fade)) }}>
           <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: cols, height: gridH }}>
           {/* ось времени */}
           <div style={{ position: 'relative' }}>
@@ -206,6 +254,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
           {days.map(d => {
             const isToday = d === today
             const dayEvents = items.filter(i => i.date === d)
+            const lanes = embedded ? overlapColumns(dayEvents) : undefined
             return (
               <div key={d} style={{ position: 'relative', borderLeft: '1px solid var(--color-border-soft)', background: isToday ? 'rgba(120,106,215,.06)' : 'transparent' }}>
                 {hours.map(h => <div key={h} style={{ position: 'absolute', left: 0, right: 0, top: (h * 60 - lo) / 60 * ROW_H, borderTop: '1px solid var(--color-grid, var(--color-border-soft))', opacity: .5 }} />)}
@@ -213,9 +262,11 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
                   const s = toMin(ev.time); const e = ev.endTime ? toMin(ev.endTime) : s + 60
                   const top = (s - lo) / 60 * ROW_H; const h = Math.max(22, (e - s) / 60 * ROW_H - 3)
                   const { accent, bg } = subjColors(ev)
+                  const lane = lanes?.get(ev.id)
                   return (
-                    <button key={ev.id} type="button" onClick={() => { tactile(); onPick(ev) }}
-                      style={{ position: 'absolute', top: top + 1, left: 2, right: 2, height: h, textAlign: 'left', cursor: 'pointer',
+                    <button key={ev.id} type="button" aria-label={embedded ? `${ev.time} · ${tn(ev.who) || tc(ev.title) || t('Занятие')}` : undefined} disabled={embedded && ev.cancelled} onClick={() => { tactile(); onPick(ev) }}
+                      style={{ position: 'absolute', top: top + 1, left: lane ? `calc(${lane.index / lane.count * 100}% + 2px)` : 2,
+                        right: lane ? `calc(${(1 - (lane.index + 1) / lane.count) * 100}% + 2px)` : 2, height: h, textAlign: 'left', cursor: 'pointer',
                         border: 'none', borderLeft: `3px solid ${accent}`, borderRadius: 8, padding: single ? '6px 8px' : '4px 5px', overflow: 'hidden',
                         background: bg, color: accent, opacity: ev.cancelled ? .5 : 1, textDecoration: ev.cancelled ? 'line-through' : 'none' }}>
                       <div style={{ fontSize: single ? 12 : 9.5, fontWeight: 700, lineHeight: 1.15, ...textFadeStyle, ...textFadeLines(single ? 1 : 2) }}>{tn(ev.who) || tc(ev.title) || t('Занятие')}</div>

@@ -4,9 +4,9 @@ import TeacherModules from '../TeacherModules'
 import FadeText from '../../FadeText'
 import CountBadge from '../../CountBadge'
 import { useNotificationsStore } from '../../../store/notificationsStore'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image, CalendarClock, Layers, Link2, LogIn, Database, BarChart3, ClipboardList } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -40,6 +40,27 @@ import PaymentsInbox from '../payments/PaymentsInbox'
 import { useFeature } from '../../../lib/teacherFeatures'
 import { usePaymentInbox } from '../../../lib/paymentClaims'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
+
+import { PLATFORM } from '../../../lib/platform'
+import './mobileTeacherMore.css'
+
+const ProfileSettings = lazy(() => import('../../../pages/teacher/TeacherProfileSettingsPage'))
+const isIPhone = PLATFORM === 'iphone'
+
+function MoreRow({ label, icon, value, compact = false, onClick }: {
+  label: string
+  icon?: ReactNode
+  value?: ReactNode
+  compact?: boolean
+  onClick: () => void
+}) {
+  return <button className="teacher-more-row" data-hover="layer" type="button" onClick={() => { tactile(); onClick() }}>
+    {icon}
+    {compact ? <FadeText className="teacher-more-label">{label}</FadeText> : <span className="teacher-more-label">{label}</span>}
+    {value}
+    <ChevronRight className="teacher-more-chevron" size={16} aria-hidden="true" />
+  </button>
+}
 
 // MOBILE ONLY teacher profile — bento layout: identity, tariff+quota, live
 // stats (доход / долги / ученики / проверить), settings, logout. Wired to real
@@ -75,6 +96,9 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const { lang, setLang } = useLang()
   const [email, setEmail] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [details, setDetails] = useState<'profile' | 'schedule' | 'login' | null>(null)
+  const [nameOverride, setNameOverride] = useState<string>()
+  const adminAccess = useTeacherAccess(s => s.loaded && s.isAdmin)
   const [integrations, setIntegrations] = useState(false)
   const [profile, setProfile] = useState<{ name?: string; subject?: string } | null>(null)
   const [plan, setPlan] = useState<{ planName: string; studentsUsed: number; maxStudents: number | null } | null>(null)
@@ -95,6 +119,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const openPage = useTeacher(s => s.setActivePage)
   const showFinances = useTeacherAccess(s => s.canTab('finances'))
   const showConstructor = useTeacherAccess(s => s.canTab('constructor'))
+  useTeacherAccess(s => s.hiddenTabs)
   const isTeacher = useTeacherAccess(s => s.isTeacher)
   const mySubjects = useTeacherAccess(s => s.subjects)
   const saveSubjects = useTeacherAccess(s => s.saveSubjects)
@@ -111,7 +136,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
       if (!u) return
       supabase.from('profiles').select('name, first_name, subject').eq('id', u.id).maybeSingle()
         .then(({ data: p }) => {
-          if (p) setProfile({ name: (p.first_name || p.name) ?? undefined, subject: p.subject ?? undefined })
+          if (p) setProfile({ name: (isIPhone ? u.user_metadata?.name || p.name || p.first_name : p.first_name || p.name) ?? undefined, subject: p.subject ?? undefined })
         })
     })
     fetchMyPlan().then(p => {
@@ -142,7 +167,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
 
   const initial = (m.name.charAt(0) || 'У').toUpperCase()
   const photoPath = useMyTeacherAvatarPath()
-  const quotaPct = m.maxStudents ? Math.min(100, Math.round((m.studentsUsed / m.maxStudents) * 100)) : null
+  const quotaPct = m.maxStudents && m.maxStudents > 0 ? Math.min(100, Math.round((m.studentsUsed / m.maxStudents) * 100)) : null
 
   const logout = async () => {
     tactile()
@@ -152,9 +177,98 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
     window.location.reload()
   }
 
+  const adminShortcuts = [
+    { id: 'users', label: t('Пользователи'), Icon: Users },
+    { id: 'requests', label: t('Заявки'), Icon: ClipboardList },
+    { id: 'data', label: t('Данные'), Icon: Database },
+    { id: 'analytics', label: t('Аналитика'), Icon: BarChart3 },
+  ] as const
+  const moreName = nameOverride ?? m.name
+
   return (
-    <MobileScreen scrollKey="t-profile" topPad={64} glassHeader={{ leading: t('Ещё') }} topZone={<div style={{ display: 'flex', justifyContent: 'center', minHeight: 44, alignItems: 'center' }}><GlassPill>{t('Ещё')}</GlassPill></div>}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+    <MobileScreen scrollKey="t-profile" topPad={isIPhone ? 50 : 64} glassHeader={{ leading: isIPhone ? 'Искра' : t('Ещё') }} topZone={<div style={{ display: 'flex', justifyContent: 'center', minHeight: 44, alignItems: 'center' }}><GlassPill>{isIPhone ? 'Искра' : t('Ещё')}</GlassPill></div>}>
+      {isIPhone ? <div className="teacher-more">
+        <div className="teacher-more-card teacher-more-identity">
+          <div className="teacher-more-avatar">
+            {(moreName.charAt(0) || initial).toUpperCase()}
+            <AvatarPhotoFill path={photoPath} />
+          </div>
+          <div className="teacher-more-person">
+            <FadeText className="teacher-more-name">{tn(moreName)}</FadeText>
+            <FadeText className="teacher-more-muted">{t(adminAccess ? 'Администратор' : 'Преподаватель')}</FadeText>
+          </div>
+          <MoreRow label={t('Профиль')} onClick={() => setDetails('profile')} />
+        </div>
+
+        <section className="teacher-more-card teacher-more-hero" aria-labelledby="teacher-more-work">
+          <div className="teacher-more-hero-title">
+            <img src={adminAccess ? '/teacher/more-shield.webp' : '/teacher/more-spark.webp'} alt="" width={100} height={100} />
+            <h1 id="teacher-more-work">{adminAccess ? t('Управление платформой') : lang === 'ru' ? 'Моя работа' : t('Рабочие инструменты преподавателя')}</h1>
+          </div>
+          <div className="teacher-more-shortcuts">
+            {adminAccess ? adminShortcuts.map(({ id, label, Icon }) => (
+              <MoreRow compact key={id} label={label} icon={<Icon size={21} />} onClick={() => {
+                sessionStorage.setItem('admin_tab', id)
+                openPage('admin')
+              }} />
+            )) : <>
+              {showConstructor && <MoreRow compact label={t('Конструктор')} icon={<Layers size={21} />} onClick={() => openPage('constructor')} />}
+              {showFinances && <MoreRow compact label={t('Финансы')} icon={<Wallet size={21} />} onClick={() => openPage('finances')} />}
+            </>}
+          </div>
+        </section>
+
+        <div className="teacher-more-card">
+          {adminAccess
+            ? <button className="teacher-more-row teacher-more-student" type="button" data-hover="layer"
+                disabled={studentCabinet.busy} aria-busy={studentCabinet.busy} onClick={() => { tactile(); studentCabinet.open() }}>
+                <BookOpen size={21} />
+                <span className="teacher-more-label">{t(studentCabinet.failed ? 'Не удалось открыть кабинет. Повторить' : 'В ученический кабинет')}</span>
+                <ChevronRight className="teacher-more-chevron" size={16} aria-hidden="true" />
+              </button>
+            : <MoreRow label={t('Тариф')} onClick={() => setTariffOpen(true)} value={quotaPct === null
+              ? <FadeText className="teacher-more-muted">{m.planName}</FadeText>
+              : <progress className="teacher-more-quota" value={quotaPct} max={100}
+                  aria-label={`${m.studentsUsed} / ${m.maxStudents} ${t('учеников')}`} />} />}
+        </div>
+
+        <section className="teacher-more-card teacher-more-settings" aria-labelledby="teacher-more-settings">
+          <h2 id="teacher-more-settings">{t('Настройки')}</h2>
+          <MoreRow label={t('Тема оформления')} icon={dark ? <Moon size={21} /> : <Sun size={21} />}
+            value={<span className="teacher-more-muted">{t(dark ? 'Тёмная' : 'Светлая')}</span>} onClick={toggleTheme} />
+          <MoreRow label={t('Язык')} icon={<Languages size={21} />}
+            value={<span className="teacher-more-muted">{lang === 'ru' ? 'Русский' : 'English'}</span>} onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')} />
+          <MoreRow label={t('Время в расписании')} icon={<CalendarClock size={21} />} onClick={() => setDetails('schedule')} />
+        </section>
+
+        <div className="teacher-more-card">
+          <MoreRow label={t('Интеграции')} icon={<Link2 size={21} />} onClick={() => setIntegrations(true)} />
+          <MoreRow label={t('Способы входа')} icon={<LogIn size={21} />} onClick={() => setDetails('login')} />
+        </div>
+
+        <div className="teacher-more-card">
+          {adminAccess && <MoreRow label={t('Конструктор')} icon={<Layers size={21} />} onClick={() => openPage('constructor')} />}
+          {adminAccess && <MoreRow label={t('Финансы')} icon={<Wallet size={21} />} onClick={() => openPage('finances')} />}
+          {adminAccess && <MoreRow label={t('Тариф')} icon={<Sparkles size={21} />} onClick={() => setTariffOpen(true)} />}
+          {onOpenNotifications && <MoreRow label={t('Уведомления')} icon={<Bell size={21} />}
+            value={<CountBadge count={unreadNotifs} tone="danger" />} onClick={onOpenNotifications} />}
+          {friends.account && <MoreRow label={t('Друзья')} icon={<Users size={21} />} onClick={() => friends.setTab('contacts')} />}
+          {onOpenJournal && <MoreRow label={t('Журнал')} icon={<ClipboardCheck size={21} />} onClick={onOpenJournal} />}
+          {onOpenReports && <MoreRow label={t('Отчёты родителям')} icon={<FileText size={21} />} onClick={onOpenReports} />}
+          {onOpenWidgets && <MoreRow label={t('Настроить виджеты')} icon={<LayoutDashboard size={21} />} onClick={onOpenWidgets} />}
+          {payments && <MoreRow label={t('Оплаты: ждут вас')} icon={<Wallet size={21} />}
+            value={<CountBadge count={paymentClaims} tone="danger" />} onClick={() => setPaymentsOpen(true)} />}
+          {iconSupported && <MoreRow label={t('Иконка приложения')} icon={<Image size={21} />} onClick={() => setIconOpen(true)}
+            value={<AppIconTile src={(APP_ICONS.find(o => o.id === iconCurrent) ?? APP_ICONS[0]).preview} size={26} />} />}
+          <MoreRow label={t('Обратная связь')} icon={<MessageSquarePlus size={21} />} onClick={() => setFeedbackOpen(true)} />
+          {!isStandalone() && <MoreRow label={t('Установить приложение')} icon={<Download size={21} />} onClick={requestShowInstall} />}
+          <AppVersionRow />
+        </div>
+        <TeacherFeatureSettings />
+        <button className="teacher-more-logout" type="button" data-hover="layer" onClick={logout}>
+          <LogOut size={20} />{t('Выйти из аккаунта')}
+        </button>
+      </div> : <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
 
         {/* Identity — span 2 */}
         <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)' }}>
@@ -364,8 +478,13 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         >
           <LogOut size={18} /> {t('Выйти из аккаунта')}
         </motion.button>
-      </div>
+      </div>}
       <DesktopFriends model={friends}/>
+      {details && <Modal title={t(details === 'profile' ? 'Профиль' : details === 'schedule' ? 'Время в расписании' : 'Способы входа')} padding={16} onClose={() => setDetails(null)}>
+        {details === 'login' ? <TeacherLoginMethods /> : <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}>
+          <ProfileSettings friends={friends} embedded={details} onNameSaved={setNameOverride} />
+        </Suspense>}
+      </Modal>}
       {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
       {paymentsOpen && <Modal title={t('Оплаты: ждут вас')} onClose={() => setPaymentsOpen(false)}><div style={{ margin: '0 -16px' }}><PaymentsInbox /></div></Modal>}

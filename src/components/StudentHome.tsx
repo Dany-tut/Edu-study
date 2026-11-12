@@ -1,12 +1,17 @@
 import NextWorkWidget from './NextWorkWidget'
 import './studentHomeWidget.css'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import ScheduleCarousel from './ScheduleCarousel'
 import WidgetCarousel from './WidgetCarousel'
 import CourseTrack from './CourseTrack'
 import MobileBottomNav from './MobileBottomNav'
 import MobileBell from './MobileBell'
+import NotificationPopup from './NotificationPopup'
+import { GlassIconButton } from './mobileChrome'
+import { GLASS, useGlassBar } from '../lib/nativeGlass'
+import { PLATFORM } from '../lib/platform'
+import { useNotificationsStore } from '../store/notificationsStore'
 import Modal from './Modal'
 import { ChevronRight, User, Ghost } from './icons/appIcons'
 import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from './season/Season'
@@ -42,18 +47,36 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   const entries = useMemo(()=>buildStudentDiary(subjects,metadata,progress,now),[subjects,metadata,progress,now])
   const work = useMemo(()=>studentHomeWork(entries,today),[entries,today])
   const season = useSeason()
+  const iphone = PLATFORM === 'iphone'
+  const nativeChrome = iphone && GLASS && !desktop
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const notificationAnchor = useRef<HTMLSpanElement>(null)
+  const unread = useNotificationsStore(s => s.notifications.some(notification => !notification.read))
   const [appearance,setAppearance] = useState(false)
   useEffect(()=>{
     const url = new URL(location.href)
     const variant = VARIANTS.find(item=>item.key===url.searchParams.get('halloween'))
-    if(!variant) return
+    if(!variant || iphone) return
     setPersonalHalloween(variant.key)
     url.searchParams.delete('halloween')
     history.replaceState(null,'',url)
-  },[])
+  },[iphone])
   const [scope,setScope] = useState<WorkScope|null>(null)
   const trackPopoverOpen = useDashboard(s=>s.trackPopoverOpen)
   const dashboard = useDashboard.getState()
+  const openProfile = () => dashboard.setActivePage('profile')
+  useGlassBar(nativeChrome ? {
+    top: [
+      { id: 'home-profile', kind: 'circle', position: 'leading', symbol: 'person.crop.circle', label: t('Профиль') },
+      { id: 'home-notifications', kind: 'circle', position: 'trailing', symbol: 'bell', label: t('Уведомления'), unread },
+    ],
+  } : null, {
+    onTap: id => {
+      if (id === 'home-profile') openProfile()
+      if (id === 'home-notifications') setNotificationsOpen(open => !open)
+    },
+  })
+  const canChooseAppearance = !iphone && season.live
   const next = work.next
   const ready = !pending && !error
   // Сдавать нечего — следующий шаг сам предлагает повторение колоды, если
@@ -95,16 +118,26 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   return <div className="live-student-home" data-testid="live-student-home">
     <SeasonBackdrop/><div className="lh-season-decor" aria-hidden><SeasonHero portalDecor={false}/></div><SeasonCornerPumpkin/>
     <header className="lh-header">
-      {desktop?<Sidebar/>:<><button data-hover="layer" type="button" className="lh-profile" aria-label={t('Профиль')} onClick={()=>dashboard.setActivePage('profile')}><User size={18}/></button><strong>{t('Главная')}</strong><MobileBell/></>}
-<div className="lh-assignments">{assignments}</div><button data-hover="layer" type="button" className="lh-appearance" aria-label={t('Оформление главной')} onClick={()=>setAppearance(true)}><Ghost size={18}/></button>
+      {desktop ? <Sidebar/> : <>
+        {nativeChrome ? <span aria-hidden/> : iphone
+          ? <GlassIconButton icon={<User size={18}/>} ariaLabel={t('Профиль')} onClick={openProfile}/>
+          : <button data-hover="layer" type="button" className="lh-profile" aria-label={t('Профиль')} onClick={openProfile}><User size={18}/></button>}
+        <strong>{t('Главная')}</strong>
+        {nativeChrome ? <>
+          <span ref={notificationAnchor} className="lh-notification-anchor" aria-hidden/>
+          <NotificationPopup open={notificationsOpen} anchorRef={notificationAnchor} onClose={() => setNotificationsOpen(false)}/>
+        </> : <MobileBell/>}
+      </>}
+      <div className="lh-assignments">{assignments}</div>
+      {canChooseAppearance && <button data-hover="layer" type="button" className="lh-appearance" aria-label={t('Оформление главной')} onClick={()=>setAppearance(true)}><Ghost size={18}/></button>}
     </header>
     <main className="lh-content">
-      <section className="lh-schedule" aria-label={t('Расписание')}><ScheduleCarousel/></section>
-      <section className="lh-widgets" aria-label={t('Задолженности и ближайшая работа')}><WidgetCarousel columnsOverride={desktop ? undefined : 1} leadingWidgets={workCards}/><SeasonCat/></section>
+      <section className="lh-schedule" aria-label={t('Расписание')}><ScheduleCarousel swipe={iphone}/></section>
+      <section className="lh-widgets" aria-label={t('Задолженности и ближайшая работа')}><WidgetCarousel swipeOnly={iphone && !desktop} columnsOverride={desktop ? undefined : 1} leadingWidgets={workCards}/><SeasonCat/></section>
       <section className="lh-course" aria-label={t('Трек курса')} style={{zIndex:trackPopoverOpen?60:5}}><CourseTrack homeWorks={ready?entries:[]} today={today} onOpenDebts={(course,module)=>setScope({filter:'overdue',course,module})}/></section>
     </main>
     {!desktop&&<MobileBottomNav/>}
-    {appearance&&<Modal title={t('Оформление главной')} onClose={()=>setAppearance(false)}>
+    {canChooseAppearance&&appearance&&<Modal title={t('Оформление главной')} onClose={()=>setAppearance(false)}>
       <div className="lh-appearance-options"><button data-hover="layer" type="button" aria-pressed={!season.variant} onClick={()=>{setPersonalHalloween('off');setAppearance(false)}}>{t('Без праздника')}</button>{VARIANTS.map(item=><button data-hover="layer" type="button" key={item.key} aria-pressed={season.variant===item.key} onClick={()=>{setPersonalHalloween(item.key);setAppearance(false)}}>{t(item.title)}</button>)}</div>
     </Modal>}
     {scope&&<Modal title={t(scope.module!=null?'Несданные работы':scope.filter==='review'?'На проверке':scope.filter==='overdue'?'Просроченные работы':'Мои работы')} onClose={()=>setScope(null)} width={740}>

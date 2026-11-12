@@ -1,5 +1,6 @@
 import Capacitor
 import UIKit
+import SwiftUI
 
 // App-owned bar/header glyphs use the same Loop artwork as the mobile web UI.
 // Public assets are copied by Capacitor; system controls keep their own symbols.
@@ -47,7 +48,7 @@ private enum LoopNativeIcons {
 // и окнами бар прятать должен JS (hidden): у WebView нет своего способа
 // оказаться выше нативного вида.
 @objc(NativeGlassPlugin)
-public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
+public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, UISheetPresentationControllerDelegate {
     public let identifier = "NativeGlassPlugin"
     public let jsName = "NativeGlass"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -63,9 +64,13 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         CAPPluginMethod(name: "barSet", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "barHidden", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "barRemove", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "sheetShow", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "sheetClose", returnType: CAPPluginReturnPromise),
     ]
 
     private var tabBar: UITabBar?
+    private var tabBarEdges: [NSLayoutConstraint] = []
+    private var tabBarCompact = false
     private var tabIds: [String] = []
     private var tabSymbols: [String] = []
     private var anchor: UIButton?
@@ -81,6 +86,69 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
     private var barBottomView: UIStackView?
     private var barLastOptions: JSObject?
     private var barLastKey = ""
+
+    private var contentSheet: UIViewController?
+    private var contentSheetID: String?
+    private var contentSheetModel: GlassContentSheetModel?
+
+    @objc func sheetShow(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [self] in
+            guard let id = call.getString("id"), let host = self.host else {
+                call.reject("Sheet unavailable")
+                return
+            }
+            if self.contentSheetID == id, let model = self.contentSheetModel {
+                model.content = GlassSheetContent(call.options as? JSObject ?? [:])
+                call.resolve()
+                return
+            }
+            guard self.contentSheet == nil, host.presentedViewController == nil else {
+                call.reject("Another sheet is open")
+                return
+            }
+            let model = GlassContentSheetModel(content: GlassSheetContent(call.options as? JSObject ?? [:]))
+            let content = GlassContentSheet(model: model) { [weak self] action in
+                self?.notifyListeners("sheetAction", data: ["id": id, "action": action])
+            }
+            let controller = UIHostingController(rootView: content)
+            controller.modalPresentationStyle = .pageSheet
+            controller.view.backgroundColor = .clear
+            if let sheet = controller.sheetPresentationController {
+                sheet.detents = [.medium(), .large()]
+                sheet.prefersGrabberVisible = true
+                sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                sheet.delegate = self
+            }
+            self.contentSheetID = id
+            self.contentSheet = controller
+            self.contentSheetModel = model
+            host.present(controller, animated: true)
+            call.resolve()
+        }
+    }
+
+    @objc func sheetClose(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard let id = call.getString("id"), self.contentSheetID == id,
+                  let controller = self.contentSheet else { call.resolve(); return }
+            controller.dismiss(animated: true) {
+                if self.contentSheet === controller { self.clearContentSheet() }
+                call.resolve()
+            }
+        }
+    }
+
+    public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        guard contentSheet === presentationController.presentedViewController, let id = contentSheetID else { return }
+        clearContentSheet()
+        notifyListeners("sheetDismiss", data: ["id": id])
+    }
+
+    private func clearContentSheet() {
+        contentSheet = nil
+        contentSheetID = nil
+        contentSheetModel = nil
+    }
 
     private var host: UIViewController? { bridge?.viewController }
 
@@ -275,9 +343,22 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             host.view.addSubview(row)
             // Над системными вкладками: капсула UITabBar начинается ~48 pt выше
             // нижней безопасной зоны, ряд встаёт с зазором 10.
+            if let ratio = opts["bottomTabBarWidthRatio"] as? Double, ratio > 0, ratio <= 1 {
+                // UIKit не отдаёт размер видимой капсулы UITabBar. Закладываем
+                // системные отступы по 20 pt от безопасной ширины.
+                let tabBarInset: CGFloat = 20
+                NSLayoutConstraint.activate([
+                    row.centerXAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.centerXAnchor),
+                    row.widthAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.widthAnchor,
+                                               multiplier: CGFloat(ratio), constant: -2 * tabBarInset * CGFloat(ratio)),
+                ])
+            } else {
+                NSLayoutConstraint.activate([
+                    row.leadingAnchor.constraint(equalTo: host.view.leadingAnchor, constant: 16),
+                    row.trailingAnchor.constraint(equalTo: host.view.trailingAnchor, constant: -16),
+                ])
+            }
             NSLayoutConstraint.activate([
-                row.leadingAnchor.constraint(equalTo: host.view.leadingAnchor, constant: 16),
-                row.trailingAnchor.constraint(equalTo: host.view.trailingAnchor, constant: -16),
                 row.bottomAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.bottomAnchor, constant: -(self.tabBar == nil ? 10 : 58)),
             ])
             self.barBottomView = row
@@ -401,7 +482,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             // while the cabinet switches theme without changing the tab list.
             let traits = UITraitCollection(userInterfaceStyle: dark ? .dark : .light)
             for (index, item) in (self.tabBar?.items ?? []).enumerated() where index < self.tabSymbols.count {
-                let image = LoopNativeIcons.image(self.tabSymbols[index], traits: traits)
+                let image = self.tabImage(self.tabSymbols[index], traits: traits)
                 item.image = image
                 item.selectedImage = image
             }
@@ -504,11 +585,35 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
 
     // MARK: — таб-бар
 
+    private func tabImage(_ symbol: String, traits: UITraitCollection) -> UIImage? {
+        let image = LoopNativeIcons.image(symbol, traits: traits)
+        guard tabBarCompact, let image else { return image }
+        let size = CGSize(width: image.size.width * 0.88, height: image.size.height * 0.88)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        return UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }.withRenderingMode(image.renderingMode)
+    }
+
+    private func tabBarTransform(_ bar: UITabBar, hidden: Bool) -> CGAffineTransform {
+        let scale: CGFloat = tabBarCompact ? 0.90 : 1
+        // Keep the bar anchored to the bottom as its height changes.
+        let bottomOffset = bar.bounds.height * (1 - scale) / 2
+        let hiddenOffset = hidden ? bar.bounds.height + 40 : 0
+        return CGAffineTransform(translationX: 0, y: bottomOffset + hiddenOffset)
+            .scaledBy(x: 1, y: scale)
+    }
+
     @objc func tabBarSet(_ call: CAPPluginCall) {
         let items = call.getArray("items", JSObject.self) ?? []
         let selected = call.getString("selected")
         DispatchQueue.main.async {
             guard let host = self.host else { call.resolve(); return }
+            let compact = call.getBool("compact") == true && host.traitCollection.userInterfaceIdiom == .phone
+            let compactChanged = compact != self.tabBarCompact
+            let animate = self.tabBar != nil && compactChanged && !UIAccessibility.isReduceMotionEnabled
+            self.tabBarCompact = compact
             let bar: UITabBar
             if let existing = self.tabBar {
                 bar = existing
@@ -517,9 +622,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
                 bar.delegate = self
                 bar.translatesAutoresizingMaskIntoConstraints = false
                 host.view.addSubview(bar)
-                NSLayoutConstraint.activate([
+                self.tabBarEdges = [
                     bar.leadingAnchor.constraint(equalTo: host.view.leadingAnchor),
-                    bar.trailingAnchor.constraint(equalTo: host.view.trailingAnchor),
+                    host.view.trailingAnchor.constraint(equalTo: bar.trailingAnchor),
+                ]
+                NSLayoutConstraint.activate(self.tabBarEdges + [
                     bar.bottomAnchor.constraint(equalTo: host.view.bottomAnchor),
                 ])
                 self.tabBar = bar
@@ -530,24 +637,47 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
             self.tabSymbols = items.map { $0["symbol"] as? String ?? "circle" }
             let tabItems: [UITabBarItem] = items.enumerated().map { (i, it) in
                 let symbol = it["symbol"] as? String ?? "circle"
-                let image = LoopNativeIcons.image(symbol, traits: host.traitCollection)
-                let item = UITabBarItem(title: it["title"] as? String, image: image, selectedImage: image)
+                let image = self.tabImage(symbol, traits: host.traitCollection)
+                let title = it["title"] as? String
+                let item = UITabBarItem(title: compact ? nil : title, image: image, selectedImage: image)
+                item.accessibilityLabel = title
                 item.tag = i
                 if let badge = it["badge"] as? Int, badge > 0 { item.badgeValue = badge > 99 ? "99+" : String(badge) }
                 return item
             }
             // Пункты пересоздаём только когда сменился их состав — иначе при
             // каждом бейдже бар мигал бы выделением.
-            if ids != self.tabIds || bar.items?.count != tabItems.count {
-                bar.setItems(tabItems, animated: false)
-                self.tabIds = ids
-            } else {
-                for (i, it) in tabItems.enumerated() {
-                    bar.items?[i].badgeValue = it.badgeValue
-                    bar.items?[i].title = it.title
+            let updateBar = {
+                if ids != self.tabIds || bar.items?.count != tabItems.count {
+                    bar.setItems(tabItems, animated: false)
+                    self.tabIds = ids
+                } else {
+                    for (i, item) in tabItems.enumerated() {
+                        let existing = bar.items?[i]
+                        existing?.badgeValue = item.badgeValue
+                        existing?.title = item.title
+                        existing?.accessibilityLabel = item.accessibilityLabel
+                        existing?.image = item.image
+                        existing?.selectedImage = item.selectedImage
+                    }
+                }
+                if let sel = selected, let i = ids.firstIndex(of: sel) { bar.selectedItem = bar.items?[i] }
+                if compactChanged {
+                    // Leave room for the tab targets and the system capsule's margins.
+                    let minimumWidth = CGFloat(tabItems.count) * 44 + 40
+                    let inset = min(30, max(0, (host.view.bounds.width - minimumWidth) / 2))
+                    for edge in self.tabBarEdges { edge.constant = compact ? inset : 0 }
+                    host.view.layoutIfNeeded()
+                    bar.transform = self.tabBarTransform(bar, hidden: !bar.isUserInteractionEnabled)
                 }
             }
-            if let sel = selected, let i = ids.firstIndex(of: sel) { bar.selectedItem = bar.items?[i] }
+            if animate {
+                UIView.animate(withDuration: 0.22, delay: 0,
+                               options: [.curveEaseOut, .beginFromCurrentState, .allowUserInteraction],
+                               animations: updateBar)
+            } else {
+                updateBar()
+            }
             call.resolve()
         }
     }
@@ -556,9 +686,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         let hidden = call.getBool("hidden") ?? false
         DispatchQueue.main.async {
             guard let bar = self.tabBar else { call.resolve(); return }
-            let shift = hidden ? bar.bounds.height + 40 : 0
+            guard bar.isUserInteractionEnabled == hidden else { call.resolve(); return }
             UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut, .beginFromCurrentState]) {
-                bar.transform = CGAffineTransform(translationX: 0, y: shift)
+                bar.transform = self.tabBarTransform(bar, hidden: hidden)
                 bar.alpha = hidden ? 0 : 1
             }
             bar.isUserInteractionEnabled = !hidden
@@ -570,6 +700,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate {
         DispatchQueue.main.async {
             self.tabBar?.removeFromSuperview()
             self.tabBar = nil
+            self.tabBarEdges = []
+            self.tabBarCompact = false
             self.tabIds = []
             self.tabSymbols = []
             call.resolve()
@@ -730,5 +862,123 @@ private extension UIColor {
         if s.hasPrefix("#") { s.removeFirst() }
         guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
         self.init(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255, blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+    }
+}
+
+private struct GlassSheetRow {
+    let id: String
+    let title: String
+    let detail: String?
+    let caption: String?
+    let checked: Bool?
+    let unread: Bool
+
+    init?(_ values: JSObject) {
+        guard let id = values["id"] as? String, let title = values["title"] as? String else { return nil }
+        self.id = id
+        self.title = title
+        detail = values["detail"] as? String
+        caption = values["caption"] as? String
+        checked = values["checked"] as? Bool
+        unread = values["unread"] as? Bool ?? false
+    }
+}
+
+private struct GlassSheetSection {
+    let title: String?
+    let rows: [GlassSheetRow]
+
+    init(_ values: JSObject) {
+        title = values["title"] as? String
+        rows = (values["rows"] as? [JSObject] ?? []).compactMap(GlassSheetRow.init)
+    }
+}
+
+private struct GlassSheetContent {
+    let title: String
+    let empty: String?
+    let sections: [GlassSheetSection]
+    let footer: GlassSheetRow?
+
+    init(_ values: JSObject) {
+        title = values["title"] as? String ?? ""
+        empty = values["empty"] as? String
+        sections = (values["sections"] as? [JSObject] ?? []).map(GlassSheetSection.init)
+        footer = (values["footer"] as? JSObject).flatMap(GlassSheetRow.init)
+    }
+}
+
+private final class GlassContentSheetModel: ObservableObject {
+    @Published var content: GlassSheetContent
+    init(content: GlassSheetContent) { self.content = content }
+}
+
+private struct GlassContentSheet: View {
+    @ObservedObject var model: GlassContentSheetModel
+    let onAction: (String) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(model.content.title)
+                .font(.title3.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
+                .padding(.horizontal, 20)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let empty = model.content.empty {
+                        Text(empty)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, minHeight: 84)
+                    }
+                    ForEach(model.content.sections.indices, id: \.self) { index in
+                        let section = model.content.sections[index]
+                        VStack(alignment: .leading, spacing: 0) {
+                            if let title = section.title {
+                                Text(title)
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityAddTraits(.isHeader)
+                                    .padding(.leading, 12)
+                            }
+                            ForEach(section.rows, id: \.id, content: row)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            if let footer = model.content.footer {
+                Button(footer.title) { onAction(footer.id) }
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .buttonStyle(.bordered)
+                    .padding(.horizontal, 20)
+            }
+        }
+        .padding(.top, 24)
+        .padding(.bottom, 8)
+    }
+
+    private func row(_ row: GlassSheetRow) -> some View {
+        Button { onAction(row.id) } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(row.title).font(.body.weight(row.unread ? .semibold : .regular))
+                    if let detail = row.detail, !detail.isEmpty {
+                        Text(detail).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    if let caption = row.caption {
+                        Text(caption).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 8)
+                if row.checked == true { Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true) }
+                if row.unread { Circle().fill(Color.accentColor).frame(width: 7, height: 7).accessibilityHidden(true) }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .frame(minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(row.checked == true ? .isSelected : [])
     }
 }

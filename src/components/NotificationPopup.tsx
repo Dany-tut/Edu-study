@@ -41,7 +41,7 @@ function getIcon(type: string) {
   return (ICON_MAP as Record<string, React.ReactNode>)[type] ?? <Bell size={16} />
 }
 
-function timeAgo(ts: number) {
+export function timeAgo(ts: number) {
   const diff = Math.floor((Date.now() - ts) / 1000)
   if (diff < 60)    return t('только что')
   if (diff < 3600)  return `${Math.floor(diff / 60)} ${t('мин назад')}`

@@ -10,6 +10,15 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Моя неделя": "My week",
+  "Мой месяц": "My month",
+  "Сменить вид календаря": "Change calendar view",
+  "Настройки вида": "View settings",
+  "Вид при открытии": "Default calendar view",
+  "По часам": "Hourly",
+  "Компактные карточки": "Compact cards",
+  "Повестка по времени": "Agenda",
+  "К текущей дате": "Go to today",
   // Итоги урока из записи (LessonRecapBlocks)
   "Смотреть с": "Watch from",
   "Итоги занятия": "Lesson recap",
@@ -382,6 +391,7 @@ export const EN: Record<string, string> = {
   "ДЗ проверено": "Homework graded",
   "Сдачи и комментарии преподавателя": "Submissions and teacher comments",
   "Моя работа": "My submission",
+  "Рабочие инструменты преподавателя": "My work",
   "Ответы в этой попытке": "Answers in this attempt",
   "Загружаем ответы…": "Loading answers…",
   "Попробовать ещё раз": "Try again",

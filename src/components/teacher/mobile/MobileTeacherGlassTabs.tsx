@@ -24,11 +24,12 @@ const SYMBOL: Record<string, string> = {
 // Акцент кабинета (#786AD7, см. project-color-system) — цвет выбранного пункта.
 const TINT = '#786AD7'
 
-export default function MobileTeacherGlassTabs({ items, active, onChange, reviewBadge }: {
+export default function MobileTeacherGlassTabs({ items, active, onChange, reviewBadge, compact }: {
   items: { id: MTab; label: string }[]
   active: MTab
   onChange: (tab: MTab) => void
   reviewBadge: number
+  compact: boolean
 }) {
   const t = useT()
   const kbOpen = useKeyboardOpen()
@@ -38,8 +39,8 @@ export default function MobileTeacherGlassTabs({ items, active, onChange, review
     setGlassTabs(items.map(it => ({
       id: it.id, title: t(it.label), symbol: SYMBOL[it.id] ?? 'circle',
       badge: it.id === 'review' ? reviewBadge : 0,
-    })), active, TINT)
-  }, [items, active, reviewBadge, t])
+    })), active, TINT, compact)
+  }, [items, active, reviewBadge, t, compact])
 
   // Обработчик через ref: подписка одна на всё время жизни бара.
   const onChangeRef = useRef(onChange)

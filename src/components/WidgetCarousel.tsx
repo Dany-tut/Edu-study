@@ -1,6 +1,7 @@
+import { flushSync } from 'react-dom'
 import './quizDialog.css'
 import WidgetFrame from './WidgetFrame'
-import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
+import { animate, motion, AnimatePresence, useMotionValue, useReducedMotion, type PanInfo } from 'framer-motion'
 import { useState, useCallback, useRef, useEffect, useLayoutEffect, lazy, Suspense, type ReactNode } from 'react'
 import Modal from './Modal'
 import { WIDGET_META } from '../data/widgets'
@@ -38,6 +39,7 @@ import { useT } from '../lib/i18n'
 
 const WIDGETS = ['Статистика', 'Научные факты', 'Реакции', 'Фокус', 'Мемы', 'Вопрос дня'] as const
 const COUNT = WIDGETS.length
+const wrapPage = (page: number, count: number) => ((page % count) + count) % count
 
 // Off-screen slides sit well past the stage edge (130%) so the stage's
 // shadow-friendly clip margin never reveals the neighbouring widget mid-swipe.
@@ -47,8 +49,9 @@ const variants = {
   exit: (dir: number) => ({ x: dir > 0 ? '-130%' : '130%', opacity: 0 }),
 }
 
-export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets }: {
+export default function WidgetCarousel({ columnsOverride, previewWidgets, leadingWidgets, swipeOnly = false }: {
   columnsOverride?: number
+  swipeOnly?: boolean
   /** Leading widget IDs use their original renderer unless custom content is supplied. */
   leadingWidgets?: { id: number; content?: ReactNode }[]
   /** In-memory stand content, in the home page's original carousel geometry. */
@@ -109,6 +112,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
   // resetting the carousel. Relevance changes only clamp a now missing page.
   const prevPerPage = useRef(perPage)
   useEffect(() => {
+    if (swipeOnly) return
     if (prevPerPage.current !== perPage) {
       const previous = prevPerPage.current
       prevPerPage.current = perPage
@@ -118,7 +122,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
     // Тот же кортеж возвращаем намеренно: React на неизменной ссылке
     // перерисовку не запускает, и «набор не поменял страницу» стоит ноль.
     setPage(prev => (prev[0] < pageCount ? prev : [Math.max(0, pageCount - 1), prev[1]]))
-  }, [perPage, pageCount])
+  }, [perPage, pageCount, swipeOnly])
 
   // Keep the dots on screen while the user is flipping, hide them again once idle.
   const revealDots = useCallback(() => {
@@ -132,7 +136,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
 
   const goTo = (next: number, direction: number) => {
     // Wrap around both ends so the carousel loops infinitely.
-    const wrapped = ((next % pageCount) + pageCount) % pageCount
+    const wrapped = wrapPage(next, pageCount)
     if (wrapped === page) return
     setPage([wrapped, direction])
     revealDots()
@@ -165,14 +169,69 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
     return <QuestionOfDayWidget active={isActive} columns={columns} />
   }
 
-  const safePage = Math.min(page, pageCount - 1)
+  const stripX = useMotionValue(0)
+  const reduceMotion = useReducedMotion()
+  const strip = useRef<HTMLDivElement>(null)
+  const panStep = useRef(0)
+  const panOrigin = useRef(0)
+  const pending = useRef<{ stop: () => void; finish: (keepPosition?: boolean) => void } | null>(null)
+  useEffect(() => () => {
+    pending.current?.stop()
+    pending.current = null
+    panStep.current = 0
+    stripX.set(0)
+  }, [stripX, swipeOnly, pageCount, availableWidth])
+
+  const finishPending = () => {
+    const running = pending.current
+    running?.stop()
+    running?.finish(true)
+  }
+
+  const slide = (direction: number) => {
+    const width = strip.current?.firstElementChild?.clientWidth
+    if (!width || pageCount < 2) return
+    const destination = -direction * (width + 8)
+    const finish = (keepPosition = false) => {
+      const remaining = keepPosition ? stripX.get() - destination : 0
+      pending.current = null
+      // Recenter the strip and keep the same card in the same screen position.
+      // Logical slot keys survive the wrap, even when there are only two widgets.
+      if (direction) flushSync(() => setPage(([current]) => [current + direction, direction]))
+      stripX.set(remaining)
+    }
+    if (reduceMotion) {
+      finish()
+      return
+    }
+    const controls = animate(stripX, destination, {
+      duration: 0.24,
+      ease: [0.22, 1, 0.36, 1],
+      onComplete: () => finish(),
+    })
+    pending.current = { stop: () => controls.stop(), finish }
+  }
+
+  const safePage = swipeOnly ? wrapPage(page, pageCount) : Math.min(page, pageCount - 1)
   const start = safePage * perPage
   const pageWidgets = widgetOrder.slice(start, start + perPage)
 
+  const renderFrame = (idx: number, active: boolean, style?: React.CSSProperties) => (
+    <WidgetFrame
+      id={idx}
+      adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined)}
+      key={idx}
+      style={{ minWidth: 0, height: '100%', ...style }}
+    >
+      <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
+        {leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined) ? renderWidget(idx, active) : home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, active)}
+      </Suspense>
+    </WidgetFrame>
+  )
+
   return (
-    <div ref={carouselRef} className="widget-carousel relative" data-widget={page} data-widget-columns={pageWidgets.length}>
-      {/* Left nav */}
-      <motion.button
+    <div ref={carouselRef} className="widget-carousel relative" data-widget={safePage} data-widget-columns={pageWidgets.length}>
+      {!swipeOnly && <motion.button
         whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
         onClick={goLeft}
         style={{ y: '-50%' }}
@@ -180,8 +239,55 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
         aria-label={t('Предыдущий виджет')}
       >
         <ChevronLeft size={16} />
-      </motion.button>
+      </motion.button>}
 
+      {swipeOnly ? (
+        <motion.div
+          ref={strip}
+          className="iphone-widget-strip"
+          style={{ x: stripX }}
+          onPanStart={(_, { offset }) => {
+            panStep.current = 0
+            if (pageCount < 2 || Math.abs(offset.x) <= Math.abs(offset.y)) return
+            finishPending()
+            panOrigin.current = stripX.get()
+            panStep.current = (strip.current?.firstElementChild?.clientWidth ?? 0) + 8
+            revealDots()
+          }}
+          onPan={(_, { offset }) => {
+            const step = panStep.current
+            if (step) stripX.set(Math.max(-step, Math.min(step, panOrigin.current + offset.x)))
+          }}
+          onPanEnd={(event, { offset, velocity }) => {
+            if (!panStep.current) return
+            panStep.current = 0
+            const projected = offset.x + velocity.x * 0.12
+            const direction = event.type === 'pointercancel' || Math.abs(projected) < 64
+              ? 0 : projected < 0 ? 1 : -1
+            slide(direction)
+            scheduleHide()
+          }}
+        >
+          {(widgetOrder.length > 1 ? [-2, -1, 0, 1, 2] : widgetOrder.length ? [0] : []).map(offset => {
+            const slot = page + offset
+            const id = widgetOrder[wrapPage(slot, pageCount)]
+            return (
+              <div key={slot} className="iphone-widget-slot" data-offset={offset} style={{ '--widget-offset': offset } as React.CSSProperties}>
+                <div inert={offset !== 0} style={{ height: '100%' }}>{renderFrame(id, offset === 0)}</div>
+                {Math.abs(offset) === 1 && <button type="button" className="iphone-widget-peek"
+                  aria-label={t(offset < 0 ? 'Предыдущий виджет' : 'Следующий виджет')}
+                  onClick={() => {
+                    if (pending.current || panStep.current) return
+                    slide(offset)
+                    revealDots()
+                    scheduleHide()
+                  }}
+                />}
+              </div>
+            )
+          })}
+        </motion.div>
+      ) : <>
       {/* Real padding reserves room for artwork and shadows in Safari too.
           overflow-clip-margin is not supported consistently across browsers. */}
       <div className="relative h-full w-full">
@@ -207,26 +313,11 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
             className="absolute inset-0 flex"
             style={{ gap: 16 }}
           >
-            {pageWidgets.map(idx => (
-              <WidgetFrame
-                id={idx}
-                adaptive={!previewWidgets && !leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined)}
-                key={idx}
-                style={{
-                  flex: pageWidgets.length < perPage
-                    ? '1 1 0'
-                    : `0 0 calc((100% - ${(perPage - 1) * 16}px) / ${perPage})`,
-                  minWidth: 0,
-                  height: '100%',
-                }}
-              >
-                {/* Пустая стойка на время чанка: своя на каждый виджет,
-                    чтобы приехавший сосед не сбрасывал уже показанный. */}
-                <Suspense fallback={<div style={{ width: '100%', height: '100%' }} />}>
-                  {leadingWidgets?.some(widget => widget.id === idx && widget.content !== undefined) ? renderWidget(idx, true) : home && !previewWidgets ? <StudentHomeWidget id={idx} onOpen={() => { if (idx === 7) useDashboard.getState().setActivePage('trainer'); else setOpenWidget(idx) }} onTask={openTask} /> : renderWidget(idx, true)}
-                </Suspense>
-              </WidgetFrame>
-            ))}
+            {pageWidgets.map(idx => renderFrame(idx, true, {
+              flex: pageWidgets.length < perPage
+                ? '1 1 0'
+                : `0 0 calc((100% - ${(perPage - 1) * 16}px) / ${perPage})`,
+            }))}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -243,6 +334,7 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
       >
         <ChevronRight size={16} />
       </motion.button>
+      </>}
 
       {/* Dots — hidden while idle, revealed while flipping */}
       <div
@@ -250,21 +342,22 @@ export default function WidgetCarousel({ columnsOverride, previewWidgets, leadin
         style={{
           bottom: -18,
           opacity: dotsVisible ? 1 : 0,
-          pointerEvents: dotsVisible ? 'auto' : 'none',
+          pointerEvents: dotsVisible && !swipeOnly ? 'auto' : 'none',
           transition: 'opacity 0.22s ease',
         }}
       >
         {Array.from({ length: pageCount }, (_, i) => (
           <button data-hover="layer"
             key={i}
+            disabled={swipeOnly}
             onClick={() => goTo(i, i > page ? 1 : -1)}
             aria-label={`${t('Страница')} ${i + 1}`}
             className="cursor-pointer"
             style={{
-              width: i === page ? 22 : 7,
+              width: i === safePage ? 22 : 7,
               height: 7,
               borderRadius: 999,
-              background: i === page ? 'var(--color-accent)' : 'var(--color-text-4)',
+              background: i === safePage ? 'var(--color-accent)' : 'var(--color-text-4)',
               transition: 'width 0.38s ease, background 0.38s ease',
             }}
           />

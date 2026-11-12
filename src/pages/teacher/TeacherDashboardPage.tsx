@@ -62,6 +62,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
   const friends = useDesktopFriends(isDesktop)
   // Deep links to tools without a separate mobile screen still open that tool.
   const mobileTool = !isDesktop && ['constructor', 'course-editor', 'lesson-editor', 'cards-editor', 'finances', 'payment', 'admin', 'storage'].includes(activePage)
+  const mobileAdmin = mobileTool && PLATFORM === 'iphone' && activePage === 'admin'
   const editMode = useDeskStore(s => s.editMode)
   const showWidgetLibrary = useDeskStore(s => s.showWidgetLibrary)
   const setShowWidgetLibrary = useDeskStore(s => s.setShowWidgetLibrary)
@@ -198,7 +199,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
       {/* Topbar row — 3-col grid: empty | topbar (always centered) | widget.
           iPad (§1.1): топбара нет — разделы и действия живут в капсуле справа
           (TeacherIpadRail), которая висит fixed у правого края в обеих ориентациях. */}
-      {isIpad ? null : mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
+      {isIpad || mobileAdmin ? null : mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
         <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}>{t('На главную')}</button>
       </div> : <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}
@@ -269,7 +270,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         {activePage === 'cards-editor'    && <TeacherCardSetEditorPage />}
         {activePage === 'student'         && (standContent ? isDesktop && standContent : <TeacherStudentDashboardPage />)}
         {activePage === 'storage' && accessLoaded && isAdministrator && <TeacherStoragePage />}
-        {activePage === 'admin' && accessLoaded && isAdministrator && <TeacherAdminPage />}
+        {activePage === 'admin' && accessLoaded && isAdministrator && <TeacherAdminPage onBack={mobileAdmin ? () => setActivePage('profile-settings') : undefined} />}
         {activePage === 'profile-settings' && <TeacherProfileSettingsPage friends={friends} />}
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}

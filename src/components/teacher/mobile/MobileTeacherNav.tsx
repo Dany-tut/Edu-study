@@ -6,6 +6,7 @@ import { tactile } from '../../../lib/feedback'
 import { useNavCollapse } from '../../../lib/useNavCollapse'
 import { useKeyboardOpen } from '../../../lib/useKeyboardInset'
 import { useT } from '../../../lib/i18n'
+import { PLATFORM } from '../../../lib/platform'
 import { GLASS } from '../../../lib/nativeGlass'
 import MobileTeacherGlassTabs from './MobileTeacherGlassTabs'
 import FadeText from '../../FadeText'
@@ -47,7 +48,7 @@ export default function MobileTeacherNav({
   // у ученика: иначе он вставал над клавиатурой и закрывал поле ввода.
   const kbOpen = useKeyboardOpen()
   // В приложении на iOS навигацию рисует система (UITabBar со стеклом).
-  if (GLASS) return <MobileTeacherGlassTabs items={visibleItems} active={active} onChange={onChange} reviewBadge={reviewBadge} />
+  if (GLASS) return <MobileTeacherGlassTabs items={visibleItems} active={active} onChange={onChange} reviewBadge={reviewBadge} compact={PLATFORM === 'iphone' && collapsed} />
   return (
     <motion.div
       initial={false}

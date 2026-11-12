@@ -34,7 +34,11 @@ const MTAB_TAB: Record<MTab, TeacherTabId | null> = {
 
 export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boolean }) {
   const libraryOpen = useDeskStore(s => s.showWidgetLibrary)
-  const [tab, setTab] = useState<MTab>(() => useTeacher.getState().activePage === 'gradebook' ? 'gradebook' : 'home')
+  const [tab, setTab] = useState<MTab>(() => {
+    const page = useTeacher.getState().activePage
+    if (page === 'gradebook') return 'gradebook'
+    return PLATFORM === 'iphone' && page === 'profile-settings' ? 'profile' : 'home'
+  })
   const teacherPage = useTeacher(s => s.activePage)
   const pendingJournal = useTeacher(s => s.pendingGradebookLessonId)
   useEffect(() => {
@@ -61,7 +65,7 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
   // is always available, so there is always a target).
   useEffect(() => {
     if (!isHidden(tab)) return
-    const first = (['home', 'calendar', 'students', 'gradebook', 'profile'] as MTab[]).find(t => !isHidden(t))
+    const first = (['home', 'calendar', 'students', 'gradebook', 'profile'] as MTab[]).find(t => !isHidden(t) && (PLATFORM !== 'iphone' || t !== 'calendar'))
     setTab(first ?? 'profile')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, canTab])
@@ -69,7 +73,7 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
   return (
     <div inert={libraryOpen} className="mobile-teacher-app lg:hidden">
       {tab === 'home'      && <MobileTeacherDay onNavigate={next => setTab(next === 'review' ? 'gradebook' : next)} onDetailChange={setDayDetailOpen} onOpenNotifications={() => setNotifOpen(true)} />}
-      {tab === 'calendar'  && <MobileTeacherCalendar />}
+      {PLATFORM !== 'iphone' && tab === 'calendar' && <MobileTeacherCalendar />}
       {tab === 'students'  && <MobileTeacherStudents />}
 
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
@@ -77,10 +81,10 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
 
       {showReports && <MobileTeacherParentReports onBack={closeReports} />}
 
-      <NotificationSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
+      <NotificationSheet native={PLATFORM === 'iphone' && tab === 'home'} open={notifOpen} onClose={() => setNotifOpen(false)} />
       {/* iPad (§1.1): нижней навигации айфона нет — её заменяет капсула справа
           (TeacherIpadRail). iPhone/Android — без изменений. */}
-      {PLATFORM !== 'ipad' && !(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','calendar','students','gradebook','profile'] as MTab[]).filter(isHidden)} />}
+      {PLATFORM !== 'ipad' && !(tab === 'home' && dayDetailOpen) && <MobileTeacherNav active={tab} onChange={setTab} hidden={(['home','calendar','students','gradebook','profile'] as MTab[]).filter(item => isHidden(item) || (PLATFORM === 'iphone' && item === 'calendar'))} />}
     </div>
   )
 }

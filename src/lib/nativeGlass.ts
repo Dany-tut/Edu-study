@@ -16,7 +16,7 @@
 // (useNativeOverlay), и пока открыто хоть одно — или открыта клавиатура — бар
 // уезжает вниз.
 // ─────────────────────────────────────────────────────────────────────────────
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 
 type AlertButton = { label: string; style?: 'default' | 'cancel' | 'destructive'; preferred?: boolean }
@@ -39,14 +39,33 @@ export type GlassBarItem = {
   menu?: { value: string; title: string; checked?: boolean }[]
 }
 /** Бар экрана: таблетка по центру сверху и ряд над вкладками. */
-export type GlassBar = { top?: GlassBarItem | GlassBarItem[]; bottom?: GlassBarItem[] }
+export type GlassBar = {
+  top?: GlassBarItem | GlassBarItem[]
+  bottom?: GlassBarItem[]
+  bottomTabBarWidthRatio?: number
+}
 
 export type GlassHeader = { leading: string; leadingSymbol?: string; trailingText?: string; trailingSymbol?: string; onBack?: () => void; backLabel?: string }
+
+export type GlassSheetRow = {
+  id: string
+  title: string
+  detail?: string
+  caption?: string
+  checked?: boolean
+  unread?: boolean
+}
+export type GlassSheetContent = {
+  title: string
+  empty?: string
+  sections: { title?: string; rows: GlassSheetRow[] }[]
+  footer?: GlassSheetRow
+}
 
 interface NativeGlassPlugin {
   alert(o: { title?: string; message?: string; buttons: AlertButton[] }): Promise<{ index: number }>
   menu(o: { x: number; y: number; width: number; height: number; title?: string; items: GlassMenuItem[] }): Promise<{ index: number }>
-  tabBarSet(o: { items: GlassTab[]; selected?: string; tint?: string }): Promise<void>
+  tabBarSet(o: { items: GlassTab[]; selected?: string; tint?: string; compact?: boolean }): Promise<void>
   tabBarHidden(o: { hidden: boolean }): Promise<void>
   tabBarRemove(): Promise<void>
   headerSet(o: Omit<GlassHeader, 'onBack'> & { back?: boolean }): Promise<void>
@@ -56,6 +75,10 @@ interface NativeGlassPlugin {
   barSet(o: GlassBar): Promise<void>
   barHidden(o: { top: boolean; bottom: boolean }): Promise<void>
   barRemove(): Promise<void>
+  sheetShow(o: GlassSheetContent & { id: string }): Promise<void>
+  sheetClose(o: { id: string }): Promise<void>
+  addListener(e: 'sheetAction', fn: (d: { id: string; action: string }) => void): Promise<PluginListenerHandle>
+  addListener(e: 'sheetDismiss', fn: (d: { id: string }) => void): Promise<PluginListenerHandle>
   addListener(e: 'barTap', fn: (d: { id: string }) => void): Promise<PluginListenerHandle>
   addListener(e: 'barMenu', fn: (d: { id: string; value: string }) => void): Promise<PluginListenerHandle>
   addListener(e: 'tabSelect', fn: (d: { id: string }) => void): Promise<PluginListenerHandle>
@@ -66,6 +89,47 @@ const NativeGlass = registerPlugin<NativeGlassPlugin>('NativeGlass')
 
 /** Системные контролы доступны: приложение на iOS. */
 export const GLASS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
+
+/** The web fallback is shown only when the iOS sheet is unavailable. */
+export function useGlassSheet(open: boolean, content: GlassSheetContent, onAction: (id: string) => void, onClose: () => void) {
+  const id = useId()
+  const [failed, setFailed] = useState(false)
+  const callbacks = useRef({ onAction, onClose })
+  callbacks.current = { onAction, onClose }
+  const payload = JSON.stringify({ ...content, id })
+  const latestPayload = useRef(payload)
+  latestPayload.current = payload
+  const active = useRef(false)
+
+  useEffect(() => {
+    if (!open || !GLASS || failed) return
+    let disposed = false
+    const action = NativeGlass.addListener('sheetAction', event => {
+      if (event.id === id) callbacks.current.onAction(event.action)
+    })
+    const dismiss = NativeGlass.addListener('sheetDismiss', event => {
+      if (event.id === id) callbacks.current.onClose()
+    })
+    void Promise.all([action, dismiss]).then(() => {
+      if (disposed) return
+      active.current = true
+      return NativeGlass.sheetShow(JSON.parse(latestPayload.current))
+    }).catch(() => { if (!disposed) setFailed(true) })
+    return () => {
+      disposed = true
+      active.current = false
+      void action.then(listener => listener.remove()).catch(() => {})
+      void dismiss.then(listener => listener.remove()).catch(() => {})
+      void NativeGlass.sheetClose({ id }).catch(() => {})
+    }
+  }, [open, failed, id])
+
+  useEffect(() => {
+    if (active.current) void NativeGlass.sheetShow(JSON.parse(payload)).catch(() => {})
+  }, [payload])
+
+  return open && (!GLASS || failed)
+}
 
 // ── алерт и подтверждение ────────────────────────────────────────────────────
 // По одному: UIKit молча не покажет второй алерт поверх первого, и его
@@ -137,9 +201,9 @@ export function setGlassKeyboard(open: boolean) {
   syncBar()
 }
 
-export function setGlassTabs(items: GlassTab[], selected: string, tint?: string) {
+export function setGlassTabs(items: GlassTab[], selected: string, tint?: string, compact?: boolean) {
   barShown = true
-  void NativeGlass.tabBarSet({ items, selected, tint }).catch(() => {})
+  void NativeGlass.tabBarSet({ items, selected, tint, compact }).catch(() => {})
   syncBar()
 }
 

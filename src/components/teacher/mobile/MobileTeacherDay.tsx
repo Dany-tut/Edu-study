@@ -9,7 +9,7 @@ import { useNotificationsStore } from '../../../store/notificationsStore'
 import { Alert } from '../../Alert'
 import TeacherSchedule from '../schedule/TeacherSchedule'
 import { TaskliIcon } from '../../icons/TaskliIcon'
-import { Bell, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Loader2, Plus, X } from '../../icons/appIcons'
+import { Bell, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Loader2, Plus, SlidersHorizontal, X } from '../../icons/appIcons'
 import { confirmDialog } from '../../ConfirmHost'
 import { btn, softBtn } from '../../../lib/pillStyles'
 import { FIELD } from '../../../lib/fieldStyle'
@@ -17,7 +17,7 @@ import { PAIR } from '../../../lib/mobileTokens'
 import { tactile } from '../../../lib/feedback'
 import { useT, useTc, useLang } from '../../../lib/i18n'
 import { useSwipeBack } from '../../../lib/useSwipeBack'
-import { GLASS, glassMenu, useGlassBar, type GlassBar } from '../../../lib/nativeGlass'
+import { GLASS, glassMenu, useGlassBar, useGlassSheet, type GlassBar } from '../../../lib/nativeGlass'
 import { PLATFORM } from '../../../lib/platform'
 import { useHomework } from '../../../lib/useHomework'
 import { getViewAs } from '../../../lib/owner'
@@ -27,6 +27,8 @@ import { addDays, todayMsk, weekStart, useTeacherWeek, type SchedItem } from '..
 import { loadTeacherLesson, saveTeacherLesson, publishTeacherLesson, lessonSessionError,
   type LessonDetail, type LessonAttendance, type LessonHomeworkDraft, type TeacherLessonSession } from '../../../lib/teacherLessonSession'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
+import { TeacherDayHours } from './MobileTeacherCalendar'
+import TeacherDayCalendar, { CALENDAR_VIEWS, type CalendarView } from './TeacherDayCalendar'
 import type { MTab } from './MobileTeacherNav'
 
 const stack: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 12 }
@@ -34,6 +36,19 @@ const cardStyle: CSSProperties = { ...stack, background: 'var(--color-surface)',
 const muted: CSSProperties = { fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.45, margin: 0 }
 const heading: CSSProperties = { margin: 0, fontSize: 19, lineHeight: 1.3, fontWeight: 700, textAlign: 'center', overflowWrap: 'anywhere' }
 type View = 'detail' | 'attendance' | 'finish' | 'homework' | 'materials' | 'receipt'
+
+const CALENDAR_TITLES = ['Моя неделя', 'Мой месяц', 'Мой день'] as const
+const DAY_PREFS_KEY = 'teacher.iphone.my-day.view'
+type DayPreferences = { calendar: CalendarView; layout: 'cards' | 'agenda' }
+function readDayPreferences(): DayPreferences {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DAY_PREFS_KEY) ?? '{}')
+    return {
+      calendar: saved.calendar === 1 || saved.calendar === 2 ? saved.calendar : 0,
+      layout: saved.layout === 'agenda' ? 'agenda' : 'cards',
+    }
+  } catch { return { calendar: 0, layout: 'cards' } }
+}
 
 function Card({ children, tone }: { children: ReactNode; tone?: 'focus' | 'success' | 'warning' }) {
   const pair = tone === 'focus' ? PAIR.focus : tone === 'success' ? PAIR.success : tone === 'warning' ? PAIR.review : null
@@ -73,6 +88,20 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   const signedIn = useTeacherSession()
   const today = todayMsk()
   const [day, setDay] = useState(todayMsk)
+  const iphone = PLATFORM === 'iphone'
+  const [preferences, setPreferences] = useState(readDayPreferences)
+  const [calendarMode, setCalendarMode] = useState<CalendarView>(() => preferences.calendar)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [calendarReset, setCalendarReset] = useState(0)
+  const changeCalendarMode = (mode: CalendarView) => {
+    if (mode !== calendarMode) tactile()
+    setCalendarMode(mode)
+  }
+  const nextCalendarMode = () => changeCalendarMode(((calendarMode + 1) % 3) as CalendarView)
+  const updatePreferences = (next: DayPreferences) => {
+    setPreferences(next)
+    try { localStorage.setItem(DAY_PREFS_KEY, JSON.stringify(next)) } catch { /* Storage is optional. */ }
+  }
   const start = weekStart(day)
   const { items, reload, error: scheduleError } = useTeacherWeek(start)
   const { homework, reload: reloadHomework } = useHomework()
@@ -196,6 +225,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
 
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(start, i)), [start])
   const list = (items ?? []).filter(i => i.date === day)
+  const markedDays = useMemo(() => new Set((items ?? []).filter(item => !item.cancelled).map(item => item.date)), [items])
   const status = (item: SchedItem) => sessions[item.id]?.completed_at ? 'completed' : sessions[item.id]?.started_at ? 'live' : item.status ?? (item.cancelled ? 'cancelled' : 'upcoming')
   const next = list.find(i => status(i) === 'live') ?? list.find(i => status(i) === 'upcoming')
   const reviewCount = homework.filter(h => h.status !== 'closed').reduce((n, h) => n + Math.max(0, h.submittedCount - h.reviewedCount), 0)
@@ -207,8 +237,18 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   const unmarked = rosterCount - presentCount - absentCount
   const attSummary = `${t('Были')}: ${presentCount} · ${t('Не были')}: ${absentCount}`
   const isPublished = !!detail?.published || !!detail?.session?.homework_id
-  const pageTitle = !selected ? t('Мой день') : view === 'attendance' ? t('Посещаемость') : view === 'finish' ? t('Завершить занятие?') : view === 'homework' ? t('Домашняя работа') : view === 'materials' ? t('Материалы занятия') : view === 'receipt' ? t('ДЗ выдано') : tn(selected.who) || t('Занятие')
-  const controls = (
+  const pageTitle = !selected ? t(iphone ? CALENDAR_TITLES[calendarMode] : 'Мой день') : view === 'attendance' ? t('Посещаемость') : view === 'finish' ? t('Завершить занятие?') : view === 'homework' ? t('Домашняя работа') : view === 'materials' ? t('Материалы занятия') : view === 'receipt' ? t('ДЗ выдано') : tn(selected.who) || t('Занятие')
+  const nativeBar = GLASS && iphone
+  const unifiedHome = iphone && !selected
+  const controls = unifiedHome ? (
+    <div className="teacher-day-controls" aria-hidden={nativeBar || undefined} style={{ visibility: nativeBar ? 'hidden' : undefined }}>
+      <GlassIconButton icon={<SlidersHorizontal size={18} />} ariaLabel={t('Настройки вида')} onClick={() => setSettingsOpen(true)} />
+      <button data-hover="layer" type="button" aria-label={`${pageTitle} · ${t(CALENDAR_VIEWS[calendarMode])}`} onClick={nextCalendarMode}>
+        <GlassPill>{pageTitle}<ChevronDown size={13} /></GlassPill>
+      </button>
+      {onOpenNotifications && <GlassIconButton icon={<Bell size={18} />} dot={unreadNotifs > 0} dotTone="alert" ariaLabel={t('Уведомления')} onClick={onOpenNotifications} />}
+    </div>
+  ) : (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '0 48px' }}>
       {selected && <BackCircle onClick={() => { void back() }} label="Мой день" style={{ position: 'absolute', left: 0, width: 44, height: 44 }} />}
       <GlassPill><h1 style={{ margin: 0, font: 'inherit', textAlign: 'center', overflowWrap: 'anywhere' }}>{pageTitle}</h1></GlassPill>
@@ -233,38 +273,107 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
     if (view === 'homework') dayActs.push({ id: 'prepare', label: t('Проверить перед выдачей'), run: () => setPublishOpen(true), disabled: busy || readOnly || !draft.tasks.length || !rosterCount || !dueDate || dueDate < todayMsk() })
     if (view === 'receipt') dayActs.push({ id: 'toDay', label: t('К моему дню'), run: () => setSelected(null) })
   }
-  const nativeBar = GLASS && PLATFORM === 'iphone'
-  const dayBar: GlassBar = { bottom: dayActs.map(a => ({ id: a.id, kind: 'pill', title: a.label })) }
-  useGlassBar(nativeBar && dayActs.length ? dayBar : null, {
-    onTap: id => { const a = dayActs.find(x => x.id === id); if (a && !a.disabled) { tactile(); a.run() } },
+  const dayBar: GlassBar = unifiedHome ? {
+    top: [
+      { id: 'day-settings', kind: 'circle', position: 'leading', symbol: 'slider.horizontal.3', label: t('Настройки вида') },
+      { id: 'day-mode', kind: 'pill', title: pageTitle, label: pageTitle },
+      ...(onOpenNotifications ? [{ id: 'day-notifications', kind: 'circle' as const, position: 'trailing' as const, symbol: 'bell', label: t('Уведомления'), unread: unreadNotifs > 0 }] : []),
+    ],
+  } : { bottom: dayActs.map(a => ({ id: a.id, kind: 'pill', title: a.label })) }
+  useGlassBar(nativeBar && (unifiedHome || dayActs.length > 0) ? dayBar : null, {
+    onTap: id => {
+      if (id === 'day-settings') setSettingsOpen(true)
+      else if (id === 'day-mode') nextCalendarMode()
+      else if (id === 'day-notifications') onOpenNotifications?.()
+      else {
+        const action = dayActs.find(item => item.id === id)
+        if (action && !action.disabled) { tactile(); action.run() }
+      }
+    },
   })
+  const closeSettings = () => setSettingsOpen(false)
+  const goToToday = () => {
+    setDay(todayMsk())
+    setCalendarReset(value => value + 1)
+    closeSettings()
+  }
+  const openScheduleSettings = () => {
+    closeSettings()
+    setScheduleOpen(true)
+  }
+  const selectCalendar = (calendar: CalendarView) => {
+    updatePreferences({ ...preferences, calendar })
+    changeCalendarMode(calendar)
+  }
+  const selectLayout = (layout: DayPreferences['layout']) => updatePreferences({ ...preferences, layout })
+  const layoutOptions = [
+    { id: 'cards', title: t('Компактные карточки') },
+    { id: 'agenda', title: t('Повестка по времени') },
+  ] as const
+  const webSettings = useGlassSheet(iphone && settingsOpen, {
+    title: t('Настройки вида'),
+    sections: [
+      { title: t('Вид при открытии'), rows: CALENDAR_VIEWS.map((label, index) => ({ id: `calendar-${index}`, title: t(label), checked: preferences.calendar === index })) },
+      { title: t('Виджеты'), rows: layoutOptions.map(option => ({ ...option, checked: preferences.layout === option.id })) },
+      { rows: [{ id: 'today', title: t('К текущей дате') }, { id: 'schedule', title: t('Расписание и переносы') }] },
+    ],
+  }, id => {
+    if (id === 'calendar-0' || id === 'calendar-1' || id === 'calendar-2') selectCalendar(Number(id.slice(-1)) as CalendarView)
+    else if (id === 'cards' || id === 'agenda') selectLayout(id)
+    else if (id === 'today') goToToday()
+    else if (id === 'schedule') openScheduleSettings()
+  }, closeSettings)
   const footer = !nativeBar && dayActs.length ? <div style={stack}>
     {dayActs.map(a => <Action key={a.id} secondary={a.secondary} disabled={a.disabled} onClick={a.run}>{a.busy ? <Loader2 size={18} className="animate-spin" /> : null}{a.label}</Action>)}
   </div> : undefined
 
   return <>
-    <MobileScreen topZone={controls} glassHeader={{ leading: pageTitle, onBack: selected ? () => { void back() } : undefined, backLabel: t('Мой день') }} topPad={64}
-      scrollKey={selected ? `${selected.id}-${view}` : `my-day-${day}`} bottomDock={footer} bottomDockRaise={selected ? 16 : 0}>
+    <MobileScreen topZone={controls} glassHeader={unifiedHome ? undefined : { leading: pageTitle, onBack: selected ? () => { void back() } : undefined, backLabel: t('Мой день') }} topPad={64}
+      scrollKey={selected ? `${selected.id}-${view}` : unifiedHome ? 'my-day' : `my-day-${day}`} bottomDock={footer} bottomDockRaise={selected ? 16 : 0}>
       <div style={stack}>
         {error && <Alert tone="danger" text={t(error)} />}
         {scheduleError && !selected && <Alert tone="danger" text={t('Не удалось загрузить расписание')} action={{ label: t('Повторить'), onClick: reload }} />}
         {info && <Alert tone="info" text={info} />}
         {readOnly && <Alert tone="info" text={t('Просмотр кабинета: изменения недоступны')} />}
         {!selected ? <>
-          <p style={{ ...muted, textAlign: 'center' }}>{dateLabel(day)}</p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <button data-hover="layer" type="button" aria-label={t('Предыдущая неделя')} style={btn('M', 'quiet')} onClick={() => setDay(addDays(day, -7))}><ChevronLeft size={20} /></button>
-            <button data-hover="layer" type="button" style={btn('M', 'quiet')} onClick={() => setDay(todayMsk())}>{t('Сегодня')}</button>
-            <button data-hover="layer" type="button" aria-label={t('Следующая неделя')} style={btn('M', 'quiet')} onClick={() => setDay(addDays(day, 7))}><ChevronRight size={20} /></button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 5 }}>
-            {week.map(d => <button data-hover="layer" type="button" key={d} aria-pressed={d === day} aria-current={d === today ? 'date' : undefined} aria-label={dateLabel(d)} onClick={() => { tactile(); setDay(d) }} style={{ border: 'none', borderRadius: 20, minHeight: 64, padding: '8px 0', background: d === day ? PAIR.focus.bg : 'var(--color-surface)', color: d === day ? PAIR.focus.text : 'var(--color-text)', boxShadow: d === today && d !== day ? 'inset 0 0 0 2px var(--color-purple)' : undefined }}>
-              <span style={{ display: 'block', fontSize: 11, color: 'var(--color-muted)' }}>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(`${d}T12:00:00`))}</span><strong style={{ fontSize: 21 }}>{Number(d.slice(-2))}</strong>
-            </button>)}
-          </div>
+          {unifiedHome ? <TeacherDayCalendar key={calendarReset} day={day} today={today} mode={calendarMode} locale={locale}
+            markedDays={markedDays} onPick={setDay} onMode={changeCalendarMode}
+            hours={items !== null && !scheduleError && <TeacherDayHours
+              day={day} today={today} items={list} locale={locale} onPick={open} />} /> : <>
+            <p style={{ ...muted, textAlign: 'center' }}>{dateLabel(day)}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <button data-hover="layer" type="button" aria-label={t('Предыдущая неделя')} style={btn('M', 'quiet')} onClick={() => setDay(addDays(day, -7))}><ChevronLeft size={20} /></button>
+              <button data-hover="layer" type="button" style={btn('M', 'quiet')} onClick={() => setDay(todayMsk())}>{t('Сегодня')}</button>
+              <button data-hover="layer" type="button" aria-label={t('Следующая неделя')} style={btn('M', 'quiet')} onClick={() => setDay(addDays(day, 7))}><ChevronRight size={20} /></button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 5 }}>
+              {week.map(d => <button data-hover="layer" type="button" key={d} aria-pressed={d === day} aria-current={d === today ? 'date' : undefined} aria-label={dateLabel(d)} onClick={() => { tactile(); setDay(d) }} style={{ border: 'none', borderRadius: 20, minHeight: 64, padding: '8px 0', background: d === day ? PAIR.focus.bg : 'var(--color-surface)', color: d === day ? PAIR.focus.text : 'var(--color-text)', boxShadow: d === today && d !== day ? 'inset 0 0 0 2px var(--color-purple)' : undefined }}>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--color-muted)' }}>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(`${d}T12:00:00`))}</span><strong style={{ fontSize: 21 }}>{Number(d.slice(-2))}</strong>
+              </button>)}
+            </div>
+          </>}
           {items === null && <p style={{ ...muted, textAlign: 'center' }} role="status">{t('Загружаем занятия…')}</p>}
-          {items !== null && !scheduleError && !list.length && <Card><TaskliIcon name="schedule" size={36} style={{ alignSelf: 'center' }} /><h2 style={heading}>{t('На этот день занятий нет')}</h2><p style={{ ...muted, textAlign: 'center' }}>{t('Выберите другую дату или добавьте занятие в расписании.')}</p></Card>}
-          {[...(next ? [next] : []), ...list.filter(i => i.id !== next?.id)].map(item => {
+          {items !== null && !scheduleError && (!unifiedHome || calendarMode !== 2) && !list.length && <Card><TaskliIcon name="schedule" size={36} style={{ alignSelf: 'center' }} /><h2 style={heading}>{t('На этот день занятий нет')}</h2><p style={{ ...muted, textAlign: 'center' }}>{t('Выберите другую дату или добавьте занятие в расписании.')}</p></Card>}
+          {unifiedHome ? calendarMode !== 2 && (
+            <div className="teacher-day-lessons" data-agenda={preferences.layout === 'agenda' || undefined}>
+              {list.map(item => {
+                const state = status(item)
+                const session = sessions[item.id]
+                const label = state === 'live' ? 'Идёт сейчас' : state === 'completed' ? 'Завершено' : state === 'cancelled' ? 'Отменено' : item.id === next?.id ? 'Ближайшее занятие' : ''
+                return <button data-hover="row" key={item.id} type="button" className="teacher-day-lesson"
+                  data-next={item.id === next?.id || undefined} disabled={item.cancelled}
+                  onClick={() => { tactile(); open(item) }}>
+                  <time dateTime={item.time}>{item.time}{item.endTime && <small>{item.endTime}</small>}</time>
+                  <span>
+                    <strong>{tn(item.who) || tc(item.title) || t('Занятие')}</strong>
+                    {label && <small className="teacher-day-lesson-status">{t(label)}</small>}
+                    {session?.completed_at && <small>{t(session.homework_id ? 'Домашняя работа выдана' : 'Домашняя работа пока не выдана')}</small>}
+                  </span>
+                  {!item.cancelled && <ChevronRight size={16} aria-hidden />}
+                </button>
+              })}
+            </div>
+          ) : [...(next ? [next] : []), ...list.filter(i => i.id !== next?.id)].map(item => {
             const state = status(item)
             const session = sessions[item.id]
             const missingHw = !!session?.completed_at && !session.homework_id
@@ -278,7 +387,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
             </Card>
           })}
           <button data-hover="layer" type="button" onClick={() => onNavigate('review')} style={{ ...cardStyle, width: '100%', textAlign: 'left' }}><PersonLine icon="review"><strong>{t('Работы на проверке')}: {reviewCount}</strong><p style={muted}>{t('Открыть очередь проверки')}</p></PersonLine></button>
-          <Action secondary onClick={() => setScheduleOpen(true)}><CalendarDays size={18} />{t('Расписание и переносы')}</Action>
+          {!unifiedHome && <Action secondary onClick={() => setScheduleOpen(true)}><CalendarDays size={18} />{t('Расписание и переносы')}</Action>}
         </> : <>
           <p style={{ ...muted, textAlign: 'center' }}>{selected.date && dateLabel(selected.date)} · {selected.time}{selected.endTime ? `–${selected.endTime}` : ''}</p>
           {loading && <p role="status" style={{ ...muted, textAlign: 'center' }}>{t('Загружаем занятие…')}</p>}
@@ -321,6 +430,24 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
         </>}
       </div>
     </MobileScreen>
+    {iphone && <MobileSheet open={webSettings} title={t('Настройки вида')} onClose={closeSettings}>
+      <label className="teacher-day-setting">
+        <span>{t('Вид при открытии')}</span>
+        <select value={preferences.calendar} style={FIELD} onChange={event => selectCalendar(Number(event.target.value) as CalendarView)}>
+          {CALENDAR_VIEWS.map((name, index) => <option key={name} value={index}>{t(name)}</option>)}
+        </select>
+      </label>
+      <label className="teacher-day-setting">
+        <span>{t('Виджеты')}</span>
+        <select value={preferences.layout} style={FIELD} onChange={event => selectLayout(event.target.value === 'agenda' ? 'agenda' : 'cards')}>
+          {layoutOptions.map(option => <option key={option.id} value={option.id}>{option.title}</option>)}
+        </select>
+      </label>
+      <div style={stack}>
+        <Action secondary onClick={goToToday}>{t('К текущей дате')}</Action>
+        <Action secondary onClick={openScheduleSettings}><CalendarDays size={18} />{t('Расписание и переносы')}</Action>
+      </div>
+    </MobileSheet>}
     <MobileSheet open={scheduleOpen} title={t('Расписание')} onClose={() => setScheduleOpen(false)}><TeacherSchedule mobile onOpen={item => open(item)} onAttendance={item => open(item, 'attendance')} /></MobileSheet>
     <MobileSheet open={newTaskOpen} title={t('Новое задание')} onClose={() => setNewTaskOpen(false)} footer={<Action disabled={!taskText.trim()} onClick={() => { setDraft(d => ({ ...d, tasks: [...d.tasks, { id: crypto.randomUUID(), type: 'extended', isHard: true, question: taskText.trim() }] })); setNewTaskOpen(false) }}>{t('Добавить')}</Action>}>
       <p style={muted}>{t('Ученик отправит развёрнутый ответ. Вы проверите его в разделе «Проверка».')}</p><textarea autoFocus aria-label={t('Текст задания')} maxLength={20000} value={taskText} onChange={e => setTaskText(e.target.value)} style={{ ...FIELD, width: '100%', minHeight: 160, marginTop: 12 }} />

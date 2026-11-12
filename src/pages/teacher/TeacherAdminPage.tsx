@@ -542,7 +542,7 @@ const OVERVIEW_SECTIONS = ['features', 'ai', 'themes', 'storage'] as const
 type ActivityOverview = { dau: number; wau: number }
 type OverviewSection = typeof OVERVIEW_SECTIONS[number]
 
-export default function TeacherAdminPage() {
+export default function TeacherAdminPage({ onBack }: { onBack?: () => void } = {}) {
   const t = useT()
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
@@ -664,7 +664,7 @@ export default function TeacherAdminPage() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-          <BackCircle onClick={() => setActivePage('home')} label="На главную" />
+          <BackCircle onClick={onBack ?? (() => setActivePage('home'))} label={onBack ? "Ещё" : "На главную"} />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.3px' }}>{t('Администрирование')}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 1 }}>{t('Управление платформой')}</div>

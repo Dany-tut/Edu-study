@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import { motion, type PanInfo } from 'framer-motion'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
@@ -17,21 +17,29 @@ const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 const SHADOW_PAD = 96
 /** A date strip is navigation, not a freely scrollable row. Clipping paint
  * without a scroll container also prevents focus/trackpad scroll from moving it. */
-function CenteredDateStrip({ children, width, viewportWidth }: { children: ReactNode; width: number; viewportWidth: number }) {
+function CenteredDateStrip({ children, width, viewportWidth, onSwipe }: { children: ReactNode; width: number; viewportWidth: number; onSwipe?: (info: PanInfo) => void }) {
   const mask = viewportWidth > 0 && width > viewportWidth
     ? 'linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent)'
     : undefined
   return <div data-schedule-strip="fixed" style={{ position: 'absolute', insetInline: 0, top: -SHADOW_PAD, height: `calc(100% + ${SHADOW_PAD * 2}px)`, clipPath: 'inset(0)', maskImage: mask, WebkitMaskImage: mask, pointerEvents: 'none' }}>
-    <div style={{ position: 'absolute', left: '50%', top: SHADOW_PAD, bottom: SHADOW_PAD, width, transform: 'translateX(-50%)', display: 'flex', gap: 8, alignItems: 'center' }}>{children}</div>
+    <motion.div
+      drag={onSwipe ? 'x' : false}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.45}
+      dragSnapToOrigin
+      dragMomentum={false}
+      onDragEnd={onSwipe ? (_, info) => onSwipe(info) : undefined}
+      style={{ position: 'absolute', left: '50%', top: SHADOW_PAD, bottom: SHADOW_PAD, width, marginLeft: -width / 2, display: 'flex', gap: 8, alignItems: 'center' }}
+    >{children}</motion.div>
   </div>
 }
 
-export default function ScheduleCarousel() {
+export default function ScheduleCarousel({ swipe = false }: { swipe?: boolean } = {}) {
   const desktop = useIsDesktop()
-  return desktop ? <ScheduleRibbon>{(days, index, onSelect, loaded) => <ScheduleCarouselStrip days={days} index={index} onSelect={onSelect} loaded={loaded} />}</ScheduleRibbon> : <ScheduleCarouselStrip />
+  return desktop ? <ScheduleRibbon>{(days, index, onSelect, loaded) => <ScheduleCarouselStrip days={days} index={index} onSelect={onSelect} loaded={loaded} />}</ScheduleRibbon> : <ScheduleCarouselStrip swipe={swipe} />
 }
 
-function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; onSelect?: (index: number) => void; loaded?: boolean }) {
+function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; onSelect?: (index: number) => void; loaded?: boolean; swipe?: boolean }) {
   const t = useT()
   const storedIndex = useDashboard(s => s.scheduleIndex)
   const storedSetIndex = useDashboard(s => s.setScheduleIndex)
@@ -53,17 +61,19 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
   // (it was a fixed 480px → clipped on a 375px phone). Desktop keeps 480.
   const wrapRef = useRef<HTMLDivElement>(null)
   const [wrapW, setWrapW] = useState(0)
+  const hasDays = total > 0
+  const showSkeleton = !hasDays && !loaded
   useEffect(() => {
     const el = wrapRef.current
     if (!el) return
     const ro = new ResizeObserver(entries => setWrapW(Math.round(entries[0].contentRect.width)))
     ro.observe(el)
     return () => ro.disconnect()
-  }, [])
+  }, [hasDays, showSkeleton])
 
   const slotWidth = mobile ? SLOT_WIDTH_MOBILE : SLOT_WIDTH_DESKTOP
   // Centre card fills the padded area, leaving a small peek of the side cards.
-  const centerWidth = mobile && wrapW ? Math.max(240, wrapW - 44) : undefined
+  const centerWidth = mobile && wrapW ? Math.max(240, wrapW - (props.swipe ? 64 : 44)) : undefined
 
   // Always render 3 slots on each side of the selected day so it stays
   // centered. Out-of-range slots become invisible spacers that preserve
@@ -76,6 +86,12 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
   const stripHeight = mobile ? 'var(--live-mobile-schedule-height, 210px)' : 'var(--home-schedule-height, clamp(210px, 26vh, 260px))'
 
   const stripWidth = (centerWidth ?? (mobile ? 300 : 480)) + 2 * (slotWidth[1] + slotWidth[2] + slotWidth[3]) + 6 * 8
+
+  function swipeDay({ offset, velocity }: PanInfo) {
+    if (Math.abs(offset.x) < 36 && (Math.abs(offset.x) < 12 || Math.abs(velocity.x) < 450)) return
+    const index = scheduleIndex + (offset.x < 0 ? 1 : -1)
+    if (index >= 0 && index < total) setScheduleIndex(index)
+  }
 
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
   const slots = offsets.map(offset => {
@@ -135,7 +151,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
       <div ref={wrapRef} style={{ height: '100%' }}>
-      <CenteredDateStrip width={stripWidth} viewportWidth={wrapW}>
+      <CenteredDateStrip width={stripWidth} viewportWidth={wrapW} onSwipe={props.swipe && total > 1 ? swipeDay : undefined}>
         {slots.map(slot =>
           slot.day ? (
             <ScheduleCard
