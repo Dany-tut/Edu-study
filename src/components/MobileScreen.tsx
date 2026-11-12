@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { MOBILE_TOP_GAP, MOBILE_TOP_ENTER, SAFE_TOP } from '../lib/mobileTokens'
 import { markScrollSet } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
-import { GLASS, type GlassHeader } from '../lib/nativeGlass'
+import { GLASS, useNativeDocumentScroll, type GlassHeader } from '../lib/nativeGlass'
 import { useOverlayScroll } from './teacher/OverlayScroll'
 import { useKeyboardOpen } from '../lib/useKeyboardInset'
 import MobileGlassHeader from './MobileGlassHeader'
@@ -45,6 +45,7 @@ export default function MobileScreen({
   children,
   scrollKey,
   restoreKey,
+  nativeDocumentScroll = false,
 }: {
   /** Floating glass widget/context pinned to the top. Content scrolls under it. */
   topZone?: ReactNode
@@ -66,8 +67,20 @@ export default function MobileScreen({
   /** Запоминать место прокрутки под этим ключом и возвращать на него при
    *  следующем открытии экрана. */
   restoreKey?: string
+  nativeDocumentScroll?: boolean
 }) {
   const keyboardOpen = useKeyboardOpen()
+  const documentScroll = useNativeDocumentScroll(nativeDocumentScroll)
+  useLayoutEffect(() => {
+    if (!documentScroll) return
+    const root = document.documentElement
+    root.setAttribute('data-native-document-edges', '')
+    return () => {
+      root.removeAttribute('data-native-document-edges')
+      markScrollSet(window, 0)
+      window.scrollTo(0, 0)
+    }
+  }, [documentScroll])
   const rootRef = useRef<HTMLDivElement>(null)
   const dockRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
@@ -182,9 +195,10 @@ export default function MobileScreen({
       className="mobile-screen"
       style={{
         position: 'relative',
-        height: '100dvh',
+        height: documentScroll ? undefined : '100dvh',
+        minHeight: documentScroll ? '100dvh' : undefined,
         overflowX: 'clip',
-        overflowY: 'hidden',
+        overflowY: documentScroll ? undefined : 'hidden',
         // No solid fill — content scrolls edge-to-edge under the floating bars
         // and Safari tints the safe-area zones natively (body provides the base).
         background: 'transparent',
@@ -238,13 +252,13 @@ export default function MobileScreen({
         {...{ [MOBILE_SCROLL_ATTR]: '' }}
         className="no-scrollbar"
         style={{
-          height: '100%',
-          overflowY: 'auto',
+          height: documentScroll ? undefined : '100%',
+          overflowY: documentScroll ? 'visible' : 'auto',
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          maskImage: contentMask,
-          WebkitMaskImage: contentMask,
+          maskImage: documentScroll ? undefined : contentMask,
+          WebkitMaskImage: documentScroll ? undefined : contentMask,
           paddingTop: topPadding,
           paddingLeft: 16,
           // iPad: контент тела прокрутки не заходит под капсулу справа
@@ -259,7 +273,7 @@ export default function MobileScreen({
 
       {/* z 45: над контентом, но ПОД слоем нижней навигации (#mobile-dock-layer,
           z 50) и шапкой (60) — иначе размытие ложилось поверх веб-вкладок. */}
-      {IS_IOS && <>
+      {IS_IOS && !documentScroll && <>
         <SoftEdge edge="top" size={topPadding} strength={fade.top} zIndex={45} />
         {!keyboardOpen && <SoftEdge edge="bottom" strength={fade.bottom} zIndex={45}
           // Без веб-дока внизу лежат системные вкладки (UITabBar): их высота

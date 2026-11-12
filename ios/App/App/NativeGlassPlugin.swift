@@ -64,6 +64,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         CAPPluginMethod(name: "barSet", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "barHidden", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "barRemove", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "documentScrollEdges", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sheetShow", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sheetClose", returnType: CAPPluginReturnPromise),
     ]
@@ -86,6 +87,65 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     private var barBottomView: UIStackView?
     private var barLastOptions: JSObject?
     private var barLastKey = ""
+
+    private var documentEdgesEnabled = false
+    private var restoreDocumentEdges: (() -> Void)?
+    private var documentTopInteraction: UIInteraction?
+    private var documentBottomInteraction: UIInteraction?
+
+    @objc func documentScrollEdges(_ call: CAPPluginCall) {
+        let enabled = call.getBool("enabled") ?? false
+        DispatchQueue.main.async {
+            guard #available(iOS 26.0, *), let scroll = self.bridge?.webView?.scrollView else {
+                call.resolve(["enabled": false])
+                return
+            }
+            if enabled && !self.documentEdgesEnabled {
+                let topStyle = scroll.topEdgeEffect.style
+                let bottomStyle = scroll.bottomEdgeEffect.style
+                let topHidden = scroll.topEdgeEffect.isHidden
+                let bottomHidden = scroll.bottomEdgeEffect.isHidden
+                self.restoreDocumentEdges = { [weak scroll] in
+                    scroll?.topEdgeEffect.style = topStyle
+                    scroll?.bottomEdgeEffect.style = bottomStyle
+                    scroll?.topEdgeEffect.isHidden = topHidden
+                    scroll?.bottomEdgeEffect.isHidden = bottomHidden
+                }
+                scroll.topEdgeEffect.style = .soft
+                scroll.bottomEdgeEffect.style = .soft
+                scroll.topEdgeEffect.isHidden = false
+                scroll.bottomEdgeEffect.isHidden = false
+            } else if !enabled {
+                self.restoreDocumentEdges?()
+                self.restoreDocumentEdges = nil
+            }
+            self.documentEdgesEnabled = enabled
+            self.updateDocumentEdge(in: self.headerHost, edge: .top)
+            self.updateDocumentEdge(in: self.tabBar, edge: .bottom)
+            call.resolve(["enabled": enabled])
+        }
+    }
+
+    private func updateDocumentEdge(in container: UIView?, edge: UIRectEdge) {
+        guard #available(iOS 26.0, *) else { return }
+        let previous = edge == .top ? documentTopInteraction : documentBottomInteraction
+        if let previous { previous.view?.removeInteraction(previous) }
+        let replacement: UIInteraction?
+        if documentEdgesEnabled, let container, let scroll = bridge?.webView?.scrollView {
+            let interaction = UIScrollEdgeElementContainerInteraction()
+            interaction.scrollView = scroll
+            interaction.edge = edge
+            container.addInteraction(interaction)
+            replacement = interaction
+        } else {
+            replacement = nil
+        }
+        if edge == .top {
+            documentTopInteraction = replacement
+        } else {
+            documentBottomInteraction = replacement
+        }
+    }
 
     private var contentSheet: UIViewController?
     private var contentSheetID: String?
@@ -190,6 +250,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                     container.heightAnchor.constraint(equalToConstant: 44),
                 ])
                 self.headerHost = container
+                self.updateDocumentEdge(in: container, edge: .top)
             }
 
             let lead = self.leadingPill ?? { let p = GlassPillView(); container.addSubview(p); self.leadingPill = p; return p }()
@@ -636,6 +697,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                     bar.bottomAnchor.constraint(equalTo: host.view.bottomAnchor),
                 ])
                 self.tabBar = bar
+                self.updateDocumentEdge(in: bar, edge: .bottom)
             }
             if let tint = call.getString("tint") { bar.tintColor = UIColor(hex: tint) }
 

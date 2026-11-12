@@ -186,7 +186,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const moreName = nameOverride ?? m.name
 
   return (
-    <MobileScreen scrollKey="t-profile" topPad={isIPhone ? 50 : 64} glassHeader={{ leading: isIPhone ? 'Искра' : t('Ещё') }} topZone={<div style={{ display: 'flex', justifyContent: 'center', minHeight: 44, alignItems: 'center' }}><GlassPill>{isIPhone ? 'Искра' : t('Ещё')}</GlassPill></div>}>
+    <MobileScreen nativeDocumentScroll={isIPhone} scrollKey="t-profile" topPad={isIPhone ? 50 : 64} glassHeader={{ leading: isIPhone ? 'Искра' : t('Ещё') }} topZone={<div style={{ display: 'flex', justifyContent: 'center', minHeight: 44, alignItems: 'center' }}><GlassPill>{isIPhone ? 'Искра' : t('Ещё')}</GlassPill></div>}>
       {isIPhone ? <div className="teacher-more">
         <div className="teacher-more-card teacher-more-identity">
           <div className="teacher-more-avatar">

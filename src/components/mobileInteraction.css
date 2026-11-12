@@ -42,3 +42,5 @@
   position: relative;
   top: -0.02em;
 }
+
+html[data-native-document-edges] .window-soft-edges { display: none; }

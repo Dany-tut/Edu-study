@@ -75,6 +75,7 @@ interface NativeGlassPlugin {
   barSet(o: GlassBar): Promise<void>
   barHidden(o: { top: boolean; bottom: boolean }): Promise<void>
   barRemove(): Promise<void>
+  documentScrollEdges(o: { enabled: boolean }): Promise<{ enabled: boolean }>
   sheetShow(o: GlassSheetContent & { id: string }): Promise<void>
   sheetClose(o: { id: string }): Promise<void>
   addListener(e: 'sheetAction', fn: (d: { id: string; action: string }) => void): Promise<PluginListenerHandle>
@@ -89,6 +90,22 @@ const NativeGlass = registerPlugin<NativeGlassPlugin>('NativeGlass')
 
 /** Системные контролы доступны: приложение на iOS. */
 export const GLASS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
+
+export function useNativeDocumentScroll(enabled: boolean) {
+  const [active, setActive] = useState(false)
+  useEffect(() => {
+    if (!enabled || !GLASS) return
+    let current = true
+    void NativeGlass.documentScrollEdges({ enabled: true }).then(result => {
+      if (current) setActive(result.enabled)
+    }).catch(() => { /* Older app builds keep the existing scroll container. */ })
+    return () => {
+      current = false
+      void NativeGlass.documentScrollEdges({ enabled: false }).catch(() => undefined)
+    }
+  }, [enabled])
+  return enabled && active
+}
 
 /** The web fallback is shown only when the iOS sheet is unavailable. */
 export function useGlassSheet(open: boolean, content: GlassSheetContent, onAction: (id: string) => void, onClose: () => void) {
