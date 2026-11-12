@@ -120,7 +120,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 self.restoreDocumentEdges = nil
             }
             self.documentEdgesEnabled = enabled
-            self.updateDocumentEdge(in: self.headerHost, edge: .top)
+            self.updateDocumentEdge(in: self.barTopViews.first ?? self.headerHost, edge: .top)
             self.updateDocumentEdge(in: self.tabBar, edge: .bottom)
             call.resolve(["enabled": enabled])
         }
@@ -328,6 +328,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             self.headerHost?.removeFromSuperview()
             self.headerHost = nil
+            self.updateDocumentEdge(in: self.barTopViews.first, edge: .top)
             self.leadingPill = nil
             self.headerBackButton = nil
             self.headerTitleWidth = nil
@@ -386,6 +387,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             }
             self.barTopViews.append(button)
         }
+        self.updateDocumentEdge(in: self.barTopViews.first ?? self.headerHost, edge: .top)
 
         let items = opts["bottom"] as? [JSObject] ?? []
         if !items.isEmpty {
@@ -531,6 +533,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             self.barTopViews.forEach { $0.removeFromSuperview() }; self.barTopViews.removeAll()
             self.barBottomView?.removeFromSuperview(); self.barBottomView = nil
+            self.updateDocumentEdge(in: self.headerHost, edge: .top)
             self.barLastOptions = nil
             self.barLastKey = ""
             call.resolve()

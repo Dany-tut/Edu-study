@@ -480,7 +480,7 @@ export default function MobileTeacherStudents() {
         </button>
       </div>
     )}
-    <MobileScreen topZone={topZone} glassHeader={nativeBar && !openGroup ? undefined : { leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}
+    <MobileScreen nativeDocumentScroll={nativeBar && !openGroup && !searchOpen} topZone={topZone} glassHeader={nativeBar && !openGroup ? undefined : { leading: t('Ученики'), leadingSymbol: 'person.2' }} topPad={64} scrollKey={openGroup ? `g-${openGroup.id}` : 't-groups'}
       bottomDockRaise={80}
       bottomDock={!nativeBar && !openGroup && !addOpen && !sheetOpen ? (
         <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
