@@ -73,3 +73,39 @@
 @media (prefers-reduced-motion: reduce) {
   .student-login-spoiler::before { animation: none; }
 }
+
+.roster-responsive-toolbar { container: roster-toolbar / inline-size; }
+.roster-responsive-toolbar .group-roster-toolbar .js-scope {
+  flex: none;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+.roster-search-actions {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.roster-search-toggle { display: none; }
+
+@container roster-toolbar (max-width: 1160px) {
+  .roster-search-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-border-soft);
+    border-radius: 10px;
+    background: var(--color-bg);
+    color: var(--color-text-3);
+    cursor: pointer;
+  }
+  .roster-search-toggle[data-filtered],
+  .roster-search-toggle[aria-expanded='true'] {
+    color: var(--color-accent);
+    background: var(--color-purple-soft);
+  }
+  .roster-search-actions:not([data-search-expanded]) .teacher-table-search { display: none; }
+}

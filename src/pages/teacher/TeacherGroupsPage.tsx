@@ -3,7 +3,7 @@ import StudentDetailsEditor from '../../components/teacher/StudentDetailsEditor'
 import { profileReadLifetime } from '../../lib/profileReadLifetime'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect, useCallback, useId, useMemo } from 'react'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
@@ -2509,6 +2509,13 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null)
   const editingStudent = editingStudentId ? studentsById.get(editingStudentId) ?? students.find(student => student.id === editingStudentId) : undefined
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchExpanded, setSearchExpanded] = useState(false)
+  const rosterSearchInput = useRef<HTMLInputElement>(null)
+  const rosterSearchToggle = useRef<HTMLButtonElement>(null)
+  const rosterSearchId = useId()
+  useEffect(() => {
+    if (searchExpanded) rosterSearchInput.current?.focus()
+  }, [searchExpanded])
   const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all')
   const tableRef = useRef<HTMLDivElement>(null)
 
@@ -2778,7 +2785,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
             >
               <Card style={{ padding: 0, overflow: 'hidden' }}>
                 {/* Table header */}
-                <div className="teacher-table-toolbar" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div className={'teacher-table-toolbar' + (isDesktop ? ' roster-responsive-toolbar' : '')} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {/* Single header row: name left, pills center, search right */}
                   <div className="group-roster-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative', flexWrap: 'wrap' }}>
                     {/* Фильтры учеников — та же сегмент-таблетка, что во вкладках
@@ -2803,10 +2810,25 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
 
                     {rosterTools}
                     {/* Right: search */}
-                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, flex: '0 0 auto' }}>
-                      <div className="teacher-table-search">
+                    <div className="roster-search-actions" data-search-expanded={searchExpanded || undefined}
+                      onKeyDown={e => {
+                        if (e.key !== 'Escape' || !searchExpanded || !rosterSearchToggle.current?.offsetWidth) return
+                        e.stopPropagation()
+                        setSearchExpanded(false)
+                        rosterSearchToggle.current.focus()
+                      }}>
+                      <button ref={rosterSearchToggle} data-hover="layer" type="button"
+                        className="roster-search-toggle" aria-label={t('Поиск ученика…')}
+                        aria-expanded={searchExpanded} aria-controls={rosterSearchId}
+                        data-filtered={!!searchQuery || undefined}
+                        onClick={() => setSearchExpanded(open => !open)}>
+                        <Search size={16} aria-hidden />
+                      </button>
+                      <div className="teacher-table-search" id={rosterSearchId}>
                         <Search size={14} style={{ color: 'var(--color-text-3)', flex: 'none' }} />
                         <input
+                          ref={rosterSearchInput}
+                          aria-label={t('Поиск ученика…')}
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
                           placeholder={t('Поиск ученика…')}
