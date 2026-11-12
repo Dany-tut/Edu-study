@@ -1622,28 +1622,16 @@ function StudentAvatar({
         background: group.color,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: 18, fontWeight: 700, color: '#fff',
-        transition: 'opacity 0.15s',
-        opacity: hovered ? 0.25 : 1,
       }}>
-        {initials}
-        <AvatarPhotoFill path={student.avatarPath} />
-      </div>
-
-      {/* Overlay: copy icon (not registered) */}
-      {!isRegistered && (
         <div style={{
-          position: 'absolute', inset: 0, borderRadius: 16,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          opacity: hovered ? 1 : 0,
-          transition: 'opacity 0.15s',
-          pointerEvents: 'none',
+          position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+          opacity: hovered ? 0 : 1, transition: 'opacity 0.15s',
         }}>
-          {copied
-            ? <Check size={18} strokeWidth={2.5} style={{ color: group.color }} />
-            : <Copy size={18} strokeWidth={2} style={{ color: group.color }} />
-          }
+          {initials}
+          <AvatarPhotoFill path={student.avatarPath} />
         </div>
-      )}
+        {hovered && copied && <Check size={18} strokeWidth={2.5} aria-hidden />}
+      </div>
 
       {/* Badge: pending registration dot */}
       {!isRegistered && (
