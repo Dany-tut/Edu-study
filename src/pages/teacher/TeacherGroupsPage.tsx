@@ -2067,6 +2067,8 @@ function StudentPanel({
 }: { student: Student; group: Group; onClose: () => void; onDelete: () => Promise<void>; onOpenFullCard: () => void; onAddHomework: () => void; onSaveComment: (text: string) => Promise<boolean>; onResetPassword: () => Promise<string>; siblingCards?: SiblingCard[]; onAddCard?: (subject: string, level: string) => Promise<void>; onRemoveCard?: (groupId: string) => Promise<void>; onOpenCard?: (groupId: string) => void; onAddToGroup?: () => void }) {
   const t = useT()
   const { tc, tn } = useTc()
+  const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toLocaleLowerCase()
+  const groupLabel = normalizeName(group.name) === normalizeName(student.name) ? '' : group.name.trim()
   const [comment, setComment] = useState(student.comment ?? '')
   const [commentSaved, setCommentSaved] = useState(false)
   const [commentErr, setCommentErr] = useState(false)
@@ -2128,14 +2130,16 @@ function StudentPanel({
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
                 {tn(student.name)}
               </div>
-              <div style={{
+              {(groupLabel || group.subject) && <div style={{
                 display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, maxWidth: '100%',
                 background: group.color + '33', borderRadius: 7, padding: '2px 8px',
               }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: group.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{group.name}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>· {group.subject ? <><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</> : null}</span>
-              </div>
+                {groupLabel && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{groupLabel}</span>}
+                {group.subject && <span style={{ fontSize: 11, fontWeight: 600, color: groupLabel ? 'var(--color-text-3)' : 'var(--color-text)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {groupLabel && '· '}<SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}
+                </span>}
+              </div>}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
