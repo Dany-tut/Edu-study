@@ -67,11 +67,17 @@ function AuthShell({ children }: { children: ReactNode }) {
     const viewport = window.visualViewport
     if (!element || !viewport) return
     const root = document.documentElement
+    let mounted = true
+    let nativeResize = false
+    let restHeight = window.innerHeight
     if (isIphoneApp) {
       root.classList.add('mfa-iphone-open')
-      lockNativeMfaScroll(true)
+      void lockNativeMfaScroll(true).then(resized => {
+        if (!mounted) return
+        nativeResize = resized
+        update()
+      })
     }
-    let restHeight = window.innerHeight
 
     function update() {
       if (!element || !viewport || Math.abs(viewport.scale - 1) > 0.01) return
@@ -80,7 +86,9 @@ function AuthShell({ children }: { children: ReactNode }) {
       // form moves the scrollport down and clips the card while dragging.
       // Keep the iPhone scrollport at the screen origin and only use its height.
       const top = isIphoneApp ? 0 : Math.max(0, viewport.offsetTop - bounds.top)
-      const height = isIphoneApp
+      // UIKit has already fitted the WebView. VisualViewport can still report
+      // keyboard occlusion for its previous frame during the same animation.
+      const height = nativeResize ? bounds.height : isIphoneApp
         ? Math.min(bounds.height, viewport.height)
         : Math.max(0, Math.min(bounds.bottom, viewport.offsetTop + viewport.height) - bounds.top - top)
       restHeight = Math.max(restHeight, bounds.height)
@@ -101,8 +109,9 @@ function AuthShell({ children }: { children: ReactNode }) {
     window.addEventListener('resize', update)
     screen.orientation?.addEventListener('change', rotate)
     return () => {
+      mounted = false
       if (isIphoneApp) {
-        lockNativeMfaScroll(false)
+        void lockNativeMfaScroll(false)
         root.classList.remove('mfa-iphone-open')
       }
       viewport.removeEventListener('resize', update)

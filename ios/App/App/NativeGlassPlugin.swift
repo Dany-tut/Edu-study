@@ -124,7 +124,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 self.restoreMfaScroll?()
                 self.restoreMfaScroll = nil
             }
-            call.resolve()
+            let resized = (self.bridge?.viewController as? MainViewController)?.setMfaKeyboardLayout(locked) ?? false
+            call.resolve(["resizesWebView": resized])
         }
     }
 
