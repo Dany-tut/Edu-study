@@ -68,10 +68,15 @@ export default function SoftEdge({ edge, size, strength = 1, zIndex = 55 }: {
  */
 export function WindowSoftEdges() {
   const [fade, setFade] = useState({ top: 0, bottom: 0 })
+  const [nativeEdges, setNativeEdges] = useState(false)
   // Нижняя полоса — над вкладками телефонной раскладки; в ПК-раскладке айпада
   // снизу нет панели, и край у последней строки не нужен.
   const desktop = useIsDesktop()
   useEffect(() => {
+    const updateNativeEdges = () => setNativeEdges(document.documentElement.hasAttribute('data-native-document-edges'))
+    updateNativeEdges()
+    const observer = new MutationObserver(updateNativeEdges)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-native-document-edges'] })
     const q = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 20) / 20
     const measure = () => {
       const el = document.scrollingElement ?? document.documentElement
@@ -84,8 +89,9 @@ export function WindowSoftEdges() {
     window.addEventListener('resize', measure)
     const ro = new ResizeObserver(measure)
     ro.observe(document.body)
-    return () => { window.removeEventListener('scroll', measure); window.removeEventListener('resize', measure); ro.disconnect() }
+    return () => { window.removeEventListener('scroll', measure); window.removeEventListener('resize', measure); ro.disconnect(); observer.disconnect() }
   }, [])
+  if (nativeEdges) return null
   return createPortal(
     <div className="window-soft-edges" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 45 }}>
       <SoftEdge edge="top" size="calc(env(safe-area-inset-top, 0px) + var(--glass-top-pad, 20px))" strength={fade.top} zIndex={0} />

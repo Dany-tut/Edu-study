@@ -9,7 +9,7 @@ import { IS_IOS, PLATFORM } from '../../../lib/platform'
 export default function MobileTeacherGradebook({ onBack: onBackToProfile }: { onBack?: () => void }) {
   const t = useT()
   const onBack = IS_IOS ? undefined : onBackToProfile
-  if (GLASS && PLATFORM === 'iphone') return <MobileScreen nativeBottomBar scrollKey="teacher-course-journal">
+  if (GLASS && PLATFORM === 'iphone') return <MobileScreen nativeBottomBar nativeDocumentScroll scrollKey="teacher-course-journal">
     <CourseJournal mobile nativeIphone />
   </MobileScreen>
   return <MobileScreen topZone={<div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 44, padding: '0 48px' }}>
