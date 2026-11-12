@@ -1,15 +1,20 @@
 import { useEffect, type RefObject } from 'react'
 import { measureWork } from './platformPerformance'
 
-export function scrollFadeMask(position: number, viewport: number, content: number, horizontal = false, fadeWidth = 18) {
+export function scrollFadeMask(position: number, viewport: number, content: number, horizontal = false, fadeWidth = 18, eased = false) {
   if (content <= viewport + 1) return 'none'
   const start = position > 1, end = content - viewport - position > 1
   const size = Math.min(fadeWidth, viewport / 5)
+  if (horizontal && eased) {
+    const left = start ? `transparent, #0004 ${size * .32}px, #000c ${size * .68}px, #000 ${size}px` : '#000 0px'
+    const right = end ? `#000 calc(100% - ${size}px), #000c calc(100% - ${size * .68}px), #0004 calc(100% - ${size * .32}px), transparent` : '#000 100%'
+    return `linear-gradient(to right, ${left}, ${right})`
+  }
   return `linear-gradient(to ${horizontal ? 'right' : 'bottom'}, ${start ? 'transparent' : '#000'}, #000 ${start ? size : 0}px, #000 calc(100% - ${end ? size : 0}px), ${end ? 'transparent' : '#000'})`
 }
 
 /** Follow the actual scrolling element, including responsive layout changes. */
-export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = true, selector = '*', horizontalFadeWidth = 18) {
+export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = true, selector = '*', horizontalFadeWidth = 18, easedHorizontal = false) {
   useEffect(() => {
     const root = ref.current
     if (!enabled || !root) return
@@ -23,7 +28,7 @@ export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = tru
         const vertical = /auto|scroll/.test(css.overflowY) ? scrollFadeMask(el.scrollTop, el.clientHeight, el.scrollHeight) : 'none'
         const rtl = css.direction === 'rtl'
         const x = rtl ? el.scrollWidth - el.clientWidth + el.scrollLeft : el.scrollLeft
-        const horizontal = /auto|scroll/.test(css.overflowX) ? scrollFadeMask(x, el.clientWidth, el.scrollWidth, true, horizontalFadeWidth) : 'none'
+        const horizontal = /auto|scroll/.test(css.overflowX) ? scrollFadeMask(x, el.clientWidth, el.scrollWidth, true, horizontalFadeWidth, easedHorizontal) : 'none'
         if (!originals.has(el)) originals.set(el, el.style.maskImage)
         el.style.maskImage = [vertical, horizontal].filter(mask => mask !== 'none').join(', ') || originals.get(el) || 'none'
         el.style.maskComposite = 'intersect'
@@ -47,5 +52,5 @@ export function useScrollFades(ref: RefObject<HTMLElement | null>, enabled = tru
       root.removeEventListener('scroll', schedule, true); window.removeEventListener('resize', schedule)
       originals.forEach((mask, el) => { el.style.maskImage = mask; el.style.removeProperty('mask-composite') })
     }
-  }, [ref, enabled, selector, horizontalFadeWidth])
+  }, [ref, enabled, selector, horizontalFadeWidth, easedHorizontal])
 }

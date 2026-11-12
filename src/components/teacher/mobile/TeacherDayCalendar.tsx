@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
 import { animate, motion, useReducedMotion } from 'framer-motion'
 import { addDays, weekStart } from '../../../lib/teacherSchedule'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -61,7 +61,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const rubber = useRef(0)
   const animation = useRef<{ stop: () => void } | null>(null)
   const reducedMotion = useReducedMotion()
-  const dimensions = useRef({ week: WEEK_HEIGHT, month: 280, hours: 0, summary: 0 })
+  const dimensions = useRef({ week: WEEK_HEIGHT, month: 280, hours: 0, summary: 0, rowTop: 45, rowHeight: 44 })
 
   function paint(month: number, hours = dayProgress.current, stretch = rubber.current) {
     progress.current = month
@@ -70,22 +70,30 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     const bodyStyle = root.current?.style
     const style = gestureLayer.current?.style
     const calendarOpacity = 1 - hours
-    const { week, month: monthHeight, summary } = dimensions.current
+    const { week, month: monthHeight, summary, rowTop, rowHeight } = dimensions.current
     const dateHeight = week + (monthHeight - week) * month
-    // Fade the two sets of numerals in turn so they never sit on top of each other.
-    style?.setProperty('--day-week-opacity', String((1 - easeFade(month / .16)) * calendarOpacity))
-    style?.setProperty('--day-month-opacity', String(easeFade((month - .16) / .18) * calendarOpacity))
-    style?.setProperty('--day-month-title-opacity', String(easeFade((month - .16) / .34)))
-    style?.setProperty('--day-month-title-y', `${-4 * (1 - easeFade((month - .16) / .34))}px`)
+    // Leave the outgoing dates readable until the first month row has room.
+    // The incoming grid sits below the old strip during that handoff.
+    const weekOut = easeFade((month - .10) / .24)
+    const monthInset = week * (1 - easeFade((month - .34) / .28))
+    const revealed = dateHeight - monthInset - rowTop
+    style?.setProperty('--day-week-opacity', String((1 - weekOut) * calendarOpacity))
+    style?.setProperty('--day-month-opacity', String(calendarOpacity))
+    style?.setProperty('--day-month-inset', `${monthInset}px`)
+    const titleReveal = easeFade((month - .06) / .53)
+    style?.setProperty('--day-month-title-opacity', String(titleReveal))
+    style?.setProperty('--day-month-title-y', `${-4 * (1 - titleReveal)}px`)
+    style?.setProperty('--day-month-rows-open', String(revealed / rowHeight))
     style?.setProperty('--day-date-flight', `${hours * 90}px`)
     style?.setProperty('--day-calendar-height', `${(dateHeight + stretch) * calendarOpacity}px`)
     style?.setProperty('--day-calendar-scale', String(1 + stretch / dateHeight))
     style?.setProperty('--day-grip-scale', String(1 + Math.abs(stretch) / 100))
-    style?.setProperty('--day-fold-fade', `${24 * Math.max(Math.sin(Math.PI * month), Math.sin(Math.PI * hours))}px`)
+    const folding = Math.max(Math.sin(Math.PI * month), Math.sin(Math.PI * hours))
+    style?.setProperty('--day-fold-fade', `${Math.min(48, dateHeight * .30) * folding}px`)
     bodyStyle?.setProperty('--day-hours-height', `${dimensions.current.hours * hours}px`)
     bodyStyle?.setProperty('--day-summary-height', `${summary * (1 - hours)}px`)
     bodyStyle?.setProperty('--day-summary-opacity', String(1 - hours))
-    bodyStyle?.setProperty('--day-sheet-fade', `${22 * Math.sin(Math.PI * hours)}px`)
+    bodyStyle?.setProperty('--day-sheet-fade', `${44 * Math.sin(Math.PI * hours)}px`)
   }
 
   function markFlightDirections() {
@@ -138,7 +146,11 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     const summary = summaryLayer.current
     if (!month || !hourly || !week || !summary) return
     const measure = () => {
-      dimensions.current = { week: week.offsetHeight, month: month.offsetHeight, hours: hourly.offsetHeight, summary: summary.offsetHeight }
+      const firstRow = month.querySelector<HTMLElement>('.teacher-day-month-row[data-row]')
+      dimensions.current = {
+        week: week.offsetHeight, month: month.offsetHeight, hours: hourly.offsetHeight, summary: summary.offsetHeight,
+        rowTop: firstRow?.offsetTop ?? 45, rowHeight: firstRow?.offsetHeight || 44,
+      }
       paint(progress.current)
     }
     const observer = new ResizeObserver(measure)
@@ -150,7 +162,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     return () => observer.disconnect()
   }, [pinnedHost])
 
-  useScrollFades(monthScroll, !!pinnedHost, '.teacher-day-month-track', 38)
+  useScrollFades(monthScroll, !!pinnedHost, '.teacher-day-month-track', 48, true)
   useLayoutEffect(() => {
     const el = monthScroll.current
     if (el) el.scrollLeft = MONTH_BUFFER * datePitch(el)
@@ -167,7 +179,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const fullDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' })
 
-  useScrollFades(scroll, !!pinnedHost, '.teacher-day-date-track', 38)
+  useScrollFades(scroll, !!pinnedHost, '.teacher-day-date-track', 48, true)
 
   useLayoutEffect(() => {
     const el = scroll.current
@@ -325,7 +337,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
               <div className="teacher-day-month-row" aria-hidden>
                 {monthColumns.map(column => <small key={column}>{weekday.format(dateAtNoon(addDays(monthStart, column)))}</small>)}
               </div>
-              {monthRows.map(row => <div key={row} className="teacher-day-month-row">
+              {monthRows.map(row => <div key={row} className="teacher-day-month-row" data-row style={{ '--day-row': row } as CSSProperties}>
                 {monthColumns.map(column => renderDate(addDays(monthStart, row * 7 + column), false))}
               </div>)}
             </div>
