@@ -1,3 +1,5 @@
+import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
+import { importBankTask } from '../../lib/bankTaskImport'
 import './lessonRow.css'
 import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
@@ -397,18 +399,7 @@ function makeHWTask(type: HWTaskType, isHard: boolean): HWTask {
 // Задание «из тренажёра»: переносим условие + ответ, а табличные задания —
 // сразу как тип «Таблица».
 function hwTaskFromBank(bt: BankTask, isHard: boolean): HWTask {
-  const hasTable = !!bt.questionTable && bt.questionTable.headers.length > 0
-  return {
-    id: uid(),
-    type: hasTable ? 'tableFill' : 'extended',
-    isHard,
-    label: TASK_TYPES_BY_ID[hasTable ? 'tableFill' : 'extended'].label,
-    question: bt.question,
-    answer: bt.answer,
-    table: hasTable ? { headers: [...bt.questionTable!.headers], rows: bt.questionTable!.rows.map(r => [...r]) } : undefined,
-    image: bt.questionImage ?? undefined,
-    bankId: bt.id,
-  }
+  return importBankTask(bt, uid(), isHard)
 }
 
 // ─── LEFT: Course title + description (no lesson selected) ───────────────────
@@ -4348,7 +4339,8 @@ function HwSlotSwitch({ lesson, onUpdate, hwTab, setHwTab, hardMode, onToggleHar
 
 // ─── Bank picker (collapsible «Из тренажёра» list) ───────────────────────────
 
-function BankPicker({ onPick, hard, open: openProp, onToggle }: {
+function BankPicker({ onPick, hard, open: openProp, onToggle, courseSubject }: {
+  courseSubject?: string
   onPick: (bt: BankTask) => void
   hard?: boolean
   /** Управляемый режим: в закреплённом низу панели раскрыт только один список. */
@@ -4364,9 +4356,11 @@ function BankPicker({ onPick, hard, open: openProp, onToggle }: {
   const [search, setSearch] = useState('')
   useEffect(() => { loadBank() }, [loadBank])
 
-  const filtered = search.trim()
-    ? bankTasks.filter(t => t.question.toLowerCase().includes(search.toLowerCase()))
-    : bankTasks
+  const subjectId = getSubject(courseSubject)?.id
+  const query = search.trim().toLocaleLowerCase()
+  const filtered = bankTasks.filter(task =>
+    (!subjectId || task.subject === subjectId) && (!query || task.question.toLocaleLowerCase().includes(query)),
+  )
 
   const accent = hard ? 'var(--color-peach-text)' : 'var(--color-text-2)'
   const accentBg = hard ? 'rgba(245,158,11,0.1)' : 'transparent'
@@ -4513,11 +4507,7 @@ function HomeworkLeftPanel({
       <FipiPicker
         open={fipiOpen}
         courseSubject={courseSubject}
-        onAdd={(st, line, cat) => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, {
-          ...makeHWTask(st.type, false), question: st.prompt,
-          ...(st.cells ? { cells: st.cells } : {}),
-          examTag: { exam: cat.exam, subject: cat.subject, line: line.number },
-        }] }))}
+        onAdd={(st, line, cat) => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, makeExamTaskDraft(st, line, cat, uid())] }))}
       />
       {!fipiOpen && <>
       <ScrollOverlays thumb={hwThumb} />
@@ -4587,14 +4577,14 @@ function HomeworkLeftPanel({
       }}>
         {!hardMode ? (
           <>
-            <BankPicker open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, false)} />
+            <BankPicker courseSubject={courseSubject} open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, false)} />
             {testlyOn
               ? <TestlyButton open={footOpen === 'testly'} onToggle={() => toggleFoot('testly')} addedIds={testlyIds} onPick={x => onUpdate(patchHwSlot(lesson, slot.tab, { tasks: [...tasks, { ...makeHWTask('testly', false), question: x.title, testly: testlyRef(x) }] }))} />
               : testlyLoaded && <TestlyLockedButton />}
             <FipiToggle open={fipiOpen} onToggle={() => toggleFoot('fipi')} />
           </>
         ) : (
-          <BankPicker hard open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, true)} />
+          <BankPicker courseSubject={courseSubject} hard open={footOpen === 'bank'} onToggle={() => toggleFoot('bank')} onPick={bt => addFromBank(bt, true)} />
         )}
       </div>
     </div>
@@ -4776,12 +4766,14 @@ function CenterTestView({
 }
 
 // ─── LEFT: Test question-type picker (matches HomeworkLeftPanel as a rail card) ─
-function TestLeftPanel({ lesson, onUpdate, isLanguage = false }: {
+function TestLeftPanel({ lesson, onUpdate, isLanguage = false, courseSubject }: {
+  courseSubject?: string
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
   isLanguage?: boolean
 }) {
   const t = useT()
+  const [fipiOpen, setFipiOpen] = useState(false)
   const tasks = lesson.testTasks ?? []
   const palette = TASK_TYPES.filter(tt => isLanguage || !tt.languageOnly)
   const addTask = (type: HWTaskType) => onUpdate({ ...lesson, testTasks: [...tasks, makeHWTask(type, false)] })
@@ -4793,10 +4785,13 @@ function TestLeftPanel({ lesson, onUpdate, isLanguage = false }: {
       scrollStyle={{ gap: 10, display: 'flex', flexDirection: 'column' }}
     >
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.8, padding: '0 4px' }}>{t('СОСТАВИТЬ ВОПРОС')}</div>
-      {palette.map(tt => (
+      {!fipiOpen && palette.map(tt => (
         <TaskTypeRow key={tt.type} type={tt.type} onClick={() => addTask(tt.type)} />
       ))}
-      <BankPicker onPick={addFromBank} />
+      {!fipiOpen && <BankPicker courseSubject={courseSubject} onPick={addFromBank} />}
+      <FipiToggle open={fipiOpen} onToggle={() => setFipiOpen(open => !open)} />
+      <FipiPicker open={fipiOpen} courseSubject={courseSubject}
+        onAdd={(st, line, cat) => onUpdate({ ...lesson, testTasks: [...tasks, makeExamTaskDraft(st, line, cat, uid())] })} />
     </OverlayScrollArea>
   )
 }
@@ -7156,6 +7151,13 @@ export default function TeacherCourseEditorPage() {
       setPublishErr(blocker)
       return
     }
+    if (course.lessons.some(lesson => [
+      ...(lesson.hwTasks ?? []), ...(lesson.recHwTasks ?? []), ...(lesson.testTasks ?? []),
+      ...(lesson.extraHw ?? []).flatMap(extra => extra.tasks ?? []),
+    ].some(needsExamCondition))) {
+      setPublishErr(t('Допишите условия заданий из каталога ФИПИ перед публикацией.'))
+      return
+    }
     if (alertMissingAnswers(courseMissingAnswers(course))) return
     setPublishErr(null)
     persistPublicationStatus('published')
@@ -7578,7 +7580,7 @@ export default function TeacherCourseEditorPage() {
 
           {railVariant === 'test' && selectedLesson && (
             <div style={{ ...railInnerSt, display: 'flex', flexDirection: 'column' }}>
-              <TestLeftPanel lesson={selectedLesson} onUpdate={updateLesson} isLanguage={isLanguageSubject(course.subject)} />
+              <TestLeftPanel courseSubject={course.subject} lesson={selectedLesson} onUpdate={updateLesson} isLanguage={isLanguageSubject(course.subject)} />
             </div>
           )}
         </motion.div>

@@ -26,7 +26,11 @@ export function isMissingAnswer(task: TaskPayload): boolean {
   // тоже «ответа нет».
   if (d.id === 'single' || d.id === 'multi') {
     const choices = task.choices ?? []
-    return !(task.correctChoices ?? []).some(i => !!choices[i]?.trim())
+    const marked = task.correctChoices ?? []
+    return choices.filter(choice => choice.trim()).length < 2
+      || marked.length === 0
+      || (d.id === 'single' && marked.length !== 1)
+      || marked.some(i => !choices[i]?.trim())
   }
   return false
 }

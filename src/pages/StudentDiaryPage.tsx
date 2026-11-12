@@ -15,7 +15,7 @@ import StudentWorkJournal from '../components/diary/StudentWorkJournal'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useTheme } from '../store/themeStore'
-import { HW_SUBJECT_ID } from '../lib/standaloneHomework'
+import { isStandaloneSubjectId } from '../lib/standaloneHomework'
 import { useStudentDiaryMetadata } from '../lib/useStudentDiary'
 import {
   buildStudentDiary,
@@ -75,7 +75,7 @@ function CourseLabel({ entry }: { entry: StudentDiaryEntry }) {
       <i />
       {/* «Биология · Биология · подготовка…»: предмет не повторяем, если
           название курса с него уже начинается. */}
-      {entry.course.id !== HW_SUBJECT_ID &&
+      {!isStandaloneSubjectId(entry.course.id) &&
       entry.course.subject &&
       !entry.course.name.toLowerCase().startsWith(entry.course.subject.toLowerCase()) ? (
         <>

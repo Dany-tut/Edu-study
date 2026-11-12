@@ -18,7 +18,7 @@ import {
   type StudentStats,
   type ProgressMap,
 } from '../lib/db'
-import { fetchStandaloneSubject, isTransientStandaloneReadError, HW_SUBJECT_ID } from '../lib/standaloneHomework'
+import { fetchStandaloneSubject, isTransientStandaloneReadError, isStandaloneSubjectId, HW_SUBJECT_ID } from '../lib/standaloneHomework'
 import { getStudentSession, type StudentSession } from '../lib/studentSession'
 import type { Session } from '@supabase/supabase-js'
 import { startHomeworkRetake } from '../lib/homeworkAttempts'
@@ -91,6 +91,7 @@ const defaultStats: StudentStats = {
 let loadSequence = 0
 // One in-memory slot for raw definitions only. Never retain another account,
 // group or permission context, and never cache merged progress/grades.
+let additionalStandaloneSnapshot = new Map<string, Subject>()
 let standaloneSnapshot: { scope: string; value: Subject | null } | null = null
 function standaloneScope(student: StudentSession, auth: Session | null) {
   return JSON.stringify([student.id, student.groupId, auth?.user.id ?? null,
@@ -174,7 +175,8 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const scopeKey = standaloneScope(session, auth.data.session)
     if (standaloneSnapshot?.scope !== scopeKey) {
       standaloneSnapshot = { scope: scopeKey, value: null }
-      set(state => ({ subjects: state.subjects.filter(s => s.id !== HW_SUBJECT_ID) }))
+      additionalStandaloneSnapshot.clear()
+      set(state => ({ subjects: state.subjects.filter(s => !isStandaloneSubjectId(s.id)) }))
     }
 
     if (get().profileSubjectFor !== session.id) set({ profileSubject: null, profileSubjectFor: session.id })
@@ -222,6 +224,20 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     if (!options?.afterTestlySync) void fetchCourseReactions().then(courseReactions => { if (getStudentSession()?.id === session.id) set({ courseReactions }) }).catch(e => console.error('[studentData.reactions]', e))
     const hwP = fetchStandaloneSubject(session.groupId)
 
+    const additionalHwP = trackP.then(async ({ scope }) => {
+      const groups = new Map(scope.rows.filter(row => row.groupId && row.groupId !== session.groupId)
+        .map(row => [row.groupId, row.id]))
+      return Promise.all([...groups].map(async ([groupId, ownerId]) => {
+        const subjectId = `${HW_SUBJECT_ID}:${groupId}`
+        try {
+          return [subjectId, await fetchStandaloneSubject(groupId, subjectId, ownerId)] as const
+        } catch (error) {
+          const previous = additionalStandaloneSnapshot.get(subjectId)
+          return [subjectId, isTransientStandaloneReadError(error) && previous?.ownerStudentId === ownerId ? previous : null] as const
+        }
+      }))
+    })
+
     // Охват — все строки ученика и его группы: трек должен показать ВСЕ его
     // курсы, включая назначенные группе, в которую его записали позже, а не
     // только курс активной сессии. Приезжает вместе с самими курсами.
@@ -233,6 +249,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       trackP,
       scheduleP,
       hwP,
+      additionalHwP,
     ])
     const val = <T,>(i: number, fallback: T): T =>
       results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
@@ -243,7 +260,8 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     if (!isCurrent()) return
     if (scopeKey !== standaloneScope(session, latestAuth.data.session)) {
       standaloneSnapshot = null
-      set(state => ({ subjects: state.subjects.filter(s => s.id !== HW_SUBJECT_ID) }))
+      additionalStandaloneSnapshot.clear()
+      set(state => ({ subjects: state.subjects.filter(s => !isStandaloneSubjectId(s.id)) }))
       return
     }
     const homeworkRead = results[2]
@@ -258,7 +276,6 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       hwSubject = null
       standaloneSnapshot = { scope: scopeKey, value: null }
     }
-    if (!hwSubject) set(state => ({ subjects: state.subjects.filter(s => s.id !== HW_SUBJECT_ID) }))
     if (results[0].status === 'rejected') throw results[0].reason
     const track = results[0].value
     const scope = track.scope
@@ -269,7 +286,11 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // Standalone-ДЗ (вне курса) — отдельный предмет-трек «Домашние задания» со
     // своей нумерацией. Кладём в каталог ДО merge, чтобы прогресс/статусы
     // (в т.ч. сдано/возвращено) применились к его нодам так же, как к курсовым.
-    const fullCatalog = hwSubject ? [...catalog, hwSubject] : catalog
+    const additionalSubjects = results[3].status === 'fulfilled'
+      ? results[3].value.flatMap(([, subject]) => subject ? [subject] : [])
+      : []
+    additionalStandaloneSnapshot = new Map(additionalSubjects.map(subject => [subject.id, subject]))
+    const fullCatalog = [...catalog, ...(hwSubject ? [hwSubject] : []), ...additionalSubjects]
 
     let mergedSubjects = mergeSubjectsWithProgress(fullCatalog, progress)
     let stats = computeStats(progress)
@@ -325,7 +346,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // as a bare "Курс ещё не открыт". In DEV that should still fall back to demo.
     // Exclude the synthetic standalone-ДЗ track (hw-inbox) — a group can have
     // loose homework but still no actual course, which should read as "empty".
-    const hasRealLessons = mergedSubjects.some(s => s.id !== HW_SUBJECT_ID && s.modules.some(m => m.lessons.length > 0))
+    const hasRealLessons = mergedSubjects.some(s => !isStandaloneSubjectId(s.id) && s.modules.some(m => m.lessons.length > 0))
     if (demoForce || ((import.meta.env.DEV || demoFlag) && !hasRealLessons)) {
       // Guard the dynamic import: a stale chunk hash after a deploy makes this
       // reject ("Failed to fetch dynamically imported module"). Swallow it so

@@ -13,7 +13,7 @@ const output = resolve(
 await mkdir(resolve('node_modules/.cache'), { recursive: true })
 const mocks = {
   '../lib/db': `
-    export const fetchStudentTrack=async s=>({scope:{studentIds:[s.id]},subjects:[],progress:globalThis.__progress});
+    export const fetchStudentTrack=async s=>({scope:{studentIds:[s.id],rows:globalThis.__scopeRows??[s]},subjects:[],progress:globalThis.__progress});
     export const fetchScheduleDays=async()=>[];
     export const fetchProgressAttachments=async()=>({});
     export const fetchLessonsHeavy=async()=>({});
@@ -112,11 +112,13 @@ const row = (id, extra = {}) => ({
   ...extra,
 })
 function query(table) {
+  let groupId
   const q = {
     select() {
       return q
     },
-    eq() {
+    eq(column, value) {
+      if (column === 'group_id') groupId = value
       return q
     },
     is() {
@@ -135,7 +137,7 @@ function query(table) {
       return Promise.resolve()
         .then(() =>
           table === 'homework'
-            ? read()
+            ? read(groupId)
             : table === 'groups'
               ? groupError
                 ? failed(503)
@@ -367,6 +369,21 @@ assert.deepEqual(
   ['Homework inline'],
   'A partial bank failure must not remove other inline work',
 )
+// One account can submit work under either of its two group student rows.
+const primary = globalThis.__student
+globalThis.__scopeRows = [primary, { id: 'secondary', groupId: 'GC' }]
+read = group => success([row(group)])
+await load()
+assert.deepEqual(titles(), [`Homework ${primary.groupId}`, 'Homework GC'])
+const secondary = useStudentData.getState().subjects.find(subject => subject.id === 'hw-inbox:GC')
+assert.equal(secondary.ownerStudentId, 'secondary')
+assert.equal(secondary.modules[0].lessons[0].subject, secondary.id)
+read = group => group === 'GC' ? failed(503) : success([row(group)])
+await load()
+assert.ok(titles().includes('Homework GC'))
+globalThis.__scopeRows = [primary]
+await load()
+assert.deepEqual(titles(), [`Homework ${primary.groupId}`], 'Removed membership drops the cached work')
 console.debug = originalDebug
 console.log(
   'PASS: standalone transient recovery, authoritative empty/denied reads, progress freshness, ownership/auth/group isolation, late responses and optional metadata degradation',
