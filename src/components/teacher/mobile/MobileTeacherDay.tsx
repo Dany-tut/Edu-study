@@ -307,15 +307,16 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   }
   const selectLayout = (layout: DayPreferences['layout']) => updatePreferences({ ...preferences, layout })
   const layoutOptions = [
-    { id: 'cards', title: t('Компактные карточки') },
-    { id: 'agenda', title: t('Повестка по времени') },
+    { id: 'cards', title: t('Карточки') },
+    { id: 'agenda', title: t('Повестка') },
   ] as const
   const webSettings = useGlassSheet(iphone && settingsOpen, {
     title: t('Настройки вида'),
+    glass: true,
     sections: [
-      { title: t('Вид при открытии'), rows: CALENDAR_VIEWS.map((label, index) => ({ id: `calendar-${index}`, title: t(label), checked: preferences.calendar === index })) },
-      { title: t('Виджеты'), rows: layoutOptions.map(option => ({ ...option, checked: preferences.layout === option.id })) },
-      { rows: [{ id: 'today', title: t('К текущей дате') }, { id: 'schedule', title: t('Расписание и переносы') }] },
+      { title: t('Вид при открытии'), layout: 'segments', rows: CALENDAR_VIEWS.map((label, index) => ({ id: `calendar-${index}`, title: t(label), checked: preferences.calendar === index })) },
+      { title: t('Лента занятий'), layout: 'segments', rows: layoutOptions.map(option => ({ ...option, checked: preferences.layout === option.id })) },
+      { layout: 'actions', rows: [{ id: 'today', title: t('К текущей дате') }, { id: 'schedule', title: t('Расписание и переносы'), disclosure: true }] },
     ],
   }, id => {
     if (id === 'calendar-0' || id === 'calendar-1' || id === 'calendar-2') selectCalendar(Number(id.slice(-1)) as CalendarView)
@@ -431,21 +432,25 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
       </div>
     </MobileScreen>
     {iphone && <MobileSheet open={webSettings} title={t('Настройки вида')} onClose={closeSettings}>
-      <label className="teacher-day-setting">
-        <span>{t('Вид при открытии')}</span>
-        <select value={preferences.calendar} style={FIELD} onChange={event => selectCalendar(Number(event.target.value) as CalendarView)}>
-          {CALENDAR_VIEWS.map((name, index) => <option key={name} value={index}>{t(name)}</option>)}
-        </select>
-      </label>
-      <label className="teacher-day-setting">
-        <span>{t('Виджеты')}</span>
-        <select value={preferences.layout} style={FIELD} onChange={event => selectLayout(event.target.value === 'agenda' ? 'agenda' : 'cards')}>
-          {layoutOptions.map(option => <option key={option.id} value={option.id}>{option.title}</option>)}
-        </select>
-      </label>
-      <div style={stack}>
-        <Action secondary onClick={goToToday}>{t('К текущей дате')}</Action>
-        <Action secondary onClick={openScheduleSettings}><CalendarDays size={18} />{t('Расписание и переносы')}</Action>
+      <div className="teacher-view-settings">
+        <div role="group" aria-label={t('Вид при открытии')}>
+          <p>{t('Вид при открытии')}</p>
+          <div className="teacher-view-segments">
+            {CALENDAR_VIEWS.map((name, index) => <button key={name} data-hover="own" type="button" aria-pressed={preferences.calendar === index}
+              onClick={() => selectCalendar(index as CalendarView)}>{t(name)}</button>)}
+          </div>
+        </div>
+        <div role="group" aria-label={t('Лента занятий')}>
+          <p>{t('Лента занятий')}</p>
+          <div className="teacher-view-segments">
+            {layoutOptions.map(option => <button key={option.id} data-hover="own" type="button" aria-pressed={preferences.layout === option.id}
+              onClick={() => selectLayout(option.id)}>{option.title}</button>)}
+          </div>
+        </div>
+        <div className="teacher-view-actions">
+          <button data-hover="row" type="button" onClick={goToToday}>{t('К текущей дате')}</button>
+          <button data-hover="row" type="button" onClick={openScheduleSettings}>{t('Расписание и переносы')}<ChevronRight size={16} aria-hidden /></button>
+        </div>
       </div>
     </MobileSheet>}
     <MobileSheet open={scheduleOpen} title={t('Расписание')} onClose={() => setScheduleOpen(false)}><TeacherSchedule mobile onOpen={item => open(item)} onAttendance={item => open(item, 'attendance')} /></MobileSheet>

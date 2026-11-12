@@ -54,12 +54,13 @@ export type GlassSheetRow = {
   caption?: string
   checked?: boolean
   unread?: boolean
+  disclosure?: boolean
 }
 export type GlassSheetContent = {
   title: string
   empty?: string
   glass?: boolean
-  sections: { title?: string; rows: GlassSheetRow[] }[]
+  sections: { title?: string; layout?: 'segments' | 'actions'; rows: GlassSheetRow[] }[]
   footer?: GlassSheetRow
 }
 

@@ -10,6 +10,8 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  "Лента занятий": "Lesson feed",
+  "Повестка": "Agenda",
   "Моя неделя": "My week",
   "Мой месяц": "My month",
   "Сменить вид календаря": "Change calendar view",

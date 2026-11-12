@@ -940,6 +940,7 @@ private struct GlassSheetRow {
     let caption: String?
     let checked: Bool?
     let unread: Bool
+    let disclosure: Bool
 
     init?(_ values: JSObject) {
         guard let id = values["id"] as? String, let title = values["title"] as? String else { return nil }
@@ -949,15 +950,18 @@ private struct GlassSheetRow {
         caption = values["caption"] as? String
         checked = values["checked"] as? Bool
         unread = values["unread"] as? Bool ?? false
+        disclosure = values["disclosure"] as? Bool ?? false
     }
 }
 
 private struct GlassSheetSection {
     let title: String?
     let rows: [GlassSheetRow]
+    let layout: String?
 
     init(_ values: JSObject) {
         title = values["title"] as? String
+        layout = values["layout"] as? String
         rows = (values["rows"] as? [JSObject] ?? []).compactMap(GlassSheetRow.init)
     }
 }
@@ -1041,7 +1045,16 @@ private struct GlassContentSheet: View {
                                 .accessibilityAddTraits(.isHeader)
                                 .padding(.leading, 12)
                         }
-                        ForEach(section.rows, id: \.id, content: row)
+                        if section.layout == "segments" {
+                            segments(section)
+                        } else if section.layout == "actions" {
+                            ForEach(section.rows, id: \.id) { action in
+                                row(action).foregroundStyle(settingsTint)
+                                Divider()
+                            }
+                        } else {
+                            ForEach(section.rows, id: \.id, content: row)
+                        }
                     }
                 }
             }
@@ -1053,6 +1066,40 @@ private struct GlassContentSheet: View {
         Button(footer.title) { onAction(footer.id) }
             .frame(maxWidth: .infinity, minHeight: 44)
             .padding(.horizontal, 20)
+    }
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var settingsTint: Color {
+        colorScheme == .dark ? Color(red: 0.79, green: 0.72, blue: 1) : Color(red: 0.31, green: 0.21, blue: 0.66)
+    }
+
+    private func segments(_ section: GlassSheetSection) -> some View {
+        HStack(spacing: 3) {
+            ForEach(section.rows, id: \.id) { item in
+                let selected = item.checked == true
+                Button {
+                    onAction(item.id)
+                } label: {
+                    Text(item.title)
+                        .font(.subheadline.weight(selected ? .semibold : .regular))
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(selected ? settingsTint : .primary)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .padding(.horizontal, 3)
+                        .background(selected ? settingsTint.opacity(colorScheme == .dark ? 0.23 : 0.15) : .clear,
+                                    in: RoundedRectangle(cornerRadius: 12))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+        .padding(3)
+        .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 15))
+        .padding(.top, 5)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(section.title ?? "")
     }
 
     private func row(_ row: GlassSheetRow) -> some View {
@@ -1069,6 +1116,7 @@ private struct GlassContentSheet: View {
                 }
                 Spacer(minLength: 8)
                 if row.checked == true { Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true) }
+                if row.disclosure { Image(systemName: "chevron.right").font(.footnote).accessibilityHidden(true) }
                 if row.unread { Circle().fill(Color.accentColor).frame(width: 7, height: 7).accessibilityHidden(true) }
             }
             .padding(.horizontal, 12)

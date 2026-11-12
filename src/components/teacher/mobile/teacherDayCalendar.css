@@ -1,6 +1,6 @@
 .teacher-day-gesture { position: sticky; z-index: 6; background: var(--color-bg); overflow-anchor: none; user-select: none; touch-action: pan-x; }
 
-.teacher-day-calendar-layers { position: relative; margin-inline: -16px; height: var(--day-calendar-height, 48px); overflow: clip; }
+.teacher-day-calendar-layers { --date-gutter: 18px; position: relative; margin-inline: -16px; height: var(--day-calendar-height, 48px); overflow: clip; }
 .teacher-day-week-layer, .teacher-day-month-layer { position: absolute; inset: 0 16px auto; }
 .teacher-day-week-layer { opacity: var(--day-week-opacity, 1); }
 .teacher-day-month-layer { opacity: var(--day-month-opacity, 0); transform: translateY(calc(var(--day-month-align, 0px) * var(--day-month-shift, 0))); }
@@ -17,8 +17,15 @@
 .teacher-day-date[data-outside] { color: var(--color-muted); }
 .teacher-day-date-mark { width: 4px; height: 4px; border-radius: 50%; }
 .teacher-day-date-mark[data-marked] { background: var(--color-purple-text); }
-.teacher-day-month-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; }
-.teacher-day-month-track { width: 100%; }
+.teacher-day-month-scroll { margin-inline: -16px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; }
+/* The fade lives over the edge gutter; at rest all seven dates stay legible. */
+.teacher-day-date-scroll,.teacher-day-month-scroll { scroll-snap-type: x mandatory; scroll-padding-inline: var(--date-gutter); }
+.teacher-day-date-scroll[data-dragging],.teacher-day-month-scroll[data-dragging] { scroll-snap-type: none; }
+.teacher-day-date-track,.teacher-day-month-track { width: calc(100% - 2 * var(--date-gutter)); margin-inline: var(--date-gutter); }
+.teacher-day-date-track > button,.teacher-day-month-row:first-child > small { scroll-snap-align: start; }
+@media (max-width: 359px) {
+  .teacher-day-calendar-layers { --date-gutter: 6px; }
+}
 .teacher-day-month-row { display: flex; text-align: center; }
 .teacher-day-month-row > * { flex: 0 0 calc(100% / 7); }
 .teacher-day-summary-reveal { height: var(--day-summary-height, auto); opacity: var(--day-summary-opacity, 1); overflow: clip; }
@@ -46,8 +53,15 @@
 .teacher-day-lessons[data-agenda] .teacher-day-lesson { padding-inline: 4px; background: transparent; border: 0; border-bottom: 1px solid var(--color-border-soft); border-radius: 0; }
 .teacher-day-lessons[data-agenda] .teacher-day-lesson > span { border-left: 3px solid var(--color-border-soft); padding-left: 9px; }
 .teacher-day-lessons[data-agenda] .teacher-day-lesson[data-next] > span { border-color: var(--color-purple); }
-.teacher-day-setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; font-size: 14px; }
-.teacher-day-setting select { min-width: 0; max-width: 55%; min-height: 44px; font-size: 16px; }
 .teacher-day-controls { display: grid; grid-template-columns: 44px minmax(0,1fr) 44px; gap: 8px; justify-items: center; align-items: center; min-height: 44px; }
 .teacher-day-controls > button:nth-child(2) { border: 0; background: transparent; color: inherit; padding: 0; min-height: 44px; border-radius: 999px; }
 .teacher-day-lesson:disabled { opacity: .72; }
+
+
+.teacher-view-settings { display: grid; gap: 16px; }
+.teacher-view-settings p { margin: 0 8px 5px; color: var(--color-muted); font-size: 13px; font-weight: 650; }
+.teacher-view-segments { display: flex; gap: 3px; padding: 3px; border-radius: 16px; background: var(--color-bg); }
+.teacher-view-segments button { flex: 1 1 auto; min-width: 0; min-height: 44px; border: 0; border-radius: 13px; padding: 4px; background: transparent; color: var(--color-text); font-size: 14px; }
+.teacher-view-segments button[aria-pressed=true] { background: var(--color-purple-soft); color: var(--color-purple-text); font-weight: 700; }
+.teacher-view-segments button:active { opacity: .8; }
+.teacher-view-actions button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 48px; padding: 0 8px; border: 0; border-bottom: 1px solid var(--color-border-soft); background: transparent; color: var(--color-purple-text); text-align: left; }

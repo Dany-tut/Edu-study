@@ -14,6 +14,7 @@ const WEEK_BUFFER = 35
 const WEEK_HEIGHT = 48
 const MONTH_BUFFER = 28
 const WINDOW_SIZE = WEEK_BUFFER * 2 + 7
+const datePitch = (el: HTMLElement) => (el.firstElementChild?.clientWidth ?? el.clientWidth) / 7
 const dateAtNoon = (day: string) => new Date(`${day}T12:00:00`)
 
 export default function TeacherDayCalendar({ day, today, mode, locale, markedDays, onPick, onMode, hours, summary }: {
@@ -124,10 +125,10 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     root.current?.style.setProperty('--day-month-align', `${row ? 14 - row.offsetTop : 0}px`)
   }, [day, monthPage])
 
-  useScrollFades(monthScroll, true, '.teacher-day-month-track')
+  useScrollFades(monthScroll, true, '.teacher-day-month-track', 38)
   useLayoutEffect(() => {
     const el = monthScroll.current
-    if (el) el.scrollLeft = MONTH_BUFFER * el.clientWidth / 7
+    if (el) el.scrollLeft = MONTH_BUFFER * datePitch(el)
     setShownMonth(monthPage)
   }, [monthPage])
 
@@ -139,12 +140,12 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const fullDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' })
 
-  useScrollFades(scroll, true, '.teacher-day-date-track')
+  useScrollFades(scroll, true, '.teacher-day-date-track', 38)
 
   useLayoutEffect(() => {
     const el = scroll.current
     if (!el) return
-    const cell = el.clientWidth / 7
+    const cell = datePitch(el)
     el.scrollLeft = (pendingOffset.current ?? WEEK_BUFFER) * cell
     pendingOffset.current = null
   }, [origin])
@@ -168,11 +169,11 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   function extendStrip() {
     const el = scroll.current
     if (!el?.clientWidth) return
-    const position = el.scrollLeft / (el.clientWidth / 7)
+    const position = el.scrollLeft / (datePitch(el))
     const shift = position < 7 ? -28 : position > WINDOW_SIZE - 14 ? 28 : 0
     if (shift) {
       pendingOffset.current = position - shift
-      if (drag.current?.axis === 'x') drag.current.left -= shift * el.clientWidth / 7
+      if (drag.current?.axis === 'x') drag.current.left -= shift * datePitch(el)
       setOrigin(value => addDays(value, shift))
     }
   }
@@ -192,7 +193,10 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     }
     if (gesture.axis === 'x' && event.pointerType === 'mouse') {
       const strip = mode === 1 ? monthScroll.current : scroll.current
-      if (strip) strip.scrollLeft = gesture.left - dx
+      if (strip) {
+        strip.dataset.dragging = 'true'
+        strip.scrollLeft = gesture.left - dx
+      }
     }
     if (gesture.axis === 'y') {
       const elapsed = event.timeStamp - gesture.lastAt
@@ -210,6 +214,8 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     const gesture = drag.current
     if (gesture?.id !== event.pointerId) return
     drag.current = null
+    if (scroll.current) delete scroll.current.dataset.dragging
+    if (monthScroll.current) delete monthScroll.current.dataset.dragging
     if (!gesture.axis) return
     if (event.type === 'pointercancel' || event.type === 'lostpointercapture') {
       if (gesture.axis === 'y') settle(mode)
@@ -276,7 +282,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
           <div ref={monthScroll} className="teacher-day-month-scroll no-scrollbar" onScroll={event => {
             const el = event.currentTarget
             if (!el.clientWidth) return
-            const column = Math.round(el.scrollLeft / (el.clientWidth / 7)) - MONTH_BUFFER
+            const column = Math.round(el.scrollLeft / (datePitch(el))) - MONTH_BUFFER
             const month = addDays(monthStart, column + 14).slice(0, 7)
             setShownMonth(month)
           }}>
