@@ -10,6 +10,7 @@ import type { User } from '@supabase/supabase-js'
 import { TeacherGuides, useTeacherGuides } from '../guides/TeacherGuides'
 import type { GuideId } from '../../../../design/contextual-onboarding/guides.mjs'
 import { getViewAs } from '../../../lib/teacherView'
+import { useT } from '../../../lib/i18n'
 import { useTeacherAccess } from '../../../lib/teacherAccess'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
@@ -134,6 +135,7 @@ export function ScopePicker({
   value: Scope
   onChange: (scope: Scope) => void
 }) {
+  const t = useT()
   const modules = data.modules.filter((m) => m.course_id === value.course).sort((a, b) => a.position - b.position)
   return (
     <div className="js-scope">
@@ -149,7 +151,7 @@ export function ScopePicker({
             ...data.courses.map((c) => ({ value: c.id, label: c.title })),
             { value: OUTSIDE_COURSES, label: 'Вне курсов' },
           ]}
-          placeholder="Найти курс…"
+          placeholder={t('Найти курс…')}
           clearable={false}
           triggerStyle={SCOPE_TRIGGER}
         />
@@ -163,6 +165,7 @@ export function ScopePicker({
               { value: ALL_MODULES, label: 'Все модули' },
               ...modules.map((m) => ({ value: m.id, label: m.label })),
             ]}
+            placeholder={t('Найти модуль…')}
             clearable={false}
             triggerStyle={SCOPE_TRIGGER}
           />

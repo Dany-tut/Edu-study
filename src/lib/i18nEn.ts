@@ -352,6 +352,8 @@ export const EN: Record<string, string> = {
   'Все ученики курса': 'All course students',
   'Индивидуальные и без группы': 'Individual students and students without a group',
   'Все модули': 'All modules',
+  'Найти курс…': 'Find a course…',
+  'Найти модуль…': 'Find a module…',
   'Найти ученика': 'Find a student',
   'Сбросить поиск': 'Clear search',
   'Изучено уроков': 'Lessons completed',
