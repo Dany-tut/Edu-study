@@ -73,6 +73,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     private var tabBar: UITabBar?
     private var tabBarEdges: [NSLayoutConstraint] = []
     private var tabBarCompact = false
+    private var tabBarFollowsScroll = false
     private var tabIds: [String] = []
     private var tabSymbols: [String] = []
     private var anchor: UIButton?
@@ -786,11 +787,14 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     }
 
     private func barBottomOffset(in view: UIView) -> CGFloat {
-        guard tabBar != nil else { return -10 }
-        // The capsule normally starts about 48 pt above the safe-area bottom.
-        // Move the row by the same distance as that edge, preserving its 10 pt gap.
-        let capsuleTop = view.safeAreaInsets.bottom + 48
-        return -58 + capsuleTop * (1 - tabBarHeightScale)
+        guard let tabBar else { return -10 }
+        guard tabBarFollowsScroll else { return -58 }
+
+        let safeBottom = view.safeAreaInsets.bottom
+        // Allow for glass extending above the bar's layout bounds. The row
+        // follows the same bottom-anchored scaling as the tab bar.
+        let expandedHeight = max(tabBar.bounds.height, safeBottom + 64)
+        return safeBottom - expandedHeight * tabBarHeightScale - 10
     }
 
     private func tabBarTransform(_ bar: UITabBar, hidden: Bool) -> CGAffineTransform {
@@ -808,7 +812,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             guard let host = self.host else { call.resolve(); return }
             let compactRequested = call.getBool("compact")
-            let compact = compactRequested == true && host.traitCollection.userInterfaceIdiom == .phone
+            self.tabBarFollowsScroll = compactRequested != nil && host.traitCollection.userInterfaceIdiom == .phone
+            let compact = compactRequested == true && self.tabBarFollowsScroll
             let compactChanged = compact != self.tabBarCompact
             let creatingBar = self.tabBar == nil
             let animate = !creatingBar && compactChanged && !UIAccessibility.isReduceMotionEnabled
@@ -867,6 +872,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                     let minimumWidth = CGFloat(tabItems.count) * 44 + 40
                     let inset = min(40, max(0, (host.view.bounds.width - minimumWidth) / 2))
                     for edge in self.tabBarEdges { edge.constant = compact ? inset : 0 }
+                    host.view.layoutIfNeeded()
                     self.barBottomConstraint?.constant = self.barBottomOffset(in: host.view)
                     self.updateBarBottomSize()
                     host.view.layoutIfNeeded()
@@ -902,7 +908,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         DispatchQueue.main.async {
             self.tabBar?.removeFromSuperview()
             self.tabBar = nil
-            if self.tabBarCompact {
+            if self.tabBarFollowsScroll {
+                self.tabBarFollowsScroll = false
                 self.tabBarCompact = false
                 self.barBottomConstraint?.constant = -10
                 self.updateBarBottomSize()
