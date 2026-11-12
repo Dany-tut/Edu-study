@@ -159,3 +159,16 @@
   grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
   gap: 8px;
 }
+
+.teacher-more-hero-title img {
+  filter: hue-rotate(-17deg) saturate(.64);
+}
+
+.teacher-more-details input[type="checkbox"] {
+  accent-color: var(--color-accent);
+}
+
+.teacher-more-row[aria-pressed="true"] {
+  color: var(--color-purple-text);
+  background: var(--color-accent-soft);
+}

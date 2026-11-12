@@ -1,3 +1,4 @@
+import MobileSheet from './MobileSheet'
 import { useEffect, useRef, useState } from 'react'
 import { useFileDrop, dropOverStyle } from '../lib/useFileDrop'
 import { FIELD } from '../lib/fieldStyle'
@@ -20,7 +21,8 @@ import { Alert } from './Alert'
 const CUSTOM = '__custom__'
 const MAX_ATTACHMENTS = 20
 
-export default function FeedbackModal({ role, onClose, onSent, defaultSection, defaultMessage }: {
+export default function FeedbackModal({ role, onClose, onSent, defaultSection, defaultMessage, bottomSheet = false }: {
+  bottomSheet?: boolean
   role: FeedbackRole
   onClose: () => void
   /** Заявка реально ушла в базу (в отличие от onClose, который зовётся и при отмене). */
@@ -125,14 +127,8 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
   const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', marginBottom: 6, display: 'block' }
   const fieldStyle: React.CSSProperties = { ...FIELD }
 
-  return (
-    <>
-    <Modal
-      onClose={onClose} onPaste={onPaste}
-      footer={!done ? <TeacherSaveButton label={t('Отправить')} savedLabel={t('Отправлено')} savingLabel={t('Отправляю…')} onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} /> : undefined}
-      title={t('Обратная связь')}
-      subtitle={t('Опишите ошибку или пожелание — заявка уйдёт администратору')}
-    >
+  const footer = !done ? <TeacherSaveButton label={t('Отправить')} savedLabel={t('Отправлено')} savingLabel={t('Отправляю…')} onClick={send} disabled={!canSend} saving={saving} fullWidth={isPhone} /> : undefined
+  const content = <>
       {done ? (
         <div style={{ padding: '28px 8px', textAlign: 'center' }}>
           <AlertIcon tone="success" style={{ margin: '0 auto 10px' }} />
@@ -221,7 +217,19 @@ export default function FeedbackModal({ role, onClose, onSent, defaultSection, d
 
         </>
       )}
-    </Modal>
+  </>
+
+  return (
+    <>
+    {bottomSheet ? <MobileSheet open softEdge title={t('Обратная связь')} onClose={onClose} footer={footer} onPaste={onPaste}>
+      {content}
+    </MobileSheet> : <Modal
+      onClose={onClose} onPaste={onPaste} footer={footer}
+      title={t('Обратная связь')}
+      subtitle={t('Опишите ошибку или пожелание — заявка уйдёт администратору')}
+    >
+      {content}
+    </Modal>}
     {photoIndex !== null && <PhotoGallery photos={photos} initialIndex={photoIndex} onClose={() => setPhotoIndex(null)} />}
     </>
   )

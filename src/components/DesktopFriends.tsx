@@ -1,3 +1,4 @@
+import MobileSheet from './MobileSheet'
 import { PersonRow, PersonProfile } from './PersonCard'
 import HScrollFade from './HScrollFade'
 import FadeText from './FadeText'
@@ -20,13 +21,13 @@ const results: Record<string,string> = {
   cooldown: 'Повторный запрос этому человеку можно отправить через сутки.',
 }
 
-export default function DesktopFriends({ model }: { model: FriendsModel }) {
+export default function DesktopFriends({ model, bottomSheet = false }: { model: FriendsModel; bottomSheet?: boolean }) {
   const t = useT()
   const { account, snapshot, tab, setTab } = model
   const panel = useRef<HTMLDivElement>(null)
   const open = Boolean(account && tab)
   useEffect(() => {
-    if (!open || !panel.current) return
+    if (bottomSheet || !open || !panel.current) return
     const dialog = panel.current.closest<HTMLElement>('[role="dialog"]')
     if (!dialog) return
     const previous = document.activeElement
@@ -40,7 +41,11 @@ export default function DesktopFriends({ model }: { model: FriendsModel }) {
     }
     dialog.addEventListener('keydown',cycle)
     return () => { dialog.removeEventListener('keydown',cycle); if (previous instanceof HTMLElement && previous.isConnected) previous.focus() }
-  }, [open])
+  }, [bottomSheet, open])
+  if (bottomSheet) return <MobileSheet open={open} softEdge title={t('Друзья')} onClose={() => setTab(null)}>
+    <HScrollFade fadeWidth={22} padX={2}><FriendsTabs model={model}/></HScrollFade>
+    <FriendsContent model={model}/>
+  </MobileSheet>
   if (!account || !tab) return null
   return <Modal title={<div className="friends-modal-heading">
     <div className="friends-modal-identity">

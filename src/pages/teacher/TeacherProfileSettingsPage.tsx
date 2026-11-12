@@ -367,14 +367,14 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
               width: 80, height: 80, borderRadius: '50%',
               position: 'relative', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 4px 22px ${selectedAvatar.glow}`,
+              boxShadow: embedded ? 'var(--shadow-sm)' : `0 4px 22px ${selectedAvatar.glow}`,
               marginBottom: 12,
             }}
           >
             {/* Gradient on an overshooting layer so its square corners are clipped
                 by the circular container (kills GPU corner-bleed on transforms). */}
-            <div style={{ position: 'absolute', inset: -2, background: selectedAvatar.gradient }} />
-            <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: '#fff', position: 'relative' }} />
+            <div style={{ position: 'absolute', inset: -2, background: embedded ? 'var(--color-accent-soft)' : selectedAvatar.gradient }} />
+            <AvatarIcon size={Math.round(40 * (selectedAvatar.scale ?? 1))} strokeWidth={1.8} style={{ color: embedded ? 'var(--color-purple-text)' : '#fff', position: 'relative' }} />
             <AvatarPhotoFill path={avatarPath} />
           </motion.div>
           {!embedded && <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginBottom: 12 }}>
@@ -417,9 +417,9 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
                   style={{
                     width: 52, height: 52, justifySelf: 'center',
                     borderRadius: '50%', overflow: 'hidden',
-                    background: opt.gradient,
+                    background: embedded ? 'var(--color-accent-soft)' : opt.gradient,
                     cursor: 'pointer', padding: 0, border: 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: embedded ? 'var(--color-purple-text)' : '#fff',
                     boxShadow: isSelected
                       ? 'inset 0 0 0 1px rgba(255,255,255,0.4), 0 0 0 2px var(--color-bg-2), 0 0 0 4px var(--color-accent)'
                       : 'inset 0 0 0 1px rgba(255,255,255,0.4)',

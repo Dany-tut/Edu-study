@@ -542,7 +542,12 @@ const OVERVIEW_SECTIONS = ['features', 'ai', 'themes', 'storage'] as const
 type ActivityOverview = { dau: number; wau: number }
 type OverviewSection = typeof OVERVIEW_SECTIONS[number]
 
-export default function TeacherAdminPage({ onBack }: { onBack?: () => void } = {}) {
+export type AdminSheetSection = 'users' | 'data' | 'analytics' | 'requests'
+
+export default function TeacherAdminPage({ onBack, sheetSection }: {
+  onBack?: () => void
+  sheetSection?: AdminSheetSection
+} = {}) {
   const t = useT()
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
@@ -555,6 +560,7 @@ export default function TeacherAdminPage({ onBack }: { onBack?: () => void } = {
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests' | 'dictionary' | 'features'>(() => {
+    if (sheetSection) return sheetSection
     const saved = sessionStorage.getItem('admin_tab')
     return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' || saved === 'features' ? saved : 'overview'
   })
@@ -626,11 +632,12 @@ export default function TeacherAdminPage({ onBack }: { onBack?: () => void } = {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  const loadSummary = !sheetSection || (sheetSection === 'data' && isAdmin === true)
+  useEffect(() => { if (loadSummary) void load() }, [loadSummary])
 
   // Persist the active tab so F5 doesn't kick the admin back to «Обзор».
-  useEffect(() => { sessionStorage.setItem('admin_tab', tab) }, [tab])
-  useEffect(() => { sessionStorage.setItem('admin_overview_section', section) }, [section])
+  useEffect(() => { if (!sheetSection) sessionStorage.setItem('admin_tab', tab) }, [sheetSection, tab])
+  useEffect(() => { if (!sheetSection) sessionStorage.setItem('admin_overview_section', section) }, [sheetSection, section])
 
   const firstLoad = loading && !storage
   const dbPct = storage ? pct(storage.db_bytes, storage.db_limit_bytes) : 0
@@ -644,14 +651,15 @@ export default function TeacherAdminPage({ onBack }: { onBack?: () => void } = {
 
   // Admin-only area. Teachers never reach it (menu item is hidden), but guard
   // the page too in case activePage is set some other way.
+  if (sheetSection && isAdmin === null) return <p role="status">{t('Загрузка…')}</p>
   if (isAdmin === false) {
     return (
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', color: 'var(--color-text-3)' }}>
           <ShieldAlert size={32} strokeWidth={1.5} style={{ opacity: 0.6 }} />
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>{t('Раздел доступен только администратору')}</div>
-          <button data-hover="layer" onClick={() => setActivePage('home')} style={{ ...btn('S', 'secondary'), marginTop: 16 }}>
-            {t('На главную')}
+          <button data-hover="layer" onClick={onBack ?? (() => setActivePage('home'))} style={{ ...btn('S', 'secondary'), marginTop: 16 }}>
+            {t(sheetSection ? 'Закрыть' : 'На главную')}
           </button>
         </div>
       </div>
@@ -659,8 +667,9 @@ export default function TeacherAdminPage({ onBack }: { onBack?: () => void } = {
   }
 
   return (
-    <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
-      <div style={{ maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
+    <div ref={scrollRef} style={sheetSection ? undefined : { flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', marginTop: -100, paddingTop: 100 }}>
+      <div style={sheetSection ? undefined : { maxWidth: PAGE_WIDTH.wide, margin: '0 auto', padding: '28px 24px 60px' }}>
+        {!sheetSection && <>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
@@ -688,6 +697,7 @@ export default function TeacherAdminPage({ onBack }: { onBack?: () => void } = {
           items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox], ['dictionary', t('Словарь'), AudioLines], ['features', t('Функции'), ToggleRight]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
         />
 
+        </>}
         {tab === 'analytics' && <TeacherAnalytics />}
 
         {tab === 'users' && <AdminUserActivity />}

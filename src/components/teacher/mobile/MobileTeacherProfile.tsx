@@ -1,3 +1,5 @@
+import MobileSheet from '../../MobileSheet'
+import type { AdminSheetSection } from '../../../pages/teacher/TeacherAdminPage'
 import { useOpenStudentCabinet } from '../../../lib/useOpenStudentCabinet'
 import Modal from '../../Modal'
 import TeacherModules from '../TeacherModules'
@@ -44,6 +46,7 @@ import { useTeacherSession } from '../../../lib/useTeacherSession'
 import { PLATFORM } from '../../../lib/platform'
 import './mobileTeacherMore.css'
 
+const AdminSettings = lazy(() => import('../../../pages/teacher/TeacherAdminPage'))
 const ProfileSettings = lazy(() => import('../../../pages/teacher/TeacherProfileSettingsPage'))
 const isIPhone = PLATFORM === 'iphone'
 
@@ -96,7 +99,8 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const { lang, setLang } = useLang()
   const [email, setEmail] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
-  const [details, setDetails] = useState<'profile' | 'schedule' | 'login' | null>(null)
+  const [details, setDetails] = useState<'profile' | 'schedule' | 'login' | 'theme' | 'language' | null>(null)
+  const [adminSection, setAdminSection] = useState<AdminSheetSection | null>(null)
   const [nameOverride, setNameOverride] = useState<string>()
   const adminAccess = useTeacherAccess(s => s.loaded && s.isAdmin)
   const [integrations, setIntegrations] = useState(false)
@@ -184,9 +188,16 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
     { id: 'analytics', label: t('Аналитика'), Icon: BarChart3 },
   ] as const
   const moreName = nameOverride ?? m.name
+  const detailTitles = {
+    profile: t('Профиль'), schedule: t('Время в расписании'), login: t('Способы входа'),
+    theme: t('Тема оформления'), language: t('Язык'),
+  }
+  const adminTitle = adminShortcuts.find(({ id }) => id === adminSection)?.label
 
   return (
-    <MobileScreen nativeDocumentScroll={isIPhone} scrollKey="t-profile" topPad={isIPhone ? 50 : 64} glassHeader={{ leading: isIPhone ? 'Искра' : t('Ещё') }} topZone={<div style={{ display: 'flex', justifyContent: 'center', minHeight: 44, alignItems: 'center' }}><GlassPill>{isIPhone ? 'Искра' : t('Ещё')}</GlassPill></div>}>
+    <MobileScreen nativeDocumentScroll={isIPhone} scrollKey="t-profile" topPad={64}
+      glassHeader={isIPhone ? undefined : { leading: t('Ещё') }}
+      topZone={isIPhone ? undefined : <div style={{ display: 'flex', justifyContent: 'center', minHeight: 44, alignItems: 'center' }}><GlassPill>{t('Ещё')}</GlassPill></div>}>
       {isIPhone ? <div className="teacher-more">
         <div className="teacher-more-card teacher-more-identity">
           <div className="teacher-more-avatar">
@@ -207,10 +218,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           </div>
           <div className="teacher-more-shortcuts">
             {adminAccess ? adminShortcuts.map(({ id, label, Icon }) => (
-              <MoreRow compact key={id} label={label} icon={<Icon size={21} />} onClick={() => {
-                sessionStorage.setItem('admin_tab', id)
-                openPage('admin')
-              }} />
+              <MoreRow compact key={id} label={label} icon={<Icon size={21} />} onClick={() => setAdminSection(id)} />
             )) : <>
               {showConstructor && <MoreRow compact label={t('Конструктор')} icon={<Layers size={21} />} onClick={() => openPage('constructor')} />}
               {showFinances && <MoreRow compact label={t('Финансы')} icon={<Wallet size={21} />} onClick={() => openPage('finances')} />}
@@ -235,9 +243,9 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         <section className="teacher-more-card teacher-more-settings" aria-labelledby="teacher-more-settings">
           <h2 id="teacher-more-settings">{t('Настройки')}</h2>
           <MoreRow label={t('Тема оформления')} icon={dark ? <Moon size={21} /> : <Sun size={21} />}
-            value={<span className="teacher-more-muted">{t(dark ? 'Тёмная' : 'Светлая')}</span>} onClick={toggleTheme} />
+            value={<span className="teacher-more-muted">{t(dark ? 'Тёмная' : 'Светлая')}</span>} onClick={() => setDetails('theme')} />
           <MoreRow label={t('Язык')} icon={<Languages size={21} />}
-            value={<span className="teacher-more-muted">{lang === 'ru' ? 'Русский' : 'English'}</span>} onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')} />
+            value={<span className="teacher-more-muted">{lang === 'ru' ? 'Русский' : 'English'}</span>} onClick={() => setDetails('language')} />
           <MoreRow label={t('Время в расписании')} icon={<CalendarClock size={21} />} onClick={() => setDetails('schedule')} />
         </section>
 
@@ -479,17 +487,41 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           <LogOut size={18} /> {t('Выйти из аккаунта')}
         </motion.button>
       </div>}
-      <DesktopFriends model={friends}/>
-      {details && <Modal title={t(details === 'profile' ? 'Профиль' : details === 'schedule' ? 'Время в расписании' : 'Способы входа')} padding={16} onClose={() => setDetails(null)}>
-        {details === 'login' ? <TeacherLoginMethods /> : <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}>
+      <DesktopFriends model={friends} bottomSheet={isIPhone} />
+      <MobileSheet open={details !== null} title={details ? detailTitles[details] : undefined} softEdge onClose={() => setDetails(null)}>
+        {details === 'login' && <TeacherLoginMethods />}
+        {(details === 'profile' || details === 'schedule') && <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}>
           <ProfileSettings friends={friends} embedded={details} onNameSaved={setNameOverride} />
         </Suspense>}
-      </Modal>}
-      {integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
-      {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
-      {paymentsOpen && <Modal title={t('Оплаты: ждут вас')} onClose={() => setPaymentsOpen(false)}><div style={{ margin: '0 -16px' }}><PaymentsInbox /></div></Modal>}
+        {details === 'theme' && <div className="teacher-more-card">
+          {[false, true].map(option => <button key={String(option)} type="button" className="teacher-more-row"
+            aria-pressed={dark === option} data-hover="layer"
+            onClick={() => { tactile(); if (dark !== option) toggleTheme(); setDetails(null) }}>
+            {t(option ? 'Тёмная' : 'Светлая')}
+          </button>)}
+        </div>}
+        {details === 'language' && <div className="teacher-more-card">
+          {(['ru', 'en'] as const).map(option => <button key={option} type="button" className="teacher-more-row"
+            aria-pressed={lang === option} data-hover="layer"
+            onClick={() => { tactile(); setLang(option); setDetails(null) }}>
+            {option === 'ru' ? 'Русский' : 'English'}
+          </button>)}
+        </div>}
+      </MobileSheet>
+      <MobileSheet open={adminAccess && adminSection !== null} title={adminTitle} softEdge onClose={() => setAdminSection(null)}>
+        {adminAccess && adminSection && <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}>
+          <AdminSettings key={adminSection} sheetSection={adminSection} onBack={() => setAdminSection(null)} />
+        </Suspense>}
+      </MobileSheet>
+      {isIPhone ? <MobileSheet open={integrations} title={t('Интеграции')} softEdge onClose={() => setIntegrations(false)}>
+        <TeacherModules showHeading={false} />
+      </MobileSheet> : integrations && <Modal title={t('Интеграции')} onClose={() => setIntegrations(false)}><TeacherModules /></Modal>}
+      {feedbackOpen && <FeedbackModal role="teacher" bottomSheet={isIPhone} onClose={() => setFeedbackOpen(false)} />}
+      {isIPhone ? <MobileSheet open={paymentsOpen} title={t('Оплаты: ждут вас')} softEdge onClose={() => setPaymentsOpen(false)}>
+        <PaymentsInbox />
+      </MobileSheet> : paymentsOpen && <Modal title={t('Оплаты: ждут вас')} onClose={() => setPaymentsOpen(false)}><div style={{ margin: '0 -16px' }}><PaymentsInbox /></div></Modal>}
       <AppIconSheet open={iconOpen} onClose={() => setIconOpen(false)} />
-      {tariffOpen && <TariffModal currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
+      {tariffOpen && <TariffModal bottomSheet={isIPhone} currentName={m.planName} currentMaxStudents={m.maxStudents} onClose={() => setTariffOpen(false)} />}
     </MobileScreen>
   )
 }

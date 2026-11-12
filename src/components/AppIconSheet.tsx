@@ -43,7 +43,7 @@ export default function AppIconSheet({ open, onClose }: { open: boolean; onClose
   }
 
   return (
-    <MobileSheet open={open} onClose={onClose} title={t('Иконка приложения')}>
+    <MobileSheet open={open} softEdge onClose={onClose} title={t('Иконка приложения')}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '18px 8px', padding: '4px 4px 12px' }}>
         {APP_ICONS.map(o => {
           const on = o.id === current

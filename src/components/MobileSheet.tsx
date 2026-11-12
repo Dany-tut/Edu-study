@@ -1,5 +1,6 @@
+import SoftEdge from './SoftEdge'
 import FadeText from './FadeText'
-import { useEffect, useRef, useId } from 'react'
+import { Fragment, useEffect, useRef, useId } from 'react'
 import { useT } from '../lib/i18n'
 import { useOverlayScroll, fadeMask } from './teacher/OverlayScroll'
 import { useKeyboardState } from '../lib/useKeyboardInset'
@@ -48,6 +49,8 @@ export default function MobileSheet({
   title,
   children,
   footer,
+  softEdge = false,
+  onPaste,
 }: {
   open: boolean
   onClose: () => void
@@ -56,8 +59,11 @@ export default function MobileSheet({
   // Optional pinned footer (e.g. a primary action button). Stays fixed at the
   // bottom while `children` scroll underneath it.
   footer?: ReactNode
+  softEdge?: boolean
+  onPaste?: React.ClipboardEventHandler<HTMLDivElement>
 }) {
   const t = useT()
+  const hasSoftEdge = IS_IOS && softEdge
   const titleId = useId()
   const y = useMotionValue(0)
   const dragControls = useDragControls()
@@ -243,18 +249,46 @@ export default function MobileSheet({
   // Нативный таб-бар приложения лежит над WebView — пока шторка открыта, он уезжает.
   useNativeOverlay(open)
 
+  const scrollBody = (
+    <div
+      ref={scrollRef}
+      onScroll={onScroll}
+      className="no-scrollbar"
+      style={{
+        overflowY: 'auto',
+        overscrollBehavior: 'contain',
+        padding: footer
+          ? '10px 20px 20px'
+          : '10px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)',
+        // Content melts under the grabber/header instead of hard-cutting:
+        // the top edge fades out as rows scroll up to it, and the bottom
+        // edge fades under the pinned footer. paddingTop/Bottom keep the
+        // first/last row at full opacity while at rest.
+        minHeight: 0,
+        ...(hasSoftEdge ? {} : fadeMask(fade, 20, footer ? 48 : 20)),
+      }}
+    >
+      {/* Lazy forms can mount animated children during the sheet's exit.
+          Track their animations separately so they cannot delay removal of the sheet. */}
+      {hasSoftEdge ? <AnimatePresence><Fragment key="sheet-content">{children}</Fragment></AnimatePresence> : children}
+    </div>
+  )
+
   return createPortal(
     <AnimatePresence>
       {open && (
-        <>
           <motion.div
+            key="sheet-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,0.35)' }}
           />
+      )}
+      {open && (
           <motion.div
+            key="sheet-panel"
             ref={sheetRef}
             className="mobile-sheet"
             role="dialog"
@@ -280,6 +314,7 @@ export default function MobileSheet({
               maxHeight: keyboard.open ? `calc(100dvh - ${keyboard.inset + 12}px)` : '85dvh',
               display: 'flex', flexDirection: 'column',
             }}
+            onPaste={onPaste}
             onPointerDown={startDrag}
             drag="y"
             dragControls={dragControls}
@@ -310,38 +345,24 @@ export default function MobileSheet({
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-bg-5)' }} />
               </div>
               {title && (
-                <div style={{ padding: '4px 20px 10px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
+                <div id={titleId} style={{ padding: '4px 20px 10px', textAlign: 'center', fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>
                   <FadeText lines={2} style={{ overflowWrap: 'anywhere' }}>{title}</FadeText>
                 </div>
               )}
             </div>
-            <div
-              ref={scrollRef}
-              onScroll={onScroll}
-              className="no-scrollbar"
-              style={{
-                overflowY: 'auto',
-                overscrollBehavior: 'contain',
-                padding: footer
-                  ? '10px 20px 20px'
-                  : '10px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)',
-                // Content melts under the grabber/header instead of hard-cutting:
-                // the top edge fades out as rows scroll up to it, and the bottom
-                // edge fades under the pinned footer. paddingTop/Bottom keep the
-                // first/last row at full opacity while at rest.
-                minHeight: 0,
-                ...fadeMask(fade, 20, footer ? 48 : 20),
-              }}
-            >
-              {children}
-            </div>
+            {hasSoftEdge ? (
+              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                {scrollBody}
+                <SoftEdge edge="top" size="24px" strength={fade.top} zIndex={1} />
+                <SoftEdge edge="bottom" size={footer ? '40px' : '24px'} strength={fade.bottom} zIndex={1} />
+              </div>
+            ) : scrollBody}
             {footer && (
               <div style={{ flexShrink: 0, padding: keyboard.open ? '8px 20px 16px' : '8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
                 {footer}
               </div>
             )}
           </motion.div>
-        </>
       )}
     </AnimatePresence>,
     document.body,

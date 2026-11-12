@@ -1,3 +1,4 @@
+import MobileSheet from '../MobileSheet'
 import { useState } from 'react'
 import Modal from '../Modal'
 import { AlertIcon } from '../Alert'
@@ -12,10 +13,11 @@ import { Alert } from '../Alert'
 // тарифа сразу шлёт заявку админу (без формы обратной связи), админ
 // назначает вручную. Текущий тариф подсвечен и не предлагается к выбору.
 
-export default function TariffModal({ currentName, currentMaxStudents, onClose }: {
+export default function TariffModal({ currentName, currentMaxStudents, onClose, bottomSheet = false }: {
   currentName?: string
   currentMaxStudents?: number | null
   onClose: () => void
+  bottomSheet?: boolean
 }) {
   const t = useT()
   const { lang } = useLang()
@@ -45,17 +47,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
 
   const price = (p: PlanTier) => (p.priceRub === 0 ? t('бесплатно') : planPrice(p, lang))
 
-  return (
-    <Modal
-      onClose={onClose} width={480} padding={22}
-      title={t('Тарифы')}
-      subtitle={t('Выберите тариф — мы свяжемся и подключим его')}
-      icon={
-        <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Sparkles size={20} style={{ color: 'var(--color-purple)' }} />
-        </div>
-      }
-    >
+  const content = <>
       {sentPlan ? (
         <div style={{ padding: '28px 8px', textAlign: 'center' }}>
           <AlertIcon tone="success" style={{ margin: '0 auto 10px' }} />
@@ -127,6 +119,22 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose }
           </div>
         </>
       )}
+  </>
+
+  if (bottomSheet) return <MobileSheet open softEdge title={t('Тарифы')} onClose={onClose}>{content}</MobileSheet>
+
+  return (
+    <Modal
+      onClose={onClose} width={480} padding={22}
+      title={t('Тарифы')}
+      subtitle={t('Выберите тариф — мы свяжемся и подключим его')}
+      icon={
+        <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--color-purple-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Sparkles size={20} style={{ color: 'var(--color-purple)' }} />
+        </div>
+      }
+    >
+      {content}
     </Modal>
   )
 }
