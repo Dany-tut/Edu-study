@@ -1,3 +1,4 @@
+import MobileSheet from './MobileSheet'
 import { useEffect, useRef, useState } from 'react'
 import { Bird, Bug, Cat, Check, ChevronRight, Fish, Flower2, Rabbit, Rocket, Star, Users } from './icons/appIcons'
 import { TeacherBook } from '../lib/teacherAvatarIcon'
@@ -41,7 +42,7 @@ export function PersonRow({person,onOpen}:{person:PersonCard;onOpen:(p:PersonCar
   </button>
 }
 type Detail=PersonCard & {status:string;id?:string;state?:'friend'|'incoming'|'outgoing'|'none'}
-export function PersonProfile({person,model,onClose}:{person:PersonCard;model:FriendsModel;onClose:()=>void}) {
+export function PersonProfile({person,model,onClose,bottomSheet=false}:{person:PersonCard;model:FriendsModel;onClose:()=>void;bottomSheet?:boolean}) {
   const t=useT();const body=useRef<HTMLDivElement>(null)
   const [detail,setDetail]=useState<Detail|null>(null),[error,setError]=useState(''),[confirm,setConfirm]=useState(false),[busy,setBusy]=useState(false),[copied,setCopied]=useState(false)
   const alive=useRef(true),lock=useRef(false)
@@ -56,6 +57,7 @@ export function PersonProfile({person,model,onClose}:{person:PersonCard;model:Fr
   },[model.account,person.personKey,retry])
   const closeRef=useRef(onClose);closeRef.current=onClose
   useEffect(()=>{
+    if(bottomSheet)return
     const previous=document.activeElement
     const dialog=body.current?.closest<HTMLElement>('[role=dialog]')
     focusQuietly(dialog?.querySelector<HTMLButtonElement>('button'))
@@ -73,7 +75,7 @@ export function PersonProfile({person,model,onClose}:{person:PersonCard;model:Fr
     }
     window.addEventListener('keydown',keys,true)
     return()=>{window.removeEventListener('keydown',keys,true);if(previous instanceof HTMLElement&&previous.isConnected)focusQuietly(previous)}
-  },[])
+  },[bottomSheet])
   useEffect(()=>{
     const root=body.current
     if(confirm){focusQuietly(root?.querySelector<HTMLButtonElement>('.pc-confirm button'));return}
@@ -95,7 +97,7 @@ export function PersonProfile({person,model,onClose}:{person:PersonCard;model:Fr
     }catch{if(alive.current)setError(t('Не удалось удалить из друзей. Попробуйте ещё раз.'))}
     finally{lock.current=false;if(alive.current)setBusy(false)}
   }
-  return <Modal title={t('Профиль человека')} width={480} zIndex={9500} onClose={onClose}>
+  const content = (
     <div ref={body} className="pc-person-profile">
       <div className="pc-profile-cover"><span className="pc-cover-label">{t('Искра · вместе')}</span></div>
       <div className="pc-profile-identity"><PersonAvatar person={visible} large/><PersonRole person={visible}/><h2>{visible.name??visible.handle}</h2><button data-hover="layer" className="pc-copy" onClick={async()=>{try{await navigator.clipboard.writeText('@'+visible.handle);if(alive.current)setCopied(true)}catch{if(alive.current)setError(t('Не удалось скопировать'))}}}>@{visible.handle}</button><span className="pc-copy-status" role="status">{copied?t('Скопировано'):''}</span></div>
@@ -108,5 +110,8 @@ export function PersonProfile({person,model,onClose}:{person:PersonCard;model:Fr
       </>}
       <p className="pc-profile-note">{t('Здесь только публичная информация профиля.')}</p>
     </div>
-  </Modal>
+  )
+  return bottomSheet
+    ? <MobileSheet open title={t('Профиль человека')} softEdge onClose={onClose}>{content}</MobileSheet>
+    : <Modal title={t('Профиль человека')} width={480} zIndex={9500} onClose={onClose}>{content}</Modal>
 }

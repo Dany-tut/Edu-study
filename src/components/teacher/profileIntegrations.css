@@ -39,3 +39,7 @@
 /* Ховер — тот же приём, что у слоя data-hover: цвет текста кнопки на 10 % поверх заливки. */
 .integration-action {transition:box-shadow .15s}
 @media (hover:hover) and (pointer:fine) {.integration-action:hover:not(:disabled) {box-shadow:inset 0 0 0 100vmax color-mix(in srgb,currentColor 10%,transparent)}}
+
+.profile-integrations--sheet .integration-code-row > div { gap: 8px }
+.profile-integrations--sheet .integration-code-row input { min-height: 44px }
+.profile-integrations--sheet .integration-actions { flex-wrap: wrap }

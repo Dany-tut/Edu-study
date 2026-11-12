@@ -44,7 +44,7 @@ export default function DesktopFriends({ model, bottomSheet = false }: { model: 
   }, [bottomSheet, open])
   if (bottomSheet) return <MobileSheet open={open} softEdge title={t('Друзья')} onClose={() => setTab(null)}>
     <HScrollFade fadeWidth={22} padX={2}><FriendsTabs model={model}/></HScrollFade>
-    <FriendsContent model={model}/>
+    <FriendsContent model={model} personSheet />
   </MobileSheet>
   if (!account || !tab) return null
   return <Modal title={<div className="friends-modal-heading">
@@ -69,7 +69,7 @@ export function FriendsTabs({ model }: { model: FriendsModel }) {
     }))}/>
 }
 
-export function FriendsContent({ model, overview = false, polished = false, suggestedName = '' }: { model: FriendsModel; overview?: boolean; polished?: boolean; suggestedName?: string }) {
+export function FriendsContent({ model, overview = false, polished = false, suggestedName = '', personSheet = false }: { model: FriendsModel; overview?: boolean; polished?: boolean; suggestedName?: string; personSheet?: boolean }) {
   const t = useT()
   const [person,setPerson] = useState<PersonCard|null>(null)
   useEffect(()=>setPerson(null),[model.account,model.tab])
@@ -90,7 +90,7 @@ export function FriendsContent({ model, overview = false, polished = false, sugg
       {snapshot ? panes.map(pane =>
         <FriendsPane key={account + pane} model={model} account={account} tab={pane} overview={overview} polished={polished} onOpen={setPerson} suggestedHandle={valid(suggestedName) ? clean(suggestedName) : ''}/>
       ) : !model.error && <p role="status">{t('Загружаем профиль…')}</p>}
-    </div>{person && <PersonProfile key={account + person.personKey} person={person} model={model} onClose={()=>setPerson(null)}/>}</>
+    </div>{person && <PersonProfile key={account + person.personKey} person={person} model={model} bottomSheet={personSheet} onClose={()=>setPerson(null)}/>}</>
   )
 }
 

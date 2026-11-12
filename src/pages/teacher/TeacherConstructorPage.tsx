@@ -1,3 +1,5 @@
+import { PLATFORM } from '../../lib/platform'
+import HScrollFade from '../../components/HScrollFade'
 import { textFadeStyle } from '../../lib/textFades'
 import { RefreshCw as LoopUiRefreshCw } from '../../components/icons/appIcons'
 import { SubjectMark } from '../../components/icons/SubjectMark'
@@ -7940,6 +7942,14 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
 const DIAG_GRID_GAP = 14
 const DIAG_CLAMP_PAD = 8
 
+function ConstructorTabStrip({ children }: { children: React.ReactNode }) {
+  if (PLATFORM === 'iphone') return <HScrollFade gap={10} fadeWidth={22} scrollStyle={{ alignItems: 'center' }}>{children}</HScrollFade>
+  return <div style={{
+    display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap',
+    overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', position: 'relative',
+  }}>{children}</div>
+}
+
 export default function TeacherConstructorPage() {
   const t = useT()
   const [activeTab, setActiveTab] = useState<Tab>(() => {
@@ -9322,7 +9332,7 @@ export default function TeacherConstructorPage() {
             initial={false}
             style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden', position: 'relative' }}
           >
-            <div ref={listScrollRef} style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div ref={listScrollRef} style={{ flex: 1, minWidth: 0, overflowY: 'auto', scrollbarGutter: 'stable', padding: PLATFORM === 'iphone' ? '100px 16px 32px' : '100px 32px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* ЛИПКАЯ ШАПКА В РЕЖИМЕ РЕДАКТИРОВАНИЯ.
                   Крестик, «Дублировать» и «Удалить» нужны на любой строке
                   списка — отматывать сотню карточек наверх ради кнопки нельзя.
@@ -9342,18 +9352,11 @@ export default function TeacherConstructorPage() {
                 ...(editMode ? {
                   position: 'sticky', top: -108, zIndex: 20,
                   marginTop: -108, paddingTop: 108,
-                  marginLeft: -32, marginRight: -32, paddingLeft: 32, paddingRight: 32,
+                  marginInline: PLATFORM === 'iphone' ? -16 : -32, paddingInline: PLATFORM === 'iphone' ? 16 : 32,
                   marginBottom: -12, paddingBottom: 12,
                 } : null),
               } as React.CSSProperties}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                // Keep the constructor tabs on one stable baseline at every
-                // viewport width. On narrower screens the row scrolls instead
-                // of wrapping and pushing the filters/cards down a line.
-                flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden',
-                scrollbarWidth: 'none', position: 'relative',
-              }}>
+              <ConstructorTabStrip>
                 {/* Edit-mode toggle — square button.
                     Стоит в ряду ВСЕГДА: иначе на «Разметке» и «Материалах»
                     строка вкладок прыгала бы влево на ширину кнопки.
@@ -9475,9 +9478,9 @@ export default function TeacherConstructorPage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </ConstructorTabStrip>
               {activeTab === 'course' && !dbLoading && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: PLATFORM === 'iphone' ? 'wrap' : undefined, marginBottom: -10 }}>
                   <CourseSortDropdown value={courseSort} onChange={setCourseSort} />
                   <SubjectFacet
                     values={shelfSubjects} only={subjectOpts} allowAll
@@ -9503,7 +9506,7 @@ export default function TeacherConstructorPage() {
                 </div>
               )}
               {activeTab === 'testing' && testSubjectOpts.length > 0 && (
-                <div ref={testRowRef} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -10, ...diagShiftStyle }}>
+                <div ref={testRowRef} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: PLATFORM === 'iphone' ? 'wrap' : undefined, marginBottom: -10, ...diagShiftStyle }}>
                   <SortDropdown value={testSort} options={TEST_SORT_OPTS} accent="var(--color-green-text)" minWidth={136} onChange={setTestSort} />
                   <SubjectFacet
                     values={shelfSubjects} only={testSubjectOpts}

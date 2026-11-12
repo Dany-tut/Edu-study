@@ -241,3 +241,19 @@
   font-size: 12px;
   font-weight: 500;
 }
+
+.teacher-more-schedule {
+  display: grid;
+  gap: 16px;
+}
+
+.teacher-more-schedule label {
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-2);
+  font-size: 13px;
+}
+
+.teacher-more-schedule label > span {
+  padding-inline: 14px;
+}

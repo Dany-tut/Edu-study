@@ -38,6 +38,33 @@ async function readJournalSnapshot(owner: string, complete: boolean, signal: Abo
   }).abortSignal(signal).retry(false))
 }
 
+// Brief, in-memory reuse for iPhone tab switches. Keep one complete server
+// snapshot, scoped to the authenticated owner and never written to storage.
+let recentSnapshot: { owner: string; complete: boolean; expires: number; data: CourseJournalData } | null = null
+let snapshotGeneration = 0
+function invalidateRecentSnapshot() {
+  recentSnapshot = null
+  snapshotGeneration++
+}
+const journalAuthChanged = createAuthDataChangeGuard()
+supabase.auth.onAuthStateChange((event, session) => {
+  if (journalAuthChanged(event, session)) invalidateRecentSnapshot()
+})
+if (typeof window !== 'undefined') window.addEventListener('iskra:journal-changed', invalidateRecentSnapshot)
+
+async function readRecentJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal, reuse: boolean) {
+  const cached = recentSnapshot
+  if (reuse && cached?.owner === owner && cached.complete === complete && cached.expires > Date.now()) {
+    return cached.data
+  }
+  const generation = snapshotGeneration
+  const data = await readJournalSnapshot(owner, complete, signal)
+  if (data && !signal.aborted && generation === snapshotGeneration) {
+    recentSnapshot = { owner, complete, expires: Date.now() + 15_000, data }
+  }
+  return data
+}
+
 export function useCourseJournal(completeWorkList = false, enabled = true, parallelRoster = false) {
   const { groups, loading: groupsLoading } = useGroups()
   const { value: students, loading: studentsLoading } = useAllStudentsSnapshot()
@@ -46,11 +73,18 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   const loadedScope = useRef('')
   const traceStart = useRef(0)
   const traceReady = useRef(0)
-  const [data, setData] = useState<CourseJournalData | null>(null)
+  const [data, updateData] = useState<CourseJournalData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [tick, setTick] = useState(0)
-  const reload = useCallback(() => setTick(n => n + 1), [])
+  const setData = useCallback((action: Parameters<typeof updateData>[0]) => {
+    if (parallelRoster) invalidateRecentSnapshot()
+    updateData(action)
+  }, [parallelRoster])
+  const reload = useCallback(() => {
+    if (parallelRoster) invalidateRecentSnapshot()
+    setTick(n => n + 1)
+  }, [parallelRoster])
   const prefetch = useRef<{ tick: number; owner: Promise<string | null>; read: Promise<CourseJournalData | null> } | null>(null)
   useEffect(() => {
     if (!enabled || !parallelRoster) return
@@ -58,7 +92,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     const timeout = setTimeout(() => controller.abort(), 20_000)
     const owner = getOwnerId()
     const read = owner.then(id => id
-      ? readJournalSnapshot(id, completeWorkList, controller.signal)
+      ? readRecentJournalSnapshot(id, completeWorkList, controller.signal, tick === 0)
       : null).finally(() => clearTimeout(timeout))
     // Roster may still be loading when a failed request settles.
     void read.catch(() => {})
@@ -152,7 +186,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
         setLoading(false)
       }
     }, 20_000)
-    void load().then(next => { if (active) { loadedScope.current = loadKey; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); setData(next) } }).catch(e => {
+    void load().then(next => { if (active) { loadedScope.current = loadKey; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); updateData(next) } }).catch(e => {
       if (active) setError(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
     }).finally(() => { clearTimeout(timeout); controller.abort(); if (active) setLoading(false) })
     return () => { active = false; clearTimeout(timeout); controller.abort() }
@@ -169,6 +203,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     const authDataChanged = createAuthDataChangeGuard()
     const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reload() }
     window.addEventListener('focus', focus)
+    if (parallelRoster) window.addEventListener('iskra:journal-changed', reload)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (authDataChanged(event, session) && event !== 'INITIAL_SESSION') {
         setData(null)
@@ -178,7 +213,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
       }
     })
     return () => { window.removeEventListener('focus', focus); window.removeEventListener('iskra:journal-changed', reload); subscription.unsubscribe() }
-  }, [reload])
+  }, [reload, parallelRoster, setData])
   const resolved = useMemo(() => data && !data.demo ? { ...data, students, groups } : data, [data, students, groups])
   return { data: resolved, loading, error, reload, setData }
 }
