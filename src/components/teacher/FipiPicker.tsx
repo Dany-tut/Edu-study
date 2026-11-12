@@ -3,12 +3,13 @@
 // переопределить) → список линий КИМ (номер + баллы + тип) → добавить готовое
 // типизированное задание с меткой examTag. Линии/баллы — каталог ФИПИ-2026
 // (data/examPresets.ts). По согласованным концептам (4 платформы × 2 темы):
-// ПК/iPad — колонка редактора; сегмент-«фильтр» белой плашкой, ряды с фейдом.
+// ПК/iPad — колонка редактора, ряды с фейдом.
 import { useMemo, useState } from 'react'
 import { GraduationCap, ChevronDown, ChevronUp, Search } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 import { FIELD } from '../../lib/fieldStyle'
 import ScrollFade from '../ScrollFade'
+import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
 import { TaskTypeRow } from './TaskTypeRow'
 import { taskTypeDef } from '../../data/taskTypes'
@@ -52,21 +53,22 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
   return (
     <ScrollFade maxHeight="100%" fadeHeight={16} style={{ flex: 1, minHeight: 0 }} overlayScrollbar>
       <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {/* Сегмент ЕГЭ | ОГЭ — роль «фильтр»: белая плашка активного */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, background: 'var(--color-bg-3)', borderRadius: 11, padding: 3 }}>
-          {(['ege', 'oge'] as ExamCode[]).map(k => (
-            <button key={k} type="button"
-              onClick={() => { setExam(k); setSubject(courseSubject && examSubjects(k).includes(courseSubject) ? courseSubject : examSubjects(k)[0]); setQuery('') }}
-              style={{
-                height: 32, border: 0, borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 13, fontWeight: 600,
-                background: exam === k ? 'var(--color-bg-2)' : 'transparent',
-                color: exam === k ? 'var(--color-text)' : 'var(--color-muted)',
-                boxShadow: exam === k ? 'var(--shadow-pill)' : undefined,
-              }}>
-              {k === 'ege' ? t('ЕГЭ') : t('ОГЭ')}
-            </button>
-          ))}
+        <div className="fipi-exam-switch" style={{ alignSelf: 'flex-start' }}>
+          <Segmented<ExamCode>
+            variant="filter"
+            value={exam}
+            items={[
+              { id: 'ege', label: t('ЕГЭ') },
+              { id: 'oge', label: t('ОГЭ') },
+            ]}
+            onChange={nextExam => {
+              if (nextExam === exam) return
+              const subjects = examSubjects(nextExam)
+              setExam(nextExam)
+              setSubject(courseSubject && subjects.includes(courseSubject) ? courseSubject : subjects[0])
+              setQuery('')
+            }}
+          />
         </div>
 
         {/* Предмет — из предмета курса, можно переопределить */}

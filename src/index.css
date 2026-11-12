@@ -1304,3 +1304,8 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 @media (hover: none) {
   .fipi-row-info { --fipi-info-idle-opacity: 1; }
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .fipi-exam-switch [aria-selected=false]:hover { --color-text-3: var(--color-text); }
+  .fipi-exam-switch [aria-selected=false]:hover::after { opacity: 0; }
+}

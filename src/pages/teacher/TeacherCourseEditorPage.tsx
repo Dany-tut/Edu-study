@@ -25,7 +25,7 @@ import {
   X, FileText, NotebookPen, FolderOpen, Layers,
   GripVertical, ChevronLeft, ChevronUp, Unlock, Check, Calendar,
   TimedTest, Clock, Trash2, FolderInput, Table as TableIcon, Search, ArrowUpDown, ArrowUp, ArrowDown, Camera, Atom, Copy, RefreshCw,
-  ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Lock, Sparkles,
+  ListVideo, Play, ListPlus, RotateCcw, Loader2, ExternalLink, Info, Sparkles,
 } from '../../components/icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import FadeText from '../../components/FadeText'
@@ -50,6 +50,7 @@ import RecordingLinkForm, { RecordingInlineEdit } from '../../components/teacher
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { TaskTypeRow } from '../../components/teacher/TaskTypeRow'
 import TestlyPicker, { testlyRef } from '../../components/teacher/TestlyPicker'
+import TestlyLockedButton from '../../components/teacher/TestlyLockedButton'
 import { TestlyTile } from '../../components/TestlyMark'
 import { useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import ScrollFade from '../../components/ScrollFade'
@@ -4443,30 +4444,6 @@ function TestlyButton({ onPick, addedIds, open: openProp, onToggle }: {
         <TestlyTile size={14} /> {open ? t('Скрыть Тестли') : t('Из Тестли')}
       </button>
       {open && <div style={{ marginTop: 6 }}><TestlyPicker compact addedIds={addedIds} onPick={onPick} /></div>}
-    </div>
-  )
-}
-
-/**
- * «Из Тестли», когда модуль ещё НЕ подключён. Статичный блок (не кнопка):
- * показываем, что тесты сюда можно ставить, но сначала нужно подключить модуль —
- * иначе учитель про Тестли не узнает, рабочая кнопка «Из Тестли» есть лишь у
- * подключённых. Замок + подпись «Нужно подключить» объясняют статус без клика.
- */
-function TestlyLockedButton() {
-  const t = useT()
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-      padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
-      background: 'transparent',
-    }}>
-      <span style={{ opacity: 0.4, flexShrink: 0, display: 'flex' }}><TestlyTile size={14} /></span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Из Тестли')}</span>
-        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--color-muted)' }}>{t('Нужно подключить')}</span>
-      </span>
-      <Lock size={13} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
     </div>
   )
 }
