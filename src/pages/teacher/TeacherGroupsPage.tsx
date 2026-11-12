@@ -2101,7 +2101,7 @@ function StudentPanel({
         WebkitBackdropFilter: 'var(--blur-solid)',
         border: '1px solid var(--color-border)',
         borderRadius: 20,
-        margin: '36px 12px 12px 0',
+        margin: `36px 12px ${rosterInset}px 0`,
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
         boxShadow: 'var(--shadow-4)',
