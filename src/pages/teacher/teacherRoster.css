@@ -55,3 +55,21 @@
 .cj-tabs.roster-filter-tabs button[aria-pressed='true'] { color: var(--color-accent); background: var(--color-purple-soft); }
 .cj-tabs.roster-filter-tabs button:has(.roster-filter-count) { padding-inline-end: calc((var(--rf-h) - 18px) / 2); }
 @media (max-width: 650px) { .cj-tabs.roster-filter-tabs { --rf-h: 44px; } }
+
+.student-login-spoiler::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-text) 16%, transparent), transparent);
+  transform: translateX(-100%);
+  animation: student-login-sheen 2.2s ease-in-out infinite;
+}
+
+@keyframes student-login-sheen {
+  65%, 100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-login-spoiler::before { animation: none; }
+}

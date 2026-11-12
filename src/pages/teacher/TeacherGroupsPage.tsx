@@ -909,9 +909,9 @@ function Card({
  * ПОЯВЛЯЕТСЯ ТОЛЬКО КОГДА ЕСТЬ КОГО ЗВАТЬ и исчезает сама, когда последний
  * переехал: это не раздел кабинета, а работа с концом.
  */
-function DeleteStudentAction({ student, groupName, remove, startEditing = false, onCancel }: {
+function DeleteStudentAction({ student, groupName, remove, startEditing = false, onCancel, compact = false }: {
   student: Student; groupName: string; remove: () => Promise<void>
-  startEditing?: boolean; onCancel?: () => void
+  startEditing?: boolean; onCancel?: () => void; compact?: boolean
 }) {
   const t = useT()
   const [editing, setEditing] = useState(startEditing)
@@ -920,7 +920,7 @@ function DeleteStudentAction({ student, groupName, remove, startEditing = false,
   const [failed, setFailed] = useState(false)
   const valid = !!name.trim() && name.trim() === student.name.trim()
   const cancel = () => { setEditing(false); setName(''); setFailed(false); onCancel?.() }
-  if (!editing) return <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setEditing(true)}>
+  if (!editing) return <button data-hover="layer" style={btn('M', 'secondary', compact ? { height: 34, minHeight: 34, borderRadius: 10, fontSize: 13 } : undefined)} onClick={() => setEditing(true)}>
     {t('Удалить ученика')}
   </button>
   return <form style={{ display: 'grid', gap: 8 }} onKeyDown={e => {
@@ -1561,7 +1561,7 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
         {phase === 'revealed'
           ? <span style={{ ...mono, color: 'var(--color-text)', flex: 1, textAlign: 'right', wordBreak: 'break-all' }}>{login}</span>
           : (
-            <button data-hover="layer" type="button" onClick={() => setPhase('revealed')} title={t('Нажмите чтобы показать')} aria-label={t('Показать логин')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
+            <button className="student-login-spoiler" type="button" onClick={() => setPhase('revealed')} aria-label={t('Показать логин')} style={{ ...shimBar, border: 0, cursor: 'pointer' }} />
           )
         }
         <button data-hover="layer" type="button" onClick={() => void handleCopy('login', login)} disabled={!login} title={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} aria-label={copiedField === 'login' ? t('Скопировано') : t('Скопировать логин')} style={{ ...copyButtonStyle, opacity: login ? 1 : 0.4, cursor: login ? 'pointer' : 'default' }}>
@@ -1580,9 +1580,6 @@ function CredentialsSpoiler({ login, password }: { login: string; password: stri
           {copiedField === 'password' ? <Check size={14} /> : <Copy size={14} />}
         </button>
       </div>}
-      <div style={{ fontSize: 10, color: 'var(--color-text-3)', textAlign: 'center', marginTop: 2 }}>
-        {phase === 'hidden' ? t('● ● ●  нажмите чтобы показать') : t('Нажмите значок, чтобы скопировать поле')}
-      </div>
     </div>
   )
 }
@@ -2324,15 +2321,15 @@ function StudentPanel({
       </OverlayScrollArea>
 
       {/* Sticky footer: assign extra homework + delete */}
-      <div style={{ padding: '12px 20px 16px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ padding: '10px 20px 12px', flexShrink: 0, borderTop: '1px solid var(--color-border-soft)', display: 'flex', flexDirection: 'column', gap: 6 }}>
         <button
           onClick={onAddHomework}
-          style={{ height: 48,
-            width: '100%', padding: '0 22px',
+          style={{ minHeight: 34,
+            width: '100%', padding: '4px 8px',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             background: 'var(--grad-purple)', border: 'none',
-            borderRadius: 14, cursor: 'pointer',
-            fontSize: 15, fontWeight: 700, color: '#fff',
+            borderRadius: 10, cursor: 'pointer',
+            fontSize: 13, fontWeight: 700, color: '#fff',
             transition: 'filter 0.15s',
           }}
           onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)' }}
@@ -2344,10 +2341,10 @@ function StudentPanel({
           <button
             onClick={onAddToGroup}
             style={{
-              width: '100%', padding: '10px 0',
+              width: '100%', minHeight: 34, padding: '4px 8px',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               background: 'var(--color-bg-3)', border: '1px solid var(--color-border-medium)',
-              borderRadius: 12, cursor: 'pointer',
+              borderRadius: 10, cursor: 'pointer',
               fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
               transition: 'background 0.15s',
             }}
@@ -2357,7 +2354,7 @@ function StudentPanel({
             <Users size={16} strokeWidth={2} /> {t('Добавить в группу')}
           </button>
         )}
-        <DeleteStudentAction key={student.id} student={student} groupName={group.name} remove={onDelete} />
+        <DeleteStudentAction key={student.id} student={student} groupName={group.name} remove={onDelete} compact />
       </div>
     </div>
   )
