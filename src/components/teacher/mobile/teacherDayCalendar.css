@@ -1,23 +1,38 @@
-.teacher-day-gesture { user-select: none; touch-action: pan-x; }
-.teacher-day-calendar[data-mode="1"] .teacher-day-gesture { touch-action: none; }
+.teacher-day-gesture { position: sticky; z-index: 6; background: var(--color-bg); overflow-anchor: none; user-select: none; touch-action: pan-x; }
+
 .teacher-day-calendar-layers { position: relative; margin-inline: -16px; height: var(--day-calendar-height, 48px); overflow: clip; }
 .teacher-day-week-layer, .teacher-day-month-layer { position: absolute; inset: 0 16px auto; }
-.teacher-day-week-layer { opacity: calc(1 - var(--day-month-open, 0)); }
-.teacher-day-month-layer { opacity: var(--day-month-open, 0); transform: translateY(calc(var(--day-month-align, 0px) * (1 - var(--day-month-open, 0)))); }
+.teacher-day-week-layer { opacity: var(--day-week-opacity, 1); }
+.teacher-day-month-layer { opacity: var(--day-month-opacity, 0); transform: translateY(calc(var(--day-month-align, 0px) * var(--day-month-shift, 0))); }
 .teacher-day-hours-reveal { height: var(--day-hours-height, 0px); overflow: clip; }
 .teacher-day-calendar h2 { margin: 0 4px 6px; font-size: 17px; }
 .teacher-day-date-scroll { margin-inline: -16px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; }
 .teacher-day-date-track { display: flex; }
 .teacher-day-date-track > button { flex: 0 0 calc(100% / 7); }
-.teacher-day-date { min-height: 48px; display: grid; place-items: center; align-content: center; gap: 2px; border: 0; border-radius: 12px; background: transparent; color: var(--color-text); }
-.teacher-day-date small,.teacher-day-month small { font-size: 11px; color: var(--color-muted); }
+.teacher-day-date { translate: calc(var(--day-date-flight, 0px) * var(--day-flight-direction, 0)) 0; min-height: 48px; display: grid; place-items: center; align-content: center; gap: 2px; border: 0; border-radius: 12px; background: transparent; color: var(--color-text); }
+.teacher-day-date small,.teacher-day-month-row small { font-size: 11px; color: var(--color-muted); }
 .teacher-day-date strong { display: grid; place-items: center; min-width: 30px; min-height: 28px; border-radius: 10px; font-size: 16px; }
 .teacher-day-date[aria-current=date] strong { color: var(--color-purple-text); }
 .teacher-day-date[aria-pressed=true] strong { background: var(--color-purple-soft); color: var(--color-purple-text); }
 .teacher-day-date[data-outside] { color: var(--color-muted); }
 .teacher-day-date-mark { width: 4px; height: 4px; border-radius: 50%; }
 .teacher-day-date-mark[data-marked] { background: var(--color-purple-text); }
-.teacher-day-month { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); text-align: center; }
+.teacher-day-month-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; }
+.teacher-day-month-track { width: 100%; }
+.teacher-day-month-row { display: flex; text-align: center; }
+.teacher-day-month-row > * { flex: 0 0 calc(100% / 7); }
+.teacher-day-summary-reveal { height: var(--day-summary-height, auto); opacity: var(--day-summary-opacity, 1); overflow: clip; }
+.teacher-day-summary-reveal > div { padding-top: 8px; }
+.teacher-day-date, .teacher-day-grip { -webkit-tap-highlight-color: transparent; }
+.teacher-day-date strong { transition: color .15s, background-color .15s, scale .15s; }
+.teacher-day-date:active strong { scale: .92; }
+.teacher-day-date:not([aria-pressed=true]):active strong { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .teacher-day-date:not([aria-pressed=true]):hover strong { background: var(--color-bg-3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .teacher-day-date strong { transition: none; }
+}
 .teacher-day-grip { display: grid; place-items: center; width: 80px; min-height: 44px; margin: 0 auto -8px; border: 0; border-radius: 999px; background: transparent; touch-action: none; }
 .teacher-day-grip > span { width: 32px; height: 4px; border-radius: 999px; background: var(--color-border); }
 .teacher-day-lessons { display: grid; gap: 8px; }

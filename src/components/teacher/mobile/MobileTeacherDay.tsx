@@ -97,7 +97,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
     if (mode !== calendarMode) tactile()
     setCalendarMode(mode)
   }
-  const nextCalendarMode = () => changeCalendarMode(((calendarMode + 1) % 3) as CalendarView)
+  const nextCalendarMode = () => changeCalendarMode(calendarMode === 0 ? 1 : 0)
   const updatePreferences = (next: DayPreferences) => {
     setPreferences(next)
     try { localStorage.setItem(DAY_PREFS_KEY, JSON.stringify(next)) } catch { /* Storage is optional. */ }
