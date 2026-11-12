@@ -36,7 +36,7 @@ import GroupStrip, { type TabConfig } from '../../components/teacher/GroupStrip'
 import {
   type Group, type GroupTrack, type Student,
 } from '../../data/teacherMockData'
-import { useGroups, useStudents, useAllStudents, reloadAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
+import { useGroups, useStudents, useAllStudentsSnapshot, reloadAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
 import { assignedCourseTitles, type StudentCourseAssignment } from '../../lib/studentCourseAssignments'
 import { ensureCardFillTask } from '../../lib/cardFillTask'
 import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
@@ -2452,8 +2452,8 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   const openStudentDashboard = useTeacher(s => s.openStudentDashboard)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
   const { groups, loading: groupsLoading, addGroup, addUnassignedStudent, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup } = useGroups()
-  const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
-  const allStudents = useAllStudents()
+  const { students, loading: groupStudentsLoading, deleteStudent, updateStudent } = useStudents(selectedGroupId)
+  const { value: allStudents, loading: allStudentsLoading } = useAllStudentsSnapshot()
   const isDesktop = useIsDesktop()
   const studentsById = useMemo(() => new Map(allStudents.map(student => [student.id, student])), [allStudents])
   const [assignedCourses, setAssignedCourses] = useState<StudentCourseAssignment[]>([])
@@ -2558,6 +2558,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   }
 
   const allRosterView = activeStripTab === 'students'
+  const rosterLoading = allRosterView ? allStudentsLoading : groupStudentsLoading
   // Presentation only: no synthetic group is stored in the database.
   const unassignedDisplay: Group = { id: '', name: t('Пока без занятий'), subject: '' as Group['subject'], icon: '', level: '', color: '#9B6DFF', colorSoft: '#EFE0FF', startDate: '', totalLessons: 0, lessonsCompleted: 0, studentCount: 0 }
   const activeGroup = allRosterView ? { ...unassignedDisplay, name: t('Все ученики') } : groups.find(g => g.id === selectedGroupId) ?? null
@@ -2909,9 +2910,11 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                     </thead>
                     <tbody>
                       {groupStudents.length === 0 && <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
-                        {searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено') : t('Учеников пока нет. Добавьте первого — нужны имя и предмет.')}
+                        {rosterLoading ? <span role="status">{t('Загрузка…')}</span>
+                          : searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено')
+                          : t('Учеников пока нет. Добавьте первого — нужны имя и предмет.')}
                       </td></tr>}
-                      {groupStudents.map((student, i) => {
+                      {groupStudents.map(student => {
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                         const phone = maskRosterPhone(student.phone ?? '')
                         const details = [phone, student.schoolClass].filter(Boolean)
@@ -2920,12 +2923,9 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                         const colBg = (key: SortKey) =>
                           sortKey === key ? { background: 'color-mix(in srgb, var(--color-accent) 5%, transparent)' } : {}
                         return (
-                          <motion.tr
+                          <tr
                             key={student.id}
                             className={isDesktop ? 'roster-compact-row' : undefined}
-                            initial={{ opacity: 0, x: -8 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.22, delay: i * 0.04 }}
                             onClick={() => !isDesktop && onOpenStudent ? onOpenStudent(student) : setActiveStudentId(isSelected ? null : student.id)}
                             style={{
                               cursor: 'pointer',
@@ -3012,7 +3012,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                 <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>—</span>
                               )}
                             </td>
-                          </motion.tr>
+                          </tr>
                         )
                       })}
                     </tbody>
