@@ -510,6 +510,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 self.barBottomExpandedWidthInset = width.constant
                 self.barBottomWidth = width
             }
+            self.barBottomView = row
             self.updateBarBottomSize()
             NSLayoutConstraint.activate([bottom, center, width])
             if let sections = opts["expandingSections"] as? JSObject,
@@ -531,7 +532,6 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 row.addSubview(picker)
                 picker.install()
             }
-            self.barBottomView = row
         }
     }
 
@@ -782,9 +782,18 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
 
     private func updateBarBottomSize() {
         for size in barBottomButtonSizes {
-            size.constant = tabBarCompact ? 45 : 48
+            size.constant = tabBarCompact ? 44 : 48
         }
-        barBottomWidth?.constant = barBottomExpandedWidthInset - (tabBarCompact ? 16 : 0)
+        barBottomWidth?.constant = barBottomExpandedWidthInset - (tabBarCompact ? 36 : 0)
+
+        // Inset the glass while keeping the full 44 pt touch target.
+        let inset: CGFloat = tabBarCompact ? 2 : 0
+        let backgroundInsets = NSDirectionalEdgeInsets(top: inset, leading: inset, bottom: inset, trailing: inset)
+        for case let button as GlassBarButton in barBottomView?.arrangedSubviews ?? [] {
+            guard var config = button.configuration else { continue }
+            config.background.backgroundInsets = backgroundInsets
+            button.configuration = config
+        }
     }
 
     private func barBottomOffset(in view: UIView) -> CGFloat {
@@ -795,7 +804,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         // Allow for glass extending above the bar's layout bounds. The row
         // follows the same bottom-anchored scaling as the tab bar.
         let expandedHeight = max(tabBar.bounds.height, safeBottom + 64)
-        return safeBottom - expandedHeight * tabBarHeightScale - 10
+        let gap: CGFloat = tabBarCompact ? 0 : 6
+        return safeBottom - expandedHeight * tabBarHeightScale - gap
     }
 
     private func tabBarTransform(_ bar: UITabBar, hidden: Bool) -> CGAffineTransform {
