@@ -1034,6 +1034,15 @@ private struct GlassContentSheet: View {
     let onAction: (String) -> Void
 
     var body: some View {
+        sheetContent
+            .background {
+                if model.content.glass {
+                    Rectangle().fill(.regularMaterial).ignoresSafeArea()
+                }
+            }
+    }
+
+    @ViewBuilder private var sheetContent: some View {
         if #available(iOS 26.0, *) {
             scrollContent
                 .safeAreaInset(edge: .top, spacing: 12) {

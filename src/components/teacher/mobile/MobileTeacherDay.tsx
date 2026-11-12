@@ -92,6 +92,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   const [preferences, setPreferences] = useState(readDayPreferences)
   const [calendarMode, setCalendarMode] = useState<CalendarView>(() => preferences.calendar)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [calendarHost, setCalendarHost] = useState<HTMLDivElement | null>(null)
   const [calendarReset, setCalendarReset] = useState(0)
   const changeCalendarMode = (mode: CalendarView) => {
     if (mode !== calendarMode) tactile()
@@ -351,6 +352,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
 
   return <>
     <MobileScreen topZone={controls} glassHeader={unifiedHome ? undefined : { leading: pageTitle, onBack: selected ? () => { void back() } : undefined, backLabel: t('Мой день') }} topPad={64}
+      pinnedBelowTop={unifiedHome ? <div ref={setCalendarHost} /> : undefined}
       scrollKey={selected ? `${selected.id}-${view}` : unifiedHome ? 'my-day' : `my-day-${day}`} bottomDock={footer} bottomDockRaise={selected ? 16 : 0}>
       <div data-teacher-day-home={unifiedHome || undefined} style={stack}>
         {error && <Alert tone="danger" text={t(error)} />}
@@ -359,7 +361,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
         {readOnly && <Alert tone="info" text={t('Просмотр кабинета: изменения недоступны')} />}
         {!selected ? <>
           {unifiedHome ? <TeacherDayCalendar key={calendarReset} day={day} today={today} mode={calendarMode} locale={locale}
-            markedDays={markedDays} onPick={setDay} onMode={changeCalendarMode} summary={lessonSummary}
+            markedDays={markedDays} onPick={setDay} onMode={changeCalendarMode} summary={lessonSummary} pinnedHost={calendarHost}
             hours={items !== null && !scheduleError && <TeacherDayHours
               day={day} today={today} items={list} locale={locale} onPick={open} />} /> : <>
             <p style={{ ...muted, textAlign: 'center' }}>{dateLabel(day)}</p>

@@ -46,6 +46,7 @@ export default function MobileScreen({
   scrollKey,
   restoreKey,
   nativeDocumentScroll = false,
+  pinnedBelowTop,
 }: {
   /** Floating glass widget/context pinned to the top. Content scrolls under it. */
   topZone?: ReactNode
@@ -68,9 +69,12 @@ export default function MobileScreen({
    *  следующем открытии экрана. */
   restoreKey?: string
   nativeDocumentScroll?: boolean
+  /** Fixed controls below the floating header and above the scroll viewport. */
+  pinnedBelowTop?: ReactNode
 }) {
   const keyboardOpen = useKeyboardOpen()
-  const documentScroll = useNativeDocumentScroll(nativeDocumentScroll)
+  const pinned = pinnedBelowTop != null
+  const documentScroll = useNativeDocumentScroll(nativeDocumentScroll && !pinned)
   useLayoutEffect(() => {
     if (!documentScroll) return
     const root = document.documentElement
@@ -131,6 +135,10 @@ export default function MobileScreen({
     : fade.top > 0 || fade.bottom > 0
     ? `linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) ${topFadeStart}, #000 ${topFadeEnd}, #000 ${bottomFadeStart}, rgba(0,0,0,${1 - fade.bottom}) ${bottomFadeEnd}, rgba(0,0,0,${1 - fade.bottom}) 100%)`
     : undefined
+
+  const bodyMask = documentScroll ? undefined : pinned
+    ? (fade.top ? `linear-gradient(to bottom, rgba(0,0,0,${1 - fade.top}), #000 18px)` : undefined)
+    : contentMask
 
   // ВОЗВРАТ НА МЕСТО. Содержимое приезжает не сразу (лента, курсы), поэтому
   // одним присваиванием не обойтись: держим цель, пока страница дорастает до
@@ -196,6 +204,8 @@ export default function MobileScreen({
       style={{
         position: 'relative',
         height: documentScroll ? undefined : '100dvh',
+        display: pinned ? 'flex' : undefined,
+        flexDirection: pinned ? 'column' : undefined,
         minHeight: documentScroll ? '100dvh' : undefined,
         overflowX: 'clip',
         overflowY: documentScroll ? undefined : 'hidden',
@@ -243,6 +253,10 @@ export default function MobileScreen({
         </div>
       )}
 
+      {pinned && <div style={{ flexShrink: 0, padding: `${topPadding} 16px 0` }}>
+        {pinnedBelowTop}
+      </div>}
+
       {/* MIDDLE — scroll body. scroll-under: paddingTop lifts content below the
           top zone; paddingBottom clears the bottom dock. */}
       <div
@@ -252,14 +266,16 @@ export default function MobileScreen({
         {...{ [MOBILE_SCROLL_ATTR]: '' }}
         className="no-scrollbar"
         style={{
-          height: documentScroll ? undefined : '100%',
+          height: documentScroll || pinned ? undefined : '100%',
+          flex: pinned ? '1 1 0' : undefined,
+          minHeight: pinned ? 0 : undefined,
           overflowY: documentScroll ? 'visible' : 'auto',
           overflowX: 'clip',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          maskImage: documentScroll ? undefined : contentMask,
-          WebkitMaskImage: documentScroll ? undefined : contentMask,
-          paddingTop: topPadding,
+          maskImage: bodyMask,
+          WebkitMaskImage: bodyMask,
+          paddingTop: pinned ? 0 : topPadding,
           paddingLeft: 16,
           // iPad: контент тела прокрутки не заходит под капсулу справа
           // (docs/platforms.md §1.1). Строго iPad-gated — iPhone/Android без изменений.
@@ -274,7 +290,7 @@ export default function MobileScreen({
       {/* z 45: над контентом, но ПОД слоем нижней навигации (#mobile-dock-layer,
           z 50) и шапкой (60) — иначе размытие ложилось поверх веб-вкладок. */}
       {IS_IOS && !documentScroll && <>
-        <SoftEdge edge="top" size={topPadding} strength={fade.top} zIndex={45} />
+        {!pinned && <SoftEdge edge="top" size={topPadding} strength={fade.top} zIndex={45} />}
         {!keyboardOpen && <SoftEdge edge="bottom" strength={fade.bottom} zIndex={45}
           // Без веб-дока внизу лежат системные вкладки (UITabBar): их высота
           // 49 + safe-area, полоса чуть выше, чтобы размытие начиналось над ней.

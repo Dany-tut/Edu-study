@@ -5,7 +5,7 @@ import { useScrollFades } from '../../../lib/useScrollFades'
 import { useT } from '../../../lib/i18n'
 import { markScrollSet } from '../../../lib/useNavCollapse'
 import { MOBILE_SCROLL_ATTR } from '../../MobileScreen'
-import { MOBILE_TOP_GAP, SAFE_TOP } from '../../../lib/mobileTokens'
+import { createPortal } from 'react-dom'
 import { tactile } from '../../../lib/feedback'
 import './teacherDayCalendar.css'
 
@@ -19,7 +19,7 @@ const WINDOW_SIZE = WEEK_BUFFER * 2 + 7
 const datePitch = (el: HTMLElement) => (el.firstElementChild?.clientWidth ?? el.clientWidth) / 7
 const dateAtNoon = (day: string) => new Date(`${day}T12:00:00`)
 
-export default function TeacherDayCalendar({ day, today, mode, locale, markedDays, onPick, onMode, hours, summary }: {
+export default function TeacherDayCalendar({ day, today, mode, locale, markedDays, onPick, onMode, hours, summary, pinnedHost }: {
   day: string
   today: string
   mode: CalendarView
@@ -29,6 +29,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   onMode: (mode: CalendarView) => void
   hours: ReactNode
   summary: ReactNode
+  pinnedHost: HTMLElement | null
 }) {
   const t = useT()
   const [origin, setOrigin] = useState(() => weekStart(day))
@@ -40,6 +41,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const drag = useRef<{ id: number; x: number; y: number; left: number; progress: number; hourly: number; lastY: number; lastAt: number; speed: number; axis?: 'x' | 'y' } | null>(null)
   const blockClick = useRef(0)
   const root = useRef<HTMLElement>(null)
+  const gestureLayer = useRef<HTMLDivElement>(null)
   const monthScroll = useRef<HTMLDivElement>(null)
   const summaryLayer = useRef<HTMLDivElement>(null)
   const monthLayer = useRef<HTMLDivElement>(null)
@@ -54,17 +56,17 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   function paint(month: number, hours = dayProgress.current) {
     progress.current = month
     dayProgress.current = hours
-    const style = root.current?.style
+    const bodyStyle = root.current?.style
+    const style = gestureLayer.current?.style
     const showMonth = month >= .12
     style?.setProperty('--day-week-opacity', String(showMonth ? 0 : (1 - month) * (1 - hours)))
     style?.setProperty('--day-month-opacity', String(showMonth ? Math.min(1, .88 + month * .4) * (1 - hours) : 0))
-    style?.setProperty('--day-month-shift', String(1 - month))
     style?.setProperty('--day-date-flight', `${hours * 90}px`)
     const { week, month: monthHeight, summary } = dimensions.current
     style?.setProperty('--day-calendar-height', `${(week + (monthHeight - week) * month) * (1 - hours)}px`)
-    style?.setProperty('--day-hours-height', `${dimensions.current.hours * hours}px`)
-    style?.setProperty('--day-summary-height', `${summary * (1 - hours)}px`)
-    style?.setProperty('--day-summary-opacity', String(1 - hours))
+    bodyStyle?.setProperty('--day-hours-height', `${dimensions.current.hours * hours}px`)
+    bodyStyle?.setProperty('--day-summary-height', `${summary * (1 - hours)}px`)
+    bodyStyle?.setProperty('--day-summary-opacity', String(1 - hours))
   }
 
   function markFlightDirections() {
@@ -127,21 +129,14 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     observer.observe(summary)
     measure()
     return () => observer.disconnect()
-  }, [])
+  }, [pinnedHost])
 
-  useLayoutEffect(() => {
-    const first = weekStart(`${monthPage}-01`)
-    const index = Math.round((+dateAtNoon(day) - +dateAtNoon(first)) / 86_400_000)
-    const row = monthLayer.current?.querySelectorAll<HTMLElement>('.teacher-day-month-row')[1 + Math.floor(index / 7)]
-    root.current?.style.setProperty('--day-month-align', `${row ? 14 - row.offsetTop : 0}px`)
-  }, [day, monthPage])
-
-  useScrollFades(monthScroll, true, '.teacher-day-month-track', 38)
+  useScrollFades(monthScroll, !!pinnedHost, '.teacher-day-month-track', 38)
   useLayoutEffect(() => {
     const el = monthScroll.current
     if (el) el.scrollLeft = MONTH_BUFFER * datePitch(el)
     setShownMonth(monthPage)
-  }, [monthPage])
+  }, [monthPage, pinnedHost])
 
   function progressForDrag(start: number, dy: number) {
     const distance = Math.max(48, dimensions.current.month - dimensions.current.week)
@@ -151,7 +146,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const fullDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' })
 
-  useScrollFades(scroll, true, '.teacher-day-date-track', 38)
+  useScrollFades(scroll, !!pinnedHost, '.teacher-day-date-track', 38)
 
   useLayoutEffect(() => {
     const el = scroll.current
@@ -159,7 +154,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     const cell = datePitch(el)
     el.scrollLeft = (pendingOffset.current ?? WEEK_BUFFER) * cell
     pendingOffset.current = null
-  }, [origin])
+  }, [origin, pinnedHost])
 
   useLayoutEffect(() => {
     const before = previousDay.current
@@ -267,8 +262,8 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     </button>
   )
 
-  return <section ref={root} className="teacher-day-calendar" data-mode={mode} aria-label={t(CALENDAR_VIEWS[mode])}>
-    <div className="teacher-day-gesture" style={{ top: `calc(${SAFE_TOP} + ${MOBILE_TOP_GAP + 56}px)` }}
+  const dateControls = (
+    <div ref={gestureLayer} className="teacher-day-gesture" data-mode={mode} aria-label={t(CALENDAR_VIEWS[mode])}
       onPointerDown={event => {
         if (!event.isPrimary || event.button !== 0) return
         blockClick.current = 0
@@ -311,6 +306,9 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
       <button data-hover="own" className="teacher-day-grip" type="button" aria-label={t('Сменить вид календаря')}
         onClick={() => onMode(mode === 0 ? 1 : 0)}><span aria-hidden /></button>
     </div>
+  )
+  return <section ref={root} className="teacher-day-calendar" data-mode={mode} aria-label={t(CALENDAR_VIEWS[mode])}>
+    {pinnedHost && createPortal(dateControls, pinnedHost)}
     <div className="teacher-day-hours-reveal" inert={mode !== 2}>
       <div ref={hoursLayer}>{hours}</div>
     </div>

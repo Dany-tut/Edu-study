@@ -1,12 +1,12 @@
 [data-mobile-scroll]:has(> [data-teacher-day-home]) { overflow-anchor: none; }
-.teacher-day-gesture { position: sticky; z-index: 6; background: var(--color-bg); overflow-anchor: none; user-select: none; touch-action: pan-x; }
+.teacher-day-gesture { user-select: none; touch-action: pan-x; }
 
 .teacher-day-calendar-layers { --date-gutter: 18px; position: relative; margin-inline: -16px; height: var(--day-calendar-height, 48px); overflow: clip; }
 .teacher-day-week-layer, .teacher-day-month-layer { position: absolute; inset: 0 16px auto; }
 .teacher-day-week-layer { opacity: var(--day-week-opacity, 1); }
-.teacher-day-month-layer { opacity: var(--day-month-opacity, 0); transform: translateY(calc(var(--day-month-align, 0px) * var(--day-month-shift, 0))); }
+.teacher-day-month-layer { opacity: var(--day-month-opacity, 0); }
 .teacher-day-hours-reveal { height: var(--day-hours-height, 0px); overflow: clip; }
-.teacher-day-calendar h2 { margin: 0 4px 6px; font-size: 17px; }
+.teacher-day-gesture h2 { margin: 0 4px 6px; font-size: 17px; }
 .teacher-day-date-scroll { margin-inline: -16px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; }
 .teacher-day-date-track { display: flex; }
 .teacher-day-date-track > button { flex: 0 0 calc(100% / 7); }
