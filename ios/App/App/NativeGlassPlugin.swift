@@ -552,6 +552,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         let dark = call.getBool("dark") ?? false
         DispatchQueue.main.async {
             self.host?.view.window?.overrideUserInterfaceStyle = dark ? .dark : .light
+            if let hex = call.getString("background"), let color = UIColor(hex: hex),
+               let webView = self.bridge?.webView {
+                webView.underPageBackgroundColor = color
+                webView.scrollView.backgroundColor = color
+            }
             // Refresh app-owned images explicitly; the bar may retain its items
             // while the cabinet switches theme without changing the tab list.
             let traits = UITraitCollection(userInterfaceStyle: dark ? .dark : .light)

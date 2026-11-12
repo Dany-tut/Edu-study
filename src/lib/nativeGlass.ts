@@ -73,7 +73,7 @@ interface NativeGlassPlugin {
   headerSet(o: Omit<GlassHeader, 'onBack'> & { back?: boolean }): Promise<void>
   headerHidden(o: { hidden: boolean }): Promise<void>
   headerRemove(): Promise<void>
-  setAppearance(o: { dark: boolean }): Promise<void>
+  setAppearance(o: { dark: boolean; background: string }): Promise<void>
   barSet(o: GlassBar): Promise<void>
   barHidden(o: { top: boolean; bottom: boolean }): Promise<void>
   barRemove(): Promise<void>
@@ -261,7 +261,10 @@ export function removeGlassHeader() {
 // светлые меню и алерты.
 if (GLASS && typeof document !== 'undefined') {
   const root = document.documentElement
-  const push = () => { void NativeGlass.setAppearance({ dark: root.getAttribute('data-theme') === 'dark' }).catch(() => {}) }
+  const push = () => {
+    const background = getComputedStyle(root).getPropertyValue('--color-bg').trim()
+    void NativeGlass.setAppearance({ dark: root.getAttribute('data-theme') === 'dark', background }).catch(() => {})
+  }
   push()
   new MutationObserver(push).observe(root, { attributes: true, attributeFilter: ['data-theme'] })
 }
