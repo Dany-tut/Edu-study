@@ -3,11 +3,15 @@ import CourseJournal from '../CourseJournal'
 import BackCircle from '../../BackCircle'
 import { GlassPill } from '../../mobileChrome'
 import { useT } from '../../../lib/i18n'
-import { IS_IOS } from '../../../lib/platform'
+import { GLASS } from '../../../lib/nativeGlass'
+import { IS_IOS, PLATFORM } from '../../../lib/platform'
 
 export default function MobileTeacherGradebook({ onBack: onBackToProfile }: { onBack?: () => void }) {
   const t = useT()
   const onBack = IS_IOS ? undefined : onBackToProfile
+  if (GLASS && PLATFORM === 'iphone') return <MobileScreen nativeBottomBar scrollKey="teacher-course-journal">
+    <CourseJournal mobile nativeIphone />
+  </MobileScreen>
   return <MobileScreen topZone={<div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 44, padding: '0 48px' }}>
     {onBack && <BackCircle onClick={onBack} label="Ещё" style={{ position: 'absolute', left: 0, width: 44, height: 44 }} />}
     <GlassPill>{t('Журнал')}</GlassPill>

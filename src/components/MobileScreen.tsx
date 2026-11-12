@@ -47,6 +47,7 @@ export default function MobileScreen({
   restoreKey,
   nativeDocumentScroll = false,
   pinnedBelowTop,
+  nativeBottomBar = false,
 }: {
   /** Floating glass widget/context pinned to the top. Content scrolls under it. */
   topZone?: ReactNode
@@ -71,6 +72,7 @@ export default function MobileScreen({
   nativeDocumentScroll?: boolean
   /** Fixed controls below the floating header and above the scroll viewport. */
   pinnedBelowTop?: ReactNode
+  nativeBottomBar?: boolean
 }) {
   const keyboardOpen = useKeyboardOpen()
   const pinned = pinnedBelowTop != null
@@ -294,7 +296,7 @@ export default function MobileScreen({
         {!keyboardOpen && <SoftEdge edge="bottom" strength={fade.bottom} zIndex={45}
           // Без веб-дока внизу лежат системные вкладки (UITabBar): их высота
           // 49 + safe-area, полоса чуть выше, чтобы размытие начиналось над ней.
-          size={dockClearance > 0 ? `${dockClearance + 28}px` : `calc(${SAFE_BOTTOM} + 76px)`} />}
+          size={dockClearance > 0 ? `${dockClearance + 28}px` : `calc(${SAFE_BOTTOM} + 76px${nativeBottomBar ? ' + var(--glass-bottom-pad, 0px)' : ''})`} />}
       </>}
 
       {/* BOTTOM — fixed dock: page controls + nav. 44px off edge + safe-area. */}

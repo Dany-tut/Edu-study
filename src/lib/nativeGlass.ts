@@ -43,6 +43,7 @@ export type GlassBar = {
   top?: GlassBarItem | GlassBarItem[]
   bottom?: GlassBarItem[]
   bottomTabBarWidthRatio?: number
+  expandingSections?: { trigger: string; selected: string; items: GlassTab[] }
 }
 
 export type GlassHeader = { leading: string; leadingSymbol?: string; trailingText?: string; trailingSymbol?: string; onBack?: () => void; backLabel?: string }

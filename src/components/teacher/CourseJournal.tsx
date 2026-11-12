@@ -9,6 +9,7 @@ import FadeText from '../FadeText'
 import HScrollFade from '../HScrollFade'
 import { useScrollEdges } from './journalStand/useScrollEdges'
 import { Alert } from '../Alert'
+import { useGlassBar, type GlassBar } from '../../lib/nativeGlass'
 import { useT, useTc } from '../../lib/i18n'
 import { useCourseJournal } from '../../lib/useCourseJournal'
 import { useTeacher } from '../../store/teacherStore'
@@ -159,7 +160,24 @@ function Detail({ cell, data, courseId, onClose, onMark, onChange, mobile }: {
     : <Modal title={tn(cell.student.name)} subtitle={tc(cell.column.title)} onClose={onClose} width={680}>{body}</Modal>
 }
 
-export default function CourseJournal({ mobile = false }: { mobile?: boolean }) {
+const journalSections = [
+  ['overview', 'Обзор', 'square.grid.2x2'],
+  ['attendance', 'Посещения', 'calendar'],
+  ['work', 'Работы', 'checklist'],
+  ['stats', 'Динамика', 'chart.bar'],
+] as const
+type JournalMode = typeof journalSections[number][0]
+
+function NativeJournalBar({ bar, onTap, onMenu }: {
+  bar: GlassBar
+  onTap: (id: string) => void
+  onMenu: (id: string, value: string) => void
+}) {
+  useGlassBar(bar, { onTap, onMenu })
+  return null
+}
+
+export default function CourseJournal({ mobile = false, nativeIphone = false }: { mobile?: boolean; nativeIphone?: boolean }) {
   const t = useT()
   const { tc, tn } = useTc()
   const { data, error, loading, reload, setData } = useCourseJournal()
@@ -176,7 +194,8 @@ export default function CourseJournal({ mobile = false }: { mobile?: boolean }) 
   const [query, setQuery] = useState('')
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false)
-  const [mode, setMode] = useState<'overview' | 'attendance' | 'work' | 'stats'>('overview')
+  const [mode, setMode] = useState<JournalMode>('overview')
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [onlyAttention, setOnlyAttention] = useState(false)
   const [selected, setSelected] = useState<{ studentId: string; columnId: string } | null>(restored.current ?? null)
   const [markId, setMarkId] = useState<string | null>(null)
@@ -268,7 +287,8 @@ export default function CourseJournal({ mobile = false }: { mobile?: boolean }) 
   const modules = data.modules.filter(m => m.course_id === courseId).sort((a, b) => a.position - b.position)
   const pendingEvents = allColumns.flatMap(c => c.events).filter((event, i, all) => event.status !== 'cancelled'
     && all.findIndex(e => e.id === event.id) === i && visibleCells.some(cell => cell.event?.id === event.id && cell.needsAttendance))
-  const courseSelector = (<label className="cj-course-select"><span>{t('Курс или интенсив')}</span><div><BookOpen size={20} /><JournalSelect mobile={mobile} displayValue={tc(activeCourse?.title || t(courseId === OUTSIDE_COURSES ? 'Вне курсов' : 'Без названия'))} aria-label={t('Курс или интенсив')} value={courseId} onChange={e => changeCourse(e.target.value)}>
+  const courseTitle = tc(activeCourse?.title || t(courseId === OUTSIDE_COURSES ? 'Вне курсов' : 'Без названия'))
+  const courseSelector = (<label className="cj-course-select"><span>{t('Курс или интенсив')}</span><div><BookOpen size={20} /><JournalSelect mobile={mobile} displayValue={courseTitle} aria-label={t('Курс или интенсив')} value={courseId} onChange={e => changeCourse(e.target.value)}>
         <optgroup label={t('Курсы')}>{data.courses.filter(c => c.kind !== 'intensive').map(c => <option key={c.id} value={c.id}>{tc(c.title || t('Без названия'))}</option>)}</optgroup>
         {data.courses.some(c => c.kind === 'intensive') && <optgroup label={t('Интенсивы')}>{data.courses.filter(c => c.kind === 'intensive').map(c => <option key={c.id} value={c.id}>{tc(c.title)}</option>)}</optgroup>}
         <option value={OUTSIDE_COURSES}>{t('Вне курсов')}</option>
@@ -290,18 +310,51 @@ export default function CourseJournal({ mobile = false }: { mobile?: boolean }) 
     {data.demo && (mobile ? <div className="cj-mobile-demo-note"><span>{t('Демопросмотр')}</span><a data-hover="link" href="#/teacher/login">{t('Войти в аккаунт')}</a></div> : <div className="cj-demo"><span>{t('Демопросмотр')}</span>{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}<a data-hover="link" href="#/teacher/login">{t('Войти в аккаунт')}</a></div>)}
     {data.warnings.map(warning => <Alert key={warning} tone="warning" text={t(warning)} />)}
     {mobile ? <>
-      <section className="cj-context cj-mobile-compact-context" aria-label={t('Контекст журнала')}>
-        {courseSelector}
-        <button className="cj-icon-button" type="button" aria-label={t('Фильтры')} aria-haspopup="dialog" aria-expanded={mobileFiltersOpen} onClick={() => setMobileFiltersOpen(true)}>
-          <Filter size={18} />{activeMobileFilters > 0 && <span className="cj-mobile-filter-count">{activeMobileFilters}</span>}
-        </button>
-      </section>
-      <div className="cj-mobile-search-row">{studentSearch}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
+      {nativeIphone ? <>
+        <NativeJournalBar bar={{
+          bottom: [
+            { id: 'journal-search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск ученика'), active: !!query },
+            { id: 'journal-course', kind: 'pill', title: courseTitle, menuTitle: t('Курс или интенсив'), menu: [
+              ...data.courses.map(c => ({ value: c.id, title: tc(c.title || t('Без названия')), checked: c.id === courseId })),
+              { value: OUTSIDE_COURSES, title: t('Вне курсов'), checked: courseId === OUTSIDE_COURSES },
+            ] },
+            { id: 'journal-section', kind: 'circle', label: t('Вид журнала') },
+            { id: 'journal-settings', kind: 'circle', symbol: 'slider.horizontal.3', label: t('Фильтры'), active: activeMobileFilters > 0 },
+          ],
+          expandingSections: {
+            trigger: 'journal-section',
+            selected: mode,
+            items: journalSections.map(([id, label, symbol]) => ({ id, title: t(label), symbol })),
+          },
+        }} onTap={id => {
+          if (id === 'journal-search') setMobileSearchOpen(true)
+          if (id === 'journal-settings') setMobileFiltersOpen(true)
+        }} onMenu={(id, value) => {
+          if (id === 'journal-course' && (value === OUTSIDE_COURSES || data.courses.some(c => c.id === value))) changeCourse(value)
+          if (id === 'journal-section') {
+            const next = journalSections.find(([key]) => key === value)
+            if (next) setMode(next[0])
+          }
+        }} />
+        <MobileSheet open={mobileSearchOpen} onClose={() => setMobileSearchOpen(false)} title={t('Поиск ученика')}
+          footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileSearchOpen(false)}>{t('Готово')}</button>}>
+          <div className="course-journal cj-mobile">{studentSearch}</div>
+        </MobileSheet>
+      </> : <>
+        <section className="cj-context cj-mobile-compact-context" aria-label={t('Контекст журнала')}>
+          {courseSelector}
+          <button className="cj-icon-button" type="button" aria-label={t('Фильтры')} aria-haspopup="dialog" aria-expanded={mobileFiltersOpen} onClick={() => setMobileFiltersOpen(true)}>
+            <Filter size={18} />{activeMobileFilters > 0 && <span className="cj-mobile-filter-count">{activeMobileFilters}</span>}
+          </button>
+        </section>
+        <div className="cj-mobile-search-row">{studentSearch}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
+      </>}
       <MobileSheet open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} title={t('Фильтры')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileFiltersOpen(false)}>{t('Готово')}</button>}>
         <div className="course-journal cj-mobile cj-mobile-filter-panel">
           <div className="cj-filters">{secondaryFilters}</div>
           <button className="cj-button" type="button" disabled={activeMobileFilters === 0} onClick={() => { setGroupId('all'); setModuleId('all') }}>{t('Сбросить фильтры')}</button>
           <div className="cj-mobile-panel-actions"><button className="cj-button" type="button" disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} />{t('Обновить журнал')}</button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} />CSV</button></div>
+          {nativeIphone && <button className="cj-button" type="button" onClick={() => { setMobileFiltersOpen(false); setMobileSummaryOpen(true) }}><BarChart2 size={17} />{t('Результаты')}</button>}
           {data.demo && <p className="cj-note">{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}</p>}
         </div>
       </MobileSheet>
@@ -316,9 +369,9 @@ export default function CourseJournal({ mobile = false }: { mobile?: boolean }) 
       </section>
       {summaryCards}
     </>}
-    <div className="cj-toolbar"><JournalTabScroll mobile={mobile}><div className="cj-tabs" role="group" aria-label={t('Вид журнала')}>{([['overview', 'Обзор'], ['attendance', 'Посещаемость'], ['work', 'Работы'], ['stats', 'Статистика']] as const).map(([id, label]) => <button data-hover="layer" key={id} type="button" aria-pressed={mode === id} onClick={() => setMode(id)}>{t(label)}</button>)}</div></JournalTabScroll>
+    {!nativeIphone && <div className="cj-toolbar"><JournalTabScroll mobile={mobile}><div className="cj-tabs" role="group" aria-label={t('Вид журнала')}>{([['overview', 'Обзор'], ['attendance', 'Посещаемость'], ['work', 'Работы'], ['stats', 'Статистика']] as const).map(([id, label]) => <button data-hover="layer" key={id} type="button" aria-pressed={mode === id} onClick={() => setMode(id)}>{t(label)}</button>)}</div></JournalTabScroll>
       {!mobile && <button className="cj-button cj-primary" type="button" disabled={!scheduleIds.length} onClick={() => openMark(pendingEvents[0]?.id ?? scheduleIds[0])}><Plus size={15} />{t('Отметить занятие')}</button>}
-    </div>
+    </div>}
     {onlyAttention && <div className="cj-active-filter"><CircleAlert size={14} /><span>{t('Показаны ученики, которым нужно внимание')}</span><button data-hover="layer" type="button" onClick={() => setOnlyAttention(false)}>{t('Сбросить')}</button></div>}
     {pendingEvents.length > 0 && <div className="cj-pending-alert"><CircleAlert size={17} /><span>{t('Есть незаполненные занятия')}: {pendingEvents.length}</span><button data-hover="layer" type="button" onClick={() => openMark(pendingEvents[0].id)}>{t('Заполнить')}<ChevronRight size={13} /></button></div>}
     {(!students.length || !columns.length) ? <div className="cj-empty"><BookOpen size={28} /><h3>{t(!roster.length ? 'На этот курс пока не назначены ученики' : !allColumns.length ? 'В журнале пока нет занятий' : 'Ничего не найдено')}</h3><p>{t(!roster.length ? 'Назначьте курс группе или отдельным ученикам в материалах курса.' : 'Попробуйте изменить фильтры или поиск.')}</p></div>

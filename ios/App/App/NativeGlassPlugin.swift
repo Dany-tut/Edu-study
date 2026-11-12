@@ -368,10 +368,17 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             guard let host = self.host else { call.resolve(); return }
             // Тот же состав — ничего не пересоздаём: иначе кнопки мигали бы на
             // каждом рендере экрана.
-            let key = (try? JSONSerialization.data(withJSONObject: opts, options: [.sortedKeys])).map { String(decoding: $0, as: UTF8.self) } ?? ""
+            var layoutOptions = opts
+            if var sections = opts["expandingSections"] as? JSObject {
+                // The native control updates its selection in place. Keep the
+                // React echo from rebuilding the row mid-animation.
+                sections.removeValue(forKey: "selected")
+                layoutOptions["expandingSections"] = sections
+            }
+            let key = (try? JSONSerialization.data(withJSONObject: layoutOptions, options: [.sortedKeys])).map { String(decoding: $0, as: UTF8.self) } ?? ""
+            self.barLastOptions = opts
             if key == self.barLastKey { call.resolve(); return }
             self.barLastKey = key
-            self.barLastOptions = opts
             self.buildBar(opts, traits: host.traitCollection)
             call.resolve()
         }
@@ -449,6 +456,25 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 ])
             }
             bottom.isActive = true
+            if let sections = opts["expandingSections"] as? JSObject,
+               let id = sections["trigger"] as? String,
+               let index = items.firstIndex(where: { $0["id"] as? String == id }),
+               let first = row.arrangedSubviews.first, index > 0 {
+                let anchor = row.arrangedSubviews[index]
+                anchor.alpha = 0
+                anchor.isUserInteractionEnabled = false
+                let covered = row.arrangedSubviews.dropFirst().filter { $0 !== anchor }
+                let picker = GlassSectionPicker(
+                    row: row, anchor: anchor, search: first, covered: covered,
+                    items: sections["items"] as? [JSObject] ?? [],
+                    selected: sections["selected"] as? String ?? "",
+                    label: items[index]["label"] as? String ?? "", traits: traits
+                ) { [weak self] value in
+                    self?.notifyListeners("barMenu", data: ["id": id, "value": value])
+                }
+                row.addSubview(picker)
+                picker.install()
+            }
             self.barBottomView = row
         }
     }
@@ -544,6 +570,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             }
             self.barTopViews.forEach { $0.isUserInteractionEnabled = !top && !$0.accessibilityTraits.contains(.staticText) }
             self.barBottomView?.isUserInteractionEnabled = !bottom
+            if bottom {
+                self.barBottomView?.subviews.compactMap { $0 as? GlassSectionPicker }.first?.collapse()
+            }
             call.resolve()
         }
     }
@@ -929,6 +958,166 @@ private final class GlassPillView: UIView {
 
 /// Кнопка стеклянного бара: длинная подпись гаснет фейдом у края (TEXT-01),
 /// а не многоточием; стекло и шеврон остаются чёткими.
+/// The same glass surface changes width, from the section circle to the
+/// space between Search and the trailing edge of the screen bar.
+private final class GlassSectionPicker: UIVisualEffectView {
+    private unowned let row: UIStackView
+    private let anchor: UIView
+    private let search: UIView
+    private let covered: [UIView]
+    private let items: [JSObject]
+    private let label: String
+    private let traits: UITraitCollection
+    private let onSelect: (String) -> Void
+    private let trigger = UIButton(type: .system)
+    private let choices = UIStackView()
+    private var collapsed: [NSLayoutConstraint] = []
+    private var expanded: [NSLayoutConstraint] = []
+    private var selected: String
+    private var isExpanded = false
+
+    init(row: UIStackView, anchor: UIView, search: UIView, covered: [UIView],
+         items: [JSObject], selected: String, label: String, traits: UITraitCollection,
+         onSelect: @escaping (String) -> Void) {
+        self.row = row
+        self.anchor = anchor
+        self.search = search
+        self.covered = covered
+        self.items = items
+        self.selected = selected
+        self.label = label
+        self.traits = traits
+        self.onSelect = onSelect
+        let effect: UIVisualEffect
+        if #available(iOS 26.0, *) {
+            let glass = UIGlassEffect(style: .regular)
+            glass.isInteractive = true
+            effect = glass
+        } else {
+            effect = UIBlurEffect(style: .systemThinMaterial)
+        }
+        super.init(effect: effect)
+    }
+
+    required init?(coder: NSCoder) { return nil }
+
+    func install() {
+        translatesAutoresizingMaskIntoConstraints = false
+        clipsToBounds = true
+        layer.cornerRadius = 24
+        layer.cornerCurve = .continuous
+        trigger.translatesAutoresizingMaskIntoConstraints = false
+        trigger.tintColor = .label
+        trigger.addAction(UIAction { [weak self] _ in self?.setExpanded(true) }, for: .touchUpInside)
+        contentView.addSubview(trigger)
+
+        choices.translatesAutoresizingMaskIntoConstraints = false
+        choices.distribution = .fillEqually
+        for item in items {
+            guard let id = item["id"] as? String else { continue }
+            let title = item["title"] as? String ?? ""
+            let symbol = item["symbol"] as? String ?? ""
+            var config = UIButton.Configuration.plain()
+            config.image = LoopNativeIcons.image(symbol, traits: traits)
+            config.imagePlacement = .top
+            config.imagePadding = 1
+            config.contentInsets = .zero
+            var text = AttributedString(title)
+            text.font = .systemFont(ofSize: 10, weight: .medium)
+            config.attributedTitle = text
+            config.titleLineBreakMode = .byClipping
+            let choice = UIButton(configuration: config)
+            choice.accessibilityIdentifier = id
+            choice.accessibilityLabel = title
+            choice.layer.cornerRadius = 20
+            choice.addAction(UIAction { [weak self] _ in
+                guard let self, self.isExpanded else { return }
+                self.selected = id
+                self.updateSelection()
+                self.setExpanded(false)
+                self.onSelect(id)
+            }, for: .touchUpInside)
+            choices.addArrangedSubview(choice)
+        }
+        choices.alpha = 0
+        choices.isUserInteractionEnabled = false
+        choices.accessibilityElementsHidden = true
+        contentView.addSubview(choices)
+        collapsed = [leadingAnchor.constraint(equalTo: anchor.leadingAnchor),
+                     trailingAnchor.constraint(equalTo: anchor.trailingAnchor)]
+        expanded = [leadingAnchor.constraint(equalTo: search.trailingAnchor, constant: row.spacing),
+                    trailingAnchor.constraint(equalTo: row.trailingAnchor)]
+        NSLayoutConstraint.activate(collapsed + [
+            topAnchor.constraint(equalTo: anchor.topAnchor),
+            bottomAnchor.constraint(equalTo: anchor.bottomAnchor),
+            trigger.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            trigger.widthAnchor.constraint(equalToConstant: 48),
+            trigger.topAnchor.constraint(equalTo: contentView.topAnchor),
+            trigger.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            choices.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            choices.widthAnchor.constraint(equalTo: row.widthAnchor, constant: -48 - row.spacing),
+            choices.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 2),
+            choices.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -2),
+        ])
+        updateSelection()
+    }
+
+    private func updateSelection() {
+        let item = items.first { $0["id"] as? String == selected }
+        let symbol = item?["symbol"] as? String ?? "square.grid.2x2"
+        trigger.setImage(LoopNativeIcons.image(symbol, traits: traits), for: .normal)
+        trigger.accessibilityLabel = [label, item?["title"] as? String ?? ""].joined(separator: ": ")
+        for case let choice as UIButton in choices.arrangedSubviews {
+            let active = choice.accessibilityIdentifier == selected
+            choice.accessibilityTraits = active ? [.button, .selected] : .button
+            choice.backgroundColor = active ? UIColor.label.withAlphaComponent(0.10) : .clear
+            choice.tintColor = .label
+        }
+    }
+
+    func collapse() { setExpanded(false, feedback: false) }
+
+    override func accessibilityPerformEscape() -> Bool {
+        guard isExpanded else { return super.accessibilityPerformEscape() }
+        collapse()
+        return true
+    }
+
+    private func setExpanded(_ open: Bool, feedback: Bool = true) {
+        guard isExpanded != open else { return }
+        if feedback { UISelectionFeedbackGenerator().selectionChanged() }
+        row.layoutIfNeeded()
+        isExpanded = open
+        NSLayoutConstraint.deactivate(open ? collapsed : expanded)
+        NSLayoutConstraint.activate(open ? expanded : collapsed)
+        trigger.isUserInteractionEnabled = !open
+        trigger.accessibilityElementsHidden = open
+        choices.isUserInteractionEnabled = open
+        choices.accessibilityElementsHidden = !open
+        for view in covered {
+            view.isUserInteractionEnabled = !open
+            view.accessibilityElementsHidden = open
+        }
+        let animations = {
+            self.row.layoutIfNeeded()
+            self.trigger.alpha = open ? 0 : 1
+            self.choices.alpha = open ? 1 : 0
+            self.covered.forEach { $0.alpha = open ? 0 : 1 }
+        }
+        if UIAccessibility.isReduceMotionEnabled {
+            animations()
+        } else {
+            UIView.animate(withDuration: 0.34, delay: 0, usingSpringWithDamping: 0.86,
+                           initialSpringVelocity: 0, options: [.beginFromCurrentState, .allowUserInteraction],
+                           animations: animations)
+        }
+        if feedback && UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .layoutChanged,
+                                 argument: open ? choices.arrangedSubviews.first { $0.accessibilityIdentifier == selected } : trigger)
+        }
+    }
+}
+
 private final class GlassBarButton: UIButton {
     override func layoutSubviews() {
         super.layoutSubviews()
