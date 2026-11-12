@@ -3,14 +3,15 @@ import { useT } from '../../lib/i18n'
 import './journalSkeleton.css'
 
 /** Keep the journal's shape while its code or first data request is pending. */
-export default function JournalSkeleton({ table = false, page = false, embedded = false }: {
+export default function JournalSkeleton({ table = false, page = false, embedded = false, groups = false }: {
   table?: boolean
   page?: boolean
   embedded?: boolean
+  groups?: boolean
 }) {
   const t = useT()
   return <div className={`journal-loading${page ? ' journal-loading--page' : ''}${embedded ? ' journal-loading--embedded' : ''}`}
-    role="status" aria-label={t('Загрузка журнала…')} aria-busy="true">
+    role="status" aria-label={t(groups ? 'Загрузка…' : 'Загрузка журнала…')} aria-busy="true">
     <div aria-hidden="true">
       {page && <div className="journal-loading__navigation"><Skeleton w="100%" h={60} radius={30} /></div>}
       <div className="journal-loading__rail">

@@ -418,16 +418,17 @@ function AppRoutes() {
   }
 
   if (hash.startsWith('#/teacher')) {
+    const groupsFallback = hash.startsWith('#/teacher/groups') ? <JournalSkeleton page table groups /> : undefined
     const workspace = (
       <>
-        <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : undefined}><TeacherWorkspace key={session?.user.id ?? 'local'} user={session?.user} owner={session?.user.id ?? 'local'} production /></Chunk>
+        <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : groupsFallback}><TeacherWorkspace key={session?.user.id ?? 'local'} user={session?.user} owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )
     // Preserve the explicit guest-only development demo. Signed-in accounts
     // always pass the server check; no role lookup runs on student routes.
     if (import.meta.env.DEV && session === null) return workspace
-    return <Chunk><TeacherRouteGate session={session}>{workspace}</TeacherRouteGate></Chunk>
+    return <Chunk fallback={groupsFallback}><TeacherRouteGate session={session}>{workspace}</TeacherRouteGate></Chunk>
   }
 
   // Explicit reauthentication must be reachable even with a stale student card.
