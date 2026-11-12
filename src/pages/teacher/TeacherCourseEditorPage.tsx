@@ -358,9 +358,12 @@ function Label({ children }: { children: React.ReactNode }) {
   )
 }
 
-function GlassCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function GlassCard({ children, style, ...dragHandlers }: {
+  children: React.ReactNode
+  style?: React.CSSProperties
+} & Pick<React.HTMLAttributes<HTMLDivElement>, 'onDragEnter' | 'onDragOver' | 'onDragLeave' | 'onDrop'>) {
   return (
-    <div style={{
+    <div {...dragHandlers} style={{
       background: 'rgba(var(--glass-rgb), 0.88)',
       backdropFilter: 'var(--blur-glass)',
       WebkitBackdropFilter: 'var(--blur-glass)',
@@ -3248,9 +3251,10 @@ function PairSideImage({ image, onPick }: { image?: string; onPick: (url: string
   )
 }
 
-function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
+function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown }: {
   task: HWTask; index: number
   onUpdate: (t: HWTask) => void
+  onPhotoChange: (image: string | undefined) => void
   onDelete: () => void
   onGripDown?: () => void
 }) {
@@ -3258,12 +3262,71 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
   const cfg = task.type === 'testly' ? TESTLY_CFG : TASK_TYPES.find(x => x.type === task.type)!
   const [expanded, setExpanded] = useState(true)
   const imgInputRef = useRef<HTMLInputElement>(null)
+  const photoRequest = useRef(0)
+  const dragDepth = useRef(0)
+  const [photoDragOver, setPhotoDragOver] = useState(false)
+  const supportsPhoto = task.type !== 'testly'
+
+  function attachPhoto(file: File) {
+    const request = ++photoRequest.current
+    void optimizePhoto(file).then(image => {
+      if (request !== photoRequest.current) return
+      if (!image) throw new Error('Photo could not be read')
+      onPhotoChange(image)
+      setExpanded(true)
+    }).catch(error => {
+      if (request !== photoRequest.current) return
+      void alertDialog({
+        title: error instanceof ImageTooLargeError ? error.message : t('Не удалось загрузить фото. Попробуйте ещё раз.'),
+        tone: 'danger',
+      })
+    })
+  }
+
+  function canDropPhoto(data: DataTransfer) {
+    if (!supportsPhoto || !data.types.includes('Files')) return false
+    const files = Array.from(data.items).filter(item => item.kind === 'file')
+    return files.length === 0 || files.some(item => !item.type || item.type.startsWith('image/'))
+  }
+
   const choices = task.choices ?? ['', '', '', '']
   const correctChoices = task.correctChoices ?? [0]
   const pairs = task.pairs ?? [{ left: '', right: '' }, { left: '', right: '' }]
 
   return (
-    <GlassCard style={{ overflow: 'hidden' }}>
+    <GlassCard
+      style={{
+        overflow: 'hidden',
+        outline: photoDragOver ? '2px solid var(--color-accent)' : undefined,
+        outlineOffset: -2,
+      }}
+      onDragEnter={e => {
+        if (!canDropPhoto(e.dataTransfer)) return
+        e.preventDefault()
+        dragDepth.current++
+        setPhotoDragOver(true)
+      }}
+      onDragOver={e => {
+        if (!e.dataTransfer.types.includes('Files')) return
+        e.preventDefault()
+        e.stopPropagation()
+        e.dataTransfer.dropEffect = canDropPhoto(e.dataTransfer) ? 'copy' : 'none'
+      }}
+      onDragLeave={() => {
+        dragDepth.current = Math.max(0, dragDepth.current - 1)
+        if (dragDepth.current === 0) setPhotoDragOver(false)
+      }}
+      onDrop={e => {
+        if (!e.dataTransfer.types.includes('Files')) return
+        e.preventDefault()
+        e.stopPropagation()
+        dragDepth.current = 0
+        setPhotoDragOver(false)
+        if (!supportsPhoto) return
+        const photo = Array.from(e.dataTransfer.files).find(file => file.type.startsWith('image/'))
+        if (photo) attachPhoto(photo)
+      }}
+    >
       {/* Header */}
       <div data-hover="layer"
         onClick={() => setExpanded(e => !e)}
@@ -3321,10 +3384,8 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
               {/* Условие-картинка */}
               <input ref={imgInputRef} type="file" accept="image/*" style={{ display: 'none' }}
                 onChange={e => {
-                  const file = e.target.files?.[0]; if (!file) return
-                  optimizePhoto(file)
-                    .then(url => onUpdate({ ...task, image: url, imageSize: task.imageSize ?? DEFAULT_IMAGE_SIZE }))
-                    .catch(err => { if (err instanceof ImageTooLargeError) void alertDialog({ title: err.message, tone: 'danger' }); else throw err })
+                  const file = e.target.files?.[0]
+                  if (file) attachPhoto(file)
                   e.target.value = ''
                 }}
               />
@@ -3341,7 +3402,7 @@ function HWTaskCard({ task, index, onUpdate, onDelete, onGripDown }: {
                     <button data-hover="layer" onClick={() => imgInputRef.current?.click()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-3)', fontFamily: 'inherit' }}>
                       <Camera size={12} /> {t('Заменить')}
                     </button>
-                    <button data-hover="layer" onClick={() => onUpdate({ ...task, image: undefined, imageSize: undefined })} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', color: 'var(--color-text-3)' }}>
+                    <button data-hover="layer" onClick={() => { photoRequest.current++; onPhotoChange(undefined) }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', color: 'var(--color-text-3)' }}>
                       <X size={12} />
                     </button>
                   </div>
@@ -4627,10 +4688,11 @@ function PaletteSection({ title, count, accent, children }: {
 // ─── CENTER: Homework task list only ─────────────────────────────────────────
 
 function CenterHomework({
-  lesson, onUpdate, hwTab,
+  lesson, onUpdate, onTaskPhotoChange, hwTab,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
+  onTaskPhotoChange: (lessonId: string, slot: string | null, taskId: string, image: string | undefined) => void
   hwTab: string
 }) {
   const t = useT()
@@ -4703,6 +4765,7 @@ function CenterHomework({
                   task={task}
                   index={i}
                   onUpdate={updateTask}
+                  onPhotoChange={image => onTaskPhotoChange(lesson.id, slot.tab, task.id, image)}
                   onDelete={() => removeTask(task.id)}
                   onGripDown={() => setArmedId(task.id)}
                 />
@@ -4719,10 +4782,11 @@ function CenterHomework({
 // ─── CENTER: Test node editor (final test quiz) ───────────────────────────────
 
 function CenterTestView({
-  lesson, onUpdate, onBack,
+  lesson, onUpdate, onTaskPhotoChange, onBack,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
+  onTaskPhotoChange: (lessonId: string, slot: string | null, taskId: string, image: string | undefined) => void
   onBack: () => void
 }) {
   const t = useT()
@@ -4756,7 +4820,8 @@ function CenterTestView({
         ) : (
           <div style={{ maxWidth: PAGE_WIDTH.form, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {tasks.map((task, i) => (
-              <HWTaskCard key={task.id} task={task} index={i} onUpdate={updateTask} onDelete={() => removeTask(task.id)} />
+              <HWTaskCard key={task.id} task={task} index={i} onUpdate={updateTask}
+                onPhotoChange={image => onTaskPhotoChange(lesson.id, null, task.id, image)} onDelete={() => removeTask(task.id)} />
             ))}
           </div>
         )}
@@ -6481,6 +6546,23 @@ export default function TeacherCourseEditorPage() {
     setCourse(c => ({ ...c, lessons: c.lessons.map(l => l.id === updated.id ? updated : l) }))
   }
 
+  function updateTaskPhoto(lessonId: string, slotId: string | null, taskId: string, image: string | undefined) {
+    setCourse(current => ({
+      ...current,
+      lessons: current.lessons.map(lesson => {
+        if (lesson.id !== lessonId) return lesson
+        const slot = slotId === null ? null : hwSlot(lesson, slotId)
+        if (slot && slot.tab !== slotId) return lesson
+        const tasks = slot?.tasks ?? lesson.testTasks ?? []
+        if (!tasks.some(task => task.id === taskId && task.type !== 'testly')) return lesson
+        const next = tasks.map(task => task.id === taskId
+          ? { ...task, image, imageSize: image ? task.imageSize ?? DEFAULT_IMAGE_SIZE : undefined }
+          : task)
+        return slot ? patchHwSlot(lesson, slot.tab, { tasks: next }) : { ...lesson, testTasks: next }
+      }),
+    }))
+  }
+
   // Вкладка (Урок / Запись / Домашки / Ученики) — «липкая»: переключаясь между
   // уроками, учитель остаётся в том же режиме, в котором работал. Сидел в
   // «Домашках» — следующий урок откроется сразу в домашках, сидел в «Уроке» —
@@ -7623,6 +7705,7 @@ export default function TeacherCourseEditorPage() {
                   <CenterTestView
                     lesson={selectedLesson}
                     onUpdate={updateLesson}
+                    onTaskPhotoChange={updateTaskPhoto}
                     onBack={() => setSelectedLessonId(null)}
                   />
                 ) : (
@@ -7742,7 +7825,7 @@ export default function TeacherCourseEditorPage() {
                       <CenterLesson key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} subject={course.subject} />
                     )}
                     {lessonMode === 'homework' && (
-                      <CenterHomework key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} hwTab={hwTab} />
+                      <CenterHomework key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} onTaskPhotoChange={updateTaskPhoto} hwTab={hwTab} />
                     )}
                     {lessonMode === 'students' && (
                       <CenterLessonStudents
