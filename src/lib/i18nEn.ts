@@ -4467,11 +4467,14 @@ export const EN: Record<string, string> = {
   'Вход для преподавателя': 'Teacher sign in',
   'Вход для препода': 'Teacher sign in',
   'Войдите аккаунтом, к которому привязан профиль ученика.': 'Sign in with the account linked to your student profile.',
+  'Аккаунт не привязан к профилю ученика': 'Your account is not linked to a student profile',
+  'Если вы преподаватель, откройте вход для преподавателей. Если вы ученик, войдите по персональной ссылке от преподавателя.':
+    'Teachers can use teacher sign-in. Students need a personal invitation link from their teacher.',
   'Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.': 'This account is not linked to a student profile yet. Ask your teacher to link it.',
   'Вход для ученика': 'Student sign in',
   'Аккаунт — по приглашению администратора': 'Account by administrator invitation',
-  'Новый преподаватель? Войдите через Яндекс или VK — кабинет создастся сам':
-    'New teacher? Sign in with Yandex or VK — your workspace is created automatically',
+  'Новый преподаватель? Войдите через соцсеть, и Искра создаст ваш кабинет.':
+    'New teacher? Sign in with a social account and Iskra will create your workspace.',
   'По приглашению — почтой и паролем': 'Invited? Use email and password',
   'Поиск ученика': 'Find a student',
   'живое демо — переключайте вкладки, проверяйте работы, правьте журнал':

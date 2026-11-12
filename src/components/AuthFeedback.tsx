@@ -86,6 +86,16 @@ export function useAuthFeedback(source: string) {
 export function authFailureFeedback(error: unknown): AuthFeedbackMessage {
   const timeout = error instanceof DOMException && error.name === 'TimeoutError'
   const text = typeof error === 'string' ? error : authErrorRu(error && typeof error === 'object' ? error : { message: String(error) })
+  if (text === 'Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.') {
+    return {
+      tone: 'danger',
+      title: 'Аккаунт не привязан к профилю ученика',
+      text: 'Если вы преподаватель, откройте вход для преподавателей. Если вы ученик, войдите по персональной ссылке от преподавателя.',
+    }
+  }
+  if (text === 'Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.') {
+    return { tone: 'danger', title: 'Нет доступа к кабинету преподавателя', text }
+  }
   if (/Неверный email или пароль/i.test(text)) return { tone: 'danger', title: 'Неверный email или пароль', text: 'Проверьте данные и повторите вход.', invalid: 'credentials' }
   if (timeout || /не ответил вовремя/i.test(text)) return { tone: 'danger', title: 'Сервер не ответил', text: 'Повторите попытку чуть позже.' }
   if (/интернет|связи с сервером/i.test(text)) return { tone: 'danger', title: 'Нет соединения', text: 'Проверьте интернет и повторите попытку.' }
