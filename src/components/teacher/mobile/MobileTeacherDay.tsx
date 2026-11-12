@@ -328,6 +328,27 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
     {dayActs.map(a => <Action key={a.id} secondary={a.secondary} disabled={a.disabled} onClick={a.run}>{a.busy ? <Loader2 size={18} className="animate-spin" /> : null}{a.label}</Action>)}
   </div> : undefined
 
+  const lessonSummary = (
+    <div className="teacher-day-lessons" data-agenda={preferences.layout === 'agenda' || undefined}>
+      {list.map(item => {
+        const state = status(item)
+        const session = sessions[item.id]
+        const label = state === 'live' ? 'Идёт сейчас' : state === 'completed' ? 'Завершено' : state === 'cancelled' ? 'Отменено' : item.id === next?.id ? 'Ближайшее занятие' : ''
+        return <button data-hover="row" key={item.id} type="button" className="teacher-day-lesson"
+          data-next={item.id === next?.id || undefined} disabled={item.cancelled}
+          onClick={() => { tactile(); open(item) }}>
+          <time dateTime={item.time}>{item.time}{item.endTime && <small>{item.endTime}</small>}</time>
+          <span>
+            <strong>{tn(item.who) || tc(item.title) || t('Занятие')}</strong>
+            {label && <small className="teacher-day-lesson-status">{t(label)}</small>}
+            {session?.completed_at && <small>{t(session.homework_id ? 'Домашняя работа выдана' : 'Домашняя работа пока не выдана')}</small>}
+          </span>
+          {!item.cancelled && <ChevronRight size={16} aria-hidden />}
+        </button>
+      })}
+    </div>
+  )
+
   return <>
     <MobileScreen topZone={controls} glassHeader={unifiedHome ? undefined : { leading: pageTitle, onBack: selected ? () => { void back() } : undefined, backLabel: t('Мой день') }} topPad={64}
       scrollKey={selected ? `${selected.id}-${view}` : unifiedHome ? 'my-day' : `my-day-${day}`} bottomDock={footer} bottomDockRaise={selected ? 16 : 0}>
@@ -338,7 +359,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
         {readOnly && <Alert tone="info" text={t('Просмотр кабинета: изменения недоступны')} />}
         {!selected ? <>
           {unifiedHome ? <TeacherDayCalendar key={calendarReset} day={day} today={today} mode={calendarMode} locale={locale}
-            markedDays={markedDays} onPick={setDay} onMode={changeCalendarMode}
+            markedDays={markedDays} onPick={setDay} onMode={changeCalendarMode} summary={lessonSummary}
             hours={items !== null && !scheduleError && <TeacherDayHours
               day={day} today={today} items={list} locale={locale} onPick={open} />} /> : <>
             <p style={{ ...muted, textAlign: 'center' }}>{dateLabel(day)}</p>
@@ -355,26 +376,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
           </>}
           {items === null && <p style={{ ...muted, textAlign: 'center' }} role="status">{t('Загружаем занятия…')}</p>}
           {items !== null && !scheduleError && (!unifiedHome || calendarMode !== 2) && !list.length && <Card><TaskliIcon name="schedule" size={36} style={{ alignSelf: 'center' }} /><h2 style={heading}>{t('На этот день занятий нет')}</h2><p style={{ ...muted, textAlign: 'center' }}>{t('Выберите другую дату или добавьте занятие в расписании.')}</p></Card>}
-          {unifiedHome ? calendarMode !== 2 && (
-            <div className="teacher-day-lessons" data-agenda={preferences.layout === 'agenda' || undefined}>
-              {list.map(item => {
-                const state = status(item)
-                const session = sessions[item.id]
-                const label = state === 'live' ? 'Идёт сейчас' : state === 'completed' ? 'Завершено' : state === 'cancelled' ? 'Отменено' : item.id === next?.id ? 'Ближайшее занятие' : ''
-                return <button data-hover="row" key={item.id} type="button" className="teacher-day-lesson"
-                  data-next={item.id === next?.id || undefined} disabled={item.cancelled}
-                  onClick={() => { tactile(); open(item) }}>
-                  <time dateTime={item.time}>{item.time}{item.endTime && <small>{item.endTime}</small>}</time>
-                  <span>
-                    <strong>{tn(item.who) || tc(item.title) || t('Занятие')}</strong>
-                    {label && <small className="teacher-day-lesson-status">{t(label)}</small>}
-                    {session?.completed_at && <small>{t(session.homework_id ? 'Домашняя работа выдана' : 'Домашняя работа пока не выдана')}</small>}
-                  </span>
-                  {!item.cancelled && <ChevronRight size={16} aria-hidden />}
-                </button>
-              })}
-            </div>
-          ) : [...(next ? [next] : []), ...list.filter(i => i.id !== next?.id)].map(item => {
+          {!unifiedHome && [...(next ? [next] : []), ...list.filter(i => i.id !== next?.id)].map(item => {
             const state = status(item)
             const session = sessions[item.id]
             const missingHw = !!session?.completed_at && !session.homework_id
