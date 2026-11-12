@@ -89,10 +89,14 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.ISKRA_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.ISKRA_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROXY_URL: https://api.iskra-study.ru
+          VITE_YANDEX_CLIENT_ID: ${{ vars.ISKRA_YANDEX_CLIENT_ID }}
+          VITE_VK_CLIENT_ID: ${{ vars.ISKRA_VK_CLIENT_ID }}
         run: |
           set -euo pipefail
           test -n "$VITE_SUPABASE_URL"
           test -n "$VITE_SUPABASE_PUBLISHABLE_KEY"
+          : "${VITE_YANDEX_CLIENT_ID:?Set the ISKRA_YANDEX_CLIENT_ID repository variable}"
+          : "${VITE_VK_CLIENT_ID:?Set the ISKRA_VK_CLIENT_ID repository variable}"
           test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
           npm ci
           npm run build
