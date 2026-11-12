@@ -1,0 +1,22 @@
+.mfa-keyboard-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.auth-page-layout.mfa-keyboard-layout {
+  min-height: var(--mfa-visible-height, 100dvh);
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 0;
+}
+
+/* Start at the usual centered position. As the visible bottom rises, consume
+   the empty space first, then carry the card with the keyboard edge. */
+.mfa-keyboard-layout > .auth-page-content {
+  transform: translateY(calc(-1 * max(0px, var(--mfa-visible-height, 100dvh)
+    - (var(--mfa-rest-height, 100dvh) + env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / 2 - 50%)));
+}

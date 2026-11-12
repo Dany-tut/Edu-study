@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import { clearStudentSession } from '../../lib/studentSession'
 import { useT } from '../../lib/i18n'
+import { IS_APP, PLATFORM } from '../../lib/platform'
+import './mfaKeyboard.css'
 import { currentLoginCodeRequest, mfaErrorRu, recoverWithBackupCode, subscribeLoginCodeRequest, verifyCode } from '../../lib/mfa'
 import { Alert } from '../Alert'
 import AuthHero from '../AuthHero'
@@ -53,12 +55,64 @@ async function signOut() {
   window.location.hash = '#/'
 }
 
+const dockKeyboard = IS_APP && (PLATFORM === 'iphone' || PLATFORM === 'android')
+
 function AuthShell({ children }: { children: ReactNode }) {
-  return <ScrollFade maxHeight="100dvh" style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)', zIndex: 2000 }}>
-    <div className="auth-page-layout" style={{ minHeight: '100dvh' }}>
-      <div className="auth-page-content"><div className="auth-page-card">{children}</div></div>
+  const frame = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const element = frame.current
+    const viewport = window.visualViewport
+    if (!element || !viewport) return
+    let restHeight = window.innerHeight
+
+    function update() {
+      if (!element || !viewport || Math.abs(viewport.scale - 1) > 0.01) return
+      const bounds = element.getBoundingClientRect()
+      // WKWebView can pan the visual viewport or resize the fixed containing block.
+      // Android can resize both viewports. Measure the visible slice once in either case.
+      const top = Math.max(0, viewport.offsetTop - bounds.top)
+      const height = Math.max(0, Math.min(bounds.bottom, viewport.offsetTop + viewport.height) - bounds.top - top)
+      restHeight = Math.max(restHeight, bounds.height)
+      element.style.setProperty('--mfa-visible-top', `${top}px`)
+      element.style.setProperty('--mfa-visible-height', `${height}px`)
+      element.style.setProperty('--mfa-rest-height', `${restHeight}px`)
+    }
+
+    // A rotated window needs its own unoccluded height.
+    function rotate() {
+      restHeight = 0
+      update()
+    }
+
+    update()
+    viewport.addEventListener('resize', update)
+    viewport.addEventListener('scroll', update)
+    window.addEventListener('resize', update)
+    screen.orientation?.addEventListener('change', rotate)
+    return () => {
+      viewport.removeEventListener('resize', update)
+      viewport.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+      screen.orientation?.removeEventListener('change', rotate)
+    }
+  }, [])
+
+  const card = <div className="auth-page-content"><div className="auth-page-card">{children}</div></div>
+  if (dockKeyboard) {
+    return <div ref={frame} className="mfa-keyboard-frame">
+      <ScrollFade maxHeight="var(--mfa-visible-height, 100dvh)" style={{ top: 'var(--mfa-visible-top, 0px)' }}>
+        <div className="auth-page-layout mfa-keyboard-layout">{card}</div>
+      </ScrollFade>
     </div>
+  }
+  return <ScrollFade maxHeight="100dvh" style={{ position: 'fixed', inset: 0, background: 'var(--color-bg)', zIndex: 2000 }}>
+    <div className="auth-page-layout" style={{ minHeight: '100dvh' }}>{card}</div>
   </ScrollFade>
+}
+
+function focusBackupWithoutScroll(input: HTMLInputElement | null) {
+  input?.focus({ preventScroll: true })
 }
 
 /** «Код подтверждения»: 6 цифр из приложения или запасной код. */
@@ -104,7 +158,8 @@ export function MfaChallengeScreen({ onPassed, client = supabase, onCancel }: { 
       subtitle={t(backup ? 'Введите один из запасных кодов. После входа защита отключится — включите её заново в «Способах входа».' : 'Откройте приложение-аутентификатор и введите 6 цифр для «Искры».')} />
     {backup
       ? <form noValidate onSubmit={event => { event.preventDefault(); void submitBackup() }} style={{ display: 'grid', gap: 12, marginTop: 8 }}>
-        <input className="auth-input" aria-label={t('Запасной код')} placeholder="XXXXX-XXXXX" value={backupCode} autoFocus
+        <input className="auth-input" aria-label={t('Запасной код')} placeholder="XXXXX-XXXXX" value={backupCode}
+          autoFocus={!dockKeyboard} ref={dockKeyboard ? focusBackupWithoutScroll : undefined}
           onChange={event => { setBackupCode(event.target.value.toUpperCase().slice(0, 11)); setError('') }}
           autoCapitalize="characters" autoCorrect="off" spellCheck={false} autoComplete="off" aria-invalid={!!error}
           style={{ width: '100%', boxSizing: 'border-box', minHeight: 52, padding: '0 16px', borderRadius: 14, border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 18, letterSpacing: '.08em', textAlign: 'center', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }} />
