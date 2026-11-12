@@ -48,7 +48,7 @@ export interface ExamCatalog {
   lines: ExamLine[]
 }
 
-export const EXAM_CATALOGS: ExamCatalog[] = [
+const CATALOGS_2026: ExamCatalog[] = [
   {
     "exam": "ege",
     "subject": "Химия",
@@ -3804,14 +3804,85 @@ export const EXAM_CATALOGS: ExamCatalog[] = [
   }
 ]
 
+export type ExamYear = 2026 | 2027
+
+// The published 2027 drafts keep the structure of these subjects except
+// profile mathematics. Keep its numbering separate from the 2026 catalog.
+function profileMath2027(lines: ExamLine[]): ExamLine[] {
+  const old = (from: number, number: number): ExamLine => ({ ...lines[from - 1], number })
+  const added = (number: number, title: string, type: TaskTypeId, points: number, prompt: string): ExamLine => ({
+    number, title, points, subtypes: [{ title, type, prompt }],
+  })
+  return [
+    ...lines.slice(0, 5),
+    added(6, 'Распределение случайной величины', 'numeric', 1, 'Решите задачу о распределении случайной величины.'),
+    ...lines.slice(5, 11).map(line => ({ ...line, number: line.number + 1 })),
+    added(13, 'Математическая модель · текстовая задача', 'numeric', 1, 'Решите текстовую задачу и запишите ответ.'),
+    old(13, 14), old(14, 15), old(15, 16),
+    added(17, 'Математическое моделирование · развёрнутое решение', 'extended', 2, 'Постройте математическую модель и обоснуйте решение.'),
+    old(17, 18), old(18, 19), old(19, 20),
+  ]
+}
+
+// The base maths demo uses digit strings for matching. In line 8 it
+// explicitly accepts either order. Keep these out of numeric tolerance grading.
+const baseMathDigitLines: Record<number, { title: string; prompt: string; cells: number; hint: string }> = {
+  2: { title: 'Величины и их возможные значения', prompt: 'Установите соответствие между величинами и их возможными значениями.', cells: 4, hint: 'Четыре цифры по порядку' },
+  7: { title: 'Сопоставление по графику функции', prompt: 'Установите соответствие по графику функции.', cells: 4, hint: 'Четыре цифры по порядку' },
+  8: { title: 'Логические рассуждения', prompt: 'Укажите номера верных утверждений.', cells: 2, hint: 'Две цифры. Порядок не важен' },
+  18: { title: 'Сопоставление на координатной прямой', prompt: 'Установите соответствие по условию задания.', cells: 4, hint: 'Четыре цифры по порядку' },
+}
+
+const baseMathNumberLines: Record<number, { title: string; prompt: string }> = {
+  3: { title: 'Чтение диаграмм, графиков и таблиц', prompt: 'Извлеките нужное значение из диаграммы, графика или таблицы.' },
+  4: { title: 'Вычисление по формуле', prompt: 'Подставьте данные в формулу и вычислите значение.' },
+  5: { title: 'Вероятность случайного события', prompt: 'Найдите вероятность события и запишите ответ.' },
+}
+
+const corrected2026 = CATALOGS_2026.map(catalog => {
+  if (catalog.exam === 'oge' && catalog.subject === 'Литература') {
+    return { ...catalog, lines: catalog.lines.map(line => line.number === 4 ? { ...line, points: 8 } : line) }
+  }
+  if (catalog.subject === 'Математика (базовый)') {
+    return {
+      ...catalog,
+      lines: catalog.lines.map(line => {
+        const digits = baseMathDigitLines[line.number]
+        if (digits) return { ...line, title: digits.title, subtypes: [{ ...digits, type: 'fill' as const }] }
+        const number = baseMathNumberLines[line.number]
+        if (number) return { ...line, title: number.title, subtypes: [{ ...number, type: 'numeric' as const }] }
+        if (line.number !== 6) return line
+        return {
+          ...line,
+          title: 'Подбор по условиям',
+          subtypes: [
+            { title: 'Выбор позиций', type: 'fill' as const, prompt: 'Укажите номера выбранных позиций.', hint: 'Последовательность цифр. Укажите все допустимые ответы' },
+            { title: 'Расчёт стоимости', type: 'numeric' as const, prompt: 'Сравните варианты по условию и запишите итоговую стоимость.' },
+          ],
+        }
+      }),
+    }
+  }
+  return catalog
+})
+
+export const EXAM_CATALOGS: ExamCatalog[] = [
+  ...corrected2026,
+  ...corrected2026.map(catalog => ({
+    ...catalog,
+    year: 2027,
+    lines: catalog.subject === 'Математика (профильный)' ? profileMath2027(catalog.lines) : catalog.lines,
+  })),
+]
+
 /** Предметы, для которых есть каталог данного экзамена. */
-export function examSubjects(exam: ExamCode): string[] {
-  return [...new Set(EXAM_CATALOGS.filter(c => c.exam === exam).map(c => c.subject))]
+export function examSubjects(exam: ExamCode, year: ExamYear = 2026): string[] {
+  return [...new Set(EXAM_CATALOGS.filter(c => c.exam === exam && c.year === year).map(c => c.subject))]
 }
 
 /** Каталог по экзамену и предмету; при неточном совпадении берём первый того же экзамена. */
-export function catalogFor(exam: ExamCode, subject: string): ExamCatalog | undefined {
-  const list = EXAM_CATALOGS.filter(c => c.exam === exam)
+export function catalogFor(exam: ExamCode, subject: string, year: ExamYear = 2026): ExamCatalog | undefined {
+  const list = EXAM_CATALOGS.filter(c => c.exam === exam && c.year === year)
   const s = subject.trim().toLowerCase()
   return list.find(c => c.subject.toLowerCase() === s)
     ?? list.find(c => s && c.subject.toLowerCase().startsWith(s.slice(0, 5)))

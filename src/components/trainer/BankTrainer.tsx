@@ -1747,9 +1747,10 @@ export default function BankTrainer({ subjectState }: {
   const wrongCount = tasks.filter(t => t.subject === subject && answered.get(t.id)?.correct === false).length
   const totalCount = tasks.filter(t => t.subject === subject).length
   const today = new Date().toISOString().slice(0, 10)
-  const todayCorrect = useMemo(() => [...answered.values()].filter(a => a.correct === true  && a.date === today).length, [answered, today])
-  const todayWrong   = useMemo(() => [...answered.values()].filter(a => a.correct === false && a.date === today).length, [answered, today])
+  const todayCorrect = useMemo(() => subjectTasks.filter(task => answered.get(task.id)?.correct === true && answered.get(task.id)?.date === today).length, [subjectTasks, answered, today])
+  const todayWrong   = useMemo(() => subjectTasks.filter(task => answered.get(task.id)?.correct === false && answered.get(task.id)?.date === today).length, [subjectTasks, answered, today])
 
+  const favCount = subjectTasks.filter(task => favorites.has(task.id)).length
   const updateProgress = useTrainerProgress(s => s.update)
   const openModal = useTrainerProgress(s => s.openModal)
   const setOpenModal = useTrainerProgress(s => s.setOpenModal)
@@ -1761,8 +1762,8 @@ export default function BankTrainer({ subjectState }: {
     // (`waitedTooLong` — та же страховка, что и у скелетона страницы: сеть
     // подвела, но пилюля не должна остаться серой навсегда.)
     if (!dataLoaded && !waitedTooLong) return
-    updateProgress({ doneCount, wrongCount, totalCount, favCount: favorites.size, todayCorrect, todayWrong, subject, subjectId: subject, kind: 'bank' })
-  }, [dataLoaded, waitedTooLong, doneCount, wrongCount, totalCount, favorites.size, todayCorrect, todayWrong, subject])
+    updateProgress({ doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, subject, subjectId: subject, kind: 'bank' })
+  }, [dataLoaded, waitedTooLong, doneCount, wrongCount, totalCount, favCount, todayCorrect, todayWrong, subject])
   useEffect(() => {
     if (openModal) { setShowProgressModal(true); setOpenModal(false) }
   }, [openModal])

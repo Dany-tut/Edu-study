@@ -18,6 +18,10 @@ import type { HardTaskDef } from './useHomework'
 /** Синтетический id предмета-инбокса домашних заданий вне курса. */
 export const HW_SUBJECT_ID = 'hw-inbox'
 
+export function isStandaloneSubjectId(id: string): boolean {
+  return id === HW_SUBJECT_ID || id.startsWith(HW_SUBJECT_ID + ':')
+}
+
 interface DbStandaloneHw {
   id: string
   title: string | null
@@ -172,7 +176,7 @@ function buildAuthored(hw: DbStandaloneHw, bankById: Map<number, DbBankTask>): A
  * Возвращает null, если назначенных ДЗ (с заданиями) нет. `subjectName` — имя
  * предмета группы (для заголовка трека), иначе дефолт.
  */
-export async function fetchStandaloneSubject(groupId: string): Promise<Subject | null> {
+export async function fetchStandaloneSubject(groupId: string, subjectId = HW_SUBJECT_ID, ownerStudentId?: string): Promise<Subject | null> {
   const rows = await fetchStandaloneHomework(groupId)
   if (rows.length === 0) return null
 
@@ -193,7 +197,7 @@ export async function fetchStandaloneSubject(groupId: string): Promise<Subject |
       number: standaloneHomeworkNumber(hw.title, idx),
       status: 'locked',
       shape: 'circle',
-      subject: HW_SUBJECT_ID,
+      subject: subjectId,
       kind: 'lesson',
       homework,
     }))
@@ -201,7 +205,8 @@ export async function fetchStandaloneSubject(groupId: string): Promise<Subject |
   if (lessons.length === 0) return null
 
   return {
-    id: HW_SUBJECT_ID,
+    id: subjectId,
+    ownerStudentId,
     subject: subjectName ?? undefined,
     // Таблетка предмета в треке: имя предмета, выбранного при создании ДЗ (из
     // группы). Курс рядом показывается по своему названию — отдельной таблеткой.

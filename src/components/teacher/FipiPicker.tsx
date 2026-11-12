@@ -13,7 +13,7 @@ import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
 import { TaskTypeRow } from './TaskTypeRow'
 import { taskTypeDef } from '../../data/taskTypes'
-import { EXAM_CATALOGS, examSubjects, catalogFor, type ExamCode, type ExamCatalog, type ExamLine, type ExamSubtype } from '../../data/examPresets'
+import { EXAM_CATALOGS, examSubjects, catalogFor, type ExamCode, type ExamCatalog, type ExamLine, type ExamSubtype, type ExamYear } from '../../data/examPresets'
 
 export function FipiToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const t = useT()
@@ -39,10 +39,11 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
 }) {
   const t = useT()
   const [exam, setExam] = useState<ExamCode>('ege')
-  const [subject, setSubject] = useState<string>(() => courseSubject ?? examSubjects('ege')[0])
+  const [subject, setSubject] = useState<string>()
+  const [year, setYear] = useState<ExamYear>(2026)
   const [query, setQuery] = useState('')
 
-  const catalog = useMemo(() => catalogFor(exam, subject) ?? EXAM_CATALOGS.find(c => c.exam === exam)!, [exam, subject])
+  const catalog = useMemo(() => catalogFor(exam, subject ?? courseSubject ?? '', year) ?? EXAM_CATALOGS.find(c => c.exam === exam && c.year === year)!, [exam, subject, courseSubject, year])
   const lines = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('ru')
     return catalog.lines.filter(l => `${l.number} ${l.title} ${l.subtypes.map(s => s.title).join(' ')}`.toLocaleLowerCase('ru').includes(q))
@@ -63,7 +64,7 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
             ]}
             onChange={nextExam => {
               if (nextExam === exam) return
-              const subjects = examSubjects(nextExam)
+              const subjects = examSubjects(nextExam, year)
               setExam(nextExam)
               setSubject(courseSubject && subjects.includes(courseSubject) ? courseSubject : subjects[0])
               setQuery('')
@@ -71,10 +72,17 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
           />
         </div>
 
+        <Segmented<'2026' | '2027'>
+          variant="filter"
+          value={year === 2026 ? '2026' : '2027'}
+          items={[{ id: '2026', label: '2026' }, { id: '2027', label: t('2027 · проект') }]}
+          onChange={nextYear => { setYear(nextYear === '2026' ? 2026 : 2027); setQuery('') }}
+        />
+
         {/* Предмет — из предмета курса, можно переопределить */}
         <TeacherSelect
           value={catalog.subject}
-          options={examSubjects(exam)}
+          options={examSubjects(exam, year)}
           placeholder={t('Предмет')}
           clearable={false}
           search={false}
@@ -90,18 +98,17 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
         </label>
 
         <div key={catalog.subject + exam} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 5, overflowWrap: 'anywhere' }}>
-          {lines.map(line => {
-            const subtype = line.subtypes[0]
-            const kinds = [...new Set(line.subtypes.map(item => t(taskTypeDef(item.type).label)))]
-            return (
-              <TaskTypeRow key={line.number} type={subtype.type}
-                onClick={() => onAdd(subtype, line, catalog)}
-                preset={{
-                  number: line.number, title: line.title, hint: kinds.join(' · '), score: `${line.points} ${t('б.')}`,
-                  preview: { subject: catalog.subject, prompt: subtype.prompt, hint: subtype.hint, source: { url: catalog.source, year: catalog.year } },
-                }} />
-            )
-          })}
+          {lines.flatMap(line => line.subtypes.map((subtype, index) => (
+            <TaskTypeRow key={`${line.number}-${index}`} type={subtype.type}
+              onClick={() => onAdd(subtype, line, catalog)}
+              preset={{
+                number: line.number,
+                title: line.subtypes.length > 1 ? subtype.title : line.title,
+                hint: t(taskTypeDef(subtype.type).label),
+                score: `${line.points} ${t('б.')}`,
+                preview: { subject: catalog.subject, prompt: subtype.prompt, hint: subtype.hint, source: { url: catalog.source, year: catalog.year } },
+              }} />
+          )))}
           {lines.length === 0 && <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: 12, textAlign: 'center' }}>{t('Ничего не найдено')}</div>}
         </div>
       </div>

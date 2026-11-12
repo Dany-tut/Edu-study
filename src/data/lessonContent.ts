@@ -1,5 +1,5 @@
 import { type Lesson } from './mockData'
-import { normalizeTaskType, type CrosswordClue, type DialogLine, type GapChoice, type GapRow, type PatternItem, type SortItem, type StoredTaskType, type TaskPayload, type TestlyRef, type TfStatement } from './taskTypes'
+import { normalizeTaskType, taskAlternativeAnswers, type CrosswordClue, type DialogLine, type GapChoice, type GapRow, type PatternItem, type SortItem, type StoredTaskType, type TaskPayload, type TestlyRef, type TfStatement } from './taskTypes'
 import { useStudentData } from '../store/studentDataStore'
 import { apLessonContent } from './apLessonChunk'
 import type { ApLessonContent } from './apChemistryLessons'
@@ -370,6 +370,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
       // Для multi нужны все верные варианты, а не только первый.
       correctOptionIds: tp === 'multi' ? correctIdx.map(String) : undefined,
       explanation: '', type: tp,
+      afterNote: t.afterNote,
       image: t.image,
       imageSize: t.imageSize,
       // Язык задания нужен и ветке выбора: по нему вариант на незнакомом письме
@@ -394,7 +395,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     id: t.id, prompt, options: [], correctOptionId: '', explanation: '',
     type: tp,
     referenceAnswer: t.answer?.trim() || undefined,
-    altAnswers: t.altAnswers,
+    altAnswers: taskAlternativeAnswers(t),
     answerSkeleton: t.answerSkeleton,
     // numeric — число сверяется с допуском; единицы и формат ввода доезжают к ученику.
     numTolerance: t.numTolerance,

@@ -458,7 +458,7 @@ export interface TaskPayload {
    * при добавлении задания из пикера «ЕГЭ / ОГЭ». Нужна для провенанса и будущей
    * аналитики слабых тем; на проверку ответа не влияет. См. data/examPresets.ts.
    */
-  examTag?: { exam: 'ege' | 'oge'; subject: string; line: number; topic?: string }
+  examTag?: { exam: 'ege' | 'oge'; subject: string; line: number; topic?: string; year?: number; subtype?: string; points?: number; criteria?: string[]; templatePrompt?: string }
 
   bankId?: number
 }
@@ -518,9 +518,17 @@ export const DEFAULT_IMAGE_SIZE = 25
  */
 export { normAnswer } from '../lib/answerForms'
 
+/** В базовой математике ФИПИ принимает обе записи двух цифр в линии 8. */
+export function taskAlternativeAnswers(task: Pick<TaskPayload, 'answer' | 'altAnswers' | 'examTag'>): string[] | undefined {
+  const tag = task.examTag
+  const answer = task.answer?.trim()
+  if (tag?.exam !== 'ege' || tag.subject !== 'Математика (базовый)' || tag.line !== 8 || !answer || !/^\d{2}$/.test(answer)) return task.altAnswers
+  return [...new Set([...(task.altAnswers ?? []), answer[1] + answer[0]])]
+}
+
 /** Совпал ли ответ с эталоном или с одним из альтернативных вариантов. */
 function matchesText(given: string, t: TaskPayload): boolean {
-  return matchesAnyAnswer(given, [t.answer, ...(t.altAnswers ?? [])])
+  return matchesAnyAnswer(given, [t.answer, ...(taskAlternativeAnswers(t) ?? [])])
 }
 
 /**

@@ -1,3 +1,6 @@
+import FipiPicker, { FipiToggle } from '../../components/teacher/FipiPicker'
+import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
+import { importBankTask } from '../../lib/bankTaskImport'
 import TableScrollArea from '../../components/TableScrollArea'
 import { textFadeStyle } from '../../lib/textFades'
 import { ChevronRight as LoopUiChevronRight } from '../../components/icons/appIcons'
@@ -71,6 +74,7 @@ type HWTask = {
   canvasData?: string
   /** testly — тест из Тестли (вкладка «Из Тестли»). */
   testly?: TestlyRef
+  examTag?: TaskPayload['examTag']
 }
 
 function makeTask(type: HWTaskType): HWTask {
@@ -87,12 +91,8 @@ function makeTask(type: HWTaskType): HWTask {
 }
 
 function taskFromBank(bt: BankTask): HWTask {
-  return {
-    id: Math.random().toString(36).slice(2),
-    source: 'bank', bankId: bt.id, modified: false,
-    type: 'extended', question: bt.question, answer: bt.answer,
-    image: bt.questionImage ?? null,
-  }
+  return { ...importBankTask(bt, Math.random().toString(36).slice(2)),
+    source: 'bank', modified: false, question: bt.question, answer: bt.answer }
 }
 
 // Google Forms never exposes the answer key to non-owners — imported questions
@@ -2189,6 +2189,7 @@ export default function TeacherHomeworkCreatePage() {
     ? known.some(isLanguageSubject)
     : teacherSubjects.length > 0 && teacherSubjects.some(isLanguageSubject)
   const [activeTab, setActiveTab] = useState<MainTab>('compose')
+  const [fipiOpen, setFipiOpen] = useState(false)
   const testlyOn = useTestlyModule(s => s.connected)
   const loadTestly = useTestlyModule(s => s.load)
   useEffect(() => { void loadTestly() }, [loadTestly])
@@ -2360,6 +2361,10 @@ export default function TeacherHomeworkCreatePage() {
   }
 
   function handlePublish() {
+    if (hwTasks.some(needsExamCondition)) {
+      setPublishErr({ tone: 'danger', text: t('Допишите условия заданий из каталога ФИПИ перед публикацией.') })
+      return
+    }
     const noAnswer = hwTasks.flatMap((task, i) => isMissingAnswer(task as unknown as TaskPayload) ? [`${t('Задание')} ${i + 1}`] : [])
     if (alertMissingAnswers(noAnswer)) return
     const modifiedBankTasks = hwTasks.filter(t => t.source === 'bank' && t.modified && !t.savedToTrainer)
@@ -2685,8 +2690,16 @@ export default function TeacherHomeworkCreatePage() {
           overscrollBehavior: 'contain',
           ...paletteLift,
         }}>
+          {activeTab === 'compose' && <div style={{ width: 248, padding: '0 12px 12px' }}>
+            <FipiToggle open={fipiOpen} onToggle={() => setFipiOpen(open => !open)} />
+            <FipiPicker open={fipiOpen} courseSubject={known[0]}
+              onAdd={(subtype, line, catalog) => setHwTasks(tasks => [...tasks, {
+                ...makeExamTaskDraft(subtype, line, catalog),
+                source: 'custom', modified: false, question: subtype.prompt, answer: '',
+              }])} />
+          </div>}
           <AnimatePresence mode="wait">
-            {(activeTab === 'compose' || activeTab === 'testly') && (
+            {((activeTab === 'compose' && !fipiOpen) || activeTab === 'testly') && (
               <ComposeTypePanel
                 key="compose-types"
                 isLanguage={isLanguage}

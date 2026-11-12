@@ -6556,6 +6556,8 @@ export const EN: Record<string, string> = {
   "ответ по клеткам, цифры по порядку": "answer in cells, digits in order",
 
   // Пикер «ЕГЭ / ОГЭ · Каталог ФИПИ»
+  "2027 · проект": "2027 · draft",
+  "Допишите условия заданий из каталога ФИПИ перед публикацией.": "Complete the FIPI catalog questions before publishing.",
   "Скрыть ФИПИ": "Hide FIPI",
   "ЕГЭ / ОГЭ · ФИПИ": "Exam catalog · FIPI",
   "Номер задания или тема": "Task number or topic",
