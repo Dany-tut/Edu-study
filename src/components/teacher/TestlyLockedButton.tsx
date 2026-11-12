@@ -79,7 +79,7 @@ export default function TestlyLockedButton() {
           fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)',
         }}
       >
-        <TestlyTile size={14} /> {t('Из Тестли')}
+        <TestlyTile size={16} tone="brand" /> {t('Из Тестли')}
         <Lock size={13} style={{ marginLeft: 'auto', color: 'var(--color-muted)', flexShrink: 0 }} />
       </button>
       <div ref={panel} id={id} popover="auto" role="region" aria-label={t('Тестли')}

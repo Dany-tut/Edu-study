@@ -12,7 +12,18 @@ export default function TestlyMark({ size = 16, style }: { size?: number; style?
 }
 
 /** Чернильная плитка со знаком: в списках тестов, в карточке задания, в профиле. */
-export function TestlyTile({ size = 40 }: { size?: number }) {
+export function TestlyTile({ size = 40, tone = 'ink' }: { size?: number; tone?: 'ink' | 'brand' }) {
+  if (tone === 'brand') {
+    // Цвет и пропорции LogoMark в панели самого Тестли.
+    return (
+      <span style={{
+        width: size, height: size, borderRadius: size / 4, flexShrink: 0,
+        background: '#6366F1', color: '#fff', display: 'grid', placeItems: 'center',
+      }}>
+        <TestlyMark size={size * 5 / 8} />
+      </span>
+    )
+  }
   return (
     <span style={{
       width: size, height: size, borderRadius: Math.round(size * 0.3), flexShrink: 0,

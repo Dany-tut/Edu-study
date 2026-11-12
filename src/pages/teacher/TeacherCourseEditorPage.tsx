@@ -4441,7 +4441,7 @@ function TestlyButton({ onPick, addedIds, open: openProp, onToggle }: {
         padding: '10px 12px', borderRadius: 13, border: '1.5px dashed var(--color-border)',
         background: 'transparent', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)',
       }}>
-        <TestlyTile size={14} /> {open ? t('Скрыть Тестли') : t('Из Тестли')}
+        <TestlyTile size={16} tone="brand" /> {open ? t('Скрыть Тестли') : t('Из Тестли')}
       </button>
       {open && <div style={{ marginTop: 6 }}><TestlyPicker compact addedIds={addedIds} onPick={onPick} /></div>}
     </div>
