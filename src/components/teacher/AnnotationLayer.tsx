@@ -377,7 +377,7 @@ export default function AnnotationLayer({
             }} />
           ))}
           <div style={{ width: 1, height: 16, background: 'var(--color-border-medium)' }} />
-          <input type="range" min={1} max={14} value={activeSize} onChange={e => setActiveSize(+e.target.value)} style={{ width: 64 }} />
+          <input type="range" aria-label={t('Толщина линии')} min={1} max={14} value={activeSize} onChange={e => setActiveSize(+e.target.value)} style={{ width: 64 }} />
           <div style={{ flex: 1 }} />
           <Tooltip label={t('Отменить')}><button data-hover="layer" onClick={undo} disabled={!canUndo} style={{ ...iconBtn(false), cursor: canUndo ? 'pointer' : 'not-allowed', opacity: canUndo ? 1 : 0.35 }}>
             <Undo2 size={14} />

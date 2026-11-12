@@ -42,7 +42,6 @@ export default function TeacherHardReviewPage() {
   const [busy, setBusy] = useState(false)
   const [hwBusy, setHwBusy] = useState(false)
   const [hwMissing, setHwMissing] = useState(false)
-  const [zoom, setZoom] = useState<string | null>(null)
   // Активная вкладка задания. Пустая строка → берём первую в HardConversation.
   const [activeKey, setActiveKey] = useState<string>('')
   // Колонка ученика прилипшая: без поля она уезжала вверх на хвосте прокрутки
@@ -211,14 +210,13 @@ export default function TeacherHardReviewPage() {
             />
           )}
           <HardConversation
-            key={composerEpoch}
+            key={`${sub.id}:${composerEpoch}`}
             tabs={tabs}
             studentBlocks={sub.taskBlocks}
             reviewBlocks={sub.reviewBlocks}
             role="teacher"
             activeKey={activeKey || tabs[0]?.key || ''}
             onSelectTab={setActiveKey}
-            onZoomPhoto={setZoom}
             onReview={reviewTab}
             busy={busy}
             draftScope={`hardReview:${sub.id}`}
@@ -227,15 +225,6 @@ export default function TeacherHardReviewPage() {
 
       </div>
 
-      {/* Photo zoom overlay */}
-      {zoom && (
-        <div
-          onClick={() => setZoom(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, cursor: 'zoom-out' }}
-        >
-          <img src={zoom} alt="" style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 12 }} />
-        </div>
-      )}
     </div>
   )
 }

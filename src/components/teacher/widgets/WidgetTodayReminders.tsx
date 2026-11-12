@@ -1,4 +1,3 @@
-import { widgetNavigationProps } from './widgetNavigation'
 import { useRef, useState, useId } from 'react'
 import { Bell, ChevronRight, CheckCircle2 } from '../../icons/appIcons'
 import WidgetOpenButton from './WidgetOpenButton'
@@ -32,7 +31,7 @@ export default function WidgetTodayReminders() {
   const action=active?.items.map(reminderAction).find(Boolean)
   // «Горит» — просрочено или ждёт дольше суток: подсвечиваем янтарём строку и счётчик вкладки.
   const hot=(r:Reminder)=>!reminderDone(r)&&r.urgency==='high'
-  return <section className="teacher-reminders-panel" {...widgetNavigationProps(action)} aria-label={t('Напоминания')}>
+  return <section className="teacher-reminders-panel" aria-label={t('Напоминания')}>
     <header className="widget-panel-header"><Bell size={17}/><h3>{t('Напоминания')}</h3>{action&&<WidgetOpenButton onOpen={action}/>}</header>
     {active&&<div className="reminder-category-tabs" ref={nav} role="tablist" aria-label={t('Напоминания')}>
       {groups.map(c=><button data-hover="layer" key={c.type} type="button" role="tab" aria-selected={active.type===c.type} aria-controls={queueId} onClick={()=>{setSelected(c.type);body.current?.scrollTo({top:0})}}><span data-label={t(c.label)}>{t(c.label)}</span><b data-hot={c.items.some(hot)||undefined}>{count(c.items)}</b></button>)}
