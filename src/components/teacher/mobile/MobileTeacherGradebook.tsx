@@ -3,9 +3,11 @@ import CourseJournal from '../CourseJournal'
 import BackCircle from '../../BackCircle'
 import { GlassPill } from '../../mobileChrome'
 import { useT } from '../../../lib/i18n'
+import { IS_IOS } from '../../../lib/platform'
 
-export default function MobileTeacherGradebook({ onBack }: { onBack?: () => void }) {
+export default function MobileTeacherGradebook({ onBack: onBackToProfile }: { onBack?: () => void }) {
   const t = useT()
+  const onBack = IS_IOS ? undefined : onBackToProfile
   return <MobileScreen topZone={<div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 44, padding: '0 48px' }}>
     {onBack && <BackCircle onClick={onBack} label="Ещё" style={{ position: 'absolute', left: 0, width: 44, height: 44 }} />}
     <GlassPill>{t('Журнал')}</GlassPill>
