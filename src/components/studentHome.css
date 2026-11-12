@@ -228,19 +228,14 @@ html:has(.live-student-home) { scrollbar-gutter:auto; }
     position: absolute;
     inset: 0;
     --widget-peek: 32px;
+    touch-action: pan-y;
   }
   .iphone-widget-slot {
     position: absolute;
     top: 0;
-    left: var(--widget-peek);
+    left: calc(var(--widget-peek) + var(--widget-offset) * (100% - 2 * var(--widget-peek) + 8px));
     width: calc(100% - 2 * var(--widget-peek));
     height: 100%;
-  }
-  .iphone-widget-slot[data-offset="-1"] { left: calc(-100% + 3 * var(--widget-peek) - 8px); }
-  .iphone-widget-slot[data-offset="1"] { left: calc(100% - var(--widget-peek) + 8px); }
-  .iphone-widget-slot[data-offset]:not([data-offset="0"]) > div {
-    transform: scaleY(.9);
-    opacity: .55;
   }
   .iphone-widget-peek { position: absolute; inset: 0; width: 100%; cursor: pointer; }
 }
