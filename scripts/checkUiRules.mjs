@@ -47,6 +47,7 @@ assert.match(read('src/components/MobileHome.tsx'), /<FadeText className="schedu
 assert.ok(!/\btruncate\b|textOverflow:\s*['"]ellipsis['"]/.test(read('src/components/MobileHome.tsx')), 'Single-line mobile home labels must fade instead of showing ellipses')
 
 const rules=read('docs/ui-rules.md')
-for(const id of ['SCROLL-01','TEXT-01','MOBILE-01','ALERT-01','AI-01','BRAND-01']) assert.ok(rules.includes(id),`Missing UI rule ${id}`)
+for(const id of ['SCROLL-01','TEXT-01','MOBILE-01','ALERT-01','AI-01','BRAND-01','TOP-01']) assert.ok(rules.includes(id),`Missing UI rule ${id}`)
 assert.ok(read('AGENTS.md').includes('docs/ui-rules.md'))
+await import('./checkIPhoneTopAlignment.mjs')
 console.log('UI rules: scroll edges, schedule text fades, mobile card integration and durable rule links passed')
