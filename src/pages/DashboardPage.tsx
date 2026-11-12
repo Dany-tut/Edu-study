@@ -1,3 +1,4 @@
+import { PLATFORM } from '../lib/platform'
 import { useNow } from '../lib/useNow'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
 import Sidebar from '../components/Sidebar'
@@ -354,7 +355,7 @@ export default function DashboardPage() {
     <>
       <AnswerFlightLayer />
       {/* «Сейчас Хэллоуин — включить тему?» — один раз за сезон, если админ велел спрашивать. */}
-      <SeasonAsk />
+      {PLATFORM !== 'iphone' && <SeasonAsk />}
       {/* Desktop live notifications surface inside CompactWidgetPill (beside the
           topbar); the standalone toast is only kept for mobile where there's no pill. */}
       {!isDesktop && <NotificationToastContainer />}

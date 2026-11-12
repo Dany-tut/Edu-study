@@ -372,7 +372,7 @@ export default function MobileProfilePage() {
 
               {/* Праздничная тема — только пока сезон идёт: открывает окно выбора
                   из трёх тем (или «Без темы»), справа — что выбрано сейчас. */}
-              {season.live && (
+              {PLATFORM !== 'iphone' && season.live && (
                 <button data-hover="layer"
                   onClick={() => { tactile(); openSeasonPicker() }}
                   className="flex items-center justify-between cursor-pointer"

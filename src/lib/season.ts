@@ -122,18 +122,11 @@ function devSeason(): Season | null {
 function start() {
   if (started) return
   started = true
-  const personal = ls.get(PERSONAL_KEY)
-  if (isVariant(personal)) {
-    state = { ...state, season: { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: personal, parts: ALL_ON, ask: false }, preview: true, choice: personal }
-    queueMicrotask(emit)
-    return
-  }
   const dev = devSeason()
   if (dev) { state = { ...state, season: dev, preview: ls.get('season.devAsk') !== '1', choice: readChoice(dev) }; queueMicrotask(emit); return }
   loadSeason().then(s => {
     const latestPersonal = ls.get(PERSONAL_KEY)
-    if (isVariant(latestPersonal)) return // A personal choice made while loading wins.
-    state = { ...state, season: s, choice: latestPersonal === 'off' ? 'off' : readChoice(s) }
+    state = { ...state, season: s, choice: latestPersonal === 'off' || isVariant(latestPersonal) ? latestPersonal : readChoice(s) }
     emit()
   }).catch(() => { /* нет связи — без темы */ })
   // Граница дат проходит, пока вкладка открыта: раз в минуту сверяем часы.
@@ -160,11 +153,7 @@ export function setSeasonChoice(choice: SeasonVariant | 'off', persist = true) {
 export function setPersonalHalloween(choice: SeasonVariant | 'off') {
   ls.set(PERSONAL_KEY, choice)
   ls.set(PREVIEW_KEY, null)
-  if (choice === 'off') {
-    state = { ...state, preview: false, choice: 'off', picker: false }
-  } else {
-    state = { ...state, season: { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: choice, parts: ALL_ON, ask: false }, preview: true, choice, picker: false }
-  }
+  state = { ...state, preview: false, choice, picker: false }
   emit()
 }
 
