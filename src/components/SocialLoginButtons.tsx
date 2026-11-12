@@ -129,7 +129,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
   }
 
   return (
-    <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10, marginTop: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--color-muted)', fontSize: 12 }}>
         <span style={{ height: 1, flex: 1, background: 'var(--color-border-medium)' }} />
         {t('или продолжить с')}
@@ -155,7 +155,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
               {lastLogin.name.trim().charAt(0).toUpperCase()}
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 15, fontWeight: 650, ...textFadeLines(1) }}>{t('Продолжить как')} {lastLogin.name}</span>
+              <span style={{ fontSize: 15, fontWeight: 650, overflowWrap: 'anywhere', ...textFadeLines(2) }}>{t('Продолжить как')} {lastLogin.name}</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-2)', marginTop: 1 }}>
                 <span aria-hidden="true" style={{ display: 'inline-flex', width: 14, height: 14 }}>
                   {lastLogin.provider === 'apple' ? <AppleMark size={13} />
