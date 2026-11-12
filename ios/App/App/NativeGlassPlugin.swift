@@ -473,6 +473,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                     width.isActive = true
                     self.barBottomButtonSizes.append(width)
                     b.setContentHuggingPriority(.required, for: .horizontal)
+                } else if it["menuChevron"] as? String == "up" {
+                    let preferredWidth = b.widthAnchor.constraint(greaterThanOrEqualToConstant: 92)
+                    preferredWidth.priority = .defaultHigh
+                    preferredWidth.isActive = true
+                    b.setContentHuggingPriority(.defaultHigh, for: .horizontal)
                 } else {
                     b.setContentHuggingPriority(.defaultLow, for: .horizontal)
                 }
@@ -547,7 +552,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 config.imagePadding = 6
             }
             if menuItems != nil {
-                config.image = UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(accent, renderingMode: .alwaysOriginal)
+                let chevron = it["menuChevron"] as? String == "up" ? "chevron.up" : "chevron.down"
+                config.image = UIImage(systemName: chevron, withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold))?.withTintColor(accent, renderingMode: .alwaysOriginal)
                 config.imagePlacement = .trailing
                 config.imagePadding = 6
             }
