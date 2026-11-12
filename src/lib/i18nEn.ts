@@ -691,6 +691,11 @@ export const EN: Record<string, string> = {
   'Кванты': 'Quanta',
   'Числа': 'Numbers',
   'Уравнения': 'Equations',
+  'Выкл.': 'Off',
+  'Вкл.': 'On',
+  'О приложении': 'About the app',
+  'Рабочие инструменты': 'Work tools',
+  'Аккаунт': 'Account',
   'Функции': 'Functions',
   // Напоминания ученикам в Telegram (tgReminders.ts, WidgetCommsToday)
   "1 раз": "once",

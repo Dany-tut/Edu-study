@@ -39,7 +39,7 @@ import { useDesktopFriends } from '../../../lib/desktopFriends'
 import TeacherLoginMethods from '../TeacherLoginMethods'
 import TeacherFeatureSettings from '../TeacherFeatureSettings'
 import PaymentsInbox from '../payments/PaymentsInbox'
-import { useFeature } from '../../../lib/teacherFeatures'
+import { FEATURES, useFeature, useTeacherFeatures, type FeatureKey } from '../../../lib/teacherFeatures'
 import { usePaymentInbox } from '../../../lib/paymentClaims'
 import { useTeacherSession } from '../../../lib/useTeacherSession'
 
@@ -100,6 +100,9 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const [email, setEmail] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [details, setDetails] = useState<'profile' | 'schedule' | 'login' | 'theme' | 'language' | null>(null)
+  const [feature, setFeature] = useState<FeatureKey | null>(null)
+  const featureMap = useTeacherFeatures(s => s.map)
+  const featuresLoaded = useTeacherFeatures(s => s.loaded)
   const [adminSection, setAdminSection] = useState<AdminSheetSection | null>(null)
   const [nameOverride, setNameOverride] = useState<string>()
   const adminAccess = useTeacherAccess(s => s.loaded && s.isAdmin)
@@ -192,6 +195,8 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
     profile: t('Профиль'), schedule: t('Время в расписании'), login: t('Способы входа'),
     theme: t('Тема оформления'), language: t('Язык'),
   }
+  const availableFeatures = featuresLoaded ? FEATURES.filter(item => item.ready && item.key in featureMap) : []
+  const selectedFeature = availableFeatures.find(item => item.key === feature)
   const adminTitle = adminShortcuts.find(({ id }) => id === adminSection)?.label
 
   return (
@@ -247,32 +252,44 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           <MoreRow label={t('Язык')} icon={<Languages size={21} />}
             value={<span className="teacher-more-muted">{lang === 'ru' ? 'Русский' : 'English'}</span>} onClick={() => setDetails('language')} />
           <MoreRow label={t('Время в расписании')} icon={<CalendarClock size={21} />} onClick={() => setDetails('schedule')} />
+          {onOpenNotifications && <MoreRow label={t('Уведомления')} icon={<Bell size={21} />}
+            value={<CountBadge count={unreadNotifs} tone="danger" />} onClick={onOpenNotifications} />}
+          {iconSupported && <MoreRow label={t('Иконка приложения')} icon={<Image size={21} />} onClick={() => setIconOpen(true)}
+            value={<AppIconTile src={(APP_ICONS.find(o => o.id === iconCurrent) ?? APP_ICONS[0]).preview} size={26} />} />}
         </section>
 
-        <div className="teacher-more-card">
-          <MoreRow label={t('Интеграции')} icon={<Link2 size={21} />} onClick={() => setIntegrations(true)} />
+        <section className="teacher-more-card teacher-more-settings" aria-label={t('Аккаунт')}>
+          <h2>{t('Аккаунт')}</h2>
           <MoreRow label={t('Способы входа')} icon={<LogIn size={21} />} onClick={() => setDetails('login')} />
-        </div>
+          {friends.account && <MoreRow label={t('Друзья')} icon={<Users size={21} />} onClick={() => friends.setTab('contacts')} />}
+        </section>
 
-        <div className="teacher-more-card">
+        <section className="teacher-more-card teacher-more-settings" aria-label={t('Рабочие инструменты')}>
+          <h2>{t('Рабочие инструменты')}</h2>
+          <MoreRow label={t('Интеграции')} icon={<Link2 size={21} />} onClick={() => setIntegrations(true)} />
           {adminAccess && <MoreRow label={t('Конструктор')} icon={<Layers size={21} />} onClick={() => openPage('constructor')} />}
           {adminAccess && <MoreRow label={t('Финансы')} icon={<Wallet size={21} />} onClick={() => openPage('finances')} />}
           {adminAccess && <MoreRow label={t('Тариф')} icon={<Sparkles size={21} />} onClick={() => setTariffOpen(true)} />}
-          {onOpenNotifications && <MoreRow label={t('Уведомления')} icon={<Bell size={21} />}
-            value={<CountBadge count={unreadNotifs} tone="danger" />} onClick={onOpenNotifications} />}
-          {friends.account && <MoreRow label={t('Друзья')} icon={<Users size={21} />} onClick={() => friends.setTab('contacts')} />}
           {onOpenJournal && <MoreRow label={t('Журнал')} icon={<ClipboardCheck size={21} />} onClick={onOpenJournal} />}
           {onOpenReports && <MoreRow label={t('Отчёты родителям')} icon={<FileText size={21} />} onClick={onOpenReports} />}
           {onOpenWidgets && <MoreRow label={t('Настроить виджеты')} icon={<LayoutDashboard size={21} />} onClick={onOpenWidgets} />}
           {payments && <MoreRow label={t('Оплаты: ждут вас')} icon={<Wallet size={21} />}
             value={<CountBadge count={paymentClaims} tone="danger" />} onClick={() => setPaymentsOpen(true)} />}
-          {iconSupported && <MoreRow label={t('Иконка приложения')} icon={<Image size={21} />} onClick={() => setIconOpen(true)}
-            value={<AppIconTile src={(APP_ICONS.find(o => o.id === iconCurrent) ?? APP_ICONS[0]).preview} size={26} />} />}
+        </section>
+
+        {availableFeatures.length > 0 && <section className="teacher-more-card teacher-more-settings" aria-label={t('Функции')}>
+          <h2>{t('Функции')}</h2>
+          {availableFeatures.map(item => <MoreRow key={item.key} label={t(item.label)}
+            value={<span className="teacher-more-muted">{t(featureMap[item.key] ? 'Вкл.' : 'Выкл.')}</span>}
+            onClick={() => setFeature(item.key)} />)}
+        </section>}
+
+        <section className="teacher-more-card teacher-more-settings" aria-label={t('О приложении')}>
+          <h2>{t('О приложении')}</h2>
           <MoreRow label={t('Обратная связь')} icon={<MessageSquarePlus size={21} />} onClick={() => setFeedbackOpen(true)} />
           {!isStandalone() && <MoreRow label={t('Установить приложение')} icon={<Download size={21} />} onClick={requestShowInstall} />}
           <AppVersionRow />
-        </div>
-        <TeacherFeatureSettings />
+        </section>
         <button className="teacher-more-logout" type="button" data-hover="layer" onClick={logout}>
           <LogOut size={20} />{t('Выйти из аккаунта')}
         </button>
@@ -507,6 +524,9 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
             {option === 'ru' ? 'Русский' : 'English'}
           </button>)}
         </div>}
+      </MobileSheet>
+      <MobileSheet open={Boolean(selectedFeature)} title={selectedFeature ? t(selectedFeature.label) : undefined} softEdge onClose={() => setFeature(null)}>
+        {selectedFeature && <TeacherFeatureSettings key={selectedFeature.key} feature={selectedFeature.key} />}
       </MobileSheet>
       <MobileSheet open={adminAccess && adminSection !== null} title={adminTitle} softEdge onClose={() => setAdminSection(null)}>
         {adminAccess && adminSection && <Suspense fallback={<div role="status">{t('Загрузка…')}</div>}>
