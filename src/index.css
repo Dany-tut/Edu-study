@@ -1300,3 +1300,7 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   --color-amber-soft: rgba(224,163,66,0.22);
   --color-green-soft: rgba(74,222,128,0.18);
 }
+
+@media (hover: none) {
+  .fipi-row-info { --fipi-info-idle-opacity: 1; }
+}

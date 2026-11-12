@@ -50,61 +50,59 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
   if (!open) return null
 
   return (
-    <div style={{ flex: 1, minHeight: 0, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Сегмент ЕГЭ | ОГЭ — роль «фильтр»: белая плашка активного */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, background: 'var(--color-bg-3)', borderRadius: 11, padding: 3 }}>
-        {(['ege', 'oge'] as ExamCode[]).map(k => (
-          <button key={k} type="button"
-            onClick={() => { setExam(k); setSubject(courseSubject && examSubjects(k).includes(courseSubject) ? courseSubject : examSubjects(k)[0]); setQuery('') }}
-            style={{
-              height: 32, border: 0, borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 13, fontWeight: 600,
-              background: exam === k ? 'var(--color-bg-2)' : 'transparent',
-              color: exam === k ? 'var(--color-text)' : 'var(--color-muted)',
-              boxShadow: exam === k ? 'var(--shadow-pill)' : undefined,
-            }}>
-            {k === 'ege' ? t('ЕГЭ') : t('ОГЭ')}
-          </button>
-        ))}
-      </div>
+    <ScrollFade maxHeight="100%" fadeHeight={16} style={{ flex: 1, minHeight: 0 }} overlayScrollbar>
+      <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Сегмент ЕГЭ | ОГЭ — роль «фильтр»: белая плашка активного */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, background: 'var(--color-bg-3)', borderRadius: 11, padding: 3 }}>
+          {(['ege', 'oge'] as ExamCode[]).map(k => (
+            <button key={k} type="button"
+              onClick={() => { setExam(k); setSubject(courseSubject && examSubjects(k).includes(courseSubject) ? courseSubject : examSubjects(k)[0]); setQuery('') }}
+              style={{
+                height: 32, border: 0, borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 13, fontWeight: 600,
+                background: exam === k ? 'var(--color-bg-2)' : 'transparent',
+                color: exam === k ? 'var(--color-text)' : 'var(--color-muted)',
+                boxShadow: exam === k ? 'var(--shadow-pill)' : undefined,
+              }}>
+              {k === 'ege' ? t('ЕГЭ') : t('ОГЭ')}
+            </button>
+          ))}
+        </div>
 
-      {/* Предмет — из предмета курса, можно переопределить */}
-      <TeacherSelect
-        value={catalog.subject}
-        options={examSubjects(exam)}
-        placeholder={t('Предмет')}
-        clearable={false}
-        search={false}
-        onChange={value => { setSubject(value); setQuery('') }}
-        triggerStyle={FIELD}
-      />
+        {/* Предмет — из предмета курса, можно переопределить */}
+        <TeacherSelect
+          value={catalog.subject}
+          options={examSubjects(exam)}
+          placeholder={t('Предмет')}
+          clearable={false}
+          search={false}
+          onChange={value => { setSubject(value); setQuery('') }}
+          triggerStyle={FIELD}
+        />
 
-      {/* Поиск по номеру/теме */}
-      <label style={{ ...FIELD, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', height: 36 }}>
-        <Search size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Номер задания или тема')}
-          style={{ border: 0, background: 'transparent', outline: 'none', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', width: '100%' }} />
-      </label>
+        {/* Поиск по номеру/теме */}
+        <label style={{ ...FIELD, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', height: 36 }}>
+          <Search size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Номер задания или тема')}
+            style={{ border: 0, background: 'transparent', outline: 'none', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', width: '100%' }} />
+        </label>
 
-      <ScrollFade key={catalog.subject + exam} maxHeight="100%" fadeHeight={16}
-        style={{ flex: 1, minHeight: 0 }} overlayScrollbar>
-        <div style={{ display: 'grid', gap: 5 }}>
+        <div key={catalog.subject + exam} style={{ display: 'grid', gap: 5 }}>
           {lines.map(line => {
             const subtype = line.subtypes[0]
             const kinds = [...new Set(line.subtypes.map(item => t(taskTypeDef(item.type).label)))]
             return (
               <TaskTypeRow key={line.number} type={subtype.type}
                 onClick={() => onAdd(subtype, line, catalog)}
-                preset={{ number: line.number, title: line.title, hint: kinds.join(' · '), score: `${line.points} ${t('б.')}` }} />
+                preset={{
+                  number: line.number, title: line.title, hint: kinds.join(' · '), score: `${line.points} ${t('б.')}`,
+                  preview: { subject: catalog.subject, prompt: subtype.prompt, hint: subtype.hint, source: { url: catalog.source, year: catalog.year } },
+                }} />
             )
           })}
           {lines.length === 0 && <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: 12, textAlign: 'center' }}>{t('Ничего не найдено')}</div>}
         </div>
-      </ScrollFade>
-
-      <a href={catalog.source} target="_blank" rel="noreferrer" style={{ fontSize: 10.5, color: 'var(--color-muted)', textDecoration: 'underline', textUnderlineOffset: 2 }}>
-        {t('Источник: ФИПИ · спецификация и демоверсия')} {catalog.year}
-      </a>
-    </div>
+      </div>
+    </ScrollFade>
   )
 }

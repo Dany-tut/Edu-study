@@ -16,8 +16,10 @@
 
 import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import ScrollFade from '../ScrollFade'
 import { Info } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
+import type { FipiPreview } from '../../data/fipiPreviews'
 import { TASK_TYPES, type TaskTypeId } from '../../data/taskTypes'
 
 // Макеты превью (и полтора десятка их примитивов) приезжают отдельным чанком
@@ -33,7 +35,7 @@ export function TaskTypeRow({ type, onClick, active = false, preset }: {
   onClick: () => void
   /** Строка, по которой только что кликнули, — подсвечена цветом типа. */
   active?: boolean
-  preset?: { number: number; title: string; hint: string; score: string }
+  preset?: { number: number; title: string; hint: string; score: string; preview: FipiPreview }
 }) {
   const t = useT()
   const def = TASK_TYPES[type]
@@ -64,13 +66,17 @@ export function TaskTypeRow({ type, onClick, active = false, preset }: {
     const r = dotRef.current?.getBoundingClientRect()
     if (!r) return
     const h = cardRef.current?.offsetHeight ?? 260
-    const left = r.right + PAD + CARD_W > window.innerWidth - PAD
-      ? Math.max(PAD, r.left - PAD - CARD_W)
-      : r.right + PAD
-    const top = Math.min(
-      Math.max(PAD, r.top - 24),
-      Math.max(PAD, window.innerHeight - h - PAD),
-    )
+    const width = Math.min(CARD_W, window.innerWidth - PAD * 2)
+    const right = r.right + PAD
+    const leftSide = r.left - PAD - width
+    const fitsRight = right + width <= window.innerWidth - PAD
+    const fitsLeft = leftSide >= PAD
+    const maxTop = Math.max(PAD, window.innerHeight - h - PAD)
+    const left = fitsRight ? right : fitsLeft ? leftSide : (window.innerWidth - width) / 2
+    const preferredTop = fitsRight || fitsLeft
+      ? r.top - 24
+      : r.bottom + PAD <= maxTop ? r.bottom + PAD : r.top - PAD - h
+    const top = Math.min(Math.max(PAD, preferredTop), maxTop)
     setPos({ left, top })
   }, [])
 
@@ -92,14 +98,22 @@ export function TaskTypeRow({ type, onClick, active = false, preset }: {
     if (!open) return
     const close = () => setOpen(false)
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.target instanceof Node && !dotRef.current?.contains(e.target) && !cardRef.current?.contains(e.target)) close()
+    }
     window.addEventListener('keydown', onKey)
+    window.addEventListener('pointerdown', onPointerDown)
 
     // Прокрутка рейла уводит строку из-под карточки — закрываем, а не тащим.
-    window.addEventListener('scroll', close, true)
+    const onScroll = (e: Event) => {
+      if (!(e.target instanceof Node) || !cardRef.current?.contains(e.target)) close()
+    }
+    window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', close)
     return () => {
       window.removeEventListener('keydown', onKey)
-      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('pointerdown', onPointerDown)
+      window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', close)
     }
   }, [open])
@@ -138,11 +152,21 @@ export function TaskTypeRow({ type, onClick, active = false, preset }: {
       <button
         ref={dotRef}
         type="button"
+        className={preset ? 'fipi-row-info' : undefined}
         aria-label={t('Как это выглядит ученику')}
-        onClick={e => { e.stopPropagation(); if (open) hide(); else show() }}
-        onMouseEnter={show}
-        onFocus={() => { setHover(true); show() }}
-        onBlur={hide}
+        onClick={e => { e.stopPropagation(); if (preset || !open) show(); else hide() }}
+        onPointerEnter={e => { if (e.pointerType === 'mouse') show() }}
+        onFocus={e => {
+          if (!preset || e.currentTarget.matches(':focus-visible')) { setHover(true); show() }
+        }}
+        onKeyDown={e => {
+          if (e.key !== 'Tab' || e.shiftKey) return
+          const source = cardRef.current?.querySelector('a')
+          if (!source) return
+          e.preventDefault()
+          source.focus()
+        }}
+        onBlur={e => { if (!cardRef.current?.contains(e.relatedTarget)) hide() }}
         style={{
           position: 'absolute', top: 8, right: 7,
           width: 20, height: 20, borderRadius: '50%', border: 'none', padding: 0,
@@ -151,7 +175,7 @@ export function TaskTypeRow({ type, onClick, active = false, preset }: {
           // Тусклый серый на тонированном фоне строки не читался — «i» берёт
           // цвет самого типа, он контрастен своей же подложке по построению.
           color,
-          opacity: hover || open ? 1 : 0,
+          opacity: hover || open ? 1 : 'var(--fipi-info-idle-opacity, 0)',
           transition: 'opacity 0.15s',
         }}
       >
@@ -163,11 +187,12 @@ export function TaskTypeRow({ type, onClick, active = false, preset }: {
           ref={cardRef}
           onMouseEnter={show}
           onMouseLeave={hide}
+          onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) hide() }}
           style={{
             // 4000 — этаж всплывающих слоёв, вынесенных в портал: палитра
             // живёт и внутри модалок (2000–3000).
             position: 'fixed', left: pos?.left ?? -9999, top: pos?.top ?? -9999,
-            width: CARD_W, zIndex: 4000,
+            width: `min(${CARD_W}px, calc(100vw - ${PAD * 2}px))`, zIndex: 4000,
             visibility: pos ? 'visible' : 'hidden',
             padding: '12px 12px', borderRadius: 18,
             background: 'rgba(var(--glass-rgb), 0.9)',
@@ -175,12 +200,13 @@ export function TaskTypeRow({ type, onClick, active = false, preset }: {
             WebkitBackdropFilter: 'var(--blur-solid)',
             border: '1px solid var(--color-border-strong)',
             boxShadow: 'var(--shadow-lg)',
-            maxHeight: 'calc(100vh - 20px)', overflowY: 'auto',
           }}
         >
-          <Suspense fallback={<div style={{ height: 180 }} />}>
-            <PreviewCard type={type} />
-          </Suspense>
+          <ScrollFade maxHeight="calc(100dvh - 46px)" fadeHeight={16}>
+            <Suspense fallback={<div style={{ height: 180 }} />}>
+              <PreviewCard type={type} fipi={preset?.preview} />
+            </Suspense>
+          </ScrollFade>
         </div>,
         document.body,
       )}

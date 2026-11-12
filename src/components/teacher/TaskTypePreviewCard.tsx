@@ -11,6 +11,7 @@
 import { Fragment } from 'react'
 import { CheckCircle2, ExternalLink, Eye, Mic, Play, PenLine, Volume2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
+import { fipiPreviewBlocks, type FipiPreview } from '../../data/fipiPreviews'
 import { TASK_TYPES, type TaskTypeId } from '../../data/taskTypes'
 import {
   TASK_TYPE_PREVIEWS,
@@ -421,11 +422,12 @@ function Block({ block }: { block: PreviewBlock }) {
 
 // ─── Карточка целиком ────────────────────────────────────────────────────────
 
-export default function TaskTypePreviewCard({ type }: { type: TaskTypeId }) {
+export default function TaskTypePreviewCard({ type, fipi }: { type: TaskTypeId; fipi?: FipiPreview }) {
   const t = useT()
   const def = TASK_TYPES[type]
   const preview = TASK_TYPE_PREVIEWS[type]
   const { color, bg } = def.visual
+  const blocks = fipi ? fipiPreviewBlocks(type, fipi) : preview.blocks
 
   // Служебные признаки берём из реестра, а не из текста превью: так подсказка
   // не может соврать про проверку — она читает то же поле, что и проверка.
@@ -450,10 +452,10 @@ export default function TaskTypePreviewCard({ type }: { type: TaskTypeId }) {
         display: 'grid', gap: 6, padding: '10px 10px', borderRadius: 12,
         background: 'var(--color-bg-2)', border: '1px solid var(--color-border-soft)',
       }}>
-        {preview.blocks.map((b, i) => <Block key={i} block={b} />)}
+        {blocks.map((b, i) => <Block key={i} block={b} />)}
       </div>
 
-      <div style={{ fontSize: 11, lineHeight: 1.45, color: 'var(--color-text-2)' }}>{t(preview.teaches)}</div>
+      {!fipi && <div style={{ fontSize: 11, lineHeight: 1.45, color: 'var(--color-text-2)' }}>{t(preview.teaches)}</div>}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
         {flags.map(f => (
@@ -463,6 +465,12 @@ export default function TaskTypePreviewCard({ type }: { type: TaskTypeId }) {
           }}>{t(f)}</span>
         ))}
       </div>
+      {fipi && (
+        <a href={fipi.source.url} target="_blank" rel="noreferrer"
+          style={{ fontSize: 11, color: 'var(--color-muted)', textDecoration: 'underline' }}>
+          {t('Источник строки')} · {t('ФИПИ · спецификация и демоверсия')} {fipi.source.year}
+        </a>
+      )}
     </div>
   )
 }

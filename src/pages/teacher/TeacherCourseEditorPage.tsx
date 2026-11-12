@@ -2933,7 +2933,7 @@ function PickerSelect({ value, onChange, options, placeholder, width, icon: Icon
         <span style={{ flex: 1, color: value ? 'var(--color-text)' : 'var(--color-text-3)', fontWeight: value ? 600 : 400, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
           {selected?.label ?? placeholder ?? '—'}
         </span>
-        <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+        <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-purple-text)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
       </button>
       {createPortal(
         <AnimatePresence>
@@ -3058,7 +3058,7 @@ function CalendarPicker({ value, onChange, placeholder }: { value: string; onCha
             <X size={12} />
           </button>
         ) : (
-          <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+          <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--color-purple-text)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
         )}
       </button>
       {createPortal(
