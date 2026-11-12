@@ -2612,6 +2612,7 @@ export const EN: Record<string, string> = {
   "Мемы": "Memes",
   "Маркер — полупрозрачное выделение в строку": "Marker — semi-transparent line highlight",
   "Цвет": "Color",
+  "Толщина линии": "Line width",
   "Стереть всю разметку": "Erase all markup",
   "Совсем непонятно": "Not clear at all",
   "Многое неясно": "A lot is unclear",

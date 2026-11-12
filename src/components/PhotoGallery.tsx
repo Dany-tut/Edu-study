@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useT } from '../lib/i18n'
 import { useNativeOverlay } from '../lib/nativeGlass'
 
-import { ChevronLeft, ChevronRight, X } from './icons/appIcons'
+import { ChevronLeft, ChevronRight, PenLine, X } from './icons/appIcons'
 
 function GalleryIcon({ close = false, left = false }: { close?: boolean; left?: boolean }) {
   const Icon = close ? X : left ? ChevronLeft : ChevronRight
@@ -13,7 +13,7 @@ function GalleryIcon({ close = false, left = false }: { close?: boolean; left?: 
 const control: CSSProperties = { width: 48, height: 48, borderRadius: 24, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.12)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }
 
 /** Fullscreen gallery. Native horizontal scrolling provides touch swipes and snap. */
-export default function PhotoGallery({ photos, initialIndex = 0, onClose }: { photos: string[]; initialIndex?: number; onClose: () => void }) {
+export default function PhotoGallery({ photos, initialIndex = 0, onClose, onAnnotate }: { photos: string[]; initialIndex?: number; onClose: () => void; onAnnotate?: () => void }) {
   const t = useT()
   const initial = Math.max(0, Math.min(initialIndex, photos.length - 1))
   const [index, setIndex] = useState(initial)
@@ -90,6 +90,14 @@ export default function PhotoGallery({ photos, initialIndex = 0, onClose }: { ph
       </div>)}
     </div>
     <button data-hover="layer" ref={closeButton} type="button" onClick={onClose} aria-label={t('Закрыть просмотр фото')} style={{ ...control, position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', right: 16 }}><GalleryIcon close /></button>
+    {onAnnotate && (
+      <button type="button" onClick={onAnnotate} style={{
+        ...control, width: 'auto', gap: 8, padding: '0 16px', position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', right: 76,
+        fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+      }}>
+        <PenLine size={16} /> {t('Разметить')}
+      </button>
+    )}
     <div style={{ position: 'absolute', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
       {photos.length > 1 && <button data-hover="layer" type="button" aria-label={t('Предыдущее фото')} disabled={index === 0} onClick={() => go(-1)} style={{ ...control, opacity: index === 0 ? 0.3 : 1 }}><GalleryIcon left /></button>}
       <span aria-live="polite" aria-atomic="true" style={{ minWidth: 64, textAlign: 'center', fontSize: 15, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{index + 1} / {photos.length}</span>

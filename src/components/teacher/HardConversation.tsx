@@ -24,6 +24,8 @@ import {
 } from '../../lib/useHomework'
 import { Alert } from '../Alert'
 import { btn } from '../../lib/pillStyles'
+import Modal from '../Modal'
+import PhotoGallery from '../PhotoGallery'
 
 // Вкладки сложных заданий + датированная лента раундов (решение → комментарий →
 // решение → … → принято) + composer под роль. Persistence — в родителе (страница
@@ -161,14 +163,18 @@ function CommentCard({ ev, repliesTo, onZoomPhoto }: { ev: HardEvent & { kind: '
   )
 }
 
-function Timeline({ events, onZoomPhoto }: { events: HardEvent[]; onZoomPhoto?: (src: string) => void }) {
+function Timeline({ events, onZoomPhoto, onZoomSolutionPhoto }: {
+  events: HardEvent[]
+  onZoomPhoto?: (src: string) => void
+  onZoomSolutionPhoto?: (src: string, solutionId: string) => void
+}) {
   let lastSol: HardSolution | null = null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {events.map(ev => {
         if (ev.kind === 'solution') {
           lastSol = ev
-          return <SolutionCard key={ev.id} ev={ev} onZoomPhoto={onZoomPhoto} />
+          return <SolutionCard key={ev.id} ev={ev} onZoomPhoto={onZoomSolutionPhoto ? src => onZoomSolutionPhoto(src, ev.id) : onZoomPhoto} />
         }
         return <CommentCard key={ev.id} ev={ev} repliesTo={lastSol} onZoomPhoto={onZoomPhoto} />
       })}
@@ -257,9 +263,11 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
 
 // ─── Teacher composer ─────────────────────────────────────────────────────────
 
-function TeacherComposer({ draftKey, solution, busy, onReview }: {
+function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAnnotating }: {
   draftKey: string; solution: HardSolution | null; busy?: boolean
   onReview: (payload: ReviewPayload) => void
+  annotating: boolean
+  setAnnotating: (open: boolean) => void
 }) {
   const t = useT()
   // Text/score survive a reload; photos/board/annotation are base64 — not persisted.
@@ -268,7 +276,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [board, setBoard] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
-  const [annotating, setAnnotating] = useState(false)
+  const solutionContent = useRef<HTMLDivElement>(null)
   const [annotation, setAnnotation] = useState<Annotation | null>(null)
   const [score, setScore] = usePersistentState<number>(`${draftKey}:score`, 5)
   const [returnError, setReturnError] = useState(false)
@@ -299,13 +307,24 @@ function TeacherComposer({ draftKey, solution, busy, onReview }: {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
             <Label>{t('Разметка поверх решения')}</Label>
-            <button data-hover="layer" onClick={() => setAnnotating(a => !a)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, border: `1px solid ${annotating ? 'transparent' : 'var(--color-border-medium)'}`, background: annotating ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: annotating ? 'var(--color-green-text)' : 'var(--color-text)' }}>
-              {annotating ? <><Check size={14} /> {t('Готово')}</> : <><PenLine size={14} /> {t('Разметить')}</>}
+            <button type="button" data-hover="layer" onClick={() => setAnnotating(true)} style={btn('S', 'secondary')}>
+              <PenLine size={14} /> {t('Разметить')}
             </button>
           </div>
-          <AnnotationLayer active={annotating} value={annotation} onChange={setAnnotation}>
-            <AnswerBody comment={solution.answer} photos={solution.photos} board={solution.board} photosClickable={false} />
-          </AnnotationLayer>
+          <div ref={solutionContent}>
+            <AnnotationLayer value={annotation}>
+              <AnswerBody comment={solution.answer} photos={solution.photos} board={solution.board} photosClickable={false} />
+            </AnnotationLayer>
+          </div>
+          {annotating && (
+            <Modal title={t('Разметка поверх решения')} width={(solutionContent.current?.clientWidth ?? 720) + 34}
+              padding={16} onClose={() => setAnnotating(false)}
+              footer={<button type="button" data-hover="layer" onClick={() => setAnnotating(false)} style={btn('M', 'primary')}><Check size={16} /> {t('Готово')}</button>}>
+              <AnnotationLayer active value={annotation} onChange={setAnnotation}>
+                <AnswerBody comment={solution.answer} photos={solution.photos} board={solution.board} photosClickable={false} />
+              </AnnotationLayer>
+            </Modal>
+          )}
           {solution.voice && (
             <div style={{ marginTop: 12 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', display: 'block', marginBottom: 6 }}>{t('Голосовой ответ ученика')}</span>
@@ -397,6 +416,8 @@ export default function HardConversation({
   draftScope?: string
 }) {
   const t = useT()
+  const [photo, setPhoto] = useState<{ src: string; solutionId?: string } | null>(null)
+  const [annotationTask, setAnnotationTask] = useState<string | null>(null)
   const sbByKey = new Map(studentBlocks.map(b => [b.key, b]))
   const rbByKey = new Map(reviewBlocks.map(b => [b.key, b]))
   const statuses: Record<string, HardTaskStatus> = {}
@@ -413,6 +434,10 @@ export default function HardConversation({
 
   const studentCanReply = role === 'student' && (status === 'in_progress' || status === 'returned') && !!onSubmitSolution
   const teacherCanReview = role === 'teacher' && status === 'submitted' && !!onReview
+  const solution = lastSolutionOf(sb)
+  const annotationKey = solution ? JSON.stringify([tab.key, solution.id]) : null
+  const zoomPhoto = role === 'teacher' ? (src: string) => setPhoto({ src }) : onZoomPhoto
+  const setAnnotating = (open: boolean) => setAnnotationTask(open ? annotationKey : null)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -429,10 +454,20 @@ export default function HardConversation({
             ? <div className="rich-answer" style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)', ...proseWrap }} dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(tab.statement)) }} />
             : <p style={{ fontSize: 15, lineHeight: 1.5, color: 'var(--color-text)', margin: 0, whiteSpace: 'pre-wrap', ...proseWrap }}>{bindShortWords(tab.statement)}</p>
         )}
-        {tab.image && <img src={tab.image} alt="" onClick={() => onZoomPhoto?.(tab.image!)} style={{ marginTop: 12, maxWidth: '100%', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: onZoomPhoto ? 'zoom-in' : 'default', display: 'block' }} />}
+        {tab.image && <img src={tab.image} alt="" onClick={() => zoomPhoto?.(tab.image!)} style={{ marginTop: 12, maxWidth: '100%', borderRadius: 14, border: '1px solid var(--color-border-medium)', cursor: zoomPhoto ? 'zoom-in' : 'default', display: 'block' }} />}
       </div>
 
-      {events.length > 0 && <Timeline events={events} onZoomPhoto={onZoomPhoto} />}
+      {events.length > 0 && (
+        <Timeline events={events} onZoomPhoto={zoomPhoto}
+          onZoomSolutionPhoto={role === 'teacher' ? (src, solutionId) => setPhoto({ src, solutionId }) : undefined} />
+      )}
+      {photo && (
+        <PhotoGallery photos={[photo.src]} onClose={() => setPhoto(null)}
+          onAnnotate={teacherCanReview && solution && photo.solutionId === solution.id ? () => {
+            setPhoto(null)
+            setAnnotating(true)
+          } : undefined} />
+      )}
 
       {studentCanReply && (
         <div style={{ padding: 18, borderRadius: 20, background: 'rgba(var(--glass-rgb),0.96)', border: '1px solid var(--color-border-soft)' }}>
@@ -442,7 +477,7 @@ export default function HardConversation({
 
       {teacherCanReview && (
         <div style={{ padding: 18, borderRadius: 20, background: 'rgba(var(--glass-rgb),0.96)', border: '1px solid var(--color-border-soft)' }}>
-          <TeacherComposer key={tab.key + events.length} draftKey={`${draftScope ?? 'hardReview'}:${tab.key}`} solution={lastSolutionOf(sb)} busy={busy} onReview={p => onReview!(tab.key, p)} />
+          <TeacherComposer key={annotationKey ?? tab.key} draftKey={`${draftScope ?? 'hardReview'}:${tab.key}`} solution={solution} annotating={annotationKey !== null && annotationTask === annotationKey} setAnnotating={setAnnotating} busy={busy} onReview={p => onReview!(tab.key, p)} />
         </div>
       )}
 
