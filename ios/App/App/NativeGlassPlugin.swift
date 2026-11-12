@@ -567,6 +567,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             config.contentInsets = .zero
         }
         let button = GlassBarButton(configuration: config)
+        if id == "search", symbol == "magnifyingglass" {
+            button.searchIcon = config.image
+        }
         button.accessibilityLabel = (it["label"] as? String) ?? title
         if it["passive"] as? Bool == true {
             button.accessibilityTraits = .staticText
@@ -770,7 +773,11 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
     private func tabImage(_ symbol: String, traits: UITraitCollection) -> UIImage? {
         let image = LoopNativeIcons.image(symbol, traits: traits)
         guard tabBarCompact, let image else { return image }
-        let size = CGSize(width: image.size.width * 0.88, height: image.size.height * 0.88)
+        return resizedIcon(image, scale: 0.88)
+    }
+
+    private func resizedIcon(_ image: UIImage, scale: CGFloat) -> UIImage {
+        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
         let format = UIGraphicsImageRendererFormat()
         format.scale = image.scale
         return UIGraphicsImageRenderer(size: size, format: format).image { _ in
@@ -784,7 +791,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         for size in barBottomButtonSizes {
             size.constant = tabBarCompact ? 44 : 48
         }
-        barBottomWidth?.constant = barBottomExpandedWidthInset - (tabBarCompact ? 36 : 0)
+        barBottomWidth?.constant = barBottomExpandedWidthInset - (tabBarCompact ? 40 : 0)
 
         // Inset the glass while keeping the full 44 pt touch target.
         let inset: CGFloat = tabBarCompact ? 2 : 0
@@ -792,6 +799,9 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         for case let button as GlassBarButton in barBottomView?.arrangedSubviews ?? [] {
             guard var config = button.configuration else { continue }
             config.background.backgroundInsets = backgroundInsets
+            if let icon = button.searchIcon {
+                config.image = tabBarCompact ? resizedIcon(icon, scale: 0.90) : icon
+            }
             button.configuration = config
         }
     }
@@ -804,7 +814,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         // Allow for glass extending above the bar's layout bounds. The row
         // follows the same bottom-anchored scaling as the tab bar.
         let expandedHeight = max(tabBar.bounds.height, safeBottom + 64)
-        let gap: CGFloat = tabBarCompact ? 0 : 6
+        let gap: CGFloat = tabBarCompact ? -2 : 6
         return safeBottom - expandedHeight * tabBarHeightScale - gap
     }
 
@@ -1204,6 +1214,8 @@ private final class GlassSectionPicker: UIVisualEffectView {
 }
 
 private final class GlassBarButton: UIButton {
+    var searchIcon: UIImage?
+
     override func layoutSubviews() {
         super.layoutSubviews()
         guard let label = titleLabel, label.bounds.width > 0 else { return }
