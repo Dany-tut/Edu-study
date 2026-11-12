@@ -114,7 +114,13 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             controller.modalPresentationStyle = .pageSheet
             controller.view.backgroundColor = .clear
             if let sheet = controller.sheetPresentationController {
-                sheet.detents = [.medium(), .large()]
+                let medium = UISheetPresentationController.Detent.medium()
+                let large = UISheetPresentationController.Detent.large()
+                if #available(iOS 26.1, *) {
+                    medium.backgroundEffect = UIGlassEffect(style: .regular)
+                    large.backgroundEffect = UIGlassEffect(style: .regular)
+                }
+                sheet.detents = [medium, large]
                 sheet.prefersGrabberVisible = true
                 sheet.prefersScrollingExpandsWhenScrolledToEdge = false
                 sheet.delegate = self
@@ -924,15 +930,23 @@ private struct GlassContentSheet: View {
                     title.padding(.top, 24)
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    footer.padding(.bottom, 8)
+                    if let footer = model.content.footer {
+                        footerButton(footer)
+                            .buttonStyle(.glass)
+                            .padding(.bottom, 8)
+                    }
                 }
-                .scrollEdgeEffectStyle(.soft, for: .vertical)
-                .scrollEdgeEffectHidden(false, for: .vertical)
+                .scrollClipDisabled()
+                .scrollEdgeEffectStyle(.soft, for: .top)
+                .scrollEdgeEffectHidden(false, for: .top)
+                .scrollEdgeEffectHidden(true, for: .bottom)
         } else {
             VStack(alignment: .leading, spacing: 12) {
                 title
                 scrollContent
-                footer
+                if let footer = model.content.footer {
+                    footerButton(footer).buttonStyle(.bordered)
+                }
             }
             .padding(.top, 24)
             .padding(.bottom, 8)
@@ -973,14 +987,10 @@ private struct GlassContentSheet: View {
         }
     }
 
-    @ViewBuilder
-    private var footer: some View {
-        if let footer = model.content.footer {
-            Button(footer.title) { onAction(footer.id) }
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .buttonStyle(.bordered)
-                .padding(.horizontal, 20)
-        }
+    private func footerButton(_ footer: GlassSheetRow) -> some View {
+        Button(footer.title) { onAction(footer.id) }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, 20)
     }
 
     private func row(_ row: GlassSheetRow) -> some View {
