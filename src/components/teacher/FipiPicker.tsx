@@ -15,6 +15,12 @@ import { TaskTypeRow } from './TaskTypeRow'
 import { taskTypeDef } from '../../data/taskTypes'
 import { EXAM_CATALOGS, examSubjects, catalogFor, type ExamCode, type ExamCatalog, type ExamLine, type ExamSubtype, type ExamYear } from '../../data/examPresets'
 
+const catalogField = {
+  ...FIELD,
+  borderWidth: 'var(--fipi-field-border-width, 1.5px)',
+  borderRadius: 'var(--fipi-field-radius, 12px)',
+}
+
 export function FipiToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const t = useT()
   const Chevron = open ? ChevronDown : ChevronUp
@@ -53,8 +59,8 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
 
   return (
     <ScrollFade maxHeight="100%" fadeHeight={16} style={{ flex: 1, minHeight: 0 }} overlayScrollbar>
-      <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div className="fipi-exam-switch" style={{ alignSelf: 'flex-start' }}>
+      <div className="fipi-catalog-controls" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="fipi-exam-switch" style={{ alignSelf: 'var(--fipi-exam-align, flex-start)', display: 'flex' }}>
           <Segmented<ExamCode>
             variant="filter"
             value={exam}
@@ -87,11 +93,11 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
           clearable={false}
           search={false}
           onChange={value => { setSubject(value); setQuery('') }}
-          triggerStyle={FIELD}
+          triggerStyle={catalogField}
         />
 
         {/* Поиск по номеру/теме */}
-        <label style={{ ...FIELD, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', height: 36 }}>
+        <label style={{ ...catalogField, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', height: 36 }}>
           <Search size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Номер задания или тема')}
             style={{ border: 0, background: 'transparent', outline: 'none', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', flex: 1, minWidth: 0 }} />

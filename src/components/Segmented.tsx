@@ -60,7 +60,7 @@ export default function Segmented<T extends string>({ variant, items, value, onC
       role="tablist"
       style={{
         display: 'inline-flex', gap: 2, padding: 4, maxWidth: '100%',
-        background: 'var(--color-bg-3)', borderRadius: mode ? 12 : 999,
+        background: 'var(--color-bg-3)', borderRadius: mode ? 12 : 'var(--segmented-track-radius, 999px)',
         ...style,
       }}
     >
@@ -74,13 +74,13 @@ export default function Segmented<T extends string>({ variant, items, value, onC
             onClick={() => onChange(it.id)}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: it.count ? `8px ${BADGE_GAP}px 8px 14px` : '8px 14px', borderRadius: mode ? 9 : 999, border: 'none', cursor: 'pointer',
+              padding: it.count ? `8px ${BADGE_GAP}px 8px 14px` : '8px 14px', borderRadius: mode ? 9 : 'var(--segmented-item-radius, 999px)', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 700 : 600, lineHeight: 1.2, whiteSpace: 'nowrap',
               background: on ? (mode ? 'var(--color-purple-soft)' : 'var(--color-surface)') : 'transparent',
               color: on ? (mode ? 'var(--color-purple-text)' : 'var(--color-text)') : 'var(--color-text-3)',
               boxShadow: on && !mode ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
               transition: 'background 0.15s, color 0.15s',
-              ...(variant === 'narrow' ? { width: cellWidth, minWidth: 0, flexShrink: 1 } : { flexShrink: 0 }),
+              ...(variant === 'narrow' ? { width: cellWidth, minWidth: 0, flexShrink: 1 } : { flex: 'var(--segmented-item-flex, 0 0 auto)' }),
             }}
           >
             {Icon && <Icon size={14} />}

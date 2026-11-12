@@ -1305,6 +1305,26 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   .fipi-row-info { --fipi-info-idle-opacity: 1; }
 }
 
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .fipi-catalog-controls {
+    --fipi-exam-align: stretch;
+    --fipi-field-border-width: 0px;
+    --fipi-field-radius: 11px;
+    --segmented-track-radius: 11px;
+    --segmented-item-radius: 7px;
+    --segmented-item-flex: 1 1 auto;
+  }
+
+  .fipi-catalog-controls .fipi-exam-switch > [role="tablist"] {
+    flex: 1;
+  }
+
+  .fipi-catalog-controls label:focus-within {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .fipi-exam-switch [aria-selected=false]:hover { --color-text-3: var(--color-text); }
   .fipi-exam-switch [aria-selected=false]:hover::after { opacity: 0; }
