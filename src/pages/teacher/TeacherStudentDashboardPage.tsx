@@ -1,3 +1,5 @@
+import StudentDetailsEditor from '../../components/teacher/StudentDetailsEditor'
+import { btn } from '../../lib/pillStyles'
 import { profileReadLifetime } from '../../lib/profileReadLifetime'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
@@ -8,7 +10,7 @@ import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
   Award, Target, XCircle, CheckCircle2, Layers, BookOpen, Dumbbell,
   Star, Calendar, BarChart3, Download, CreditCard, MessageSquare,
-  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown,
+  CheckCheck, AlertCircle, Percent, FlaskConical, Atom, Brain, ChevronDown, Pencil,
 } from '../../components/icons/appIcons'
 import { useTeacher } from '../../store/teacherStore'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
@@ -314,7 +316,7 @@ export default function TeacherStudentDashboardPage(props: ProfileOptions = {}) 
     group={groups.find(g => g.id === selectedGroupId)} />
 }
 
-export function StudentDashboardReport({ student, group: assignedGroup, workPanel, onBack, backLabel, inDrawer, exampleCourses }: ProfileOptions & {
+export function StudentDashboardReport({ student: initialStudent, group: assignedGroup, workPanel, onBack, backLabel, inDrawer, exampleCourses }: ProfileOptions & {
   student?: Student
   group?: Group
   inDrawer?: boolean
@@ -324,8 +326,13 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
   const { tc, tn } = useTc()
   const setActivePage = useTeacher(s => s.setActivePage)
   const isDesktop = useIsDesktop()
-  const selectedStudentId = student?.id
   const example = exampleCourses !== undefined
+  const [editing, setEditing] = useState(false)
+  const allStudents = useAllStudents()
+  const student = !example && !inDrawer
+    ? allStudents.find(item => item.id === initialStudent?.id) ?? initialStudent
+    : initialStudent
+  const selectedStudentId = student?.id
   const cachedTrainerStats = useTeacher(s => s.studentTrainerStats)
   const studentTrainerStats = workPanel ? null : cachedTrainerStats
 
@@ -606,10 +613,17 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
             <div className="student-profile-identity">
               {!inDrawer && <Avatar student={student} />}
               <div className="student-profile-person">
-                {!inDrawer && <h1>{tn(student.name)}</h1>}
-                {!inDrawer && (profileGroupLabel || group.subject) && (
+                {!inDrawer && <div className="student-profile-name-row">
+                  <h1>{tn(student.name)}</h1>
+                  {!example && isDesktop && <button data-hover="layer" type="button"
+                    style={btn('S', 'quiet')} onClick={() => setEditing(true)}>
+                    <Pencil size={14} aria-hidden /> {t('Редактировать')}
+                  </button>}
+                </div>}
+                {!inDrawer && (profileGroupLabel || group.subject || student.schoolClass) && (
                   <div className="student-profile-context">
                     {profileGroupLabel && <span>{profileGroupLabel}</span>}
+                    {student.schoolClass && <span>{t('Класс')}: {student.schoolClass}</span>}
                     {group.subject && <span><SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}</span>}
                   </div>
                 )}
@@ -627,6 +641,7 @@ export function StudentDashboardReport({ student, group: assignedGroup, workPane
             </div>
           </section>
         )}
+        {editing && <StudentDetailsEditor key={student.id} student={student} onClose={() => setEditing(false)} />}
         <StudentTgLink studentId={student.id} />
 
         {/* ── Priority: diagnostics-only student → show diag first ─────── */}

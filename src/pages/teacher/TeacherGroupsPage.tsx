@@ -1,3 +1,5 @@
+import { useIsDesktop } from '../../lib/useIsDesktop'
+import StudentDetailsEditor from '../../components/teacher/StudentDetailsEditor'
 import { profileReadLifetime } from '../../lib/profileReadLifetime'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
@@ -17,7 +19,7 @@ import {
   TrendingUp, ClipboardCheck, Clock, Award,
   ChevronsUpDown, ExternalLink, Copy, Check,
   BarChart2, Target, BookOpen, XCircle, CheckCircle2, Layers,
-  Search, Plus,
+  Search, Plus, Pencil,
 } from '../../components/icons/appIcons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
@@ -2140,14 +2142,6 @@ function StudentPanel({
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <Tooltip label={t('Полная статистика ученика')}><button
-              onClick={onOpenFullCard}
-              style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-accent)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-3)' }}
-            >
-              <BarChart2 size={14} />
-            </button></Tooltip>
             <button
               onClick={onClose}
               style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-3)', flexShrink: 0, transition: 'color 0.15s' }}
@@ -2163,6 +2157,10 @@ function StudentPanel({
       {/* Scrollable body. Фейды краёв + плавающий бегунок — как у остальных
           панелей: уходящий под шапку/футер контент не обрезается ножом. */}
       <OverlayScrollArea style={{ flex: 1 }} padding="16px 20px 0" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        <button data-hover="layer" type="button" style={btn('M', 'quiet')} onClick={onOpenFullCard}>
+          <BarChart2 size={16} aria-hidden /> {t('Расширенная карточка')}
+        </button>
 
         {/* Credentials */}
         {student.email && (
@@ -2463,6 +2461,8 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   const { groups, loading: groupsLoading, addGroup, addUnassignedStudent, addIndividualStudent, addStudentToGroup, addIndividualCard, addExistingStudentToGroup, deleteGroup } = useGroups()
   const { students, deleteStudent, updateStudent } = useStudents(selectedGroupId)
   const allStudents = useAllStudents()
+  const isDesktop = useIsDesktop()
+  const studentsById = useMemo(() => new Map(allStudents.map(student => [student.id, student])), [allStudents])
   const [assignedCourses, setAssignedCourses] = useState<StudentCourseAssignment[]>([])
   const [courseAssignmentsStatus, setCourseAssignmentsStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   // One access query for the roster, including direct course/intensive assignments.
@@ -2509,6 +2509,8 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   const [sortKey, setSortKey] = useState<SortKey>('attention')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [activeStudentId, setActiveStudentId] = useState<string | null>(null)
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null)
+  const editingStudent = editingStudentId ? studentsById.get(editingStudentId) ?? students.find(student => student.id === editingStudentId) : undefined
   const [searchQuery, setSearchQuery] = useState('')
   const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all')
   const tableRef = useRef<HTMLDivElement>(null)
@@ -2561,7 +2563,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   const activeGroup = allRosterView ? { ...unassignedDisplay, name: t('Все ученики') } : groups.find(g => g.id === selectedGroupId) ?? null
   // Full roster of the active group (drives chip counts), then narrowed by the
   // search box + active quick-filter, then sorted for display.
-  const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [onOpenStudent && !s.personId && !s.authUserId ? s.id : personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id) : []
+  const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [onOpenStudent && !s.personId && !s.authUserId ? s.id : personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id).map(s => studentsById.get(s.id) ?? s) : []
   const q = searchQuery.trim().toLowerCase()
   const rosterPredicates = hasUnsubmittedWork ? { ...filterPredicate, nohw: hasUnsubmittedWork } : filterPredicate
   const groupStudents = sortStudents(
@@ -2904,7 +2906,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.22, delay: i * 0.04 }}
-                            onClick={() => onOpenStudent ? onOpenStudent(student) : setActiveStudentId(isSelected ? null : student.id)}
+                            onClick={() => !isDesktop && onOpenStudent ? onOpenStudent(student) : setActiveStudentId(isSelected ? null : student.id)}
                             style={{
                               cursor: 'pointer',
                               background: isSelected ? `${activeGroup.color}12` : 'transparent',
@@ -2926,8 +2928,15 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                 </div>
                                 <div data-row-title style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
                                   <FadeText>{tn(student.name)}</FadeText>
+                                  {(student.schoolClass || student.phone) && <RosterDescription text={[student.schoolClass, student.phone].filter(Boolean).join(' · ')} />}
                                   {allRosterView && <RosterDescription text={studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel} />}
                                 </div>
+                                {isDesktop && <button data-hover="layer" type="button"
+                                  aria-label={`${t('Редактировать')}: ${tn(student.name)}`}
+                                  onClick={event => { event.stopPropagation(); setEditingStudentId(student.id) }}
+                                  style={btn('S', 'quiet', { flexShrink: 0, width: 36, padding: 0 })}>
+                                  <Pencil size={16} aria-hidden />
+                                </button>}
                               </div>
                             </td>
                             {/* Last visit */}
@@ -3007,6 +3016,8 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
         </>}
       </div>
 
+      {editingStudent && <StudentDetailsEditor key={editingStudent.id} student={editingStudent} onClose={() => setEditingStudentId(null)} />}
+
       {/* Mini student panel */}
       <AnimatePresence>
         {activeStudentId && activeStudent && activeStudentGroup && (
@@ -3027,7 +3038,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                 await deleteStudent(activeStudentId, activeStudent.name)
                 setActiveStudentId(null)
               }}
-              onOpenFullCard={() => openStudentDashboard(activeStudentId, activeStudent.groupId)}
+              onOpenFullCard={() => onOpenStudent ? onOpenStudent(activeStudent) : openStudentDashboard(activeStudentId, activeStudent.groupId)}
               onAddHomework={() => openHomeworkCreate(activeStudentId)}
               onSaveComment={async (text) => !(await updateStudent(activeStudentId, { comment: text })).error}
               siblingCards={siblingCards}

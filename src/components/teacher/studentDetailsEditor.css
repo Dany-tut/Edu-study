@@ -1,0 +1,6 @@
+.student-details-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.student-details-error { grid-column: 1 / -1; }
+.student-details-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+@media (max-width: 480px) {
+  .student-details-fields { grid-template-columns: minmax(0, 1fr); }
+}

@@ -38,6 +38,7 @@ export type Student = {
   subject?: string
   isIndividual?: boolean
   name: string
+  schoolClass?: string
   phone: string
   telegramLink?: string
   parentContact?: string

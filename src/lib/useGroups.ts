@@ -650,23 +650,12 @@ export function useStudents(groupId: string | null) {
   // Patch arbitrary student fields (camelCase keys → snake_case columns).
   // Optimistically updates local state so the panel reflects the edit instantly.
   async function updateStudent(id: string, patch: Partial<Student>) {
-    const colMap: Record<string, string> = {
-      name: 'name', phone: 'phone', telegramLink: 'telegram_link', parentContact: 'parent_contact',
-      desiredScore: 'desired_score', comment: 'comment', paymentDue: 'payment_due',
-      paymentAmount: 'payment_amount', lastPayment: 'last_payment', debt: 'debt',
-    }
-    const row: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(patch)) {
-      if (colMap[k]) row[colMap[k]] = v
-    }
-    if (Object.keys(row).length === 0) return { error: null }
     const before = students.find(s => s.id === id)
     setStudents(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s))
-    const { error } = await supabase.from('students').update(row).eq('id', id)
+    const { error } = await saveStudentFields(id, patch)
     // Не записалось — откатываем экран к базе: иначе правка «держалась» бы до F5,
     // а повторное сохранение решало бы, что менять нечего.
     if (error && before) setStudents(prev => prev.map(s => s.id === id ? before : s))
-    if (!error) await reloadAllStudents()
     return { error }
   }
 
@@ -1047,12 +1036,13 @@ const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStu
   if (!uid) return []
   if (!navigator.onLine) throw new NetworkReadError('Список учеников недоступен без сети')
   const columns = 'id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by, groups(subject, is_individual)'
-  const read = (withSubject: boolean) => supabase
+  const read = (withSubject: boolean, withSchoolClass = false) => supabase
     .from('students')
-    .select(withSubject ? `${columns}, subject` : columns)
+    .select(`${columns}${withSubject ? ', subject' : ''}${withSchoolClass ? ', school_class' : ''}`)
     .eq('created_by', uid)
     .order('name')
-  let { data, error, status } = await read(true)
+  let { data, error, status } = await read(true, true)
+  if (error?.code === '42703') ({ data, error, status } = await read(true, false))
   // База без колонки students.subject (миграция 20261108130000 ещё не
   // применена) — 42703. Список учеников важнее предмета: читаем без неё.
   if (error?.code === '42703') ({ data, error, status } = await read(false))
@@ -1070,6 +1060,7 @@ const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStu
     avatarPath: s.avatar_path ?? null,
     // Keep the roster contract stable for old/imported rows with a missing name.
     name: typeof s.name === 'string' ? s.name : '',
+    schoolClass: s.school_class ?? '',
     phone: s.phone ?? '',
     telegramLink: s.telegram_link ?? '',
     parentContact: s.parent_contact ?? '',
@@ -1102,3 +1093,17 @@ export function useAllStudents() {
 /** Перечитать список учеников во всех местах сразу — после создания, перевода
  *  или удаления. */
 export const reloadAllStudents = () => allStudentsQuery.reload()
+
+export async function saveStudentFields(id: string, patch: Partial<Student>) {
+  const columns: Record<string, string> = {
+    name: 'name', schoolClass: 'school_class', phone: 'phone', telegramLink: 'telegram_link',
+    parentContact: 'parent_contact', desiredScore: 'desired_score', comment: 'comment',
+    paymentDue: 'payment_due', paymentAmount: 'payment_amount', lastPayment: 'last_payment', debt: 'debt',
+  }
+  const row = Object.fromEntries(Object.entries(patch).filter(([key]) => Object.prototype.hasOwnProperty.call(columns, key))
+    .map(([key, value]) => [columns[key], value]))
+  if (!Object.keys(row).length) return { error: null }
+  const { error } = await supabase.from('students').update(row).eq('id', id).select('id').single()
+  if (!error) await reloadAllStudents()
+  return { error }
+}

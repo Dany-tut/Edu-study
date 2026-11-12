@@ -64,3 +64,5 @@
   .student-profile-dock-download { width: 44px; height: 44px; padding: 0; justify-content: center; }
   .student-profile-dock-download > span { display: none; }
 }
+
+.student-profile-name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
