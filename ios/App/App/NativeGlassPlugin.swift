@@ -458,7 +458,8 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
         if !items.isEmpty {
             let row = UIStackView()
             row.axis = .horizontal
-            row.spacing = 10
+            let tabBarSideInset = opts["bottomTabBarSideInset"] as? Double
+            row.spacing = tabBarSideInset == nil ? 10 : 6
             row.alignment = .center
             row.distribution = .fill
             row.translatesAutoresizingMaskIntoConstraints = false
@@ -486,7 +487,15 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             // нижней безопасной зоны, ряд встаёт с зазором 10.
             let width: NSLayoutConstraint
             let center: NSLayoutConstraint
-            if let ratio = opts["bottomTabBarWidthRatio"] as? Double, ratio > 0, ratio <= 1 {
+            if let inset = tabBarSideInset {
+                // UIKit lays out the visible tab capsule about 20 pt inside the safe area.
+                center = row.centerXAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.centerXAnchor)
+                width = row.widthAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.widthAnchor,
+                                                   constant: -2 * (20 + CGFloat(inset)))
+                // On the narrowest phones, keep four expanded choices tappable.
+                width.priority = UILayoutPriority(999)
+                row.widthAnchor.constraint(greaterThanOrEqualToConstant: 48 + row.spacing + 4 * 44).isActive = true
+            } else if let ratio = opts["bottomTabBarWidthRatio"] as? Double, ratio > 0, ratio <= 1 {
                 // UIKit does not expose the visible capsule width. Allow 20 pt per side.
                 center = row.centerXAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.centerXAnchor)
                 width = row.widthAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.widthAnchor,

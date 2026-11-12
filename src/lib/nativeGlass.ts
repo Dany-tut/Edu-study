@@ -43,6 +43,7 @@ export type GlassBar = {
   top?: GlassBarItem | GlassBarItem[]
   bottom?: GlassBarItem[]
   bottomTabBarWidthRatio?: number
+  bottomTabBarSideInset?: number
   expandingSections?: { trigger: string; selected: string; items: GlassTab[] }
 }
 

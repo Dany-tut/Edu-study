@@ -314,6 +314,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     {mobile ? <>
       {nativeIphone ? <>
         <NativeJournalBar bar={{
+          bottomTabBarSideInset: 40,
           bottom: [
             { id: 'journal-search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск ученика'), active: !!query },
             { id: 'journal-course', kind: 'pill', title: courseTitle, menuTitle: t('Курс или интенсив'), menu: [
