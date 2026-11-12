@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { animate, motion, useReducedMotion } from 'framer-motion'
 import { addDays, weekStart } from '../../../lib/teacherSchedule'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -44,6 +44,8 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const [origin, setOrigin] = useState(() => weekStart(day))
   const [monthPage, setMonthPage] = useState(day.slice(0, 7))
   const [shownMonth, setShownMonth] = useState(monthPage)
+  const monthStart = weekStart(`${monthPage}-01`)
+  const selectedWeek = Math.floor(Math.round((+dateAtNoon(day) - +dateAtNoon(monthStart)) / 86_400_000) / 7)
   const scroll = useRef<HTMLDivElement>(null)
   const pendingOffset = useRef<number | null>(null)
   const previousDay = useRef(day)
@@ -55,13 +57,14 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   const summaryLayer = useRef<HTMLDivElement>(null)
   const monthLayer = useRef<HTMLDivElement>(null)
   const hoursLayer = useRef<HTMLDivElement>(null)
+  const accordionRows = useRef<HTMLElement[]>([])
   const progress = useRef<number>(mode === 1 ? 1 : 0)
   const dayProgress = useRef<number>(mode === 2 ? 1 : 0)
   const previousMode = useRef(mode)
   const rubber = useRef(0)
   const animation = useRef<{ stop: () => void } | null>(null)
   const reducedMotion = useReducedMotion()
-  const dimensions = useRef({ week: WEEK_HEIGHT, month: 280, hours: 0, summary: 0, rowTop: 45, rowHeight: 44 })
+  const dimensions = useRef({ week: WEEK_HEIGHT, month: 280, hours: 0, summary: 0, title: 0, rowTop: 45, rowHeight: 44 })
 
   function paint(month: number, hours = dayProgress.current, stretch = rubber.current) {
     progress.current = month
@@ -71,19 +74,29 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     const style = gestureLayer.current?.style
     const calendarOpacity = 1 - hours
     const { week, month: monthHeight, summary, rowTop, rowHeight } = dimensions.current
-    const dateHeight = week + (monthHeight - week) * month
-    // Leave the outgoing dates readable until the first month row has room.
-    // The incoming grid sits below the old strip during that handoff.
-    const weekOut = easeFade((month - .10) / .24)
-    const monthInset = week * (1 - easeFade((month - .34) / .28))
-    const revealed = dateHeight - monthInset - rowTop
-    style?.setProperty('--day-week-opacity', String((1 - weekOut) * calendarOpacity))
-    style?.setProperty('--day-month-opacity', String(calendarOpacity))
-    style?.setProperty('--day-month-inset', `${monthInset}px`)
-    const titleReveal = easeFade((month - .06) / .53)
+    const rows = accordionRows.current
+    const anchor = Math.max(0, Math.min(rows.length - 1, selectedWeek))
+    const titleReveal = easeFade(month / .40)
+    const monthIn = easeFade(month / .14)
+    const opening = clamp((month - .14) / .86) * Math.max(0, rows.length - 1)
+    const headerOffset = dimensions.current.title * (1 - titleReveal)
+    let rowY = rowTop
+    rows.forEach((row, index) => {
+      // Start with the selected week, then reveal preceding weeks from nearest
+      // to farthest, followed by the remaining weeks below it.
+      const order = index < anchor ? anchor - index - 1 : index - 1
+      const amount = index === anchor ? 1 : easeFade(opening - order)
+      row.style.setProperty('--day-row-y', `${rowY - rowTop - index * rowHeight}px`)
+      row.style.setProperty('--day-row-open', String(amount))
+      rowY += rowHeight * amount
+    })
+    const bottomPadding = Math.max(0, monthHeight - rowTop - rows.length * rowHeight)
+    const dateHeight = week * (1 - monthIn) + (rowY - headerOffset + bottomPadding) * monthIn
+    style?.setProperty('--day-week-opacity', String((1 - monthIn) * calendarOpacity))
+    style?.setProperty('--day-month-opacity', String(monthIn * calendarOpacity))
+    style?.setProperty('--day-month-scroll-y', `${-headerOffset}px`)
     style?.setProperty('--day-month-title-opacity', String(titleReveal))
     style?.setProperty('--day-month-title-y', `${-4 * (1 - titleReveal)}px`)
-    style?.setProperty('--day-month-rows-open', String(revealed / rowHeight))
     style?.setProperty('--day-date-flight', `${hours * 90}px`)
     style?.setProperty('--day-calendar-height', `${(dateHeight + stretch) * calendarOpacity}px`)
     style?.setProperty('--day-calendar-scale', String(1 + stretch / dateHeight))
@@ -146,10 +159,12 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     const summary = summaryLayer.current
     if (!month || !hourly || !week || !summary) return
     const measure = () => {
-      const firstRow = month.querySelector<HTMLElement>('.teacher-day-month-row[data-row]')
+      accordionRows.current = Array.from(month.querySelectorAll<HTMLElement>('.teacher-day-month-row[data-row]'))
+      const firstRow = accordionRows.current[0]
+      const title = monthScroll.current?.offsetTop ?? 0
       dimensions.current = {
         week: week.offsetHeight, month: month.offsetHeight, hours: hourly.offsetHeight, summary: summary.offsetHeight,
-        rowTop: firstRow?.offsetTop ?? 45, rowHeight: firstRow?.offsetHeight || 44,
+        title, rowTop: firstRow ? title + firstRow.offsetTop : 45, rowHeight: firstRow?.offsetHeight || 44,
       }
       paint(progress.current)
     }
@@ -160,7 +175,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
     observer.observe(summary)
     measure()
     return () => observer.disconnect()
-  }, [pinnedHost])
+  }, [day, monthPage, pinnedHost])
 
   useScrollFades(monthScroll, !!pinnedHost, '.teacher-day-month-track', 48, true)
   useLayoutEffect(() => {
@@ -277,7 +292,6 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
   }
 
   const first = `${monthPage}-01`
-  const monthStart = weekStart(first)
   const monthDate = dateAtNoon(first)
   const monthLength = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate()
   const monthCells = Math.ceil((monthLength + (monthDate.getDay() + 6) % 7) / 7) * 7
@@ -337,7 +351,7 @@ export default function TeacherDayCalendar({ day, today, mode, locale, markedDay
               <div className="teacher-day-month-row" aria-hidden>
                 {monthColumns.map(column => <small key={column}>{weekday.format(dateAtNoon(addDays(monthStart, column)))}</small>)}
               </div>
-              {monthRows.map(row => <div key={row} className="teacher-day-month-row" data-row style={{ '--day-row': row } as CSSProperties}>
+              {monthRows.map(row => <div key={row} className="teacher-day-month-row" data-row>
                 {monthColumns.map(column => renderDate(addDays(monthStart, row * 7 + column), false))}
               </div>)}
             </div>

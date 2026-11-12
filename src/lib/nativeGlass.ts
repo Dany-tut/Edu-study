@@ -62,7 +62,6 @@ export type GlassSheetRow = {
 export type GlassSheetContent = {
   title: string
   empty?: string
-  glass?: boolean
   sections: { title?: string; layout?: 'segments' | 'actions'; rows: GlassSheetRow[] }[]
   footer?: GlassSheetRow
 }

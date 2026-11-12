@@ -313,7 +313,6 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   ] as const
   const webSettings = useGlassSheet(iphone && settingsOpen, {
     title: t('Настройки вида'),
-    glass: true,
     sections: [
       { title: t('Вид при открытии'), layout: 'segments', rows: CALENDAR_VIEWS.map((label, index) => ({ id: `calendar-${index}`, title: t(label), checked: preferences.calendar === index })) },
       { title: t('Лента занятий'), layout: 'segments', rows: layoutOptions.map(option => ({ ...option, checked: preferences.layout === option.id })) },

@@ -219,27 +219,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             controller.modalPresentationStyle = .pageSheet
             controller.view.backgroundColor = .clear
             if let sheet = controller.sheetPresentationController {
-                let medium = UISheetPresentationController.Detent.medium()
-                let large = UISheetPresentationController.Detent.large()
-                if #available(iOS 26.1, *) {
-                    func background() -> UIGlassEffect {
-                        let effect = UIGlassEffect(style: .regular)
-                        if model.content.glass {
-                            effect.tintColor = UIColor { traits in
-                                if traits.userInterfaceStyle == .dark {
-                                    return UIColor(red: 0.17, green: 0.15, blue: 0.22, alpha: 0.82)
-                                }
-                                return UIColor(red: 0.96, green: 0.94, blue: 0.99, alpha: 0.78)
-                            }
-                        }
-                        return effect
-                    }
-                    medium.backgroundEffect = background()
-                    large.backgroundEffect = background()
-                }
-                sheet.detents = [medium, large]
-                sheet.prefersGrabberVisible = true
-                sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+                sheet.configureIskraGlass()
                 sheet.delegate = self
             }
             self.contentSheetID = id
@@ -499,7 +479,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 center = row.centerXAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.centerXAnchor)
                 width = row.widthAnchor.constraint(equalTo: host.view.safeAreaLayoutGuide.widthAnchor,
                                                    constant: -2 * (20 + CGFloat(inset)))
-                // On the narrowest phones, keep four expanded choices tappable.
+                // On narrow phones, leave enough room for the course pill.
                 width.priority = UILayoutPriority(999)
                 row.widthAnchor.constraint(greaterThanOrEqualToConstant: 48 + row.spacing + 4 * 44).isActive = true
             } else if let ratio = opts["bottomTabBarWidthRatio"] as? Double, ratio > 0, ratio <= 1 {
@@ -520,14 +500,13 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             NSLayoutConstraint.activate([bottom, center, width])
             if let sections = opts["expandingSections"] as? JSObject,
                let id = sections["trigger"] as? String,
-               let index = items.firstIndex(where: { $0["id"] as? String == id }),
-               let first = row.arrangedSubviews.first, index > 0 {
+               let index = items.firstIndex(where: { $0["id"] as? String == id }) {
                 let anchor = row.arrangedSubviews[index]
                 anchor.alpha = 0
                 anchor.isUserInteractionEnabled = false
-                let covered = row.arrangedSubviews.dropFirst().filter { $0 !== anchor }
+                let covered = row.arrangedSubviews.filter { $0 !== anchor }
                 let picker = GlassSectionPicker(
-                    row: row, anchor: anchor, search: first, covered: covered,
+                    row: row, anchor: anchor, covered: covered,
                     items: sections["items"] as? [JSObject] ?? [],
                     selected: sections["selected"] as? String ?? "",
                     label: items[index]["label"] as? String ?? "", traits: traits
@@ -536,6 +515,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 }
                 row.addSubview(picker)
                 picker.install()
+                picker.setCompact(self.tabBarCompact)
             }
         }
     }
@@ -810,6 +790,7 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             }
             button.configuration = config
         }
+        barBottomView?.subviews.compactMap { $0 as? GlassSectionPicker }.first?.setCompact(tabBarCompact)
     }
 
     private func barBottomOffset(in view: UIView) -> CGFloat {
@@ -1060,11 +1041,10 @@ private final class GlassPillView: UIView {
 /// Кнопка стеклянного бара: длинная подпись гаснет фейдом у края (TEXT-01),
 /// а не многоточием; стекло и шеврон остаются чёткими.
 /// The same glass surface changes width, from the section circle to the
-/// space between Search and the trailing edge of the screen bar.
+/// full width of the screen bar.
 private final class GlassSectionPicker: UIVisualEffectView {
     private unowned let row: UIStackView
     private let anchor: UIView
-    private let search: UIView
     private let covered: [UIView]
     private let items: [JSObject]
     private let label: String
@@ -1076,13 +1056,13 @@ private final class GlassSectionPicker: UIVisualEffectView {
     private var expanded: [NSLayoutConstraint] = []
     private var selected: String
     private var isExpanded = false
+    private var isCompact = false
 
-    init(row: UIStackView, anchor: UIView, search: UIView, covered: [UIView],
+    init(row: UIStackView, anchor: UIView, covered: [UIView],
          items: [JSObject], selected: String, label: String, traits: UITraitCollection,
          onSelect: @escaping (String) -> Void) {
         self.row = row
         self.anchor = anchor
-        self.search = search
         self.covered = covered
         self.items = items
         self.selected = selected
@@ -1123,9 +1103,7 @@ private final class GlassSectionPicker: UIVisualEffectView {
             config.imagePlacement = .top
             config.imagePadding = 1
             config.contentInsets = .zero
-            var text = AttributedString(title)
-            text.font = .systemFont(ofSize: 10, weight: .medium)
-            config.attributedTitle = text
+            config.attributedTitle = Self.choiceTitle(title)
             config.titleLineBreakMode = .byClipping
             let choice = UIButton(configuration: config)
             choice.accessibilityIdentifier = id
@@ -1146,7 +1124,7 @@ private final class GlassSectionPicker: UIVisualEffectView {
         contentView.addSubview(choices)
         collapsed = [leadingAnchor.constraint(equalTo: anchor.leadingAnchor),
                      trailingAnchor.constraint(equalTo: anchor.trailingAnchor)]
-        expanded = [leadingAnchor.constraint(equalTo: search.trailingAnchor, constant: row.spacing),
+        expanded = [leadingAnchor.constraint(equalTo: row.leadingAnchor),
                     trailingAnchor.constraint(equalTo: row.trailingAnchor)]
         NSLayoutConstraint.activate(collapsed + [
             topAnchor.constraint(equalTo: anchor.topAnchor),
@@ -1156,11 +1134,27 @@ private final class GlassSectionPicker: UIVisualEffectView {
             trigger.topAnchor.constraint(equalTo: contentView.topAnchor),
             trigger.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             choices.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            choices.widthAnchor.constraint(equalTo: row.widthAnchor, constant: -48 - row.spacing),
+            choices.widthAnchor.constraint(equalTo: row.widthAnchor, constant: -4),
             choices.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 2),
             choices.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -2),
         ])
         updateSelection()
+    }
+
+    private static func choiceTitle(_ title: String) -> AttributedString {
+        var text = AttributedString(title)
+        text.font = .systemFont(ofSize: 10, weight: .medium)
+        return text
+    }
+
+    func setCompact(_ compact: Bool) {
+        guard isCompact != compact else { return }
+        isCompact = compact
+        for case let choice as UIButton in choices.arrangedSubviews {
+            guard var config = choice.configuration else { continue }
+            config.attributedTitle = compact ? nil : Self.choiceTitle(choice.accessibilityLabel ?? "")
+            choice.configuration = config
+        }
     }
 
     private func updateSelection() {
@@ -1303,14 +1297,12 @@ private struct GlassSheetSection {
 private struct GlassSheetContent {
     let title: String
     let empty: String?
-    let glass: Bool
     let sections: [GlassSheetSection]
     let footer: GlassSheetRow?
 
     init(_ values: JSObject) {
         title = values["title"] as? String ?? ""
         empty = values["empty"] as? String
-        glass = values["glass"] as? Bool ?? false
         sections = (values["sections"] as? [JSObject] ?? []).map(GlassSheetSection.init)
         footer = (values["footer"] as? JSObject).flatMap(GlassSheetRow.init)
     }
@@ -1325,16 +1317,7 @@ private struct GlassContentSheet: View {
     @ObservedObject var model: GlassContentSheetModel
     let onAction: (String) -> Void
 
-    var body: some View {
-        sheetContent
-            .background {
-                if model.content.glass {
-                    Rectangle().fill(.regularMaterial).ignoresSafeArea()
-                }
-            }
-    }
-
-    @ViewBuilder private var sheetContent: some View {
+    @ViewBuilder var body: some View {
         if #available(iOS 26.0, *) {
             scrollContent
                 .safeAreaInset(edge: .top, spacing: 12) {
@@ -1368,7 +1351,8 @@ private struct GlassContentSheet: View {
         Text(model.content.title)
             .font(.title3.weight(.semibold))
             .accessibilityAddTraits(.isHeader)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, 20)
     }
 
@@ -1471,5 +1455,20 @@ private struct GlassContentSheet: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(row.checked == true ? .isSelected : [])
+    }
+}
+
+
+extension UISheetPresentationController {
+    func configureIskraGlass(largeOnly: Bool = false) {
+        let medium = Detent.medium()
+        let large = Detent.large()
+        if #available(iOS 26.1, *) {
+            medium.backgroundEffect = UIGlassEffect(style: .regular)
+            large.backgroundEffect = UIGlassEffect(style: .regular)
+        }
+        detents = largeOnly ? [large] : [medium, large]
+        prefersGrabberVisible = true
+        prefersScrollingExpandsWhenScrolledToEdge = false
     }
 }

@@ -6,8 +6,13 @@
   mask-image: linear-gradient(#000 calc(100% - var(--edge-fade)), #000d calc(100% - var(--edge-fade) * .68), #0005 calc(100% - var(--edge-fade) * .32), transparent); }
 .teacher-day-week-layer, .teacher-day-month-layer { position: absolute; inset: 0 16px auto; transform-origin: center top; scale: 1 var(--day-calendar-scale, 1); }
 .teacher-day-week-layer { opacity: var(--day-week-opacity, 1); }
-.teacher-day-month-layer { opacity: var(--day-month-opacity, 0); translate: 0 var(--day-month-inset, 0px); }
-.teacher-day-month-row[data-row] { opacity: clamp(0, calc((var(--day-month-rows-open, 0) - var(--day-row)) * 1.15), 1); }
+.teacher-day-month-layer { opacity: var(--day-month-opacity, 0); }
+.teacher-day-month-row[data-row] {
+  --open: var(--day-row-open, 1);
+  translate: 0 var(--day-row-y, 0px);
+  opacity: var(--open);
+  clip-path: inset(0 0 calc((1 - var(--open)) * 100%) 0);
+}
 .teacher-day-hours-reveal { height: var(--day-hours-height, 0px); overflow: clip; --edge-fade: var(--day-sheet-fade, 0px);
   mask-image: linear-gradient(#000 calc(100% - var(--edge-fade)), #000d calc(100% - var(--edge-fade) * .68), #0005 calc(100% - var(--edge-fade) * .32), transparent); }
 .teacher-day-gesture h2 { margin: 0 4px 6px; font-size: 17px; opacity: var(--day-month-title-opacity, 1); translate: 0 var(--day-month-title-y, 0px); }
@@ -22,7 +27,7 @@
 .teacher-day-date[data-outside] { color: var(--color-muted); }
 .teacher-day-date-mark { width: 4px; height: 4px; border-radius: 50%; }
 .teacher-day-date-mark[data-marked] { background: var(--color-purple-text); }
-.teacher-day-month-scroll { margin-inline: -16px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; }
+.teacher-day-month-scroll { translate: 0 var(--day-month-scroll-y, 0px); margin-inline: -16px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; touch-action: pan-x; }
 /* The fade lives over the edge gutter; at rest all seven dates stay legible. */
 .teacher-day-date-scroll,.teacher-day-month-scroll { scroll-snap-type: x mandatory; scroll-padding-inline: var(--date-gutter); }
 .teacher-day-date-scroll[data-dragging],.teacher-day-month-scroll[data-dragging] { scroll-snap-type: none; }

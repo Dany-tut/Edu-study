@@ -25,7 +25,6 @@ export default function NotificationSheet({ open, onClose, native = false }: { o
 
   const webFallback = useGlassSheet(native && open, {
     title: t('Уведомления'),
-    glass: true,
     empty: notifications.length ? undefined : t('Нет уведомлений'),
     sections: [{ rows: notifications.map(n => ({
       id: `notification:${n.id}`, title: n.title, detail: n.body, caption: timeAgo(n.createdAt), unread: !n.read,
