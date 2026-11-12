@@ -1,3 +1,4 @@
+import { openNativeMoreSetting } from '../../../lib/nativeMoreSettings'
 import Switch from '../../Switch'
 import MobileSheet from '../../MobileSheet'
 import type { AdminSheetSection } from '../../../pages/teacher/TeacherAdminPage'
@@ -146,6 +147,22 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const [tariffOpen, setTariffOpen] = useState(false)
   const { dark, toggle: toggleTheme } = useTheme()
 
+  async function openTheme() {
+    if (await openNativeMoreSetting('theme', t)) return
+    if (isIPhone) setDetails('theme')
+    else toggleTheme()
+  }
+
+  async function openLanguage() {
+    if (await openNativeMoreSetting('language', t)) return
+    if (isIPhone) setDetails('language')
+    else setLang((lang === 'ru' ? 'en' : 'ru') as Lang)
+  }
+
+  async function openIcon() {
+    if (!(await openNativeMoreSetting('icon', t))) setIconOpen(true)
+  }
+
   const openPage = useTeacher(s => s.setActivePage)
   const showFinances = useTeacherAccess(s => s.canTab('finances'))
   const showConstructor = useTeacherAccess(s => s.canTab('constructor'))
@@ -282,13 +299,13 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
         <section className="teacher-more-card teacher-more-settings" aria-labelledby="teacher-more-settings">
           <h2 id="teacher-more-settings">{t('Настройки')}</h2>
           <MoreRow label={t('Тема оформления')} icon={dark ? <Moon size={21} /> : <Sun size={21} />}
-            value={<span className="teacher-more-muted">{t(dark ? 'Тёмная' : 'Светлая')}</span>} onClick={() => setDetails('theme')} />
+            value={<span className="teacher-more-muted">{t(dark ? 'Тёмная' : 'Светлая')}</span>} onClick={() => void openTheme()} />
           <MoreRow label={t('Язык')} icon={<Languages size={21} />}
-            value={<span className="teacher-more-muted">{lang === 'ru' ? 'Русский' : 'English'}</span>} onClick={() => setDetails('language')} />
+            value={<span className="teacher-more-muted">{lang === 'ru' ? 'Русский' : 'English'}</span>} onClick={() => void openLanguage()} />
           <MoreRow label={t('Время в расписании')} icon={<CalendarClock size={21} />} onClick={() => setDetails('schedule')} />
           {onOpenNotifications && <MoreRow label={t('Уведомления')} icon={<Bell size={21} />}
             value={<CountBadge count={unreadNotifs} tone="danger" />} onClick={onOpenNotifications} />}
-          {iconSupported && <MoreRow label={t('Иконка приложения')} icon={<Image size={21} />} onClick={() => setIconOpen(true)}
+          {iconSupported && <MoreRow label={t('Иконка приложения')} icon={<Image size={21} />} onClick={() => void openIcon()}
             value={<AppIconTile src={(APP_ICONS.find(o => o.id === iconCurrent) ?? APP_ICONS[0]).preview} size={26} />} />}
         </section>
 
@@ -430,7 +447,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           </button>
           {/* Тема */}
           <button data-hover="layer"
-            onClick={() => { tactile(); toggleTheme() }}
+            onClick={() => { tactile(); void openTheme() }}
             className="flex items-center justify-between cursor-pointer"
             style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
           >
@@ -443,7 +460,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           {/* Иконка приложения — только в приложении на iOS */}
           {iconSupported && (
             <button
-              onClick={() => { tactile(); setIconOpen(true) }}
+              onClick={() => { tactile(); void openIcon() }}
               className="flex items-center justify-between cursor-pointer"
               style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}
             >
@@ -459,7 +476,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
 
           {/* Язык — надпись показывает текущий язык, тап переключает на другой */}
           <button data-hover="layer"
-            onClick={() => { tactile(); setLang((lang === 'ru' ? 'en' : 'ru') as Lang) }}
+            onClick={() => { tactile(); void openLanguage() }}
             aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
             className="flex items-center justify-between cursor-pointer"
             style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none' }}

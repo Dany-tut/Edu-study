@@ -1,10 +1,13 @@
+import { nativeMoreEnabled, openNativeMoreSetting } from '../../lib/nativeMoreSettings'
+import { useAppIcon } from '../../lib/appIcon'
+import AppIconSheet from '../AppIconSheet'
 import { useState, useRef, useEffect, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   Home, Users, BookOpen, Layers, Wallet, Plus, GraduationCap, ClipboardList,
   CheckSquare, UserPlus, LayoutDashboard, LogOut, Moon, Sun, UserCircle,
-  Shield, MessageSquarePlus, Globe, type LucideIcon,
+  Shield, MessageSquarePlus, Globe, Image, type LucideIcon,
 } from '../icons/appIcons'
 import FadeText from '../FadeText'
 import CountBadge from '../CountBadge'
@@ -71,6 +74,12 @@ export default function TeacherIpadRail() {
 
   const { dark, toggle: toggleTheme } = useTheme()
   const { lang, setLang } = useLang()
+  const [iconOpen, setIconOpen] = useState(false)
+  const iconSupported = useAppIcon(s => s.supported)
+  const loadIcon = useAppIcon(s => s.load)
+  useEffect(() => {
+    if (nativeMoreEnabled) void loadIcon()
+  }, [loadIcon])
 
   const canTab = useTeacherAccess(s => s.canTab)
   const canPage = useTeacherAccess(s => s.canPage)
@@ -145,12 +154,25 @@ export default function TeacherIpadRail() {
     { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'), action: 'widgets', group: 2 },
     { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme', group: 2 },
     { icon: Globe, label: t('Язык'), sub: lang === 'ru' ? 'Русский' : 'English', action: 'lang', group: 2 },
+    ...(nativeMoreEnabled && iconSupported
+      ? [{ icon: Image, label: t('Иконка приложения'), sub: '', action: 'icon', group: 2 }]
+      : []),
     { icon: MessageSquarePlus, label: t('Обратная связь'), sub: t('сообщить об ошибке'), action: 'feedback', group: 3 },
   ]
 
-  function runProfile(action: string) {
-    if (action === 'lang') { setLang((lang === 'ru' ? 'en' : 'ru') as Lang); return }
-    if (action === 'theme') { toggleTheme(); return }
+  async function runProfile(action: string) {
+    if (action === 'lang') {
+      if (!(await openNativeMoreSetting('language', t))) setLang((lang === 'ru' ? 'en' : 'ru') as Lang)
+      return
+    }
+    if (action === 'theme') {
+      if (!(await openNativeMoreSetting('theme', t))) toggleTheme()
+      return
+    }
+    if (action === 'icon') {
+      if (!(await openNativeMoreSetting('icon', t))) setIconOpen(true)
+      return
+    }
     if (action === 'widgets') {
       if (activePage === 'home') useDeskStore.getState().setShowWidgetLibrary(true)
       else useTeacher.getState().openDeskEditor()
@@ -258,10 +280,10 @@ export default function TeacherIpadRail() {
                 <Fragment key={item.action}>
                   {i > 0 && profileMenu[i - 1].group !== item.group && <div className="tir-pop-sep" />}
                   <button type="button" role="menuitem" className="tir-pop-row"
-                    aria-label={item.action === 'lang' ? (lang === 'ru' ? 'Switch to English' : 'Переключить на русский') : undefined}
-                    onClick={() => runProfile(item.action)}>
+                    aria-label={!nativeMoreEnabled && item.action === 'lang' ? (lang === 'ru' ? 'Switch to English' : 'Переключить на русский') : undefined}
+                    onClick={() => void runProfile(item.action)}>
                     <span className="tir-pop-tile"><item.icon size={16} strokeWidth={2} /></span>
-                    <span style={{ minWidth: 0 }}><b>{item.label}</b><span>{item.sub}</span></span>
+                    <span style={{ minWidth: 0 }}><b>{item.label}</b>{item.sub && <span>{item.sub}</span>}</span>
                   </button>
                 </Fragment>
               ))}
@@ -277,6 +299,7 @@ export default function TeacherIpadRail() {
         document.body,
       )}
 
+      {nativeMoreEnabled && <AppIconSheet open={iconOpen} onClose={() => setIconOpen(false)} />}
       {feedbackOpen && <FeedbackModal role="teacher" onClose={() => setFeedbackOpen(false)} />}
       {taskModalOpen && (
         <CreateTaskModal
