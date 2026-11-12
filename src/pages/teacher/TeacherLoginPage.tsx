@@ -196,14 +196,12 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
               aria-pressed={showPassword}
               style={{
                 position: 'absolute',
-                right: 4,
-                top: '50%',
-                transform: 'translateY(-50%)',
+                inset: '1.5px 1.5px 1.5px auto',
+                borderRadius: '0 14.5px 14.5px 0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 44,
-                height: 44,
+                width: 49,
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
