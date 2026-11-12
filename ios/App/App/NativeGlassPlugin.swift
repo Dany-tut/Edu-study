@@ -918,43 +918,69 @@ private struct GlassContentSheet: View {
     let onAction: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(model.content.title)
-                .font(.title3.weight(.semibold))
-                .accessibilityAddTraits(.isHeader)
-                .padding(.horizontal, 20)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    if let empty = model.content.empty {
-                        Text(empty)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, minHeight: 84)
-                    }
-                    ForEach(model.content.sections.indices, id: \.self) { index in
-                        let section = model.content.sections[index]
-                        VStack(alignment: .leading, spacing: 0) {
-                            if let title = section.title {
-                                Text(title)
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityAddTraits(.isHeader)
-                                    .padding(.leading, 12)
-                            }
-                            ForEach(section.rows, id: \.id, content: row)
+        if #available(iOS 26.0, *) {
+            scrollContent
+                .safeAreaInset(edge: .top, spacing: 12) {
+                    title.padding(.top, 24)
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    footer.padding(.bottom, 8)
+                }
+                .scrollEdgeEffectStyle(.soft, for: .vertical)
+                .scrollEdgeEffectHidden(false, for: .vertical)
+        } else {
+            VStack(alignment: .leading, spacing: 12) {
+                title
+                scrollContent
+                footer
+            }
+            .padding(.top, 24)
+            .padding(.bottom, 8)
+        }
+    }
+
+    private var title: some View {
+        Text(model.content.title)
+            .font(.title3.weight(.semibold))
+            .accessibilityAddTraits(.isHeader)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+    }
+
+    private var scrollContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if let empty = model.content.empty {
+                    Text(empty)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, minHeight: 84)
+                }
+                ForEach(model.content.sections.indices, id: \.self) { index in
+                    let section = model.content.sections[index]
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let title = section.title {
+                            Text(title)
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .accessibilityAddTraits(.isHeader)
+                                .padding(.leading, 12)
                         }
+                        ForEach(section.rows, id: \.id, content: row)
                     }
                 }
-                .padding(.horizontal, 20)
             }
-            if let footer = model.content.footer {
-                Button(footer.title) { onAction(footer.id) }
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .buttonStyle(.bordered)
-                    .padding(.horizontal, 20)
-            }
+            .padding(.horizontal, 20)
         }
-        .padding(.top, 24)
-        .padding(.bottom, 8)
+    }
+
+    @ViewBuilder
+    private var footer: some View {
+        if let footer = model.content.footer {
+            Button(footer.title) { onAction(footer.id) }
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .buttonStyle(.bordered)
+                .padding(.horizontal, 20)
+        }
     }
 
     private func row(_ row: GlassSheetRow) -> some View {
