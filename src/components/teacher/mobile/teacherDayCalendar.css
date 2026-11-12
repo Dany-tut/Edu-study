@@ -6,10 +6,10 @@
 .teacher-day-week-layer { opacity: var(--day-week-opacity, 1); }
 .teacher-day-month-layer { opacity: var(--day-month-opacity, 0); }
 .teacher-day-month-row[data-row] {
-  --open: var(--day-row-open, 1);
-  translate: 0 var(--day-row-y, 0px);
-  opacity: var(--open);
-  clip-path: inset(0 0 calc((1 - var(--open)) * 100%) 0);
+  /* Keep every date row visible; the calendar itself owns the vertical reveal. */
+  translate: 0 0;
+  opacity: 1;
+  clip-path: none;
 }
 .teacher-day-hours-reveal { height: var(--day-hours-height, 0px); overflow: clip; }
 .teacher-day-gesture h2 { margin: 0 4px 6px; font-size: 17px; opacity: var(--day-month-title-opacity, 1); translate: 0 var(--day-month-title-y, 0px); }
