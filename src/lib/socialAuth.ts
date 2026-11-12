@@ -536,7 +536,13 @@ async function finishSocialLoginImpl() {
     const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
     if (profileError) throw profileError
     const accountRole = user.app_metadata?.role || profile?.role
-    if (accountRole === 'teacher' || accountRole === 'admin') {
+    let hasTeacherAccess = accountRole === 'teacher' || accountRole === 'admin'
+    if (!hasTeacherAccess && (attemptProvider === 'google' || attemptProvider === 'apple')) {
+      const { data: activated, error } = await supabase.rpc('activate_social_teacher_account')
+      if (error) throw error
+      hasTeacherAccess = activated === true
+    }
+    if (hasTeacherAccess) {
       localStorage.removeItem(OAUTH_ROLE_KEY)
       clearStudentSession()
       rememberLastLogin({ provider: attemptProvider, name: (user.user_metadata?.name as string) || user.email || 'Аккаунт', role: 'teacher' })
@@ -558,7 +564,7 @@ async function finishSocialLoginImpl() {
   localStorage.removeItem(OAUTH_ROLE_KEY)
   throw new Error(selectedRole === 'student'
     ? 'Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.'
-    : 'Аккаунт преподавателя создаётся по приглашению. Войдите адресом из приглашения или попросите администратора связать ваш аккаунт.')
+    : 'Войдите под другой учётной записью преподавателя. Для ученического аккаунта выберите роль ученика.')
 }
 
 /** Handles OAuth deep links on warm and cold native launches. */

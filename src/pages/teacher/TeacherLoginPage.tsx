@@ -220,7 +220,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
             // Высота слота — константа по режиму (не по длине текста): login с
             // двухстрочной подсказкой+вторичной = 70, короткие reset/newpassword = 56.
             reserveHeight={mode === 'login' ? 70 : 56}
-            idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Новый преподаватель? Войдите через Яндекс или VK — кабинет создастся сам'}
+            idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : 'Новый преподаватель? Войдите через соцсеть, и Искра создаст ваш кабинет.'}
             idleSecondary={mode === 'login' ? 'По приглашению — почтой и паролем' : undefined} />
           {mode === 'login' && (
             <button data-hover="layer" disabled={feedback.busy} type="button"
