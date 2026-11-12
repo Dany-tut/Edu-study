@@ -86,10 +86,10 @@ export default function FipiPicker({ open, courseSubject, onAdd }: {
         <label style={{ ...FIELD, display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', height: 36 }}>
           <Search size={14} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Номер задания или тема')}
-            style={{ border: 0, background: 'transparent', outline: 'none', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', width: '100%' }} />
+            style={{ border: 0, background: 'transparent', outline: 'none', color: 'var(--color-text)', fontSize: 13, fontFamily: 'inherit', flex: 1, minWidth: 0 }} />
         </label>
 
-        <div key={catalog.subject + exam} style={{ display: 'grid', gap: 5 }}>
+        <div key={catalog.subject + exam} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 5, overflowWrap: 'anywhere' }}>
           {lines.map(line => {
             const subtype = line.subtypes[0]
             const kinds = [...new Set(line.subtypes.map(item => t(taskTypeDef(item.type).label)))]
