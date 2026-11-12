@@ -198,3 +198,11 @@
 .student-track-remove:is(:hover, :focus-visible) {
   background: var(--color-red-soft);
 }
+
+.roster-compact-row {
+  height: 48px;
+}
+
+.roster-compact-row > td {
+  padding-block: 5px !important;
+}

@@ -1267,7 +1267,14 @@ function ScrollFadeTable({ children }: { children: React.ReactNode }) {
 }
 
 // Keep course lists compact without losing access to the full assignment text.
-function RosterDescription({ text }: { text: string }) {
+function maskRosterPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length < 9) return phone.trim() ? '***' : ''
+  const prefix = phone.trim().startsWith('+') ? '+' : ''
+  return `${prefix}${digits[0]} ${digits.slice(1, 4)} *** ${digits.slice(-3)}`
+}
+
+function RosterDescription({ text, compact = false }: { text: string; compact?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null)
   const [expanded, setExpanded] = useState(false)
   const [overflow, setOverflow] = useState(false)
@@ -1282,7 +1289,7 @@ function RosterDescription({ text }: { text: string }) {
     return () => observer.disconnect()
   }, [text, expanded])
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, marginTop: 4, minWidth: 0, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, marginTop: compact ? 1 : 4, minWidth: 0, fontSize: 11, fontWeight: 400, color: 'var(--color-muted)' }}>
       <span ref={ref} style={{
         flex: 1, minWidth: 0, lineHeight: '16px',
         whiteSpace: expanded ? 'normal' : 'nowrap', overflow: 'hidden', overflowWrap: 'anywhere',
@@ -2791,7 +2798,8 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                           <button data-hover="layer" type="button" key={f.id} aria-pressed={rosterFilter === f.id}
                             onClick={() => setRosterFilter(f.id)}>
                             <span>{f.label}</span>
-                            {count > 0 && <CountBadge count={count} className="roster-filter-count" tone={f.id === 'all' ? 'accent' : 'danger'} />}
+                            {count > 0 && <CountBadge count={count} className="roster-filter-count" tone={f.id === 'all' ? 'accent' : 'danger'}
+                              style={f.id === 'fading' || f.id === 'nohw' ? { background: 'var(--color-amber-soft)', color: 'var(--color-amber-text)' } : undefined} />}
                           </button>
                         )
                       })}
@@ -2905,20 +2913,24 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       </td></tr>}
                       {groupStudents.map((student, i) => {
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
+                        const phone = maskRosterPhone(student.phone ?? '')
+                        const details = [phone, student.schoolClass].filter(Boolean)
+                        const assignments = allRosterView ? studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel : ''
                         const isSelected = student.id === activeStudentId
                         const colBg = (key: SortKey) =>
                           sortKey === key ? { background: 'color-mix(in srgb, var(--color-accent) 5%, transparent)' } : {}
                         return (
                           <motion.tr
                             key={student.id}
+                            className={isDesktop ? 'roster-compact-row' : undefined}
                             initial={{ opacity: 0, x: -8 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.22, delay: i * 0.04 }}
                             onClick={() => !isDesktop && onOpenStudent ? onOpenStudent(student) : setActiveStudentId(isSelected ? null : student.id)}
                             style={{
                               cursor: 'pointer',
-                              background: isSelected ? `${activeGroup.color}12` : 'transparent',
-                              borderLeft: `3px solid ${isSelected ? activeGroup.color : 'transparent'}`,
+                              background: isSelected ? 'var(--color-purple-soft)' : 'transparent',
+                              borderLeft: `3px solid ${isSelected ? 'var(--color-accent)' : 'transparent'}`,
                               transition: 'background 0.15s',
                             }}
                             data-hover="row"
@@ -2928,7 +2940,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <div style={{
                                   width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
-                                  background: activeGroup.color,
+                                  background: isDesktop ? 'color-mix(in srgb, var(--color-accent) 53%, var(--color-bg))' : activeGroup.color,
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   fontSize: 11, fontWeight: 700, color: '#fff',
                                 }}>
@@ -2936,8 +2948,12 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                 </div>
                                 <div data-row-title style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
                                   <FadeText>{tn(student.name)}</FadeText>
-                                  {(student.schoolClass || student.phone) && <RosterDescription text={[student.schoolClass, student.phone].filter(Boolean).join(' · ')} />}
-                                  {allRosterView && <RosterDescription text={studentAssignmentLabels(student).join(' · ') || emptyAssignmentLabel} />}
+                                  {isDesktop ? (
+                                    (details.length > 0 || assignments) && <RosterDescription compact text={[...details, assignments].filter(Boolean).join(' · ')} />
+                                  ) : <>
+                                    {details.length > 0 && <RosterDescription text={details.join(' · ')} />}
+                                    {assignments && <RosterDescription text={assignments} />}
+                                  </>}
                                 </div>
                                 {isDesktop && <button data-hover="layer" type="button"
                                   aria-label={`${t('Редактировать')}: ${tn(student.name)}`}
@@ -2987,9 +3003,10 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                   background: 'var(--color-red-soft)',
                                   border: '1px solid var(--color-red)',
                                   borderRadius: 6,
-                                  padding: '2px 8px',
+                                  padding: '0 8px', minHeight: 22, lineHeight: 1,
+                                  display: 'inline-grid', placeItems: 'center', boxSizing: 'border-box',
                                 }}>
-                                  {student.debt.toLocaleString('ru-RU')}{'\u00a0₽'}
+                                  <span style={{ transform: 'translateY(-.5px)' }}>{student.debt.toLocaleString('ru-RU')}{'\u00a0₽'}</span>
                                 </span>
                               ) : (
                                 <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>—</span>
