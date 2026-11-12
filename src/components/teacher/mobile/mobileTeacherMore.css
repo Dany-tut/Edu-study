@@ -225,3 +225,14 @@
   height: 58px;
   border-radius: 19px;
 }
+
+.teacher-more-feature-toggle > label {
+  margin-inline-end: 2px;
+}
+
+.teacher-more-feature-error {
+  margin-top: 3px;
+  color: var(--color-red-text);
+  font-size: 12px;
+  font-weight: 500;
+}

@@ -1,3 +1,4 @@
+import Switch from '../../Switch'
 import MobileSheet from '../../MobileSheet'
 import type { AdminSheetSection } from '../../../pages/teacher/TeacherAdminPage'
 import { useOpenStudentCabinet } from '../../../lib/useOpenStudentCabinet'
@@ -119,7 +120,10 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const [email, setEmail] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [details, setDetails] = useState<'profile' | 'schedule' | 'login' | 'theme' | 'language' | null>(null)
-  const [feature, setFeature] = useState<FeatureKey | null>(null)
+  const [remindersOpen, setRemindersOpen] = useState(false)
+  const [savingFeature, setSavingFeature] = useState<FeatureKey | null>(null)
+  const [failedFeature, setFailedFeature] = useState<FeatureKey | null>(null)
+  const setFeatureOn = useTeacherFeatures(s => s.setOn)
   const featureMap = useTeacherFeatures(s => s.map)
   const featuresLoaded = useTeacherFeatures(s => s.loaded)
   const [adminSection, setAdminSection] = useState<AdminSheetSection | null>(null)
@@ -215,7 +219,18 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
     theme: t('Тема оформления'), language: t('Язык'),
   }
   const availableFeatures = featuresLoaded ? FEATURES.filter(item => item.ready && item.key in featureMap) : []
-  const selectedFeature = availableFeatures.find(item => item.key === feature)
+  const reminders = availableFeatures.find(item => item.key === 'reminders')
+  const toggleFeature = async (key: FeatureKey, enabled: boolean) => {
+    if (savingFeature) return
+    tactile()
+    setSavingFeature(key)
+    setFailedFeature(null)
+    try {
+      if (!(await setFeatureOn(key, enabled))) setFailedFeature(key)
+    } finally {
+      setSavingFeature(null)
+    }
+  }
   const adminTitle = adminShortcuts.find(({ id }) => id === adminSection)?.label
 
   return (
@@ -298,10 +313,22 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
 
         {availableFeatures.length > 0 && <section className="teacher-more-card teacher-more-settings teacher-more-features" aria-label={t('Функции')}>
           <h2>{t('Функции')}</h2>
-          {availableFeatures.map(item => <MoreRow key={item.key} label={t(item.label)}
-            icon={<FeatureIcon feature={item.key} />}
-            value={<span className="teacher-more-feature-state" data-enabled={featureMap[item.key] === true}>{t(featureMap[item.key] ? 'Вкл.' : 'Выкл.')}</span>}
-            onClick={() => setFeature(item.key)} />)}
+          {availableFeatures.map(item => item.key === 'reminders'
+            ? <MoreRow key={item.key} label={t(item.label)}
+                icon={<FeatureIcon feature={item.key} />}
+                value={<span className="teacher-more-feature-state" data-enabled={featureMap[item.key] === true}>{t(featureMap[item.key] ? 'Вкл.' : 'Выкл.')}</span>}
+                onClick={() => { if (!savingFeature) setRemindersOpen(true) }} />
+            : <div key={item.key} className="teacher-more-row teacher-more-feature-toggle">
+                <FeatureIcon feature={item.key} />
+                <div className="teacher-more-label">
+                  {t(item.label)}
+                  {failedFeature === item.key && <div role="alert" className="teacher-more-feature-error">
+                    {t('Не удалось сохранить. Попробуйте ещё раз.')}
+                  </div>}
+                </div>
+                <Switch label={t(item.label)} checked={featureMap[item.key] === true} disabled={savingFeature !== null}
+                  onChange={enabled => { void toggleFeature(item.key, enabled) }} />
+              </div>)}
         </section>}
 
         <section className="teacher-more-card teacher-more-settings" aria-label={t('О приложении')}>
@@ -545,10 +572,10 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           </button>)}
         </div>}
       </MobileSheet>
-      <MobileSheet open={Boolean(selectedFeature)} title={selectedFeature ? t(selectedFeature.label) : undefined} softEdge onClose={() => setFeature(null)}>
-        {selectedFeature && <div className="teacher-more-feature-sheet" key={selectedFeature.key}>
-          <FeatureIcon feature={selectedFeature.key} large />
-          <TeacherFeatureSettings feature={selectedFeature.key} />
+      <MobileSheet open={remindersOpen && Boolean(reminders)} title={reminders ? t(reminders.label) : undefined} softEdge onClose={() => setRemindersOpen(false)}>
+        {reminders && remindersOpen && <div className="teacher-more-feature-sheet">
+          <FeatureIcon feature="reminders" large />
+          <TeacherFeatureSettings feature="reminders" />
         </div>}
       </MobileSheet>
       <MobileSheet open={adminAccess && adminSection !== null} title={adminTitle} softEdge onClose={() => setAdminSection(null)}>
