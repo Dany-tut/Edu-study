@@ -32,6 +32,7 @@ import BackCircle from '../../../components/BackCircle'
 import { AvatarPhotoFill } from '../../AvatarPhoto'
 import { TaskliIcon } from '../../icons/TaskliIcon'
 import { SubjectMark } from '../../icons/SubjectMark'
+import './iphoneStudentSummary.css'
 
 const IPHONE_GLASS = GLASS && PLATFORM === 'iphone'
 const ACTION_ROW_RATIO = 0.8
@@ -146,6 +147,38 @@ function SummaryTile({ value, label, tone, pressed, onClick }: {
   return onClick
     ? <button type="button" aria-pressed={pressed} style={{ ...style, border: 0 }} onClick={onClick}>{content}</button>
     : <div style={style}>{content}</div>
+}
+
+function IPhoneStudentSummary({
+  students, debtors, pending, statusFilter, onToggleStatus,
+}: {
+  students: number
+  debtors: number
+  pending: number
+  statusFilter: StatusFilter | null
+  onToggleStatus: (status: StatusFilter) => void
+}) {
+  const t = useT()
+  return (
+    <section className="iphone-student-summary" aria-label={t('Сводка по ученикам')}>
+      <div className="iphone-student-summary-count">
+        <strong>{students}</strong>
+        <span>{t('ученика')}</span>
+      </div>
+      <img className="iphone-student-summary-art" src="/teacher-objects-v2-shadows/topic.png"
+        alt="" aria-hidden="true" width={112} height={106} decoding="async" draggable={false} />
+      <div className="iphone-student-summary-filters">
+        <button type="button" className="iphone-student-summary-filter iphone-student-summary-filter--debt"
+          aria-pressed={statusFilter === 'debt'} onClick={() => onToggleStatus('debt')}>
+          <strong>{debtors}</strong><span>{t('долги')}</span>
+        </button>
+        <button type="button" className="iphone-student-summary-filter iphone-student-summary-filter--review"
+          aria-pressed={statusFilter === 'review'} onClick={() => onToggleStatus('review')}>
+          <strong>{pending}</strong><span>{t('проверить')}</span>
+        </button>
+      </div>
+    </section>
+  )
 }
 
 function MetricRow({ icon, label, value, danger }: { icon: React.ReactNode; label: string; value: string; danger?: boolean }) {
@@ -493,6 +526,7 @@ export default function MobileTeacherStudents() {
         <GroupRoster group={openGroup} onBack={() => setOpenGroup(null)} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {nativeBar && <h1 className="iphone-students-title">{t('Ученики')}</h1>}
           <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')} footer={<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {invite ? <>
                 <button data-hover="layer" style={btn('M', 'primary', { background: copiedInvite ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}<span style={{ position: 'relative', top: '-0.04em' }}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</span></button>
@@ -548,11 +582,14 @@ export default function MobileTeacherStudents() {
           </>}
 
           {(nativeBar || filter === 'all') && allStudents.length > 0 && (
-            <div style={{ display: 'flex', gap: 8, margin: '4px 0 2px' }}>
+            nativeBar
+              ? <IPhoneStudentSummary students={totals.students} debtors={totals.debtors} pending={totals.pending}
+                  statusFilter={statusFilter} onToggleStatus={toggleStatus} />
+              : <div style={{ display: 'flex', gap: 8, margin: '4px 0 2px' }}>
               <SummaryTile value={totals.debtors} label={t('долги')} tone="danger" pressed={statusFilter === 'debt'} onClick={nativeBar ? () => toggleStatus('debt') : undefined} />
               <SummaryTile value={totals.pending} label={t('проверить')} tone="warning" pressed={statusFilter === 'review'} onClick={nativeBar ? () => toggleStatus('review') : undefined} />
               <SummaryTile value={totals.students} label={t('учеников')} tone="accent" />
-            </div>
+              </div>
           )}
 
           {showGroups && groupList.length > 0 && (
