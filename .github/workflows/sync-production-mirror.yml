@@ -1,0 +1,140 @@
+name: Зеркало production
+
+on:
+  deployment_status:
+  workflow_dispatch:
+  schedule:
+    - cron: '17,47 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    if: >-
+      github.repository == 'Dany-tut/Edu-study' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'deployment_status' &&
+        github.event.deployment.environment == 'Production' &&
+        github.event.deployment.creator.login == 'vercel[bot]' &&
+        github.event.deployment_status.creator.login == 'vercel[bot]' &&
+        github.event.deployment_status.state == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: iskra-production-mirror
+      cancel-in-progress: false
+    env:
+      PRODUCTION_ORIGIN: https://edu-study-app.vercel.app
+      MIRROR_ORIGIN: https://iskra-study.ru
+
+    steps:
+      - name: Определить опубликованный коммит main
+        id: release
+        env:
+          DEPLOYMENT_SHA: ${{ github.event.deployment.sha }}
+        run: |
+          set -euo pipefail
+          main_sha() {
+            git ls-remote https://github.com/Dany-tut/Edu-study.git refs/heads/main | cut -f1
+          }
+          manifest_sha() {
+            curl -fsS --max-time 10 "$1/$2.json" | jq -er '.commit | select(test("^[a-f0-9]{40}$"))'
+          }
+
+          candidate=$(main_sha)
+          [[ "$candidate" =~ ^[a-f0-9]{40}$ ]]
+          if [[ -n "$DEPLOYMENT_SHA" && "$DEPLOYMENT_SHA" != "$candidate" ]]; then
+            echo "Vercel event is for an older commit."
+            exit 0
+          fi
+
+          for attempt in {1..24}; do
+            if [[ "$(main_sha)" != "$candidate" ]]; then
+              echo "main advanced. The next production deployment will trigger the mirror."
+              exit 0
+            fi
+            if [[ "$(manifest_sha "$PRODUCTION_ORIGIN" release || true)" == "$candidate" &&
+                  "$(manifest_sha "$PRODUCTION_ORIGIN" version || true)" == "$candidate" ]]; then
+              if [[ "$(manifest_sha "$MIRROR_ORIGIN" release || true)" == "$candidate" &&
+                    "$(manifest_sha "$MIRROR_ORIGIN" version || true)" == "$candidate" ]]; then
+                echo "Both domains already serve $candidate."
+              else
+                echo "sha=$candidate" >> "$GITHUB_OUTPUT"
+              fi
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Vercel production did not publish $candidate"
+          exit 1
+
+      - uses: actions/checkout@v7
+        if: steps.release.outputs.sha != ''
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        if: steps.release.outputs.sha != ''
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Собрать зеркало
+        if: steps.release.outputs.sha != ''
+        env:
+          CANDIDATE_SHA: ${{ steps.release.outputs.sha }}
+          VITE_SUPABASE_URL: ${{ vars.ISKRA_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.ISKRA_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROXY_URL: https://api.iskra-study.ru
+        run: |
+          set -euo pipefail
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_PUBLISHABLE_KEY"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          npm ci
+          npm run build
+          for manifest in release version; do
+            jq -e --arg sha "$CANDIDATE_SHA" --slurpfile expected public/version.json \
+              '.commit == $sha and .build == $expected[0].build and .version == $expected[0].version' "dist/$manifest.json"
+          done
+
+      - name: Опубликовать зеркало и сверить оба домена
+        if: steps.release.outputs.sha != ''
+        env:
+          CANDIDATE_SHA: ${{ steps.release.outputs.sha }}
+          MIRROR_SSH_KEY: ${{ secrets.ISKRA_MIRROR_SSH_KEY }}
+          MIRROR_KNOWN_HOSTS: ${{ vars.ISKRA_MIRROR_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          verify() {
+            for manifest in release version; do
+              curl -fsS --max-time 10 "$1/$manifest.json" |
+                jq -e --arg sha "$CANDIDATE_SHA" --slurpfile expected public/version.json \
+                  '.commit == $sha and .build == $expected[0].build and .version == $expected[0].version'
+            done
+          }
+
+          if [[ "$(git ls-remote origin refs/heads/main | cut -f1)" != "$CANDIDATE_SHA" ]]; then
+            echo "main advanced. Skipping the older mirror build."
+            exit 0
+          fi
+          verify "$PRODUCTION_ORIGIN"
+
+          test -n "$MIRROR_SSH_KEY"
+          test -n "$MIRROR_KNOWN_HOSTS"
+          ssh_dir=$(mktemp -d)
+          trap 'rm -rf "$ssh_dir"' EXIT
+          chmod 700 "$ssh_dir"
+          printf '%s\n' "$MIRROR_SSH_KEY" > "$ssh_dir/key"
+          printf '%s\n' "$MIRROR_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+          chmod 600 "$ssh_dir/key"
+
+          rsync -rz --delay-updates --chmod=D755,F644 \
+            -e "ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o ServerAliveInterval=10" \
+            dist/ iskra-mirror@177.177.220.129:./
+          verify "$MIRROR_ORIGIN"
+          verify "$PRODUCTION_ORIGIN"
+          printf 'Both production domains serve %s.\n' "$CANDIDATE_SHA"
