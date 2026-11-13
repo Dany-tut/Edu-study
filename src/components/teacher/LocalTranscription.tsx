@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowRight, AudioLines, Check, ChevronRight, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
+import { ArrowRight, AudioLines, Check, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
@@ -12,7 +12,7 @@ import './localTranscription.css'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
 import type { LessonStatsSummary } from '../../lib/lessonMontage'
-import { LocalTranscriptionUnavailable, applyModuleVoices, localRequest, readTranscript, transcriptTime, type LocalDraft } from '../../lib/localTranscription'
+import { LocalTranscriptionUnavailable, applyModuleVoices, localRequest, readTranscript, requestTranscriptionCompanionStart, transcriptTime, waitForTranscriptionCompanion, type LocalDraft } from '../../lib/localTranscription'
 
 const tokenKey = (owner: string) => 'iskra.transcription.device.' + owner
 
@@ -35,9 +35,6 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
   const guide = useRef<HTMLDivElement>(null)
-  const guideVideo = useRef<HTMLVideoElement>(null)
-  const [guideRun, setGuideRun] = useState(0)
-  const [guidePlaying, setGuidePlaying] = useState(false)
   const setupId = useId()
   const [showSetup, setShowSetup] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -65,6 +62,8 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         localStorage.setItem(downloadKey, '1')
         localStorage.removeItem(tokenKey(owner))
       } else {
+        requestTranscriptionCompanionStart()
+        await waitForTranscriptionCompanion()
         const { token } = await localRequest('/connect', '', { method: 'POST' })
         if (typeof token !== 'string' || !token) throw new Error('Не удалось подключить компьютер. Попробуйте ещё раз.')
         localStorage.setItem(tokenKey(owner), token)
@@ -88,17 +87,17 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
     </header>
     <div className="transcription-module-body">
       {connected ? <>
-        <p>Запустите start.command на этом Mac и оставьте Терминал открытым. Расшифровка — в Конструкторе: урок → вкладка «Запись».</p>
+        <p>Фоновый модуль запускается по запросу из Искры. Терминал открывать не нужно; код модуля обновляется автоматически.</p>
         {manualUpdate && <div className="transcription-update" role="status">
           <p>{module.phase === 'failed'
-            ? 'Модуль не смог обновиться сам. Скачайте архив, замените им папку Iskra и перезапустите start.command.'
-            : 'Эта версия модуля не умеет обновляться сама. Скачайте архив один раз, замените им папку Iskra и перезапустите start.command — дальше обновления придут автоматически.'}</p>
+            ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
+            : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
           <a className="integration-action" data-primary="true" href={MODULE_DOWNLOAD_URL} download>Скачать</a>
         </div>}
         <div className="transcription-connected-actions">
           <button type="button" className="integration-action" aria-expanded={showSetup}
-            aria-controls={setupId} onClick={() => { setShowSetup(value => !value); setGuideRun(value => value + 1); setGuidePlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) }}>
-            {showSetup ? 'Скрыть инструкцию' : 'Как запустить модуль'}
+            aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
+            {showSetup ? 'Скрыть инструкцию' : 'Управление модулем'}
           </button>
           {module.local && <span className="transcription-module-version" title={'Версия модуля ' + module.local}>
             Версия {module.local.slice(0, 7)}{module.selfUpdate && !manualUpdate ? ' · обновляется сама' : ''}
@@ -109,10 +108,10 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           </button>
         </div>
       </> : <>
-        <p>Скачайте ZIP-архив на тот Mac, на котором будете расшифровывать уроки.</p>
+        <p>Установите приложение на Mac один раз. При расшифровке оно само запустит обработчик в фоне.</p>
         <div className="integration-steps transcription-steps">
           <a className="integration-action transcription-step" data-primary={!downloadStarted}
-            data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL} download
+            data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL}
             aria-disabled={downloading || busy} onClick={event => {
               if (downloading || busy) { event.preventDefault(); return }
               setMessage('')
@@ -121,57 +120,24 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               setDownloading(true)
             }}>
             <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
-            <span>{downloading ? 'Скачивание…' : downloadStarted ? 'Скачать ещё раз' : 'Скачать для Mac'}</span>
+            <span>{downloading ? 'Скачивание…' : downloadStarted ? 'Скачать приложение ещё раз' : 'Скачать приложение для Mac'}</span>
           </a>
-          <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
-          <button type="button" className="integration-action transcription-step-label" disabled={!downloadStarted || downloading}
-            data-active={downloadStarted && !downloading} onClick={() => {
-              setGuideRun(value => value + 1)
-              setGuidePlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-              requestAnimationFrame(() => guide.current?.scrollIntoView({ block: 'nearest' }))
-            }}>
-            <span className="integration-step-number">2</span> Запуск на Mac
-          </button>
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
           <button className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
             data-primary={downloadStarted && !downloading}
             disabled={!downloadStarted || downloading || busy || !owner} onClick={change}>
-            <span className="integration-step-number">3</span>
-            <span>{busy ? 'Подключаем…' : 'Подключить компьютер'}</span>
+            <span className="integration-step-number">2</span>
+            <span>{busy ? 'Запускаем модуль…' : 'Подключить компьютер'}</span>
           </button>
         </div>
       </>}
       <div id={setupId} aria-live="polite" className="transcription-setup">
-        {downloadStarted && !downloading && (!connected || showSetup) && <>
-          {guideRun > 0 && <div ref={guide} className="transcription-launch-guide">
-            {/* Видео, а не GIF: в GIF 64 цвета, и интерфейс шёл полосами. */}
-            <video ref={guideVideo} key={guideRun} src="/guides/mac-launch-recorded.mp4" poster="/guides/mac-launch-recorded.jpg"
-              width="1280" height="788" muted playsInline loop autoPlay={guidePlaying} preload="metadata"
-              onPlay={() => setGuidePlaying(true)} onPause={() => setGuidePlaying(false)}
-              aria-label="Полный путь: запуск модуля на Mac, подключение, расшифровка и проверка результата" />
-            <div className="transcription-guide-actions">
-              <button type="button" className="integration-action" onClick={() => { const video = guideVideo.current; if (video) void (video.paused ? video.play() : video.pause()) }}>{guidePlaying ? 'Остановить' : 'Запустить'}</button>
-              <button type="button" className="integration-action" onClick={() => { const video = guideVideo.current; if (video) { video.currentTime = 0; void video.play() } }}>Показать сначала</button>
-            </div>
-          </div>}
-          <h4>Что делать с ZIP-архивом</h4>
-          <ol>
-            <li>Когда загрузка закончится, откройте папку «Загрузки» в Finder. Дважды нажмите на <code>iskra-transcription-mac.zip</code>. Если уже появилась папка <code>Iskra</code>, откройте её.</li>
-            <li>В папке <code>Iskra</code> дважды нажмите на <code>start.command</code>. При первом запуске в Терминале начнётся загрузка моделей.
-              <details className="transcription-blocked">
-                <summary><ChevronRight size={16} aria-hidden />Mac пишет «Файл не был открыт»?</summary>
-                <p>Если Apple не удалось проверить файл, нажмите «Готово». Продолжайте, только если вы сами скачали этот архив из Искры и доверяете ему.</p>
-                <a className="integration-action" href="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Security">Открыть настройки Mac</a>
-                <video controls playsInline preload="none" poster="/guides/mac-launch.jpg" aria-label="Как разрешить запуск START.command (файл start.command) на Mac" src="/guides/mac-launch.mp4" />
-                <p>Если настройки не открылись, в меню Apple выберите «Системные настройки», затем «Конфиденциальность и безопасность».</p>
-                <p>В разделе <strong>«Безопасность»</strong> (внизу страницы) проверьте имя файла. Найдите сообщение о блокировке <code>START.command</code> (файл <code>start.command</code>) и нажмите рядом с ним <strong>«Все равно открыть»</strong>. В следующем окне ещё раз выберите «Все равно открыть» или «Открыть». Если Mac попросит, введите пароль или используйте Touch ID.</p>
-                <p>Когда откроется Терминал, переходите к следующему пункту.</p>
-              </details>
-            </li>
-            <li>Дождитесь строки <code>Running on http://127.0.0.1:18764</code>. Окно Терминала нужно оставить открытым, пока пользуетесь расшифровкой. После работы его можно закрыть: это остановит модуль. {connected ? 'Откройте вкладку «Запись» в конструкторе курса.' : 'Нажмите «Подключить компьютер». Когда появится «Подключён», подключение завершено.'}</li>
-            <li>Откройте «Конструктор», выберите курс и урок, затем вкладку «Запись». Добавьте файл или ссылку и нажмите «Начать расшифровку». Терминал нужен только во время использования расшифровки. Ctrl+C останавливает модуль; для следующего раза снова запустите START.command.</li>
-          </ol>
-        </>}
+        {downloadStarted && !downloading && (!connected || showSetup) && <div className="transcription-launch-guide" ref={guide}>
+          <h4>{connected ? 'Работа в фоне' : 'Первый запуск'}</h4>
+          {connected
+            ? <p>Откройте «Искра — расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
+            : <p>Откройте скачанный ZIP и один раз запустите приложение «Искра — расшифровка». Оно перенесёт себя в папку Программы пользователя и зарегистрирует фоновую службу. Если Mac попросит разрешение, включите её в «Системные настройки → Основные → Объекты входа и расширения».</p>}
+        </div>}
       </div>
       {message && <p className="transcription-module-error" role="alert">{message}</p>}
     </div>
@@ -449,6 +415,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     for (const track of tracks) form.append('tracks', track)
     setBusy(true)
     try {
+      requestTranscriptionCompanionStart()
+      await waitForTranscriptionCompanion()
       // Словарь предмета: термины — подсказка Whisper, пары — исправления.
       // Нет словаря — модуль распознаёт как раньше.
       const pack = await fetchTermsPack(subject ?? '')

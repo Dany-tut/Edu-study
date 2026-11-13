@@ -27,6 +27,31 @@ class ResumeTests(unittest.TestCase):
         folder=self.s.JOBS/job['id'];folder.mkdir();(folder/'input').write_bytes(b'fixture')
         job_store.save(folder,job);self.s.jobs[job['id']]=job
         return job,folder
+    def test_large_models_are_prepared_only_on_first_transcription(self):
+        start=(Path(__file__).parent/'start.command').read_text()
+        self.assertNotIn('hf download',start)
+        with tempfile.TemporaryDirectory() as tmp:
+            home=Path(tmp); hf=home/'Library/Application Support/Iskra/transcription-runtime/bin/hf'
+            hf.parent.mkdir(parents=True); hf.touch(); stages=[]
+            def download_model(args, **kwargs):
+                model=args[2]
+                kind='whisper' if 'whisper' in model else 'topics'
+                name='models--'+model.replace('/','--')
+                leaf='weights.safetensors' if kind=='whisper' else 'model.safetensors'
+                weights=home/'.cache/huggingface/hub'/name/'snapshots/rev'/leaf
+                weights.parent.mkdir(parents=True,exist_ok=True); weights.touch()
+                return subprocess.CompletedProcess(args,0,'','')
+            with patch.object(self.s,'RUNTIME',hf.parents[1]), patch.object(Path,'home',return_value=home), \
+                 patch.object(self.s.subprocess,'run',side_effect=download_model) as download:
+                self.s.ensure_models(lambda value: stages.append(value))
+                self.assertEqual(download.call_count,2)
+                self.assertEqual(stages,['Загружаем модель Whisper','Загружаем модель глав'])
+                whisper=home/'.cache/huggingface/hub/models--mlx-community--whisper-large-v3-turbo/snapshots/rev/weights.safetensors'
+                topics=home/'.cache/huggingface/hub/models--mlx-community--Qwen2.5-3B-Instruct-4bit/snapshots/rev/model.safetensors'
+                whisper.touch(); topics.touch()
+                download.reset_mock(); stages.clear()
+                self.s.ensure_models(lambda value: stages.append(value))
+            download.assert_not_called(); self.assertEqual(stages,[])
     def run_step(self, cmd, **kwargs):
         folder=self.folder
         if 'ffmpeg'==cmd[0]: (folder/'audio-00000.wav').write_bytes(b'audio')
@@ -40,7 +65,7 @@ class ResumeTests(unittest.TestCase):
         (self.folder/'segments.json').write_text('[{"start":0,"end":2,"text":"Результат A"}]')
         restored=job_store.load(self.s.JOBS)[job['id']]
         self.s.gate.acquire()
-        with patch.object(self.s.subprocess,'run',side_effect=self.run_step) as run:
+        with patch.object(self.s,'ensure_models'), patch.object(self.s.subprocess,'run',side_effect=self.run_step) as run:
             self.s.process(restored,self.folder,'')
         # Задача старого модуля, прерванная после распознавания, добирает новые шаги: голоса и паузы.
         self.assertEqual([Path(c.args[0][1]).name for c in run.call_args_list],['diarize.py','silence.py','slides.py','topics.py'])

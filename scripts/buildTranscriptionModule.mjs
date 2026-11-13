@@ -31,7 +31,10 @@ const ROOT = new URL('..', import.meta.url).pathname
 const MODULE = join(ROOT, 'tools/local-transcription')
 const ZIP = join(ROOT, 'public/downloads/iskra-transcription-mac.zip')
 const VERSION_TS = join(ROOT, 'src/lib/transcriptionModuleVersion.ts')
+const INSTALLER_VERSION_TS = join(ROOT, 'src/lib/transcriptionInstallerVersion.ts')
 const CACHE = join(ROOT, 'node_modules/.cache/iskra-transcription')
+const MAC_INSTALLER = join(ROOT, 'tools/transcription-macos')
+const INSTALLER_SCRIPT = join(ROOT, 'scripts/buildTranscriptionMacInstaller.sh')
 
 // Закреплённая сборка ffmpeg для macOS arm64 (архив ffmpeg.zip содержит один
 // исполняемый файл `ffmpeg`); sha256 — распакованного бинарника.
@@ -103,6 +106,18 @@ const ts = `// Создаётся scripts/buildTranscriptionModule.mjs — не 
 export const TRANSCRIPTION_MODULE_VERSION = '${version}'
 `
 
+const installerFiles = [...readdirSync(MAC_INSTALLER).filter(name => /\.(swift|plist)$/.test(name)).sort(), 'scripts/buildTranscriptionMacInstaller.sh']
+const installerHash = createHash('sha256').update(version + '\0')
+for (const name of installerFiles) {
+  const path = name === 'scripts/buildTranscriptionMacInstaller.sh' ? INSTALLER_SCRIPT : join(MAC_INSTALLER, name)
+  installerHash.update(name + '\0').update(readFileSync(path)).update('\0')
+}
+const installerVersion = installerHash.digest('hex').slice(0, 12)
+const installerTs = `// Создаётся scripts/buildTranscriptionModule.mjs — не править руками.
+// Версия установщика: версия модуля плюс исходники macOS-приложения.
+export const TRANSCRIPTION_INSTALLER_VERSION = '${installerVersion}'
+`
+
 if (process.argv.includes('--check')) {
   // Офлайн: архив собирается при сборке сайта и в git не хранится, поэтому
   // сверяем только версию (отпечаток кода) — она закоммичена и сверяется с сайтом.
@@ -110,8 +125,14 @@ if (process.argv.includes('--check')) {
     console.error('Модуль расшифровки изменён, а версия не пересобрана: src/lib/transcriptionModuleVersion.ts.\nЗапустите: node scripts/buildTranscriptionModule.mjs')
     process.exit(1)
   }
-  console.log(`Transcription module: version ${version} up to date (${code.length} code files)`)
+  if (!existsSync(INSTALLER_VERSION_TS) || readFileSync(INSTALLER_VERSION_TS, 'utf8') !== installerTs) {
+    console.error('Установщик расшифровки изменён, а версия не пересобрана: src/lib/transcriptionInstallerVersion.ts.\nЗапустите: node scripts/buildTranscriptionModule.mjs')
+    process.exit(1)
+  }
+  console.log(`Transcription module ${version}; installer ${installerVersion}`)
 } else {
+  writeFileSync(INSTALLER_VERSION_TS, installerTs)
+  writeFileSync(VERSION_TS, ts)
   const ffmpeg = await ensureFfmpeg()
   const entries = [...code, 'README.md'].map(name => ({ name, data: readFileSync(join(MODULE, name)), mode: name === 'start.command' ? 0o100755 : 0o100644 }))
   entries.push({ name: FFMPEG.name, data: ffmpeg, mode: 0o100755 })
@@ -148,6 +169,5 @@ if (process.argv.includes('--check')) {
 
   mkdirSync(dirname(ZIP), { recursive: true })
   writeFileSync(ZIP, zip)
-  writeFileSync(VERSION_TS, ts)
   console.log(`Transcription module ${version}: ${entries.length} files, ${(zip.length / 1048576).toFixed(1)} MB → public/downloads/iskra-transcription-mac.zip`)
 }
