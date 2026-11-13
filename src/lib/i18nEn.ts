@@ -6605,6 +6605,7 @@ export const EN: Record<string, string> = {
   "Переместить ниже": "Move down",
   "Размер карточек": "Card size",
   "Выбрать вид календаря": "Choose calendar view",
+  "Вид календаря": "Calendar view",
   "занятий в выбранный день": "lessons on selected day",
   "ученики требуют внимания": "students need attention",
   "записей ждут заполнения": "entries need completion",
