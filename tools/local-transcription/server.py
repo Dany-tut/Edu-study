@@ -25,7 +25,13 @@ app.config['MAX_CONTENT_LENGTH'] = LIMIT + 1024 * 1024
 ROOT = Path(__file__).resolve().parent
 HOME = Path(os.environ.get('ISKRA_TRANSCRIPTION_HOME', str(Path.home() / 'Library/Application Support/Iskra/transcription')))
 HOME.mkdir(mode=0o700, parents=True, exist_ok=True)
-ORIGIN = os.environ.get('ISKRA_APP_ORIGIN', 'https://edu-study-app.vercel.app')
+PRODUCTION_ORIGINS = frozenset({
+    'https://iskra-study.ru',
+    'https://edu-study-app.vercel.app',
+})
+DEV_ORIGIN = os.environ.get('ISKRA_APP_ORIGIN')
+UPDATE_URL = 'https://iskra-study.ru'
+ALLOWED_ORIGINS = PRODUCTION_ORIGINS | ({DEV_ORIGIN} if DEV_ORIGIN else set())
 gate = threading.Lock()
 JOBS = HOME / 'jobs'
 JOBS.mkdir(mode=0o700, exist_ok=True)
@@ -60,7 +66,7 @@ def training_audio(jid): return TRAINING / 'audio' / f'{jid}.ogg'
 
 @app.before_request
 def verify():
-    if request.host != '127.0.0.1:18764' or request.headers.get('Origin') != ORIGIN:
+    if request.host != '127.0.0.1:18764' or request.headers.get('Origin') not in ALLOWED_ORIGINS:
         abort(403)
     if request.method == 'OPTIONS':
         return '', 204
@@ -69,8 +75,9 @@ def verify():
 
 @app.after_request
 def cors(response):
-    if request.headers.get('Origin') == ORIGIN:
-        response.headers.update({'Access-Control-Allow-Origin': ORIGIN,
+    origin = request.headers.get('Origin')
+    if origin in ALLOWED_ORIGINS:
+        response.headers.update({'Access-Control-Allow-Origin': origin,
             'Access-Control-Allow-Methods':'GET, POST, DELETE, OPTIONS',
             'Access-Control-Allow-Headers':'Content-Type, X-Iskra-Module, Authorization',
             'Access-Control-Allow-Private-Network':'true','Cache-Control':'no-store'})
@@ -130,7 +137,7 @@ def update():
     expected=str((request.get_json(silent=True) or {}).get('version',''))[:12]
     if not gate.acquire(False): return jsonify(error='Модуль занят расшифровкой. Обновится, когда она закончится.'),409
     try:
-        got=subprocess.run(['curl','-fsSL','--max-time','120',ORIGIN+'/downloads/iskra-transcription-mac.zip'],capture_output=True)
+        got=subprocess.run(['curl','-fsSL','--max-time','120',UPDATE_URL+'/downloads/iskra-transcription-mac.zip'],capture_output=True)
         if got.returncode: raise ValueError('Не удалось скачать обновление. Проверьте интернет.')
         version=install(got.stdout, expected)
     except (ValueError, zipfile.BadZipFile) as error:

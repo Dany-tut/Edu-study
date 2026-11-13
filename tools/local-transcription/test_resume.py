@@ -18,7 +18,7 @@ class ResumeTests(unittest.TestCase):
         self.s = importlib.reload(server)
         self.token = 'a'*64
         (self.s.HOME/self.token).touch()
-        self.headers = {'Origin': self.s.ORIGIN, 'X-Iskra-Module': 'transcription-v1', 'Authorization': 'Bearer '+self.token}
+        self.headers = {'Origin': 'https://iskra-study.ru', 'X-Iskra-Module': 'transcription-v1', 'Authorization': 'Bearer '+self.token}
         self.client = self.s.app.test_client()
     def tearDown(self):
         self.env.stop(); self.tmp.cleanup()
@@ -63,6 +63,28 @@ class ResumeTests(unittest.TestCase):
     def test_invalid_upload_releases_gate(self):
         result=self.client.post('/jobs',base_url='http://127.0.0.1:18764',headers=self.headers,data={})
         self.assertEqual(result.status_code,400);self.assertFalse(self.s.gate.locked())
+
+    def test_production_origins_connect_and_preflight(self):
+        for origin in ('https://iskra-study.ru', 'https://edu-study-app.vercel.app'):
+            with self.subTest(origin=origin):
+                headers = {'Origin': origin, 'X-Iskra-Module': 'transcription-v1'}
+                connect = self.client.get('/connect/', base_url='http://127.0.0.1:18764', headers=headers)
+                self.assertNotEqual(connect.status_code, 403)
+                self.assertEqual(connect.headers.get('Access-Control-Allow-Origin'), origin)
+                preflight = self.client.options('/connect/', base_url='http://127.0.0.1:18764', headers={
+                    'Origin': origin, 'Access-Control-Request-Method': 'POST',
+                    'Access-Control-Request-Headers': 'authorization,x-iskra-module',
+                })
+                self.assertEqual(preflight.status_code, 204)
+                self.assertEqual(preflight.headers.get('Access-Control-Allow-Origin'), origin)
+
+    def test_untrusted_origin_rejected(self):
+        headers = {'Origin': 'https://evil.example', 'X-Iskra-Module': 'transcription-v1'}
+        for method in (self.client.get, self.client.options):
+            with self.subTest(method=method.__name__):
+                response = method('/connect/', base_url='http://127.0.0.1:18764', headers=headers)
+                self.assertEqual(response.status_code, 403)
+                self.assertIsNone(response.headers.get('Access-Control-Allow-Origin'))
     def test_finished_job_not_restarted(self):
         job,self.folder=self.job();job['state']={'done':True};job_store.save(self.folder,job)
         self.s.jobs=job_store.load(self.s.JOBS)

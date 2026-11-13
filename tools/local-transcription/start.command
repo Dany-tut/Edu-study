@@ -49,4 +49,6 @@ if command -v swiftc >/dev/null 2>&1 && swiftc frame_text.swift -o "$runtime/fra
 else
   echo 'Слайды: компилятор Swift недоступен — заголовки слайдов не распознаются.'
 fi
+echo 'Модуль Искры запущен. Оставьте это окно открытым только пока пользуетесь расшифровкой.'
+echo 'Ctrl+C остановит модуль. Перед следующим использованием снова запустите START.command (файл start.command).'
 exec "$runtime/bin/python" server.py
