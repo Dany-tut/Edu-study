@@ -219,6 +219,12 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
             controller.modalPresentationStyle = .pageSheet
             controller.view.backgroundColor = .clear
             if let sheet = controller.sheetPresentationController {
+                // iOS 26.1 exposes the sheet detent's background effect. On
+                // phone 26.0 use a glass effect inside this content sheet;
+                // preserve the existing iPad path and all other sheets.
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    installPhoneSheetGlassIfAvailable(on: controller)
+                }
                 sheet.configureIskraGlass()
                 sheet.delegate = self
             }
@@ -588,7 +594,14 @@ public class NativeGlassPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate, U
                 return action
             }
             button.menu = UIMenu(title: (it["menuTitle"] as? String) ?? "", options: .singleSelection, children: actions)
-            button.showsMenuAsPrimaryAction = true
+            let menuOnTap = it["menuOnTap"] as? Bool ?? true
+            button.showsMenuAsPrimaryAction = menuOnTap
+            if !menuOnTap {
+                button.addAction(UIAction { [weak self] _ in
+                    UISelectionFeedbackGenerator().selectionChanged()
+                    self?.notifyListeners("barTap", data: ["id": id])
+                }, for: .touchUpInside)
+            }
             // Порядок пунктов — как задан, сверху вниз, даже когда меню
             // раскрывается вверх от нижнего ряда.
             if #available(iOS 16.0, *) { button.preferredMenuElementOrder = .fixed }
@@ -1470,5 +1483,27 @@ extension UISheetPresentationController {
         detents = largeOnly ? [large] : [medium, large]
         prefersGrabberVisible = true
         prefersScrollingExpandsWhenScrolledToEdge = false
+    }
+}
+
+private func installPhoneSheetGlassIfAvailable(on controller: UIViewController) {
+    // `UISheetPresentationController.Detent.backgroundEffect` starts in 26.1.
+    // For phone sheets on 26.0, place the same native effect behind the SwiftUI
+    // sheet content. On 26.1+ the detent effect above remains the sole surface.
+    if #available(iOS 26.1, *) { return }
+    if #available(iOS 26.0, *) {
+        let glass = UIVisualEffectView(effect: UIGlassEffect(style: .regular))
+        glass.translatesAutoresizingMaskIntoConstraints = false
+        glass.isUserInteractionEnabled = false
+        controller.view.insertSubview(glass, at: 0)
+        NSLayoutConstraint.activate([
+            glass.topAnchor.constraint(equalTo: controller.view.topAnchor),
+            glass.bottomAnchor.constraint(equalTo: controller.view.bottomAnchor),
+            glass.leadingAnchor.constraint(equalTo: controller.view.leadingAnchor),
+            glass.trailingAnchor.constraint(equalTo: controller.view.trailingAnchor),
+        ])
+        controller.view.layer.cornerRadius = 28
+        controller.view.layer.cornerCurve = .continuous
+        controller.view.clipsToBounds = true
     }
 }

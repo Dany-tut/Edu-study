@@ -37,6 +37,7 @@ export type GlassBarItem = {
   position?: 'leading' | 'center' | 'trailing'
   menuTitle?: string
   menuChevron?: 'up' | 'down'
+  menuOnTap?: boolean
   menu?: { value: string; title: string; checked?: boolean }[]
 }
 /** Бар экрана: таблетка по центру сверху и ряд над вкладками. */
