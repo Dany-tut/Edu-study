@@ -1,16 +1,14 @@
 #!/bin/zsh
 set -eu
 cd "${0:A:h}"
-# macOS помечает скачанные файлы карантином и отказывается их открывать
-# («Файл не был открыт?»). Снимаем метку со всей распакованной папки — тогда
-# и start.command, и вложенный ffmpeg запускаются без вопросов.
-xattr -dr com.apple.quarantine "$PWD" 2>/dev/null || true
 chmod +x "$PWD/ffmpeg" 2>/dev/null || true
 # Вложенный ffmpeg (статический, Apple Silicon) — первым в PATH, чтобы его
 # нашли и наши скрипты, и распознавание речи (mlx-whisper зовёт ffmpeg из PATH).
 # Homebrew — запасной путь для машин, где ffmpeg уже стоит.
 export PATH="$PWD:/opt/homebrew/bin:$PATH"
-if [[ -x "$PWD/ffmpeg" ]]; then
+if [[ -x "${ISKRA_FFMPEG:-}" ]]; then
+  export PATH="${ISKRA_FFMPEG:h}:$PATH"
+elif [[ -x "$PWD/ffmpeg" ]]; then
   export ISKRA_FFMPEG="$PWD/ffmpeg"
 elif ! command -v ffmpeg >/dev/null; then
   echo 'FFmpeg не найден. Скачайте модуль заново из профиля Искры.'
@@ -35,12 +33,6 @@ fi
 if [[ ! -f "$voices/wespeaker_resnet34.onnx" ]]; then
   curl -fsSL -o "$voices/wespeaker_resnet34.onnx" https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/wespeaker_en_voxceleb_resnet34.onnx || echo 'Голоса: модель не скачалась'
 fi
-for model in mlx-community/whisper-large-v3-turbo mlx-community/Qwen2.5-3B-Instruct-4bit; do
- cache="$HOME/.cache/huggingface/hub/models--${model//\//--}/snapshots"
- weights=("$cache"/*/*.safetensors(N))
- if (( ${#weights} )); then continue; fi
- "$runtime/bin/hf" download "$model" --include '*.json' '*.safetensors' '*.txt' '*.jinja' >/dev/null
-done
 # Слайды: заголовки читает маленькая программа на Swift, её собирает swiftc из
 # Xcode Command Line Tools. Нет компилятора — модуль работает как обычно, только
 # заголовки слайдов не распознаются; расшифровка, паузы и голоса не зависят от него.
@@ -49,6 +41,6 @@ if command -v swiftc >/dev/null 2>&1 && swiftc frame_text.swift -o "$runtime/fra
 else
   echo 'Слайды: компилятор Swift недоступен — заголовки слайдов не распознаются.'
 fi
-echo 'Модуль Искры запущен. Оставьте это окно открытым только пока пользуетесь расшифровкой.'
-echo 'Ctrl+C остановит модуль. Перед следующим использованием снова запустите START.command (файл start.command).'
+# Скрипт запускается фоновым агентом Искры. Большие модели загружаются при
+# первой расшифровке, а не при установке или подключении компьютера.
 exec "$runtime/bin/python" server.py

@@ -13,6 +13,7 @@ import fcntl
 import hashlib
 import io
 import re
+import signal
 import zipfile
 
 from flask import Flask, abort, jsonify, request
@@ -41,6 +42,8 @@ JOBS.mkdir(mode=0o700, exist_ok=True)
 VOICE_MODELS = HOME / 'voice-models'
 def voice_memory(token): return HOME / f"voices-{hashlib.sha256(token.encode()).hexdigest()[:16]}.json"
 jobs = job_store.load(JOBS)
+last_activity = time.monotonic()
+IDLE_STOP_SECONDS = 30 * 60
 
 def is_code(name):
     return (name.endswith(('.py','.swift')) or name=='start.command') and not name.startswith('test_')
@@ -56,6 +59,26 @@ def module_version(root=ROOT):
     """Страница Искры сравнивает отпечаток с версией архива на сайте и обновляет модуль."""
     return fingerprint({p.name: p.read_bytes() for p in root.iterdir() if p.is_file() and is_code(p.name)})
 VERSION = module_version()
+# Large speech/topic models are prepared by the first real transcription only.
+RUNTIME = Path.home() / 'Library/Application Support/Iskra/transcription-runtime'
+MODEL_SPECS = (
+    ('mlx-community/whisper-large-v3-turbo', 'whisper'),
+    ('mlx-community/Qwen2.5-3B-Instruct-4bit', 'topics'),
+)
+
+def ensure_models(stage):
+    """Download heavy weights on demand, never when the local service starts."""
+    hf=RUNTIME/'bin'/'hf'
+    if not hf.is_file():raise ValueError('Не найден менеджер моделей. Перезапустите установку модуля Искры.')
+    for model,kind in MODEL_SPECS:
+        root=Path.home()/'.cache/huggingface/hub'/('models--'+model.replace('/','--'))/'snapshots'
+        if any(root.glob('*/weights.safetensors' if kind=='whisper' else '*/model*.safetensors')):continue
+        label='Whisper' if kind=='whisper' else 'глав'
+        stage('Загружаем модель '+label)
+        args=[str(hf),'download',model,'--include','*.json','*.safetensors','*.txt','*.jinja']
+        result=subprocess.run(args,capture_output=True,text=True,timeout=7200)
+        if result.returncode:
+            raise ValueError('Не удалось загрузить модель '+label+'. Проверьте интернет и свободное место, затем начните заново.')
 # Уровень Б — материал для дообучения распознавания. Только по включённому
 # учителем переключателю и только здесь, на Mac: звук записи (сжатый) и
 # отрывки реплик, которые учитель исправил, с правильным текстом. В Искру и
@@ -72,6 +95,8 @@ def verify():
         return '', 204
     if request.headers.get('X-Iskra-Module') != 'transcription-v1':
         abort(403)
+    global last_activity
+    last_activity=time.monotonic()
 
 @app.after_request
 def cors(response):
@@ -97,8 +122,8 @@ def version():
     return jsonify(version=VERSION, update=True)
 
 UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
-# Исполняемые файлы архива: им нужен бит +x и больший лимит размера (вложенный
-# ffmpeg ~66 МБ). В отпечаток версии они не входят — см. is_code/fingerprint.
+# Исполняемые файлы архива не переносятся при самообновлении: подписанный ffmpeg
+# установленного приложения остаётся в bundle. В отпечаток они не входят.
 BINARIES = {'ffmpeg', 'ffprobe'}
 
 def install(data, expected):
@@ -115,6 +140,7 @@ def install(data, expected):
     version=fingerprint(files)
     if expected and version!=expected: raise ValueError('На сайте уже другая версия. Обновите страницу.')
     for name,body in files.items():
+        if name in BINARIES: continue
         tmp=ROOT/('.'+name+'.new')
         tmp.write_bytes(body)
         tmp.chmod(0o755 if name=='start.command' or name in BINARIES else 0o644)
@@ -192,6 +218,7 @@ def process(job,folder,link):
             training_audio(job['id']).parent.mkdir(mode=0o700, parents=True, exist_ok=True)
             subprocess.run([FFMPEG,'-nostdin','-v','error','-y','-protocol_whitelist','file,pipe','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-c:a','libopus','-b:a','16k',str(training_audio(job['id']))],
                            capture_output=True,pass_fds=(worker_lock.fileno(),))
+        ensure_models(stage)
         env=dict(os.environ,HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false')
         if job.get('tracks') and 'recognize.py' not in job['completed']:
             stage('Распознаём речь')
@@ -371,6 +398,14 @@ def resume_jobs():
         gate.acquire()
         process(job, JOBS/job['id'], job['link'])
 
+def idle_shutdown():
+    """Stop the on-demand LaunchAgent after 30 idle minutes and no active job."""
+    while True:
+        time.sleep(30)
+        if not gate.locked() and time.monotonic()-last_activity>=IDLE_STOP_SECONDS:
+            os.kill(os.getpid(),signal.SIGTERM)
+            return
+
 if __name__=='__main__':
     os.umask(0o077)
     module_lock = open(HOME / '.module.lock', 'a')
@@ -380,4 +415,5 @@ if __name__=='__main__':
         sys.exit(0)
     prune_training()
     threading.Thread(target=resume_jobs, daemon=True).start()
+    threading.Thread(target=idle_shutdown, daemon=True).start()
     app.run(host='127.0.0.1',port=18764,threaded=True)

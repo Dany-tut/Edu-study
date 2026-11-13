@@ -50,3 +50,4 @@ public/downloads/iskra-transcription-mac.zip
 tools/local-transcription/ffmpeg
 tools/local-transcription/ffmpeg.gz
 tools/local-transcription/ffprobe
+.build/

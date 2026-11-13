@@ -28,6 +28,28 @@ export interface LocalDraft { transcript: LessonTranscript; timecodes: LessonTim
 export class LocalTranscriptionUnavailable extends Error {}
 
 export const transcriptionOrigin = 'http://127.0.0.1:18764'
+const transcriptionAppURL = 'iskra-transcription://start'
+
+/** Called synchronously from a user click so the browser can open the installed Mac app. */
+export function requestTranscriptionCompanionStart() {
+  window.location.assign(transcriptionAppURL)
+}
+
+/** The launcher starts the signed LaunchAgent; the UI waits before sending the job. */
+export async function waitForTranscriptionCompanion(timeoutMs = 300_000) {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(transcriptionOrigin + '/version', {
+        headers: { 'X-Iskra-Module': 'transcription-v1' }, cache: 'no-store',
+        signal: AbortSignal.timeout(1500),
+      })
+      if (response.ok) return
+    } catch { /* LaunchAgent ещё готовит локальный runtime. */ }
+    await new Promise(resolve => window.setTimeout(resolve, 1200))
+  }
+  throw new LocalTranscriptionUnavailable('Не удалось запустить фоновый модуль. Откройте «Искра — расшифровка» один раз и разрешите фоновую службу в настройках Mac.')
+}
 
 /** 0:06, 12:30, 1:02:15 — с часами, как время глав: двухчасовой ролик не превращается в «125:30». */
 export function transcriptTime(seconds: number) {

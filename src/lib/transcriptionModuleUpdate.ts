@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { localRequest, LocalTranscriptionUnavailable } from './localTranscription'
 import { TRANSCRIPTION_MODULE_VERSION } from './transcriptionModuleVersion'
+import { TRANSCRIPTION_INSTALLER_VERSION } from './transcriptionInstallerVersion'
 import { useNotificationsStore } from '../store/notificationsStore'
 import { t } from './i18n'
 import { getOwnerId, getViewAs } from './owner'
@@ -14,7 +15,10 @@ import { getOwnerId, getViewAs } from './owner'
  */
 export type ModuleFreshness = 'current' | 'outdated' | 'unknown'
 
-export const MODULE_DOWNLOAD_URL = '/downloads/iskra-transcription-mac.zip'
+// Архив лежит по постоянному пути, поэтому браузер может вернуть локальную
+// копию после выпуска новой версии. Версия вычисляется из содержимого модуля
+// при сборке сайта и делает ссылку новой для каждого обновлённого архива.
+export const MODULE_DOWNLOAD_URL = `https://github.com/Dany-tut/Edu-study/releases/download/transcription-${TRANSCRIPTION_INSTALLER_VERSION}/iskra-transcription-mac-${TRANSCRIPTION_INSTALLER_VERSION}.zip`
 
 /** Что модуль на этом Mac сказал о себе. selfUpdate — умеет POST /update. */
 export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean }
