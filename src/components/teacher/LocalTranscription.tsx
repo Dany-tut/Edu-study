@@ -483,6 +483,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<JobProgress>()
+  const progressStage = useRef('')
   const [error, setError] = useState('')
   const [unavailable, setUnavailable] = useState(false)
   const [retry, setRetry] = useState(0)
@@ -525,7 +526,16 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         const state = await localRequest('/jobs/' + job.id, token)
         if (!active) return
         setError(''); setUnavailable(false)
-        setProgress(state.progress)
+        // A missing metric in one poll must not erase an already measured value.
+        // Reset on the actual worker stage (including preparation substeps), not
+        // merely the visible row, and never carry another job's values forward.
+        const metricKey = job.id + ':' + state.stage
+        const sameStage = progressStage.current === metricKey
+        progressStage.current = metricKey
+        const incoming = state.progress as JobProgress | undefined
+        const valid = incoming && Number.isFinite(incoming.current) && Number.isFinite(incoming.total)
+          && incoming.current >= 0 && incoming.total > 0
+        setProgress(previous => valid ? incoming : sameStage ? previous : undefined)
         setStage(state.stage + (state.bytes ? ' · ' + megabytes(state.bytes) : ''))
         if (state.error) throw new Error(state.stage)
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
@@ -572,11 +582,13 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac.<br />Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>
       <ol className="transcription-job-steps">{stages.map((step, i) => {
         const active = i === currentStep
-        const percent = active && progress && progress.total > 0 ? Math.min(100, Math.max(0, Math.round(progress.current / progress.total * 100))) : undefined
+        const completed = i < currentStep
+        const percent = completed ? 100 : active && progress && progress.current > 0 && progress.total > 0
+          ? Math.min(99, Math.max(1, Math.floor(progress.current / progress.total * 100))) : undefined
         return <li key={step} aria-current={active ? 'step' : undefined}>
           {active && <span className="transcription-fill" style={{width: (percent ?? 0) + '%'}} />}
           <span className="transcription-number">{i < currentStep ? <Check size={14} /> : active ? <Loader2 size={14} className="transcription-spinner" aria-hidden /> : i + 1}</span>
-          <strong>{step}</strong>{active && percent === undefined && <span className="transcription-percent">В процессе…</span>}{active && percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}
+          <strong>{step}</strong>{active && percent === undefined && <span className="transcription-percent">В процессе…</span>}{percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}{!active && !completed && <span className="transcription-percent">Ожидает</span>}
         </li>
       })}</ol>
       {(eta || (progress && progress.total > 0)) && <small className="transcription-hint">
