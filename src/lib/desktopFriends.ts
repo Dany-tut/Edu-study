@@ -32,15 +32,31 @@ export function useDesktopFriends(enabled = true) {
     }
   }, [])
   useEffect(() => {
-    if (!enabled) { setAccount(null); setSnapshot(null); setTab(null); return }
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (!enabled) {
+      current.current = null
+      version.current++
+      setAccount(null); setSnapshot(null); setTab(null); setError('')
+      return
+    }
+    let active = true
+    let authRevision = 0
+    const applySession = (session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) => {
       const id = !getViewAs() && !session?.user.is_anonymous ? session?.user.id ?? null : null
       if (current.current === id) return
       current.current = id
       version.current++
       setTab(null); setSnapshot(null); setError(''); setAccount(id)
+    }
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      authRevision++
+      applySession(session)
     })
-    return () => { data.subscription.unsubscribe(); current.current = null; version.current++ }
+    const initialRevision = authRevision
+    void supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
+      // A newer auth event wins over a slower initial session lookup.
+      if (active && !sessionError && authRevision === initialRevision) applySession(sessionData.session)
+    })
+    return () => { active = false; data.subscription.unsubscribe(); current.current = null; version.current++ }
   }, [enabled])
   useEffect(() => {
     if (!account) return
