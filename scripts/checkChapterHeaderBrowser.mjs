@@ -37,6 +37,7 @@ try{
     if(left!==undefined)assert.equal(left,g.left);left=g.left
    }else{assert(g.top>=g.bottom);assert.equal(g.radius,'999px');assert.equal(g.inner,'999px')}
    for(const label of ['По слайдам','По тексту']){const tab=page.getByRole('tab',{name:label,exact:true});await tab.click();assert.equal(await tab.getAttribute('aria-selected'),'true')}
+   await page.locator('.chapter-header').screenshot({path:join(evidence,`${platform}-${theme}-header-${n}.png`)})
    if(n===100)for(const fraction of [0,.5,1]){
     await page.evaluate(f=>{const el=[...document.querySelectorAll('.timecode-editor div')].find(e=>getComputedStyle(e).overflowY==='auto'&&e.scrollHeight>e.clientHeight);if(!el)throw Error('Missing chapter scroller');el.scrollTop=(el.scrollHeight-el.clientHeight)*f},fraction)
     await page.waitForTimeout(100);await page.screenshot({path:join(evidence,`${platform}-${theme}-${fraction}.png`)})
