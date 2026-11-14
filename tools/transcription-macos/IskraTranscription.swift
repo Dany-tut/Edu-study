@@ -173,7 +173,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSWorkspace.shared.openApplication(at: target, configuration: config) { _, error in
                 DispatchQueue.main.async {
                     if let error {
-                        self.showError("Не удалось открыть установленную Искру: \(error.localizedDescription)")
+                        // Launch Services can fail to resolve a freshly copied app
+                        // on the first registration. Keep this downloaded copy
+                        // running as a usable fallback instead of leaving the
+                        // teacher with a dead app and an opaque macOS alert.
+                        self.buildWindow()
+                        do {
+                            try Companion.register()
+                            self.refreshStatus()
+                            self.showError("Установленную копию пока не удалось открыть. Приложение продолжит работу из Загрузок. Можно вернуться в Искру и нажать «Подключить компьютер» ещё раз. (\(error.localizedDescription))")
+                            if CommandLine.arguments.contains("--start") { self.handleStart() }
+                        } catch {
+                            self.showError("Приложение запущено из Загрузок, но фоновую службу зарегистрировать не удалось: \(error.localizedDescription)")
+                        }
                     } else {
                         NSApp.terminate(nil)
                     }
@@ -208,6 +220,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         stop.frame = NSRect(x: 232, y: 92, width: 110, height: 38); content.addSubview(stop)
         let settings = button("Настройки фоновой службы", action: #selector(settingsClicked))
         settings.frame = NSRect(x: 28, y: 42, width: 240, height: 32); content.addSubview(settings)
+
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = (Bundle.main.infoDictionary?["IskraInstallerVersion"] as? String ?? "").prefix(7)
+        let versionLabel = label("Версия \(version) · сборка \(build)", size: 10, weight: .regular)
+        versionLabel.textColor = .tertiaryLabelColor
+        versionLabel.frame = NSRect(x: 28, y: 14, width: 404, height: 16); content.addSubview(versionLabel)
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)

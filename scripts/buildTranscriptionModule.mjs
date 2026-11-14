@@ -32,6 +32,7 @@ const MODULE = join(ROOT, 'tools/local-transcription')
 const ZIP = join(ROOT, 'public/downloads/iskra-transcription-mac.zip')
 const VERSION_TS = join(ROOT, 'src/lib/transcriptionModuleVersion.ts')
 const INSTALLER_VERSION_TS = join(ROOT, 'src/lib/transcriptionInstallerVersion.ts')
+const PRODUCT_VERSION_TS = join(ROOT, 'src/lib/transcriptionProductVersion.ts')
 const CACHE = join(ROOT, 'node_modules/.cache/iskra-transcription')
 const MAC_INSTALLER = join(ROOT, 'tools/transcription-macos')
 const INSTALLER_SCRIPT = join(ROOT, 'scripts/buildTranscriptionMacInstaller.sh')
@@ -106,10 +107,12 @@ const ts = `// Создаётся scripts/buildTranscriptionModule.mjs — не 
 export const TRANSCRIPTION_MODULE_VERSION = '${version}'
 `
 
-const installerFiles = [...readdirSync(MAC_INSTALLER).filter(name => /\.(swift|plist)$/.test(name)).sort(), 'scripts/buildTranscriptionMacInstaller.sh']
+const installerFiles = [...readdirSync(MAC_INSTALLER).filter(name => /\.(swift|plist)$/.test(name)).sort(), 'scripts/buildTranscriptionMacInstaller.sh', 'src/lib/transcriptionProductVersion.ts']
 const installerHash = createHash('sha256').update(version + '\0')
 for (const name of installerFiles) {
-  const path = name === 'scripts/buildTranscriptionMacInstaller.sh' ? INSTALLER_SCRIPT : join(MAC_INSTALLER, name)
+  const path = name === 'scripts/buildTranscriptionMacInstaller.sh' ? INSTALLER_SCRIPT
+    : name === 'src/lib/transcriptionProductVersion.ts' ? PRODUCT_VERSION_TS
+      : join(MAC_INSTALLER, name)
   installerHash.update(name + '\0').update(readFileSync(path)).update('\0')
 }
 const installerVersion = installerHash.digest('hex').slice(0, 12)

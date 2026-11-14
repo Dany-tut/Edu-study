@@ -5,6 +5,7 @@ import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
 import Switch from '../Switch'
 import { MODULE_DOWNLOAD_URL, useModuleState } from '../../lib/transcriptionModuleUpdate'
+import { TRANSCRIPTION_PRODUCT_VERSION } from '../../lib/transcriptionProductVersion'
 import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../../lib/transcriptTerms'
 import type { RecapControl } from './LessonRecapPanel'
 import './profileIntegrations.css'
@@ -110,7 +111,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
       </> : <>
         <p>Установите приложение на Mac один раз. При расшифровке оно само запустит обработчик в фоне.</p>
         <div className="integration-steps transcription-steps">
-          <a className="integration-action transcription-step" data-primary={!downloadStarted}
+          <a className="integration-action transcription-step transcription-download-step" data-primary={!downloadStarted}
             data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL}
             aria-disabled={downloading || busy} onClick={event => {
               if (downloading || busy) { event.preventDefault(); return }
@@ -120,7 +121,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               setDownloading(true)
             }}>
             <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
-            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать приложение<br />для Mac</>}</span>
+            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать «Искру»<br />Расшифровка для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</>}</span>
           </a>
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
           <button className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
