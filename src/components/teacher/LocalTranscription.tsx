@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowRight, AudioLines, Check, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
+import { ArrowDown, ArrowRight, ArrowUpRight, AudioLines, Check, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
@@ -27,6 +27,15 @@ export function useTranscriptionOwner() {
   return owner
 }
 
+const setupSteps = ['Скачивание', 'Загрузки', 'ZIP-файл', 'Открытие', 'Подключение'] as const
+const setupHints = [
+  ['Скачайте Искру для Mac', 'Нажмите «Скачать „Искру“» в этой карточке.', ''],
+  ['Откройте загрузки', 'Когда загрузка закончится, нажмите значок загрузок в верхней панели браузера. Если значка нет, откройте «Загрузки» в Finder.', 'Открылись загрузки'],
+  ['Распакуйте ZIP-файл', 'Откройте этот архив в загрузках. Если приложение уже появилось рядом с ним, переходите дальше.', 'Архив распакован'],
+  ['Запустите «Искра — расшифровка»', 'Дважды нажмите на приложение в Finder. Если Искра попросит разрешение на работу в фоне, откройте настройки из её окна и включите службу.', 'Приложение открыто'],
+  ['Подключите компьютер', 'Вернитесь в эту вкладку и нажмите «Подключить компьютер». Если браузер попросит доступ к локальной сети, разрешите его.', ''],
+] as const
+
 export function TranscriptionModuleCard({ owner, onConnected }: { owner: string; onConnected?: () => void }) {
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
   // Модуль на Mac старше архива на сайте. Новый обновляется сам, в фоне;
@@ -34,17 +43,22 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const module = useModuleState(connected, connected ? localStorage.getItem(tokenKey(owner)) || '' : '')
   const manualUpdate = (module.phase === 'outdated' && !module.selfUpdate) || module.phase === 'failed'
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
-  const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
-  const guide = useRef<HTMLDivElement>(null)
+  const stepKey = 'iskra.transcription.setupStep.' + owner
+  const [setupStep, setSetupStep] = useState(() => {
+    const saved = Number(localStorage.getItem(stepKey))
+    if (Number.isInteger(saved) && saved > 0 && saved < setupSteps.length) return saved
+    return localStorage.getItem(downloadKey) === '1' ? 1 : 0
+  })
   const setupId = useId()
   const [showSetup, setShowSetup] = useState(false)
-  const [downloading, setDownloading] = useState(false)
-  useEffect(() => {
-    if (!downloading) return
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 4000
-    const timer = window.setTimeout(() => setDownloading(false), delay)
-    return () => window.clearTimeout(timer)
-  }, [downloading])
+  const [hintTitle, hintText, nextLabel] = setupHints[setupStep]
+  const canConnect = setupStep === setupSteps.length - 1
+
+  function goToSetupStep(step: number) {
+    localStorage.setItem(stepKey, String(step))
+    setSetupStep(step)
+  }
+
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   async function change() {
@@ -59,7 +73,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         void localRequest('/connect', localStorage.getItem(tokenKey(owner)) || '', {
           method: 'DELETE', signal: AbortSignal.timeout(3000),
         }).catch(() => { /* companion offline: pairing is forgotten locally anyway */ })
-        setDownloadStarted(true)
+        goToSetupStep(setupSteps.length - 1)
         localStorage.setItem(downloadKey, '1')
         localStorage.removeItem(tokenKey(owner))
       } else {
@@ -113,38 +127,55 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
       </> : <>
         <p>Установите приложение на Mac один раз. При расшифровке оно само запустит обработчик в фоне.</p>
         <div className="integration-steps transcription-steps">
-          <a className="integration-action transcription-step transcription-download-step" data-primary={!downloadStarted}
-            data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL}
-            aria-disabled={downloading || busy} onClick={event => {
-              if (downloading || busy) { event.preventDefault(); return }
+          <a className="integration-action transcription-step transcription-download-step" data-primary={setupStep === 0}
+            href={MODULE_DOWNLOAD_URL} download aria-disabled={busy} onClick={event => {
+              if (busy) { event.preventDefault(); return }
               setMessage('')
               localStorage.setItem(downloadKey, '1')
-              setDownloadStarted(true)
-              setDownloading(true)
+              goToSetupStep(1)
             }}>
-            <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
-            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</>}</span>
+            <span className="integration-step-number">{setupStep === 0 ? <ArrowRight size={14} aria-hidden /> : <Check size={13} aria-hidden />}</span>
+            <span className="transcription-download-label">Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</span>
           </a>
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
-          <button className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
-            data-primary={downloadStarted && !downloading}
-            disabled={!downloadStarted || downloading || busy || !owner} onClick={change}>
-            <span className="integration-step-number">2</span>
+          <button type="button" className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
+            data-primary={canConnect} disabled={!canConnect || busy || !owner} onClick={change}>
+            <span className="integration-step-number"><ArrowRight size={14} aria-hidden /></span>
             <span>{busy ? 'Запускаем модуль…' : 'Подключить компьютер'}</span>
           </button>
         </div>
       </>}
-      <div id={setupId} aria-live="polite" className="transcription-setup">
-        {downloadStarted && !downloading && (!connected || showSetup) && <div className="transcription-launch-guide" ref={guide}>
-          <h4>{connected ? 'Работа в фоне' : 'Первый запуск'}</h4>
-          {connected
-            ? <p>Откройте «Искра — расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
-            : <p>Откройте скачанный ZIP и один раз запустите приложение «Искра — расшифровка». Оно перенесёт себя в папку Программы пользователя и зарегистрирует фоновую службу. Если Mac попросит разрешение, включите её в «Системные настройки → Основные → Объекты входа и расширения».</p>}
-          {connected && !manualUpdate && (
-            <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
-              <span>Скачать для переустановки<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
-            </a>
-          )}
+      <div id={setupId} className="transcription-setup">
+        {!connected && <div className="transcription-walkthrough">
+          <ol className="transcription-walkthrough-steps" aria-label="Этапы настройки">
+            {setupSteps.map((step, index) => <li key={step} aria-current={index === setupStep ? 'step' : undefined}
+              data-done={index < setupStep}>{index < setupStep && <Check size={12} aria-hidden />}<span>{step}</span></li>)}
+          </ol>
+          <div className="transcription-walkthrough-hint">
+            <img src="/transcription/ogonek.webp" alt="" width={56} height={56} />
+            <div aria-live="polite">
+              <h4>{hintTitle} {setupStep === 1 && <ArrowUpRight size={16} aria-hidden />}</h4>
+              <p>{hintText}</p>
+              {setupStep === 1 && <p className="transcription-download-symbol"><ArrowDown size={15} aria-hidden /> Значок в панели браузера</p>}
+              {setupStep === 2 && <p><code>{MODULE_DOWNLOAD_URL.split('/').pop()}</code></p>}
+            </div>
+          </div>
+          {setupStep > 0 && <div className="transcription-walkthrough-actions">
+            <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(setupStep - 1)}>Назад</button>
+            {nextLabel && <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(setupStep + 1)}>
+              {nextLabel} <ArrowRight size={14} aria-hidden />
+            </button>}
+            {setupStep < 3 && <button type="button" className="integration-action" onClick={() => goToSetupStep(setupSteps.length - 1)}>
+              Искра уже установлена
+            </button>}
+          </div>}
+        </div>}
+        {connected && showSetup && <div className="transcription-launch-guide">
+          <h4>Работа в фоне</h4>
+          <p>Откройте «Искра — расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
+          {!manualUpdate && <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
+            <span>Скачать для переустановки<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
+          </a>}
         </div>}
       </div>
       {message && <p className="transcription-module-error" role="alert">{message}</p>}

@@ -290,3 +290,46 @@
 .transcription-update p { flex: 1; min-width: 0; color: var(--color-text); }
 .transcription-update .integration-action { flex: none; width: auto; }
 @media (max-width: 600px) { .transcription-update { flex-direction: column; align-items: stretch; } }
+
+.transcription-walkthrough { display: grid; gap: 14px; }
+.transcription-setup .transcription-walkthrough-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.transcription-walkthrough-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0;
+  border-top: 3px solid var(--color-border-medium);
+  padding-top: 5px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.transcription-walkthrough-steps li + li { margin-top: 0; }
+.transcription-walkthrough-steps li[aria-current], .transcription-walkthrough-steps li[data-done=true] {
+  border-color: var(--color-control-accent);
+  color: var(--color-purple-text);
+}
+.transcription-walkthrough-steps li[aria-current] { font-weight: 700; }
+.transcription-walkthrough-steps svg { flex: none; }
+.transcription-walkthrough-hint { display: flex; align-items: flex-start; gap: 12px; }
+.transcription-walkthrough-hint img { flex: none; border-radius: 14px; }
+.transcription-walkthrough-hint h4 { display: flex; align-items: center; gap: 6px; }
+.transcription-walkthrough-hint h4 svg { flex: none; color: var(--color-purple-text); }
+.transcription-walkthrough .transcription-download-symbol {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  color: var(--color-purple-text);
+}
+.transcription-walkthrough-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.transcription-walkthrough-actions .integration-action { width: auto; min-height: 44px; }
+@container (max-width: 420px) {
+  .transcription-setup .transcription-walkthrough-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
