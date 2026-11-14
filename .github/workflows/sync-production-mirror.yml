@@ -136,15 +136,15 @@ jobs:
           printf '%s\n' "$MIRROR_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
           chmod 600 "$ssh_dir/key"
 
+          # The mirror only permits uploads. Overwrite the old binary with a withdrawal notice.
+          if [[ ! -f dist/downloads/Iskra-Transcription-Mac-v1.0.3.zip ]]; then
+            printf '%s\n' 'Версия 1.0.3 отозвана. Скачивание модуля временно приостановлено.' \
+              > dist/downloads/Iskra-Transcription-Mac-v1.0.3.zip
+          fi
+
           rsync -rz --delay-updates --chmod=D755,F644 \
             -e "ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o ServerAliveInterval=10" \
             dist/ iskra-mirror@177.177.220.129:./
-          # Remove the withdrawn installer that an earlier build synced.
-          if [[ ! -f dist/downloads/Iskra-Transcription-Mac-v1.0.3.zip ]]; then
-            rsync -r --delete-missing-args \
-              -e "ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ssh_dir/known_hosts" \
-              dist/downloads/Iskra-Transcription-Mac-v1.0.3.zip iskra-mirror@177.177.220.129:./downloads/
-          fi
           verify "$MIRROR_ORIGIN"
           verify "$PRODUCTION_ORIGIN"
           printf 'Both production domains serve %s.\n' "$CANDIDATE_SHA"
