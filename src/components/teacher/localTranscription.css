@@ -402,3 +402,7 @@
 .transcription-spinner { animation: transcription-spin 1s linear infinite; }
 @keyframes transcription-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .transcription-spinner { animation: none; } }
+
+.transcription-fill[data-indeterminate="true"] { animation:transcription-progress-slide 1.6s ease-in-out infinite alternate; }
+@keyframes transcription-progress-slide { from { left:0; } to { left:70%; } }
+@media(prefers-reduced-motion:reduce) { .transcription-fill[data-indeterminate="true"] { animation:none; } }

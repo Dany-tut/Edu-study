@@ -231,7 +231,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   </section>
 }
 
-type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' }
+type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' | 'chunks' | 'segments' | 'voices'; phase?: string; updatedAt?: number }
 const PACE_KEY = 'iskra.transcription.pace'
 function readPace(): Record<string, number> {
   try { return JSON.parse(localStorage.getItem(PACE_KEY) || '{}') } catch { return {} }
@@ -270,7 +270,7 @@ function useTimeLeft(steps: string[], step: string, progress: JobProgress | unde
     if (progress && (!current.base || progress.current < current.base.current)) current.base = { at, current: progress.current }
   }, [steps, step, progress, running])
   if (!running) return ''
-  if (!progress) return 'Обработка продолжается. Точный процент пока недоступен.'
+  if (!progress || progress.total <= 0) return 'Обработка продолжается. Точный процент пока недоступен.'
   const { since, base, duration } = track.current
   const pace = readPace()
   let left: number | undefined
@@ -484,6 +484,28 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<JobProgress>()
   const progressStage = useRef('')
+  const [canCancel, setCanCancel] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelled, setCancelled] = useState(false)
+  const [cancelError, setCancelError] = useState('')
+  const [stageStartedAt, setStageStartedAt] = useState(0)
+  const [clock, setClock] = useState(Date.now())
+  const [progressAge, setProgressAge] = useState<number>()
+  useEffect(() => {
+    if (!pending || cancelled) return
+    const timer = setInterval(() => setClock(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [pending, cancelled])
+  async function cancel() {
+    if (!pending || cancelling) return
+    setCancelling(true); setCancelError('')
+    try { await localRequest('/jobs/' + pending.id, token, { method: 'DELETE', signal: AbortSignal.timeout(10000) }) }
+    catch (error) { setCancelling(false); setCancelError((error as Error).message) }
+  }
+  function clearCancelled() {
+    setPending(null); localStorage.removeItem(key); setCancelled(false)
+    setCancelling(false); setStage(''); setProgress(undefined); setError('')
+  }
   const [error, setError] = useState('')
   const [unavailable, setUnavailable] = useState(false)
   const [retry, setRetry] = useState(0)
@@ -518,7 +540,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     finally { setBusy(false) }
   }
   useEffect(() => {
-    if (!pending) return
+    if (!pending || cancelled) return
     let active = true
     let timer: ReturnType<typeof setTimeout>
     async function poll(job: Pending) {
@@ -526,6 +548,26 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         const state = await localRequest('/jobs/' + job.id, token)
         if (!active) return
         setError(''); setUnavailable(false)
+        setCanCancel(state.canCancel === true)
+        setCancelling(state.cancelling === true)
+        if (state.cancelled) {
+          setCancelled(true); setCancelling(false); setStage(state.stage); setProgress(undefined)
+          return
+        }
+        const measuredElapsed = Number(state.elapsedSeconds)
+        if (state.elapsedSeconds != null && Number.isFinite(measuredElapsed)) {
+          setStageStartedAt(Date.now() - measuredElapsed * 1000)
+        } else {
+          const timeKey = key + ':stage-time'
+          let started = Date.now()
+          try {
+            const saved = JSON.parse(localStorage.getItem(timeKey) || 'null')
+            if (saved?.id === job.id && saved?.stage === state.stage && Number.isFinite(saved.at)) started = saved.at
+            else localStorage.setItem(timeKey, JSON.stringify({ id: job.id, stage: state.stage, at: started }))
+          } catch { /* old module: local elapsed time only */ }
+          setStageStartedAt(started)
+        }
+        setProgressAge(typeof state.progressAgeSeconds === 'number' ? state.progressAgeSeconds : undefined)
         // A missing metric in one poll must not erase an already measured value.
         // Reset on the actual worker stage (including preparation substeps), not
         // merely the visible row, and never carry another job's values forward.
@@ -534,7 +576,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         progressStage.current = metricKey
         const incoming = state.progress as JobProgress | undefined
         const valid = incoming && Number.isFinite(incoming.current) && Number.isFinite(incoming.total)
-          && incoming.current >= 0 && incoming.total > 0
+          && incoming.current >= 0 && incoming.total >= 0
         setProgress(previous => valid ? incoming : sameStage ? previous : undefined)
         setStage(state.stage + (state.bytes ? ' · ' + megabytes(state.bytes) : ''))
         if (state.error) throw new Error(state.stage)
@@ -557,11 +599,12 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     const reconnect = () => { setRetry(value => value + 1) }
     window.addEventListener('online', reconnect)
     return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
-  }, [pending, token, retry])
+  }, [pending, token, retry, cancelled])
   const currentStep = transcriptionStageIndex(stage)
+  const elapsed = stageStartedAt ? transcriptTime(Math.max(0, (clock - stageStartedAt) / 1000)) : '0:00'
   const eta = useTimeLeft(stages, stages[currentStep], progress, !!pending && !error && !!stage)
   const metric = progress?.unit === 'seconds' ? transcriptTime : progress?.unit === 'bytes' ? megabytes : (n: number) => String(n)
-  return <section className="transcription-inline" aria-busy={!!pending && !error}>
+  return <section className="transcription-inline" aria-busy={!!pending && !error && !cancelled}>
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
       <div><strong>Расшифровка урока</strong><small>Обработка на вашем компьютере</small></div>
       <button data-hover="layer" type="button" aria-label="К записи урока" disabled={busy} style={btn('S','secondary')} onClick={onClose}><X size={16}/></button>
@@ -577,25 +620,37 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       <span><strong>Учить распознавание на моих правках</strong><small>Звук исправленных реплик остаётся только на этом Mac — из него потом дообучим модель. Ученикам и в Искру он не уходит.</small></span>
       <Switch checked={keepTraining} onChange={toggleTraining} disabled={busy} label="Учить распознавание на моих правках" />
     </div>}
-    {pending && !error && <>
-      <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}</small>
+    {pending && !error && !cancelled && <>
+      <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}{stageStartedAt > 0 && ` · прошло ${elapsed}`}</small>
+      {progress?.phase && <small className="transcription-hint">{progress.phase}{progress.total > 0 ? ": процент относится к этой фазе" : ""}</small>}
+      {progressAge !== undefined && progressAge >= 30 && <small className="transcription-hint">Обработчик ещё запущен. Новых данных о прогрессе нет {transcriptTime(progressAge)} — это не подтверждает зависание.</small>}
       <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac.<br />Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>
       <ol className="transcription-job-steps">{stages.map((step, i) => {
-        const active = i === currentStep
+        const active = i === currentStep && !cancelling
         const completed = i < currentStep
-        const percent = completed ? 100 : active && progress && progress.current > 0 && progress.total > 0
+        const percent = active && progress && progress.current > 0 && progress.total > 0
           ? Math.min(99, Math.max(1, Math.floor(progress.current / progress.total * 100))) : undefined
         return <li key={step} aria-current={active ? 'step' : undefined}>
-          {active && <span className="transcription-fill" style={{width: (percent ?? 0) + '%'}} />}
+          {active && <span className="transcription-fill" data-indeterminate={percent === undefined} style={{width: (percent ?? 30) + '%'}} />}
           <span className="transcription-number">{i < currentStep ? <Check size={14} /> : active ? <Loader2 size={14} className="transcription-spinner" aria-hidden /> : i + 1}</span>
           <strong>{step}</strong>{active && percent === undefined && <span className="transcription-percent">В процессе…</span>}{percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}{!active && !completed && <span className="transcription-percent">Ожидает</span>}
         </li>
       })}</ol>
       {(eta || (progress && progress.total > 0)) && <small className="transcription-hint">
-        {progress && progress.total > 0 && <>{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : 'записи')}{eta && ' · '}</>}
+        {progress && progress.total > 0 && <>{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : progress.unit === 'chunks' ? 'фрагментов звука' : progress.unit === 'segments' ? 'реплик' : progress.unit === 'voices' ? 'голосов' : 'записи')}{eta && ' · '}</>}
         {eta && (progress && progress.total > 0 ? eta : eta[0].toUpperCase() + eta.slice(1))}
       </small>}
     </>}
+    {pending && !cancelled && <div className="transcription-cancel">
+      {canCancel ? <button type="button" style={btn('M','secondary')} disabled={cancelling} onClick={() => void cancel()}>
+        {cancelling ? 'Останавливаем обработку…' : 'Остановить расшифровку'}
+      </button> : <small className="transcription-hint">Этот модуль не поддерживает отмену с сайта. Закрытие панели не останавливает обработку.</small>}
+      {cancelError && <p role="alert" className="transcription-hint">{cancelError}</p>}
+    </div>}
+    {cancelled && <div className="transcription-recovery" role="status">
+      <strong>Расшифровка отменена</strong><p>Вычисления остановлены. Можно начать заново.</p>
+      <button type="button" style={btn('M','secondary')} onClick={clearCancelled}>Начать заново</button>
+    </div>}
     {error && <div role="alert" className="transcription-recovery">
       <strong>{unavailable ? 'Модуль недоступен' : 'Не удалось завершить расшифровку'}</strong>
       <p>{error}</p>

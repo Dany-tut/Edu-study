@@ -21,6 +21,7 @@ from flask import Flask, abort, jsonify, request
 from link_video import fetch, downloaded, LIMIT, DownloadUnavailable
 from media_tools import FFMPEG
 import job_store
+from job_control import supervise
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = LIMIT + 1024 * 1024
@@ -43,6 +44,7 @@ JOBS.mkdir(mode=0o700, exist_ok=True)
 VOICE_MODELS = HOME / 'voice-models'
 def voice_memory(token): return HOME / f"voices-{hashlib.sha256(token.encode()).hexdigest()[:16]}.json"
 jobs = job_store.load(JOBS)
+job_mutex = threading.RLock()
 last_activity = time.monotonic()
 IDLE_STOP_SECONDS = 30 * 60
 
@@ -142,7 +144,7 @@ def version():
     # Без токена: версия не секрет, а подсказать «обновите модуль» нужно и
     # до подключения компьютера.
     # update — модуль умеет обновляться сам (POST /update).
-    return jsonify(version=VERSION, update=True)
+    return jsonify(version=VERSION, update=True, cancel=True)
 
 UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
 # Исполняемые файлы архива не переносятся при самообновлении: подписанный ffmpeg
@@ -212,11 +214,54 @@ def disconnect():
     (HOME/device()).unlink(missing_ok=True)
     return '',204
 
-def process(job,folder,link):
+def process(job, folder, link):
+    """The HTTP process only supervises; all expensive work is cancellable."""
+    last_heartbeat = 0.0
+    def observe():
+        nonlocal last_heartbeat
+        try:
+            state = json.loads((folder / 'job.json').read_text())['state']
+        except (OSError, ValueError, KeyError): return
+        with job_mutex:
+            if (folder / '.cancel').exists():
+                state = {**state, 'stage': 'Останавливаем обработку', 'cancelling': True, 'done': False}
+            job['state'] = state
+        if time.monotonic() - last_heartbeat >= 30:
+            last_heartbeat = time.monotonic()
+            try:
+                detail = json.loads((folder / 'progress.json').read_text())
+                age = round(time.time() - detail.get('updatedAt', time.time()))
+                detail = {k: detail.get(k) for k in ('phase', 'current', 'total')}
+            except (OSError, ValueError): detail, age = {}, None
+            print(f'Job {job["id"]}: worker running, stage={state["stage"]}, progress={detail}, progress_age={age}s', flush=True)
+    try:
+        supervise(folder, [sys.executable, str(ROOT / 'job_worker.py'), job['id']], observe)
+        observe()
+        with job_mutex:
+            if (folder / '.cancel').exists():
+                job['state'] = {'stage': 'Расшифровка отменена', 'cancelled': True}
+            elif not job['state'].get('done') and not job['state'].get('error'):
+                job['state'] = {'stage': 'Обработчик завершился неожиданно. Повторите расшифровку.', 'error': True}
+            job_store.save(folder, job)
+    except Exception as exc:
+        print(f'Job supervisor {job["id"]}: {exc}', flush=True)
+        job['state'] = {'stage': 'Не удалось запустить обработчик.', 'error': True}
+        job_store.save(folder, job)
+    finally:
+        if job['state'].get('cancelled'):
+            for artifact in folder.iterdir():
+                if artifact.name not in ('job.json', '.worker.lock', '.cancel'):
+                    if artifact.is_dir(): shutil.rmtree(artifact)
+                    else: artifact.unlink(missing_ok=True)
+        gate.release()
+
+
+def run_pipeline(job,folder,link):
     worker_lock = open(folder / '.worker.lock', 'a')
     fcntl.flock(worker_lock, fcntl.LOCK_EX)
     def stage(label,**fields):
-        job['state']={'stage':label,**fields}
+        job['state']={'stage':label,'stageStartedAt':time.time(),**fields}
+        print(f'Job {job["id"]}: {label}', flush=True)
         job_store.save(folder, job)
     try:
         source=folder/'input'
@@ -277,7 +322,7 @@ def process(job,folder,link):
     finally:
         if job['state'].get('done') or job['state'].get('error'):
             for artifact in folder.iterdir():
-                if artifact.name not in ('job.json', '.worker.lock') and artifact.is_file(): artifact.unlink(missing_ok=True)
+                if artifact.name not in ('job.json', '.worker.lock', '.cancel', '.process.json') and artifact.is_file(): artifact.unlink(missing_ok=True)
         worker_lock.close()
         gate.release()
 
@@ -366,12 +411,30 @@ def start():
         gate.release()
         raise
 
+@app.delete('/jobs/<jid>')
+def cancel_job(jid):
+    token = device()
+    with job_mutex:
+        job = jobs.get(jid)
+        if not job or job['owner'] != token: abort(404)
+        if job['state'].get('cancelled'): return jsonify(job['state'])
+        if job['state'].get('done') or job['state'].get('error'):
+            return jsonify(error='Обработка уже завершена.'), 409
+        # The marker survives a service restart and is separate from the worker's
+        # atomic checkpoint. Only the supervisor declares terminal cancellation.
+        (JOBS / jid / '.cancel').touch(mode=0o600)
+        job['state'] = {**job['state'], 'stage': 'Останавливаем обработку', 'cancelling': True, 'done': False}
+        return jsonify(job['state']), 202
+
 @app.get('/jobs/<jid>')
 def progress(jid):
     token=device()
     job=jobs.get(jid)
     if not job or job['owner']!=token:abort(404)
     state=job['state'].copy()
+    state['canCancel']=True
+    if state.get('stageStartedAt'):
+        state['elapsedSeconds']=max(0, time.time()-state['stageStartedAt'])
     if state['stage']=='Скачиваем видео':
         folder=(JOBS/jid)
         try:
@@ -382,7 +445,9 @@ def progress(jid):
     else:
         try:
             detail=json.loads(((JOBS/jid)/'progress.json').read_text())
-            if detail['step']==state['stage']:state['progress']=detail
+            if detail['step']==state['stage']:
+                state['progress']=detail
+                state['progressAgeSeconds']=max(0,time.time()-detail.get('updatedAt', time.time()))
         except (FileNotFoundError, ValueError):pass
     return jsonify(state)
 
@@ -425,7 +490,7 @@ def prune_training():
 def resume_jobs():
     # Serial worker: do not overlap heavy model processes after a restart.
     for job in list(jobs.values()):
-        if job['state'].get('done') or job['state'].get('error'): continue
+        if job['state'].get('done') or job['state'].get('error') or job['state'].get('cancelled'): continue
         gate.acquire()
         process(job, JOBS/job['id'], job['link'])
 

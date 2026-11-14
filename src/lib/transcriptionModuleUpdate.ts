@@ -35,7 +35,7 @@ export async function checkModuleFreshness(): Promise<ModuleFreshness> {
 }
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-let updating: Promise<boolean> | null = null
+let updating: Promise<boolean | null> | null = null
 
 /**
  * Обновить модуль самим модулем: он скачивает архив с сайта, раскладывает его
@@ -43,7 +43,7 @@ let updating: Promise<boolean> | null = null
  * (первый запуск новой версии может докачивать зависимости — до 5 минут).
  * Одно обновление на вкладку: карточка и верхняя панель делят его.
  */
-export function updateModule(token: string): Promise<boolean> {
+export function updateModule(token: string): Promise<boolean | null> {
   updating ??= (async () => {
     try {
       await localRequest('/update', token, { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -53,7 +53,7 @@ export function updateModule(token: string): Promise<boolean> {
         if ((await readModule()).freshness === 'current') return true
       }
       return false
-    } catch { return false }
+    } catch (error) { return error instanceof Error && error.message.includes('Модуль занят расшифровкой') ? null : false }
     finally { updating = null }
   })()
   return updating
@@ -77,7 +77,7 @@ export function useModuleState(enabled: boolean, token: string): ModuleState {
       setState({ phase: 'updating', local: info.local, selfUpdate: true })
       const ok = await updateModule(token)
       if (!alive) return
-      setState(ok ? { phase: 'current', local: TRANSCRIPTION_MODULE_VERSION, selfUpdate: true } : { phase: 'failed', local: info.local, selfUpdate: true })
+      setState(ok ? { phase: 'current', local: TRANSCRIPTION_MODULE_VERSION, selfUpdate: true } : { phase: ok === null ? 'outdated' : 'failed', local: info.local, selfUpdate: true })
     }
     void run()
     const onVisible = () => { if (document.visibilityState === 'visible') void run() }

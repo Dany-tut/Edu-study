@@ -10,7 +10,8 @@ match — голос узнан среди запомненных на этом 
 Голосовые отпечатки — биометрия. Они не уходят с компьютера: хранятся здесь,
 в папке модуля, и в урок не попадают (в урок — только имена).
 """
-import base64, json, sys, wave
+import base64, json, os, sys, time, wave
+from progress import record
 from pathlib import Path
 
 MODELS = Path(sys.argv[2]) if len(sys.argv) > 2 else None
@@ -45,6 +46,22 @@ def unb64(text):
 def main(folder):
     folder = Path(folder)
     out = folder / 'voices.json'
+    started = time.monotonic()
+    phase_name = ''
+    phase_started = started
+    last_log = 0.0
+    def report(phase, current=0, total=0, unit='chunks'):
+        nonlocal phase_name, phase_started, last_log
+        now = time.monotonic()
+        if phase != phase_name:
+            if phase_name: print(f'Diarization {folder.name}: {phase_name} finished in {now-phase_started:.1f}s', flush=True)
+            phase_name, phase_started = phase, now
+            last_log = 0
+        record(folder, 'Разделяем голоса', current, total, unit, phase)
+        if now-last_log >= 15 or (total and current == total):
+            print(f'Diarization {folder.name}: {phase} {current}/{total}, elapsed={now-started:.1f}s', flush=True)
+            last_log = now
+    report('Загружаем модели голосов')
     try:
         import numpy as np
         import sherpa_onnx
@@ -53,17 +70,28 @@ def main(folder):
     if not MODELS or not (MODELS / SEGMENTATION).exists() or not (MODELS / EMBEDDING).exists():
         return
     segments = json.loads((folder / 'segments.json').read_text())
+    report('Читаем звуковую дорожку')
     audio = load_audio(folder)
     if not len(audio) or not segments:
         return
     rate = 16000
+    threads = min(4, os.cpu_count() or 1)
+    print(f'Diarization {folder.name}: audio={len(audio)/rate:.1f}s, threads={threads}, sherpa={sherpa_onnx.__version__}', flush=True)
+    report('Загружаем модели голосов')
     config = sherpa_onnx.OfflineSpeakerDiarizationConfig(
         segmentation=sherpa_onnx.OfflineSpeakerSegmentationModelConfig(
-            pyannote=sherpa_onnx.OfflineSpeakerSegmentationPyannoteModelConfig(model=str(MODELS / SEGMENTATION))),
-        embedding=sherpa_onnx.SpeakerEmbeddingExtractorConfig(model=str(MODELS / EMBEDDING)),
+            pyannote=sherpa_onnx.OfflineSpeakerSegmentationPyannoteModelConfig(model=str(MODELS / SEGMENTATION)), num_threads=threads),
+        embedding=sherpa_onnx.SpeakerEmbeddingExtractorConfig(model=str(MODELS / EMBEDDING), num_threads=threads),
         clustering=sherpa_onnx.FastClusteringConfig(num_clusters=-1, threshold=CLUSTER_THRESHOLD),
         min_duration_on=0.3, min_duration_off=0.5)
-    turns = sherpa_onnx.OfflineSpeakerDiarization(config).process(audio).sort_by_start_time()
+    engine = sherpa_onnx.OfflineSpeakerDiarization(config)
+    report('Анализируем фрагменты звука')
+    def on_chunk(current, total):
+        report('Анализируем фрагменты звука', current, total)
+        return 1 if (folder / '.cancel').exists() else 0
+    turns = engine.process(audio, callback=on_chunk).sort_by_start_time()
+    if (folder / '.cancel').exists(): return
+    report('Сопоставляем реплики и голоса')
 
     # Реплике Whisper — голос, который звучит в ней дольше всех.
     def speaker_of(seg):
@@ -75,7 +103,7 @@ def main(folder):
         return best
     labels = [speaker_of(s) for s in segments]
 
-    extractor = sherpa_onnx.SpeakerEmbeddingExtractor(sherpa_onnx.SpeakerEmbeddingExtractorConfig(model=str(MODELS / EMBEDDING)))
+    extractor = sherpa_onnx.SpeakerEmbeddingExtractor(sherpa_onnx.SpeakerEmbeddingExtractorConfig(model=str(MODELS / EMBEDDING), num_threads=threads))
 
     def embed(sample):
         stream = extractor.create_stream()
@@ -91,6 +119,7 @@ def main(folder):
     # отрывке сливает похожие голоса, а сверка реплики с памятью — нет.
     if memory:
         for k, seg in enumerate(segments):
+            report('Узнаём сохранённые голоса', k, len(segments), 'segments')
             if seg['end'] - seg['start'] < SEGMENT_MIN:
                 continue
             emb = embed(audio[int(seg['start'] * rate):int(seg['end'] * rate)])
@@ -98,9 +127,17 @@ def main(folder):
             if sims[0][0] >= MATCH_THRESHOLD and (len(sims) < 2 or sims[0][0] - sims[1][0] >= MATCH_MARGIN):
                 keys[k] = f'k{sims[0][1] + 1}'
     voices = []
-    for key in sorted({k for k in keys if k is not None}):
+    voice_keys = sorted({k for k in keys if k is not None})
+    for key in voice_keys:
+        report('Сохраняем голоса', len(voices), len(voice_keys), 'voices')
         own = [s for s, k in zip(segments, keys) if k == key]
-        sample = np.concatenate([audio[int(s['start'] * rate):int(s['end'] * rate)] for s in own])[:rate * 60]   # минуты хватает
+        # Bound memory before concatenation; we only need one minute per voice.
+        pieces, remaining = [], rate * 60
+        for seg in own:
+            part = audio[int(seg['start'] * rate):int(seg['end'] * rate)][:remaining]
+            pieces.append(part); remaining -= len(part)
+            if remaining <= 0: break
+        sample = np.concatenate(pieces)
         emb = embed(sample)
         voice = {'id': key, 'seconds': round(sum(s['end'] - s['start'] for s in own), 1), 'embedding': b64(emb)}
         if key.startswith('k'):
@@ -113,6 +150,8 @@ def main(folder):
                 voice['match'] = {'label': memory[best][0], 'role': memory[best][1], 'similarity': round(similarity, 3)}
         voices.append(voice)
     out.write_text(json.dumps({'segments': keys, 'voices': voices}))
+    report('Сохраняем голоса', len(voices), len(voice_keys), 'voices')
+    print(f'Diarization {folder.name}: completed in {time.monotonic()-started:.1f}s', flush=True)
 
 if __name__ == '__main__':
     main(sys.argv[1])

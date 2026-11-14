@@ -48,7 +48,7 @@ class ResumeTests(unittest.TestCase):
         restored=job_store.load(self.s.JOBS)[job['id']]
         self.s.gate.acquire()
         with patch.object(self.s,'ensure_models'), patch.object(self.s.subprocess,'run',side_effect=self.run_step) as run:
-            self.s.process(restored,self.folder,'')
+            self.s.run_pipeline(restored,self.folder,'')
         # Задача старого модуля, прерванная после распознавания, добирает новые шаги: голоса и паузы.
         self.assertEqual([Path(c.args[0][1]).name for c in run.call_args_list],['diarize.py','silence.py','slides.py','topics.py'])
         self.s.jobs=job_store.load(self.s.JOBS)
@@ -61,7 +61,7 @@ class ResumeTests(unittest.TestCase):
         def check_pause(_):self.assertTrue(job_store.load(self.s.JOBS)[job['id']]['state']['paused'])
         self.s.gate.acquire()
         with patch.object(self.s,'ensure_models'), patch.object(self.s,'fetch',side_effect=[self.s.DownloadUnavailable(),None]) as fetch, patch.object(self.s.time,'sleep',side_effect=check_pause), patch.object(self.s.subprocess,'run',side_effect=self.run_step):
-            self.s.process(job,self.folder,job['link'])
+            self.s.run_pipeline(job,self.folder,job['link'])
         self.assertTrue(job['state']['done']);self.assertEqual(fetch.call_count,2)
     def test_wrong_owner_cannot_read_persisted_result(self):
         job,self.folder=self.job();other='c'*64;(self.s.HOME/other).touch()
