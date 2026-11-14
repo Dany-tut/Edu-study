@@ -440,3 +440,8 @@
 [data-platform="pc"] .chapter-header--modes .chapter-header-modes [role="tab"] { padding-inline:7px !important; }
 [data-platform="pc"] .chapter-header--modes .chapter-header-clock { grid-column:1 / -1;grid-row:2; }
 [data-platform="pc"] .chapter-header--modes .chapter-count { width:3ch;min-width:3ch;text-align:right; }
+/* Match the existing PC filter geometry in .fipi-catalog-controls: 11 − 4 = 7. */
+[data-platform="pc"] .chapter-header-modes {
+  --segmented-track-radius: 11px;
+  --segmented-item-radius: 7px;
+}
