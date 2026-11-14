@@ -150,11 +150,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         buildWindow()
         requestedStart = requestedStart || CommandLine.arguments.contains("--start")
         if installInApplicationsIfNeeded() { return }
-        if requestedStart { handleStart(); return }
-        do {
-            try Companion.register()
-            showRegistrationStatus()
-        } catch { showError(error.localizedDescription) }
+        handleStart()
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -195,8 +191,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 NSApp.terminate(nil)
                 return true
             }
-            var handedOff = false
-            defer { if !handedOff { close(lock) } }
+            defer { close(lock) }
             let installedVersion = Bundle(url: target)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
             let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
             if installedVersion.compare(currentVersion, options: .numeric) == .orderedAscending {
@@ -211,23 +206,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             LSRegisterURL(target as CFURL, true)
-            let config = NSWorkspace.OpenConfiguration()
-            config.allowsRunningApplicationSubstitution = false
-            config.environment = ProcessInfo.processInfo.environment.merging(["ISKRA_INSTALL_HANDOFF": "1"]) { _, new in new }
-            // Forward a browser launch even when Launch Services picked the downloaded copy.
-            config.arguments = ["--start", "--installed-handoff"]
-            handedOff = true
-            NSWorkspace.shared.openApplication(at: target, configuration: config) { _, error in
-                DispatchQueue.main.async {
-                    close(lock)
-                    self.installing = false
-                    if error != nil {
-                        self.showInstallRecovery()
-                    } else {
-                        NSApp.terminate(nil)
-                    }
-                }
-            }
+            installing = false
+            showInstallRecovery()
         } catch {
             installing = false
             showError("Не удалось установить приложение в папку «Программы». \(error.localizedDescription)")
@@ -291,7 +271,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleStart() {
-        guard startTask == nil, !installing else { return }
+        guard startTask == nil, !installing, revealButton.isHidden else { return }
         guard Companion.isInstalled(Bundle.main.bundleURL) else {
             _ = installInApplicationsIfNeeded()
             return
