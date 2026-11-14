@@ -6031,6 +6031,7 @@ export const EN: Record<string, string> = {
   "Предпросмотр": "Preview",
   "Просмотр": "Preview",
   "Как увидит ученик: вырезанное пропускается, тихое ускорено": "As the student sees it: cuts skipped, quiet parts sped up",
+  "Как увидит ученик: запись без изменений монтажа": "As the student sees it: recording without montage edits",
   "Монтажа пока нет — сначала примените монтаж и сохраните расшифровку": "No montage yet — apply the montage and save the transcript first",
   "Исходная запись: ссылка, главы, текст": "Original recording: link, chapters, text",
   "Словарь недоступен: таблица ещё не создана в базе.": "Dictionary unavailable: the table is not created in the database yet.",
