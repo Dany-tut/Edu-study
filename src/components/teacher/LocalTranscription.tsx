@@ -120,7 +120,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               setDownloading(true)
             }}>
             <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
-            <span>{downloading ? 'Скачивание…' : downloadStarted ? 'Скачать приложение ещё раз' : 'Скачать приложение для Mac'}</span>
+            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать приложение<br />для Mac</>}</span>
           </a>
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
           <button className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}

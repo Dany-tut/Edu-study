@@ -124,5 +124,8 @@ export function passkeyErrorRu(error: unknown, fallback: string) {
   const text = `${e?.code ?? ''} ${e?.message ?? ''}`
   if (/credential_exists|already|InvalidStateError/i.test(text)) return 'Этот ключ уже добавлен.'
   if (/not.?found|no.?credential|unknown credential/i.test(text)) return 'Ключ не найден. Войдите по почте и создайте ключ в «Способах входа».'
+  if (/validating origin|origin.*(?:invalid|not allowed)|webauthn_verification_failed/i.test(text)) {
+    return 'Вход по ключу не настроен для iskra-study.ru. Войдите через Google или почту.'
+  }
   return fallback
 }

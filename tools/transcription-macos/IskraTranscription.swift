@@ -145,14 +145,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if current == target.standardizedFileURL { return false }
         do {
             try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
-            if !FileManager.default.fileExists(atPath: target.path) { try FileManager.default.copyItem(at: current, to: target) }
+            // Install to a sibling staging path first: Finder may be launching the
+            // downloaded app from a temporary quarantine location, and replacing
+            // the currently running target in place can leave a half-copied bundle.
+            let staging = target.deletingLastPathComponent()
+                .appendingPathComponent(".Iskra-transcription-install-\(UUID().uuidString).app", isDirectory: true)
+            try FileManager.default.copyItem(at: current, to: staging)
+            if FileManager.default.fileExists(atPath: target.path) {
+                let backup = target.deletingLastPathComponent()
+                    .appendingPathComponent(".Iskra-transcription-old-\(UUID().uuidString).app", isDirectory: true)
+                try FileManager.default.moveItem(at: target, to: backup)
+                do {
+                    try FileManager.default.moveItem(at: staging, to: target)
+                    try? FileManager.default.removeItem(at: backup)
+                } catch {
+                    try? FileManager.default.moveItem(at: backup, to: target)
+                    throw error
+                }
+            } else {
+                try FileManager.default.moveItem(at: staging, to: target)
+            }
             let appURL = target as CFURL
             LSRegisterURL(appURL, true)
             let config = NSWorkspace.OpenConfiguration()
+            config.createsNewApplicationInstance = true
+            config.allowsRunningApplicationSubstitution = false
             NSWorkspace.shared.openApplication(at: target, configuration: config) { _, error in
-                if let error { DispatchQueue.main.async { self.showError(error.localizedDescription) } }
+                DispatchQueue.main.async {
+                    if let error {
+                        self.showError("Не удалось открыть установленную Искру: \(error.localizedDescription)")
+                    } else {
+                        NSApp.terminate(nil)
+                    }
+                }
             }
-            NSApp.terminate(nil)
             return true
         } catch {
             showError("Не удалось установить приложение в ~/Applications: \(error.localizedDescription)")
