@@ -35,7 +35,7 @@ elif [[ ! -x "$runtime/bin/python" ]]; then
   python3 -m venv "$runtime"
 fi
 if ! "$runtime/bin/python" -c 'import flask, mlx_whisper, mlx_lm, yt_dlp' >/dev/null 2>&1; then
-  "$runtime/bin/python" -m pip install -q flask mlx-whisper mlx-lm yt-dlp
+  "$runtime/bin/python" -m pip install --only-binary=:all: -q flask "mlx==0.32.4" "mlx-whisper==0.4.3" "mlx-lm==0.32.2" yt-dlp
 fi
 # Голоса: разделение на этом Mac (sherpa-onnx) и две небольшие модели (~33 МБ).
 # Не вышло — модуль работает как раньше, все реплики придут одним голосом.
