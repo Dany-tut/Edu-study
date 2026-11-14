@@ -24,6 +24,18 @@ fi
 
 rm -rf "$BUILD"
 mkdir -p "$APP_CONTENTS/MacOS" "$APP_CONTENTS/Resources" "$APP_CONTENTS/Library/LaunchAgents"
+# Системная иконка собирается из брендового PNG без сторонних зависимостей.
+ICONSET="$BUILD/iskra.iconset"
+mkdir -p "$ICONSET"
+for SIZE in 16 32 128 256 512; do
+  sips -z "$SIZE" "$SIZE" "$ROOT/public/icon-512.png" --out "$ICONSET/icon_${SIZE}x${SIZE}.png" >/dev/null
+  if [[ "$SIZE" != 512 ]]; then
+    DOUBLE=$((SIZE * 2))
+    sips -z "$DOUBLE" "$DOUBLE" "$ROOT/public/icon-512.png" --out "$ICONSET/icon_${SIZE}x${SIZE}@2x.png" >/dev/null
+  fi
+done
+iconutil -c icns "$ICONSET" -o "$APP_CONTENTS/Resources/iskra.icns"
+rm -rf "$ICONSET"
 swiftc -O -framework AppKit -framework CoreServices -framework ServiceManagement \
   -o "$APP_CONTENTS/MacOS/IskraTranscription" "$ROOT/tools/transcription-macos/IskraTranscription.swift"
 
@@ -35,6 +47,7 @@ cat > "$APP_CONTENTS/Info.plist" <<PLIST
   <key>CFBundleIdentifier</key><string>ru.iskra.transcription</string>
   <key>CFBundleName</key><string>IskraTranscription</string>
   <key>CFBundleDisplayName</key><string>Искра — расшифровка</string>
+  <key>CFBundleIconFile</key><string>iskra.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
   <key>CFBundleVersion</key><string>1.0</string>
