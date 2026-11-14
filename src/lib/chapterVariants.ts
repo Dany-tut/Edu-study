@@ -13,6 +13,7 @@ export interface ChapterControls {
   codes: LessonTimecode[]
   select: (mode: ChapterMode) => void
   change: (codes: LessonTimecode[]) => void
+  corrected?: (before: string, after: string) => void
   generate: () => void
   available: boolean
   saving: boolean

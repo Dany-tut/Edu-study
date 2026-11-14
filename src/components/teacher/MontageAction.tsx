@@ -12,12 +12,13 @@ const LessonMontageEditor = lazy(() => import('./LessonMontageEditor'))
 /** Кнопка «Монтаж записи» в инструментах расшифровки и само окно. Результат —
  *  в черновик расшифровки (говорящие, реплики, решения по паузам); в урок он
  *  попадает обычной кнопкой «Сохранить». Видео не перекодируется. */
-export default function MontageAction({ draft, change, disabled, file, token, trend, recap, recapSignal }: { draft: LocalDraft; change: (value: LocalDraft) => void; disabled?: boolean; file?: File | null; token?: string
+export default function MontageAction({ draft, change, disabled, file, token, trend, recap, recapSignal, corrected }: { draft: LocalDraft; change: (value: LocalDraft) => void; disabled?: boolean; file?: File | null; token?: string
   trend?: { id: string; title: string; current?: boolean; stats?: LessonStatsSummary }[]
   /** Итоги урока: есть — в окне кнопка «Итоги урока» и панель. */
   recap?: RecapControl
   /** Растёт, когда вход из вкладки «Запись» просит открыть окно сразу на итогах. */
-  recapSignal?: number }) {
+  recapSignal?: number
+  corrected?: (before: string, line: {start:number;end:number;text:string}) => void }) {
   const [open, setOpen] = useState(false)
   const [recapOpen, setRecapOpen] = useState(false)
   useEffect(() => { if (recapSignal) { setRecapOpen(true); setOpen(true) } }, [recapSignal])
@@ -58,7 +59,9 @@ export default function MontageAction({ draft, change, disabled, file, token, tr
     <Suspense fallback={null}>
       <AnimatePresence>{open && <LessonMontageEditor key="montage" title="Монтаж записи" duration={duration} voices={voices} lines={lines}
         quiet={montage?.quiet ?? []} chapters={draft.timecodes} levelAt={levelAt} initial={initial} missingAudio={!montage} video={video} floor={montage?.floor}
-        onApply={(_result, state) => { remember(state.speakers); change({
+        onApply={(_result, state) => {
+          for (const line of state.lines) { const before = lines.find(x => x.id === line.id); if (before && before.text !== line.text) corrected?.(before.text, line) }
+          remember(state.speakers); change({
           ...draft,
           transcript: {
             ...transcript,

@@ -1,6 +1,6 @@
 import { enqueueChapterSave } from '../../lib/chapterSaveQueue'
 import Segmented from '../../components/Segmented'
-import { rebaseChapterLessons, titleConcern, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
+import { rebaseChapterLessons, sentenceTitle, titleConcern, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
 import { saveLessonChapters } from '../../lib/saveLessonChapters'
 import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
 import { importBankTask } from '../../lib/bankTaskImport'
@@ -1665,7 +1665,9 @@ export function TimecodeRail({
                 <FadeText lines={2} fadeMode="last-line">{tc.label || t('Название главы')}</FadeText>
                 <textarea rows={1} ref={el => { rowRefs.current[i] = el }}
                   aria-label={'Название главы '+(i+1)} disabled={(rail?.saving || chapters?.saving)}
-                  value={tc.label} onChange={e => patch(i, { label: e.target.value })}
+                  value={tc.label} onFocus={e => { e.currentTarget.dataset.original = e.currentTarget.value }}
+                  onBlur={e => { const before = e.currentTarget.dataset.original ?? tc.label; const after = sentenceTitle(e.currentTarget.value); if (after !== tc.label) patch(i, {label:after}); chapters?.corrected?.(before, after) }}
+                  onChange={e => patch(i, { label: e.target.value })}
                   placeholder={t('Название главы')} />
               </span>
                 {tc.originalTitle && <details className="chapter-ocr-note">

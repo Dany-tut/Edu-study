@@ -6,11 +6,12 @@ import MontageAction from './MontageAction'
 import Switch from '../Switch'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
-import { prepareSlideChapters, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
+import { prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
 import type { LessonTimecode } from '../../data/lessonContent'
 import { MODULE_DOWNLOAD_URL, useModuleState } from '../../lib/transcriptionModuleUpdate'
 import { TRANSCRIPTION_PRODUCT_VERSION } from '../../lib/transcriptionProductVersion'
-import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../../lib/transcriptTerms'
+import { fetchTermsPack, termsForModule } from '../../lib/transcriptTerms'
+import { rememberCorrection, flushCorrections, readCorrections, correctedText, pendingCorrections, type CorrectionKind } from '../../lib/transcriptCorrections'
 import type { RecapControl } from './LessonRecapPanel'
 import './profileIntegrations.css'
 import './localTranscription.css'
@@ -414,6 +415,27 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const storageKey = 'iskra.transcription.job.' + JSON.stringify([props.owner, jobKey])
   const [requestedMode, setRequestedMode] = useState<TranscriptionMode>('text')
   const variantsKey = storageKey + '.chapter-variants'
+  const [correctionNotice, setCorrectionNotice] = useState('')
+  async function syncCorrections() {
+    try { const pending = pendingCorrections(props.owner).length; await flushCorrections(props.owner); setCorrectionNotice(pending ? 'Исправления сохранены' : '') }
+    catch { setCorrectionNotice('Исправления ещё не отправлены. Они сохранены в браузере; нажмите «Повторить отправку».') }
+  }
+  useEffect(() => {
+    if (!props.owner) return
+    void syncCorrections()
+    const retry = () => { void syncCorrections() }
+    window.addEventListener('online', retry)
+    return () => window.removeEventListener('online', retry)
+  }, [props.owner])
+  function remember(kind: CorrectionKind, before: string, after: string) {
+    if (before === after) return
+    try {
+      rememberCorrection(props.owner, props.subject ?? 'other', kind, before, after, props.lessonKey)
+      setCorrectionNotice('Запоминаем исправления…')
+      void syncCorrections()
+    } catch { setCorrectionNotice('Не удалось запомнить исправление в браузере. Сохраните изменения в уроке.') }
+  }
+
   const [variants, setVariants] = useState<ChapterVariants>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(variantsKey) || 'null')
@@ -510,6 +532,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     mode: variants.active, codes: variants[variants.active] ?? [], available: variants[variants.active] != null,
     select: (active: ChapterMode) => { if (active !== variants.active && !saving) changeVariants({...variants, active}) },
     change: codes => changeVariants({...variants, [variants.active]:codes}),
+    corrected: (before, after) => remember(variants.active === 'slides' ? 'slide-title' : 'text-title', before, after),
     generate: () => { void openMode(variants.active) }, saving,
   }
   if (!draft && !variants.slides) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
@@ -518,7 +541,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const badChapter = chapters.codes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
   const badLine = draft?.transcript.segments.some(line => !line.text.trim())
   const corrected = (before: string, line: { start: number; end: number; text: string }) => {
-    void suggestTerms(props.subject ?? '', termEditPairs(before, line.text))
+    remember('speech', before, line.text)
     // Отрывок для дообучения: модуль вырежет его из звука, который отложил при обработке.
     const token = localStorage.getItem(tokenKey(props.owner))
     if (draft?.jobId && token) void localRequest('/training', token, { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -526,6 +549,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   }
   const rail = draft ? {draft, change, saving, corrected} : undefined
   const actions = <>
+    {correctionNotice && <small role="status">{correctionNotice} {correctionNotice.includes('ещё не отправлены') && <button type="button" onClick={() => void syncCorrections()}>Повторить отправку</button>}</small>}
     {localSaveFailed && <small role="alert">Не удалось сохранить черновик в браузере. Не обновляйте страницу до сохранения в урок.</small>}
     {(failed || badChapter || badLine) && <small role="alert">{failed ? failed : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
     <div className="transcript-tools">
@@ -533,7 +557,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
       <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={chapters.generate}><RotateCcw size={16}/></button>
-      {draft && <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />}
+      {draft && <MontageAction draft={draft} change={change} corrected={corrected} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />}
       <button data-hover="layer" aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>
@@ -656,9 +680,11 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         setStage(state.stage + (state.bytes ? ' · ' + megabytes(state.bytes) : ''))
         if (state.error) throw new Error(state.stage)
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
+        const memory = await readCorrections(owner, subject ?? 'other')
+        if (!active) return
         if (job.mode === 'slides') {
           if (state.mode !== 'slides' || !Array.isArray(state.chapters) || !state.chapters.length) throw new Error('Не удалось получить главы по слайдам. Текущие главы не изменены.')
-          slidesReadyRef.current(state.chapters.map((c: {start:number;title:string}) => ({seconds:c.start,time:transcriptTime(c.start),label:c.title})))
+          slidesReadyRef.current(state.chapters.map((c: {start:number;title:string}) => ({seconds:c.start,time:transcriptTime(c.start),label:correctedText(sentenceTitle(c.title), 'slide-title', memory),originalTitle:c.title})))
           return
         }
         // Паузы и громкость от модуля (если он уже обновлён) — для окна монтажа.
@@ -666,8 +692,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         if (!read) throw new Error('Нет реплик для проверки.')
         // Голоса от модуля: реплики сразу с говорящими, узнанные — по имени.
         const { transcript, voices } = applyModuleVoices(read, state.voices)
-        readyRef.current({ transcript, jobId: job.id, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
-          ({ seconds: c.start, time: transcriptTime(c.start), label: c.title })) })
+        readyRef.current({ transcript: {...transcript, segments: transcript.segments.map(s => ({...s,text:correctedText(s.text,'speech',memory)}))}, jobId: job.id, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
+          ({ seconds: c.start, time: transcriptTime(c.start), label: correctedText(sentenceTitle(c.title), 'text-title', memory) })) })
       } catch (e) {
         if (!active) return
         const lost = e instanceof LocalTranscriptionUnavailable
