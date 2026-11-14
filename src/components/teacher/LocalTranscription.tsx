@@ -29,7 +29,7 @@ export function useTranscriptionOwner() {
 
 const setupSteps = ['Скачать', 'Загрузки', 'ZIP-файл', 'Открыть', 'Подключить'] as const
 const setupHints = [
-  ['Скачайте Искру для Mac', 'Нажмите «Скачать „Искру“» в этой карточке.', ''],
+  ['Скачайте Искру для Mac', 'Нажмите фиолетовую кнопку выше. Когда загрузка закончится, откройте архив из списка загрузок браузера.', ''],
   ['Откройте загрузки', 'Когда загрузка закончится, нажмите значок загрузок в верхней панели браузера. Если значка нет, откройте «Загрузки» в Finder.', 'Открылись загрузки'],
   ['Распакуйте ZIP-файл', 'В списке загрузок нажмите «Открыть файл» под архивом Искры.', 'Архив распакован'],
   ['Запустите «Искра — расшифровка»', 'Откройте приложение из ZIP, нажмите «Показать приложение в Finder» и откройте выделенную копию. Если macOS попросит разрешение на работу в фоне, включите службу через настройки в окне приложения.', 'Приложение открыто'],
@@ -120,7 +120,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
       </div>
       <div className="transcription-module-state" inert={connected} data-inactive={connected}>
         <p>Установите приложение на Mac один раз. При расшифровке оно само запустит обработчик в фоне.</p>
-        <div className="transcription-steps transcription-stacked-steps">
+        <div className="integration-steps transcription-steps">
           <a className="integration-action transcription-step transcription-download-step" data-primary={setupStep === 0}
             href={MODULE_DOWNLOAD_URL} download aria-disabled={busy} onClick={event => {
               if (busy) { event.preventDefault(); return }
@@ -130,7 +130,9 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
             }}>
             <span className="integration-step-number">{setupStep === 0 ? 1 : <Check size={13} aria-hidden />}</span>
             <span className="transcription-download-label">Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</span>
+            {setupStep === 0 && <ArrowDownToLine size={18} className="transcription-download-icon" aria-hidden />}
           </a>
+          <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
           <button type="button" className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
             data-primary={canConnect} disabled={!canConnect || busy || !owner} onClick={change}>
             <span className="integration-step-number" aria-hidden>2</span>
@@ -155,6 +157,10 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
                     <p>{detail}</p>
                   </div>
                 </div>
+                {index === 0 && <div className="transcription-guide-example">
+                  <span><FileText size={16} aria-hidden /> Файл для Mac</span>
+                  <strong><code>{MODULE_DOWNLOAD_URL.split('/').pop()}</code></strong>
+                </div>}
                 {index === 1 && <div className="transcription-guide-example">
                   <span>Верхняя панель браузера</span>
                   <strong><ArrowDownToLine size={16} aria-hidden /> Загрузки</strong>

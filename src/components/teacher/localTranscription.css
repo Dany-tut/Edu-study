@@ -393,14 +393,8 @@
 }
 .transcription-setup > .transcription-update { grid-area: 1 / 1; align-self: start; }
 .transcription-setup > [data-inactive=true] { visibility: hidden; }
-.transcription-stacked-steps { display: grid; gap: 6px; }
-.transcription-stacked-steps .integration-action {
-  width: 100%;
-  justify-content: flex-start;
-  gap: 12px;
-  padding-inline: 14px;
-  text-align: start;
-}
 .transcription-settings-example { display: grid; }
 .transcription-settings-example strong svg { margin-inline-start: auto; }
 .transcription-module-status { box-sizing: border-box; min-inline-size: 9em; text-align: center; }
+.transcription-download-icon { flex: none; }
+.transcription-guide-example strong { min-width: 0; }
