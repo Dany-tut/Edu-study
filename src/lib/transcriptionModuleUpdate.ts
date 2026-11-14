@@ -15,8 +15,8 @@ import { getOwnerId, getViewAs } from './owner'
  */
 export type ModuleFreshness = 'current' | 'outdated' | 'unknown'
 
-// Подписанный архив приложения доступен с того же сайта без входа в GitHub.
-export const MODULE_DOWNLOAD_URL = `/downloads/Iskra-Transcription-Mac-v${TRANSCRIPTION_PRODUCT_VERSION}.zip`
+// DMG с подписанным приложением доступен с того же сайта без входа в GitHub.
+export const MODULE_DOWNLOAD_URL = `/downloads/Iskra-Transcription-Mac-v${TRANSCRIPTION_PRODUCT_VERSION}.dmg`
 
 /** Что модуль на этом Mac сказал о себе. selfUpdate — умеет POST /update. */
 export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean }
