@@ -93,7 +93,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <p>{module.phase === 'failed'
             ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
             : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
-          <a className="integration-action" data-primary="true" href={MODULE_DOWNLOAD_URL} download>Скачать</a>
+          <a className="integration-action" data-primary="true" href={MODULE_DOWNLOAD_URL} download>Скачать тестовую версию</a>
         </div>}
         <div className="transcription-connected-actions">
           <button type="button" className="integration-action" aria-expanded={showSetup}
@@ -121,7 +121,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               setDownloading(true)
             }}>
             <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
-            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать «Искру»<br />Расшифровка для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</>}</span>
+            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</>}</span>
           </a>
           <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
           <button className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
