@@ -1,4 +1,3 @@
-import TranscriptCorrectionReport from './TranscriptCorrectionReport'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
@@ -131,7 +130,6 @@ export default function TranscriptTermsManager() {
       <div style={{ fontSize: 14, fontWeight: 600, marginTop: 10 }}>{t(status === 'pending' ? 'Новых предложений нет' : 'Здесь пока пусто')}</div>
     </div>}
 
-    <TranscriptCorrectionReport />
     <div className="tterms-grid">
       {visible.map(r => <div key={r.id} className="tterms-slot">
         <div className="tterms-card" role="button" tabIndex={0} title={t('Нажмите, чтобы изменить')}
