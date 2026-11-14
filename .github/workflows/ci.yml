@@ -197,8 +197,10 @@ jobs:
           VITE_SUPABASE_URL: https://qa.invalid
           VITE_SUPABASE_PUBLISHABLE_KEY: qa-fixture-key
         run: |
-          npm install --no-save --package-lock=false --ignore-scripts playwright@1.64.1
-          npx playwright install --with-deps chromium
+          playwright_dir=$(mktemp -d)
+          npm install --prefix "$playwright_dir" --no-save --package-lock=false --ignore-scripts playwright@1.64.1
+          ln -s "$playwright_dir/node_modules/playwright" node_modules/playwright
+          "$playwright_dir/node_modules/.bin/playwright" install --with-deps chromium
           npx vite --host 127.0.0.1 --port 5173 --strictPort > /tmp/iskra-topbar-vite.log 2>&1 &
           vite_pid=$!
           trap 'kill "$vite_pid"' EXIT
