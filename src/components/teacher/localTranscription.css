@@ -336,3 +336,71 @@
 @container (max-width: 500px) {
   .transcription-steps .transcription-download-step { flex: none; width: 100%; }
 }
+
+/* Overlapping states share their intrinsic height at the current width and text scale. */
+.transcription-module-state {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+.transcription-module-state[data-inactive=true],
+.transcription-walkthrough[data-inactive=true],
+.transcription-walkthrough-page[data-inactive=true] { visibility: hidden; }
+.transcription-module-body { grid-template-columns: minmax(0, 1fr); }
+.transcription-module .transcription-setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  animation: none;
+}
+.transcription-module .transcription-setup[data-connected=true] { background: transparent; }
+.transcription-setup > .transcription-walkthrough,
+.transcription-setup > .transcription-module-management,
+.transcription-walkthrough-page { grid-area: 1 / 1; }
+.transcription-module-management { display: grid; align-content: start; gap: 8px; }
+.transcription-walkthrough-pages { display: grid; grid-template-columns: minmax(0, 1fr); }
+.transcription-walkthrough-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  align-content: start;
+  gap: 10px;
+}
+.transcription-walkthrough-page .transcription-walkthrough-actions { grid-row: 3; align-self: end; }
+.transcription-guide-example {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-medium);
+  border-radius: 10px;
+  background: var(--color-bg-2);
+}
+.transcription-guide-example span, .transcription-guide-example strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.transcription-guide-example svg { flex: none; }
+.transcription-guide-example strong {
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--color-purple-text);
+  background: var(--color-purple-soft);
+}
+.transcription-setup > .transcription-update { grid-area: 1 / 1; align-self: start; }
+.transcription-setup > [data-inactive=true] { visibility: hidden; }
+.transcription-stacked-steps { display: grid; gap: 6px; }
+.transcription-stacked-steps .integration-action {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 12px;
+  padding-inline: 14px;
+  text-align: start;
+}
+.transcription-settings-example { display: grid; }
+.transcription-settings-example strong svg { margin-inline-start: auto; }
+.transcription-module-status { box-sizing: border-box; min-inline-size: 9em; text-align: center; }
