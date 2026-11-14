@@ -12,6 +12,7 @@ from functools import lru_cache
 
 from media_tools import FFMPEG, duration as media_duration
 from progress import record
+from slide_frames import TitleCache, frames
 
 REGIONS = {
     'top-left': (0, 0, .65, .24), 'top-right': (.35, 0, .65, .24),
@@ -141,6 +142,43 @@ def scan(read, duration, report=lambda *_: None):
     return sorted(chapters, key=lambda row: row['start'])
 
 
+def process_video(source, duration, region, engine, report=lambda *_: None):
+    x, y, w, h = REGIONS[region]
+    crop = f'crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale=min(1800\\,iw*2):-2'
+    cache = TitleCache(lambda image: recognize(engine, image))
+    # Round timestamps upwards: a frame occurring after t must not be assigned
+    # to sample t. Refinement below still seeks directly around a new heading.
+    command = [FFMPEG, '-nostdin', '-v', 'error', '-threads', '2', '-filter_threads', '1',
+        *SAFE, '-i', str(source), '-an', '-sn', '-vf',
+        f'fps=1/{STEP}:start_time=0:round=up:eof_action=pass,{crop}',
+        '-f', 'image2pipe', '-c:v', 'ppm', '-']
+    sampled = 0
+    with frames(command) as stream:
+        @lru_cache(maxsize=16)
+        def read(at):
+            nonlocal sampled
+            # scan visits coarse samples monotonically, with occasional earlier
+            # bisection probes. Never move/restart the sequential decoder for those.
+            if at == sampled*STEP:
+                try: image = next(stream)
+                except StopIteration as error: raise ValueError('Видео закончилось раньше ожидаемого. Проверьте запись.') from error
+                sampled += 1
+            else:
+                # Keep pre-seek frames for fps to choose the frame displayed at
+                # this time. Accurate seek would jump to a future frame in VFR.
+                import cv2
+                import numpy as np
+                out = subprocess.run([FFMPEG, '-nostdin', '-v', 'error', '-threads', '2',
+                    '-filter_threads', '1', *SAFE, '-ss', str(at), '-noaccurate_seek', '-i', str(source),
+                    '-frames:v', '1', '-vf', f'fps=2:start_time=0:round=up:eof_action=pass,{crop}', '-f', 'image2pipe', '-c:v', 'png', '-'],
+                    capture_output=True, timeout=30, check=True)
+                image = cv2.imdecode(np.frombuffer(out.stdout, dtype=np.uint8), cv2.IMREAD_COLOR)
+                if image is None: raise ValueError('Не удалось прочитать кадр видео.')
+            return cache.read(image, at)
+        result = scan(read, duration, report)
+    return result, dict(samples=sampled, ocr=cache.calls, reused=cache.hits)
+
+
 def main(source, folder, region):
     folder, source = Path(folder), Path(source)
     if region not in REGIONS: raise ValueError('Выберите расположение заголовка на слайде.')
@@ -155,15 +193,9 @@ def main(source, folder, region):
         raise ValueError('Не удалось подготовить распознавание слайдов. Проверьте интернет и свободное место на Mac, затем повторите.') from error
     duration = media_duration(source, SAFE)
     if duration <= 0: raise ValueError('Не удалось определить длительность видео.')
-    x, y, w, h = REGIONS[region]
-    @lru_cache(maxsize=16)
-    def read(at):
-        image = subprocess.run([FFMPEG, '-nostdin', '-v', 'error', *SAFE, '-ss', str(at), '-i', str(source),
-            '-frames:v', '1', '-vf', f'crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale=min(1800\\,iw*2):-2',
-            '-f', 'image2pipe', '-c:v', 'png', '-'], capture_output=True, timeout=30, check=True)
-        if not image.stdout: raise ValueError('Не удалось прочитать кадры видео.')
-        return recognize(engine, image.stdout)
-    chapters = scan(read, duration, lambda done, total: record(folder, 'Читаем слайды', done, total, 'frames', 'Ищем заголовки слайдов'))
+    chapters, metrics = process_video(source, duration, region, engine,
+        lambda done, total: record(folder, 'Читаем слайды', done, total, 'frames', 'Ищем заголовки слайдов'))
+    print(f'Slide OCR metrics: {metrics}', flush=True)
     if not chapters:
         raise ValueError('Заголовки не найдены. Выберите другую область слайда и повторите. Текущие главы не изменены.')
     (folder/'chapters.json').write_text(json.dumps(chapters, ensure_ascii=False))
