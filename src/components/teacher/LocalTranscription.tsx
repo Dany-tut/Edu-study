@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowDown, ArrowRight, ArrowUpRight, AudioLines, Check, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
+import { ArrowDownToLine, ArrowRight, AudioLines, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
@@ -31,7 +31,7 @@ const setupSteps = ['Скачать', 'Загрузки', 'ZIP-файл', 'От�
 const setupHints = [
   ['Скачайте Искру для Mac', 'Нажмите «Скачать „Искру“» в этой карточке.', ''],
   ['Откройте загрузки', 'Когда загрузка закончится, нажмите значок загрузок в верхней панели браузера. Если значка нет, откройте «Загрузки» в Finder.', 'Открылись загрузки'],
-  ['Распакуйте ZIP-файл', 'Откройте этот архив в загрузках. Если приложение уже появилось рядом с ним, переходите дальше.', 'Архив распакован'],
+  ['Распакуйте ZIP-файл', 'В списке загрузок нажмите «Открыть файл» под архивом Искры.', 'Архив распакован'],
   ['Запустите «Искра — расшифровка»', 'Откройте приложение из ZIP, нажмите «Показать приложение в Finder» и откройте выделенную копию. Если macOS попросит разрешение на работу в фоне, включите службу через настройки в окне приложения.', 'Приложение открыто'],
   ['Подключите компьютер', 'Вернитесь в эту вкладку и нажмите «Подключить компьютер». Если браузер попросит доступ к локальной сети, разрешите его.', ''],
 ] as const
@@ -45,18 +45,20 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const stepKey = 'iskra.transcription.setupStep.' + owner
   const [setupStep, setSetupStep] = useState(() => {
-    const saved = Number(localStorage.getItem(stepKey))
-    if (Number.isInteger(saved) && saved > 0 && saved < setupSteps.length) return saved
+    const storedStep = localStorage.getItem(stepKey)
+    const saved = Number(storedStep)
+    if (storedStep !== null && Number.isInteger(saved) && saved >= 0 && saved < setupSteps.length) return saved
     return localStorage.getItem(downloadKey) === '1' ? 1 : 0
   })
   const setupId = useId()
   const [showSetup, setShowSetup] = useState(false)
-  const [hintTitle, hintText, nextLabel] = setupHints[setupStep]
+  const [showPermission, setShowPermission] = useState(false)
   const canConnect = setupStep === setupSteps.length - 1
 
   function goToSetupStep(step: number) {
     localStorage.setItem(stepKey, String(step))
     setSetupStep(step)
+    setShowPermission(false)
   }
 
   const [message, setMessage] = useState('')
@@ -76,6 +78,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         goToSetupStep(setupSteps.length - 1)
         localStorage.setItem(downloadKey, '1')
         localStorage.removeItem(tokenKey(owner))
+        setShowSetup(false)
       } else {
         requestTranscriptionCompanionStart()
         await waitForTranscriptionCompanion()
@@ -101,32 +104,23 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
       </span>
     </header>
     <div className="transcription-module-body">
-      {connected ? <>
+      <div className="transcription-module-state" inert={!connected} data-inactive={!connected}>
         <p>Фоновый модуль запускается по запросу из Искры. Терминал открывать не нужно; код модуля обновляется автоматически.</p>
-        {manualUpdate && <div className="transcription-update" role="status">
-          <p>{module.phase === 'failed'
-            ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
-            : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
-          <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
-            <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
-          </a>
-        </div>}
         <div className="transcription-connected-actions">
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
-            {showSetup ? 'Скрыть инструкцию' : 'Управление модулем'}
+            Управление модулем
           </button>
-          {module.local && <span className="transcription-module-version" title={'Версия модуля ' + module.local}>
-            Версия {module.local.slice(0, 7)}{module.selfUpdate && !manualUpdate ? ' · обновляется сама' : ''}
-          </span>}
+
           <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}
             aria-label={busy ? 'Отключаем…' : 'Отключить компьютер'}>
             {busy ? 'Отключаем…' : 'Отключить'}
           </button>
         </div>
-      </> : <>
+      </div>
+      <div className="transcription-module-state" inert={connected} data-inactive={connected}>
         <p>Установите приложение на Mac один раз. При расшифровке оно само запустит обработчик в фоне.</p>
-        <div className="integration-steps transcription-steps">
+        <div className="transcription-steps transcription-stacked-steps">
           <a className="integration-action transcription-step transcription-download-step" data-primary={setupStep === 0}
             href={MODULE_DOWNLOAD_URL} download aria-disabled={busy} onClick={event => {
               if (busy) { event.preventDefault(); return }
@@ -134,49 +128,96 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               localStorage.setItem(downloadKey, '1')
               goToSetupStep(1)
             }}>
-            <span className="integration-step-number">{setupStep === 0 ? <ArrowRight size={14} aria-hidden /> : <Check size={13} aria-hidden />}</span>
+            <span className="integration-step-number">{setupStep === 0 ? 1 : <Check size={13} aria-hidden />}</span>
             <span className="transcription-download-label">Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</span>
           </a>
-          <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
           <button type="button" className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
             data-primary={canConnect} disabled={!canConnect || busy || !owner} onClick={change}>
-            <span className="integration-step-number"><ArrowRight size={14} aria-hidden /></span>
+            <span className="integration-step-number" aria-hidden>2</span>
             <span>{busy ? 'Запускаем модуль…' : 'Подключить компьютер'}</span>
           </button>
         </div>
-      </>}
-      <div id={setupId} className="transcription-setup">
-        {!connected && <div className="transcription-walkthrough">
+      </div>
+      <div id={setupId} className="transcription-setup" data-connected={connected} aria-live="polite">
+        <div className="transcription-walkthrough" inert={connected} data-inactive={connected}>
           <ol className="transcription-walkthrough-steps" aria-label="Этапы настройки">
             {setupSteps.map((step, index) => <li key={step} aria-current={index === setupStep ? 'step' : undefined}
               data-done={index < setupStep}>{index < setupStep && <Check size={12} aria-hidden />}<span>{step}</span></li>)}
           </ol>
-          <div className="transcription-walkthrough-hint">
-            <img src="/transcription/ogonek.webp" alt="" width={56} height={56} />
-            <div aria-live="polite">
-              <h4>{hintTitle} {setupStep === 1 && <ArrowUpRight size={16} aria-hidden />}</h4>
-              <p>{hintText}</p>
-              {setupStep === 1 && <p className="transcription-download-symbol"><ArrowDown size={15} aria-hidden /> Значок в панели браузера</p>}
-              {setupStep === 2 && <p><code>{MODULE_DOWNLOAD_URL.split('/').pop()}</code></p>}
+          <div className="transcription-walkthrough-pages">
+            {setupHints.map(([title, detail, nextLabel], index) => (
+              <div className="transcription-walkthrough-page" key={title} inert={index !== setupStep || showPermission}
+                data-inactive={index !== setupStep || showPermission}>
+                <div className="transcription-walkthrough-hint">
+                  <img src="/transcription/ogonek.webp" alt="" width={56} height={56} />
+                  <div>
+                    <h4>{title}</h4>
+                    <p>{detail}</p>
+                  </div>
+                </div>
+                {index === 1 && <div className="transcription-guide-example">
+                  <span>Верхняя панель браузера</span>
+                  <strong><ArrowDownToLine size={16} aria-hidden /> Загрузки</strong>
+                </div>}
+                {index === 2 && <div className="transcription-guide-example">
+                  <span><FileText size={16} aria-hidden /> <code>{MODULE_DOWNLOAD_URL.split('/').pop()}</code></span>
+                  <strong><ArrowRight size={16} aria-hidden /> Открыть файл</strong>
+                </div>}
+                {index === 3 && <div className="transcription-guide-example">
+                  <span><FolderOpen size={16} aria-hidden /> Finder · Загрузки</span>
+                  <strong>Искра — расшифровка</strong>
+                </div>}
+                <div className="transcription-walkthrough-actions">
+                  {index > 0 && <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(index - 1)}>Назад</button>}
+                  {nextLabel && <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(index + 1)}>
+                    {nextLabel} <ArrowRight size={14} aria-hidden />
+                  </button>}
+                  {index < 3 && <button type="button" className="integration-action" onClick={() => goToSetupStep(setupSteps.length - 1)}>
+                    Искра уже установлена
+                  </button>}
+                  {index === 3 && <button type="button" className="integration-action" onClick={() => setShowPermission(true)}>
+                    Где включить разрешение
+                  </button>}
+                </div>
+              </div>
+            ))}
+            <div className="transcription-walkthrough-page" inert={!showPermission} data-inactive={!showPermission}>
+              <div>
+                <h4>Разрешите работу Искры в фоне</h4>
+                <p>Если Искра попросила разрешение, нажмите «Настройки фоновой службы» в окне приложения.</p>
+              </div>
+              <div className="transcription-guide-example transcription-settings-example">
+                <span><Settings size={16} aria-hidden /> Системные настройки</span>
+                <span>Основные / Объекты входа и расширения</span>
+                <span>Разрешить в фоновом режиме</span>
+                <strong>Искра — расшифровка <ToggleRight size={20} aria-hidden /> <span className="sr-only">Включено</span></strong>
+              </div>
+              <div className="transcription-walkthrough-actions">
+                <button type="button" className="integration-action" onClick={() => setShowPermission(false)}>Назад</button>
+                <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(setupSteps.length - 1)}>Разрешение включено</button>
+              </div>
             </div>
           </div>
-          <div className="transcription-walkthrough-actions">
-            {setupStep > 0 && <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(setupStep - 1)}>Назад</button>}
-            {nextLabel && <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(setupStep + 1)}>
-              {nextLabel} <ArrowRight size={14} aria-hidden />
-            </button>}
-            {setupStep < 3 && <button type="button" className="integration-action" onClick={() => goToSetupStep(setupSteps.length - 1)}>
-              Искра уже установлена
-            </button>}
-          </div>
-        </div>}
-        {connected && showSetup && <div className="transcription-launch-guide">
+        </div>
+        <div className="transcription-update" role="status" inert={!connected || !manualUpdate || showSetup}
+          data-inactive={!connected || !manualUpdate || showSetup}>
+          <p>{module.phase === 'failed'
+            ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
+            : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
+          <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
+            <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
+          </a>
+        </div>
+        <div className="transcription-launch-guide transcription-module-management" inert={!connected || !showSetup}
+          data-inactive={!connected || !showSetup}>
           <h4>Работа в фоне</h4>
+          <p>{module.local ? `Версия ${module.local.slice(0, 7)}${module.selfUpdate && !manualUpdate ? ' · обновляется сама' : ''}` : 'Версия модуля пока недоступна.'}</p>
           <p>Откройте «Искра — расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
-          {!manualUpdate && <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
+          <p>Разрешение находится в разделе «Системные настройки / Основные / Объекты входа и расширения / Разрешить в фоновом режиме».</p>
+          <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
             <span>Скачать для переустановки<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
-          </a>}
-        </div>}
+          </a>
+        </div>
       </div>
       {message && <p className="transcription-module-error" role="alert">{message}</p>}
     </div>
