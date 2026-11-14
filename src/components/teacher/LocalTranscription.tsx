@@ -93,9 +93,11 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <p>{module.phase === 'failed'
             ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
             : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
-          <a className="integration-action" data-primary="true" href={MODULE_DOWNLOAD_URL} download>Скачать тестовую версию</a>
         </div>}
         <div className="transcription-connected-actions">
+          <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
+            Скачать тестовую версию v{TRANSCRIPTION_PRODUCT_VERSION}
+          </a>
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
             {showSetup ? 'Скрыть инструкцию' : 'Управление модулем'}
