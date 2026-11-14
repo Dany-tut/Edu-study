@@ -1,11 +1,10 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowRight, AudioLines, Check, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { AudioLines, Check, Eye, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
 import Switch from '../Switch'
-import { MODULE_DOWNLOAD_URL, useModuleState } from '../../lib/transcriptionModuleUpdate'
-import { TRANSCRIPTION_PRODUCT_VERSION } from '../../lib/transcriptionProductVersion'
+import { useModuleState } from '../../lib/transcriptionModuleUpdate'
 import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../../lib/transcriptTerms'
 import type { RecapControl } from './LessonRecapPanel'
 import './profileIntegrations.css'
@@ -33,18 +32,6 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   // скачивать архив руками нужно только старому, без POST /update.
   const module = useModuleState(connected, connected ? localStorage.getItem(tokenKey(owner)) || '' : '')
   const manualUpdate = (module.phase === 'outdated' && !module.selfUpdate) || module.phase === 'failed'
-  const downloadKey = 'iskra.transcription.downloadStarted.' + owner
-  const [downloadStarted, setDownloadStarted] = useState(() => connected || localStorage.getItem(downloadKey) === '1')
-  const guide = useRef<HTMLDivElement>(null)
-  const setupId = useId()
-  const [showSetup, setShowSetup] = useState(false)
-  const [downloading, setDownloading] = useState(false)
-  useEffect(() => {
-    if (!downloading) return
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 4000
-    const timer = window.setTimeout(() => setDownloading(false), delay)
-    return () => window.clearTimeout(timer)
-  }, [downloading])
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   async function change() {
@@ -59,8 +46,6 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         void localRequest('/connect', localStorage.getItem(tokenKey(owner)) || '', {
           method: 'DELETE', signal: AbortSignal.timeout(3000),
         }).catch(() => { /* companion offline: pairing is forgotten locally anyway */ })
-        setDownloadStarted(true)
-        localStorage.setItem(downloadKey, '1')
         localStorage.removeItem(tokenKey(owner))
       } else {
         requestTranscriptionCompanionStart()
@@ -88,18 +73,14 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
     </header>
     <div className="transcription-module-body">
       {connected ? <>
-        <p>Фоновый модуль запускается по запросу из Искры. Терминал открывать не нужно; код модуля обновляется автоматически.</p>
+        <p role="status">Запуск модуля для Mac временно приостановлен.</p>
         {manualUpdate && <div className="transcription-update" role="status">
           <p>{module.phase === 'failed'
             ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
             : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
-          <a className="integration-action" data-primary="true" href={MODULE_DOWNLOAD_URL} download>Скачать тестовую версию</a>
+
         </div>}
         <div className="transcription-connected-actions">
-          <button type="button" className="integration-action" aria-expanded={showSetup}
-            aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
-            {showSetup ? 'Скрыть инструкцию' : 'Управление модулем'}
-          </button>
           {module.local && <span className="transcription-module-version" title={'Версия модуля ' + module.local}>
             Версия {module.local.slice(0, 7)}{module.selfUpdate && !manualUpdate ? ' · обновляется сама' : ''}
           </span>}
@@ -109,37 +90,8 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           </button>
         </div>
       </> : <>
-        <p>Установите приложение на Mac один раз. При расшифровке оно само запустит обработчик в фоне.</p>
-        <div className="integration-steps transcription-steps">
-          <a className="integration-action transcription-step transcription-download-step" data-primary={!downloadStarted}
-            data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL}
-            aria-disabled={downloading || busy} onClick={event => {
-              if (downloading || busy) { event.preventDefault(); return }
-              setMessage('')
-              localStorage.setItem(downloadKey, '1')
-              setDownloadStarted(true)
-              setDownloading(true)
-            }}>
-            <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
-            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</>}</span>
-          </a>
-          <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
-          <button className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
-            data-primary={downloadStarted && !downloading}
-            disabled={!downloadStarted || downloading || busy || !owner} onClick={change}>
-            <span className="integration-step-number">2</span>
-            <span>{busy ? 'Запускаем модуль…' : 'Подключить компьютер'}</span>
-          </button>
-        </div>
+        <p role="status">Скачивание и подключение модуля для Mac временно приостановлены.</p>
       </>}
-      <div id={setupId} aria-live="polite" className="transcription-setup">
-        {downloadStarted && !downloading && (!connected || showSetup) && <div className="transcription-launch-guide" ref={guide}>
-          <h4>{connected ? 'Работа в фоне' : 'Первый запуск'}</h4>
-          {connected
-            ? <p>Откройте «Искра — расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
-            : <p>Откройте скачанный ZIP и один раз запустите приложение «Искра — расшифровка». Оно перенесёт себя в папку Программы пользователя и зарегистрирует фоновую службу. Если Mac попросит разрешение, включите её в «Системные настройки → Основные → Объекты входа и расширения».</p>}
-        </div>}
-      </div>
       {message && <p className="transcription-module-error" role="alert">{message}</p>}
     </div>
   </section>
