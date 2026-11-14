@@ -10,6 +10,7 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Запись урока пока недоступна': 'The lesson recording is not available yet',
   'Код из Тестли': 'Testly code',
   'Вставьте код через меню поля.': 'Paste the code using the field menu.',
   "Лента занятий": "Lesson feed",
