@@ -136,6 +136,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow!
     private var statusLabel: NSTextField!
     private var detailLabel: NSTextField!
+    private var startButton: NSButton!
+    private var stopButton: NSButton!
+    private var settingsButton: NSButton!
+    private var revealButton: NSButton!
 
     private var startTask: Task<Void, Never>?
     private var pendingApproval = false
@@ -176,7 +180,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // resolves it to this copy again, stop rather than handing off again.
         if CommandLine.arguments.contains("--installed-handoff")
             || ProcessInfo.processInfo.environment["ISKRA_INSTALL_HANDOFF"] == "1" {
-            showError("Откройте «Искра — расшифровка» из папки «Программы» пользователя.")
+            showInstallRecovery()
             return true
         }
         installing = true
@@ -217,8 +221,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 DispatchQueue.main.async {
                     close(lock)
                     self.installing = false
-                    if let error {
-                        self.showError("Откройте установленную копию из папки «Программы». \(error.localizedDescription)")
+                    if error != nil {
+                        self.showInstallRecovery()
                     } else {
                         NSApp.terminate(nil)
                     }
@@ -247,12 +251,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         detailLabel.textColor = .secondaryLabelColor; detailLabel.lineBreakMode = .byWordWrapping; detailLabel.maximumNumberOfLines = 3
         detailLabel.frame = NSRect(x: 28, y: 146, width: 404, height: 48); content.addSubview(detailLabel)
 
-        let start = button("Запустить обработчик", action: #selector(startClicked))
-        start.frame = NSRect(x: 28, y: 92, width: 196, height: 38); content.addSubview(start)
-        let stop = button("Остановить", action: #selector(stopClicked))
-        stop.frame = NSRect(x: 232, y: 92, width: 110, height: 38); content.addSubview(stop)
-        let settings = button("Настройки фоновой службы", action: #selector(settingsClicked))
-        settings.frame = NSRect(x: 28, y: 42, width: 240, height: 32); content.addSubview(settings)
+        startButton = button("Запустить обработчик", action: #selector(startClicked))
+        startButton.frame = NSRect(x: 28, y: 92, width: 196, height: 38)
+        content.addSubview(startButton)
+        stopButton = button("Остановить", action: #selector(stopClicked))
+        stopButton.frame = NSRect(x: 232, y: 92, width: 110, height: 38)
+        content.addSubview(stopButton)
+        settingsButton = button("Настройки фоновой службы", action: #selector(settingsClicked))
+        settingsButton.frame = NSRect(x: 28, y: 42, width: 240, height: 32)
+        content.addSubview(settingsButton)
+
+        revealButton = button("Показать приложение в Finder", action: #selector(revealInstalledApp))
+        revealButton.frame = NSRect(x: 28, y: 92, width: 260, height: 38)
+        revealButton.isHidden = true
+        content.addSubview(revealButton)
 
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
         let build = (Bundle.main.infoDictionary?["IskraInstallerVersion"] as? String ?? "").prefix(7)
@@ -331,6 +343,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         default:
             showError("macOS не зарегистрировала обработчик. Переустановите приложение и откройте его из папки «Программы».")
         }
+    }
+
+    private func showInstallRecovery() {
+        guard FileManager.default.fileExists(atPath: Companion.installedURL.path) else {
+            showError("Установленная копия не найдена. Закройте это окно и снова откройте приложение из ZIP.")
+            return
+        }
+        startButton.isHidden = true
+        stopButton.isHidden = true
+        settingsButton.isHidden = true
+        revealButton.isHidden = false
+        statusLabel.stringValue = "Откройте установленное приложение"
+        detailLabel.stringValue = "Покажите приложение в Finder и откройте выделенный файл. Затем вернитесь в Искру."
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func revealInstalledApp() {
+        NSWorkspace.shared.activateFileViewerSelecting([Companion.installedURL])
     }
 
     private func showError(_ message: String) {
