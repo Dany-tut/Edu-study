@@ -96,7 +96,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         </div>}
         <div className="transcription-connected-actions">
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
-            Скачать тестовую версию v{TRANSCRIPTION_PRODUCT_VERSION}
+            <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
           </a>
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>

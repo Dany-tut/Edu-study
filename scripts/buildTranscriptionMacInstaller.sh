@@ -4,11 +4,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MODE="${1:---release}"
 BUILD="$ROOT/.build/transcription-macos"
-APP="$BUILD/Iskra — расшифровка.app"
-APP_CONTENTS="$APP/Contents"
 VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" "$ROOT/src/lib/transcriptionModuleVersion.ts" | head -1)"
 INSTALLER_VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" "$ROOT/src/lib/transcriptionInstallerVersion.ts" | head -1)"
 PRODUCT_VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" "$ROOT/src/lib/transcriptionProductVersion.ts" | head -1)"
+# Finder and Gatekeeper show the downloaded bundle name before first launch.
+APP="$BUILD/Искра — расшифровка v$PRODUCT_VERSION.app"
+APP_CONTENTS="$APP/Contents"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "Сборка установщика для Mac запускается на macOS." >&2
