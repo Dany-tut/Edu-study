@@ -5981,19 +5981,17 @@ const LESSON_MODES: { id: LessonMode; label: string }[] = [
  * после клика они плавно меняются местами.
  * Половины — span с ролью кнопки: настоящая кнопка внутри кнопки недопустима.
  */
-function RecordingViewSplit({ view, hasMontage, onView, label }: {
+export function RecordingViewSplit({ view, hasMontage, onView, label }: {
   view: 'original' | 'preview'; hasMontage: boolean; onView: (view: 'original' | 'preview') => void; label: string
 }) {
   const t = useT()
-  const current = hasMontage ? view : 'original'
+  const current = view
   const pick = (next: 'original' | 'preview') => (e: React.SyntheticEvent) => {
     e.stopPropagation()
-    if (next === 'preview' && !hasMontage) return
     onView(next)
   }
   const half = (id: 'original' | 'preview', Icon: typeof Video, long: string, short: string, title: string) => (
     <span role="button" tabIndex={0} className="recording-split-half" aria-pressed={current === id} aria-label={long} title={title}
-      aria-disabled={id === 'preview' && !hasMontage ? true : undefined}
       onClick={pick(id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(id)(e) } }}>
       <Icon size={15} className="recording-split-icon" aria-hidden />
       <span className="recording-split-long">{long}</span><span className="recording-split-short">{short}</span>
@@ -6005,7 +6003,7 @@ function RecordingViewSplit({ view, hasMontage, onView, label }: {
       {half('original', Video, t('Оригинал'), t('Оригинал'), t('Исходная запись: ссылка, главы, текст'))}
       <span className="recording-split-divider" aria-hidden />
       {half('preview', Eye, t('Предпросмотр'), t('Просмотр'),
-        hasMontage ? t('Как увидит ученик: вырезанное пропускается, тихое ускорено') : t('Монтажа пока нет — сначала примените монтаж и сохраните расшифровку'))}
+        hasMontage ? t('Как увидит ученик: вырезанное пропускается, тихое ускорено') : t('Как увидит ученик: запись без изменений монтажа'))}
     </span></span>
   </>
 }
@@ -7849,7 +7847,7 @@ export default function TeacherCourseEditorPage() {
                         trend={course.lessons.map(l => ({ id: l.id, title: l.title, current: l.id === selectedLesson.id, stats: l.transcript?.montage?.stats }))}
                         linesSlot={recordingLinesSlot}
                         subject={course.subject}
-                        preview={recordingView === 'preview' && !!montagePlan(selectedLesson)}
+                        preview={recordingView === 'preview'}
                         recapCourse={{
                           lang: getSubject(course.subject)?.langCode ?? '',
                           subject: getSubject(course.subject)?.id ?? course.subject,
