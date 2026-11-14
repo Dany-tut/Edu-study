@@ -1,6 +1,7 @@
 import './teacherProfileHeader.css'
 import FadeText from '../../components/FadeText'
 import ProfileChips from '../../components/ProfileChips'
+import { readProfileSection, writeProfileSection, type ProfileSection } from '../../lib/profileSectionState'
 import HScrollFade from '../../components/HScrollFade'
 import { FriendsContent } from '../../components/DesktopFriends'
 import type { FriendsModel } from '../../lib/desktopFriends'
@@ -77,14 +78,16 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
   const teacherGuides = useTeacherGuides()
   const t = useT()
   // Переход из уведомления («обновите модуль») открывает сразу «Интеграции».
-  const [page, setPage] = useState<'main' | 'integrations' | 'settings'>(() => {
+  const [page, setPage] = useState<ProfileSection>(() => {
     if (embedded) return embedded === 'schedule' ? 'settings' : 'main'
     try {
       const wanted = sessionStorage.getItem('profile_section')
       sessionStorage.removeItem('profile_section')
-      return wanted === 'integrations' || wanted === 'settings' ? wanted : 'main'
-    } catch { return 'main' }
+      if (wanted === 'integrations' || wanted === 'settings') return wanted
+    } catch { /* fall back to the last profile section */ }
+    return readProfileSection() ?? 'main'
   })
+  useEffect(() => { if (!embedded) writeProfileSection(page) }, [embedded, page])
   useEffect(() => {
     const open = (e: Event) => {
       const wanted = (e as CustomEvent<string>).detail
@@ -320,7 +323,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
                   <FadeText>{handle}</FadeText>
                 </button>
               ) : friends.account && (friends.snapshot || friends.error) ? (
-                <button type="button" className="teacher-profile-name" onClick={() => friends.setTab('profile')}>
+                <button type="button" className="teacher-profile-name" onClick={() => { setPage('friends'); friends.setTab('profile') }}>
                   <FadeText>{friends.error ? t('Ник и видимость') : handle ? handle + ' · ' + t('Включить поиск') : t('Выбрать ник')}</FadeText>
                 </button>
               ) : null}
@@ -329,8 +332,9 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
           </div>
           <HScrollFade padX={2} padTop={3} padBottom={3} fadeWidth={22} style={{ minWidth: 0, maxWidth: '100%', justifySelf: 'center' }}>
             <ProfileChips label={t('Разделы профиля')} value={section} items={sections} onChange={id => {
+              setPage(id)
               if (id === 'friends') friends.setTab('contacts')
-              else { friends.setTab(null); setPage(id) }
+              else friends.setTab(null)
             }}/>
           </HScrollFade>
           {teacherGuides && <button data-hover="layer" type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
