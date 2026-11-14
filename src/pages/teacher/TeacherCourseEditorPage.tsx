@@ -1580,22 +1580,23 @@ export function TimecodeRail({
       border: '1px solid var(--color-border-soft)',
       boxShadow: 'var(--shadow-2)',
     } as React.CSSProperties}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ListVideo size={16} style={{ color: 'var(--color-green-text)' }} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{rail || chapters ? 'Главы' : t('Таймкоды')}</span>{rail && <small className="chapter-count">{codes.length}</small>}
-        <span style={{ flex: 1 }} />
+      <div className={`chapter-header${chapters ? ' chapter-header--modes' : ''}`}>
+        <div className="chapter-header-title">
+          <ListVideo size={16} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
+          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{rail || chapters ? 'Главы' : t('Таймкоды')}</span>
+          {(rail || chapters) && <small className="chapter-count">{codes.length}</small>}
+        </div>
         {total > 0 && (
-          <span style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)' }}>
+          <span className="chapter-header-clock" style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)' }}>
             {clock(at)} / {clock(total)}
           </span>
         )}
+        {chapters && <div className="chapter-header-modes">
+          <Segmented variant="filter" value={chapters.mode} onChange={value => { setEditingTime(null); if (!chapters.saving) chapters.select(value as 'text' | 'slides') }}
+            items={[{id:'slides',label:'По слайдам'},{id:'text',label:'По тексту'}]} />
+        </div>}
       </div>
-
-      {chapters && <>
-        <Segmented variant="filter" value={chapters.mode} onChange={value => { setEditingTime(null); if (!chapters.saving) chapters.select(value as 'text' | 'slides') }}
-          items={[{id:'slides',label:'По слайдам'},{id:'text',label:'По тексту'}]} />
-        {!chapters.available && <button type="button" className="transcription-rail-action" disabled={chapters.saving} onClick={chapters.generate}>Создать главы {chapters.mode === 'slides' ? 'по слайдам' : 'по тексту'}</button>}
-      </>}
+      {chapters && !chapters.available && <button type="button" className="transcription-rail-action" disabled={chapters.saving} onClick={chapters.generate}>Создать главы {chapters.mode === 'slides' ? 'по слайдам' : 'по тексту'}</button>}
       <ScrollFade maxHeight="100%" fadeHeight={14} style={{ flex:1,minHeight:0 }}>
         {codes.map((tc, i) => {
           const isActive = i === active && total > 0
