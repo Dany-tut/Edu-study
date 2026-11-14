@@ -112,27 +112,31 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         </div>
       </> : <>
         <p>Установите приложение на Mac один раз. При расшифровке оно само запустит обработчик в фоне.</p>
-        <div className="integration-steps transcription-steps">
-          <a className="integration-action transcription-step transcription-download-step" data-primary={!downloadStarted}
-            data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL}
-            aria-disabled={downloading || busy} onClick={event => {
-              if (downloading || busy) { event.preventDefault(); return }
-              setMessage('')
-              localStorage.setItem(downloadKey, '1')
-              setDownloadStarted(true)
-              setDownloading(true)
-            }}>
-            <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
-            <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</>}</span>
-          </a>
-          <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
-          <button className="integration-action transcription-step" data-phase={busy ? 'connecting' : 'idle'}
-            data-primary={downloadStarted && !downloading}
-            disabled={!downloadStarted || downloading || busy || !owner} onClick={change}>
-            <span className="integration-step-number">2</span>
-            <span>{busy ? 'Запускаем модуль…' : 'Подключить компьютер'}</span>
-          </button>
-        </div>
+        <ol className="transcription-steps" aria-label="Шаги подключения компьютера">
+          <li>
+            <a className="integration-action transcription-step transcription-download-step" data-primary={!downloadStarted}
+              data-phase={downloading ? 'download' : 'idle'} href={MODULE_DOWNLOAD_URL}
+              aria-disabled={downloading || busy} onClick={event => {
+                if (downloading || busy) { event.preventDefault(); return }
+                setMessage('')
+                localStorage.setItem(downloadKey, '1')
+                setDownloadStarted(true)
+                setDownloading(true)
+              }}>
+              <span className="integration-step-number">{downloadStarted && !downloading ? <Check size={13} aria-hidden/> : '1'}</span>
+              <span className="transcription-download-label">{downloading ? 'Скачивание…' : <>Скачать «Искру»<br />Тестовая версия для Mac · v{TRANSCRIPTION_PRODUCT_VERSION}</>}</span>
+            </a>
+          </li>
+          <li>
+            <ArrowRight size={16} className="integration-step-arrow" aria-hidden />
+            <button className="integration-action transcription-step transcription-connect-step" data-phase={busy ? 'connecting' : 'idle'}
+              data-primary={downloadStarted && !downloading}
+              disabled={!downloadStarted || downloading || busy || !owner} onClick={change}>
+              <span className="integration-step-number">2</span>
+              <span>{busy ? 'Запускаем модуль…' : 'Подключить компьютер'}</span>
+            </button>
+          </li>
+        </ol>
       </>}
       <div id={setupId} aria-live="polite" className="transcription-setup">
         {downloadStarted && !downloading && (!connected || showSetup) && <div className="transcription-launch-guide" ref={guide}>

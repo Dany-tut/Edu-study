@@ -44,7 +44,10 @@
 .transcription-launch-guide > .transcription-reinstall-action {justify-self:start;align-self:start;width:min(100%,14.5rem);min-height:44px;margin:0;border-radius:12px;background:var(--color-bg-2)}
 
 .transcription-step {position:relative;isolation:isolate;overflow:hidden}
-.transcription-steps .transcription-download-step {flex:1 1 17rem;width:auto;justify-content:flex-start;gap:8px;padding-inline:14px}
+.transcription-steps {display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.transcription-steps > li {display:grid;justify-items:start;gap:8px;min-width:0}
+.transcription-steps .transcription-step {flex:none;width:min(100%,22rem);justify-content:flex-start;gap:16px;padding-inline:14px;text-align:start}
+.transcription-steps .integration-step-arrow {justify-self:center;transform:rotate(90deg)}
 .transcription-download-label {display:block;flex:1;line-height:1.2;text-align:left}
 .transcription-step::before {
   content:'';position:absolute;inset:0;z-index:-1;background:var(--color-purple-soft);
