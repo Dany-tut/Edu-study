@@ -22,6 +22,7 @@ from link_video import fetch, downloaded, LIMIT, DownloadUnavailable
 from media_tools import FFMPEG
 import job_store
 from job_control import supervise
+from slide_chapters import REGIONS
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = LIMIT + 1024 * 1024
@@ -144,7 +145,7 @@ def version():
     # Без токена: версия не секрет, а подсказать «обновите модуль» нужно и
     # до подключения компьютера.
     # update — модуль умеет обновляться сам (POST /update).
-    return jsonify(version=VERSION, update=True, cancel=True)
+    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True)
 
 UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
 # Исполняемые файлы архива не переносятся при самообновлении: подписанный ffmpeg
@@ -276,6 +277,15 @@ def run_pipeline(job,folder,link):
                 except DownloadUnavailable:
                     stage('Загрузка на паузе: ждём интернет. Повторим автоматически.', paused=True)
                     time.sleep(15)
+        if job.get('mode') == 'slides':
+            stage('Читаем слайды')
+            result = subprocess.run([sys.executable, str(ROOT/'slide_chapters.py'), str(source), str(folder), job['titleRegion']],
+                                    pass_fds=(worker_lock.fileno(),))
+            if result.returncode:
+                error = folder/'slide-error.txt'
+                raise ValueError(error.read_text() if error.exists() else 'Не удалось прочитать заголовки слайдов.')
+            stage('Готово', mode='slides', chapters=json.loads((folder/'chapters.json').read_text()), done=True)
+            return
         stage('Готовим звуковую дорожку')
         cmd=[FFMPEG,'-nostdin','-v','error','-protocol_whitelist','file,pipe','-format_whitelist','mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(folder/'audio-%05d.wav')]
         if 'audio' not in job['completed']:
@@ -372,6 +382,10 @@ def forget():
 @app.post('/jobs')
 def start():
     token=device()
+    mode = request.form.get('mode', 'text')
+    region = request.form.get('titleRegion', 'top-left')
+    if mode not in ('text', 'slides') or region not in REGIONS:
+        return jsonify(error='Неизвестный режим или область заголовка.'), 400
     if not gate.acquire(False): return jsonify(error='На компьютере уже обрабатывается запись.'),409
     folder=None
     try:
@@ -401,7 +415,7 @@ def start():
                 (folder/'terms.json').write_text(json.dumps({'prompt':[str(t)[:80] for t in data.get('prompt',[])][:120],
                     'replace':[[str(h)[:80],str(w)[:80]] for h,w in data.get('replace',[]) if isinstance(h,str) and isinstance(w,str)][:400]},ensure_ascii=False))
             except (ValueError, TypeError, AttributeError): pass
-        job={'id':jid,'owner':token,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'},'training':request.form.get('training')=='1'}
+        job={'id':jid,'owner':token,'mode':mode,'titleRegion':region,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'},'training':request.form.get('training')=='1'}
         job_store.save(folder, job)
         jobs[jid]=job
         threading.Thread(target=process,args=(job,folder,link),daemon=True).start()

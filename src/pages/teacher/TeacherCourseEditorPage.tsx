@@ -2067,6 +2067,7 @@ function CenterRecording({
       {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         recap={recapControl} recapSignal={recapSignal}
+        onApplyChapters={timecodes => onSaveTranscript({ ...lesson, timecodes })}
         onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
       {recapToastNode}
     </div>

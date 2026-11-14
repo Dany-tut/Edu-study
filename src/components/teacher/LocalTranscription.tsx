@@ -4,13 +4,17 @@ import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
 import Switch from '../Switch'
+import Segmented from '../Segmented'
+import TeacherSelect from './TeacherSelect'
+import SlideChaptersPreview from './SlideChaptersPreview'
+import type { LessonTimecode } from '../../data/lessonContent'
 import { MODULE_DOWNLOAD_URL, useModuleState } from '../../lib/transcriptionModuleUpdate'
 import { TRANSCRIPTION_PRODUCT_VERSION } from '../../lib/transcriptionProductVersion'
 import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../../lib/transcriptTerms'
 import type { RecapControl } from './LessonRecapPanel'
 import './profileIntegrations.css'
 import './localTranscription.css'
-import { transcriptionStages as stages, transcriptionStageIndex } from '../../lib/transcriptionStage'
+import { transcriptionStages as textStages, transcriptionStageIndex } from '../../lib/transcriptionStage'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
 import type { LessonStatsSummary } from '../../lib/lessonMontage'
@@ -287,12 +291,14 @@ function useTimeLeft(steps: string[], step: string, progress: JobProgress | unde
   return 'до конца шага ≈ ' + timeLeft(left)
 }
 
-type Pending = { id: string; source: string; fileSignature?: string }
+type TranscriptionMode = 'text' | 'slides'
+type Pending = { id: string; source: string; fileSignature?: string; mode?: TranscriptionMode; titleRegion?: string }
 const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
 type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean>
   /** Предмет словаря расшифровки (termsSubject) и название урока — подсказка модулю. */
   subject?: string; lessonTitle?: string
+  onApplyChapters?: (chapters: LessonTimecode[]) => Promise<boolean>
   /** Текст урока (описание, конспект, главы): термины из него идут в подсказку первыми. */
   lessonText?: string
   /** Уроки курса с итогами монтажа — для динамики во вкладке «Итоги». */
@@ -403,8 +409,23 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const connected = !!props.owner && !!localStorage.getItem(tokenKey(props.owner))
   const jobKey = props.lessonKey
   const storageKey = 'iskra.transcription.job.' + JSON.stringify([props.owner, jobKey])
-  const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() =>
-    connected && !localStorage.getItem(storageKey + '.draft') && readPending(props.owner, jobKey, props.source, props.file) ? 'review' : 'entry')
+  const [requestedMode, setRequestedMode] = useState<TranscriptionMode>('text')
+  const [slideDraft, setSlideDraft] = useState<LessonTimecode[] | null>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey + '.slides-draft') || 'null')
+      return saved?.source === props.source.trim() && (!props.file || saved.fileSignature === fileSignature(props.file)) && Array.isArray(saved.chapters) ? saved.chapters : null
+    } catch { return null }
+  })
+  const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview' | 'slide-preview'>(() => {
+    if (slideDraft) return 'slide-preview'
+    const job = readPending(props.owner, jobKey, props.source, props.file)
+    return connected && job && (job.mode === 'slides' || !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
+  })
+  function changeSlideDraft(chapters: LessonTimecode[]) {
+    setSlideDraft(chapters)
+    try { localStorage.setItem(storageKey + '.slides-draft', JSON.stringify({source:props.source.trim(),fileSignature:props.file ? fileSignature(props.file) : undefined,chapters})) }
+    catch { setLocalSaveFailed(true) }
+  }
   const draftKey = storageKey + '.draft'
   const [working, setWorking] = useState<LocalDraft | null>(() => {
     try {
@@ -435,7 +456,15 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   }
   if (!props.owner || (!props.source && !props.file && !draft && !readPending(props.owner, jobKey, props.source))) return <>{props.children(null)}</>
   if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
-    {view === 'review' ? <Review {...props} lessonKey={jobKey} onClose={() => setView('entry')}
+    {view === 'slide-preview' && slideDraft ? <SlideChaptersPreview chapters={slideDraft} onChange={changeSlideDraft} onBack={() => setView('entry')} onDiscard={() => {
+      localStorage.removeItem(storageKey); localStorage.removeItem(storageKey + '.slides-draft')
+      setSlideDraft(null); setRequestedMode('slides'); setView('review')
+    }} onApply={async () => {
+      if (!props.onApplyChapters || !await props.onApplyChapters(slideDraft)) throw new Error('save failed')
+      if (working) change({...working, timecodes:slideDraft})
+      localStorage.removeItem(storageKey); localStorage.removeItem(storageKey + '.slides-draft')
+      setSlideDraft(null); setView('entry')
+    }} /> : view === 'review' ? <Review {...props} initialMode={requestedMode} onSlidesReady={chapters => {changeSlideDraft(chapters); setView('slide-preview')}} lessonKey={jobKey} onClose={() => setView('entry')}
       onReady={result => { change(result); setView('entry') }} /> :
       <section className="transcription-inline">
         <button data-hover="layer" type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
@@ -443,7 +472,19 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
           draft && <LessonTranscriptPanel transcript={draft.transcript} time={-1} />}
       </section>}
   </ScrollFade>
-  const open = () => setView(connected ? 'review' : 'setup')
+  const openMode = async (mode: TranscriptionMode) => {
+    const pending = readPending(props.owner, jobKey, props.source, props.file)
+    if (pending && connected) {
+      try {
+        const state = await localRequest('/jobs/' + pending.id, localStorage.getItem(tokenKey(props.owner)) || '')
+        if (state.done || state.error || state.cancelled) localStorage.removeItem(storageKey)
+      } catch { /* Keep an unconfirmed job attached; never replace a running job. */ }
+    }
+    setRequestedMode(mode)
+    setView(mode === 'slides' && slideDraft ? 'slide-preview' : connected ? 'review' : 'setup')
+  }
+  const open = () => { void openMode('text') }
+  const openSlides = () => { void openMode('slides') }
   if (!draft) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
     <AudioLines size={17} />Расшифровать видео
   </button>)}</>
@@ -460,6 +501,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const actions = <>
     {localSaveFailed && <small role="alert">Не удалось сохранить черновик в браузере. Не обновляйте страницу до сохранения в урок.</small>}
     {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
+    {props.onApplyChapters && <button type="button" className="transcription-rail-action transcription-slide-action" disabled={saving} onClick={openSlides}>Главы по слайдам</button>}
     <div className="transcript-tools">
       {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
@@ -476,10 +518,13 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   return <>{props.children(actions,rail)}</>
 }
 
-function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonText, onReady, onClose }: Props & { onReady: (result: LocalDraft) => void; onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonText, initialMode, onSlidesReady, onReady, onClose }: Props & { initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
+  const [mode, setMode] = useState<TranscriptionMode>(pending?.mode ?? initialMode)
+  const [titleRegion, setTitleRegion] = useState(pending?.titleRegion ?? 'top-left')
+  const stages = mode === 'slides' ? ['Видео', 'Читаем слайды'] : textStages
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<JobProgress>()
@@ -514,26 +559,30 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
   // Уровень Б: копить звук исправленных реплик на этом Mac для дообучения модели.
   const [keepTraining, setKeepTraining] = useState(() => { try { return localStorage.getItem(TRAINING_KEY) === '1' } catch { return false } })
   const toggleTraining = (on: boolean) => { setKeepTraining(on); try { localStorage.setItem(TRAINING_KEY, on ? '1' : '0') } catch { /* без памяти — только на эту запись */ } }
+  const slidesReadyRef = useRef(onSlidesReady)
+  useEffect(() => { slidesReadyRef.current = onSlidesReady }, [onSlidesReady])
   const readyRef = useRef(onReady)
   useEffect(() => { readyRef.current = onReady }, [onReady])
   async function start() {
     setError('')
     setUnavailable(false)
     const form = new FormData()
+    form.append('mode', mode); form.append('titleRegion', titleRegion)
     if (file) form.append('video', file)
     else form.append('link', source.trim())
-    for (const track of tracks) form.append('tracks', track)
+    if (mode === 'text') for (const track of tracks) form.append('tracks', track)
     setBusy(true)
     try {
       requestTranscriptionCompanionStart()
       await waitForTranscriptionCompanion()
+      if (mode === 'slides' && !(await localRequest('/version', '')).slideChapters) throw new Error('Для глав по слайдам обновите модуль в профиле Искры и повторите.')
       // Словарь предмета: термины — подсказка Whisper, пары — исправления.
       // Нет словаря — модуль распознаёт как раньше.
-      const pack = await fetchTermsPack(subject ?? '')
+      const pack = mode === 'text' ? await fetchTermsPack(subject ?? '') : []
       if (pack.length || lessonTitle) form.append('terms', JSON.stringify(termsForModule(pack, lessonTitle, lessonText)))
-      if (keepTraining) form.append('training', '1')
+      if (mode === 'text' && keepTraining) form.append('training', '1')
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
-      const job = { id, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined }
+      const job = { id, mode, titleRegion, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined }
       localStorage.setItem(key, JSON.stringify(job))
       setPending(job)
     } catch (e) { setUnavailable(e instanceof LocalTranscriptionUnavailable); setError((e as Error).message) }
@@ -581,6 +630,11 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         setStage(state.stage + (state.bytes ? ' · ' + megabytes(state.bytes) : ''))
         if (state.error) throw new Error(state.stage)
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
+        if (job.mode === 'slides') {
+          if (state.mode !== 'slides' || !Array.isArray(state.chapters) || !state.chapters.length) throw new Error('Не удалось получить главы по слайдам. Текущие главы не изменены.')
+          slidesReadyRef.current(state.chapters.map((c: {start:number;title:string}) => ({seconds:c.start,time:transcriptTime(c.start),label:c.title})))
+          return
+        }
         // Паузы и громкость от модуля (если он уже обновлён) — для окна монтажа.
         const read = readTranscript({ source: job.source, segments: state.segments, montage: state.montage })
         if (!read) throw new Error('Нет реплик для проверки.')
@@ -600,7 +654,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     window.addEventListener('online', reconnect)
     return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
   }, [pending, token, retry, cancelled])
-  const currentStep = transcriptionStageIndex(stage)
+  const currentStep = mode === 'slides' ? (stage.startsWith('Читаем слайды') || stage === 'Готово' ? 1 : 0) : transcriptionStageIndex(stage)
   const elapsed = stageStartedAt ? transcriptTime(Math.max(0, (clock - stageStartedAt) / 1000)) : '0:00'
   const eta = useTimeLeft(stages, stages[currentStep], progress, !!pending && !error && !!stage)
   const metric = progress?.unit === 'seconds' ? transcriptTime : progress?.unit === 'bytes' ? megabytes : (n: number) => String(n)
@@ -610,13 +664,24 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       <button data-hover="layer" type="button" aria-label="К записи урока" disabled={busy} style={btn('S','secondary')} onClick={onClose}><X size={16}/></button>
     </header>
     <div className="transcription-form">
-    {!pending && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
-    {!pending && <label className="transcription-picker">
+    {!pending && <fieldset disabled={busy} style={{border:0,margin:0,padding:0}}><legend className="sr-only">Режим обработки</legend><Segmented variant="filter" value={mode} onChange={setMode} items={[{id:'text',label:'По тексту'},{id:'slides',label:'По слайдам'}]} /></fieldset>}
+    {!pending && mode === 'slides' && <>
+      <p className="transcription-hint">Главы из названий на слайдах, без повторного распознавания речи. Повторяющаяся тема появится только один раз — в момент первого появления.</p>
+      <label className="slide-region-label">Где находится заголовок</label>
+      <TeacherSelect value={titleRegion} onChange={setTitleRegion} disabled={busy} clearable={false} search={false} options={[
+        {value:'top-left',label:'Слева вверху'}, {value:'top-right',label:'Справа вверху'},
+        {value:'top',label:'Сверху по всей ширине'}, {value:'bottom-left',label:'Слева внизу'},
+        {value:'bottom-right',label:'Справа внизу'}, {value:'bottom',label:'Снизу по всей ширине'},
+      ]} />
+      <p className="transcription-hint">Выберите область с названием темы, без постоянной подписи курса. Перед применением можно проверить и поправить найденные главы.</p>
+    </>}
+    {!pending && mode === 'text' && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
+    {!pending && mode === 'text' && <label className="transcription-picker">
       <Upload size={18} /><strong>{tracks.length ? `Дорожек участников: ${tracks.length}` : 'Дорожки участников — необязательно'}</strong>
       <small>{tracks.length ? tracks.map(t => t.name).join(', ') : 'Zoom умеет сохранять звук каждого отдельным файлом. С ними голоса подпишутся точно, по именам файлов.'}</small>
       <input type="file" multiple accept="audio/*,.m4a" aria-label="Дорожки участников" disabled={busy} onChange={e => setTracks([...(e.target.files ?? [])])} />
     </label>}
-    {!pending && <div className="transcription-training">
+    {!pending && mode === 'text' && <div className="transcription-training">
       <span><strong>Учить распознавание на моих правках</strong><small>Звук исправленных реплик остаётся только на этом Mac — из него потом дообучим модель. Ученикам и в Искру он не уходит.</small></span>
       <Switch checked={keepTraining} onChange={toggleTraining} disabled={busy} label="Учить распознавание на моих правках" />
     </div>}
@@ -661,6 +726,6 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     </div>}
     </div>
     {!pending ?
-      <button data-hover="layer" className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : 'Начать расшифровку'}</button> : undefined}
+      <button data-hover="layer" className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : mode === 'slides' ? 'Найти главы по слайдам' : 'Начать расшифровку'}</button> : undefined}
   </section>
 }
