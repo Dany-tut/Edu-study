@@ -8,12 +8,13 @@ APP="$BUILD/Iskra — расшифровка.app"
 APP_CONTENTS="$APP/Contents"
 VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" "$ROOT/src/lib/transcriptionModuleVersion.ts" | head -1)"
 INSTALLER_VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" "$ROOT/src/lib/transcriptionInstallerVersion.ts" | head -1)"
+PRODUCT_VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" "$ROOT/src/lib/transcriptionProductVersion.ts" | head -1)"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "Сборка установщика для Mac запускается на macOS." >&2
   exit 2
 fi
-if [[ -z "$VERSION" || -z "$INSTALLER_VERSION" ]]; then
+if [[ -z "$VERSION" || -z "$INSTALLER_VERSION" || -z "$PRODUCT_VERSION" ]]; then
   echo "Не найдена версия модуля или установщика." >&2
   exit 2
 fi
@@ -45,12 +46,12 @@ cat > "$APP_CONTENTS/Info.plist" <<PLIST
 <plist version="1.0"><dict>
   <key>CFBundleExecutable</key><string>IskraTranscription</string>
   <key>CFBundleIdentifier</key><string>ru.iskra.transcription</string>
-  <key>CFBundleName</key><string>IskraTranscription</string>
-  <key>CFBundleDisplayName</key><string>Искра — расшифровка</string>
+  <key>CFBundleName</key><string>Искра — Расшифровка</string>
+  <key>CFBundleDisplayName</key><string>Искра — Расшифровка</string>
   <key>CFBundleIconFile</key><string>iskra.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>CFBundleVersion</key><string>1.0</string>
+  <key>CFBundleShortVersionString</key><string>$PRODUCT_VERSION</string>
+  <key>CFBundleVersion</key><string>1</string>
   <key>IskraInstallerVersion</key><string>$INSTALLER_VERSION</string>
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.education</string>
@@ -86,5 +87,5 @@ xcrun notarytool submit "$BUILD/notary-payload.zip" \
   --key "$APPLE_NOTARY_PRIVATE_KEY" --key-id "$APPLE_NOTARY_KEY_ID" --issuer "$APPLE_NOTARY_ISSUER_ID" --wait
 xcrun stapler staple "$APP"
 spctl --assess --type execute --verbose=4 "$APP"
-ditto -c -k --keepParent "$APP" "$BUILD/iskra-transcription-mac-$INSTALLER_VERSION.zip"
-echo "$BUILD/iskra-transcription-mac-$INSTALLER_VERSION.zip"
+ditto -c -k --keepParent "$APP" "$BUILD/Iskra-Transcription-Mac-v$PRODUCT_VERSION.zip"
+echo "$BUILD/Iskra-Transcription-Mac-v$PRODUCT_VERSION.zip"

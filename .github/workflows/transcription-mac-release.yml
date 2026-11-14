@@ -68,13 +68,14 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" src/lib/transcriptionInstallerVersion.ts | head -1)"
+          PRODUCT_VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" src/lib/transcriptionProductVersion.ts | head -1)"
           TAG="transcription-$VERSION"
-          ASSET=".build/transcription-macos/iskra-transcription-mac-$VERSION.zip"
+          ASSET=".build/transcription-macos/Iskra-Transcription-Mac-v$PRODUCT_VERSION.zip"
           test -f "$ASSET"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$ASSET" --clobber
           else
             gh release create "$TAG" "$ASSET" \
-              --title "Искра — модуль расшифровки $VERSION" \
-              --notes "Подписанный и нотариально заверенный фоновый модуль расшифровки для macOS."
+              --title "Искра — Расшифровка v$PRODUCT_VERSION" \
+              --notes "Подписанное и нотариально заверенное приложение Искры для расшифровки на Mac. Версия $PRODUCT_VERSION; сборка $VERSION."
           fi

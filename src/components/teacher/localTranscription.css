@@ -41,7 +41,8 @@
 .transcription-setup li + li {margin-top:5px}
 
 .transcription-step {position:relative;isolation:isolate;overflow:hidden}
-.transcription-download-label {display:block;line-height:1.2;text-align:center}
+.transcription-steps .transcription-download-step {flex:1 1 17rem;width:auto;justify-content:flex-start;gap:8px;padding-inline:14px}
+.transcription-download-label {display:block;flex:1;line-height:1.2;text-align:left}
 .transcription-step::before {
   content:'';position:absolute;inset:0;z-index:-1;background:var(--color-purple-soft);
   transform:scaleX(0);transform-origin:left;pointer-events:none;
