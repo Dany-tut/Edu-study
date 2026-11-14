@@ -315,7 +315,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
         <header className="teacher-profile-header">
           <div className="teacher-profile-identity">
             <BackCircle onClick={() => setActivePage('home')} label="На главную" />
-            <div style={{ minWidth: 0, position: 'relative' }}>
+            <div className="teacher-profile-identity-copy" style={{ minWidth: 0, position: 'relative' }}>
               <h1>{t('Профиль')}</h1>
               {canShareHandle ? (
                 <button type="button" className="teacher-profile-name"

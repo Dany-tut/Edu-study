@@ -8,6 +8,11 @@
 .teacher-profile-identity { display: flex; align-items: center; gap: 14px; min-width: 0; min-height: 54px; }
 .teacher-profile-identity h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: var(--color-text); }
 .teacher-profile-name { display: block; max-width: 100%; border: 0; background: transparent; padding: 3px 0; font-family: inherit; text-align: start; cursor: pointer; font-size: 12px; color: var(--color-text-3); }
+@media (min-width: 761px) {
+  .teacher-profile-identity-copy { display: grid; align-content: center; gap: 0; }
+  .teacher-profile-identity-copy > h1 { line-height: 1.15; }
+  .teacher-profile-identity-copy > .teacher-profile-name { padding-block: 0; line-height: 1.2; }
+}
 @media (max-width: 760px) {
   .teacher-profile-header { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
   .teacher-profile-header > .teacher-profile-identity { grid-area: 1 / 1; }

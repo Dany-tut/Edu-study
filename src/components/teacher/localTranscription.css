@@ -39,6 +39,9 @@
 .transcription-setup h4 {margin:0;color:var(--color-text);font-size:14px}
 .transcription-setup ol {list-style:decimal;margin:6px 0 0;padding-inline-start:1.5em}
 .transcription-setup li + li {margin-top:5px}
+.transcription-launch-guide {display:grid;justify-items:start;gap:10px;width:100%;min-width:0}
+.transcription-launch-guide > .transcription-background-copy {width:100%;max-width:none;text-wrap:pretty}
+.transcription-launch-guide > .transcription-reinstall-action {justify-self:start;align-self:start;width:min(100%,14.5rem);min-height:44px;margin:0;border-radius:12px;background:var(--color-bg-2)}
 
 .transcription-step {position:relative;isolation:isolate;overflow:hidden}
 .transcription-steps .transcription-download-step {flex:1 1 17rem;width:auto;justify-content:flex-start;gap:8px;padding-inline:14px}
