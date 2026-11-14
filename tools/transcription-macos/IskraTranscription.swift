@@ -21,8 +21,10 @@ private enum Companion {
         .appendingPathComponent(appName, isDirectory: true)
 
     static func isInstalled(_ url: URL) -> Bool {
-        url.resolvingSymlinksInPath() == installedURL.resolvingSymlinksInPath()
-            || url.deletingLastPathComponent().resolvingSymlinksInPath().path == "/Applications"
+        let current = url.resolvingSymlinksInPath()
+        let installed = installedURL.resolvingSymlinksInPath()
+        return current.path == installed.path
+            || current.deletingLastPathComponent().path == "/Applications"
     }
 
     static func installResources() throws {
@@ -170,10 +172,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let target = Companion.installedURL
         let current = Bundle.main.bundleURL
         if Companion.isInstalled(current) { return false }
+        // A handoff may only open the installed copy. If Launch Services
+        // resolves it to this copy again, stop rather than handing off again.
+        if CommandLine.arguments.contains("--installed-handoff")
+            || ProcessInfo.processInfo.environment["ISKRA_INSTALL_HANDOFF"] == "1" {
+            showError("Откройте «Искра — расшифровка» из папки «Программы» пользователя.")
+            return true
+        }
         installing = true
         statusLabel.stringValue = "Устанавливаем приложение…"
         do {
             try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let lockURL = target.deletingLastPathComponent().appendingPathComponent(".iskra-transcription-install.lock")
+            let lock = open(lockURL.path, O_CREAT | O_WRONLY | O_CLOEXEC | O_NOFOLLOW, 0o600)
+            guard lock >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+            guard flock(lock, LOCK_EX | LOCK_NB) == 0 else {
+                close(lock)
+                NSApp.terminate(nil)
+                return true
+            }
+            var handedOff = false
+            defer { if !handedOff { close(lock) } }
             let installedVersion = Bundle(url: target)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
             let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
             if installedVersion.compare(currentVersion, options: .numeric) == .orderedAscending {
@@ -190,11 +209,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             LSRegisterURL(target as CFURL, true)
             let config = NSWorkspace.OpenConfiguration()
             config.allowsRunningApplicationSubstitution = false
-            config.createsNewApplicationInstance = true
+            config.environment = ProcessInfo.processInfo.environment.merging(["ISKRA_INSTALL_HANDOFF": "1"]) { _, new in new }
             // Forward a browser launch even when Launch Services picked the downloaded copy.
-            config.arguments = ["--start"]
+            config.arguments = ["--start", "--installed-handoff"]
+            handedOff = true
             NSWorkspace.shared.openApplication(at: target, configuration: config) { _, error in
                 DispatchQueue.main.async {
+                    close(lock)
                     self.installing = false
                     if let error {
                         self.showError("Откройте установленную копию из папки «Программы». \(error.localizedDescription)")
