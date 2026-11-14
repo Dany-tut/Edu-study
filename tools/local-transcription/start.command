@@ -37,19 +37,6 @@ fi
 if ! "$runtime/bin/python" -c 'import flask, mlx_whisper, mlx_lm, yt_dlp' >/dev/null 2>&1; then
   "$runtime/bin/python" -m pip install --only-binary=:all: -q flask "mlx==0.32.4" "mlx-whisper==0.4.3" "mlx-lm==0.32.2" yt-dlp
 fi
-# Голоса: разделение на этом Mac (sherpa-onnx) и две небольшие модели (~33 МБ).
-# Не вышло — модуль работает как раньше, все реплики придут одним голосом.
-if ! "$runtime/bin/python" -c 'import sherpa_onnx' >/dev/null 2>&1; then
-  "$runtime/bin/python" -m pip install -q sherpa-onnx || echo 'Голоса: не удалось поставить sherpa-onnx — разделение голосов выключено'
-fi
-voices="$HOME/Library/Application Support/Iskra/transcription/voice-models"
-mkdir -p "$voices"
-if [[ ! -f "$voices/sherpa-onnx-pyannote-segmentation-3-0/model.onnx" ]]; then
-  curl -fsSL https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2 | tar xj -C "$voices" || echo 'Голоса: модель не скачалась'
-fi
-if [[ ! -f "$voices/wespeaker_resnet34.onnx" ]]; then
-  curl -fsSL -o "$voices/wespeaker_resnet34.onnx" https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/wespeaker_en_voxceleb_resnet34.onnx || echo 'Голоса: модель не скачалась'
-fi
 # Слайды: заголовки читает маленькая программа на Swift, её собирает swiftc из
 # Xcode Command Line Tools. Нет компилятора — модуль работает как обычно, только
 # заголовки слайдов не распознаются; расшифровка, паузы и голоса не зависят от него.

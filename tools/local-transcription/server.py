@@ -9,6 +9,7 @@ import sys
 import threading
 import uuid
 import time
+import tempfile
 import fcntl
 import hashlib
 import io
@@ -65,6 +66,41 @@ MODEL_SPECS = (
     ('mlx-community/whisper-large-v3-turbo', 'whisper'),
     ('mlx-community/Qwen2.5-3B-Instruct-4bit', 'topics'),
 )
+
+def prepare_voice_models():
+    """Optional setup runs alongside the server. Jobs can proceed without it."""
+    models = (
+        ('speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2',
+         Path('sherpa-onnx-pyannote-segmentation-3-0/model.onnx')),
+        ('speaker-recongition-models/wespeaker_en_voxceleb_resnet34.onnx',
+         Path('wespeaker_resnet34.onnx')),
+    )
+    try:
+        if subprocess.run([sys.executable, '-c', 'import sherpa_onnx'],
+                          capture_output=True, timeout=20).returncode:
+            subprocess.run([sys.executable, '-m', 'pip', 'install', '--only-binary=:all:',
+                            '--timeout', '15', '--retries', '1', '-q', 'sherpa-onnx'],
+                           check=True, timeout=240)
+        VOICE_MODELS.mkdir(exist_ok=True)
+        for asset, name in models:
+            target = VOICE_MODELS / name
+            if target.is_file():
+                continue
+            with tempfile.TemporaryDirectory(dir=VOICE_MODELS) as directory:
+                staging = Path(directory)
+                download = staging / 'download'
+                subprocess.run(['/usr/bin/curl', '-fsSL', '--max-time', '120', '-o', str(download),
+                                'https://github.com/k2-fsa/sherpa-onnx/releases/download/' + asset],
+                               check=True, timeout=125)
+                if asset.endswith('.tar.bz2'):
+                    subprocess.run(['/usr/bin/tar', '-xjf', str(download), '-C', directory, str(name)],
+                                   check=True, timeout=15)
+                    download = staging / name
+                target.parent.mkdir(exist_ok=True)
+                download.replace(target)
+    except (OSError, subprocess.SubprocessError) as error:
+        print(f'Разделение голосов пока недоступно: {error}', flush=True)
+
 
 def ensure_models(stage):
     """Download heavy weights on demand, never when the local service starts."""
@@ -235,7 +271,11 @@ def process(job,folder,link):
             if script=='diarize.py' and job.get('tracks'): continue
             stage(label)
             python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable) if script in ('recognize.py','silence.py','diarize.py') else sys.executable
-            subprocess.run([python,str(ROOT/script),*map(str,args)],check=True,env=env,pass_fds=(worker_lock.fileno(),))
+            result = subprocess.run([python,str(ROOT/script),*map(str,args)],
+                                    check=script != 'diarize.py', env=env, pass_fds=(worker_lock.fileno(),))
+            if script == 'diarize.py' and result.returncode:
+                (folder / 'voices.json').unlink(missing_ok=True)
+                print('Разделение голосов не завершилось. Продолжаем расшифровку.', flush=True)
             if script=='recognize.py' and not json.loads((folder/'segments.json').read_text()):
                 raise ValueError('В записи не найдено речи.')
             job['completed'].append(script)
@@ -420,4 +460,6 @@ if __name__=='__main__':
     prune_training()
     threading.Thread(target=resume_jobs, daemon=True).start()
     threading.Thread(target=idle_shutdown, daemon=True).start()
+    if os.environ.get('ISKRA_PACKAGED_MODULE') == '1':
+        threading.Thread(target=prepare_voice_models, daemon=True).start()
     app.run(host='127.0.0.1',port=18764,threaded=True)
