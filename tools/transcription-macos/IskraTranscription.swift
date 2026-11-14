@@ -48,7 +48,10 @@ private enum Companion {
             throw failure("Откройте установленную копию «Искра — расшифровка» из папки «Программы».")
         }
         try installResources()
-        if service.status == .notRegistered {
+        // A missing Background Task Management record may be reported as
+        // .notFound even though the agent plist is present in the app.
+        let status = service.status
+        if status == .notRegistered || status == .notFound {
             do { try service.register() }
             catch where service.status == .requiresApproval { return }
         }
