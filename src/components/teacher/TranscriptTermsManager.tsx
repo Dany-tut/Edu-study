@@ -9,11 +9,13 @@ import { btn } from '../../lib/pillStyles'
 import { useT } from '../../lib/i18n'
 import FadeText from '../FadeText'
 import './transcriptTerms.css'
+import { PLATFORM } from '../../lib/platform'
+import TranscriptCorrectionReport from './TranscriptCorrectionReport'
 import type { AdminTerm } from '../../lib/transcriptTerms'
 
-// Админка → «Словарь»: термины и ошибки распознавания для локальной расшифровки.
-// Учителя пополняют его правками реплик; общим пара становится, когда её внесли
-// 3 разных учителя или её одобрили здесь. Модуль получает словарь с каждой записью.
+// Админка → «Словарь»: общие термины и ошибки распознавания.
+// Предложения становятся общими только после явного решения администратора.
+// Личные правки реплик и глав проверяются в отдельном отчёте ниже.
 
 type StatusFilter = 'pending' | 'approved' | 'rejected'
 const FIELD: React.CSSProperties = { minHeight: 36, padding: '7px 10px', borderRadius: 10, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg)', color: 'var(--color-text)', font: 'inherit', fontSize: 13, minWidth: 0 }
@@ -155,5 +157,6 @@ export default function TranscriptTermsManager() {
         </form>}
       </div>)}
     </div>
+    {PLATFORM === 'pc' && <TranscriptCorrectionReport/>}
   </div>
 }
