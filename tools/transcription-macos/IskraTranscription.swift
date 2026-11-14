@@ -102,27 +102,25 @@ private enum Companion {
 
 private func runService() -> Never {
     do {
-        try Companion.installResources()
         let logURL = Companion.appSupport.appendingPathComponent("transcription-service.log")
         if !FileManager.default.fileExists(atPath: logURL.path) {
             _ = FileManager.default.createFile(atPath: logURL.path, contents: nil, attributes: [.posixPermissions: 0o600])
         }
         let log = try FileHandle(forWritingTo: logURL)
         try log.seekToEnd()
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        process.arguments = [Companion.module.appendingPathComponent("start.command").path]
-        process.currentDirectoryURL = Companion.module
-        process.environment = ProcessInfo.processInfo.environment.merging([
-            "ISKRA_FFMPEG": Bundle.main.resourceURL!.appendingPathComponent(moduleName).appendingPathComponent("ffmpeg").path,
-            "ISKRA_FRAME_TEXT": Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/IskraFrameText").path,
-            "ISKRA_PACKAGED_MODULE": "1",
-        ]) { _, new in new }
-        process.standardOutput = log
-        process.standardError = log
-        try process.run()
-        process.waitUntilExit()
-        exit(process.terminationStatus)
+        let resource = Bundle.main.resourceURL!.appendingPathComponent(moduleName)
+        setenv("ISKRA_FFMPEG", resource.appendingPathComponent("ffmpeg").path, 1)
+        setenv("ISKRA_FRAME_TEXT", Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/IskraFrameText").path, 1)
+        setenv("ISKRA_PACKAGED_MODULE", "1", 1)
+        guard dup2(log.fileDescriptor, STDOUT_FILENO) >= 0,
+              dup2(log.fileDescriptor, STDERR_FILENO) >= 0 else {
+            throw Companion.failure("Не удалось открыть журнал обработчика.")
+        }
+        // Keep the server itself under launchd, so stop and restart reach it.
+        let script = Companion.module.appendingPathComponent("start.command").path
+        var args: [UnsafeMutablePointer<CChar>?] = [strdup("/bin/zsh"), strdup(script), nil]
+        execv("/bin/zsh", &args)
+        throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
     } catch {
         FileHandle.standardError.write(Data("Iskra transcription service: \(error.localizedDescription)\n".utf8))
         exit(1)
