@@ -235,6 +235,13 @@ jobs:
           ISKRA_QA_OUTPUT: /tmp/iskra-chapter-header-qa
         run: node scripts/checkChapterHeaderBrowser.mjs
 
+      - name: Ученический просмотр записи
+        if: steps.scope.outputs.scope != 'chapter-ui'
+        env:
+          ISKRA_BROWSER_CHANNEL: chromium
+          ISKRA_QA_OUTPUT: /tmp/iskra-recording-preview-qa
+        run: node scripts/checkStudentRecordingBrowser.mjs
+
       - name: Переходы и геометрия мини-виджета
         if: steps.scope.outputs.scope != 'chapter-ui'
         env:
@@ -263,7 +270,8 @@ jobs:
         with:
           name: student-topbar-geometry
           path: |
-            /tmp/iskra-chapter-header-qa/
+            /tmp/iskra-chapter-header-qa
+            /tmp/iskra-recording-preview-qa/
             /tmp/iskra-topbar-qa/
             /tmp/iskra-calendar-day-qa/
             /tmp/iskra-shelf-filters/

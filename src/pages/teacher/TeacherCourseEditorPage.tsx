@@ -1,3 +1,5 @@
+import { SubjectMark } from '../../components/icons/SubjectMark'
+import { LessonRecordingPreview } from '../../components/LessonRecordingView'
 import { enqueueChapterSave } from '../../lib/chapterSaveQueue'
 import Segmented from '../../components/Segmented'
 import { rebaseChapterLessons, sentenceTitle, titleConcern, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
@@ -43,7 +45,7 @@ import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useT, t, tc, tn } from '../../lib/i18n'
 import type { Task as BankTask } from '../../data/taskBankData'
-import { courseSubjectOptionsFor, getSubject, isLanguageSubject } from '../../lib/subjects'
+import { courseSubjectOptionsFor, getSubject, isLanguageSubject, ICON_GAP } from '../../lib/subjects'
 import { useTeacherTz, isMsk, tzOffsetMs } from '../../lib/teacherTz'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
@@ -1754,7 +1756,7 @@ function montagePlan(lesson: CELesson) {
   return transcript && transcript.source === (lesson.videoUrl?.trim() || '') ? playbackPlan(transcript.montage) : undefined
 }
 
-function CenterRecording({
+export function CenterRecording({
   lesson, onUpdate, onSaveTranscript, onSaveChapters, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false, subject = '', recapCourse,
 }: {
   lesson: CELesson
@@ -1895,6 +1897,15 @@ function CenterRecording({
   }
   const canSeek = !!source && ['file','gdrive','youtube','rutube'].includes(source.kind)
   const content = (transcriptionAction: React.ReactNode, rail?: TranscriptRail, chapters?: ChapterControls) => {
+  // Keep TranscriptionAction mounted: switching views must not discard its draft/job.
+  // Preview renders the same read-only recording component as LessonPage.
+  if (preview) return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }} scrollStyle={{ padding: '18px 16px 22px' }}>
+    {source ? <LessonRecordingPreview key={JSON.stringify([lesson.id, source])}
+      recordingKey={lesson.id} source={source} title={tc(lesson.title)}
+      badge={getSubject(subject) ? <><SubjectMark subject={subject} size={14} />{ICON_GAP}{t(getSubject(subject)!.name)}</> : undefined}
+      timecodes={chapters?.codes ?? rail?.draft.timecodes ?? codes} montage={montagePlan(lesson)} />
+      : <p role="status">{t('Запись урока пока недоступна')}</p>}
+  </ScrollFade>
   const timecodePanel = <TimecodeRail rail={rail} chapters={chapters} transcriptionAction={transcriptionAction}
     codes={chapters?.codes ?? rail?.draft.timecodes ?? codes} at={at} total={total}
     onChange={timecodes => chapters ? chapters.change(timecodes) : rail ? rail.change({...rail.draft, timecodes}) : onUpdate({...lesson, timecodes})}
@@ -2001,7 +2012,6 @@ function CenterRecording({
                   initialWatch={startWatch}
                   onPersist={() => {}}
                   onTime={(s, d) => { setAt(s); setTotal(d) }}
-                  montage={preview ? montagePlan(lesson) : undefined}
                 />
                 {/* У Диска нет внешнего API: если файл не расшарен, его страница
                     /preview сама покажет «Нет доступа» внутри iframe, и перехватить
@@ -2091,7 +2101,7 @@ function CenterRecording({
         chapterVariants={lesson.chapterVariants} existingChapters={codes}
         onApplyChapters={onSaveChapters}
         onApply={({ transcript, timecodes }, chapterVariants) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes, chapterVariants })}>{content}</TranscriptionAction>}
-      {recapToastNode}
+      {!preview && recapToastNode}
     </div>
   )
 }
@@ -7656,7 +7666,7 @@ export default function TeacherCourseEditorPage() {
           initial={railFx.current ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          style={{ ...railWrapSt, width: RAIL_BOX }}
+          style={{ ...railWrapSt, width: RAIL_BOX, display: railVariant === 'lesson' && lessonMode === 'recording' && recordingView === 'preview' ? 'none' : undefined }}
         >
           {railVariant === 'meta' && (
             /* Hugs its content, same 248 width as the lesson rail. */

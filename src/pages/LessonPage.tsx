@@ -9,23 +9,23 @@ import { SubjectMark } from '../components/icons/SubjectMark'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ChevronLeft, Play, ListVideo, NotebookPen, FileText,
+  ChevronLeft, Play, NotebookPen, FileText,
   FolderOpen, GraduationCap, Download, ExternalLink, ChevronDown, Calendar,
   ChevronRight, Clock, Lock, CheckCircle2, RotateCcw, Star, ALargeSmall,
 } from '../components/icons/appIcons'
 import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
-import { activeTimecodeIndex, findLessonById, getExtraHomeworks, getLessonDetail, type LessonHomework } from '../data/lessonContent'
+import { findLessonById, getExtraHomeworks, getLessonDetail, type LessonHomework } from '../data/lessonContent'
 import { extraHwLabel, hwRef } from '../lib/extraHomework'
 import { downloadLessonFile, formatFileSize, isLinkFile, type LessonFile } from '../lib/lessonFiles'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
-import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../components/LessonVideoPlayer'
+import type { LessonVideoHandle } from '../components/LessonVideoPlayer'
+import LessonRecordingView from '../components/LessonRecordingView'
 import { getSubject, ICON_GAP } from '../lib/subjects'
 import {
   emptyWatch, loadVideoWatch, saveVideoWatch, type VideoWatch,
 } from '../lib/videoProgress'
-import LessonVideoProgress from '../components/LessonVideoProgress'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { lessonScheduleDate } from '../lib/lessonStatus'
 import { ownerStudentIdFor } from '../store/studentDataStore'
@@ -50,17 +50,6 @@ function plural(n: number, one: string, few: string, many: string) {
   if (m10 === 1 && m100 !== 11) return one
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
   return many
-}
-
-/** Секунды → «17:05» или «1:03:43». Часы появляются только у длинных записей,
- *  чтобы короткий ролик не выглядел как «0:04:12». */
-function formatClock(totalSeconds: number) {
-  const s = Math.max(0, Math.floor(totalSeconds))
-  const h = Math.floor(s / 3600)
-  const m = Math.floor((s % 3600) / 60)
-  const sec = s % 60
-  const mm = h > 0 ? String(m).padStart(2, '0') : String(m)
-  return `${h > 0 ? `${h}:` : ''}${mm}:${String(sec).padStart(2, '0')}`
 }
 
 function renderHighlightedParagraph(text: string, reactionId?: string, activeReactionId?: string | null, reactions: CourseReaction[] = []) {
@@ -739,16 +728,11 @@ export default function LessonPage() {
     return () => clearVoiceScene(scene)
   }, [currentLessonId])
 
-  const [activeChapter, setActiveChapter] = useState(0)
   // Позиция и длина ролика приходят из плеера раз в секунду: по ним живут часы
   // в шапке таймкодов и полоска проигранного внутри активной главы.
   const [videoTime, setVideoTime] = useState(0)
   const [videoDuration, setVideoDuration] = useState(0)
   const playerRef = useRef<LessonVideoHandle>(null)
-  // Скролл-контейнер списка таймкодов и его строки — чтобы подсветка, уехавшая
-  // вниз вместе с воспроизведением, сама подтягивалась в видимую часть.
-  const chapterListRef = useRef<HTMLDivElement>(null)
-  const chapterRowRefs = useRef<Record<number, HTMLButtonElement | null>>({})
   // Queue a one-shot reaction highlight locally so it survives clearing the
   // global navigation flag in the store.
   const [queuedHighlight, setQueuedHighlight] = useState<string | null>(null)
@@ -859,9 +843,6 @@ export default function LessonPage() {
   const canSeek = !!detail.videoSource && ['file', 'youtube', 'rutube'].includes(detail.videoSource.kind)
   const seekTo = (sec: number) => { setVideoTime(sec); playerRef.current?.seekPaused(sec) }
   const montagePlan = lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? playbackPlan(lesson.transcript.montage) : undefined
-  // Плеер открыт и уже знает длину ролика — с этого момента показываем часы и
-  // полоску проигранного.
-  const playing = videoDuration > 0
 
   // ── Подсветка главы идёт за плеером ───────────────────────────────────────
   // Активна та глава, чьё начало последним осталось позади. Ученик может
@@ -870,9 +851,6 @@ export default function LessonPage() {
   const onPlayerTime = (sec: number, dur: number) => {
     setVideoTime(sec)
     setVideoDuration(prev => (Math.abs(prev - dur) < 0.5 ? prev : dur))
-    if (!timecodes.length) return
-    const next = activeTimecodeIndex(timecodes, sec)
-    setActiveChapter(prev => (prev === next ? prev : next))
   }
 
   // Предмет урока для плашки на заставке. `lesson.subject` — это short_id курса,
@@ -904,21 +882,6 @@ export default function LessonPage() {
   const videoBadge = subjectDef ? <><SubjectMark subject={subjectDef.id} size={14} />{ICON_GAP}{t(subjectDef.name)}</> : undefined
 
   const studyProgress = lessonStudyProgress(lesson ?? {}, { ...watch, duration: videoDuration || watch.duration })
-
-  // Подтянуть активную строку в видимую часть списка. Скроллим сам контейнер, а
-  // не через scrollIntoView: тот тянет за собой и страницу целиком.
-  useEffect(() => {
-    if (!playing) return
-    const list = chapterListRef.current
-    const row = chapterRowRefs.current[activeChapter]
-    if (!list || !row) return
-    const top = row.offsetTop
-    const bottom = top + row.offsetHeight
-    if (top < list.scrollTop) list.scrollTo({ top, behavior: 'smooth' })
-    else if (bottom > list.scrollTop + list.clientHeight) {
-      list.scrollTo({ top: bottom - list.clientHeight, behavior: 'smooth' })
-    }
-  }, [activeChapter, playing])
 
   // Easing for the date chip's icon/month collapse — matches the top bar's own
   // expand/collapse curve so the two move in sync.
@@ -1091,134 +1054,14 @@ export default function LessonPage() {
           Колонка справа появляется только у урока со своими таймкодами: пустой
           рамке с чужими главами там делать нечего, видео занимает всю ширину. */}
       {videoSource && (
-        <div
-          className={timecodes.length ? 'grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch' : 'grid'}
-          style={{ gap: 16 }}
-        >
-          {/* Плеер: свой корпус поверх YouTube/RuTube/файла + учёт просмотра.
-              Ширину колонки ограничиваем ровно там, где 16:9 упирается в
-              потолок высоты (PLAYER_MAX_W) — иначе на широком мониторе видео
-              растянулось бы в полосу. Без панели справа колонка встаёт по
-              центру; с панелью она прижата к ней, чтобы зазор между видео и
-              списком глав оставался тем же, что и всюду в сетке. */}
-          <div
-            className="flex flex-col min-w-0"
-            style={{ gap: 10, width: '100%', maxWidth: PLAYER_MAX_W, marginInline: timecodes.length ? 'auto 0' : 'auto' }}
-          >
-            <LessonVideoPlayer
-              key={lesson.id}
-              ref={playerRef}
-              source={videoSource}
-              title={tContent(lesson.title)}
-              badge={videoBadge}
-              durationLabel={detail.duration}
-              timecodes={timecodes}
-              initialWatch={watch}
-              onPersist={persistWatch}
-              onTime={onPlayerTime}
-              montage={montagePlan}
-            />
-
-            {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
-                попадает — считаются только отрезки, пройденные воспроизведением. */}
-            <LessonVideoProgress watch={watch} duration={videoDuration || watch.duration} />
+        <LessonRecordingView recordingKey={lesson.id} playerRef={playerRef} source={videoSource}
+          title={tContent(lesson.title)} badge={videoBadge} durationLabel={detail.duration}
+          timecodes={timecodes} watch={watch} onPersist={persistWatch} onTime={onPlayerTime}
+          videoTime={videoTime} videoDuration={videoDuration} montage={montagePlan}
+          progressFooter={<>
             {watchSyncFailed && <p role="status" style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')} <button data-hover="layer" type="button" onClick={() => persistWatch(watch)} style={{ minHeight: 44 }}>{t('Повторить')}</button></p>}
             {studyProgress.attended && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Запись можно пересмотреть для повторения.')}</p>}
-          </div>
-
-          {/* Timecodes panel.
-              Высоту ряда задаёт только видео — у него честные 16:9, и подстроить
-              его под список глав нельзя. Поэтому рядом с видео (от lg) панель
-              вынута из потока в absolute: сорок глав больше не растягивают ряд,
-              а просто прокручиваются внутри. Ниже lg панель встаёт отдельной
-              строкой под видео и живёт своей высотой, ограниченной сверху. */}
-          {timecodes.length > 0 && (
-          <div className="relative min-w-0">
-          <div
-            className="flex flex-col lg:absolute lg:inset-0"
-            style={{
-              borderRadius: 24,
-              background: 'rgba(var(--glass-rgb), 0.96)',
-              border: '1px solid var(--color-border-soft)',
-              boxShadow: 'var(--shadow-2)',
-              padding: 16,
-              gap: 6,
-              minHeight: 0,
-              maxHeight: PLAYER_MAX_H,
-            }}
-          >
-            <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
-              <ListVideo size={18} style={{ color: 'var(--color-accent)' }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Таймкоды')}</span>
-              <span style={{ flex: 1 }} />
-              {/* Позиция ролика прямо в шапке — видно, что список и плеер об
-                  одном и том же, даже когда глава длинная. */}
-              {playing && (
-                <span
-                  style={{
-                    fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
-                    color: 'var(--color-text-3)', flexShrink: 0,
-                  }}
-                >
-                  {formatClock(videoTime)} / {formatClock(videoDuration)}
-                </span>
-              )}
-            </div>
-            <div ref={chapterListRef} className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', minHeight: 0, paddingRight: 10 }}>
-              {timecodes.map((tc, i) => {
-                const active = i === activeChapter
-                // Глава кончается там, где начинается следующая; последняя — на
-                // конце ролика, длину которого знает плеер.
-                const end = timecodes[i + 1]?.seconds ?? videoDuration
-                const span = end - tc.seconds
-                const played = active && playing && span > 0
-                  ? Math.min(1, Math.max(0, (videoTime - tc.seconds) / span))
-                  : 0
-                return (
-                  <button
-                    key={`${tc.time}-${i}`}
-                    ref={el => { chapterRowRefs.current[i] = el }}
-                    onClick={() => { setActiveChapter(i); playerRef.current?.playFrom(tc.seconds) }}
-                    className="relative flex items-center cursor-pointer text-left"
-                    style={{
-                      gap: 10, padding: '10px 10px', borderRadius: 12, border: 'none',
-                      background: active ? 'var(--color-purple-soft)' : 'transparent',
-                      transition: 'background 0.15s ease', overflow: 'hidden',
-                    }}
-                    onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
-                    onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                        color: active ? 'var(--color-accent)' : 'var(--color-text-3)', minWidth: 42, flexShrink: 0,
-                      }}
-                    >
-                      {tc.time}
-                    </span>
-                    <span style={{ fontSize: 14, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : 'var(--color-text-2)' }}>
-                      {tc.label}
-                    </span>
-                    {/* Сколько этой главы уже проиграно — та же полоса, что
-                        ползёт по шкале плеера, только в масштабе строки. */}
-                    {played > 0 && (
-                      <span
-                        aria-hidden
-                        style={{
-                          position: 'absolute', left: 0, bottom: 0, height: 2,
-                          width: `${played * 100}%`, background: 'var(--grad-purple)',
-                          borderRadius: 999, transition: 'width 0.38s linear',
-                        }}
-                      />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-          </div>
-          )}
-        </div>
+          </>} />
       )}
 
       {/* Итоги занятия из записи — сразу под видео: таймкоды ведут в плеер выше. */}
