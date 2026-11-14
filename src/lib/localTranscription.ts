@@ -44,11 +44,11 @@ export async function waitForTranscriptionCompanion(timeoutMs = 300_000) {
         headers: { 'X-Iskra-Module': 'transcription-v1' }, cache: 'no-store',
         signal: AbortSignal.timeout(1500),
       })
-      if (response.ok) return
+      if (response.ok && typeof (await response.json()).version === 'string') return
     } catch { /* LaunchAgent ещё готовит локальный runtime. */ }
     await new Promise(resolve => window.setTimeout(resolve, 1200))
   }
-  throw new LocalTranscriptionUnavailable('Не удалось запустить фоновый модуль. Откройте «Искра — расшифровка» один раз и разрешите фоновую службу в настройках Mac.')
+  throw new LocalTranscriptionUnavailable('Не удалось запустить фоновый модуль. Откройте «Искра — расшифровка» из папки «Программы» и проверьте статус службы. Если браузер запросил доступ к локальной сети, разрешите его и повторите попытку.')
 }
 
 /** 0:06, 12:30, 1:02:15 — с часами, как время глав: двухчасовой ролик не превращается в «125:30». */
@@ -116,7 +116,7 @@ export async function localRequest(path: string, token: string, options: Request
     response = await fetch(transcriptionOrigin + path, { ...options, headers, cache: 'no-store',
       signal: options.signal ?? (!options.method || options.method === 'GET' ? AbortSignal.timeout(15000) : undefined) })
   } catch {
-    throw new LocalTranscriptionUnavailable('Нет связи с модулем на этом Mac. Откройте start.command, дождитесь строки Running on и оставьте Терминал открытым до конца обработки.')
+    throw new LocalTranscriptionUnavailable('Нет связи с модулем на этом Mac. Откройте «Искра — расшифровка», запустите обработчик и повторите попытку.')
   }
   if (response.status === 403) throw new Error('Проверьте адрес приложения и подключите модуль заново.')
   if (response.status === 404) throw new Error('Обработка больше не доступна. Запустите её снова.')

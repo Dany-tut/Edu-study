@@ -19,9 +19,8 @@ if [[ -z "$VERSION" || -z "$INSTALLER_VERSION" || -z "$PRODUCT_VERSION" ]]; then
   exit 2
 fi
 
-if [[ ! -f "$ROOT/public/downloads/iskra-transcription-mac.zip" ]]; then
-  node "$ROOT/scripts/buildTranscriptionModule.mjs"
-fi
+node "$ROOT/scripts/buildTranscriptionModule.mjs" --check
+node "$ROOT/scripts/buildTranscriptionModule.mjs"
 
 rm -rf "$BUILD"
 mkdir -p "$APP_CONTENTS/MacOS" "$APP_CONTENTS/Resources" "$APP_CONTENTS/Library/LaunchAgents"
@@ -37,8 +36,11 @@ for SIZE in 16 32 128 256 512; do
 done
 iconutil -c icns "$ICONSET" -o "$APP_CONTENTS/Resources/iskra.icns"
 rm -rf "$ICONSET"
+export MACOSX_DEPLOYMENT_TARGET=13.0
 swiftc -O -framework AppKit -framework CoreServices -framework ServiceManagement \
   -o "$APP_CONTENTS/MacOS/IskraTranscription" "$ROOT/tools/transcription-macos/IskraTranscription.swift"
+
+swiftc -O -o "$APP_CONTENTS/MacOS/IskraFrameText" "$ROOT/tools/local-transcription/frame_text.swift"
 
 cat > "$APP_CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -51,7 +53,7 @@ cat > "$APP_CONTENTS/Info.plist" <<PLIST
   <key>CFBundleIconFile</key><string>iskra.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$PRODUCT_VERSION</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleVersion</key><string>$PRODUCT_VERSION</string>
   <key>IskraInstallerVersion</key><string>$INSTALLER_VERSION</string>
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.education</string>

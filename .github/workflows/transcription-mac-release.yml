@@ -2,6 +2,11 @@ name: Mac transcription helper release
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the notarized package to GitHub Releases
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -62,7 +67,15 @@ jobs:
           APPLE_NOTARY_PRIVATE_KEY="$KEY_PATH" bash scripts/buildTranscriptionMacInstaller.sh --release
           rm -f "$KEY_PATH"
 
+      - name: Upload notarized installer for acceptance
+        uses: actions/upload-artifact@v4
+        with:
+          name: Iskra-Transcription-Mac-${{ github.sha }}
+          path: .build/transcription-macos/Iskra-Transcription-Mac-v*.zip
+          if-no-files-found: error
+
       - name: Publish versioned installer asset
+        if: inputs.publish && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

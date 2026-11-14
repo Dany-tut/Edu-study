@@ -15,12 +15,21 @@ private enum Companion {
             .appendingPathComponent("Iskra", isDirectory: true)
     }
     static var module: URL { appSupport.appendingPathComponent("transcription-module", isDirectory: true) }
-    static var service: SMAppService { SMAppService.agent(plistName: agentPlist) }
+    static let service = SMAppService.agent(plistName: agentPlist)
+    static let installedURL = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Applications", isDirectory: true)
+        .appendingPathComponent(appName, isDirectory: true)
+
+    static func isInstalled(_ url: URL) -> Bool {
+        url.resolvingSymlinksInPath() == installedURL.resolvingSymlinksInPath()
+            || url.deletingLastPathComponent().resolvingSymlinksInPath().path == "/Applications"
+    }
 
     static func installResources() throws {
         try FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
         let marker = module.appendingPathComponent(".launcher-install-version")
-        if FileManager.default.fileExists(atPath: marker.path) { return }
+        let installVersion = Bundle.main.object(forInfoDictionaryKey: "IskraInstallerVersion") as? String ?? "1"
+        if (try? String(contentsOf: marker, encoding: .utf8)) == installVersion { return }
         let bundled = Bundle.main.resourceURL!.appendingPathComponent(moduleName, isDirectory: true)
         guard FileManager.default.fileExists(atPath: bundled.appendingPathComponent("start.command").path) else {
             throw NSError(domain: "IskraTranscription", code: 1, userInfo: [NSLocalizedDescriptionKey: "В установщике не найдены файлы модуля."])
@@ -31,20 +40,29 @@ private enum Companion {
         for file in files where file.pathExtension == "py" || file.pathExtension == "swift" || ["start.command", "README.md"].contains(file.lastPathComponent) {
             try FileManager.default.copyItem(at: file, to: module.appendingPathComponent(file.lastPathComponent))
         }
-        try Data((Bundle.main.infoDictionary?["IskraInstallerVersion"] as? String ?? "1").utf8).write(to: marker)
+        try Data(installVersion.utf8).write(to: marker, options: .atomic)
     }
 
     static func register() throws {
+        guard isInstalled(Bundle.main.bundleURL) else {
+            throw failure("Откройте установленную копию «Искра — расшифровка» из папки «Программы».")
+        }
         try installResources()
-        if service.status == .notRegistered { try service.register() }
+        if service.status == .notRegistered {
+            do { try service.register() }
+            catch where service.status == .requiresApproval { return }
+        }
     }
 
     static func start() throws {
-        try register()
         guard service.status == .enabled else {
-            throw NSError(domain: "IskraTranscription", code: 2, userInfo: [NSLocalizedDescriptionKey: "Разрешите фоновую службу Искры в настройках входа и фоновых объектов Mac."])
+            throw failure("macOS не зарегистрировала обработчик. Переустановите приложение и откройте его из папки «Программы».")
         }
-        try launchctl(["kickstart", "-k", "gui/\(getuid())/\(agentLabel)"])
+        try launchctl(["kickstart", "gui/\(getuid())/\(agentLabel)"])
+    }
+
+    static func failure(_ message: String) -> NSError {
+        NSError(domain: "IskraTranscription", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 
     static func stop() throws {
@@ -65,32 +83,27 @@ private enum Companion {
         }
     }
 
-    static func isRunning() -> Bool {
-        guard let url = URL(string: "http://127.0.0.1:18764/version") else { return false }
-        var request = URLRequest(url: url, timeoutInterval: 1)
-        request.cachePolicy = .reloadIgnoringLocalCacheData
+    static func isRunning() async -> Bool {
+        let url = URL(string: "http://127.0.0.1:18764/version")!
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 1)
         request.setValue("https://iskra-study.ru", forHTTPHeaderField: "Origin")
         request.setValue("transcription-v1", forHTTPHeaderField: "X-Iskra-Module")
-        let semaphore = DispatchSemaphore(value: 0)
-        var running = false
-        URLSession.shared.dataTask(with: request) { _, response, _ in
-            running = (response as? HTTPURLResponse)?.statusCode == 200
-            semaphore.signal()
-        }.resume()
-        _ = semaphore.wait(timeout: .now() + 1.2)
-        return running
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return false }
+        return (body["version"] as? String)?.isEmpty == false
     }
 
-    static func settingsURL() -> URL {
-        URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension")!
-    }
 }
 
 private func runService() -> Never {
     do {
         try Companion.installResources()
         let logURL = Companion.appSupport.appendingPathComponent("transcription-service.log")
-        FileManager.default.createFile(atPath: logURL.path, contents: nil)
+        if !FileManager.default.fileExists(atPath: logURL.path) {
+            _ = FileManager.default.createFile(atPath: logURL.path, contents: nil, attributes: [.posixPermissions: 0o600])
+        }
         let log = try FileHandle(forWritingTo: logURL)
         try log.seekToEnd()
         let process = Process()
@@ -99,6 +112,8 @@ private func runService() -> Never {
         process.currentDirectoryURL = Companion.module
         process.environment = ProcessInfo.processInfo.environment.merging([
             "ISKRA_FFMPEG": Bundle.main.resourceURL!.appendingPathComponent(moduleName).appendingPathComponent("ffmpeg").path,
+            "ISKRA_FRAME_TEXT": Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/IskraFrameText").path,
+            "ISKRA_PACKAGED_MODULE": "1",
         ]) { _, new in new }
         process.standardOutput = log
         process.standardError = log
@@ -113,89 +128,85 @@ private func runService() -> Never {
 
 if CommandLine.arguments.contains("--service") { runService() }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow!
     private var statusLabel: NSTextField!
     private var detailLabel: NSTextField!
 
+    private var startTask: Task<Void, Never>?
+    private var pendingApproval = false
+    private var requestedStart = false
+    private var installing = false
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if installInApplicationsIfNeeded() { return }
         buildWindow()
+        requestedStart = requestedStart || CommandLine.arguments.contains("--start")
+        if installInApplicationsIfNeeded() { return }
+        if requestedStart { handleStart(); return }
         do {
             try Companion.register()
-            refreshStatus()
+            showRegistrationStatus()
         } catch { showError(error.localizedDescription) }
-        if CommandLine.arguments.contains("--start") { handleStart() }
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         guard urls.contains(where: { $0.scheme == appURLScheme && $0.host == "start" }) else { return }
-        handleStart()
+        requestedStart = true
+        if window != nil && !installing { handleStart() }
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        if pendingApproval && Companion.service.status == .enabled { handleStart() }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
-        if !hasVisibleWindows { window.makeKeyAndOrderFront(nil) }
+        if !hasVisibleWindows { window?.makeKeyAndOrderFront(nil) }
         return true
     }
 
     private func installInApplicationsIfNeeded() -> Bool {
-        let target = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Applications", isDirectory: true).appendingPathComponent(appName, isDirectory: true)
-        let current = Bundle.main.bundleURL.standardizedFileURL
-        if current == target.standardizedFileURL { return false }
+        let target = Companion.installedURL
+        let current = Bundle.main.bundleURL
+        if Companion.isInstalled(current) { return false }
+        installing = true
+        statusLabel.stringValue = "Устанавливаем приложение…"
         do {
             try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
-            // Install to a sibling staging path first: Finder may be launching the
-            // downloaded app from a temporary quarantine location, and replacing
-            // the currently running target in place can leave a half-copied bundle.
-            let staging = target.deletingLastPathComponent()
-                .appendingPathComponent(".Iskra-transcription-install-\(UUID().uuidString).app", isDirectory: true)
-            try FileManager.default.copyItem(at: current, to: staging)
-            if FileManager.default.fileExists(atPath: target.path) {
-                let backup = target.deletingLastPathComponent()
-                    .appendingPathComponent(".Iskra-transcription-old-\(UUID().uuidString).app", isDirectory: true)
-                try FileManager.default.moveItem(at: target, to: backup)
-                do {
+            let installedVersion = Bundle(url: target)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+            let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+            if installedVersion.compare(currentVersion, options: .numeric) == .orderedAscending {
+                let staging = target.deletingLastPathComponent()
+                    .appendingPathComponent(".Iskra-transcription-install-\(UUID().uuidString).app", isDirectory: true)
+                defer { try? FileManager.default.removeItem(at: staging) }
+                try FileManager.default.copyItem(at: current, to: staging)
+                if FileManager.default.fileExists(atPath: target.path) {
+                    _ = try FileManager.default.replaceItemAt(target, withItemAt: staging)
+                } else {
                     try FileManager.default.moveItem(at: staging, to: target)
-                    try? FileManager.default.removeItem(at: backup)
-                } catch {
-                    try? FileManager.default.moveItem(at: backup, to: target)
-                    throw error
                 }
-            } else {
-                try FileManager.default.moveItem(at: staging, to: target)
             }
-            let appURL = target as CFURL
-            LSRegisterURL(appURL, true)
+            LSRegisterURL(target as CFURL, true)
             let config = NSWorkspace.OpenConfiguration()
-            config.createsNewApplicationInstance = true
             config.allowsRunningApplicationSubstitution = false
+            config.createsNewApplicationInstance = true
+            // Forward a browser launch even when Launch Services picked the downloaded copy.
+            config.arguments = ["--start"]
             NSWorkspace.shared.openApplication(at: target, configuration: config) { _, error in
                 DispatchQueue.main.async {
+                    self.installing = false
                     if let error {
-                        // Launch Services can fail to resolve a freshly copied app
-                        // on the first registration. Keep this downloaded copy
-                        // running as a usable fallback instead of leaving the
-                        // teacher with a dead app and an opaque macOS alert.
-                        self.buildWindow()
-                        do {
-                            try Companion.register()
-                            self.refreshStatus()
-                            self.showError("Установленную копию пока не удалось открыть. Приложение продолжит работу из Загрузок. Можно вернуться в Искру и нажать «Подключить компьютер» ещё раз. (\(error.localizedDescription))")
-                            if CommandLine.arguments.contains("--start") { self.handleStart() }
-                        } catch {
-                            self.showError("Приложение запущено из Загрузок, но фоновую службу зарегистрировать не удалось: \(error.localizedDescription)")
-                        }
+                        self.showError("Откройте установленную копию из папки «Программы». \(error.localizedDescription)")
                     } else {
                         NSApp.terminate(nil)
                     }
                 }
             }
-            return true
         } catch {
-            showError("Не удалось установить приложение в ~/Applications: \(error.localizedDescription)")
-            return false
+            installing = false
+            showError("Не удалось установить приложение в папку «Программы». \(error.localizedDescription)")
         }
+        return true
     }
 
     private func buildWindow() {
@@ -227,8 +238,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         versionLabel.textColor = .tertiaryLabelColor
         versionLabel.frame = NSRect(x: 28, y: 14, width: 404, height: 16); content.addSubview(versionLabel)
 
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        if !requestedStart && !CommandLine.arguments.contains("--start") {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 
     private func label(_ text: String, size: CGFloat, weight: NSFont.Weight) -> NSTextField {
@@ -244,47 +257,85 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleStart() {
-        DispatchQueue.global(qos: .userInitiated).async {
+        guard startTask == nil, !installing else { return }
+        guard Companion.isInstalled(Bundle.main.bundleURL) else {
+            _ = installInApplicationsIfNeeded()
+            return
+        }
+        startTask = Task {
+            defer { startTask = nil }
             do {
-                if !Companion.isRunning() { try Companion.start() }
-                DispatchQueue.main.async {
-                    self.statusLabel?.stringValue = "Служба готова"
-                    self.detailLabel?.stringValue = "Вернитесь в Искру и повторите расшифровку."
+                try Companion.register()
+                if Companion.service.status == .requiresApproval {
+                    pendingApproval = true
+                    showRegistrationStatus()
+                    window.makeKeyAndOrderFront(nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                    return
                 }
-            } catch { DispatchQueue.main.async { self.showError(error.localizedDescription) } }
+                pendingApproval = false
+                statusLabel.stringValue = "Запускаем обработчик…"
+                detailLabel.stringValue = "При первом запуске подготавливаем компоненты. Можно вернуться в Искру."
+                if !(await Companion.isRunning()) {
+                    try Task.checkCancellation()
+                    try Companion.start()
+                }
+                let deadline = ContinuousClock.now + .seconds(285)
+                while ContinuousClock.now < deadline {
+                    try Task.checkCancellation()
+                    if await Companion.isRunning() {
+                        try Task.checkCancellation()
+                        statusLabel.stringValue = "Служба работает"
+                        detailLabel.stringValue = "Вернитесь в Искру. Браузер продолжит подключение или обработку."
+                        return
+                    }
+                    try await Task.sleep(for: .seconds(1))
+                }
+                showError("Обработчик не ответил. Проверьте интернет и повторите запуск. Журнал: transcription-service.log в папке данных Искры.")
+            } catch is CancellationError {
+                return
+            } catch { showError(error.localizedDescription) }
         }
     }
 
-    private func refreshStatus() {
-        DispatchQueue.global(qos: .utility).async {
-            let running = Companion.isRunning()
-            let service = Companion.service.status
-            DispatchQueue.main.async {
-                self.statusLabel.stringValue = running ? "Служба работает" : service == .requiresApproval ? "Нужно разрешить фоновую службу" : "Установка завершена"
-                if service == .requiresApproval {
-                    self.detailLabel.stringValue = "В настройках Mac разрешите фоновую службу Искры. Она не запускается при входе — только по запросу из Искры."
-                }
-            }
+    private func showRegistrationStatus() {
+        switch Companion.service.status {
+        case .enabled:
+            statusLabel.stringValue = "Фоновая служба разрешена"
+            detailLabel.stringValue = "Подключите компьютер или запустите расшифровку в Искре."
+        case .requiresApproval:
+            statusLabel.stringValue = "Нужно разрешение macOS"
+            detailLabel.stringValue = "Откройте настройки кнопкой ниже и разрешите фоновую службу Искры. Затем вернитесь сюда."
+        default:
+            showError("macOS не зарегистрировала обработчик. Переустановите приложение и откройте его из папки «Программы».")
         }
     }
 
     private func showError(_ message: String) {
         statusLabel?.stringValue = "Не удалось запустить службу"
         detailLabel?.stringValue = message
-        let alert = NSAlert(); alert.messageText = "Модуль расшифровки Искры"; alert.informativeText = message; alert.alertStyle = .warning
-        alert.addButton(withTitle: "Понятно"); alert.runModal()
+        window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func startClicked() { handleStart() }
     @objc private func stopClicked() {
-        do { try Companion.stop(); statusLabel.stringValue = "Служба остановлена" }
-        catch { showError(error.localizedDescription) }
+        pendingApproval = false
+        startTask?.cancel()
+        do {
+            try Companion.stop()
+            statusLabel.stringValue = "Служба остановлена"
+            detailLabel.stringValue = "Службу можно снова запустить из Искры."
+        } catch { showError(error.localizedDescription) }
     }
-    @objc private func settingsClicked() { NSWorkspace.shared.open(Companion.settingsURL()) }
+    @objc private func settingsClicked() { SMAppService.openSystemSettingsLoginItems() }
+
 }
 
-let app = NSApplication.shared
-let delegate = AppDelegate()
-app.delegate = delegate
-app.setActivationPolicy(.regular)
-app.run()
+MainActor.assumeIsolated {
+    let app = NSApplication.shared
+    let delegate = AppDelegate()
+    app.delegate = delegate
+    app.setActivationPolicy(.regular)
+    app.run()
+}
