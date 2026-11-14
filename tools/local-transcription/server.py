@@ -152,7 +152,11 @@ def install(data, expected):
 
 def restart():
     # start.command заново: зависимости докачаются, если новой версии нужны.
-    # Порт и замок модуля закрываются при exec — файлы Python не наследуются.
+    # Werkzeug marks the listening socket inheritable for its development reloader.
+    # We start a fresh server, so release the old listener on exec.
+    listen_fd = os.environ.pop('WERKZEUG_SERVER_FD', None)
+    if listen_fd is not None:
+        os.set_inheritable(int(listen_fd), False)
     os.execv('/bin/zsh', ['/bin/zsh', str(ROOT/'start.command')])
 
 @app.post('/update')
