@@ -93,11 +93,11 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <p>{module.phase === 'failed'
             ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
             : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
-        </div>}
-        <div className="transcription-connected-actions">
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
             <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
           </a>
+        </div>}
+        <div className="transcription-connected-actions">
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
             {showSetup ? 'Скрыть инструкцию' : 'Управление модулем'}
@@ -140,6 +140,11 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           {connected
             ? <p>Откройте «Искра — расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
             : <p>Откройте скачанный ZIP и один раз запустите приложение «Искра — расшифровка». Оно перенесёт себя в папку Программы пользователя и зарегистрирует фоновую службу. Если Mac попросит разрешение, включите её в «Системные настройки → Основные → Объекты входа и расширения».</p>}
+          {connected && !manualUpdate && (
+            <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
+              <span>Скачать для переустановки<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
+            </a>
+          )}
         </div>}
       </div>
       {message && <p className="transcription-module-error" role="alert">{message}</p>}
