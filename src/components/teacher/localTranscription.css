@@ -333,3 +333,6 @@
 @container (max-width: 420px) {
   .transcription-setup .transcription-walkthrough-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+@container (max-width: 500px) {
+  .transcription-steps .transcription-download-step { flex: none; width: 100%; }
+}

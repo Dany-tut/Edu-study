@@ -27,7 +27,7 @@ export function useTranscriptionOwner() {
   return owner
 }
 
-const setupSteps = ['Скачивание', 'Загрузки', 'ZIP-файл', 'Открытие', 'Подключение'] as const
+const setupSteps = ['Скачать', 'Загрузки', 'ZIP-файл', 'Открыть', 'Подключить'] as const
 const setupHints = [
   ['Скачайте Искру для Mac', 'Нажмите «Скачать „Искру“» в этой карточке.', ''],
   ['Откройте загрузки', 'Когда загрузка закончится, нажмите значок загрузок в верхней панели браузера. Если значка нет, откройте «Загрузки» в Finder.', 'Открылись загрузки'],
@@ -160,15 +160,15 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               {setupStep === 2 && <p><code>{MODULE_DOWNLOAD_URL.split('/').pop()}</code></p>}
             </div>
           </div>
-          {setupStep > 0 && <div className="transcription-walkthrough-actions">
-            <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(setupStep - 1)}>Назад</button>
+          <div className="transcription-walkthrough-actions">
+            {setupStep > 0 && <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(setupStep - 1)}>Назад</button>}
             {nextLabel && <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(setupStep + 1)}>
               {nextLabel} <ArrowRight size={14} aria-hidden />
             </button>}
             {setupStep < 3 && <button type="button" className="integration-action" onClick={() => goToSetupStep(setupSteps.length - 1)}>
               Искра уже установлена
             </button>}
-          </div>}
+          </div>
         </div>}
         {connected && showSetup && <div className="transcription-launch-guide">
           <h4>Работа в фоне</h4>
