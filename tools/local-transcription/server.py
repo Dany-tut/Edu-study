@@ -111,7 +111,7 @@ def ensure_models(stage):
         if any(root.glob('*/weights.safetensors' if kind=='whisper' else '*/model*.safetensors')):continue
         label='Whisper' if kind=='whisper' else 'глав'
         stage('Загружаем модель '+label)
-        args=[str(hf),'download',model,'--include','*.json','*.safetensors','*.txt','*.jinja']
+        args=[str(hf),'download',model,'--include','*.json','--include','*.safetensors','--include','*.txt','--include','*.jinja']
         result=subprocess.run(args,capture_output=True,text=True,timeout=7200)
         if result.returncode:
             raise ValueError('Не удалось загрузить модель '+label+'. Проверьте интернет и свободное место, затем начните заново.')
