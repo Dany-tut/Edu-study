@@ -3,12 +3,13 @@ import json, math, re, sys
 from collections import Counter
 from pathlib import Path
 from progress import record
+from model_cache import MODEL_SPECS, require_model
 from chapter_titles import checked_title
 from mlx_lm import generate, load
 
 folder=Path(sys.argv[1])
 rows=json.loads((folder/'segments.json').read_text())
-modelpath=next(Path.home().glob('.cache/huggingface/hub/models--mlx-community--Qwen2.5-3B-Instruct-4bit/snapshots/*/config.json')).parent
+modelpath=require_model(*MODEL_SPECS[1])
 model,tok=load(str(modelpath))
 stop=set('the and with your that this those from have will just also your what about some into then them been they well есть это как уже вот для или что так как эти тоже чтобы когда очень можно будет'.split())
 def terms(text):

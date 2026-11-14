@@ -61,11 +61,7 @@ def module_version(root=ROOT):
     return fingerprint({p.name: p.read_bytes() for p in root.iterdir() if p.is_file() and is_code(p.name)})
 VERSION = module_version()
 # Large speech/topic models are prepared by the first real transcription only.
-RUNTIME = Path.home() / 'Library/Application Support/Iskra/transcription-runtime'
-MODEL_SPECS = (
-    ('mlx-community/whisper-large-v3-turbo', 'whisper'),
-    ('mlx-community/Qwen2.5-3B-Instruct-4bit', 'topics'),
-)
+from model_cache import MODEL_SPECS, ensure_model
 
 def prepare_voice_models():
     """Optional setup runs alongside the server. Jobs can proceed without it."""
@@ -104,17 +100,8 @@ def prepare_voice_models():
 
 def ensure_models(stage):
     """Download heavy weights on demand, never when the local service starts."""
-    hf=RUNTIME/'bin'/'hf'
-    if not hf.is_file():raise ValueError('Не найден менеджер моделей. Перезапустите установку модуля Искры.')
-    for model,kind in MODEL_SPECS:
-        root=Path.home()/'.cache/huggingface/hub'/('models--'+model.replace('/','--'))/'snapshots'
-        if any(root.glob('*/weights.safetensors' if kind=='whisper' else '*/model*.safetensors')):continue
-        label='Whisper' if kind=='whisper' else 'глав'
-        stage('Загружаем модель '+label)
-        args=[str(hf),'download',model,'--include','*.json','--include','*.safetensors','--include','*.txt','--include','*.jinja']
-        result=subprocess.run(args,capture_output=True,text=True,timeout=7200)
-        if result.returncode:
-            raise ValueError('Не удалось загрузить модель '+label+'. Проверьте интернет и свободное место, затем начните заново.')
+    for repo, kind in MODEL_SPECS:
+        ensure_model(repo, kind, stage)
 # Уровень Б — материал для дообучения распознавания. Только по включённому
 # учителем переключателю и только здесь, на Mac: звук записи (сжатый) и
 # отрывки реплик, которые учитель исправил, с правильным текстом. В Искру и

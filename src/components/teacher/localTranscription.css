@@ -398,3 +398,7 @@
 .transcription-module-status { box-sizing: border-box; min-inline-size: 9em; text-align: center; }
 .transcription-download-icon { flex: none; }
 .transcription-guide-example strong { min-width: 0; }
+
+.transcription-spinner { animation: transcription-spin 1s linear infinite; }
+@keyframes transcription-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .transcription-spinner { animation: none; } }

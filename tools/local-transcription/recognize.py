@@ -3,9 +3,10 @@ from pathlib import Path
 import mlx_whisper
 import numpy as np
 from progress import record
+from model_cache import MODEL_SPECS, require_model
 
 folder=Path(sys.argv[1])
-model=next(Path.home().glob('.cache/huggingface/hub/models--mlx-community--whisper-large-v3-turbo/snapshots/*/weights.safetensors')).parent
+model=require_model(*MODEL_SPECS[0])
 offset=0
 segments=[]
 chunks=sorted(folder.glob('audio-*.wav'))

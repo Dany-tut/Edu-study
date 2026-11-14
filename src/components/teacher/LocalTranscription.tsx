@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowDownToLine, ArrowRight, AudioLines, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
+import { ArrowDownToLine, ArrowRight, AudioLines, Loader2, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
@@ -10,6 +10,7 @@ import { fetchTermsPack, suggestTerms, termEditPairs, termsForModule } from '../
 import type { RecapControl } from './LessonRecapPanel'
 import './profileIntegrations.css'
 import './localTranscription.css'
+import { transcriptionStages as stages, transcriptionStageIndex } from '../../lib/transcriptionStage'
 import { btn } from '../../lib/pillStyles'
 import { getOwnerId, getViewAs } from '../../lib/owner'
 import type { LessonStatsSummary } from '../../lib/lessonMontage'
@@ -230,7 +231,6 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   </section>
 }
 
-const stages = ['Видео', 'Распознаём речь', 'Разделяем голоса', 'Ищем паузы', 'Читаем слайды', 'Собираем главы']
 type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' }
 const PACE_KEY = 'iskra.transcription.pace'
 function readPace(): Record<string, number> {
@@ -270,6 +270,7 @@ function useTimeLeft(steps: string[], step: string, progress: JobProgress | unde
     if (progress && (!current.base || progress.current < current.base.current)) current.base = { at, current: progress.current }
   }, [steps, step, progress, running])
   if (!running) return ''
+  if (!progress) return 'Обработка продолжается. Точный процент пока недоступен.'
   const { since, base, duration } = track.current
   const pace = readPace()
   let left: number | undefined
@@ -547,10 +548,10 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     window.addEventListener('online', reconnect)
     return () => { active = false; clearTimeout(timer); window.removeEventListener('online', reconnect) }
   }, [pending, token, retry])
-  const currentStep = Math.max(0, stages.findIndex(s => stage.startsWith(s)))
+  const currentStep = transcriptionStageIndex(stage)
   const eta = useTimeLeft(stages, stages[currentStep], progress, !!pending && !error && !!stage)
   const metric = progress?.unit === 'seconds' ? transcriptTime : progress?.unit === 'bytes' ? megabytes : (n: number) => String(n)
-  return <section className="transcription-inline">
+  return <section className="transcription-inline" aria-busy={!!pending && !error}>
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
       <div><strong>Расшифровка урока</strong><small>Обработка на вашем компьютере</small></div>
       <button data-hover="layer" type="button" aria-label="К записи урока" disabled={busy} style={btn('S','secondary')} onClick={onClose}><X size={16}/></button>
@@ -574,8 +575,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         const percent = active && progress && progress.total > 0 ? Math.min(100, Math.max(0, Math.round(progress.current / progress.total * 100))) : undefined
         return <li key={step} aria-current={active ? 'step' : undefined}>
           {active && <span className="transcription-fill" style={{width: (percent ?? 0) + '%'}} />}
-          <span className="transcription-number">{i < currentStep ? <Check size={14} /> : i + 1}</span>
-          <strong>{step}</strong>{active && percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}
+          <span className="transcription-number">{i < currentStep ? <Check size={14} /> : active ? <Loader2 size={14} className="transcription-spinner" aria-hidden /> : i + 1}</span>
+          <strong>{step}</strong>{active && percent === undefined && <span className="transcription-percent">В процессе…</span>}{active && percent !== undefined && <span className="transcription-percent" role="progressbar" aria-label={step} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>{percent}%</span>}
         </li>
       })}</ol>
       {(eta || (progress && progress.total > 0)) && <small className="transcription-hint">
