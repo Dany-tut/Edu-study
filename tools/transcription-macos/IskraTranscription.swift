@@ -218,6 +218,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func buildWindow() {
         let frame = NSRect(x: 0, y: 0, width: 460, height: 300)
         window = NSWindow(contentRect: frame, styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        // Keep the ARC-owned window alive when the red close button hides it.
+        // Dock reopen and asynchronous status updates reuse this same window.
+        window.isReleasedWhenClosed = false
         window.title = "Искра — расшифровка"
         window.center()
         let content = NSView(frame: frame)
