@@ -145,7 +145,8 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           </button>
         </div>
       </div>
-      <div id={setupId} className="transcription-setup" data-connected={connected} aria-live="polite">
+      <div id={setupId} className="transcription-setup" data-connected={connected}
+        data-inactive={connected && !showSetup && !manualUpdate} aria-live="polite">
         <div className="transcription-walkthrough" inert={connected} data-inactive={connected}>
           <ol className="transcription-walkthrough-steps" aria-label="Этапы настройки">
             {setupSteps.map((step, index) => <li key={step} aria-current={index === setupStep ? 'step' : undefined}
