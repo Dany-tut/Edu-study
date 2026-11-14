@@ -7,7 +7,7 @@ const count = Number(params.get('n') ?? 4)
 function lesson(id: string) {
   const source = location.origin + '/video.mp4?lesson=' + id
   const data = {id, title: 'Урок '+id, description:'', videoUrl:source,
-    timecodes:Array.from({length:count},(_,i)=>({time:`${Math.floor(i*3/60)}:${String(i*3%60).padStart(2,'0')}`,seconds:i*3,label:`${id}: глава ${i+1}`})),
+    timecodes:Array.from({length:count},(_,i)=>({time:`${Math.floor(i*3/60)}:${String(i*3%60).padStart(2,'0')}`,seconds:i*3,label:count===40 && i%3!==0 ? `${id}: глава ${i+1}. Атомы и нейтроны в таблице Менделеева, электронное строение и вычисление атомной массы` : `${id}: глава ${i+1}`})),
     transcript:{source:params.has('stale') ? 'https://other.invalid/video.mp4' : source,
       segments:[{start:0,end:2,text:'Реплика '+id}],
       ...(params.has('montage') ? {montage:{duration:16,quiet:[{id:'cut',start:3,end:6,level:-60}],settings:{minPause:1,sensitivity:'normal',padding:0,quietAction:'keep',speed:4}}} : {})}}

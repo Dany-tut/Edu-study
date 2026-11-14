@@ -145,6 +145,7 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
                 className="relative flex items-center cursor-pointer text-left"
                 style={{
                   gap: 10, padding: '10px 10px', borderRadius: 12, border: 'none',
+                  flexShrink: 0,
                   background: active ? 'var(--color-purple-soft)' : 'transparent',
                   transition: 'background 0.15s ease', overflow: 'hidden',
                 }}
@@ -159,7 +160,7 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
                 >
                   {tc.time}
                 </span>
-                <span style={{ fontSize: 14, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : 'var(--color-text-2)' }}>
+                <span style={{ minWidth: 0, overflowWrap: 'anywhere', fontSize: 14, fontWeight: active ? 600 : 500, color: active ? 'var(--color-text)' : 'var(--color-text-2)' }}>
                   {tc.label}
                 </span>
                 {/* Сколько этой главы уже проиграно — та же полоса, что
