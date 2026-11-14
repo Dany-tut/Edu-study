@@ -28,10 +28,11 @@ export interface LocalDraft { transcript: LessonTranscript; timecodes: LessonTim
 export class LocalTranscriptionUnavailable extends Error {}
 
 export const transcriptionOrigin = 'http://127.0.0.1:18764'
+const transcriptionAppURL = 'iskra-transcription://start'
 
-/** Browser launches are temporarily paused while the Mac installer is being fixed. */
+/** Called synchronously from a user click so the browser can open the installed Mac app. */
 export function requestTranscriptionCompanionStart() {
-  throw new LocalTranscriptionUnavailable('Запуск модуля для Mac временно приостановлен.')
+  window.location.assign(transcriptionAppURL)
 }
 
 /** The launcher starts the signed LaunchAgent; the UI waits before sending the job. */
