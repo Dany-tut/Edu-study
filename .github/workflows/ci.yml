@@ -42,7 +42,7 @@ on:
 # Несколько сессий пушат в одну ветку подряд. Держать очередь из прогонов,
 # каждый из которых уже неактуален, смысла нет — оставляем последний.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 # Ничего не пишем — значит, и прав на запись не просим.
@@ -55,6 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       # 24, а не 20, как у сборки ленты. На двадцатом нет встроенного
       # WebSocket, а check:choicepos бандлит исходники приложения вместе с
@@ -77,26 +80,38 @@ jobs:
       - name: Зависимости
         run: npm ci
 
+      - name: Проверить выбор набора CI
+        run: node scripts/checkCiScope.mjs
+
+      - name: Определить область изменений
+        id: scope
+        run: node scripts/ciScope.mjs
+
       # Manual dispatch or an explicit release marker validates the candidate remotely.
       - name: Проверка кандидата выпуска
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-check]')
         run: npm run release:check
 
       - name: Связка трека и календаря
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:course-track && npm run check:schedule && npm run check:attendance
 
       - name: Диагностическая телеметрия (H1)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:diagnostics
 
       - name: Серверный монитор и восстановление
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:server-monitor && npm run check:monitor-db
 
       - name: Типы (tsc --noEmit)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: types
         continue-on-error: true
         run: npx tsc --noEmit
 
       - name: Главная ученика (check:student-home)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:student-home
 
       # ── Сторожа содержания ────────────────────────────────────────────────
@@ -106,66 +121,81 @@ jobs:
       # исходники приложения), поэтому идут в конце.
 
       - name: Виды дневника (check:diary-views)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:diary-views && npm run check:student-journal
 
       - name: Словарь слов (check:gloss)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: gloss
         continue-on-error: true
         run: npm run check:gloss
 
       - name: Английский интерфейс (check:i18n)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: i18n
         continue-on-error: true
         run: npm run check:i18n
 
       - name: Полнота и параллельная загрузка журнала
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:journal-loading && npm run check:journal-summary
 
       - name: Напоминания ученикам в Telegram (SQL и бот)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:reminders
 
       - name: Изоляция личного учебного примера
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: node scripts/checkPersonalStudentDemo.mjs
 
       - name: Просмотр кабинета преподавателя (check:teacher-view)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run check:teacher-view
 
       - name: Переводы вопросов (check:questions)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: questions
         continue-on-error: true
         run: npm run check:questions
 
       - name: Конспекты (check:prose)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: prose
         continue-on-error: true
         run: npm run check:prose
 
       - name: Примеры к словам (check:examples)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: examples
         continue-on-error: true
         run: npm run check:examples
 
       - name: Сцены (check:scenes)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: scenes
         continue-on-error: true
         run: npm run check:scenes
 
       - name: Лента (check:feed)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: feed
         continue-on-error: true
         run: npm run check:feed
 
       - name: Методика (check:logic)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: logic
         continue-on-error: true
         run: npm run check:logic
 
       - name: Стандарт урока (check:lesson)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: lesson
         continue-on-error: true
         run: npm run check:lesson && npm run check:video-access
 
       - name: Позиции верных ответов (check:choicepos)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: choicepos
         continue-on-error: true
         run: npm run check:choicepos
@@ -174,22 +204,39 @@ jobs:
       # данных. Разойтись они могут молча: присланная ссылка перестаёт открывать
       # материал, а сборка при этом зелёная.
       - name: Лёгкие таблицы (check:light)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: light
         continue-on-error: true
         run: npm run check:light
 
       - name: Назначения курса (check:course-access)
+        if: steps.scope.outputs.scope != 'chapter-ui'
         id: courseaccess
         continue-on-error: true
         run: npm run check:course-access
 
       - name: Границы и покрытие иконок Loop
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: npm run icons:check
 
       - name: Правила интерфейса (check:ui)
         run: npm run check:ui
 
+      - name: Подготовить Chromium
+        run: |
+          playwright_dir=$(mktemp -d)
+          npm install --prefix "$playwright_dir" --no-save --package-lock=false --ignore-scripts playwright@1.64.1
+          ln -s "$playwright_dir/node_modules/playwright" node_modules/playwright
+          "$playwright_dir/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Геометрия и режимы глав
+        env:
+          ISKRA_BROWSER_CHANNEL: chromium
+          ISKRA_QA_OUTPUT: /tmp/iskra-chapter-header-qa
+        run: node scripts/checkChapterHeaderBrowser.mjs
+
       - name: Переходы и геометрия мини-виджета
+        if: steps.scope.outputs.scope != 'chapter-ui'
         env:
           ISKRA_PLAYWRIGHT_MODULE: playwright
           ISKRA_BROWSER_CHANNEL: chromium
@@ -197,10 +244,6 @@ jobs:
           VITE_SUPABASE_URL: https://qa.invalid
           VITE_SUPABASE_PUBLISHABLE_KEY: qa-fixture-key
         run: |
-          playwright_dir=$(mktemp -d)
-          npm install --prefix "$playwright_dir" --no-save --package-lock=false --ignore-scripts playwright@1.64.1
-          ln -s "$playwright_dir/node_modules/playwright" node_modules/playwright
-          "$playwright_dir/node_modules/.bin/playwright" install --with-deps chromium
           npx vite --host 127.0.0.1 --port 5173 --strictPort > /tmp/iskra-topbar-vite.log 2>&1 &
           vite_pid=$!
           trap 'kill "$vite_pid"' EXIT
@@ -220,6 +263,7 @@ jobs:
         with:
           name: student-topbar-geometry
           path: |
+            /tmp/iskra-chapter-header-qa/
             /tmp/iskra-topbar-qa/
             /tmp/iskra-calendar-day-qa/
             /tmp/iskra-shelf-filters/
@@ -241,6 +285,7 @@ jobs:
       # Единственный шаг без continue-on-error: он и красит прогон. Печатает
       # табличку, чтобы не искать красный крестик по десятку свёрнутых шагов.
       - name: Итог
+        if: steps.scope.outputs.scope != 'chapter-ui'
         run: |
           fail=0
           check () {
@@ -266,3 +311,9 @@ jobs:
           check "check:course-access"    "${{ steps.courseaccess.outcome }}"
           check "сборка"                "${{ steps.build.outcome }}"
           exit $fail
+
+      - name: Итог локального оформления
+        if: steps.scope.outputs.scope == 'chapter-ui' && !cancelled()
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: test "$BUILD_OUTCOME" = success
