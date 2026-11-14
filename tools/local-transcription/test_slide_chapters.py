@@ -6,10 +6,20 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
-from slide_chapters import heading, scan, same
+from slide_chapters import heading, scan, same, suspicious
 
 
 class SlideChapterTests(unittest.TestCase):
+    def test_noise_is_reviewable_but_does_not_beat_real_heading(self):
+        for noise in ['V гч ···', 'sm rч ···', 'mm o ···', 'om V', 'мт ч ···', 'mm ч ···']:
+            self.assertTrue(suspicious(noise))
+            # Ellipsis/mixed-script fragments must not outrank a readable heading.
+            if suspicious(noise):
+                self.assertEqual(heading([{'text':noise,'height':.3,'y':0}, {'text':'ТРИПАНОСОМА','height':.1,'y':.2}]), 'ТРИПАНОСОМА')
+                self.assertEqual(heading([{'text':noise,'height':.3,'y':0}]), noise)
+        for short in ['pH', 'Na', 'Ёж', 'ДНК', 'РНК']:
+            self.assertEqual(heading([{'text':short,'height':.1,'y':.1}]), short)
+
     def test_global_unique_titles_and_first_appearance(self):
         def read(t):
             return 'ТРИПАНОСОМА' if t < 6 or t >= 14 else 'ЛЯМБЛИЯ'

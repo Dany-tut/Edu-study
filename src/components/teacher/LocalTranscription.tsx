@@ -6,7 +6,7 @@ import MontageAction from './MontageAction'
 import Switch from '../Switch'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
-import SlideChaptersPreview from './SlideChaptersPreview'
+import { prepareSlideChapters, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
 import type { LessonTimecode } from '../../data/lessonContent'
 import { MODULE_DOWNLOAD_URL, useModuleState } from '../../lib/transcriptionModuleUpdate'
 import { TRANSCRIPTION_PRODUCT_VERSION } from '../../lib/transcriptionProductVersion'
@@ -295,10 +295,12 @@ type TranscriptionMode = 'text' | 'slides'
 type Pending = { id: string; source: string; fileSignature?: string; mode?: TranscriptionMode; titleRegion?: string }
 const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
-type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft) => Promise<boolean>
+type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft, variants?: ChapterVariants) => Promise<boolean>
   /** Предмет словаря расшифровки (termsSubject) и название урока — подсказка модулю. */
   subject?: string; lessonTitle?: string
-  onApplyChapters?: (chapters: LessonTimecode[]) => Promise<boolean>
+  chapterVariants?: ChapterVariants
+  existingChapters?: LessonTimecode[]
+  onApplyChapters?: (variants: ChapterVariants) => Promise<boolean>
   /** Текст урока (описание, конспект, главы): термины из него идут в подсказку первыми. */
   lessonText?: string
   /** Уроки курса с итогами монтажа — для динамики во вкладке «Итоги». */
@@ -405,25 +407,37 @@ export function RecordingLines({rail, fill, at, onSeek}: {rail: TranscriptRail; 
   </section>
 }
 
-export function TranscriptionAction(props: Props & { children: (action: React.ReactNode, rail?: TranscriptRail) => React.ReactNode }) {
+export function TranscriptionAction(props: Props & { children: (action: React.ReactNode, rail?: TranscriptRail, chapters?: ChapterControls) => React.ReactNode }) {
   const connected = !!props.owner && !!localStorage.getItem(tokenKey(props.owner))
   const jobKey = props.lessonKey
   const storageKey = 'iskra.transcription.job.' + JSON.stringify([props.owner, jobKey])
   const [requestedMode, setRequestedMode] = useState<TranscriptionMode>('text')
-  const [slideDraft, setSlideDraft] = useState<LessonTimecode[] | null>(() => {
+  const variantsKey = storageKey + '.chapter-variants'
+  const [variants, setVariants] = useState<ChapterVariants>(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey + '.slides-draft') || 'null')
-      return saved?.source === props.source.trim() && (!props.file || saved.fileSignature === fileSignature(props.file)) && Array.isArray(saved.chapters) ? saved.chapters : null
-    } catch { return null }
+      const saved = JSON.parse(localStorage.getItem(variantsKey) || 'null')
+      if (saved?.source === props.source.trim() && Array.isArray(saved.text) && saved.revision >= (props.chapterVariants?.revision ?? 0) && (!props.file || saved.fileSignature === fileSignature(props.file))) return saved
+    } catch { /* use server or the old draft */ }
+    if (props.chapterVariants?.source === props.source.trim()) return props.chapterVariants
+    let slides: LessonTimecode[] | undefined
+    let text = props.existing?.timecodes ?? props.existingChapters ?? []
+    try {
+      const textDraft = JSON.parse(localStorage.getItem(storageKey + '.draft') || 'null')
+      if (textDraft?.transcript?.source === props.source.trim() && Array.isArray(textDraft.timecodes)) text = textDraft.timecodes
+      const old = JSON.parse(localStorage.getItem(storageKey + '.slides-draft') || 'null')
+      if (old?.source === props.source.trim() && Array.isArray(old.chapters)) slides = prepareSlideChapters(old.chapters)
+    } catch { /* no old draft */ }
+    return {source:props.source.trim(),active:slides ? 'slides' : 'text',revision:0,text,slides}
   })
-  const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview' | 'slide-preview'>(() => {
-    if (slideDraft) return 'slide-preview'
+  const [chapterDirty, setChapterDirty] = useState(() => !!localStorage.getItem(variantsKey) || !!localStorage.getItem(storageKey + '.slides-draft'))
+  const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() => {
     const job = readPending(props.owner, jobKey, props.source, props.file)
-    return connected && job && (job.mode === 'slides' || !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
+    return connected && job && !variants.slides && (job.mode === 'slides' || !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
   })
-  function changeSlideDraft(chapters: LessonTimecode[]) {
-    setSlideDraft(chapters)
-    try { localStorage.setItem(storageKey + '.slides-draft', JSON.stringify({source:props.source.trim(),fileSignature:props.file ? fileSignature(props.file) : undefined,chapters})) }
+  function changeVariants(value: ChapterVariants) {
+    const next = {...value, fileSignature:props.file ? fileSignature(props.file) : undefined, revision:Math.max(Date.now(), variants.revision + 1)}
+    setVariants(next); setChapterDirty(true); setFailed('')
+    try { localStorage.setItem(variantsKey, JSON.stringify(next)); setLocalSaveFailed(false) }
     catch { setLocalSaveFailed(true) }
   }
   const draftKey = storageKey + '.draft'
@@ -435,37 +449,38 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   })
   const [localSaveFailed, setLocalSaveFailed] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState('')
   const draft = working ?? props.existing
   function change(value: LocalDraft) {
-    setFailed(false); setWorking(value)
+    setFailed(''); setWorking(value)
     try { localStorage.setItem(draftKey, JSON.stringify({...value, fileSignature: props.file ? fileSignature(props.file) : undefined})); setLocalSaveFailed(false) }
     catch { setLocalSaveFailed(true) }
   }
   const apply = async () => {
-    if (!working || saving) return
+    if ((!working && !chapterDirty) || saving) return
     setSaving(true)
     try {
-      if (!await props.onApply(working)) throw new Error()
+      const ok = working
+        ? await props.onApply({...working, timecodes:variants[variants.active] ?? []}, variants)
+        : await props.onApplyChapters?.(variants)
+      if (!ok) throw new Error('Сохранение не подтверждено. Черновик сохранён — повторите попытку.')
+      localStorage.removeItem(variantsKey)
+      localStorage.removeItem(storageKey + '.slides-draft')
+      setChapterDirty(false)
       localStorage.removeItem(storageKey)
       localStorage.removeItem(draftKey)
       setWorking(null)
-      setFailed(false)
-    } catch { setFailed(true) }
+      setFailed('')
+    } catch (error) { setFailed(error instanceof Error && error.message ? error.message : 'Сохранение не подтверждено. Черновик сохранён — повторите попытку.') }
     finally { setSaving(false) }
   }
   if (!props.owner || (!props.source && !props.file && !draft && !readPending(props.owner, jobKey, props.source))) return <>{props.children(null)}</>
   if (view !== 'entry') return <ScrollFade maxHeight="100%" style={{ flex: 1, minHeight: 0 }}>
-    {view === 'slide-preview' && slideDraft ? <SlideChaptersPreview chapters={slideDraft} onChange={changeSlideDraft} onBack={() => setView('entry')} onDiscard={() => {
-      localStorage.removeItem(storageKey); localStorage.removeItem(storageKey + '.slides-draft')
-      setSlideDraft(null); setRequestedMode('slides'); setView('review')
-    }} onApply={async () => {
-      if (!props.onApplyChapters || !await props.onApplyChapters(slideDraft)) throw new Error('save failed')
-      if (working) change({...working, timecodes:slideDraft})
-      localStorage.removeItem(storageKey); localStorage.removeItem(storageKey + '.slides-draft')
-      setSlideDraft(null); setView('entry')
-    }} /> : view === 'review' ? <Review {...props} initialMode={requestedMode} onSlidesReady={chapters => {changeSlideDraft(chapters); setView('slide-preview')}} lessonKey={jobKey} onClose={() => setView('entry')}
-      onReady={result => { change(result); setView('entry') }} /> :
+    {view === 'review' ? <Review {...props} initialMode={requestedMode} onSlidesReady={chapters => {
+      changeVariants({...variants, active:'slides', slides:prepareSlideChapters(chapters)})
+      localStorage.removeItem(storageKey); setView('entry')
+    }} lessonKey={jobKey} onClose={() => setView('entry')}
+      onReady={result => { change(result); changeVariants({...variants, active:'text', text:result.timecodes}); setView('entry') }} /> :
       <section className="transcription-inline">
         <button data-hover="layer" type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
@@ -481,15 +496,20 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
       } catch { /* Keep an unconfirmed job attached; never replace a running job. */ }
     }
     setRequestedMode(mode)
-    setView(mode === 'slides' && slideDraft ? 'slide-preview' : connected ? 'review' : 'setup')
+    setView(connected ? 'review' : 'setup')
   }
   const open = () => { void openMode('text') }
-  const openSlides = () => { void openMode('slides') }
-  if (!draft) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
+  const chapters: ChapterControls = {
+    mode: variants.active, codes: variants[variants.active] ?? [], available: variants[variants.active] != null,
+    select: (active: ChapterMode) => { if (active !== variants.active && !saving) changeVariants({...variants, active}) },
+    change: codes => changeVariants({...variants, [variants.active]:codes}),
+    generate: () => { void openMode(variants.active) }, saving,
+  }
+  if (!draft && !variants.slides) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
     <AudioLines size={17} />Расшифровать видео
   </button>)}</>
-  const badChapter = draft.timecodes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
-  const badLine = draft.transcript.segments.some(line => !line.text.trim())
+  const badChapter = chapters.codes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
+  const badLine = draft?.transcript.segments.some(line => !line.text.trim())
   const corrected = (before: string, line: { start: number; end: number; text: string }) => {
     void suggestTerms(props.subject ?? '', termEditPairs(before, line.text))
     // Отрывок для дообучения: модуль вырежет его из звука, который отложил при обработке.
@@ -497,25 +517,24 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     if (draft?.jobId && token) void localRequest('/training', token, { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job: draft.jobId, subject: props.subject ?? '', items: [{ start: line.start, end: line.end, text: line.text, before }] }) }).catch(() => { /* модуль выключен или звук не копился — правка в уроке всё равно сохранится */ })
   }
-  const rail = {draft, change, saving, corrected}
+  const rail = draft ? {draft, change, saving, corrected} : undefined
   const actions = <>
     {localSaveFailed && <small role="alert">Не удалось сохранить черновик в браузере. Не обновляйте страницу до сохранения в урок.</small>}
-    {(failed || badChapter || badLine) && <small role="alert">{failed ? 'Не удалось сохранить. Попробуйте ещё раз.' : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
-    {props.onApplyChapters && <button type="button" className="transcription-rail-action transcription-slide-action" disabled={saving} onClick={openSlides}>Главы по слайдам</button>}
+    {(failed || badChapter || badLine) && <small role="alert">{failed ? failed : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
     <div className="transcript-tools">
-      {working ? <button className="transcription-rail-action" disabled={saving || badChapter || badLine} onClick={apply}>
+      {working || chapterDirty ? <button className="transcription-rail-action" disabled={saving || badChapter || !!(working && badLine) || !chapters.available} onClick={apply}>
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
-      <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={open}><RotateCcw size={16}/></button>
-      <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />
+      <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={chapters.generate}><RotateCcw size={16}/></button>
+      {draft && <MontageAction draft={draft} change={change} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />}
       <button data-hover="layer" aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>
   if (!props.source && !props.file) return <section className="transcription-inline">
     <p>Расшифровка загруженного файла восстановлена. Для воспроизведения выберите исходное видео снова.</p>
-    <RecordingLines rail={rail}/>{actions}
+    {rail && <RecordingLines rail={rail}/>} {actions}
   </section>
-  return <>{props.children(actions,rail)}</>
+  return <>{props.children(actions,rail,chapters)}</>
 }
 
 function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonText, initialMode, onSlidesReady, onReady, onClose }: Props & { initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {

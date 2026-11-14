@@ -8,7 +8,7 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
 
   const { data: dbCourse, error } = await supabase
     .from('courses')
-    .select('id, title, subject, level, status, description, color, bg, seed_stamp, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
+    .select('id, title, subject, level, status, description, color, bg, seed_stamp, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, chapter_variants, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
     .eq('short_id', shortId)
     .abortSignal(signal)
     .single()
@@ -26,6 +26,7 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
     testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
     videoUrl: l.youtube_url ?? undefined,
     timecodes: Array.isArray(l.timecodes) ? l.timecodes : [],
+    chapterVariants: l.chapter_variants ?? undefined,
     description: l.description ?? undefined,
     scheduledDate: l.scheduled_date ?? undefined,
     scheduledTime: l.scheduled_time ?? undefined,

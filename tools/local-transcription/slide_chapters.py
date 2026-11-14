@@ -90,9 +90,21 @@ def same(a, b):
     return min(len(a), len(b)) >= 8 and re.findall(r'\d+', a) == re.findall(r'\d+', b) and SequenceMatcher(None, a, b).ratio() >= .92
 
 
+def suspicious(text):
+    """Prefer a legible heading over toolbar fragments; never discard a sole
+    candidate, which remains available for human review with its original OCR."""
+    if re.search(r'[·…]|\.{2,}', text): return True
+    words = re.findall(r'[^\W\d_]+', text, re.UNICODE)
+    if any(re.search('[а-яё]', w, re.I) and re.search('[a-z]', w, re.I) for w in words): return True
+    if len(words) > 1 and all(re.fullmatch('[a-z]{1,2}|[IVX]+', w) for w in words): return True
+    exceptions = {'ДНК', 'РНК', 'ЦНС', 'ПНС', 'ЖКТ', 'DNA', 'RNA', 'ATP', 'PH', 'NA'}
+    prose = [w for w in words if w.upper() not in exceptions and not re.fullmatch('[IVXLCDM]+', w)]
+    return bool(prose) and not any(re.search('[аеёиоуыэюяaeiouy]', w, re.I) for w in prose)
+
+
 def meaningful(text):
     text = text.strip()
-    if not 3 <= len(text) <= 110 or len([c for c in text if c.isalpha()]) < 3: return False
+    if not 2 <= len(text) <= 110 or len([c for c in text if c.isalpha()]) < 2: return False
     if re.match(r'^\d+[.)]\s', text): return False  # bullet-point body text
     if re.search(r'\b(егэ|огэ)\b', text, re.I) and len(text.split()) <= 5: return False
     if re.search(r'https?://|www\.|@|©|copyright', text, re.I): return False
@@ -104,6 +116,8 @@ def heading(lines):
     if not candidates: return ''
     # Large text near the beginning of the selected title band wins. Body lists,
     # page numbers and course footers are excluded before ranking.
+    readable = [line for line in candidates if not suspicious(line['text'])]
+    if readable: candidates = readable
     best = max(candidates, key=lambda line: float(line.get('height', 0)) / (.12 + max(0, float(line.get('y', 0)))))
     text = best['text'].strip()
     continuation = [line for line in candidates if line is not best

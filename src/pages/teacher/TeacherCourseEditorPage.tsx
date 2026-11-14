@@ -1,3 +1,7 @@
+import { enqueueChapterSave } from '../../lib/chapterSaveQueue'
+import Segmented from '../../components/Segmented'
+import { rebaseChapterLessons, titleConcern, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
+import { saveLessonChapters } from '../../lib/saveLessonChapters'
 import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
 import { importBankTask } from '../../lib/bankTaskImport'
 import './lessonRow.css'
@@ -145,6 +149,7 @@ export interface CELesson {
    * держим рядом со строкой времени: по ним и сортировка, и подсветка главы.
    */
   timecodes?: LessonTimecode[]
+  chapterVariants?: ChapterVariants
   description?: string
   /**
    * Конспект урока — то, что ученик читает на вкладке «Конспект».
@@ -1516,10 +1521,11 @@ function parseTimecodeList(text: string): LessonTimecode[] {
  * плеер, а не карточка со ссылкой. Поле времени всё же редактируемое: главы
  * часто переносят из описания ролика, где секунды уже посчитаны.
  */
-function TimecodeRail({
-  codes, onChange, at, total, onSeek, transcriptionAction, rail,
+export function TimecodeRail({
+  codes, onChange, at, total, onSeek, transcriptionAction, rail, chapters,
 }: {
   rail?: TranscriptRail
+  chapters?: ChapterControls
   transcriptionAction?: React.ReactNode
   codes: LessonTimecode[]
   onChange: (next: LessonTimecode[]) => void
@@ -1576,7 +1582,7 @@ function TimecodeRail({
     } as React.CSSProperties}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ListVideo size={16} style={{ color: 'var(--color-green-text)' }} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{rail ? 'Главы' : t('Таймкоды')}</span>{rail && <small className="chapter-count">{codes.length}</small>}
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{rail || chapters ? 'Главы' : t('Таймкоды')}</span>{rail && <small className="chapter-count">{codes.length}</small>}
         <span style={{ flex: 1 }} />
         {total > 0 && (
           <span style={{ fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-3)' }}>
@@ -1585,6 +1591,11 @@ function TimecodeRail({
         )}
       </div>
 
+      {chapters && <>
+        <Segmented variant="filter" value={chapters.mode} onChange={value => { setEditingTime(null); if (!chapters.saving) chapters.select(value as 'text' | 'slides') }}
+          items={[{id:'slides',label:'По слайдам'},{id:'text',label:'По тексту'}]} />
+        {!chapters.available && <button type="button" className="transcription-rail-action" disabled={chapters.saving} onClick={chapters.generate}>Создать главы {chapters.mode === 'slides' ? 'по слайдам' : 'по тексту'}</button>}
+      </>}
       <ScrollFade maxHeight="100%" fadeHeight={14} style={{ flex:1,minHeight:0 }}>
         {codes.map((tc, i) => {
           const isActive = i === active && total > 0
@@ -1599,13 +1610,13 @@ function TimecodeRail({
                   кнопкой получает фокус, и ▶ уходит, пока идёт правка. */}
               <span className="chapter-time"
                 onContextMenu={e => {
-                  if (rail?.saving) return
+                  if ((rail?.saving || chapters?.saving)) return
                   e.preventDefault()
                   const input = e.currentTarget.querySelector('input')
                   input?.focus(); input?.select()
                 }}>
                 <input
-                  aria-label={'Время главы '+(i+1)} disabled={rail?.saving}
+                  aria-label={'Время главы '+(i+1)} disabled={(rail?.saving || chapters?.saving)}
                   value={editingTime === i ? tc.time : clock(tc.seconds)}
                   onFocus={() => {
                     setEditingTime(i)
@@ -1639,7 +1650,7 @@ function TimecodeRail({
                   }}
                   onDoubleClick={e => {
                     window.clearTimeout(seekTimer.current)
-                    if (rail?.saving) return
+                    if ((rail?.saving || chapters?.saving)) return
                     const input = e.currentTarget.parentElement?.querySelector('input')
                     input?.focus(); input?.select()
                   }}
@@ -1650,16 +1661,21 @@ function TimecodeRail({
                   <Play size={12} fill="currentColor" />
                 </button>
               </span>
-              <span className="transcript-line-text chapter-title" data-text={tc.label + ' '}>
+              <div style={{flex:1,minWidth:0}}><span className="transcript-line-text chapter-title" data-text={tc.label + ' '}>
                 <FadeText lines={2} fadeMode="last-line">{tc.label || t('Название главы')}</FadeText>
                 <textarea rows={1} ref={el => { rowRefs.current[i] = el }}
-                  aria-label={'Название главы '+(i+1)} disabled={rail?.saving}
+                  aria-label={'Название главы '+(i+1)} disabled={(rail?.saving || chapters?.saving)}
                   value={tc.label} onChange={e => patch(i, { label: e.target.value })}
                   placeholder={t('Название главы')} />
               </span>
+                {tc.originalTitle && <details className="chapter-ocr-note">
+                  <summary>{titleConcern(tc.label) ? 'Проверить название' : 'Текст на слайде'}</summary>
+                  <span>{titleConcern(tc.label)}{titleConcern(tc.label) ? '. ' : ''}Исходный текст: {tc.originalTitle}</span>
+                </details>}
+              </div>
               <button className="editor-delete-action"
                 aria-label={'Удалить главу '+(i+1)} title={t('Удалить')}
-                disabled={rail?.saving} onClick={() => onChange(codes.filter((_, j) => j !== i))}
+                disabled={(rail?.saving || chapters?.saving)} onClick={() => onChange(codes.filter((_, j) => j !== i))}
               >
                 <Trash2 size={14} />
               </button>
@@ -1699,7 +1715,7 @@ function TimecodeRail({
 
       {transcriptionAction}
       <div style={{ display: 'flex', gap: 6 }}>
-        <button disabled={rail?.saving}
+        <button disabled={(rail?.saving || chapters?.saving)}
           onClick={addHere}
           className="rail-tone-btn" data-tone="green"
           style={{
@@ -1712,7 +1728,7 @@ function TimecodeRail({
           <Plus size={16} /> {t('Таймкод')}
           <span style={{ fontVariantNumeric: 'tabular-nums', opacity: 0.75 }}>{clock(at)}</span>
         </button>
-        <button disabled={rail?.saving}
+        <button disabled={(rail?.saving || chapters?.saving)}
           onClick={() => setBulk(bulk === null ? '' : null)}
           title={t('Вставить списком')} aria-label={t('Вставить списком')}
           className="rail-icon-btn"
@@ -1736,7 +1752,7 @@ function montagePlan(lesson: CELesson) {
 }
 
 function CenterRecording({
-  lesson, onUpdate, onSaveTranscript, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false, subject = '', recapCourse,
+  lesson, onUpdate, onSaveTranscript, onSaveChapters, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false, subject = '', recapCourse,
 }: {
   lesson: CELesson
   /** Предмет курса — словарь расшифровки этого предмета. */
@@ -1750,6 +1766,7 @@ function CenterRecording({
   /** Слот в левой рельсе: реплики стоят там, а не под плеером. */
   linesSlot?: HTMLElement | null
   onSaveTranscript: (lesson: CELesson) => Promise<boolean>
+  onSaveChapters: (variants: ChapterVariants) => Promise<boolean>
   onSaveLink: (url: string) => Promise<boolean>
   saveUnavailable?: string
   courseKey: string
@@ -1873,11 +1890,12 @@ function CenterRecording({
     if (owner) localStorage.removeItem('iskra.transcription.job.' + JSON.stringify([owner, JSON.stringify([courseKey, lesson.id])]))
     onUpdate({ ...lesson, videoUrl: undefined, timecodes: undefined, transcript: undefined })
   }
-  const content = (transcriptionAction: React.ReactNode, rail?: TranscriptRail) => {
-  const timecodePanel = <TimecodeRail rail={rail} transcriptionAction={transcriptionAction}
-    codes={rail?.draft.timecodes ?? codes} at={at} total={total}
-    onChange={timecodes => rail ? rail.change({...rail.draft, timecodes}) : onUpdate({...lesson, timecodes})}
-    onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined} />
+  const canSeek = !!source && ['file','gdrive','youtube','rutube'].includes(source.kind)
+  const content = (transcriptionAction: React.ReactNode, rail?: TranscriptRail, chapters?: ChapterControls) => {
+  const timecodePanel = <TimecodeRail rail={rail} chapters={chapters} transcriptionAction={transcriptionAction}
+    codes={chapters?.codes ?? rail?.draft.timecodes ?? codes} at={at} total={total}
+    onChange={timecodes => chapters ? chapters.change(timecodes) : rail ? rail.change({...rail.draft, timecodes}) : onUpdate({...lesson, timecodes})}
+    onSeek={canSeek ? seconds => playerRef.current?.playFrom(seconds) : undefined} />
   if (lesson.videoUrl || localFile) {
     // Строка ссылки стоит над плеером, а не на всю ширину: главы справа
     // поднимаются до верха вкладки и показывают больше пунктов.
@@ -1950,8 +1968,8 @@ function CenterRecording({
                 <ExternalLink size={14} /> {t('Открыть запись')}
               </a>
               {recapCard}
-              {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
-              {rail ? timecodePanel : transcriptionAction}
+              {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={canSeek ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={canSeek ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
+              {rail || chapters ? timecodePanel : transcriptionAction}
             </div>
           </div>
         ) : (
@@ -1976,7 +1994,7 @@ function CenterRecording({
                   ref={playerRef}
                   source={source}
                   title={tc(lesson.title)}
-                  timecodes={codes}
+                  timecodes={chapters?.codes ?? codes}
                   initialWatch={startWatch}
                   onPersist={() => {}}
                   onTime={(s, d) => { setAt(s); setTotal(d) }}
@@ -2013,7 +2031,7 @@ function CenterRecording({
               </div>
             )}
             {recapCard}
-            {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={source ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
+            {rail && (linesSlot ? createPortal(<RecordingLines rail={rail} fill at={at} onSeek={canSeek ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>, linesSlot) : <RecordingLines rail={rail} at={at} onSeek={canSeek ? seconds => playerRef.current?.playFrom(seconds) : undefined}/>)}
           </div>
 
           {timecodePanel}
@@ -2067,8 +2085,9 @@ function CenterRecording({
       {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         recap={recapControl} recapSignal={recapSignal}
-        onApplyChapters={timecodes => onSaveTranscript({ ...lesson, timecodes })}
-        onApply={({ transcript, timecodes }) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes })}>{content}</TranscriptionAction>}
+        chapterVariants={lesson.chapterVariants} existingChapters={codes}
+        onApplyChapters={onSaveChapters}
+        onApply={({ transcript, timecodes }, chapterVariants) => onSaveTranscript({ ...lesson, videoUrl: transcript.source, transcript, timecodes, chapterVariants })}>{content}</TranscriptionAction>}
       {recapToastNode}
     </div>
   )
@@ -6408,9 +6427,11 @@ export default function TeacherCourseEditorPage() {
   // Пишем черновиком, как только у курса есть название; первый рендер у такого
   // курса не пропускаем — курс, поднятый из черновика сессии, сохраняется сразу.
   // Explicit link saves use the same draft bookkeeping and serial write queue.
+  const chapterProjection = useRef(new WeakSet<CourseEdData>())
   const linkSave = useRef<((ok: boolean) => void) | null>(null)
   const autosaveArmed = useRef(false)
   useEffect(() => {
+    if (chapterProjection.current.has(course)) { chapterProjection.current.delete(course); return }
     const finishLink = linkSave.current
     if (finishLink) {
       linkSave.current = null
@@ -6595,14 +6616,14 @@ export default function TeacherCourseEditorPage() {
    * уроков: сохранение переписывает и то и другое, а правка, пришедшая мимо
    * редактора, может тронуть только уроки.
    */
-  async function readCourseStamp(shortId: string): Promise<string | null> {
+  async function readCourseStamp(shortId: string, signal?: AbortSignal, excludeLesson?: string): Promise<string | null> {
     const { data: row } = await supabase
-      .from('courses').select('id, updated_at').eq('short_id', shortId).maybeSingle()
+      .from('courses').select('id, updated_at').eq('short_id', shortId).abortSignal(signal ?? AbortSignal.timeout(60000)).maybeSingle()
     if (!row) return null
-    const { data: last } = await supabase
-      .from('lessons').select('updated_at')
-      .eq('course_id', (row as { id: string }).id)
-      .order('updated_at', { ascending: false }).limit(1)
+    let latest = supabase.from('lessons').select('updated_at').eq('course_id', (row as { id: string }).id)
+    if (excludeLesson) latest = latest.neq('short_id', excludeLesson)
+    const { data: last, error: stampError } = await latest.order('updated_at', { ascending: false }).limit(1).abortSignal(signal ?? AbortSignal.timeout(60000))
+    if (stampError) return null
     const lessonStamp = (last as Array<{ updated_at: string }> | null)?.[0]?.updated_at ?? ''
     const courseStamp = (row as { updated_at: string }).updated_at ?? ''
     return lessonStamp > courseStamp ? lessonStamp : courseStamp
@@ -6666,8 +6687,33 @@ export default function TeacherCourseEditorPage() {
   // плюс красное «Не удалось сохранить», хотя вкладка одна. Поэтому очередь:
   // следующая запись ждёт, пока предыдущая не сдвинет отпечаток.
   const saveChain = useRef<Promise<unknown>>(Promise.resolve())
+  const confirmedChapters = useRef(new Map<string, ChapterVariants>())
+  function rebaseChapters(c: CourseEdData): CourseEdData {
+    return {...c, lessons:rebaseChapterLessons(c.lessons, confirmedChapters.current)}
+  }
+  async function saveChaptersOnly(lessonId: string, value: ChapterVariants): Promise<boolean> {
+    const target = latestCourse.current.lessons.find(l => l.id === lessonId)
+    if (!target || publicationPending || latestCourse.current.metadataPending || latestCourse.current.heavyPending) return false
+    const shortId = target.persistedShortId ?? lessonShortIdById[lessonId]
+    if (!shortId || !latestCourse.current.dbCourseId) throw new Error('Сначала дождитесь сохранения урока.')
+    return enqueueChapterSave(saveChain, async () => {
+      const currentStamp = await readCourseStamp(latestCourse.current.dbCourseId!, AbortSignal.timeout(8000), shortId)
+      if (!currentStamp) throw new Error('Не удалось проверить версию курса. Повторите сохранение.')
+      const foreignChanges = baselineStamp.current && currentStamp > baselineStamp.current
+      const stamp = await saveLessonChapters(shortId, value, target.timecodes ?? [], target.chapterVariants)
+      confirmedChapters.current.set(lessonId, value)
+      if (!foreignChanges && (!baselineStamp.current || stamp > baselineStamp.current)) baselineStamp.current = stamp
+      setCourse(c => {
+        // Late responses belong to the original lesson and source, never the selected one.
+        const next = rebaseChapters(c)
+        if (!unsaved.current) chapterProjection.current.add(next)
+        return next
+      })
+      return true
+    })
+  }
   function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
-    const run = saveChain.current.then(() => syncCourseNow(c), () => syncCourseNow(c))
+    const run = saveChain.current.then(() => syncCourseNow(rebaseChapters(c)), () => syncCourseNow(rebaseChapters(c)))
     saveChain.current = run
     return run
   }
@@ -6856,6 +6902,7 @@ export default function TeacherCourseEditorPage() {
       timecodes: (lesson.timecodes ?? [])
         .filter(tc => tc.label.trim())
         .map(tc => ({ time: tc.time, label: tc.label.trim(), seconds: tc.seconds })),
+      ...(lesson.chapterVariants ? {chapter_variants:lesson.chapterVariants} : {}),
       description: lesson.description ?? null,
       // Конспект → lessons.content.paragraphs, откуда его читает вкладка
       // «Конспект» у ученика. Пустой конспект пишем как {}, чтобы не затирать
@@ -7814,6 +7861,7 @@ export default function TeacherCourseEditorPage() {
                         onUpdate={updateLesson}
                         saveUnavailable={course.metadataPending || course.heavyPending || publicationPending
                           ? t('Подождите немного') : !course.dbCourseId && !course.title.trim() ? t('Сначала укажите название курса.') : undefined}
+                        onSaveChapters={value => saveChaptersOnly(selectedLesson.id, value)}
                         onSaveTranscript={updated => new Promise<boolean>(resolve => {
                           if (publicationPending || linkSave.current) { resolve(false); return }
                           linkSave.current = resolve

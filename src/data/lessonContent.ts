@@ -10,7 +10,7 @@ import { extraHwLabel } from '../lib/extraHomework'
 
 // ── Lesson page (screen 2) content ──────────────────────────────────────────
 
-export interface LessonTimecode { time: string; label: string; seconds: number }
+export interface LessonTimecode { time: string; label: string; seconds: number; originalTitle?: string }
 
 /**
  * Какая глава идёт на секунде `seconds` — последняя, чьё начало уже позади.
