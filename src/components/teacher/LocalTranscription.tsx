@@ -432,7 +432,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const [chapterDirty, setChapterDirty] = useState(() => !!localStorage.getItem(variantsKey) || !!localStorage.getItem(storageKey + '.slides-draft'))
   const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() => {
     const job = readPending(props.owner, jobKey, props.source, props.file)
-    return connected && job && !variants.slides && (job.mode === 'slides' || !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
+    return connected && job && (job.mode === 'slides' ? !localStorage.getItem(storageKey + '.slides-draft') : !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
   })
   function changeVariants(value: ChapterVariants) {
     const next = {...value, fileSignature:props.file ? fileSignature(props.file) : undefined, revision:Math.max(Date.now(), variants.revision + 1)}
@@ -488,6 +488,12 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
       </section>}
   </ScrollFade>
   const openMode = async (mode: TranscriptionMode) => {
+    // Migrate a completed legacy result before starting a new job: on reload
+    // the pending new job must show progress, while both old sets remain safe.
+    if (localStorage.getItem(storageKey + '.slides-draft')) {
+      changeVariants(variants)
+      if (localStorage.getItem(variantsKey)) localStorage.removeItem(storageKey + '.slides-draft')
+    }
     const pending = readPending(props.owner, jobKey, props.source, props.file)
     if (pending && connected) {
       try {
