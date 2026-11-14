@@ -74,12 +74,6 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
     <div className="transcription-module-body">
       {connected ? <>
         <p role="status">Запуск модуля для Mac временно приостановлен.</p>
-        {manualUpdate && <div className="transcription-update" role="status">
-          <p>{module.phase === 'failed'
-            ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
-            : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
-
-        </div>}
         <div className="transcription-connected-actions">
           {module.local && <span className="transcription-module-version" title={'Версия модуля ' + module.local}>
             Версия {module.local.slice(0, 7)}{module.selfUpdate && !manualUpdate ? ' · обновляется сама' : ''}

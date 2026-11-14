@@ -29,7 +29,7 @@ export class LocalTranscriptionUnavailable extends Error {}
 
 export const transcriptionOrigin = 'http://127.0.0.1:18764'
 
-/** Called synchronously from a user click so the browser can open the installed Mac app. */
+/** Browser launches are temporarily paused while the Mac installer is being fixed. */
 export function requestTranscriptionCompanionStart() {
   throw new LocalTranscriptionUnavailable('Запуск модуля для Mac временно приостановлен.')
 }
