@@ -1,5 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import ScrollFade from '../../ScrollFade'
+import { textFadeLines } from '../../../lib/textFades'
 import CountBadge from '../../CountBadge'
 import { useJournalPending, type PendingJournal } from '../../../lib/useGroups'
 import AttendanceEditor from './AttendanceEditor'
@@ -72,6 +73,7 @@ export const initial: StandSelection = {
   strip: 'students',
   search: '',
 }
+const WORK_TITLE_FADE = textFadeLines(2)
 const fraction = (a: number, b: number) => (b ? a + ' / ' + b : '—')
 function Source({ value }: { value: WorkSource }) {
   return (
@@ -627,6 +629,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
           position.current = { top: e.currentTarget.scrollTop, left: e.currentTarget.scrollLeft }
         }}>
           <div className="js-grid-content" data-source-line={showSourceLine || undefined}
+            data-work-grid={withWork || undefined} data-has-upcoming={!!nearest || undefined}
             style={{ '--columns': columnCount, '--grid-tracks': trackCount } as CSSProperties}>
           <table aria-colcount={columnCount + 1} onKeyDown={columnTab}>
             <colgroup>
@@ -645,7 +648,9 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     <time dateTime={displayDate ?? undefined}>{shortDate(displayDate)}</time>
                     {nearest && upcoming === nearest && <span className="js-next-label" title={'Ближайшая работа · ' + shortDate(nearest)}>Ближайшая</span>}
                   </div>
-                  {withWork && onOpenAssignment ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}>{col.title}</button>
+                  {withWork ? (onOpenAssignment
+                    ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}><span className="js-work-title-text" style={WORK_TITLE_FADE}>{col.title}</span></button>
+                    : <span className="js-col-title js-work-title-text" style={WORK_TITLE_FADE} title={col.title}>{col.title}</span>)
                     : !withWork && onOpenAttendance && attendanceColumns.has(col.ref) ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(attendanceColumns.get(col.ref)!)}>{col.title}</button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
                   {withWork && <div className="js-col-source">{hasHomework && (source ? <Source value={source} /> : 'Разные источники')}
                     {nearest && upcoming === nearest && col.due === nearest && col.due !== displayDate &&

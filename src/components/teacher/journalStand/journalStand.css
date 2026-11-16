@@ -198,6 +198,14 @@
 .js-matrix thead th:first-child { z-index: 3; }
 .js-matrix .js-grid-gutter { padding: 0; }
 .js-head-slots { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; row-gap: 3px; }
+/* Keep the sticky header the same height as virtual columns enter and leave. */
+.js-grid-content[data-work-grid] thead th[aria-colindex]:not(:first-child) .js-head-slots {
+  grid-template-rows: var(--work-meta-height, 14px) 30px 14px;
+}
+.js-grid-content[data-has-upcoming] { --work-meta-height: 28px; }
+.js-grid-content[data-work-grid] .js-col-meta { align-self: start; }
+.js-grid-content[data-work-grid] .js-col-title { align-self: start; }
+.js-work-title-text { line-height: 15px; }
 .js-col-meta, .js-col-source { color: var(--color-text-3); font-size: 10px; font-weight: 450; line-height: 14px; }
 .js-col-meta { grid-row: 1; flex-wrap: wrap; }
 .js-col-source { grid-row: 3; }

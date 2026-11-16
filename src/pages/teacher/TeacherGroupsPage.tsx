@@ -2843,20 +2843,17 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       {/* Add student to this group (new or existing) */}
                       {!activeGroup.isIndividual && !allRosterView && (
                         <div style={{ position: 'relative', flex: 'none' }}>
-                          <button data-hover="layer"
+                          <button data-hover="layer" type="button" className="roster-add-student"
+                            aria-label={t('Добавить ученика')}
+                            aria-expanded={!!rosterAddMenu}
                             onClick={e => {
                               if (allRosterView) { setShowAddStudent(true); return }
                               const r = e.currentTarget.getBoundingClientRect()
                               setRosterAddMenu(v => v ? null : { top: r.bottom + 6, right: window.innerWidth - r.right })
                             }}
-                            style={{ height: 40,
-                              display: 'inline-flex', alignItems: 'center', gap: 6,
-                              padding: '0 16px', borderRadius: 12, cursor: 'pointer',
-                              background: 'var(--grad-purple)', border: 'none',
-                              color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap',
-                            }}
                           >
-                            <Plus size={14} strokeWidth={2.5} /> {t('Ученик')}
+                            <Plus size={14} strokeWidth={2.5} aria-hidden />
+                            <span>{t('Ученик')}</span>
                           </button>
                           {rosterAddMenu && createPortal(
                             <>

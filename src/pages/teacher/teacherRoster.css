@@ -89,7 +89,41 @@
 }
 .roster-search-toggle { display: none; }
 
+.roster-add-student {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--grad-purple);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 @container roster-toolbar (max-width: 1160px) {
+  .roster-responsive-toolbar .group-roster-toolbar .js-scope {
+    flex: 1 1 244px;
+    flex-wrap: nowrap;
+  }
+
+  .roster-responsive-toolbar .js-scope :is(.js-scope-course, .js-scope-module) {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .roster-add-student {
+    width: 40px;
+    padding: 0;
+  }
+
+  .roster-add-student span { display: none; }
+
   .roster-search-toggle {
     display: inline-grid;
     place-items: center;
