@@ -43,6 +43,8 @@ export type SharedOptions = {
    * перезапускало загрузку девять раз.
    */
   watch?: (reload: () => void) => () => void
+  /** Recheck a subscribed snapshot when the app returns to the foreground. */
+  refreshOnFocusMs?: number
 }
 
 export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts: SharedOptions = {}): SharedQuery<T> {
@@ -58,6 +60,26 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   const emit = () => { for (const f of subs) f() }
   let unwatch: (() => void) | null = null
   let unwatchTimer: ReturnType<typeof setTimeout> | null = null
+  let lastSuccessAt = 0
+  let focusAttached = false
+
+  function refreshIfStale() {
+    const staleAfter = opts.refreshOnFocusMs
+    if (staleAfter == null || !subs.size || document.visibilityState !== 'visible') return
+    if (Date.now() - lastSuccessAt >= staleAfter) void q.reload()
+  }
+
+  function listenForFocus(enabled: boolean) {
+    if (focusAttached === enabled) return
+    focusAttached = enabled
+    if (enabled) {
+      window.addEventListener('focus', refreshIfStale)
+      document.addEventListener('visibilitychange', refreshIfStale)
+    } else {
+      window.removeEventListener('focus', refreshIfStale)
+      document.removeEventListener('visibilitychange', refreshIfStale)
+    }
+  }
 
   function recover() {
     if (needsRecovery && subs.size && navigator.onLine && document.visibilityState === 'visible') void run()
@@ -81,7 +103,7 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
     listenForRecovery(false)
     const my = ++gen
     inflight = fetcher()
-      .then(v => { if (my === gen) state = { value: v, loading: false } })
+      .then(v => { if (my === gen) { lastSuccessAt = Date.now(); state = { value: v, loading: false } } })
       .catch(e => {
         console.error('[sharedQuery]', e)
         // Снимаем ожидание всё равно: экран, навсегда застрявший в скелетоне,
@@ -97,7 +119,13 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   }
 
   const q: SharedQuery<T> = {
-    ensure: () => { if (started) return; started = true; void run() },
+    ensure: () => {
+      if (!started) { started = true; void run(); return }
+      // Hooks can mount again when an SPA route/tab is reopened without the
+      // browser window losing focus. Recheck the same freshness window used by
+      // focus refresh, so cached tables don't wait for an F5 or a second tab.
+      if (opts.refreshOnFocusMs != null && !inflight && Date.now() - lastSuccessAt >= opts.refreshOnFocusMs) void run()
+    },
     reload: async () => {
       started = true
       if (inflight) await inflight.catch(() => { /**/ })
@@ -107,6 +135,7 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
     subscribe: cb => {
       const first = subs.size === 0
       subs.add(cb)
+      if (first && opts.refreshOnFocusMs != null) listenForFocus(true)
       if (needsRecovery && first) { listenForRecovery(true); recover() }
       if (opts.watch) {
         if (unwatchTimer) { clearTimeout(unwatchTimer); unwatchTimer = null }
@@ -114,7 +143,7 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
       }
       return () => {
         subs.delete(cb)
-        if (!subs.size) listenForRecovery(false)
+        if (!subs.size) { listenForRecovery(false); listenForFocus(false) }
         // Отписка с отсрочкой: StrictMode размонтирует и монтирует обратно в
         // том же кадре, и без паузы канал успел бы закрыться и открыться зря.
         if (subs.size === 0 && unwatch && !unwatchTimer) {
@@ -132,6 +161,7 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
       gen++
       needsRecovery = false
       listenForRecovery(false)
+      lastSuccessAt = 0
       inflight = null
       state = { value: initial, loading: true }
       // Если на экране кто-то есть — сразу перечитываем под новым аккаунтом.

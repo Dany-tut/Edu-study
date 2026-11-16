@@ -8076,41 +8076,59 @@ export default function TeacherConstructorPage() {
   const diagEditorRef = useRef<DiagEditorHandle>(null)
 
   useEffect(() => {
+    let lastLoadedAt = 0
+    let loadingCatalog = false
     async function loadAll() {
-      // Courses are per-teacher: only load the ones this teacher owns, so a new
-      // teacher doesn't inherit every course ever created (multi-tenant isolation).
-      const uid = await getOwnerId()
-      _cachedOwnerId = uid
-      setOwnerId(uid)
-      const sharedIds = await fetchSharedCourseIds(uid)
-      const courseQuery = sharedIds.length
-        ? supabase.from('courses').select(COURSE_CARD_SELECT).or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
-        : supabase.from('courses').select(COURSE_CARD_SELECT).eq('created_by', uid).order('created_at')
-      const [{ data: cData }, { data: tData }, { data: wData }] = await Promise.all([
-        courseQuery,
-        supabase.from('trainers').select('*').order('created_at'),
-        supabase.from('widgets').select('*').order('created_at'),
-      ])
-      loadColorOverridesFromDB().then(overrides => {
-        Object.entries(overrides).forEach(([subject, hex]) => {
-          const existing = CUSTOM_META.get(subject)
-          const soft = CREATOR_ACCENTS.find(a => a.hex === hex)?.soft ?? hex + '22'
-          CUSTOM_META.set(subject, { label: existing?.label ?? subject, accent: hex, soft })
+      if (loadingCatalog) return
+      loadingCatalog = true
+      lastLoadedAt = Date.now()
+      try {
+        // Courses are per-teacher: only load the ones this teacher owns, so a new
+        // teacher doesn't inherit every course ever created (multi-tenant isolation).
+        const uid = await getOwnerId()
+        _cachedOwnerId = uid
+        setOwnerId(uid)
+        const sharedIds = await fetchSharedCourseIds(uid)
+        const courseQuery = sharedIds.length
+          ? supabase.from('courses').select(COURSE_CARD_SELECT).or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
+          : supabase.from('courses').select(COURSE_CARD_SELECT).eq('created_by', uid).order('created_at')
+        const [{ data: cData }, { data: tData }, { data: wData }] = await Promise.all([
+          courseQuery,
+          supabase.from('trainers').select('*').order('created_at'),
+          supabase.from('widgets').select('*').order('created_at'),
+        ])
+        loadColorOverridesFromDB().then(overrides => {
+          Object.entries(overrides).forEach(([subject, hex]) => {
+            const existing = CUSTOM_META.get(subject)
+            const soft = CREATOR_ACCENTS.find(a => a.hex === hex)?.soft ?? hex + '22'
+            CUSTOM_META.set(subject, { label: existing?.label ?? subject, accent: hex, soft })
+          })
         })
-      })
-      const c = cData ? cData.map((x: any) => dbCourseToLocal(x, uid)) : []
-      const t = tData ? tData.map(dbTrainerToLocal) : []
-      const w = wData ? wData.map(dbWidgetToLocal) : []
-      _cachedCourses = c; _cachedTrainers = t; _cachedWidgets = w
-      setCourses(prev => {
-        const dbIds = new Set(c.map((x: Course) => x.id))
-        const localOnly = prev.filter(x => !dbIds.has(x.id))
-        return [...localOnly, ...c]
-      })
-      setTrainers(t); setWidgets(w)
-      setDbLoading(false)
+        const c = cData ? cData.map((x: any) => dbCourseToLocal(x, uid)) : []
+        const t = tData ? tData.map(dbTrainerToLocal) : []
+        const w = wData ? wData.map(dbWidgetToLocal) : []
+        _cachedCourses = c; _cachedTrainers = t; _cachedWidgets = w
+        setCourses(prev => {
+          const dbIds = new Set(c.map((x: Course) => x.id))
+          const localOnly = prev.filter(x => !dbIds.has(x.id))
+          return [...localOnly, ...c]
+        })
+        setTrainers(t); setWidgets(w)
+        setDbLoading(false)
+      } finally {
+        loadingCatalog = false
+      }
     }
-    loadAll()
+    const refreshCatalog = () => {
+      if (document.visibilityState === 'visible' && Date.now() - lastLoadedAt >= 30_000) void loadAll()
+    }
+    void loadAll()
+    window.addEventListener('focus', refreshCatalog)
+    document.addEventListener('visibilitychange', refreshCatalog)
+    return () => {
+      window.removeEventListener('focus', refreshCatalog)
+      document.removeEventListener('visibilitychange', refreshCatalog)
+    }
   }, [])
 
   // Enrolled students per course (subject = course.dbCourseId in lesson_progress).

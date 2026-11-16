@@ -369,7 +369,7 @@ const homeworkQuery = createSharedQuery<HwAssignment[]>(withLoadFixture(fixtureH
   }
 
   return data.map(h => mapRow(h, countsByHw.get(h.id)))
-}), [])
+}), [], { refreshOnFocusMs: 30_000 })
 
 export function useHomework() {
   const { value: homework, loading } = useSharedQuery(homeworkQuery)
@@ -532,6 +532,7 @@ const hardQuery = createSharedQuery<HardSub[]>(withLoadFixture(fixtureHard, asyn
     }
   })
 }), [], {
+  refreshOnFocusMs: 30_000,
   watch: reload => {
     // Имя канала всё равно уникальное: Supabase бросает, если два подписчика
     // делят одно, а страницу могут открыть и переоткрыть за одну жизнь вкладки.
@@ -607,6 +608,7 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
   const [loading, setLoading] = useState(!!hwId)
   const [error, setError] = useState('')
   const request = useRef(0)
+  const lastAutoRefreshAt = useRef(0)
   const load = useCallback(async () => {
     const token = ++request.current
     if (!hwId) { setSubmissions([]); setLoading(false); setError(''); return }
@@ -642,11 +644,28 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
       reviewBoard: s.review_attachments?.board ?? null,
       answers: parseBasicAnswers(s.attachments),
     })))
+    lastAutoRefreshAt.current = Date.now()
     } catch { if (token === request.current) setError('Не удалось загрузить работы. Попробуйте ещё раз.') }
     finally { if (token === request.current) setLoading(false) }
   }, [hwId, lessonId])
 
-  useEffect(() => { setSubmissions([]); void load(); return () => { request.current++ } }, [load])
+  useEffect(() => {
+    setSubmissions([])
+    void load()
+    lastAutoRefreshAt.current = Date.now()
+    const refresh = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - lastAutoRefreshAt.current < 30_000) return
+      lastAutoRefreshAt.current = Date.now()
+      void load()
+    }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      request.current++
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [load])
 
   return { submissions, loading, error, reload: load }
 }
@@ -707,6 +726,7 @@ const courseTestlyQuery = createSharedQuery<Array<{
       lessonRef: row.lesson_ref, score: row.score, status: row.status, payload, attempts: (row.homework_attempts ?? []) as HomeworkAttempt[] }]
   })
 }, [], {
+  refreshOnFocusMs: 30_000,
   watch: reload => {
     const channel = supabase.channel(`course-testly-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload()).subscribe()

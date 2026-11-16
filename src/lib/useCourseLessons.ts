@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
+import { createSharedQuery, useSharedQuery } from './sharedQuery'
 
 export type CourseLesson = {
   id: string
@@ -8,27 +8,22 @@ export type CourseLesson = {
   subject: string
 }
 
+const courseLessonsQuery = createSharedQuery<CourseLesson[]>(async () => {
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('id, title, courses(title, subject)')
+    .order('position')
+  if (error) throw error
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    lessonTitle: row.title,
+    courseTitle: row.courses?.title ?? '',
+    subject: row.courses?.subject ?? '',
+  }))
+}, [], { refreshOnFocusMs: 30_000 })
+
 export function useCourseLessons(): CourseLesson[] {
-  const [lessons, setLessons] = useState<CourseLesson[]>([])
-
-  useEffect(() => {
-    supabase
-      .from('lessons')
-      .select('id, title, courses(title, subject)')
-      .order('position')
-      .then(({ data }) => {
-        if (data) {
-          setLessons(
-            data.map((row: any) => ({
-              id: row.id,
-              lessonTitle: row.title,
-              courseTitle: row.courses?.title ?? '',
-              subject: row.courses?.subject ?? '',
-            }))
-          )
-        }
-      })
-  }, [])
-
-  return lessons
+  return useSharedQuery(courseLessonsQuery).value
 }
+
+export const reloadCourseLessons = () => courseLessonsQuery.reload()

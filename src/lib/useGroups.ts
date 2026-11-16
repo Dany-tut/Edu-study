@@ -125,7 +125,7 @@ const groupsQuery = createSharedQuery<Group[]>(withLoadFixture(fixtureGroups, as
     isIndividual: g.is_individual,
     tracks: Array.isArray(g.tracks) ? g.tracks : [],
   }))
-}), [])
+}), [], { refreshOnFocusMs: 30_000 })
 
 export async function readTeacherRoster() {
   const [groups, students] = await Promise.all([readSharedQuery(groupsQuery), readSharedQuery(allStudentsQuery)])
@@ -634,7 +634,9 @@ export function useStudents(groupId: string | null) {
       debt: s.debt ?? 0,
       email: s.email ?? null,
     }).select('invite_token').single()
-    if (!error) await load()
+    if (!error) {
+      await Promise.all([load(), reloadAllStudents(), reloadTeacherGroups()])
+    }
     return { error: friendlyStudentError(error), inviteToken: data?.invite_token as string | null }
   }
 
@@ -644,7 +646,7 @@ export function useStudents(groupId: string | null) {
     const { data, error } = await query.select('id').single()
     if (error || data?.id !== id) throw new Error('Student card was not removed')
     await load()
-    await reloadAllStudents()
+    await Promise.all([reloadAllStudents(), reloadTeacherGroups()])
   }
 
   // Patch arbitrary student fields (camelCase keys → snake_case columns).
@@ -973,7 +975,7 @@ const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(withLoadFixture
   ])
   if (await getOwnerId() !== uid) throw new Error('Сессия изменилась')
   return pendingJournalRows(data, myStudents, legacy, sessions, now)
-}), [], { watch: reload => {
+}), [], { refreshOnFocusMs: 30_000, watch: reload => {
   journalSubs.add(reload)
   return () => { journalSubs.delete(reload) }
 } })
@@ -1080,7 +1082,7 @@ const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStu
     inviteToken: s.invite_token ?? null,
     email: s.email ?? '',
   }))
-}), [])
+}), [], { refreshOnFocusMs: 30_000 })
 
 export function useAllStudentsSnapshot() {
   return useSharedQuery(allStudentsQuery)
@@ -1093,6 +1095,7 @@ export function useAllStudents() {
 /** Перечитать список учеников во всех местах сразу — после создания, перевода
  *  или удаления. */
 export const reloadAllStudents = () => allStudentsQuery.reload()
+export const reloadTeacherGroups = () => groupsQuery.reload()
 
 export async function saveStudentFields(id: string, patch: Partial<Student>) {
   const columns: Record<string, string> = {

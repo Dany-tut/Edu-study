@@ -24,7 +24,7 @@ const todayQuery = createSharedQuery<TodayRow[]>(withLoadFixture(k => fixtureTod
   if (error) throw error
   if (await getOwnerId() !== owner) throw new Error('Сессия изменилась')
   return (data ?? []) as TodayRow[]
-}), [], { watch: reload => {
+}), [], { refreshOnFocusMs: 30_000, watch: reload => {
   let timer: ReturnType<typeof setTimeout> | undefined
   let day = todayMsk()
   const channel = supabase.channel(`teacher-today-${crypto.randomUUID()}`)
