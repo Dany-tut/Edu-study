@@ -2,7 +2,7 @@ import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LessonRecordingPreview } from '../../components/LessonRecordingView'
 import { enqueueChapterSave } from '../../lib/chapterSaveQueue'
 import Segmented from '../../components/Segmented'
-import { rebaseChapterLessons, sentenceTitle, titleConcern, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
+import { rebaseChapterLessons, sentenceTitle, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
 import { saveLessonChapters } from '../../lib/saveLessonChapters'
 import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
 import { importBankTask } from '../../lib/bankTaskImport'
@@ -1673,10 +1673,6 @@ export function TimecodeRail({
                   onChange={e => patch(i, { label: e.target.value })}
                   placeholder={t('Название главы')} />
               </span>
-                {tc.originalTitle && <details className="chapter-ocr-note">
-                  <summary>{titleConcern(tc.label) ? 'Проверить название' : 'Текст на слайде'}</summary>
-                  <span>{titleConcern(tc.label)}{titleConcern(tc.label) ? '. ' : ''}Исходный текст: {tc.originalTitle}</span>
-                </details>}
               </div>
               <button className="editor-delete-action"
                 aria-label={'Удалить главу '+(i+1)} title={t('Удалить')}

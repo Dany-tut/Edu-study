@@ -430,8 +430,6 @@
 
 .transcription-slide-action { width:100%; margin-bottom:6px; }
 
-.chapter-ocr-note {font-size:11px;line-height:1.35;color:var(--color-text-3);padding:2px 4px;overflow-wrap:anywhere}
-.chapter-ocr-note summary {cursor:pointer}
 
 /* PC chapter header: one mode switch, filling the space beside its title. */
 .chapter-header { display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px; }
