@@ -36,10 +36,18 @@ export function withRequestTiming(fetcher: typeof fetch): typeof fetch {
 
 export function journalPaintTiming(started: number, ready: number) {
   if (!performanceDiagnostics) return
+  const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
   console.debug('[journal-painted] ' + JSON.stringify({
     ms: Math.round(performance.now() - started), renderMs: Math.round(performance.now() - ready),
+    navigationMs: Math.round(performance.now()),
+    ...(navigation ? { domInteractiveMs: Math.round(navigation.domInteractive), loadEventMs: Math.round(navigation.loadEventEnd) } : {}),
     requests: requests.filter(r => r.started >= started).length,
   }))
+}
+
+export function performanceStage(stage: string) {
+  if (!performanceDiagnostics) return
+  console.debug('[platform-stage] ' + JSON.stringify({ stage, ms: Math.round(performance.now()) }))
 }
 
 export function measureWork<T>(source: string, run: () => T): T {

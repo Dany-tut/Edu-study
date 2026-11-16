@@ -6,6 +6,9 @@ import { LoopIconProvider } from './components/icons/LoopIcon'
 import { retryImport } from './lib/chunkError'
 import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
 import { hasStoredAuth, lastCabinet, likelyStaff, rememberCabinet } from './lib/cabinetChoice'
+import { performanceStage } from './lib/platformPerformance'
+import { prefetchTeacherJournalSnapshot } from './lib/journalSnapshotStartup'
+import { getViewAs } from './lib/teacherView'
 const StudentLoginPage = lazy(() => retryImport(() => import('./pages/StudentLoginPage')))
 const NativeEntryPage = lazy(() => retryImport(() => import('./pages/NativeEntryPage')))
 const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
@@ -22,7 +25,8 @@ const LandingPage = lazy(() => retryImport(() => import('./pages/LandingPage')))
 // Keep its lesson, course-track and widget code out of those startup paths.
 const DashboardPage = lazy(() => retryImport(() => import('./pages/DashboardPage')))
 const FriendProfilePage = lazy(() => retryImport(() => import('./pages/FriendProfilePage')))
-const TeacherWorkspace = lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand')))
+const loadTeacherWorkspace = () => retryImport(() => import('./components/teacher/journalStand/JournalStand'))
+const TeacherWorkspace = lazy(loadTeacherWorkspace)
 const JournalStand = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/JournalStand'))) : null
 const ExampleGroups = import.meta.env.DEV ? lazy(() => retryImport(() => import('./components/teacher/journalStand/ExampleGroups'))) : null
 const TeacherLoginPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherLoginPage')))
@@ -133,6 +137,7 @@ function AppRoutes() {
   const loadStudentData = useStudentData(s => s.load)
   const progressScope = useStudentData(s => s.scopeStudentIds.join(','))
   const studentWorkspace = isStudentWorkspaceRoute(hash, window.location.pathname)
+  const directJournalRoute = hash.split('?')[0] === '#/teacher/gradebook'
 
   // Голый адрес = выбор кабинета ДО первого кадра (lib/cabinetChoice.ts).
   // Раньше корень сразу рисовал кабинет ученика по сохранённой карточке, а
@@ -171,12 +176,34 @@ function AppRoutes() {
   }, [hash, session])
 
   // Behavioural telemetry: init once, then log every route change.
-  useEffect(() => { initAnalytics() }, [])
-  useEffect(() => { trackPath(hash || '#/') }, [hash])
+  useEffect(() => { performanceStage('app-mounted'); initAnalytics() }, [])
+  useEffect(() => { performanceStage('route-ready'); trackPath(hash || '#/') }, [hash])
+
+  // A cold direct journal link otherwise waits for the route gate and the large
+  // lazy journal chunk before it can even begin the snapshot request. Start both
+  // in parallel as soon as a locally recognized staff session is restored.
+  useEffect(() => {
+    if (!directJournalRoute || !likelyStaff(session) || !session) return
+    performanceStage('journal-startup-prefetch-start')
+    void loadTeacherWorkspace().then(() => performanceStage('journal-module-preloaded')).catch(() => {})
+    // Viewing another teacher's journal needs the owner resolved by owner.ts;
+    // let the normal hook handle it rather than prefetching for the admin id.
+    if (getViewAs()) return
+    void prefetchTeacherJournalSnapshot(session.user.id, true)
+      .then(() => performanceStage('journal-snapshot-prefetched'))
+      .catch(() => performanceStage('journal-snapshot-prefetch-failed'))
+  }, [directJournalRoute, session])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    let sessionMarked = false
+    const markSessionReady = () => {
+      if (sessionMarked) return
+      sessionMarked = true
+      performanceStage('session-ready')
+    }
+    supabase.auth.getSession().then(({ data }) => { markSessionReady(); setSession(data.session) })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((e, s) => {
+      markSessionReady()
       if (e === 'PASSWORD_RECOVERY') setRecovery(true)
       setSession(s)
     })

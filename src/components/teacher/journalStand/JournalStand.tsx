@@ -23,7 +23,7 @@ import { JOURNAL_SCHEDULE_EVENT, JOURNAL_SCHEDULE_KEY } from '../../../store/not
 import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
-import { performanceDiagnostics } from '../../../lib/platformPerformance'
+import { performanceDiagnostics, performanceStage } from '../../../lib/platformPerformance'
 import TestlyMark from '../../TestlyMark'
 import TeacherSelect from '../TeacherSelect'
 import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
@@ -733,6 +733,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
   const position = useRef({ top: 0, left: 0 })
   const set = (v: Partial<StandSelection>) => setSelected((prev) => ({ ...prev, ...v }))
   useEffect(() => {
+    performanceStage('journal-component-mounted')
     const prior = document.title
     document.title = production ? 'Искра · Журнал учителя' : 'Искра · локальный стенд журнала'
     return () => {

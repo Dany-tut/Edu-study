@@ -7,7 +7,7 @@ import { journalPages, journalBatches, journalRowsById } from './journalRequests
 import { journalPages as adaptiveJournalPages, journalParallelPages } from './journalPages'
 import { createAuthDataChangeGuard } from './authDataChange'
 import { journalPaintTiming } from './platformPerformance'
-import { journalSnapshotResult } from './journalSnapshot'
+import { readFreshJournalSnapshot, readStartupJournalSnapshot } from './journalSnapshotStartup'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
@@ -33,9 +33,7 @@ async function byIds<T>(table: string, columns: string, field: string, ids: stri
 const idsCount = (ids: string) => (JSON.parse(ids) as string[]).length
 
 async function readJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal) {
-  return journalSnapshotResult(await supabase.rpc('teacher_journal_snapshot_v3', {
-    p_owner: owner, p_complete: complete,
-  }).abortSignal(signal).retry(false))
+  return readFreshJournalSnapshot(owner, complete, signal)
 }
 
 // Brief, in-memory reuse for iPhone tab switches. Keep one complete server
@@ -96,7 +94,9 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     const read = owner.then(id => id
       ? parallelRoster
         ? readRecentJournalSnapshot(id, completeWorkList, controller.signal, tick === 0)
-        : readJournalSnapshot(id, completeWorkList, controller.signal)
+        : tick === 0
+          ? readStartupJournalSnapshot(id, completeWorkList, controller.signal)
+          : readJournalSnapshot(id, completeWorkList, controller.signal)
       : null).finally(() => clearTimeout(timeout))
     // Roster may still be loading when a failed request settles.
     void read.catch(() => {})
@@ -145,7 +145,9 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
       if (early?.tick === tick) prefetch.current = null
       const snapshot = early?.tick === tick && await early.owner === owner
         ? await early.read
-        : await readJournalSnapshot(owner, completeWorkList, signal)
+        : tick === 0
+          ? await readStartupJournalSnapshot(owner, completeWorkList, signal)
+          : await readJournalSnapshot(owner, completeWorkList, signal)
       if (snapshot) return snapshot
       const [owned, shares] = await Promise.all([
         journalPages<CourseJournalData['courses'][number]>(offset => supabase.from('courses')
