@@ -988,6 +988,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
     <TeacherGuides user={user} enabled={production && isDesktop && allowed && !getViewAs()}
       section={page === 'gradebook' ? (selected.tab === 'Работы' ? 'work' : 'journal') : pageGuides[page]}>
     <TeacherDashboardPage
+      pendingCountOwnerId={owner}
       standContent={
         content && (
           <>

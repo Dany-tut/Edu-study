@@ -24,6 +24,17 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq nginx certbot python3-certbot-nginx
 
+# The production mirror serves content-hashed SPA bundles directly. Keep gzip
+# content types enabled on this host; nginx's default list only covers HTML.
+# The base nginx package already enables gzip globally, so do not duplicate the
+# `gzip on` directive here.
+cat > /etc/nginx/conf.d/iskra-spa-gzip.conf <<'EOF'
+gzip_vary on;
+gzip_comp_level 5;
+gzip_min_length 1024;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript application/manifest+json image/svg+xml;
+EOF
+
 mkdir -p /var/www/certbot "$WEBROOT"
 # заглушка, пока не залит dist (чтобы nginx -t и ACME проходили)
 [ -f "$WEBROOT/index.html" ] || echo "<!doctype html><title>Искра</title>Скоро." > "$WEBROOT/index.html"
