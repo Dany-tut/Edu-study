@@ -240,7 +240,9 @@ jobs:
         env:
           ISKRA_BROWSER_CHANNEL: chromium
           ISKRA_QA_OUTPUT: /tmp/iskra-recording-preview-qa
-        run: node scripts/checkStudentRecordingBrowser.mjs
+        run: |
+          node scripts/checkStudentRecordingBrowser.mjs
+          node scripts/checkTranscriptionAttemptBrowser.mjs
 
       - name: Переходы и геометрия мини-виджета
         if: steps.scope.outputs.scope != 'chapter-ui'

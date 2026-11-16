@@ -11,6 +11,7 @@ function lesson(id: string) {
     transcript:{source:params.has('stale') ? 'https://other.invalid/video.mp4' : source,
       segments:[{start:0,end:2,text:'Реплика '+id}],
       ...(params.has('montage') ? {montage:{duration:16,quiet:[{id:'cut',start:3,end:6,level:-60}],settings:{minPause:1,sensitivity:'normal',padding:0,quietAction:'keep',speed:4}}} : {})}}
+  if (params.has('empty')) return {...data, transcript:undefined, timecodes:[]}
   return {...data,chapterVariants:{source,active:'text',revision:1,text:data.timecodes,slides:data.timecodes.map(c=>({...c,label:c.label+' слайд'}))}}
 }
 function App() {

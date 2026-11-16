@@ -78,8 +78,13 @@
 .transcription-hint {font-size:13px;line-height:1.45;color:var(--color-text-3)}
 .transcription-start { width:100%; min-height:44px; }
 .transcription-start:disabled { opacity:.5; cursor:default !important; }
-.transcription-recovery > p:last-of-type { margin-bottom:0; }
-.transcription-recovery > button { margin-top:12px; }
+.transcription-recovery { display:grid; gap:16px; padding:20px; border:1px solid var(--color-border-medium); border-radius:16px; background:var(--color-bg-3); line-height:1.55; }
+.transcription-recovery > strong {font-size:16px;color:var(--color-text)}
+.transcription-recovery > p,.transcription-attempt-notice > p {margin:0;color:var(--color-text-2);line-height:1.55}
+.transcription-recovery > button {justify-self:start;min-height:44px}
+.transcription-recovery-actions {display:flex;flex-wrap:wrap;gap:12px}
+.transcription-recovery-actions button {min-height:44px}
+.transcription-attempt-notice {flex-shrink:0;gap:16px}
 .transcription-job-steps { display:grid; gap:6px; padding:0; margin:0; list-style:none; }
 .transcription-job-steps li { position:relative; isolation:isolate; overflow:hidden; display:flex; align-items:center; gap:10px; min-height:44px; padding:8px 12px; border-radius:12px; color:var(--color-text-3); background:var(--color-bg-3); font-size:14px; }
 .transcription-job-steps li[aria-current] { color:var(--color-purple-text); background:var(--color-purple-soft); }

@@ -294,7 +294,7 @@ function useTimeLeft(steps: string[], step: string, progress: JobProgress | unde
 }
 
 type TranscriptionMode = 'text' | 'slides'
-type Pending = { id: string; source: string; fileSignature?: string; mode?: TranscriptionMode; titleRegion?: string }
+type Pending = { id: string; source: string; fileSignature?: string; mode?: TranscriptionMode; titleRegion?: string; failure?: string; dismissed?: boolean }
 const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
 type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft, variants?: ChapterVariants) => Promise<boolean>
@@ -409,10 +409,21 @@ export function RecordingLines({rail, fill, at, onSeek}: {rail: TranscriptRail; 
   </section>
 }
 
-export function TranscriptionAction(props: Props & { children: (action: React.ReactNode, rail?: TranscriptRail, chapters?: ChapterControls) => React.ReactNode }) {
+type ActionProps = Props & { children: (action: React.ReactNode, rail?: TranscriptRail, chapters?: ChapterControls) => React.ReactNode }
+export function TranscriptionAction(props: ActionProps) {
+  return <TranscriptionActionState key={JSON.stringify([props.owner, props.lessonKey, props.source.trim(), props.file ? fileSignature(props.file) : null])} {...props} />
+}
+
+function TranscriptionActionState(props: ActionProps) {
   const connected = !!props.owner && !!localStorage.getItem(tokenKey(props.owner))
   const jobKey = props.lessonKey
   const storageKey = 'iskra.transcription.job.' + JSON.stringify([props.owner, jobKey])
+  const [attemptFailure, setAttemptFailure] = useState(() => {
+    const job = readPending(props.owner, jobKey, props.source, props.file)
+    return job?.dismissed ? '' : job?.failure ?? ''
+  })
+  const alive = useRef(true)
+  useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
   const [requestedMode, setRequestedMode] = useState<TranscriptionMode>('text')
   const variantsKey = storageKey + '.chapter-variants'
   const [correctionNotice, setCorrectionNotice] = useState('')
@@ -455,7 +466,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
   const [chapterDirty, setChapterDirty] = useState(() => !!localStorage.getItem(variantsKey) || !!localStorage.getItem(storageKey + '.slides-draft'))
   const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() => {
     const job = readPending(props.owner, jobKey, props.source, props.file)
-    return connected && job && (job.mode === 'slides' ? !localStorage.getItem(storageKey + '.slides-draft') : !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
+    return connected && job && !job.dismissed && !(job.failure && (props.existing || props.existingChapters?.length)) && (job.mode === 'slides' ? !localStorage.getItem(storageKey + '.slides-draft') : !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
   })
   function changeVariants(value: ChapterVariants) {
     const next = {...value, fileSignature:props.file ? fileSignature(props.file) : undefined, revision:Math.max(Date.now(), variants.revision + 1)}
@@ -502,7 +513,14 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     {view === 'review' ? <Review {...props} initialMode={requestedMode} onSlidesReady={chapters => {
       changeVariants({...variants, active:'slides', slides:prepareSlideChapters(chapters)})
       localStorage.removeItem(storageKey); setView('entry')
-    }} lessonKey={jobKey} onClose={() => setView('entry')}
+    }} lessonKey={jobKey} onFailed={message => {
+      setAttemptFailure(message)
+      if (draft || variants.text.length || variants.slides?.length) setView('entry')
+    }} onClose={() => {
+      const job = readPending(props.owner, jobKey, props.source, props.file)
+      if (job?.failure) { localStorage.setItem(storageKey, JSON.stringify({...job, dismissed:true})); setAttemptFailure('') }
+      setView('entry')
+    }}
       onReady={result => { change(result); changeVariants({...variants, active:'text', text:result.timecodes}); setView('entry') }} /> :
       <section className="transcription-inline">
         <button data-hover="layer" type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
@@ -521,9 +539,12 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     if (pending && connected) {
       try {
         const state = await localRequest('/jobs/' + pending.id, localStorage.getItem(tokenKey(props.owner)) || '')
+        if (!alive.current) return
         if (state.done || state.error || state.cancelled) localStorage.removeItem(storageKey)
       } catch { /* Keep an unconfirmed job attached; never replace a running job. */ }
     }
+    if (!alive.current) return
+    setAttemptFailure('')
     setRequestedMode(mode)
     setView(connected ? 'review' : 'setup')
   }
@@ -535,7 +556,7 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     corrected: (before, after) => remember(variants.active === 'slides' ? 'slide-title' : 'text-title', before, after),
     generate: () => { void openMode(variants.active) }, saving,
   }
-  if (!draft && !variants.slides) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
+  if (!draft && !variants.slides && !variants.text.length) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
     <AudioLines size={17} />Расшифровать видео
   </button>)}</>
   const badChapter = chapters.codes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
@@ -565,10 +586,25 @@ export function TranscriptionAction(props: Props & { children: (action: React.Re
     <p>Расшифровка загруженного файла восстановлена. Для воспроизведения выберите исходное видео снова.</p>
     {rail && <RecordingLines rail={rail}/>} {actions}
   </section>
-  return <>{props.children(actions,rail,chapters)}</>
+  return <>
+    {attemptFailure && <section className="transcription-inline transcription-attempt-notice" role="alert">
+      <strong>Повторная обработка не завершилась</strong>
+      <p>{attemptFailure}</p>
+      <p>Ниже показан ранее сохранённый результат. Эта попытка его не изменила.</p>
+      <div className="transcription-recovery-actions">
+        <button type="button" style={btn('M','secondary')} onClick={() => void openMode(readPending(props.owner, jobKey, props.source, props.file)?.mode ?? requestedMode)}>Повторить или выбрать файл</button>
+        <button type="button" style={btn('M','secondary')} onClick={() => {
+          const job = readPending(props.owner, jobKey, props.source, props.file)
+          if (job?.failure) localStorage.setItem(storageKey, JSON.stringify({...job, dismissed:true}))
+          setAttemptFailure('')
+        }}>Скрыть сообщение</button>
+      </div>
+    </section>}
+    {props.children(actions,rail,chapters)}
+  </>
 }
 
-function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonText, initialMode, onSlidesReady, onReady, onClose }: Props & { initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonText, initialMode, onSlidesReady, onReady, onClose, onFailed }: Props & { onFailed: (message: string) => void; initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
@@ -601,7 +637,10 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     setPending(null); localStorage.removeItem(key); setCancelled(false)
     setCancelling(false); setStage(''); setProgress(undefined); setError('')
   }
-  const [error, setError] = useState('')
+  const [error, setError] = useState(pending?.failure ?? '')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const mounted = useRef(true)
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   const [unavailable, setUnavailable] = useState(false)
   const [retry, setRetry] = useState(0)
   // Дорожки участников (Zoom пишет звук каждого отдельным файлом): голоса — точно.
@@ -618,7 +657,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     setUnavailable(false)
     const form = new FormData()
     form.append('mode', mode); form.append('titleRegion', titleRegion)
-    if (file) form.append('video', file)
+    const inputFile = selectedFile ?? file
+    if (inputFile) form.append('video', inputFile)
     else form.append('link', source.trim())
     if (mode === 'text') for (const track of tracks) form.append('tracks', track)
     setBusy(true)
@@ -631,15 +671,17 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       const pack = mode === 'text' ? await fetchTermsPack(subject ?? '') : []
       if (pack.length || lessonTitle) form.append('terms', JSON.stringify(termsForModule(pack, lessonTitle, lessonText)))
       if (mode === 'text' && keepTraining) form.append('training', '1')
+      if (!mounted.current) return
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
       const job = { id, mode, titleRegion, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined }
+      if (!mounted.current) return
       localStorage.setItem(key, JSON.stringify(job))
       setPending(job)
-    } catch (e) { setUnavailable(e instanceof LocalTranscriptionUnavailable); setError((e as Error).message) }
-    finally { setBusy(false) }
+    } catch (e) { if (mounted.current) { setUnavailable(e instanceof LocalTranscriptionUnavailable); setError((e as Error).message) } }
+    finally { if (mounted.current) setBusy(false) }
   }
   useEffect(() => {
-    if (!pending || cancelled) return
+    if (!pending || pending.failure || cancelled) return
     let active = true
     let timer: ReturnType<typeof setTimeout>
     async function poll(job: Pending) {
@@ -678,7 +720,13 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
           && incoming.current >= 0 && incoming.total >= 0
         setProgress(previous => valid ? incoming : sameStage ? previous : undefined)
         setStage(state.stage + (state.bytes ? ' · ' + megabytes(state.bytes) : ''))
-        if (state.error) throw new Error(state.stage)
+        if (state.error) {
+          const message = state.stage || 'Не удалось завершить обработку записи.'
+          const failedJob = {...job, failure:message, dismissed:false}
+          localStorage.setItem(key, JSON.stringify(failedJob))
+          setPending(failedJob); setError(message); onFailed(message)
+          return
+        }
         if (!state.done) { timer = setTimeout(() => void poll(job), 1000); return }
         const memory = await readCorrections(owner, subject ?? 'other')
         if (!active) return
@@ -727,6 +775,11 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       ]} />
       <p className="transcription-hint">Выберите область с названием темы, без постоянной подписи курса. Перед применением можно проверить и поправить найденные главы.</p>
     </>}
+    {!pending && <label className="transcription-picker">
+      <Upload size={18}/><strong>{selectedFile ? selectedFile.name : 'Выбрать исходный файл вместо ссылки'}</strong>
+      <small>Выберите то же видео, что добавлено в урок. Доступ к просмотру по ссылке не всегда разрешает скачивание для обработки.</small>
+      <input type="file" accept="video/*,audio/*,.mkv" aria-label="Исходный файл для обработки" disabled={busy} onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}/>
+    </label>}
     {!pending && mode === 'text' && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
     {!pending && mode === 'text' && <label className="transcription-picker">
       <Upload size={18} /><strong>{tracks.length ? `Дорожек участников: ${tracks.length}` : 'Дорожки участников — необязательно'}</strong>
@@ -758,7 +811,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
         {eta && (progress && progress.total > 0 ? eta : eta[0].toUpperCase() + eta.slice(1))}
       </small>}
     </>}
-    {pending && !cancelled && <div className="transcription-cancel">
+    {pending && !error && !cancelled && <div className="transcription-cancel">
       {canCancel ? <button type="button" style={btn('M','secondary')} disabled={cancelling} onClick={() => void cancel()}>
         {cancelling ? 'Останавливаем обработку…' : 'Остановить расшифровку'}
       </button> : <small className="transcription-hint">Этот модуль не поддерживает отмену с сайта. Закрытие панели не останавливает обработку.</small>}
