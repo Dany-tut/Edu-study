@@ -19,7 +19,7 @@ import { TeacherBook } from '../../lib/teacherAvatarIcon'
 import { useDeskStore } from '../../store/deskStore'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
-import { useJournalPending } from '../../lib/useGroups'
+import { readJournalPendingCountCache, useJournalPendingState, writeJournalPendingCountCache } from '../../lib/useGroups'
 import { useModuleUpdateNotice } from '../../lib/transcriptionModuleUpdate'
 import ViewAsBanner from './ViewAsBanner'
 import { lockSnap, lockRelease, springTopbar } from '../../lib/feedback'
@@ -37,7 +37,7 @@ import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang, useTc } from '../../lib/i18n'
 import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
-import { getAuthUser } from '../../lib/owner'
+import { getAuthUser, getOwnerId } from '../../lib/owner'
 import { AvatarPhotoFill } from '../AvatarPhoto'
 import { useDashboard } from '../../store/dashboardStore'
 import { signOutAndReload } from '../../lib/signOutAndReload'
@@ -101,10 +101,37 @@ export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
   useEffect(() => { if (profileOpen) teacherGuides?.enter('profile') }, [profileOpen, teacherGuides?.enter])
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
-  const pendingJournals = useJournalPending(null)
+  const { pending: pendingJournals, loading: pendingJournalLoading } = useJournalPendingState(null)
+  const [cachedPendingJournalCount, setCachedPendingJournalCount] = useState<number | null>(null)
+  const pendingJournalLoadingRef = useRef(pendingJournalLoading)
+  pendingJournalLoadingRef.current = pendingJournalLoading
+  useEffect(() => {
+    let active = true
+    const loadOwnerCache = async () => {
+      const ownerId = await getOwnerId()
+      if (!active || pendingJournalLoadingRef.current || !ownerId) return
+      setCachedPendingJournalCount(readJournalPendingCountCache(ownerId))
+    }
+    void loadOwnerCache()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      setCachedPendingJournalCount(null)
+      // Let Supabase finish its auth callback before getOwnerId asks for the
+      // verified user in an admin view-as session.
+      window.setTimeout(() => { void loadOwnerCache() }, 0)
+    })
+    return () => { active = false; subscription.unsubscribe() }
+  }, [])
+  useEffect(() => {
+    if (pendingJournalLoading) return
+    const count = pendingJournals.length
+    setCachedPendingJournalCount(count)
+    void getOwnerId().then(ownerId => { if (ownerId) writeJournalPendingCountCache(ownerId, count) })
+  }, [pendingJournalLoading, pendingJournals])
   // Вышла новая версия модуля расшифровки — одно уведомление в колокольчик.
   useModuleUpdateNotice()
-  const pendingJournalCount = pendingJournals.length
+  const pendingJournalCount = pendingJournalLoading
+    ? cachedPendingJournalCount ?? 0
+    : pendingJournals.length
   const syncJournalNotifs = useNotificationsStore(s => s.syncJournalNotifs)
   useEffect(() => {
     syncJournalNotifs(pendingJournals.map(p => ({
@@ -439,7 +466,10 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               style={{
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: `0 ${badgeCount > 0 && !collapsed ? countBadgeInset(44) : squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px 0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
+                // Reserve the journal badge slot before its async query returns.
+                // Otherwise the tab grows when the count arrives and shifts the
+                // neighboring items in the centered navigation pill.
+                padding: `0 ${item.id === 'gradebook' && !collapsed ? countBadgeInset(44) : squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px 0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: 'transparent',
@@ -476,7 +506,11 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   сверху/снизу), свёрнутая до иконки — в углу. */}
               {collapsed
                 ? <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 3, right: 1, zIndex: 2 }} />
-                : <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} style={{ position: 'relative', zIndex: 1, marginLeft: 8 }} />}
+                : item.id === 'gradebook'
+                  ? <span aria-hidden={badgeCount <= 0} style={{ position: 'relative', zIndex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', width: 40, height: 18, marginLeft: 8, flexShrink: 0 }}>
+                      <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} />
+                    </span>
+                  : null}
             </motion.button>
           )
         })}

@@ -1043,10 +1043,37 @@ const pendingJournalsQuery = createSharedQuery<PendingJournal[]>(withLoadFixture
   return () => { journalSubs.delete(reload) }
 } })
 
-export function useJournalPending(groupId: string | null, reloadKey = 0) {
-  const { value: pending } = useSharedQuery(pendingJournalsQuery)
+const JOURNAL_PENDING_COUNT_CACHE = 'iskra:journal-pending-count:v1'
+const JOURNAL_PENDING_COUNT_MAX_AGE = 6 * 60 * 60 * 1000
+
+/** Minimal owner-scoped cache for the desktop navigation badge. Never cache
+ * student/lesson details here; the full journal query remains authoritative. */
+export function readJournalPendingCountCache(ownerId: string): number | null {
+  try {
+    const raw = localStorage.getItem(`${JOURNAL_PENDING_COUNT_CACHE}:${ownerId}`)
+    if (!raw) return null
+    const cached = JSON.parse(raw) as { count?: number; savedAt?: number }
+    if (!Number.isFinite(cached.savedAt) || Date.now() - Number(cached.savedAt) > JOURNAL_PENDING_COUNT_MAX_AGE) return null
+    if (!Number.isInteger(cached.count) || Number(cached.count) < 0) return null
+    return Number(cached.count)
+  } catch { return null }
+}
+
+export function writeJournalPendingCountCache(ownerId: string, count: number): void {
+  if (!Number.isInteger(count) || count < 0) return
+  try {
+    localStorage.setItem(`${JOURNAL_PENDING_COUNT_CACHE}:${ownerId}`, JSON.stringify({ count, savedAt: Date.now() }))
+  } catch { /* storage may be disabled or full; badge still uses live data */ }
+}
+
+export function useJournalPendingState(groupId: string | null, reloadKey = 0) {
+  const { value: pending, loading } = useSharedQuery(pendingJournalsQuery)
   useEffect(() => { if (reloadKey) void pendingJournalsQuery.reload() }, [reloadKey])
-  return groupId ? pending.filter(row => row.groupId === groupId) : pending
+  return { pending: groupId ? pending.filter(row => row.groupId === groupId) : pending, loading }
+}
+
+export function useJournalPending(groupId: string | null, reloadKey = 0) {
+  return useJournalPendingState(groupId, reloadKey).pending
 }
 
 /** Строка students в том минимуме, которого хватает, чтобы опознать человека. */
