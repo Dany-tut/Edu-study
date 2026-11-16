@@ -1,4 +1,5 @@
 import JournalSkeleton from './components/teacher/JournalSkeleton'
+import ConstructorLoadingState from './components/teacher/ConstructorLoadingState'
 import { fetchScheduleDays } from './lib/db'
 import { applyLessonParticipation, fetchLessonParticipation } from './lib/lessonParticipation'
 import { useState, useEffect, lazy, Suspense, startTransition } from 'react'
@@ -447,16 +448,18 @@ function AppRoutes() {
 
   if (hash.startsWith('#/teacher')) {
     const groupsFallback = hash.startsWith('#/teacher/groups') ? <JournalSkeleton page table groups /> : undefined
+    const routeFallback = hash.startsWith('#/teacher/constructor') ? <ConstructorLoadingState />
+      : hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : groupsFallback
     const workspace = (
       <>
-        <Chunk fallback={hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : groupsFallback}><TeacherWorkspace key={session?.user.id ?? 'local'} user={session?.user} owner={session?.user.id ?? 'local'} production /></Chunk>
+        <Chunk fallback={routeFallback}><TeacherWorkspace key={session?.user.id ?? 'local'} user={session?.user} owner={session?.user.id ?? 'local'} production /></Chunk>
         <InstallPrompt />
       </>
     )
     // Preserve the explicit guest-only development demo. Signed-in accounts
     // always pass the server check; no role lookup runs on student routes.
     if (import.meta.env.DEV && session === null) return workspace
-    return <Chunk fallback={groupsFallback}><TeacherRouteGate session={session}>{workspace}</TeacherRouteGate></Chunk>
+    return <Chunk fallback={routeFallback}><TeacherRouteGate session={session}>{workspace}</TeacherRouteGate></Chunk>
   }
 
   // Explicit reauthentication must be reachable even with a stale student card.

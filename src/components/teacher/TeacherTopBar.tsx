@@ -37,7 +37,7 @@ import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
 import { useT, useLang, type Lang, useTc } from '../../lib/i18n'
 import { fetchMyPlan, PLAN_TIERS, type MyPlan } from '../../lib/plan'
-import { getAuthUser, getOwnerId } from '../../lib/owner'
+import { getAuthUser, getOwnerId, getViewAs } from '../../lib/owner'
 import { AvatarPhotoFill } from '../AvatarPhoto'
 import { useDashboard } from '../../store/dashboardStore'
 import { signOutAndReload } from '../../lib/signOutAndReload'
@@ -90,7 +90,7 @@ const quickActions: QuickItem[] = [
   { icon: UserPlus,      label: 'Добавить студента', sub: 'в группу или без группы',   color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', action: 'add-student' },
 ]
 
-export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
+export default function TeacherTopBar({ friends, pendingCountOwnerId }: { friends: FriendsModel; pendingCountOwnerId?: string }) {
   const teacherGuides = useTeacherGuides()
   const t = useT()
   const { tc, tn } = useTc()
@@ -102,14 +102,16 @@ export default function TeacherTopBar({ friends }: { friends: FriendsModel }) {
   const teacherBarRef = useRef<HTMLDivElement>(null)
   const snapMountRef  = useRef(false)
   const { pending: pendingJournals, loading: pendingJournalLoading } = useJournalPendingState(null)
-  const [cachedPendingJournalCount, setCachedPendingJournalCount] = useState<number | null>(null)
-  const pendingJournalLoadingRef = useRef(pendingJournalLoading)
-  pendingJournalLoadingRef.current = pendingJournalLoading
+  const [cachedPendingJournalCount, setCachedPendingJournalCount] = useState<number | null>(() =>
+    pendingCountOwnerId && !getViewAs() ? readJournalPendingCountCache(pendingCountOwnerId) : null)
   useEffect(() => {
     let active = true
     const loadOwnerCache = async () => {
       const ownerId = await getOwnerId()
-      if (!active || pendingJournalLoadingRef.current || !ownerId) return
+      // Show the owner-scoped cached count immediately, even while the full
+      // pending-journal query is still loading names and lesson details. The
+      // live result below replaces it as soon as it arrives.
+      if (!active || !ownerId) return
       setCachedPendingJournalCount(readJournalPendingCountCache(ownerId))
     }
     void loadOwnerCache()
