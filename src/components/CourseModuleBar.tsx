@@ -2,7 +2,7 @@ import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Check, ChevronDown, Search } from './icons/appIcons'
+import { Check, ChevronDown, Lock, Search } from './icons/appIcons'
 import type { Subject } from '../data/mockData'
 import Tooltip from './Tooltip'
 
@@ -19,7 +19,6 @@ import { DROPDOWN_GLASS, dropdownSurface, dropdownRow, dropdownRowHover } from '
 import { Z } from '../lib/layers'
 import { useT, useTc } from '../lib/i18n'
 import { isCourseModuleLocked } from '../lib/moduleAccess'
-import { getDisplayLessonStatus } from '../lib/lessonStatus'
 
 /**
  * ПЕРЕКЛЮЧАТЕЛЬ КУРСА И МОДУЛЯ над треком главной — одна строка 36 px.
@@ -274,14 +273,13 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
         const done = mod.lessons.filter(l => l.result ? l.result.passed : l.status === 'completed').length
         const isDone = total > 0 && done === total
         const pct = total > 0 ? Math.round((done / total) * 100) : 0
-        const prev = i > 0 ? subject.modules[i - 1] : null
-        const isLocked = isCourseModuleLocked(subject, i, lesson => getDisplayLessonStatus(lesson) !== 'locked')
+        const isLocked = isCourseModuleLocked(subject, i)
         const isActive = mod.id === activeId
         const name = tc(mod.label) || t('Уроки')
         const num = i + 1
         const debts = debtCounts?.[mod.id] ?? 0
-        const label = isLocked && prev
-          ? `${num} · ${name} — ${t('откроется после')} «${tc(prev.label) || num - 1}»`
+        const label = isLocked
+          ? `${num} · ${name} · ${t('Недоступно')}`
           : pct > 0 && !isDone ? `${num} · ${name} · ${pct}%` : `${num} · ${name}`
         const transition = { duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] as const }
 
@@ -308,27 +306,27 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                   background: isActive ? ACTIVE_PILL.background : isDone ? 'var(--color-green-soft)' : 'transparent',
                   border: `1px solid ${isActive ? 'var(--color-border-glass)' : isDone ? 'transparent' : 'var(--color-text-4)'}`,
                   color: isDone ? 'var(--color-green-text)' : isLocked ? 'var(--color-muted)' : 'var(--color-text-2)',
-                  opacity: isLocked ? 0.6 : 1, cursor: isLocked ? 'default' : 'pointer',
+                  cursor: isLocked ? 'default' : 'pointer',
                 }}
               >
                 <motion.span initial={false} animate={{ width: isActive ? BAR_H - 2 : DOT - 2 }} transition={transition} style={{ height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--color-accent)' : 'transparent',
                     color: isActive && !isDone ? '#fff' : 'inherit', fontSize: 12, fontWeight: 700 }}>
-                    {isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
+                    {isLocked ? <Lock size={14} /> : isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
                   </span>
                 </motion.span>
-                <motion.span initial={false} animate={{ width: isActive ? (labelWidths[mod.id] ?? 'auto') : 0, opacity: isActive ? 1 : 0 }} transition={transition}
-                  style={{ display: 'inline-flex', overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive}>
+                <motion.span initial={false} animate={{ width: isActive || isLocked ? (labelWidths[mod.id] ?? 'auto') : 0, opacity: isActive || isLocked ? 1 : 0 }} transition={transition}
+                  style={{ display: 'inline-flex', overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive && !isLocked}>
                   <span ref={el => { if (el) labelRefs.current.set(mod.id, el); else labelRefs.current.delete(mod.id) }} style={{ display: 'inline-flex', flexShrink: 0, alignItems: 'center', gap: 8, paddingLeft: debts ? 18 : 8, paddingRight: 14 }}>
-                    <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
+                    <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isLocked ? 'var(--color-muted)' : isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
                     {pct > 0 && <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>}
                   </span>
                 </motion.span>
               </motion.button>
             </ModuleTip>
             {/* Anchor to the number, independent of the expanding module title. */}
-            {debts > 0 && <motion.button data-hover="layer" type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`}
+            {!isLocked && debts > 0 && <motion.button data-hover="layer" type="button" aria-label={`Модуль ${num}: ${debts} несданных работ`}
               whileTap={reduceMotion ? undefined : { scale: 0.9 }}
               onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)}
               style={{ position: 'absolute', top: -4, left: 20, zIndex: 1, border: 0, borderRadius: 999,

@@ -329,10 +329,11 @@ assert.equal(m.hardLevelState(undefined).status, 'locked')
 assert.equal(m.hardLevelState(undefined).visible, false)
 
 const modules = [{ id: 1, label: 'One', lessons: [lesson('a', 'current')] }, { id: 2, label: 'Two', lessons: [lesson('b')] }]
-assert.equal(m.isCourseModuleLocked(subject(modules, 'full'), 1), false)
+assert.equal(m.isCourseModuleLocked(subject(modules, 'full'), 1), true)
 assert.equal(m.isCourseModuleLocked(subject(modules), 1), true)
 assert.equal(m.isCourseModuleLocked(subject([modules[0], { ...modules[1], lessons: [lesson('b', 'current')] }]), 1), false)
-assert.equal(m.isCourseModuleLocked(subject(modules), 1, () => true), false)
+assert.equal(m.isCourseModuleLocked(subject([modules[1], modules[0]]), 0), true)
+assert.equal(m.isCourseModuleLocked(subject([{ ...modules[0], lessons: [] }]), 0), true)
 
 // A lesson is not a recording while it is running or while no video exists.
 const scheduled = { ...lesson(), videoUrl: 'https://example.test/video', scheduledDate: '01.11.2026', scheduledTime: '12:00' }

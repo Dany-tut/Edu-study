@@ -1,3 +1,4 @@
+import { isCourseModuleLocked } from '../lib/moduleAccess'
 import { textFadeLines, textFadeStyle } from '../lib/textFades'
 import LessonWatchStatus from './LessonWatchStatus'
 import { homeworkDisplayScore } from '../lib/homeworkResult'
@@ -71,10 +72,14 @@ export default function MobileCourses() {
   useStudentTz(s => s.tz)
   useStudentData(s => s.scheduleDays)
 
-  const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
+  const [requestedModuleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
   const [moduleSheet, setModuleSheet] = useState(false)
 
   const subject = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
+  const lockedModuleIds = useMemo(() => new Set(subject?.modules
+    .filter((_, index) => isCourseModuleLocked(subject, index)).map(module => module.id)), [subject])
+  const moduleTab = requestedModuleTab !== ALL && subject?.modules.some(m => m.id === requestedModuleTab)
+    && !lockedModuleIds.has(requestedModuleTab) ? requestedModuleTab : ALL
   // Экран курса красится палитрой предмета, а не общим брендовым фиолетом:
   // корейский — индиго, японский — красный (lib/subjects.ts).
   const pal = resolveSubjectPalette(subject?.subject, dark)
@@ -90,9 +95,9 @@ export default function MobileCourses() {
   const lessons = useMemo<Lesson[]>(() => {
     if (!subject) return []
     return moduleTab === ALL
-      ? subject.modules.flatMap(m => m.lessons)
+      ? subject.modules.filter(m => !lockedModuleIds.has(m.id)).flatMap(m => m.lessons)
       : (subject.modules.find(m => m.id === moduleTab)?.lessons ?? [])
-  }, [subject, moduleTab])
+  }, [subject, lockedModuleIds, moduleTab])
 
   // Course-level stats surfaced under the XP hero (пройдено / средний балл /
   // прогресс) so progress is visible without opening the profile.
@@ -187,12 +192,15 @@ export default function MobileCourses() {
             <div style={{ marginLeft: -16, marginRight: -16 }}>
               <MobileHScroll>
                 {moduleTabs.map(tab => {
+                  const locked = tab.id !== ALL && lockedModuleIds.has(tab.id)
                   const module = typeof tab.id === 'number' ? subject.modules.find(m => m.id === tab.id) : null
                   const total = module?.lessons.length ?? 0
                   const done = module?.lessons.filter(l => l.status === 'completed').length ?? 0
                   const pct = total > 0 ? Math.round((done / total) * 100) : 0
                   return (
                     <MobilePill key={tab.id} size="sm" active={moduleTab === tab.id}
+                      disabled={locked} icon={locked ? <Lock size={13} /> : undefined}
+                      ariaLabel={locked ? `${tab.label} · ${t('Недоступно')}` : undefined}
                       onClick={() => { setModuleTab(tab.id); if (tab.id !== ALL) setActiveModule(tab.id) }}>
                       {tab.label}
                       {module && pct > 0 && (
@@ -214,7 +222,7 @@ export default function MobileCourses() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-center" style={{ minHeight: 160, color: 'var(--color-muted)', gap: 4 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t('В модуле пока нет уроков')}</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{t(lockedModuleIds.size === subject.modules.length ? 'Преподаватель откроет доступ к урокам' : 'В модуле пока нет уроков')}</p>
               </div>
             )}
           </div>
@@ -241,7 +249,7 @@ export default function MobileCourses() {
       {/* Module index — jump to any module without scrolling the chip row */}
       <MobileSheet open={moduleSheet} onClose={() => setModuleSheet(false)} title={t('Модули')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <ModuleRow pal={pal} label={t('Все уроки')} total={subject?.modules.flatMap(m => m.lessons).length ?? 0}
+          <ModuleRow pal={pal} label={t('Все уроки')} total={subject?.modules.filter(m => !lockedModuleIds.has(m.id)).flatMap(m => m.lessons).length ?? 0}
             done={subject?.modules.flatMap(m => m.lessons).filter(l => l.status === 'completed').length ?? 0}
             active={moduleTab === ALL}
             onClick={() => { setModuleTab(ALL); setModuleSheet(false) }} />
@@ -249,8 +257,8 @@ export default function MobileCourses() {
             const total = m.lessons.length
             const done = m.lessons.filter(l => l.status === 'completed').length
             return (
-              <ModuleRow key={m.id} pal={pal} label={tc(m.label)}total={total} done={done}
-                active={moduleTab === m.id}
+              <ModuleRow key={m.id} pal={pal} label={tc(m.label)} total={total} done={done}
+                active={moduleTab === m.id} locked={lockedModuleIds.has(m.id)}
                 onClick={() => { setModuleTab(m.id); setActiveModule(m.id); setModuleSheet(false) }} />
             )
           })}
@@ -316,24 +324,25 @@ function CourseStat({ value, label, pair }: { value: string; label: string; pair
   )
 }
 
-function ModuleRow({ label, total, done, active, onClick, pal }: { label: string; total: number; done: number; active: boolean; onClick: () => void; pal: SubjectPalette }) {
+function ModuleRow({ label, total, done, active, locked = false, onClick, pal }: { locked?: boolean; label: string; total: number; done: number; active: boolean; onClick: () => void; pal: SubjectPalette }) {
   const t = useT()
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
   return (
     <motion.button data-hover="layer"
-      whileTap={{ scale: 0.99 }}
+      disabled={locked}
+      whileTap={locked ? undefined : { scale: 0.99 }}
       onClick={() => { tactile(); onClick() }}
       className="flex items-center text-left"
-      style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 13, border: 'none', cursor: 'pointer',
-        background: active ? pal.soft : 'transparent' }}
+      style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 13, border: 'none', cursor: locked ? 'default' : 'pointer',
+        color: locked ? 'var(--color-muted)' : undefined, background: active ? pal.soft : 'transparent' }}
     >
       <div className="flex-1 min-w-0">
-        <div className="text-fade" style={{ fontSize: 15, fontWeight: 700, color: active ? pal.text : 'var(--color-text)' }}>{label}</div>
-        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>{done} {t('из')} {total} · {pct}%</div>
+        <div className="text-fade" style={{ fontSize: 15, fontWeight: 700, color: locked ? 'var(--color-muted)' : active ? pal.text : 'var(--color-text)' }}>{label}</div>
+        <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>{locked ? t('Недоступно') : `${done} ${t('из')} ${total} · ${pct}%`}</div>
       </div>
-      <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
+      {locked ? <Lock size={16} /> : <div style={{ width: 40, height: 6, borderRadius: 99, background: 'var(--color-bg-3)', overflow: 'hidden', flexShrink: 0 }}>
         <div style={{ width: `${pct}%`, height: '100%', borderRadius: 99, background: pct === 100 ? 'var(--color-green-accent)' : pal.accent }} />
-      </div>
+      </div>}
     </motion.button>
   )
 }

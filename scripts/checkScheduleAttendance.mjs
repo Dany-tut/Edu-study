@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { scheduleRowStatus } from '../src/lib/scheduleAttendance.ts'
-import { planCourseSchedule } from '../src/lib/courseScheduleSync.ts'
+import { planCourseSchedule, readGroupScheduleConflict } from '../src/lib/courseScheduleSync.ts'
 import { studentScheduleScope } from '../src/lib/studentScheduleScope.ts'
 const studentA = '00000000-0000-4000-8000-000000000001'
 const studentB = '00000000-0000-4000-8000-000000000002'
@@ -37,9 +37,24 @@ console.log('Calendar attendance: explicit marks, homework independence, late ma
 
 const slot = { lesson_id: 'course-lesson', group_id: 'group', student_id: null, node_type: 'lesson', date: '2026-11-01', time_start: '10:00', time_end: '11:00', subject: 'Химия', lesson_title: 'Тема', lesson_number: 2 }
 const saved = { ...slot, id: 'event-with-marks', time_start: '10:00:00', status: 'completed' }
-assert.deepEqual(planCourseSchedule([saved], [slot]), { insert: [], update: [], remove: [] })
+assert.deepEqual(planCourseSchedule([saved], [slot]), { insert: [], update: [], removeBeforeWrite: [], remove: [] })
 const moved = { ...slot, date: '2026-11-02' }
-assert.deepEqual(planCourseSchedule([saved], [moved]), { insert: [], update: [{ ...moved, id: saved.id }], remove: [] })
+assert.deepEqual(planCourseSchedule([saved], [moved]), { insert: [], update: [{ ...moved, id: saved.id }], removeBeforeWrite: [], remove: [] })
 const rec = { ...slot, node_type: 'rec' }
-assert.deepEqual(planCourseSchedule([saved], [slot, rec]), { insert: [rec], update: [], remove: [] })
+assert.deepEqual(planCourseSchedule([saved], [slot, rec]), { insert: [rec], update: [], removeBeforeWrite: [], remove: [] })
 console.log('Course save: existing journal ids and session status preserved')
+
+const stale = { ...saved, time_start: slot.time_start }
+const replacement = { ...slot, lesson_id: 'next-lesson', lesson_title: 'Птицы' }
+assert.deepEqual(planCourseSchedule([stale], [replacement]), {
+  insert: [replacement], update: [], removeBeforeWrite: [stale.id], remove: [],
+})
+assert.deepEqual(planCourseSchedule([stale], [slot]), {
+  insert: [], update: [], removeBeforeWrite: [], remove: [],
+})
+const groupId = '99999999-1234-4321-9123-000000000001'
+assert.deepEqual(readGroupScheduleConflict({
+  code: '23505',
+  details: `Key (group_id, date, time_start)=(${groupId}, 2026-11-26, 18:00) already exists.`,
+}), { groupId, date: '2026-11-26', time: '18:00' })
+assert.equal(readGroupScheduleConflict({ code: '23505', details: 'Key (id)=(123) already exists.' }), null)

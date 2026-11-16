@@ -9,6 +9,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } fr
 import CourseTrackSkeleton from './CourseTrackSkeleton'
 import { TRACK_NODE_SIZE as NODE_SIZE, TRACK_SIDE_PADDING, TRACK_GLOW_PAD as GLOW_PAD, TRACK_ROW_HEIGHT } from './courseTrackLayout'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
+import { isCourseModuleLocked } from '../lib/moduleAccess'
 import { courseResumeTarget, courseTrackWidth } from '../lib/courseTrackLayout'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, RotateCcw, Upload, Lock, Play, Star, Clock, CircleAlert } from './icons/appIcons'
@@ -122,8 +123,12 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
   useStudentData(s => s.scheduleDays)
   // activeModuleId from the store may not match a real module id on first paint,
   // so resolve to an actually-rendered module — lets the pill appear without a click.
-  const effectiveModuleId =
-    subject.modules.find(m => m.id === activeModuleId)?.id ?? courseResumeTarget(subject).moduleId
+  const resume = courseResumeTarget(subject)
+  const openModules = subject.modules.filter((_, index) => !isCourseModuleLocked(subject, index))
+  const activeModule = openModules.find(m => m.id === activeModuleId)
+    ?? openModules.find(m => m.id === resume.moduleId)
+    ?? openModules[0]
+  const effectiveModuleId = activeModule?.id
   const moduleRowRef = useRef<HTMLDivElement>(null)
   useScrollTabIntoView(moduleRowRef, 'data-module-tab', String(effectiveModuleId ?? ''))
 
@@ -173,7 +178,6 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
 
   // Scope the track to the active module — clicking a module tab reveals how
   // much of *that* module is completed ("закрыто").
-  const activeModule = subject.modules.find(m => m.id === effectiveModuleId) ?? subject.modules[0]
   const allLessons = activeModule?.lessons ?? []
   // Первый текущий урок — на нём праздничная тема ставит фонарь/конфету (CourseNode.seasonMark).
   const scheduleStates = allLessons.map(lesson => getLessonScheduleState(lesson, now))
@@ -193,7 +197,6 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
   const containerW = courseTrackWidth(viewportW, nodeCount)
   const span = Math.max(0, containerW - padCenter * 2)         // distance between first & last node centers
   const nodeCenter = (i: number) => nodeCount <= 1 ? padCenter : padCenter + (span * i) / (nodeCount - 1)
-  const resume = courseResumeTarget(subject)
   const focusId = allLessons.some(l => l.id === highlightLessonId) ? highlightLessonId : resume.lessonId
   const focusIndex = allLessons.findIndex(l => l.id === focusId)
   useLayoutEffect(() => {
@@ -262,7 +265,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
       <div ref={moduleRowRef} style={{ flexShrink: 0, position: 'relative', zIndex: 2, margin: `-${ROW_SHADOW_TOP}px 0 -${ROW_SHADOW_BOTTOM}px` }}>
       <HScrollFade fadeMode="mask" padX={32} padTop={ROW_SHADOW_TOP} padBottom={ROW_SHADOW_BOTTOM} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
         {courseSlot}
-        {!(subject.modules.length === 1 && subject.modules[0].loose) && (
+        {!(subject.modules.length === 1 && subject.modules[0].loose && activeModule) && (
           <>
             {courseSlot && <span aria-hidden style={{ width: 1, height: 22, background: 'var(--color-text-4)', flexShrink: 0 }} />}
             <ModuleChain
@@ -280,6 +283,8 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
         )}
       </HScrollFade>
       </div>
+
+      {!activeModule && <p className="text-center" style={{ color: 'var(--color-muted)', padding: '16px 0' }}>{t('Преподаватель откроет доступ к урокам')}</p>}
 
       {/* ── Track body: auto height, centered content. Сверху минус: над
            кружками GLOW_PAD под свечение, и без поправки трек отъезжал бы от

@@ -27,5 +27,21 @@ export function planCourseSchedule(existing: SavedSlot[], desired: CourseSlot[])
     // Never send the event's operational status, even on a reschedule.
     if (!sameSlot(old, row)) update.push({ ...row, id: old.id })
   }
-  return { insert, update, remove: [...byKey.values()].flat().map(row => row.id) }
+  const groupSlot = (row: CourseSlot) => JSON.stringify([row.group_id, row.date, row.time_start])
+  const claimed = new Set([...insert, ...update].filter(row => row.group_id).map(groupSlot))
+  const removeBeforeWrite: string[] = [], remove: string[] = []
+  for (const row of [...byKey.values()].flat()) {
+    const obsolete = row.group_id && claimed.has(groupSlot(row)) ? removeBeforeWrite : remove
+    obsolete.push(row.id)
+  }
+  return { insert, update, removeBeforeWrite, remove }
+}
+
+/** PostgreSQL reports the occupied group slot, including on an atomic batch failure. */
+export function readGroupScheduleConflict(error: { code?: string; details?: string }) {
+  if (error.code !== '23505') return null
+  const match = error.details?.match(/Key \(group_id, date, time_start\)=\(([a-f0-9-]{36}), (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\)/i)
+  if (!match) return null
+  const [, groupId, date, time] = match
+  return { groupId, date, time }
 }

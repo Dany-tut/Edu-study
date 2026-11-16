@@ -15,7 +15,7 @@ import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
-import { planCourseSchedule, type CourseSlot } from '../../lib/courseScheduleSync'
+import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '../../lib/courseScheduleSync'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { Eye } from '../../components/icons/appIcons'
@@ -6730,6 +6730,7 @@ export default function TeacherCourseEditorPage() {
   }
 
   async function syncCourseNow(c: CourseEdData): Promise<boolean> {
+    saveIssue.current = null
     const shortId = c.dbCourseId ?? c.id
 
     // Страховка на случай нового пути в сохранение: запись идёт курсом целиком,
@@ -6815,11 +6816,37 @@ export default function TeacherCourseEditorPage() {
       window.dispatchEvent(new Event('iskra:journal-changed'))
       return true
     }
-    function scheduleIssue(error: { code?: string; message?: string }) {
-      saveIssue.current = error.code === '23505'
-        ? t('Это время уже занято другим занятием.\nИзмените дату или время урока и повторите сохранение.')
-        : null
+    async function scheduleIssue(
+      error: { code?: string; details?: string },
+      attempted: Array<CourseSlot & { id?: string }> = [],
+    ) {
+      const slot = readGroupScheduleConflict(error)
+      if (!slot) return writeFailed()
+
+      const candidates = attempted.filter(row => row.group_id === slot.groupId
+        && row.date === slot.date && row.time_start === slot.time)
+      // Failed batches are atomic. If the conflicting row was already on the
+      // calendar, read it separately to include lessons outside this course.
+      const { data: occupied } = candidates.length < 2 ? await supabase.from('schedule_lessons')
+        .select('id,lesson_title,node_type')
+        .eq('group_id', slot.groupId).eq('date', slot.date).eq('time_start', slot.time)
+        .maybeSingle() : { data: null }
+      const pair = candidates.slice(0, 2)
+      const titles = pair.map(row => scheduleEventName(row))
+      if (titles.length === 1 && occupied && occupied.id !== pair[0].id) {
+        titles.push(scheduleEventName(occupied))
+      }
+
+      const day = slot.date.split('-').reverse().join('.')
+      const group = groups.find(group => group.id === slot.groupId)?.name
+      const location = [group, `${day}, ${slot.time.slice(0, 5)} ${t('МСК')}`].filter(Boolean).join(' · ')
+      const detail = [location, ...titles].join(' · ')
+      saveIssue.current = `${t('Совпало время начала занятий.')}\n${detail}\n${t('Измените время одного из занятий и повторите сохранение.')}`
       return writeFailed()
+    }
+
+    function scheduleEventName(row: Pick<CourseSlot, 'lesson_title' | 'node_type'>) {
+      return row.node_type === 'rec' ? `«${row.lesson_title}» (${t('Запись')})` : `«${row.lesson_title}»`
     }
     // Курс записан — его updated_at уже ушёл вперёд: дальнейшие выходы обязаны
     // пересчитать отпечаток (см. writeFailed выше).
@@ -7141,15 +7168,27 @@ export default function TeacherCourseEditorPage() {
       existingSlots = oldRows ?? []
     }
     const plan = planCourseSchedule(existingSlots, rows)
+    // A removed event can still occupy the unique group slot that its replacement needs.
+    if (plan.removeBeforeWrite.length) {
+      const { data: journal, error: journalError } = await supabase.from('teacher_lesson_sessions')
+        .select('schedule_id').in('schedule_id', plan.removeBeforeWrite)
+      if (journalError) { console.error('schedule_lessons journal lookup failed:', journalError); return writeFailed() }
+      const withJournal = new Set((journal ?? []).map(row => row.schedule_id))
+      const obsolete = plan.removeBeforeWrite.filter(id => !withJournal.has(id))
+      if (obsolete.length > 0) {
+        const { error } = await supabase.from('schedule_lessons').delete().in('id', obsolete).eq('status', 'upcoming')
+        if (error) { console.error('schedule_lessons stale slot delete failed:', error); return await scheduleIssue(error) }
+      }
+    }
     if (plan.update.length) {
       const { error } = await supabase.from('schedule_lessons').upsert(plan.update, { onConflict: 'id' })
-      if (error) { console.error('schedule_lessons update failed:', error); return await scheduleIssue(error) }
+      if (error) { console.error('schedule_lessons update failed:', error); return await scheduleIssue(error, plan.update) }
     }
     if (plan.insert.length > 0) {
       const { error: insErr } = await supabase
         .from('schedule_lessons')
         .insert(plan.insert.map(row => ({ ...row, status: 'upcoming' })))
-      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return await scheduleIssue(insErr) }
+      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return await scheduleIssue(insErr, plan.insert) }
     }
     if (plan.remove.length > 0) {
       const { error: delErr } = await supabase

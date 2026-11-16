@@ -1,10 +1,11 @@
+import { isCourseModuleLocked } from '../lib/moduleAccess'
 import { textFadeLines } from '../lib/textFades'
 import LessonWatchStatus from '../components/LessonWatchStatus'
 import { homeworkDisplayScore } from '../lib/homeworkResult'
 import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react'
 import Skeleton from '../components/Skeleton'
 import { motion } from 'framer-motion'
-import { Search, X, SlidersHorizontal, ArrowUpDown, Check } from '../components/icons/appIcons'
+import { Search, X, SlidersHorizontal, ArrowUpDown, Check, Lock } from '../components/icons/appIcons'
 import { glassCircle, MOBILE_DOCK_EDGE, MOBILE_PILL_H, MOBILE_TOP_ENTER } from '../lib/mobileTokens'
 import { useNavCollapse } from '../lib/useNavCollapse'
 import { useEnterAfterPaint } from '../lib/useEnterAfterPaint'
@@ -71,7 +72,7 @@ export default function CoursesPage() {
 
   // "Все" (all modules) vs a single module. Local — defaults to the subject's
   // active module so a focused lesson lands on its own section.
-  const [moduleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
+  const [requestedModuleTab, setModuleTab] = useState<number | typeof ALL>(activeModuleId)
   const [search, setSearch] = useState('')
   const isDesktop = useIsDesktop()
   // Mobile «ДЗ» dock state: the search collapses to a circle, and filter/sort
@@ -101,9 +102,13 @@ export default function CoursesPage() {
   const subjects = useStudentData(s => s.subjects)
   const loaded = useStudentData(s => s.loaded)
   const subjectPill = useFloatingPill(activeSubjectId)
-  const modulePill = useFloatingPill(moduleTab)
 
   const subject = subjects.find(s => s.id === activeSubjectId) ?? subjects[0]
+  const lockedModuleIds = useMemo(() => new Set(subject?.modules
+    .filter((_, index) => isCourseModuleLocked(subject, index)).map(module => module.id)), [subject])
+  const moduleTab = requestedModuleTab !== ALL && subject?.modules.some(m => m.id === requestedModuleTab)
+    && !lockedModuleIds.has(requestedModuleTab) ? requestedModuleTab : ALL
+  const modulePill = useFloatingPill(moduleTab)
 
   // Раздел переставляется ИЗВНЕ только по двум поводам: сменился курс или
   // каталог попросили открыть на конкретном уроке (moduleFocusNonce).
@@ -119,7 +124,7 @@ export default function CoursesPage() {
   const lessons = useMemo(() => {
     if (!subject) return []
     let base: Lesson[] = moduleTab === ALL
-      ? subject.modules.flatMap(m => m.lessons)
+      ? subject.modules.filter(m => !lockedModuleIds.has(m.id)).flatMap(m => m.lessons)
       : (subject.modules.find(m => m.id === moduleTab)?.lessons ?? [])
     const q = search.trim().toLowerCase()
     if (q) base = base.filter(l =>
@@ -132,7 +137,7 @@ export default function CoursesPage() {
     // Copy before sorting — never mutate the module's lesson array in place.
     if (sortDesc) base = [...base].sort((a, b) => b.number - a.number)
     return base
-  }, [subject, moduleTab, search, statusFilter, sortDesc, now])
+  }, [subject, lockedModuleIds, moduleTab, search, statusFilter, sortDesc, now])
 
   // Scroll the focused lesson into view + briefly ring it when arriving from a
   // specific entry point (track "Открыть урок", schedule card).
@@ -444,6 +449,7 @@ export default function CoursesPage() {
         )}
         {moduleTabs.map(tab => {
           const isActive = moduleTab === tab.id
+          const locked = tab.id !== ALL && lockedModuleIds.has(tab.id)
           const module = typeof tab.id === 'number'
             ? subject.modules.find(m => m.id === tab.id)
             : null
@@ -454,7 +460,9 @@ export default function CoursesPage() {
             <motion.button data-hover="layer"
               key={tab.id}
               ref={modulePill.registerItem(tab.id)}
-              whileTap={{ scale: 0.97 }}
+              disabled={locked}
+              aria-label={locked ? `${tab.label} · ${t('Недоступно')}` : undefined}
+              whileTap={locked ? undefined : { scale: 0.97 }}
               onClick={() => {
                 if (moduleTab === tab.id) return
                 playTransitionDrop()
@@ -471,7 +479,7 @@ export default function CoursesPage() {
                 fontSize: 13,
                 fontWeight: 600,
                 background: 'transparent',
-                color: module && pct === 100 ? 'var(--color-green-text)' : 'var(--color-text)',
+                color: locked ? 'var(--color-muted)' : module && pct === 100 ? 'var(--color-green-text)' : 'var(--color-text)',
                 border: '1px solid transparent',
                 outline: 'none',
                 appearance: 'none',
@@ -479,12 +487,12 @@ export default function CoursesPage() {
                 boxShadow: 'none',
                 backgroundClip: 'padding-box',
                 overflow: 'hidden',
-                cursor: 'pointer',
+                cursor: locked ? 'default' : 'pointer',
                 transition: 'color 0.15s ease',
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
-              {!isActive && (
+              {!isActive && !locked && (
                 <motion.span
                   aria-hidden
                   initial={false}
@@ -501,7 +509,10 @@ export default function CoursesPage() {
                   transition={{ duration: 0.15, ease: 'easeOut' }}
                 />
               )}
-              <span style={{ position: 'relative', zIndex: 1 }}>{tab.label}</span>
+              <span style={{ position: 'relative', zIndex: 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {locked && <Lock size={13} />}
+                {tab.label}
+              </span>
               {module && pct > 0 && (
                 <span
                   style={{
@@ -608,9 +619,18 @@ export default function CoursesPage() {
             minHeight: 200, borderRadius: 24, background: 'var(--color-bg-3)', color: 'var(--color-muted)',
           }}
         >
-          <Search size={24} style={{ marginBottom: 8 }} />
-          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t('Ничего не найдено')}</p>
-          <p style={{ fontSize: 13, marginTop: 4 }}>{t('Попробуйте изменить запрос или модуль')}</p>
+          {lockedModuleIds.size === subject.modules.length ? (
+            <>
+              <Lock size={24} style={{ marginBottom: 8 }} />
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t('Преподаватель откроет доступ к урокам')}</p>
+            </>
+          ) : (
+            <>
+              <Search size={24} style={{ marginBottom: 8 }} />
+              <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{t('Ничего не найдено')}</p>
+              <p style={{ fontSize: 13, marginTop: 4 }}>{t('Попробуйте изменить запрос или модуль')}</p>
+            </>
+          )}
         </div>
       )}
 

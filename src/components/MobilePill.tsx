@@ -18,6 +18,7 @@ export default function MobilePill({
   style,
   size = 'md',
   ariaLabel,
+  disabled = false,
 }: {
   children?: ReactNode
   active?: boolean
@@ -29,6 +30,7 @@ export default function MobilePill({
   style?: CSSProperties
   size?: 'sm' | 'md'
   ariaLabel?: string
+  disabled?: boolean
 }) {
   const v: ButtonVariant = variant ?? (active ? 'glass' : 'ghost')
   const pad = size === 'sm' ? '7px 12px' : '9px 16px'
@@ -39,14 +41,15 @@ export default function MobilePill({
       type="button"
       aria-label={ariaLabel}
       aria-pressed={active}
-      whileTap={{ scale: TAP_SCALE }}
+      disabled={disabled}
+      whileTap={disabled ? undefined : { scale: TAP_SCALE }}
       transition={{ duration: 0.15, ease: JELLY_EASE }}
       onClick={() => {
         if (active && !onClick) return
         tactile()
         onClick?.()
       }}
-      className="cursor-pointer"
+      className={disabled ? undefined : "cursor-pointer"}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -59,6 +62,7 @@ export default function MobilePill({
         fontWeight: 600,
         lineHeight: 1,
         ...buttonStyle(v, { pair, active }),
+        ...(disabled ? { color: 'var(--color-muted)' } : {}),
         ...style,
       }}
     >
