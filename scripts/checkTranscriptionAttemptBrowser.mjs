@@ -27,9 +27,10 @@ try {
  const owner='11111111-1111-4111-8111-111111111111'
  const key='iskra.transcription.job.'+JSON.stringify([owner,JSON.stringify(['fixture-course','A'])])
  const failure='Ссылка должна открывать видео для скачивания. Для закрытой записи выберите файл.'
- let posts=0, polls=0, delay=0, success=false, body='', responseOverride=null, offline=false, cancelled=false, stale=false, updateBusy=false, updates=0
+ let posts=0, polls=0, delay=0, success=false, body='', responseOverride=null, offline=false, cancelled=false, stale=false, updateBusy=false, updates=0, failVersionProbe=false, versionRequests=0
  await page.route('http://127.0.0.1:18764/**',async route=>{
    const url=route.request().url()
+   if(url.endsWith('/version')) {versionRequests++;if(failVersionProbe && versionRequests===2)return route.abort()}
    if(url.endsWith('/version'))return route.fulfill({json:{version:stale?'old-worker':workerVersion,slideChapters:true,update:true}})
    if(url.endsWith('/update')) {updates++;if(updateBusy)return route.fulfill({status:409,json:{error:'Модуль занят расшифровкой. Обновится, когда она закончится.'}});stale=false;return route.fulfill({status:202,json:{version:workerVersion}})}
    if(offline)return route.abort()
@@ -107,6 +108,10 @@ try {
  await page.getByRole('button',{name:'Начать расшифровку',exact:true}).click()
  await page.getByText('Модуль занят другой расшифровкой. Дождитесь её завершения и повторите.',{exact:true}).waitFor()
  assert.equal(posts,submitted,'busy worker is neither restarted nor given a duplicate job')
+ updateBusy=false;stale=false;failVersionProbe=true;versionRequests=0
+ await page.getByRole('button',{name:'Начать расшифровку',exact:true}).click()
+ await page.getByText('Не удалось проверить версию обработчика. Проверьте связь с модулем и повторите.',{exact:true}).waitFor()
+ assert.equal(posts,submitted,'unverified worker must not receive a job');failVersionProbe=false
  responseOverride={stage:'Читаем слайды',canCancel:true,progress:{current:650,total:1083,unit:'frames'}};stale=false;await seed('', 'slides')
  await page.getByRole('progressbar',{name:'Читаем слайды',exact:true}).waitFor()
  assert.equal(await page.locator('.transcription-job-steps li').count(),2)

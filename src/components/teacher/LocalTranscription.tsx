@@ -637,6 +637,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       await waitForTranscriptionCompanion()
       if (!mounted.current) return
       const module = await readModule()
+      if (module.freshness === 'unknown') throw new LocalTranscriptionUnavailable('Не удалось проверить версию обработчика. Проверьте связь с модулем и повторите.')
       if (module.freshness === 'outdated') {
         if (!module.selfUpdate) throw new Error('Обновите приложение расшифровки в профиле Искры и повторите.')
         setPreparation('Обновляем обработчик…')
