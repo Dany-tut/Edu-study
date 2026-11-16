@@ -70,6 +70,16 @@ export function prefetchTeacherJournalSnapshot(owner: string, complete: boolean)
   return requestStartupSnapshot(owner, complete)
 }
 
+/** Keep the eager response compact unless the teacher last opened the full work list. */
+export function hasSavedJournalWorkTab(owner: string) {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(`iskra:journal-stand:${owner}`) ?? '{}') as { tab?: unknown }
+    return saved.tab === 'Работы'
+  } catch {
+    return false
+  }
+}
+
 /** Use a matching cold-entry read, or start it if the route component won the race. */
 export function readStartupJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal) {
   return withAbort(requestStartupSnapshot(owner, complete), signal)

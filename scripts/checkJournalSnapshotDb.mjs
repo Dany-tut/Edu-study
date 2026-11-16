@@ -95,12 +95,20 @@ try {
   `)
   await sql(readFileSync('supabase/migrations/20261101164928_teacher_journal_lesson_summary.sql','utf8').split('-- Invoker security')[0])
   await sql(readFileSync('supabase/migrations/20261102082617_journal_compact_task_sources.sql','utf8'))
+  await sql(readFileSync('supabase/migrations/20261116064649_journal_startup_compact_worklist.sql','utf8'))
   await sql("create or replace function public.test_unpack_journal_wire(p jsonb) returns jsonb\nlanguage sql immutable as $$\n  select (p - 'encoding' - array['courses','lessons','modules','work','events','assignments','legacy','attempts','marks']) ||\n    (select jsonb_object_agg(k,coalesce((\n      select jsonb_agg((select jsonb_object_agg(c.col #>> '{}',r.row->(c.n-1)::int)\n        from jsonb_array_elements(t->'columns') with ordinality c(col,n)) order by r.n)\n      from jsonb_array_elements(t->'rows') with ordinality r(row,n)\n    ),'[]'::jsonb))\n    from jsonb_each(p) e(k,t) where k in('courses','lessons','modules','work','events','assignments','legacy','attempts','marks'))\n$$;\n\n")
   await sql(`reset role;set test.admin='false';select set_config('test.uid',md5('owner-a')::uuid::text,false);set role authenticated;
-    do $$declare old jsonb;fresh jsonb;begin
+    do $$declare old jsonb;fresh jsonb;compact jsonb;begin
       old:=teacher_journal_snapshot_v2(md5('owner-a')::uuid,true);fresh:=public.test_unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid,true)::jsonb);
+      compact:=public.test_unpack_journal_wire(teacher_journal_snapshot_v3(md5('owner-a')::uuid,false)::jsonb);
       if (old-'lessons') is distinct from (fresh-'lessons') then raise exception 'Non-task data changed';end if;
       if jsonb_array_length(fresh->'lessons')<>1610 then raise exception 'Compact lessons truncated';end if;
+      if (compact-'lessons'-'assignments') is distinct from (fresh-'lessons'-'assignments') then raise exception 'Compact snapshot changed unrelated data';end if;
+      if compact->'lessons'->0->'extraHw' is distinct from fresh->'lessons'->0->'extraHw' then raise exception 'Compact overview lost extra-work sources/dates';end if;
+      if compact->'assignments'->0->'assignedAt' is distinct from fresh->'assignments'->0->'assignedAt' then raise exception 'Compact overview lost assignment dates';end if;
+      if compact->'assignments'->0->'basicTasks' is distinct from '[{"type":"iskra"},{"type":"testly"}]'::jsonb then raise exception 'Compact assignment source markers changed';end if;
+      if (compact->'assignments'->0->'basicTasks')::text like '%condition%' then raise exception 'Compact assignment leaked rich task bodies';end if;
+      if compact->'assignments'->0->'basicTask' is distinct from compact->'assignments'->0->'basicTasks'->0 then raise exception 'Compact primary task marker mismatched';end if;
       if fresh->'lessons'->0->'hwTask' not in ('[{"type":"iskra"}]'::jsonb,'null'::jsonb) then raise exception 'Native source missing';end if;
       begin perform teacher_journal_snapshot_v3(md5('owner-b')::uuid);raise exception 'Foreign compact owner allowed';exception when insufficient_privilege then null;end;
     end$$;
@@ -135,6 +143,7 @@ try {
   assert.throws(()=>journalSnapshotResult({data:wrongColumns,error:null}),/неполон/)
   assert.throws(()=>journalSnapshotResult({data:{...fixture.wire,encoding:'future'},error:null}),/Формат/)
   console.log('PASS: actual SQL wire decoded losslessly by browser code; truncated rows, reordered fields and incompatible encodings rejected')
+  console.log('PASS: compact overview retains task sources and dates, matches full snapshot outside work details, and excludes rich task bodies')
   console.log('PASS: compact task categories, complete grades/answers/attempts/attendance, two owners/admin, anon denial and invoker security')
   console.log('PASS: complete 1610 lessons/2107 progress, related records, grades/drafts, task order, fresh rereads, shared-course scope, two owners/admin, anon denial, invoker security')
 } catch(e) { console.error(e.stderr?.toString()||e);process.exitCode=1 }

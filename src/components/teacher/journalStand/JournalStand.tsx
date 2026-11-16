@@ -719,7 +719,6 @@ export default function JournalStand({ owner, user, production = false }: { owne
   const pendingAttendance = useJournalPending(null)
   const allowed = useTeacherAccess(s => s.loaded && s.canPage(page))
   const journalActive = ['groups', 'gradebook', 'student'].includes(page)
-  const { data, loading, error, reload, setData } = useCourseJournal(true, journalActive)
   const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
   const storageKey = 'iskra:journal-stand:' + owner
   const [selected, setSelected] = useState<StandSelection>(() => {
@@ -730,6 +729,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
       return initial
     }
   })
+  const { data, loading, error, reload, setData } = useCourseJournal(selected.tab === 'Работы', journalActive)
   const position = useRef({ top: 0, left: 0 })
   const set = (v: Partial<StandSelection>) => setSelected((prev) => ({ ...prev, ...v }))
   useEffect(() => {

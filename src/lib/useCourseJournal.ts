@@ -70,6 +70,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   const rosterReady = !groupsLoading && !studentsLoading
   const lastLoaded = useRef(0)
   const loadedScope = useRef('')
+  const loadedCompleteWorkList = useRef(false)
   const traceStart = useRef(0)
   const traceReady = useRef(0)
   const [data, updateData] = useState<CourseJournalData | null>(null)
@@ -112,8 +113,9 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   const groupIds = JSON.stringify(groups.map(g => g.id).sort())
   useEffect(() => {
     if (!enabled) return
-    const loadKey = JSON.stringify([studentIds, groupIds, completeWorkList, tick])
-    if (data && loadedScope.current === loadKey && Date.now() - lastLoaded.current < 30_000) {
+    const loadKey = JSON.stringify([studentIds, groupIds, tick])
+    const loadedDataIsCompleteEnough = loadedCompleteWorkList.current || !completeWorkList
+    if (data && loadedScope.current === loadKey && loadedDataIsCompleteEnough && Date.now() - lastLoaded.current < 30_000) {
       setLoading(false)
       return
     }
@@ -193,7 +195,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
         setLoading(false)
       }
     }, 20_000)
-    void load().then(next => { if (active) { loadedScope.current = loadKey; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); updateData(next) } }).catch(e => {
+    void load().then(next => { if (active) { loadedScope.current = loadKey; loadedCompleteWorkList.current = completeWorkList; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), completeWorkList, lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); updateData(next) } }).catch(e => {
       if (active) setError(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
     }).finally(() => { clearTimeout(timeout); controller.abort(); if (active) setLoading(false) })
     return () => { active = false; clearTimeout(timeout); controller.abort() }

@@ -7,7 +7,7 @@ import { retryImport } from './lib/chunkError'
 import { isStudentWorkspaceRoute } from './lib/workspaceRoute'
 import { hasStoredAuth, lastCabinet, likelyStaff, rememberCabinet } from './lib/cabinetChoice'
 import { performanceStage } from './lib/platformPerformance'
-import { prefetchTeacherJournalSnapshot } from './lib/journalSnapshotStartup'
+import { hasSavedJournalWorkTab, prefetchTeacherJournalSnapshot } from './lib/journalSnapshotStartup'
 import { getViewAs } from './lib/teacherView'
 const StudentLoginPage = lazy(() => retryImport(() => import('./pages/StudentLoginPage')))
 const NativeEntryPage = lazy(() => retryImport(() => import('./pages/NativeEntryPage')))
@@ -189,7 +189,8 @@ function AppRoutes() {
     // Viewing another teacher's journal needs the owner resolved by owner.ts;
     // let the normal hook handle it rather than prefetching for the admin id.
     if (getViewAs()) return
-    void prefetchTeacherJournalSnapshot(session.user.id, true)
+    const complete = hasSavedJournalWorkTab(session.user.id)
+    void prefetchTeacherJournalSnapshot(session.user.id, complete)
       .then(() => performanceStage('journal-snapshot-prefetched'))
       .catch(() => performanceStage('journal-snapshot-prefetch-failed'))
   }, [directJournalRoute, session])
