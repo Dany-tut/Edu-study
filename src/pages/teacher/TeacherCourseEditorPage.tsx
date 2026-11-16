@@ -20,7 +20,7 @@ import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { Eye } from '../../components/icons/appIcons'
 import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
-import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react'
+import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { AlertStack } from '../../components/Alert'
@@ -5405,6 +5405,7 @@ function RightPanelLessons({
   lessonShortIdById: Record<string, string>
 }) {
   const t = useT()
+  const [moduleExpansion, setModuleExpansion] = useState<Record<string, boolean>>({})
   const [newTitle, setNewTitle] = useState('')
   const [addingModule, setAddingModule] = useState(false)
   const [newModuleLabel, setNewModuleLabel] = useState('')
@@ -5461,10 +5462,10 @@ function RightPanelLessons({
     setAddingModule(false)
   }
 
-  function toggleModule(id: string) {
-    setCourse(c => ({
-      ...c,
-      modules: c.modules.map(m => m.id === id ? { ...m, expanded: !m.expanded } : m),
+  function toggleModule(module: CEModule) {
+    setModuleExpansion(previous => ({
+      ...previous,
+      [module.id]: !(previous[module.id] ?? module.expanded),
     }))
   }
 
@@ -5729,6 +5730,7 @@ function RightPanelLessons({
         ))}
 
         {course.modules.map(mod => {
+          const expanded = moduleExpansion[mod.id] ?? mod.expanded
           const modLessons = mod.lessonIds
             .map(id => course.lessons.find(l => l.id === id))
             .filter(Boolean) as CELesson[]
@@ -5743,11 +5745,11 @@ function RightPanelLessons({
                   // раскрытие/сворачивание должно реагировать только на одиночный.
                   if (e.detail > 1) return
                   setActiveModuleId(mod.id)
-                  toggleModule(mod.id)
+                  toggleModule(mod)
                 }}
                 onDoubleClick={() => {
                   // Первый клик двойного уже переключил модуль — откатываем и правим название.
-                  toggleModule(mod.id)
+                  toggleModule(mod)
                   setEditingModuleLabel(mod.label)
                   setEditingModuleId(mod.id)
                 }}
@@ -5769,8 +5771,8 @@ function RightPanelLessons({
               >
                 <span
                   role="button" data-hover="layer"
-                  aria-label={mod.expanded ? t('Свернуть') : t('Развернуть')}
-                  onClick={e => { e.stopPropagation(); if (e.detail > 1) return; toggleModule(mod.id) }}
+                  aria-label={expanded ? t('Свернуть') : t('Развернуть')}
+                  onClick={e => { e.stopPropagation(); if (e.detail > 1) return; toggleModule(mod) }}
                   onDoubleClick={e => e.stopPropagation()}
                   style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', padding: 3, margin: -3, borderRadius: 6 }}
                 >
@@ -5778,7 +5780,7 @@ function RightPanelLessons({
                     size={14}
                     style={{
                       color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)',
-                      transform: mod.expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                      transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
                       transition: 'transform 0.15s ease',
                     }}
                   />
@@ -5824,7 +5826,7 @@ function RightPanelLessons({
                     />
                   )}
                 </span>
-                {dragging && isTarget && !mod.expanded && (
+                {dragging && isTarget && !expanded && (
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-green-text)', background: 'var(--color-bg)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
                     {t('в конец')}
                   </span>
@@ -5845,7 +5847,7 @@ function RightPanelLessons({
               {/* initial={false}: при входе в курс модули уже развёрнуты — без него
                   каждый вырастал с нуля, и правая колонка дёргалась на входе. */}
               <AnimatePresence initial={false}>
-                {(loose || mod.expanded) && (
+                {(loose || expanded) && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
@@ -6051,7 +6053,7 @@ export default function TeacherCourseEditorPage() {
   const { groups, addIndividualCard } = useGroups()
   const allStudents = useAllStudents()
 
-  const [course, setCourse] = useState<CourseEdData>(() => {
+  const [{ course, editRevision }, setCourseState] = useState(() => {
     const base: CourseEdData = editingCourseJson
       ? JSON.parse(editingCourseJson) as CourseEdData
       : {
@@ -6067,8 +6069,22 @@ export default function TeacherCourseEditorPage() {
     // teacher never got to save. The draft is cleared on successful save, so
     // when no draft exists we fall through to the fresh DB snapshot.
     const draft = readDraft<CourseEdData>(`coursed.${base.dbCourseId ?? base.id}.course`)
-    return draft ?? base
+    return { course: draft ?? base, editRevision: 0 }
   })
+  const setCourse = useCallback<React.Dispatch<React.SetStateAction<CourseEdData>>>(edit => {
+    setCourseState(previous => {
+      const course = typeof edit === 'function' ? edit(previous.course) : edit
+      return course === previous.course ? previous : { course, editRevision: previous.editRevision + 1 }
+    })
+  }, [])
+  // Server acknowledgements update editor data without counting as new teacher edits.
+  const reconcileCourse = useCallback((apply: (course: CourseEdData) => CourseEdData) => {
+    setCourseState(previous => {
+      const course = apply(previous.course)
+      return course === previous.course ? previous : { ...previous, course }
+    })
+  }, [])
+  const publishedEditRevision = useRef<number | null>(null)
 
   const [heavyErr, setHeavyErr] = useState(false)
   useEffect(() => {
@@ -6204,8 +6220,12 @@ export default function TeacherCourseEditorPage() {
     // Skip the initial render: merely opening a course must not create a draft
     // that would later shadow fresh DB data.
     if (draftSeq.current === 1) return
+    if (publishedEditRevision.current === editRevision) {
+      clearDrafts(draftNs)
+      return
+    }
     if (!course.metadataPending) writeDraft(draftKey, course)
-  }, [course, draftKey])
+  }, [course, draftKey, draftNs, editRevision])
 
   function clearCourseDraftAfterSync(seqAtSave: number, synced: boolean) {
     if (synced && draftSeq.current === seqAtSave) clearDrafts(draftNs)
@@ -6399,13 +6419,13 @@ export default function TeacherCourseEditorPage() {
         .select('student_id, access_mode').eq('course_id', row.id)
       if (cancelled || error) return
       const map = Object.fromEntries((enr ?? []).map(r => [r.student_id, r.access_mode])) as Record<string, AccessMode>
-      setCourse(before => acknowledgeCourseAccess(before, {}, {
+      reconcileCourse(before => acknowledgeCourseAccess(before, {}, {
         student_ids: row.student_ids ?? [], group_ids: row.group_ids ?? [],
       }))
       setAccessModes({ ...map, ...latestCourse.current.accessChanges?.modes })
     })()
     return () => { cancelled = true }
-  }, [accessCourseKey])
+  }, [accessCourseKey, reconcileCourse])
 
   const [savedFlash, setSavedFlash] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -6451,6 +6471,10 @@ export default function TeacherCourseEditorPage() {
     // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
     // бы конспекты с домашками, которых пока нет в состоянии.
     if (course.heavyPending || publicationPending) return
+    if (publishedEditRevision.current === editRevision) {
+      unsaved.current = false
+      return
+    }
     if (!course.dbCourseId && !course.title.trim()) return
     if (!autosaveArmed.current) {
       autosaveArmed.current = true
@@ -6462,7 +6486,7 @@ export default function TeacherCourseEditorPage() {
       runAutosave(course)
     }, 900)
     return () => clearTimeout(t)
-  }, [course, publicationPending])
+  }, [course, editRevision, publicationPending])
 
   // «Сохранено!» — только после ответа базы. Раньше подпись мигала сразу, до
   // записи, и при неудаче врала: учитель видел «Сохранено!», а в базе пусто.
@@ -6857,7 +6881,7 @@ export default function TeacherCourseEditorPage() {
     // без конспектов и домашек и давала ноль — кнопки «Из сида» не было даже
     // там, где расхождений сотня, — а отпечаток сида было некому записать, и
     // точка на плитке горела вечно.
-    if (!c.dbCourseId) setCourse(prev => {
+    if (!c.dbCourseId) reconcileCourse(prev => {
       if ((prev.dbCourseId ?? prev.id) !== shortId || prev.dbCourseId) return prev
       // Keep initial grants as pending intents until the access RPC succeeds,
       // including retries after a partial content save or a metadata refresh.
@@ -7012,7 +7036,7 @@ export default function TeacherCourseEditorPage() {
       const idChanged = c.lessons.some(l => shortIdByLessonId[l.id] && shortIdByLessonId[l.id] !== l.id)
       if (idChanged) {
         setSelectedLessonId(id => id ? shortIdByLessonId[id] ?? id : id)
-        setCourse(prev => ({
+        reconcileCourse(prev => ({
           ...prev,
           lessons: prev.lessons.map(l => shortIdByLessonId[l.id] ? { ...l, id: shortIdByLessonId[l.id], persistedShortId: shortIdByLessonId[l.id] } : l),
           modules: prev.modules.map(m => ({
@@ -7045,7 +7069,7 @@ export default function TeacherCourseEditorPage() {
     }
     if (access.updated_at > (writeStamp ?? '')) writeStamp = access.updated_at
     if ((latestCourse.current.dbCourseId ?? latestCourse.current.id) === shortId) {
-      setCourse(before => acknowledgeCourseAccess(before, changes, access))
+      reconcileCourse(before => acknowledgeCourseAccess(before, changes, access))
       const pendingModes = acknowledgeCourseAccess(latestCourse.current, changes, access).accessChanges?.modes
       setAccessModes({ ...access.access_modes, ...pendingModes })
     }
@@ -7353,13 +7377,13 @@ export default function TeacherCourseEditorPage() {
   // Правки, внесённые во время публикации, сохранятся после её завершения.
   function persistPublicationStatus(status: CourseEdData['status']) {
     const updated = { ...course, status }
-    const seq = draftSeq.current
+    const revisionAtPublish = editRevision
     setPublicationPending(true)
     setSaving(true)
     Promise.all([syncAccessToSupabase(updated).catch(() => false), new Promise(r => setTimeout(r, 550))]).then(([ok]) => {
-      clearCourseDraftAfterSync(seq, ok as boolean)
       if (ok) {
-        setCourse(c => ({ ...c, status }))
+        publishedEditRevision.current = revisionAtPublish
+        reconcileCourse(c => ({ ...c, status }))
         setCourseEdited(JSON.stringify({ ...latestCourse.current, status }))
         flash()
       } else {
