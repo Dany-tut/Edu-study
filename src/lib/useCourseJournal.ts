@@ -8,6 +8,7 @@ import { journalPages as adaptiveJournalPages, journalParallelPages } from './jo
 import { createAuthDataChangeGuard } from './authDataChange'
 import { journalPaintTiming } from './platformPerformance'
 import { readFreshJournalSnapshot, readStartupJournalSnapshot } from './journalSnapshotStartup'
+import { shouldReloadJournalForChange } from './journalRealtimePolicy'
 import { subscribeTeacherDataChanges } from './teacherDataRealtime'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
@@ -33,8 +34,8 @@ async function byIds<T>(table: string, columns: string, field: string, ids: stri
 }
 const idsCount = (ids: string) => (JSON.parse(ids) as string[]).length
 
-async function readJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal) {
-  return readFreshJournalSnapshot(owner, complete, signal)
+async function readJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal, source: string) {
+  return readFreshJournalSnapshot(owner, complete, signal, source)
 }
 
 // Brief, in-memory reuse for iPhone tab switches. Keep one complete server
@@ -51,13 +52,13 @@ supabase.auth.onAuthStateChange((event, session) => {
 })
 if (typeof window !== 'undefined') window.addEventListener('iskra:journal-changed', invalidateRecentSnapshot)
 
-async function readRecentJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal, reuse: boolean) {
+async function readRecentJournalSnapshot(owner: string, complete: boolean, signal: AbortSignal, reuse: boolean, source: string) {
   const cached = recentSnapshot
   if (reuse && cached?.owner === owner && cached.complete === complete && cached.expires > Date.now()) {
     return cached.data
   }
   const generation = snapshotGeneration
-  const data = await readJournalSnapshot(owner, complete, signal)
+  const data = await readJournalSnapshot(owner, complete, signal, source)
   if (data && !signal.aborted && generation === snapshotGeneration) {
     recentSnapshot = { owner, complete, expires: Date.now() + 15_000, data }
   }
@@ -71,6 +72,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   const lastLoaded = useRef(0)
   const loadedScope = useRef('')
   const loadedCompleteWorkList = useRef(false)
+  const reloadSource = useRef('manual-refresh')
   const traceStart = useRef(0)
   const traceReady = useRef(0)
   const [data, updateData] = useState<CourseJournalData | null>(null)
@@ -83,10 +85,12 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     if (parallelRoster) invalidateRecentSnapshot()
     updateData(action)
   }, [parallelRoster])
-  const reload = useCallback(() => {
+  const reloadFrom = useCallback((source: string) => {
+    reloadSource.current = source
     if (parallelRoster) invalidateRecentSnapshot()
     setTick(n => n + 1)
   }, [parallelRoster])
+  const reload = useCallback(() => reloadFrom('manual-refresh'), [reloadFrom])
   const prefetch = useRef<{ tick: number; owner: Promise<string | null>; read: Promise<CourseJournalData | null> } | null>(null)
   useEffect(() => {
     if (!enabled || (tick === 0 && dataRef.current && Date.now() - lastLoaded.current < 30_000)) return
@@ -95,10 +99,10 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     const owner = getOwnerId()
     const read = owner.then(id => id
       ? parallelRoster
-        ? readRecentJournalSnapshot(id, completeWorkList, controller.signal, tick === 0)
+        ? readRecentJournalSnapshot(id, completeWorkList, controller.signal, tick === 0, tick === 0 ? 'native-route-load' : reloadSource.current)
         : tick === 0
-          ? readStartupJournalSnapshot(id, completeWorkList, controller.signal)
-          : readJournalSnapshot(id, completeWorkList, controller.signal)
+          ? readStartupJournalSnapshot(id, completeWorkList, controller.signal, 'route-prefetch-consumer')
+          : readJournalSnapshot(id, completeWorkList, controller.signal, reloadSource.current)
       : null).finally(() => clearTimeout(timeout))
     // Roster may still be loading when a failed request settles.
     void read.catch(() => {})
@@ -149,8 +153,8 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
       const snapshot = early?.tick === tick && await early.owner === owner
         ? await early.read
         : tick === 0
-          ? await readStartupJournalSnapshot(owner, completeWorkList, signal)
-          : await readJournalSnapshot(owner, completeWorkList, signal)
+          ? await readStartupJournalSnapshot(owner, completeWorkList, signal, 'route-load')
+          : await readJournalSnapshot(owner, completeWorkList, signal, reloadSource.current)
       if (snapshot) return snapshot
       const [owned, shares] = await Promise.all([
         journalPages<CourseJournalData['courses'][number]>(offset => supabase.from('courses')
@@ -210,31 +214,36 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   }, [data, enabled])
   useEffect(() => {
     const authDataChanged = createAuthDataChangeGuard()
-    const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reload() }
+    const focus = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoaded.current > 30_000) reloadFrom('focus') }
     window.addEventListener('focus', focus)
     if (parallelRoster) window.addEventListener('iskra:journal-changed', reload)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (authDataChanged(event, session) && event !== 'INITIAL_SESSION') {
         setData(null)
-        reload()
+        reloadFrom('auth-change')
       } else if (event === 'USER_UPDATED') {
-        reload()
+        reloadFrom('auth-user-updated')
       }
     })
     return () => { window.removeEventListener('focus', focus); window.removeEventListener('iskra:journal-changed', reload); subscription.unsubscribe() }
-  }, [reload, parallelRoster, setData])
+  }, [reload, reloadFrom, parallelRoster, setData])
   useEffect(() => {
     if (!enabled) return
     let timer: ReturnType<typeof setTimeout> | null = null
     const unsubscribe = subscribeTeacherDataChanges(
       ['students', 'groups', 'homework', 'lesson_progress', 'lesson_attendance', 'schedule_lessons', 'teacher_lesson_sessions', 'courses', 'course_modules'],
-      () => {
+      change => {
+        // Initial SUBSCRIBED syncs race the cold snapshot that started on route
+        // entry. They do not represent a mutation; re-reading here launched a
+        // second, fresh RPC while the first one was still in Postgres. A later
+        // reconnect still performs a catch-up read for changes missed offline.
+        if (!shouldReloadJournalForChange(change)) return
         if (timer) clearTimeout(timer)
-        timer = setTimeout(() => { timer = null; reload() }, 450)
+        timer = setTimeout(() => { timer = null; reloadFrom(change.eventType === 'SYNC' ? `realtime-${change.syncKind ?? 'unknown'}` : `realtime-${change.eventType.toLowerCase()}`) }, 450)
       },
     )
     return () => { unsubscribe(); if (timer) clearTimeout(timer) }
-  }, [enabled, reload])
+  }, [enabled, reloadFrom])
   const resolved = useMemo(() => data && !data.demo ? { ...data, students, groups } : data, [data, students, groups])
   return { data: resolved, loading, error, reload, setData }
 }

@@ -14,6 +14,8 @@ export type TeacherDataTable =
 export type TeacherDataChange = {
   table: TeacherDataTable
   eventType: 'INSERT' | 'UPDATE' | 'DELETE' | 'SYNC'
+  /** Initial subscription is covered by the screen's cold-load query. Reconnects need a catch-up read. */
+  syncKind?: 'initial' | 'reconnect'
   newRecord: Record<string, unknown>
   oldRecord: Record<string, unknown>
 }
@@ -27,6 +29,7 @@ const tables: TeacherDataTable[] = [
 const listeners = new Set<{ tables: Set<TeacherDataTable>; callback: Listener }>()
 let channel: ReturnType<typeof supabase.channel> | null = null
 let stopTimer: ReturnType<typeof setTimeout> | null = null
+let hasConnected = false
 
 function start() {
   if (channel) return
@@ -48,8 +51,10 @@ function start() {
     // Re-read each live view after initial join and every reconnect. This closes
     // the snapshot/subscription race and recovers changes sent while offline.
     if (status !== 'SUBSCRIBED') return
+    const syncKind = hasConnected ? 'reconnect' : 'initial'
+    hasConnected = true
     for (const table of tables) {
-      const change: TeacherDataChange = { table, eventType: 'SYNC', newRecord: {}, oldRecord: {} }
+      const change: TeacherDataChange = { table, eventType: 'SYNC', syncKind, newRecord: {}, oldRecord: {} }
       for (const listener of listeners) {
         if (listener.tables.has(table)) listener.callback(change)
       }
@@ -75,6 +80,7 @@ export function subscribeTeacherDataChanges(tablesToWatch: TeacherDataTable[], c
         if (listeners.size || !channel) return
         const current = channel
         channel = null
+        hasConnected = false
         void supabase.removeChannel(current)
       }, 2_000)
     }
