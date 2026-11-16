@@ -19,6 +19,10 @@ export interface ChapterControls {
   saving: boolean
 }
 
+export function hasChapterVariant(codes?: LessonTimecode[]): boolean {
+  return Array.isArray(codes) && codes.length > 0
+}
+
 const abbreviations = new Set('ДНК РНК АТФ АДФ АМФ ЦНС ПНС ЖКТ ВИЧ СПИД ЕГЭ ОГЭ ГМО ДВ РРФ DNA RNA ATP ADP PCR NAD NADH NADPH PH CO2 O2 H2O'.split(' '))
 /** Only all-capital prose is folded. Mixed-case scientific notation stays intact. */
 export function sentenceTitle(raw: string): string {

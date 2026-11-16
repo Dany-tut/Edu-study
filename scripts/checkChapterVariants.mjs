@@ -1,6 +1,6 @@
 import {enqueueChapterSave} from '../src/lib/chapterSaveQueue.ts'
 import assert from 'node:assert/strict'
-import {sentenceTitle,titleConcern,prepareSlideChapters,chapterPayload,rebaseChapterLessons} from '../src/lib/chapterVariants.ts'
+import {sentenceTitle,titleConcern,prepareSlideChapters,chapterPayload,rebaseChapterLessons,hasChapterVariant} from '../src/lib/chapterVariants.ts'
 import {saveLessonChapters} from '../src/lib/saveLessonChapters.ts'
 for(const text of ['V гч ···','sm rч ···','mm o ···','om V','мт ч ···','mm ч ···']) assert.ok(titleConcern(text),text)
 assert.equal(sentenceTitle('ДРУГИЕ ЖГУТИКОНОСЦЫ'),'Другие жгутиконосцы')
@@ -11,6 +11,9 @@ const old=[{time:'00:00',seconds:0,label:'Старые главы'}]
 const slides=prepareSlideChapters(Array.from({length:5},(_,i)=>({time:`00:${String(i*10).padStart(2,'0')}`,seconds:i*10,label:'ТЕМА '+i})))
 assert.equal(slides[0].originalTitle,'ТЕМА 0');assert.equal(slides[0].label,'Тема 0')
 const variants={source:'https://video.test/file',active:'slides',revision:2,text:old,slides,fileSignature:undefined}
+assert.equal(hasChapterVariant([]),false,'an empty text variant must offer chapter generation')
+assert.equal(hasChapterVariant(undefined),false,'a missing slide variant must offer slide generation')
+assert.equal(hasChapterVariant(old),true,'a populated variant is available')
 const patch=chapterPayload(variants)
 assert.deepEqual(Object.keys(patch).sort(),['chapter_variants','timecodes'])
 const lesson={id:'A',videoUrl:variants.source,timecodes:old,transcript:{segments:['keep']},theory:'keep',materials:['keep']}
