@@ -1,0 +1,33 @@
+{
+  "scenario": "JOURNAL-PREFETCH-01",
+  "baselineSha": "6015ccfb9bd605e52df7849a98533f7e461c107e",
+  "scope": "Actual useCourseJournal hook with synthetic owners, roster and RPC; no production auth, records, or writes",
+  "controlledDelaysMs": {
+    "roster": 180,
+    "snapshot": 120
+  },
+  "coldEntryToUsefulContent": {
+    "beforeMs": 333,
+    "afterMs": 226,
+    "deltaMs": -107,
+    "relativeChangePercent": -32.1,
+    "rpcCallsPerEntry": {
+      "before": 1,
+      "after": 1
+    }
+  },
+  "assertions": {
+    "snapshotStartsBeforeRosterReady": true,
+    "contentWaitsForSnapshotAndRoster": true,
+    "failedPrefetchWaitsForExplicitRetry": true,
+    "retryIssuesOneRequest": true,
+    "lateOwnerAResponseCannotReplaceB": true,
+    "disableAbortsAndIgnoresLateResponse": true,
+    "reenableIssuesOneNewRequest": true
+  },
+  "limits": [
+    "Synthetic fixed-delay fixture, not a measurement of the production Supabase RPC or user-perceived production loading.",
+    "No authenticated production browser session was available for cold/warm UI measurement.",
+    "No other Iskra platform UI was exercised; the journal hook path and existing opt-in cache mode were preserved."
+  ]
+}

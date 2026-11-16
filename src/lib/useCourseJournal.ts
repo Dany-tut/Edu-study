@@ -77,6 +77,8 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [tick, setTick] = useState(0)
+  const dataRef = useRef(data)
+  dataRef.current = data
   const setData = useCallback((action: Parameters<typeof updateData>[0]) => {
     if (parallelRoster) invalidateRecentSnapshot()
     updateData(action)
@@ -87,12 +89,14 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   }, [parallelRoster])
   const prefetch = useRef<{ tick: number; owner: Promise<string | null>; read: Promise<CourseJournalData | null> } | null>(null)
   useEffect(() => {
-    if (!enabled || !parallelRoster) return
+    if (!enabled || (tick === 0 && dataRef.current && Date.now() - lastLoaded.current < 30_000)) return
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 20_000)
     const owner = getOwnerId()
     const read = owner.then(id => id
-      ? readRecentJournalSnapshot(id, completeWorkList, controller.signal, tick === 0)
+      ? parallelRoster
+        ? readRecentJournalSnapshot(id, completeWorkList, controller.signal, tick === 0)
+        : readJournalSnapshot(id, completeWorkList, controller.signal)
       : null).finally(() => clearTimeout(timeout))
     // Roster may still be loading when a failed request settles.
     void read.catch(() => {})
