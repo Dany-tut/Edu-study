@@ -95,7 +95,10 @@ try {
   `)
   await sql(readFileSync('supabase/migrations/20261101164928_teacher_journal_lesson_summary.sql','utf8').split('-- Invoker security')[0])
   await sql(readFileSync('supabase/migrations/20261102082617_journal_compact_task_sources.sql','utf8'))
-  await sql(readFileSync('supabase/migrations/20261116064649_journal_startup_compact_worklist.sql','utf8'))
+  const compactTasksMigration = readFileSync('supabase/migrations/20261116130000_journal_snapshot_compact_tasks_once.sql','utf8')
+  assert.match(compactTasksMigration,/assignment_scope as materialized/i,'Compact tasks must be computed in a materialized per-assignment scope')
+  assert.equal((compactTasksMigration.match(/teacher_journal_task_sources_v2/g) ?? []).length,1,'Compact task-source projection must run once per assignment')
+  await sql(compactTasksMigration)
   await sql("create or replace function public.test_unpack_journal_wire(p jsonb) returns jsonb\nlanguage sql immutable as $$\n  select (p - 'encoding' - array['courses','lessons','modules','work','events','assignments','legacy','attempts','marks']) ||\n    (select jsonb_object_agg(k,coalesce((\n      select jsonb_agg((select jsonb_object_agg(c.col #>> '{}',r.row->(c.n-1)::int)\n        from jsonb_array_elements(t->'columns') with ordinality c(col,n)) order by r.n)\n      from jsonb_array_elements(t->'rows') with ordinality r(row,n)\n    ),'[]'::jsonb))\n    from jsonb_each(p) e(k,t) where k in('courses','lessons','modules','work','events','assignments','legacy','attempts','marks'))\n$$;\n\n")
   await sql(`reset role;set test.admin='false';select set_config('test.uid',md5('owner-a')::uuid::text,false);set role authenticated;
     do $$declare old jsonb;fresh jsonb;compact jsonb;begin
