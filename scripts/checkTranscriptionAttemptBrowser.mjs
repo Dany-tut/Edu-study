@@ -23,20 +23,25 @@ const browser=await chromium.launch({channel:process.env.ISKRA_BROWSER_CHANNEL||
 try {
  const page=await browser.newPage(), errors=[]; page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message))
  const base=`http://127.0.0.1:${server.address().port}`
+ const workerVersion=(await readFile('src/lib/transcriptionModuleVersion.ts','utf8')).match(/VERSION = '([^']+)'/)[1]
  const owner='11111111-1111-4111-8111-111111111111'
  const key='iskra.transcription.job.'+JSON.stringify([owner,JSON.stringify(['fixture-course','A'])])
  const failure='Ссылка должна открывать видео для скачивания. Для закрытой записи выберите файл.'
- let posts=0, polls=0, delay=0, success=false, body=''
+ let posts=0, polls=0, delay=0, success=false, body='', responseOverride=null, offline=false, cancelled=false, stale=false, updateBusy=false, updates=0
  await page.route('http://127.0.0.1:18764/**',async route=>{
    const url=route.request().url()
-   if(url.endsWith('/version'))return route.fulfill({json:{version:'fixture',slideChapters:true}})
+   if(url.endsWith('/version'))return route.fulfill({json:{version:stale?'old-worker':workerVersion,slideChapters:true,update:true}})
+   if(url.endsWith('/update')) {updates++;if(updateBusy)return route.fulfill({status:409,json:{error:'Модуль занят расшифровкой. Обновится, когда она закончится.'}});stale=false;return route.fulfill({status:202,json:{version:workerVersion}})}
+   if(offline)return route.abort()
+   if(route.request().method()==='DELETE'){cancelled=true;return route.fulfill({json:{cancelled:true}})}
    if(route.request().method()==='POST'){posts++;body=route.request().postData()||'';return route.fulfill({json:{id:'new-job'}})}
    polls++;if(delay)await new Promise(r=>setTimeout(r,delay))
+   if(responseOverride)return route.fulfill({json:cancelled?{cancelled:true,stage:'Отменено'}:responseOverride})
    return route.fulfill({json:success?{done:true,stage:'Готово',segments:[{start:0,end:2,text:'Новая успешная реплика'}],chapters:[{start:0,title:'Новая глава'}]}:{error:true,stage:failure,done:true,canCancel:true}})
  })
  await page.goto(base)
- async function seed(query=''){
-   await page.evaluate(({owner,key,base})=>{localStorage.clear();localStorage.setItem('iskra.transcription.device.'+owner,'fixture-token');localStorage.setItem(key,JSON.stringify({id:'failed-A',source:base+'/video.mp4?lesson=A',mode:'text'}))},{owner,key,base})
+ async function seed(query='', mode='text'){
+   await page.evaluate(({owner,key,base,mode})=>{localStorage.clear();localStorage.setItem('iskra.transcription.device.'+owner,'fixture-token');localStorage.setItem(key,JSON.stringify({id:'failed-A',source:base+'/video.mp4?lesson=A',mode}))},{owner,key,base,mode})
    await page.goto(base+'/'+query)
  }
  await page.setViewportSize({width:1440,height:1000})
@@ -70,6 +75,42 @@ try {
  // A response delivered after navigation cannot show A's failure in B or overwrite B's result.
  delay=800;await seed();await page.getByRole('button',{name:'Другой урок',exact:true}).click();await page.waitForTimeout(1000)
  assert.match(await page.getByLabel('Название главы 1',{exact:true}).inputValue(),/^B:/);assert.equal(await page.getByText('Повторная обработка не завершилась',{exact:true}).count(),0)
+ // Measured progress survives a metric-free poll, reload and reconnect.
+ delay=0;responseOverride={stage:'Читаем слайды',canCancel:true,progress:{current:0,total:1083,unit:'frames'}};await seed()
+ const progress=page.getByRole('progressbar',{name:'Читаем слайды',exact:true})
+ await progress.waitFor();assert.equal(await progress.getAttribute('aria-valuenow'),'0')
+ responseOverride={stage:'Читаем слайды',canCancel:true,progress:{current:596,total:1083,unit:'frames'}}
+ await page.waitForFunction(()=>document.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')==='55')
+ responseOverride={stage:'Читаем слайды',canCancel:true};await page.waitForTimeout(1200)
+ assert.equal(await progress.getAttribute('aria-valuenow'),'55')
+ responseOverride={stage:'Читаем слайды',canCancel:true,progress:{current:650,total:1083,unit:'frames'}}
+ await page.reload();await page.waitForFunction(()=>document.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')==='60')
+ for(const theme of ['light','dark']){await page.evaluate(t=>{document.documentElement.dataset.theme=t;document.documentElement.classList.toggle('dark',t==='dark')},theme);await page.screenshot({path:join(evidence,`progress-${theme}.png`),fullPage:true})}
+ offline=true;await page.getByText('Модуль недоступен',{exact:true}).waitFor();offline=false
+ await page.getByRole('button',{name:'Проверить связь',exact:true}).click();await progress.waitFor();assert.equal(await progress.getAttribute('aria-valuenow'),'60')
+ responseOverride={stage:'Собираем главы',canCancel:true};await page.waitForTimeout(1200)
+ assert.equal(await page.getByRole('progressbar').count(),0,'unknown denominator does not inherit the previous step percentage')
+ assert.equal(await page.locator('.transcription-job-steps li').filter({hasText:'Читаем слайды'}).locator('svg').count(),1,'completed step has a check')
+ await page.getByRole('button',{name:'Остановить расшифровку',exact:true}).click();await page.getByText('Расшифровка отменена',{exact:true}).waitFor()
+ assert(cancelled);assert.equal(await page.getByRole('progressbar').count(),0)
+ // Native can wake after the topbar's one-time version check: update before submitting.
+ responseOverride=null;cancelled=false;success=false;stale=true;await seed('?empty')
+ await page.getByText('Не удалось завершить расшифровку',{exact:true}).waitFor()
+ await page.getByRole('button',{name:'К записи урока',exact:true}).click()
+ await page.getByRole('button',{name:'Расшифровать видео',exact:true}).click()
+ success=true
+ await page.getByRole('button',{name:'Начать расшифровку',exact:true}).click()
+ await page.getByRole('button',{name:'Редактировать реплику 1',exact:true}).filter({hasText:'Новая успешная реплика'}).waitFor()
+ assert.equal(updates,1);assert.equal(stale,false)
+ const submitted=posts;updateBusy=true;stale=true;success=false;await seed('?empty')
+ await page.getByRole('button',{name:'Начать заново',exact:true}).click()
+ await page.getByRole('button',{name:'Начать расшифровку',exact:true}).click()
+ await page.getByText('Модуль занят другой расшифровкой. Дождитесь её завершения и повторите.',{exact:true}).waitFor()
+ assert.equal(posts,submitted,'busy worker is neither restarted nor given a duplicate job')
+ responseOverride={stage:'Читаем слайды',canCancel:true,progress:{current:650,total:1083,unit:'frames'}};stale=false;await seed('', 'slides')
+ await page.getByRole('progressbar',{name:'Читаем слайды',exact:true}).waitFor()
+ assert.equal(await page.locator('.transcription-job-steps li').count(),2)
+ for(const theme of ['light','dark']){await page.evaluate(t=>{document.documentElement.dataset.theme=t;document.documentElement.classList.toggle('dark',t==='dark')},theme);await page.screenshot({path:join(evidence,`slides-progress-${theme}.png`),fullPage:true})}
  assert.deepEqual(errors,[])
  console.log('PASS terminal failure persistence, saved result remains visible, dismiss/reload, retry/file upload, no result, late lesson response, both PC themes')
 } finally {await browser.close();server.close()}

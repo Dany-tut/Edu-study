@@ -8,7 +8,8 @@ import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
 import { prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
 import type { LessonTimecode } from '../../data/lessonContent'
-import { MODULE_DOWNLOAD_URL, useModuleState } from '../../lib/transcriptionModuleUpdate'
+import { MODULE_DOWNLOAD_URL, useModuleState, readModule, updateModule } from '../../lib/transcriptionModuleUpdate'
+import { TranscriptionEta } from '../../lib/transcriptionEta'
 import { TRANSCRIPTION_PRODUCT_VERSION } from '../../lib/transcriptionProductVersion'
 import { fetchTermsPack, termsForModule } from '../../lib/transcriptTerms'
 import { rememberCorrection, flushCorrections, readCorrections, correctedText, pendingCorrections, type CorrectionKind } from '../../lib/transcriptCorrections'
@@ -238,59 +239,26 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
 }
 
 type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' | 'chunks' | 'segments' | 'voices'; phase?: string; updatedAt?: number }
-const PACE_KEY = 'iskra.transcription.pace'
-function readPace(): Record<string, number> {
-  try { return JSON.parse(localStorage.getItem(PACE_KEY) || '{}') } catch { return {} }
-}
 function timeLeft(seconds: number) {
   if (seconds < 60) return 'меньше минуты'
   const minutes = Math.ceil(seconds / 60)
   return minutes < 60 ? minutes + ' мин' : Math.floor(minutes / 60) + ' ч ' + (minutes % 60) + ' мин'
 }
 
-// Оценка «сколько осталось». Текущий шаг — по скорости с момента, как мы его увидели:
-// пока прогресс стоит, скорость падает и время растёт, в минус не уходит. Следующие
-// шаги — по прошлым обработкам на этом Mac (секунды работы на секунду записи).
-function useTimeLeft(steps: string[], step: string, progress: JobProgress | undefined, running: boolean) {
-  const track = useRef({ step: '', since: 0, fromStart: false, base: null as null | { at: number; current: number }, duration: 0 })
+// Estimate only this measured stage. Unknown later stages must not masquerade as a total ETA.
+function useTimeLeft(step: string, progress: JobProgress | undefined, running: boolean) {
+  const tracker = useRef(new TranscriptionEta())
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     if (!running) return
     const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [running])
-  useEffect(() => {
-    if (!running) return
-    const at = Date.now()
-    const last = track.current
-    if (last.step !== step) {
-      if (last.step && last.fromStart && last.duration > 0 && steps.indexOf(last.step) > 0) {
-        const pace = readPace(), measured = (at - last.since) / 1000 / last.duration
-        pace[last.step] = pace[last.step] ? (pace[last.step] + measured) / 2 : measured
-        try { localStorage.setItem(PACE_KEY, JSON.stringify(pace)) } catch { /* оценка без истории */ }
-      }
-      track.current = { step, since: at, fromStart: !!last.step, base: null, duration: last.duration }
-    }
-    const current = track.current
-    if (progress?.unit === 'seconds') current.duration = progress.total
-    if (progress && (!current.base || progress.current < current.base.current)) current.base = { at, current: progress.current }
-  }, [steps, step, progress, running])
+  useEffect(() => { tracker.current.observe(running ? step : '', running ? progress : undefined, Date.now()) }, [step, progress, running])
   if (!running) return ''
-  if (!progress || progress.total <= 0) return 'Обработка продолжается. Точный процент пока недоступен.'
-  const { since, base, duration } = track.current
-  const pace = readPace()
-  let left: number | undefined
-  if (progress && progress.total > 0) {
-    const done = base ? progress.current - base.current : 0, elapsed = base ? (now - base.at) / 1000 : 0
-    if (done > 0 && elapsed > 3) left = (progress.total - progress.current) * elapsed / done
-  } else if (pace[step] && duration) {
-    const expected = pace[step] * duration, elapsed = (now - since) / 1000
-    left = Math.max(expected - elapsed, elapsed / 9)
-  }
-  if (left === undefined) return progress || (pace[step] && duration) ? 'считаем, сколько осталось…' : ''
-  const later = steps.slice(steps.indexOf(step) + 1)
-  if (duration && later.every(s => pace[s])) return 'осталось ≈ ' + timeLeft(left + later.reduce((sum, s) => sum + pace[s] * duration, 0))
-  return 'до конца шага ≈ ' + timeLeft(left)
+  if (!progress || progress.total <= 0) return 'Обработка продолжается. Уточняем время этапа.'
+  const left = tracker.current.remaining(progress, now, step)
+  return left === undefined ? 'Уточняем время этапа по скорости обработки.' : 'До конца этапа ≈ ' + timeLeft(left)
 }
 
 type TranscriptionMode = 'text' | 'slides'
@@ -612,6 +580,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
   const [titleRegion, setTitleRegion] = useState(pending?.titleRegion ?? 'top-left')
   const stages = mode === 'slides' ? ['Видео', 'Читаем слайды'] : textStages
   const [busy, setBusy] = useState(false)
+  const [preparation, setPreparation] = useState('Передаём запись…')
   const [stage, setStage] = useState('')
   const [progress, setProgress] = useState<JobProgress>()
   const progressStage = useRef('')
@@ -664,7 +633,19 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     setBusy(true)
     try {
       requestTranscriptionCompanionStart()
+      setPreparation('Запускаем модуль…')
       await waitForTranscriptionCompanion()
+      if (!mounted.current) return
+      const module = await readModule()
+      if (module.freshness === 'outdated') {
+        if (!module.selfUpdate) throw new Error('Обновите приложение расшифровки в профиле Искры и повторите.')
+        setPreparation('Обновляем обработчик…')
+        const updated = await updateModule(token)
+        if (updated === null) throw new Error('Модуль занят другой расшифровкой. Дождитесь её завершения и повторите.')
+        if (!updated) throw new Error('Не удалось обновить обработчик. Проверьте интернет и повторите. Сохранённая расшифровка не изменена.')
+      }
+      if (!mounted.current) return
+      setPreparation('Передаём запись…')
       if (mode === 'slides' && !(await localRequest('/version', '')).slideChapters) throw new Error('Для глав по слайдам обновите модуль в профиле Искры и повторите.')
       // Словарь предмета: термины — подсказка Whisper, пары — исправления.
       // Нет словаря — модуль распознаёт как раньше.
@@ -756,7 +737,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
   }, [pending, token, retry, cancelled])
   const currentStep = mode === 'slides' ? (stage.startsWith('Читаем слайды') || stage === 'Готово' ? 1 : 0) : transcriptionStageIndex(stage)
   const elapsed = stageStartedAt ? transcriptTime(Math.max(0, (clock - stageStartedAt) / 1000)) : '0:00'
-  const eta = useTimeLeft(stages, stages[currentStep], progress, !!pending && !error && !!stage)
+  const eta = useTimeLeft(progressStage.current, progress, !!pending && !error && !cancelled && !cancelling && !!stage)
   const metric = progress?.unit === 'seconds' ? transcriptTime : progress?.unit === 'bytes' ? megabytes : (n: number) => String(n)
   return <section className="transcription-inline" aria-busy={!!pending && !error && !cancelled}>
     <header className="transcription-inline-head"><span className="transcription-mark"><AudioLines size={21}/></span>
@@ -798,8 +779,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       <ol className="transcription-job-steps">{stages.map((step, i) => {
         const active = i === currentStep && !cancelling
         const completed = i < currentStep
-        const percent = active && progress && progress.current > 0 && progress.total > 0
-          ? Math.min(99, Math.max(1, Math.floor(progress.current / progress.total * 100))) : undefined
+        const percent = active && progress && progress.current >= 0 && progress.total > 0
+          ? Math.min(99, Math.max(0, Math.floor(progress.current / progress.total * 100))) : undefined
         return <li key={step} aria-current={active ? 'step' : undefined}>
           {active && <span className="transcription-fill" data-indeterminate={percent === undefined} style={{width: (percent ?? 30) + '%'}} />}
           <span className="transcription-number">{i < currentStep ? <Check size={14} /> : active ? <Loader2 size={14} className="transcription-spinner" aria-hidden /> : i + 1}</span>
@@ -831,6 +812,6 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     </div>}
     </div>
     {!pending ?
-      <button data-hover="layer" className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? 'Передаём запись…' : mode === 'slides' ? 'Найти главы по слайдам' : 'Начать расшифровку'}</button> : undefined}
+      <button data-hover="layer" className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? preparation : mode === 'slides' ? 'Найти главы по слайдам' : 'Начать расшифровку'}</button> : undefined}
   </section>
 }

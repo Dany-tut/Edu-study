@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 import unicodedata
 from difflib import SequenceMatcher
 from functools import lru_cache
@@ -159,7 +160,14 @@ def scan(read, duration, report=lambda *_: None):
 def process_video(source, duration, region, engine, report=lambda *_: None):
     x, y, w, h = REGIONS[region]
     crop = f'crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale=min(1800\\,iw*2):-2'
-    cache = TitleCache(lambda image: recognize(engine, image))
+    started = time.monotonic()
+    timing = {'readFrameSeconds': 0.0, 'ocrSeconds': 0.0}
+    def timed_recognize(image):
+        before = time.monotonic()
+        result = recognize(engine, image)
+        timing['ocrSeconds'] += time.monotonic()-before
+        return result
+    cache = TitleCache(timed_recognize)
     # Round timestamps upwards: a frame occurring after t must not be assigned
     # to sample t. Refinement below still seeks directly around a new heading.
     command = [FFMPEG, '-nostdin', '-v', 'error', '-threads', '2', '-filter_threads', '1',
@@ -171,6 +179,7 @@ def process_video(source, duration, region, engine, report=lambda *_: None):
         @lru_cache(maxsize=16)
         def read(at):
             nonlocal sampled
+            before = time.monotonic()
             # scan visits coarse samples monotonically, with occasional earlier
             # bisection probes. Never move/restart the sequential decoder for those.
             if at == sampled*STEP:
@@ -188,9 +197,11 @@ def process_video(source, duration, region, engine, report=lambda *_: None):
                     capture_output=True, timeout=30, check=True)
                 image = cv2.imdecode(np.frombuffer(out.stdout, dtype=np.uint8), cv2.IMREAD_COLOR)
                 if image is None: raise ValueError('Не удалось прочитать кадр видео.')
+            timing['readFrameSeconds'] += time.monotonic()-before
             return cache.read(image, at)
         result = scan(read, duration, report)
-    return result, dict(samples=sampled, ocr=cache.calls, reused=cache.hits)
+    return result, dict(samples=sampled, ocr=cache.calls, reused=cache.hits,
+                        elapsedSeconds=time.monotonic()-started, **timing)
 
 
 def main(source, folder, region):

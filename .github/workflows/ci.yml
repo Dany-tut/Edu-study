@@ -243,6 +243,8 @@ jobs:
         run: |
           node scripts/checkStudentRecordingBrowser.mjs
           node scripts/checkTranscriptionAttemptBrowser.mjs
+          npx esbuild scripts/checkTranscriptionEta.mjs --bundle --platform=node --format=esm --outfile=/tmp/check-transcription-eta.mjs
+          node /tmp/check-transcription-eta.mjs
 
       - name: Переходы и геометрия мини-виджета
         if: steps.scope.outputs.scope != 'chapter-ui'
