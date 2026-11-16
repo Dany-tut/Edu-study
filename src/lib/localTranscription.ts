@@ -29,10 +29,17 @@ export class LocalTranscriptionUnavailable extends Error {}
 
 export const transcriptionOrigin = 'http://127.0.0.1:18764'
 const transcriptionAppURL = 'iskra-transcription://start'
+let companionFrame: HTMLIFrameElement | undefined
 
 /** Called synchronously from a user click so the browser can open the installed Mac app. */
 export function requestTranscriptionCompanionStart() {
-  window.location.assign(transcriptionAppURL)
+  // Keep the protocol navigation out of the editor's beforeunload guard.
+  companionFrame?.remove()
+  const frame = document.createElement('iframe')
+  frame.hidden = true
+  frame.src = transcriptionAppURL
+  document.body.append(frame)
+  companionFrame = frame
 }
 
 /** The launcher starts the signed LaunchAgent; the UI waits before sending the job. */

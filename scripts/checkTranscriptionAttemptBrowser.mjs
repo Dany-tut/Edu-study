@@ -9,11 +9,12 @@ import assert from 'node:assert/strict'
 const {chromium}=await import(process.env.ISKRA_PLAYWRIGHT_MODULE||'playwright')
 const out='.build/transcription-attempt',evidence=process.env.ISKRA_QA_OUTPUT||'.build/transcription-attempt-qa'
 await mkdir(evidence,{recursive:true})
-await build({entryPoints:['scripts/fixtures/studentRecording.tsx'],entryNames:'app',bundle:true,jsx:'automatic',format:'esm',outdir:out,loader:{'.svg':'file','.png':'file','.woff2':'file'},define:{'import.meta.env':JSON.stringify({DEV:true,PROD:false,VITE_SUPABASE_URL:'https://qa.invalid',VITE_SUPABASE_PUBLISHABLE_KEY:'fixture'})},plugins:[{name:'attempt-negative-control',setup(b){if(process.env.ATTEMPT_NEGATIVE)b.onLoad({filter:/LocalTranscription\.tsx$/},async({path})=>({loader:'tsx',contents:(await readFile(path,'utf8')).replace("if (draft || variants.text.length || variants.slides?.length) setView('entry')","if (false) setView('entry')")}))}},{name:'no-native-launch',setup(b){b.onLoad({filter:/localTranscription\.ts$/},async({path})=>({loader:'ts',contents:(await readFile(path,'utf8')).replace('window.location.assign(transcriptionAppURL)','void transcriptionAppURL')}))}},{name:'row-negative-control',setup(b){if(process.env.CHAPTER_ROWS_NEGATIVE)b.onLoad({filter:/LessonRecordingView\.tsx$/},async({path})=>({loader:'tsx',contents:(await readFile(path,'utf8')).replace('                  flexShrink: 0,','                  flexShrink: 1,')}))}},{name:'negative-control',setup(b){if(process.env.PREVIEW_QA_NEGATIVE)b.onLoad({filter:/TeacherCourseEditorPage\.tsx$/},async({path})=>({loader:'tsx',contents:(await readFile(path,'utf8')).replace('if (preview) return <ScrollFade','if (false) return <ScrollFade')}))}},{name:'fixture-db',setup(b){b.onLoad({filter:/\/supabase\.ts$/},()=>({loader:'ts',contents:`const user={id:'11111111-1111-4111-8111-111111111111',app_metadata:{role:'teacher'}};const query={select(){return this},eq(){return this},neq(){return this},order(){return this},range(){return this},maybeSingle:async()=>({data:null,error:null}),then(resolve){resolve({data:[],error:null})}};export const supabase={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),getSession:async()=>({data:{session:{user}}}),getUser:async()=>({data:{user}})},rpc:async(name)=>({data:name==='my_features'?[{feature:'transcription',enabled:true}]:null,error:null}),from:()=>query,functions:{invoke:async()=>({data:null,error:null})}};export const SUPABASE_URL='https://qa.invalid';export const SUPABASE_KEY='fixture'`}))}}]})
+await build({entryPoints:['scripts/fixtures/studentRecording.tsx'],entryNames:'app',bundle:true,jsx:'automatic',format:'esm',outdir:out,loader:{'.svg':'file','.png':'file','.woff2':'file'},define:{'import.meta.env':JSON.stringify({DEV:true,PROD:false,VITE_SUPABASE_URL:'https://qa.invalid',VITE_SUPABASE_PUBLISHABLE_KEY:'fixture'})},plugins:[{name:'attempt-negative-control',setup(b){if(process.env.ATTEMPT_NEGATIVE)b.onLoad({filter:/LocalTranscription\.tsx$/},async({path})=>({loader:'tsx',contents:(await readFile(path,'utf8')).replace("if (draft || variants.text.length || variants.slides?.length) setView('entry')","if (false) setView('entry')")}))}},{name:'fixture-native-launch',setup(b){b.onLoad({filter:/localTranscription\.ts$/},async({path})=>({loader:'ts',contents:(await readFile(path,'utf8')).replace('iskra-transcription://start','/fixture-companion')}))}},{name:'row-negative-control',setup(b){if(process.env.CHAPTER_ROWS_NEGATIVE)b.onLoad({filter:/LessonRecordingView\.tsx$/},async({path})=>({loader:'tsx',contents:(await readFile(path,'utf8')).replace('                  flexShrink: 0,','                  flexShrink: 1,')}))}},{name:'negative-control',setup(b){if(process.env.PREVIEW_QA_NEGATIVE)b.onLoad({filter:/TeacherCourseEditorPage\.tsx$/},async({path})=>({loader:'tsx',contents:(await readFile(path,'utf8')).replace('if (preview) return <ScrollFade','if (false) return <ScrollFade')}))}},{name:'fixture-db',setup(b){b.onLoad({filter:/\/supabase\.ts$/},()=>({loader:'ts',contents:`const user={id:'11111111-1111-4111-8111-111111111111',app_metadata:{role:'teacher'}};const query={select(){return this},eq(){return this},neq(){return this},order(){return this},range(){return this},maybeSingle:async()=>({data:null,error:null}),then(resolve){resolve({data:[],error:null})}};export const supabase={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),getSession:async()=>({data:{session:{user}}}),getUser:async()=>({data:{user}})},rpc:async(name)=>({data:name==='my_features'?[{feature:'transcription',enabled:true}]:null,error:null}),from:()=>query,functions:{invoke:async()=>({data:null,error:null})}};export const SUPABASE_URL='https://qa.invalid';export const SUPABASE_KEY='fixture'`}))}}]})
 await writeFile(out+'/app.css',(await postcss([tailwindcss(),autoprefixer()]).process(await readFile(out+'/app.css','utf8'),{from:out+'/app.css'})).css)
 const server=createServer(async(req,res)=>{try{
  const path=new URL(req.url,'http://localhost').pathname
  if(path==='/'){res.setHeader('Content-Type','text/html');res.end('<link rel="stylesheet" href="/app.css"><div id="root"></div><script type="module" src="/app.js"></script>')}
+ else if(path==='/fixture-companion'){res.writeHead(204).end()}
  else if(path==='/video.mp4'){const data=await readFile('public/guides/mac-launch.mp4');res.setHeader('Content-Type','video/mp4');res.setHeader('Accept-Ranges','bytes');const range=/bytes=(\d+)-(\d*)/.exec(req.headers.range||'');if(range){const start=Number(range[1]),end=range[2]?Number(range[2]):data.length-1;res.writeHead(206,{'Content-Range':`bytes ${start}-${end}/${data.length}`,'Content-Length':end-start+1});res.end(data.subarray(start,end+1))}else{res.setHeader('Content-Length',data.length);res.end(data)}}
  else if(path==='/app.js'||path==='/app.css'){res.setHeader('Content-Type',path.endsWith('.js')?'text/javascript':'text/css');res.end(await readFile(out+path))}
  else res.writeHead(404).end()
@@ -42,7 +43,7 @@ try {
  })
  await page.goto(base)
  async function seed(query='', mode='text'){
-   await page.evaluate(({owner,key,base,mode})=>{localStorage.clear();localStorage.setItem('iskra.transcription.device.'+owner,'fixture-token');localStorage.setItem(key,JSON.stringify({id:'failed-A',source:base+'/video.mp4?lesson=A',mode}))},{owner,key,base,mode})
+   await page.evaluate(({owner,key,base,mode})=>{localStorage.clear();localStorage.setItem('iskra.transcription.device.'+owner,'fixture-token');if(mode) localStorage.setItem(key,JSON.stringify({id:'failed-A',source:base+'/video.mp4?lesson=A',mode}))},{owner,key,base,mode})
    await page.goto(base+'/'+query)
  }
  await page.setViewportSize({width:1440,height:1000})
@@ -116,6 +117,26 @@ try {
  await page.getByRole('progressbar',{name:'Читаем слайды',exact:true}).waitFor()
  assert.equal(await page.locator('.transcription-job-steps li').count(),2)
  for(const theme of ['light','dark']){await page.evaluate(t=>{document.documentElement.dataset.theme=t;document.documentElement.classList.toggle('dark',t==='dark')},theme);await page.screenshot({path:join(evidence,`slides-progress-${theme}.png`),fullPage:true})}
+ // A dirty course must stay open while the companion receives the launch.
+ await seed('?empty', null)
+ await page.getByRole('button',{name:'Расшифровать видео',exact:true}).click()
+ await page.getByRole('tab',{name:'По слайдам',exact:true}).click()
+ await page.evaluate(() => window.addEventListener('beforeunload', event => event.preventDefault()))
+ const dialogs = []
+ page.on('dialog', async dialog => {dialogs.push(dialog.type());await dialog.dismiss()})
+ const launch = page.waitForRequest(request => request.url() === base+'/fixture-companion')
+ const beforeLaunch = posts
+ await page.getByRole('button',{name:'Найти главы по слайдам',exact:true}).click()
+ const launchRequest = await launch
+ assert.notEqual(launchRequest.frame(), page.mainFrame(), 'launch belongs to a child frame')
+ await page.getByRole('progressbar',{name:'Читаем слайды',exact:true}).waitFor()
+ assert.equal(posts,beforeLaunch+1)
+ assert.match(body,/name="mode"\r\n\r\nslides/)
+ assert.equal(page.url(),base+'/?empty')
+ assert.deepEqual(dialogs,[], 'starting slide extraction must not warn about leaving')
+ const attemptedReload = page.waitForEvent('dialog')
+ await page.evaluate(() => {setTimeout(() => location.reload(), 0)})
+ assert.equal((await attemptedReload).type(),'beforeunload','a real reload must still be guarded')
  assert.deepEqual(errors,[])
- console.log('PASS terminal failure persistence, saved result remains visible, dismiss/reload, retry/file upload, no result, late lesson response, both PC themes')
+ console.log('PASS terminal failure persistence, saved result remains visible, dismiss/reload, retry/file upload, no result, late lesson response, both PC themes, slide launch without Leave site and protected reload')
 } finally {await browser.close();server.close()}
