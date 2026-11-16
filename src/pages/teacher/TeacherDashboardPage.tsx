@@ -44,6 +44,37 @@ import { useT } from '../../lib/i18n'
 import { useTeacherSubjectColors } from '../../lib/teacherSubjectColors'
 import { deskWidthForColumns } from '../../lib/deskWidgetSizing'
 import { getOwnerId } from '../../lib/owner'
+import Skeleton from '../../components/Skeleton'
+
+function ConstructorLoadingState() {
+  return (
+    <div role="status" aria-label="Загрузка конструктора" style={{ flex: 1, minHeight: 0, padding: '24px 0', boxSizing: 'border-box' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16, alignContent: 'start' }}>
+        {Array.from({ length: 8 }, (_, index) => (
+          <div key={index} aria-hidden style={{
+            background: 'rgba(var(--glass-rgb), 0.88)', border: '1px solid var(--color-border-glass)',
+            borderRadius: 20, padding: '18px 18px 12px', display: 'flex', flexDirection: 'column',
+            gap: 10, minHeight: 164, boxSizing: 'border-box', boxShadow: 'var(--shadow-2)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <Skeleton w={36} h={36} radius={12} />
+              <Skeleton w={64} h={18} radius={7} />
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Skeleton w="85%" h={13} />
+              <Skeleton w="55%" h={13} />
+              <Skeleton w="70%" h={10} style={{ marginTop: 4 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid var(--color-border-soft)' }}>
+              <Skeleton w={78} h={11} />
+              <Skeleton w={34} h={11} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function TeacherDashboardPage({ standContent, pendingAttendanceCount = 0 }: { standContent?: React.ReactNode; pendingAttendanceCount?: number } = {}) {
   const t = useT()
@@ -246,7 +277,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         // Clip only at the viewport so content can scroll behind the header.
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
-        <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>} >
+        <Suspense fallback={activePage === 'constructor' && isDesktop ? <ConstructorLoadingState /> : <div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>} >
         {activePage === 'home' && (
           <div onWheel={handleDeskWheel} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <DeskCanvas
