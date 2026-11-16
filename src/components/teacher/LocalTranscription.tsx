@@ -6,7 +6,7 @@ import MontageAction from './MontageAction'
 import Switch from '../Switch'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
-import { prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
+import { hasChapterVariant, prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
 import type { LessonTimecode } from '../../data/lessonContent'
 import { MODULE_DOWNLOAD_URL, useModuleState, readModule, updateModule } from '../../lib/transcriptionModuleUpdate'
 import { TranscriptionEta } from '../../lib/transcriptionEta'
@@ -518,7 +518,7 @@ function TranscriptionActionState(props: ActionProps) {
   }
   const open = () => { void openMode('text') }
   const chapters: ChapterControls = {
-    mode: variants.active, codes: variants[variants.active] ?? [], available: variants[variants.active] != null,
+    mode: variants.active, codes: variants[variants.active] ?? [], available: hasChapterVariant(variants[variants.active]),
     select: (active: ChapterMode) => { if (active !== variants.active && !saving) changeVariants({...variants, active}) },
     change: codes => changeVariants({...variants, [variants.active]:codes}),
     corrected: (before, after) => remember(variants.active === 'slides' ? 'slide-title' : 'text-title', before, after),
