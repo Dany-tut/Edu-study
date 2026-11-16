@@ -90,6 +90,17 @@ server {
     ssl_ciphers         HIGH:!aNULL:!MD5;
     ssl_session_cache   shared:SSL:10m;
 
+    # Browser bundles are content-hashed and immutable, so compress them at
+    # the origin once per response. Vercel already gzip-compresses these assets;
+    # without this block the RU mirror sends app JS uncompressed (488 KB vs
+    # about 148 KB over the network in the production measurement).
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 5;
+    gzip_types application/javascript application/json application/manifest+json
+               application/xml image/svg+xml text/css text/plain;
+
     root /var/www/iskra-study;
     index index.html;
 
