@@ -10,23 +10,58 @@ type StartupSnapshot = {
   expiresAt: number
 }
 
-let startupSnapshot: StartupSnapshot | null = null
+// Keep startup reads scoped by owner. A full snapshot is a safe superset of a
+// compact one, but a compact read cannot satisfy a caller that needs the full
+// work list. If those callers race, finish the compact read before upgrading;
+// aborting it only cancels fetch in the browser and can leave both SQL calls
+// consuming the database at once.
+const startupSnapshots = new Map<string, StartupSnapshot>()
+const startupUpgrades = new Map<string, Promise<CourseJournalData | null>>()
 let currentAuthOwner: string | null | undefined
+let startupGeneration = 0
 
 function clearStartupSnapshot() {
-  startupSnapshot?.controller.abort()
-  startupSnapshot = null
+  startupGeneration++
+  for (const snapshot of startupSnapshots.values()) snapshot.controller.abort()
+  startupSnapshots.clear()
+  startupUpgrades.clear()
 }
 
 // Retain the first cold-entry read long enough for the lazy journal module to
 // consume it. The key is the owner and response shape; no data leaves memory.
 function requestStartupSnapshot(owner: string, complete: boolean) {
-  const cached = startupSnapshot
-  if (cached?.owner === owner && cached.complete === complete && cached.expiresAt > Date.now()) {
-    return cached.promise
-  }
-  clearStartupSnapshot()
+  const cached = startupSnapshots.get(owner)
+  if (cached && cached.expiresAt > Date.now()) {
+    // Full data contains everything required by the overview as well.
+    if (cached.complete || !complete) return cached.promise
 
+    // Multiple full callers share one queued upgrade. Do not cancel an active
+    // compact call: PostgREST may continue executing it after fetch is aborted.
+    const existingUpgrade = startupUpgrades.get(owner)
+    if (existingUpgrade) return existingUpgrade
+    const generation = startupGeneration
+    const upgrade = cached.promise.then(
+      () => {
+        if (generation !== startupGeneration) throw new DOMException('Journal snapshot invalidated', 'AbortError')
+        const latest = startupSnapshots.get(owner)
+        if (latest?.complete && latest.expiresAt > Date.now()) return latest.promise
+        return startStartupSnapshot(owner, true, generation)
+      },
+      () => {
+        if (generation !== startupGeneration) throw new DOMException('Journal snapshot invalidated', 'AbortError')
+        return startStartupSnapshot(owner, true, generation)
+      },
+    )
+    startupUpgrades.set(owner, upgrade)
+    void upgrade.finally(() => {
+      if (startupUpgrades.get(owner) === upgrade) startupUpgrades.delete(owner)
+    }).catch(() => {})
+    return upgrade
+  }
+  return startStartupSnapshot(owner, complete, startupGeneration)
+}
+
+function startStartupSnapshot(owner: string, complete: boolean, generation: number) {
   const controller = new AbortController()
   const entry: StartupSnapshot = {
     owner,
@@ -43,15 +78,15 @@ function requestStartupSnapshot(owner: string, complete: boolean) {
   entry.promise = Promise.resolve(request)
     .then(journalSnapshotResult)
     .then(data => {
-      if (startupSnapshot === entry) entry.expiresAt = Date.now() + 15_000
+      if (generation === startupGeneration && startupSnapshots.get(owner) === entry) entry.expiresAt = Date.now() + 15_000
       return data
     })
     .catch(error => {
-      if (startupSnapshot === entry) startupSnapshot = null
+      if (startupSnapshots.get(owner) === entry) startupSnapshots.delete(owner)
       throw error
     })
     .finally(() => clearTimeout(timeout))
-  startupSnapshot = entry
+  startupSnapshots.set(owner, entry)
   return entry.promise
 }
 
