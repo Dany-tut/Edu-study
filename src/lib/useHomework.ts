@@ -14,6 +14,7 @@ import { baseLessonRef, extraHwLabel, hwRef } from './extraHomework'
 import { t } from './i18n'
 import { returnTestlyHomework } from './testlyModule'
 import { hardSubmissionTitle, isHardSubmissionRow, standaloneHomeworkId } from './hardSubmissionIdentity'
+import { subscribeTeacherDataChanges, subscribeTeacherDataReload } from './teacherDataRealtime'
 
 export type HardSub = {
   id: string
@@ -369,7 +370,10 @@ const homeworkQuery = createSharedQuery<HwAssignment[]>(withLoadFixture(fixtureH
   }
 
   return data.map(h => mapRow(h, countsByHw.get(h.id)))
-}), [], { refreshOnFocusMs: 30_000 })
+}), [], {
+  refreshOnFocusMs: 30_000,
+  watch: reload => subscribeTeacherDataReload(['homework', 'lesson_progress'], () => { void reload() }),
+})
 
 export function useHomework() {
   const { value: homework, loading } = useSharedQuery(homeworkQuery)
@@ -534,13 +538,7 @@ const hardQuery = createSharedQuery<HardSub[]>(withLoadFixture(fixtureHard, asyn
 }), [], {
   refreshOnFocusMs: 30_000,
   watch: reload => {
-    // Имя канала всё равно уникальное: Supabase бросает, если два подписчика
-    // делят одно, а страницу могут открыть и переоткрыть за одну жизнь вкладки.
-    const channel = supabase
-      .channel(`hard-submissions-${crypto.randomUUID()}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload())
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    return subscribeTeacherDataReload(['lesson_progress'], () => { void reload() })
   },
 })
 
@@ -660,8 +658,15 @@ export function useHomeworkSubmissions(hwId: string | null, lessonId?: string | 
     }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', refresh)
+    const refs = new Set(lessonId ? [`hw-${hwId}`, lessonId] : [`hw-${hwId}`])
+    const unsubscribeRealtime = subscribeTeacherDataChanges(['lesson_progress'], change => {
+      if (change.eventType === 'SYNC') { void load(); return }
+      const ref = change.newRecord.lesson_ref ?? change.oldRecord.lesson_ref
+      if (typeof ref === 'string' && refs.has(ref)) void load()
+    })
     return () => {
       request.current++
+      unsubscribeRealtime()
       window.removeEventListener('focus', refresh)
       document.removeEventListener('visibilitychange', refresh)
     }

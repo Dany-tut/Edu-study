@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { normalizeStudentSubject, resolveStudentSubject } from './studentSubject'
 import { withLoadFixture, fixtureGroups, fixtureStudents, fixtureJournal } from './loadFixture'
 import { supabase } from './supabase'
@@ -9,6 +9,7 @@ import { pendingJournalRows, type PendingEvent, type PendingJournal } from './jo
 import { parseStudentLimitError, studentLimitMessage } from './plan'
 import { t } from './i18n'
 import { subjectIcon, resolveSubjectPalette } from './subjects'
+import { subscribeTeacherDataChanges, subscribeTeacherDataReload } from './teacherDataRealtime'
 import type { Group, GroupTrack, Student } from '../data/teacherMockData'
 
 // Квота тарифа (0037): триггер students_enforce_limit кидает "STUDENT_LIMIT:<max>" —
@@ -125,7 +126,10 @@ const groupsQuery = createSharedQuery<Group[]>(withLoadFixture(fixtureGroups, as
     isIndividual: g.is_individual,
     tracks: Array.isArray(g.tracks) ? g.tracks : [],
   }))
-}), [], { refreshOnFocusMs: 30_000 })
+}), [], {
+  refreshOnFocusMs: 30_000,
+  watch: reload => subscribeTeacherDataReload(['groups', 'students'], () => { void reload() }),
+})
 
 export async function readTeacherRoster() {
   const [groups, students] = await Promise.all([readSharedQuery(groupsQuery), readSharedQuery(allStudentsQuery)])
@@ -574,9 +578,11 @@ export async function resolveIndividualGroup(studentId: string): Promise<string 
 
 export function useStudents(groupId: string | null) {
   const [students, setStudents] = useState<Student[]>([])
+  const studentsRef = useRef(students)
+  studentsRef.current = students
   const [loading, setLoading] = useState(false)
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!groupId) { setStudents([]); return }
     setLoading(true)
     const { data } = await supabase
@@ -615,9 +621,25 @@ export function useStudents(groupId: string | null) {
       })))
     }
     setLoading(false)
-  }
+  }, [groupId])
 
-  useEffect(() => { load() }, [groupId])
+  useEffect(() => { void load() }, [load])
+
+  // This roster is intentionally scoped to one group and is not the shared
+  // all-students snapshot. Keep it live when another screen/device adds or
+  // moves a student into this group.
+  useEffect(() => {
+    if (!groupId) return
+    return subscribeTeacherDataChanges(['students'], change => {
+      if (change.eventType === 'SYNC') { void load(); return }
+      const oldGroupId = change.oldRecord.group_id
+      const newGroupId = change.newRecord.group_id
+      // UPDATE/DELETE payloads may contain only the row's primary key in
+      // `oldRecord`; the current roster tells us whether a student just left.
+      const alreadyInRoster = studentsRef.current.some(student => student.id === change.newRecord.id || student.id === change.oldRecord.id)
+      if (oldGroupId === groupId || newGroupId === groupId || alreadyInRoster) void load()
+    })
+  }, [groupId, load])
 
   async function addStudent(s: Partial<Student>) {
     const { data, error } = await supabase.from('students').insert({
@@ -689,6 +711,9 @@ export type GroupLesson = {
 // — the chosen lesson then determines whose grades are recorded.
 export function useGroupLessons(groupId: string | null, scheduleIds?: string[]) {
   const [lessons, setLessons] = useState<GroupLesson[]>([])
+  const lessonsRef = useRef(lessons)
+  lessonsRef.current = lessons
+  const [refreshKey, setRefreshKey] = useState(0)
   const scheduleKey = scheduleIds ? JSON.stringify([...scheduleIds].sort()) : null
 
   useEffect(() => {
@@ -757,7 +782,22 @@ export function useGroupLessons(groupId: string | null, scheduleIds?: string[]) 
     })()
 
     return () => { cancelled = true }
-  }, [groupId, scheduleKey])
+  }, [groupId, scheduleKey, refreshKey])
+
+  useEffect(() => subscribeTeacherDataChanges(['students', 'schedule_lessons'], change => {
+    if (change.eventType === 'SYNC') { setRefreshKey(key => key + 1); return }
+    const ids: string[] | null = scheduleKey === null ? null : JSON.parse(scheduleKey)
+    const changedScheduleId = String(change.newRecord.id ?? change.oldRecord.id ?? '')
+    const scheduleMatches = change.table === 'schedule_lessons' && (
+      ids ? ids.includes(changedScheduleId)
+        : !groupId || lessonsRef.current.some(lesson => lesson.id === changedScheduleId)
+          || change.newRecord.group_id === groupId
+    )
+    const studentMatches = change.table === 'students' && !!groupId
+      && (change.newRecord.group_id === groupId || change.oldRecord.group_id === groupId
+        || lessonsRef.current.some(lesson => lesson.studentId === change.newRecord.id || lesson.studentId === change.oldRecord.id))
+    if (scheduleMatches || studentMatches) setRefreshKey(key => key + 1)
+  }), [groupId, scheduleKey])
 
   return lessons
 }
@@ -768,6 +808,9 @@ export type RosterStudent = { id: string; name: string; avatarPath?: string | nu
 // the whole group; a student-scoped lesson → that one student.
 export function useLessonRoster(lesson: GroupLesson | null) {
   const [roster, setRoster] = useState<RosterStudent[]>([])
+  const rosterRef = useRef(roster)
+  rosterRef.current = roster
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -788,7 +831,18 @@ export function useLessonRoster(lesson: GroupLesson | null) {
     })()
 
     return () => { cancelled = true }
-  }, [lesson?.id])
+  }, [lesson?.id, refreshKey])
+
+  useEffect(() => {
+    if (!lesson) return
+    return subscribeTeacherDataChanges(['students'], change => {
+      if (change.eventType === 'SYNC') { setRefreshKey(key => key + 1); return }
+      const matchesGroup = !!lesson.groupId && (change.newRecord.group_id === lesson.groupId || change.oldRecord.group_id === lesson.groupId
+        || rosterRef.current.some(student => student.id === change.newRecord.id || student.id === change.oldRecord.id))
+      const matchesStudent = !!lesson.studentId && (change.newRecord.id === lesson.studentId || change.oldRecord.id === lesson.studentId)
+      if (matchesGroup || matchesStudent) setRefreshKey(key => key + 1)
+    })
+  }, [lesson?.id, lesson?.groupId, lesson?.studentId])
 
   return roster
 }
@@ -818,6 +872,15 @@ export function useAttendance(groupId: string | null) {
   }
 
   useEffect(() => { load() }, [groupId])
+  useEffect(() => {
+    if (!groupId) return
+    return subscribeTeacherDataChanges(['lesson_attendance'], change => {
+      // DELETE payloads may omit group_id, so after the group-scoped first
+      // hydration we also re-read on deletes whose old row contains only keys.
+      if (change.eventType === 'SYNC' || change.newRecord.group_id === groupId || change.oldRecord.group_id === groupId
+        || change.eventType === 'DELETE') void load()
+    })
+  }, [groupId])
 
   async function saveLesson(
     groupId: string | null,
@@ -1082,7 +1145,10 @@ const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStu
     inviteToken: s.invite_token ?? null,
     email: s.email ?? '',
   }))
-}), [], { refreshOnFocusMs: 30_000 })
+}), [], {
+  refreshOnFocusMs: 30_000,
+  watch: reload => subscribeTeacherDataReload(['students', 'groups'], () => { void reload() }),
+})
 
 export function useAllStudentsSnapshot() {
   return useSharedQuery(allStudentsQuery)

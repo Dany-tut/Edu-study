@@ -44,6 +44,7 @@ import { getContrastColor, getCircleShadow, fillUnderWhite } from '../../lib/uti
 import { copyToClipboard } from '../../lib/clipboard'
 import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
+import { subscribeTeacherDataChanges } from '../../lib/teacherDataRealtime'
 import { isCourseResetRef } from '../../lib/homeworkReset'
 import { getOwnerId, getSessionUser } from '../../lib/owner'
 import { useTeacherAccess } from '../../lib/teacherAccess'
@@ -2377,6 +2378,7 @@ function CreatorView({
   // ── Course enrollment ("зачислить через курс") ──
   const { groups: enrollGroups } = useGroups()
   const enrollStudents = useAllStudents()
+  const enrollRosterKey = enrollStudents.map(student => student.id).sort().join('|')
   const [assignMode, setAssignMode] = useState<'group' | 'student'>('group')
   const [assignGroupId, setAssignGroupId] = useState('')
   const [assignStudentId, setAssignStudentId] = useState('')
@@ -2404,7 +2406,16 @@ function CreatorView({
     if (enrollDbId && enrollStudents.length > 0) loadEnrolledStudents(enrollDbId)
     else setEnrolledList([])
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enrollDbId, enrollStudents.length])
+  }, [enrollDbId, enrollRosterKey])
+  useEffect(() => {
+    if (!enrollDbId) return
+    return subscribeTeacherDataChanges(['lesson_progress'], change => {
+      if (change.eventType === 'SYNC' || change.newRecord.subject === enrollDbId || change.oldRecord.subject === enrollDbId) {
+        void loadEnrolledStudents(enrollDbId)
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enrollDbId, enrollRosterKey])
   const [editingLessonIdx, setEditingLessonIdx] = useState<number | null>(null)
 
   async function enrollCourse() {

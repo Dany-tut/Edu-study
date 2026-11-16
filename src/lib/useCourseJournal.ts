@@ -8,6 +8,7 @@ import { journalPages as adaptiveJournalPages, journalParallelPages } from './jo
 import { createAuthDataChangeGuard } from './authDataChange'
 import { journalPaintTiming } from './platformPerformance'
 import { readFreshJournalSnapshot, readStartupJournalSnapshot } from './journalSnapshotStartup'
+import { subscribeTeacherDataChanges } from './teacherDataRealtime'
 
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
@@ -220,6 +221,18 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     })
     return () => { window.removeEventListener('focus', focus); window.removeEventListener('iskra:journal-changed', reload); subscription.unsubscribe() }
   }, [reload, parallelRoster, setData])
+  useEffect(() => {
+    if (!enabled) return
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const unsubscribe = subscribeTeacherDataChanges(
+      ['students', 'groups', 'homework', 'lesson_progress', 'lesson_attendance', 'schedule_lessons', 'teacher_lesson_sessions', 'courses', 'course_modules'],
+      () => {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => { timer = null; reload() }, 450)
+      },
+    )
+    return () => { unsubscribe(); if (timer) clearTimeout(timer) }
+  }, [enabled, reload])
   const resolved = useMemo(() => data && !data.demo ? { ...data, students, groups } : data, [data, students, groups])
   return { data: resolved, loading, error, reload, setData }
 }
