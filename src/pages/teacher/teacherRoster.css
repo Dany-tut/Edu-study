@@ -46,6 +46,27 @@
   background: rgb(var(--glass-rgb));
 }
 
+/* The dark roster uses graphite glass, a darker surface than the journal cards. */
+[data-theme='dark'] .teacher-roster-viewport {
+  --roster-fade-color: rgb(var(--glass-rgb));
+}
+
+[data-theme='dark'] .teacher-roster-viewport[data-edges~='top'] thead::after {
+  background: linear-gradient(to bottom, var(--roster-fade-color) 2px, transparent);
+}
+
+[data-theme='dark'] .teacher-roster-viewport > .js-fade-bottom {
+  background: linear-gradient(to top, var(--roster-fade-color), transparent);
+}
+
+[data-theme='dark'] .teacher-roster-viewport > .js-fade-left {
+  background: linear-gradient(to right, var(--roster-fade-color), transparent);
+}
+
+[data-theme='dark'] .teacher-roster-viewport > .js-fade-right {
+  background: linear-gradient(to left, var(--roster-fade-color), transparent);
+}
+
 /* Фильтры списка учеников — та же таблетка, что вкладки Журнала
    (.js-tabs.cj-tabs): дорожка 3 px, кнопки 32 px, счётчик — CountBadge
    внутри, правый отступ кнопки = зазору над и под ним. */
