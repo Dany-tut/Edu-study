@@ -32,7 +32,7 @@ import {
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
 import { NativeVideoVolume } from '../lib/nativeVideoVolume'
-import { resolveDriveVideo } from '../lib/driveVideo'
+import { driveProxyAvailable, resolveDriveVideo } from '../lib/driveVideo'
 import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
@@ -224,6 +224,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const [driveUrl, setDriveUrl] = useState('')
   const [driveError, setDriveError] = useState(false)
   const [driveAttempt, setDriveAttempt] = useState(0)
+  /** Прямой поток Диска упал — дальше в этой сессии плеера берём его через
+   *  российский прокси (у ученика из РФ `*.supabase.co` может резаться). */
+  const [driveViaProxy, setDriveViaProxy] = useState(false)
   const [mediaError, setMediaError] = useState(false)
   const source: VideoSource = originalSource.kind === 'gdrive' && driveUrl
     ? { kind: 'file', url: driveUrl } : originalSource
@@ -333,11 +336,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     if (!started || originalSource.kind !== 'gdrive') return
     let alive = true
     setDriveError(false)
-    resolveDriveVideo(originalSource.id).then(url => {
+    resolveDriveVideo(originalSource.id, { viaProxy: driveViaProxy }).then(url => {
       if (alive) { setDriveUrl(url); setMediaError(false) }
     }).catch(() => { if (alive) setDriveError(true) })
     return () => { alive = false }
-  }, [started, originalSource.kind === 'gdrive' ? originalSource.id : '', driveAttempt])
+  }, [started, originalSource.kind === 'gdrive' ? originalSource.id : '', driveAttempt, driveViaProxy])
 
   useEffect(() => {
     if (!volumeOpen) return
@@ -1105,7 +1108,17 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           }}
           onLoadedData={e => { void e.currentTarget.play().catch(() => setPaused(true)) }}
           onSeeking={() => { lastTick.current = null; segStart.current = null }}
-          onError={() => { setMediaError(true); setPaused(true) }}
+          onError={() => {
+            // Поток Диска с прямого адреса не дошёл: один раз тихо повторяем через
+            // прокси с той же секунды, и только потом показываем ошибку.
+            if (originalSource.kind === 'gdrive' && driveProxyAvailable && !driveViaProxy) {
+              setStartAt(currentRef.current)
+              setDriveUrl('')
+              setDriveViaProxy(true)
+              return
+            }
+            setMediaError(true); setPaused(true)
+          }}
           onPlay={() => { setPaused(false); setEnded(false) }}
           onPause={() => { persist(); setPaused(true) }}
           onEnded={() => { persist(); setPaused(true); setEnded(true) }}

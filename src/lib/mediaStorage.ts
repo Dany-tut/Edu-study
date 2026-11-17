@@ -8,6 +8,7 @@
 // getMediaUrl().
 
 import { supabase } from './supabase'
+import { supabaseMediaUrl } from './supabaseFailover'
 import { getOwnerId } from './owner'
 
 const BUCKET = 'task-media'
@@ -66,7 +67,7 @@ export async function getMediaUrl(path: string | null | undefined, expiresIn = 3
   if (!path) return null
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, expiresIn)
   if (error || !data) { console.error('[mediaStorage] createSignedUrl failed', error); return null }
-  return data.signedUrl
+  return supabaseMediaUrl(data.signedUrl)
 }
 
 /** Delete a media object by path (owner-only via RLS). Returns success. */

@@ -17,6 +17,7 @@ import { personalDemoOwner } from './personalStudentDemo'
 
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
+import { supabaseMediaUrl } from './supabaseFailover'
 import { getSessionUser } from './owner'
 import { appFlag } from './cardGroups'
 
@@ -119,8 +120,9 @@ export async function resolveHomeworkPhoto(ref: string | null | undefined): Prom
     const ttl = at == null ? SIGN_TTL_S : Math.max(1, Math.min(SIGN_TTL_S, Math.floor((at + HW_PHOTO_TTL_MS - Date.now()) / 1000)))
     p = supabase.storage.from(BUCKET).createSignedUrl(path, ttl).then(({ data, error }) => {
       if (error || !data) return null
-      signed.set(key, { url: data.signedUrl, until: Date.now() + Math.max(0, ttl - 60) * 1000 })
-      return data.signedUrl
+      const url = supabaseMediaUrl(data.signedUrl)
+      signed.set(key, { url, until: Date.now() + Math.max(0, ttl - 60) * 1000 })
+      return url
     }).catch(() => null).finally(() => { inflight.delete(key) })
     inflight.set(key, p)
   }

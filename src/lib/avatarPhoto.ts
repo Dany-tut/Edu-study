@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
+import { supabaseMediaUrl } from './supabaseFailover'
 import { getAuthUser, getSessionUser } from './owner'
 import { useDashboard } from '../store/dashboardStore'
 
@@ -94,7 +95,7 @@ function flush() {
   supabase.storage.from(BUCKET).createSignedUrls(paths, URL_TTL_S).then(
     ({ data }) => {
       const byPath = new Map<string, string | null>()
-      for (const row of data ?? []) if (row.path) byPath.set(row.path, row.signedUrl || null)
+      for (const row of data ?? []) if (row.path) byPath.set(row.path, row.signedUrl ? supabaseMediaUrl(row.signedUrl) : null)
       for (const b of batch) b.resolve(byPath.get(b.path) ?? null)
     },
     () => { for (const b of batch) b.resolve(null) },
