@@ -4,6 +4,7 @@ import { teacherViewFetch } from './teacherView'
 import { withRequestTiming } from './platformPerformance'
 import { authTransport } from './authTransport'
 import { ruFailoverFetch, ruFailoverEnabled, PROXY_URL, registerProxyFailoverHook } from './supabaseFailover'
+import { withWriteActivity } from './sync/writeActivity'
 
 // Public client used from the browser. The publishable key is safe to ship —
 // all access is enforced server-side by Row Level Security policies.
@@ -78,7 +79,9 @@ export const supabase = createClient(url, key, {
     // «Проверяем доступ…» for the full wait. Steal after the SDK's 5s default:
     // a rare overlapping refresh is cheaper than a frozen cabinet.
     ...(typeof navigator !== 'undefined' && navigator.locks ? { lock: requeueStolenLock, lockAcquireTimeout: 5_000 } : {}),
-  }, global: { fetch: withRequestTiming(diagnosticFetch(authTransport(withRestDeadline(networkFetch, url), url), url)) },
+  // withWriteActivity — внешним слоем и ТОЛЬКО наблюдает: передаёт input/init
+  // дальше теми же объектами и возвращает тот же промис (docs/saving.md §7).
+  }, global: { fetch: withWriteActivity(withRequestTiming(diagnosticFetch(authTransport(withRestDeadline(networkFetch, url), url), url)), url) },
 })
 
 // Когда fetch впервые ушёл на прокси (прямой недоступен — РФ), переключаем на
