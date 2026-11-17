@@ -240,3 +240,45 @@ resetWriteActivityForTest()
   assert.equal(seen, 2)
 }
 console.log('PASS онлайн: состояние сети для будущего индикатора')
+
+// ── 7. Строка статуса сохранения (src/lib/sync/saveStatus.ts, ПК вариант A) ──
+{
+  const built = await build({ entryPoints: ['src/lib/sync/saveStatus.ts'], bundle: true, platform: 'node', format: 'esm', write: false })
+  assert.doesNotMatch(built.outputFiles[0].text, /\bimport\s/, 'логика статуса без зависимостей')
+  writeFileSync('node_modules/.cache/saveStatus.mjs', built.outputFiles[0].text)
+  const { saveStatusView: v, nextStatusChangeIn, clockTime, shouldAutoRetry, SAVING_DELAY_MS, JUST_NOW_MS, SAVE_AUTO_RETRIES } =
+    await import('../node_modules/.cache/saveStatus.mjs')
+  const T = 1_800_000_000_000
+  const base = { saving: false, savingSince: null, lastSavedAt: null, failed: false, online: true, pendingChanges: false, persisted: true, now: T }
+
+  assert.deepEqual(v({ ...base, persisted: false }), { kind: 'none' }, 'новый несохранённый курс — строки нет')
+  assert.deepEqual(v(base), { kind: 'saved', at: null, justNow: false }, 'открыли сохранённый — «Сохранено» без времени')
+  assert.deepEqual(v({ ...base, lastSavedAt: T - 5_000 }), { kind: 'saved', at: T - 5_000, justNow: true }, '«только что»')
+  assert.deepEqual(v({ ...base, lastSavedAt: T - JUST_NOW_MS }), { kind: 'saved', at: T - JUST_NOW_MS, justNow: false }, 'через минуту — время')
+
+  // «Сохраняю…» только после 400 мс; до этого строка прежняя — не мигает.
+  const short = { ...base, lastSavedAt: T - 5_000, saving: true, savingSince: T - (SAVING_DELAY_MS - 1) }
+  assert.equal(v(short).kind, 'saved', 'короткая запись строку не трогает')
+  assert.equal(v({ ...short, savingSince: T - SAVING_DELAY_MS }).kind, 'saving')
+  assert.equal(nextStatusChangeIn(short), 1, 'перерисовка ровно к порогу 400 мс')
+  assert.equal(nextStatusChangeIn({ ...base, lastSavedAt: T - 59_000 }), 1_000, 'перерисовка к смене «только что» на время')
+  assert.equal(nextStatusChangeIn({ ...base, lastSavedAt: T - JUST_NOW_MS }), null, 'дальше строка сама не меняется')
+
+  // Сбой и сеть.
+  assert.equal(v({ ...base, lastSavedAt: T - 5_000, failed: true }).kind, 'error', '«Не сохранено»')
+  assert.equal(v({ ...base, failed: true, saving: true, savingSince: T - 1_000 }).kind, 'saving', 'повтор после сбоя виден как «Сохраняю…»')
+  assert.equal(v({ ...base, online: false, pendingChanges: true }).kind, 'offline', 'офлайн с правками — «Нет сети»')
+  assert.equal(v({ ...base, online: false, failed: true }).kind, 'offline', 'офлайн — не ошибка: правки ждут')
+  assert.equal(v({ ...base, online: false, lastSavedAt: T - 5_000 }).kind, 'saved', 'офлайн без правок — всё сохранено')
+
+  // Автоповтор: 1–3 сбоя подряд, только в сети и без конфликта версий.
+  assert.equal(shouldAutoRetry(0, true, false), false)
+  for (let n = 1; n <= SAVE_AUTO_RETRIES; n++) assert.equal(shouldAutoRetry(n, true, false), true, `сбой ${n}`)
+  assert.equal(shouldAutoRetry(SAVE_AUTO_RETRIES + 1, true, false), false, 'после трёх — только «Повторить»')
+  assert.equal(shouldAutoRetry(1, false, false), false, 'без сети ждём сеть, а не таймер')
+  assert.equal(shouldAutoRetry(1, true, true), false, 'конфликт решает человек')
+
+  const d = new Date(2026, 10, 17, 9, 5)
+  assert.equal(clockTime(d.getTime()), '09:05', '24-часовой формат с нулями')
+}
+console.log('PASS статус: «Сохранено · только что/время», «Сохраняю…» после 400 мс, сеть, сбой, автоповтор ≤3')
