@@ -27,6 +27,7 @@
 
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import { preferPlaybackSession } from './audioSession'
+import { supabaseMediaUrl } from './supabaseFailover'
 
 const BLANKS = [
   // Подчёркивание в прозе не встречается вовсе — снимаем даже одиночное.
@@ -625,7 +626,9 @@ export function speechUnits(raw: string, unit: 'line' | 'sentence' = 'line'): st
  */
 
 const SERVER_KEY = 'tts-server'
-const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL ?? ''}/functions/v1/tts`
+// Адрес собираем при каждом запросе: <audio> и прогрев грузят его мимо fetch-резерва,
+// поэтому у ученика из РФ он должен сразу смотреть на выбранный узел (прокси).
+const ttsBase = () => supabaseMediaUrl(`${import.meta.env.VITE_SUPABASE_URL ?? ''}/functions/v1/tts`)
 
 /** Сколько дикторов у сервера (см. VOICES в функции): по сцене берём один из них. */
 const SERVER_VOICES = 4
@@ -655,7 +658,7 @@ let player: HTMLAudioElement | null = null
 
 function ttsUrl(text: string, locale: string, voice: number, rate: number): string {
   const q = new URLSearchParams({ l: locale, v: String(voice), r: String(rate), t: text })
-  return `${TTS_URL}?${q}`
+  return `${ttsBase()}?${q}`
 }
 
 /** Прогреть следующую реплику, пока звучит эта: синтез занимает полсекунды, и

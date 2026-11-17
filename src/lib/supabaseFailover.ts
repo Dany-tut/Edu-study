@@ -58,6 +58,39 @@ function clearCache() { try { sessionStorage.removeItem(CACHE_KEY) } catch { /* 
 function hrefOf(input: RequestInfo | URL): string {
   return typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
 }
+/**
+ * Origin Supabase для адресов, которые браузер грузит САМ, мимо fetch
+ * (`<video src>`, `<img src>`). Резерв выше перехватывает только fetch: ссылка,
+ * собранная на прямом `*.supabase.co`, у ученика из РФ уйдёт мимо прокси и не
+ * дойдёт, хотя всё остальное в Искре работает. Поэтому такие ссылки строим на
+ * узле, который уже выбран в этой сессии (или на прокси, если явно попросили —
+ * например, прямой поток только что упал).
+ */
+export function supabaseMediaOrigin(directUrl: string, preferProxy = false): string {
+  if (ruFailoverEnabled && PROXY_URL) {
+    if (chosen === null) chosen = readCache()
+    if (preferProxy || chosen === 'proxy') return new URL(PROXY_URL).origin
+  }
+  return new URL(directUrl).origin
+}
+
+/**
+ * Готовая ссылка Supabase (подписанный адрес Storage, адрес функции) для тега,
+ * который грузит её сам — `<img>`, `<audio>`, `<video>`. Ссылку на прямом
+ * `*.supabase.co` переносим на выбранный в сессии узел; чужие ссылки не трогаем.
+ */
+export function supabaseMediaUrl(
+  href: string,
+  directUrl: string | undefined = import.meta.env.VITE_SUPABASE_URL as string | undefined,
+): string {
+  if (!directUrl) return href
+  let directOrigin: string
+  try { directOrigin = new URL(directUrl).origin } catch { return href }
+  if (!href.startsWith(directOrigin + '/')) return href
+  const origin = supabaseMediaOrigin(directUrl)
+  return origin === directOrigin ? href : swapOrigin(href, directOrigin, origin)
+}
+
 /** Заменяем только origin (протокол+хост+порт), путь и query сохраняем. */
 function swapOrigin(href: string, fromOrigin: string, toOrigin: string): string {
   return toOrigin + href.slice(fromOrigin.length)
