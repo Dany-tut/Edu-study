@@ -52,6 +52,9 @@ def ocr_engine():
         'Rec.model_type': ModelType.MOBILE, 'Det.ocr_version': OCRVersion.PPOCRV5,
         'Det.model_type': ModelType.MOBILE, 'Global.use_cls': False,
         'EngineConfig.onnxruntime.intra_op_num_threads': 2,
+        # Reuse inference buffers across frames instead of allocating them for
+        # every detection/recognition batch. Pixels, models and batching stay intact.
+        'EngineConfig.onnxruntime.enable_cpu_mem_arena': True,
         'EngineConfig.onnxruntime.inter_op_num_threads': 1,
     })
 
