@@ -20,7 +20,10 @@ import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { Eye } from '../../components/icons/appIcons'
 import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
-import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, useSyncExternalStore } from 'react'
+import SaveStatusLine from '../../components/SaveStatusLine'
+import { getWriteActivity, subscribeWriteActivity } from '../../lib/sync/writeActivity'
+import { SAVE_RETRY_MS, shouldAutoRetry } from '../../lib/sync/saveStatus'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
 import { AlertStack } from '../../components/Alert'
@@ -6427,7 +6430,15 @@ export default function TeacherCourseEditorPage() {
     return () => { cancelled = true }
   }, [accessCourseKey, reconcileCourse])
 
-  const [savedFlash, setSavedFlash] = useState(false)
+  // Строка статуса под названием (SaveStatusLine, docs/saving.md §4.5) вместо
+  // мигающего «Сохранено!»: время последней подтверждённой записи и число
+  // сбоев подряд (по нему — «Не сохранено» и автоповтор через 30 с).
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
+  const [saveFailures, setSaveFailures] = useState(0)
+  // publishErr, который положил сбой записи, показываем карточкой «Не сохранено»
+  // с «Повторить», а не второй плашкой с тем же смыслом.
+  const saveFailText = useRef<string | null>(null)
+  const saveFailReason = useRef<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [autosaving, setAutosaving] = useState(0)
   const [publicationPending, setPublicationPending] = useState(false)
@@ -6506,10 +6517,43 @@ export default function TeacherCourseEditorPage() {
       clearCourseDraftAfterSync(seq, ok)
       if (ok && draftSeq.current === seq) unsaved.current = false
       if (ok) { setPublishErr(null); flash() }
-      else setPublishErr(saveIssue.current ?? t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
+      else noteSaveFailure(saveIssue.current ?? t('Не удалось сохранить курс — проверьте интернет и что вы вошли в аккаунт учителя. Не закрывайте вкладку.'))
       return ok
     }).finally(() => setAutosaving(n => n - 1))
   }
+  // Сбой записи: строка статуса — «Не сохранено», карточка — с «Повторить».
+  function noteSaveFailure(text: string) {
+    saveFailText.current = text
+    saveFailReason.current = saveIssue.current ?? t('сервер не ответил или вход в аккаунт учителя истёк.')
+    setPublishErr(text)
+    setSaveFailures(n => n + 1)
+  }
+  // Таймеры ниже срабатывают позже рендера — зовут свежую функцию, а не из
+  // старого замыкания (см. latestSync выше: старая затирала уровни доступа).
+  const latestRunAutosave = useRef(runAutosave)
+  latestRunAutosave.current = runAutosave
+  function retrySave() {
+    const c = latestCourse.current
+    if (c.heavyPending || publicationPending) return
+    if (!c.dbCourseId && !c.title.trim()) return
+    void latestRunAutosave.current(c)
+  }
+  // Сеть вернулась — недоехавший курс досылаем сами: это обещание строки
+  // «Нет сети — сохраню, когда появится».
+  const online = useSyncExternalStore(subscribeWriteActivity, () => getWriteActivity().online, () => true)
+  const wasOnline = useRef(online)
+  useEffect(() => {
+    const back = online && !wasOnline.current
+    wasOnline.current = online
+    if (back && unsaved.current && !conflict) retrySave()
+  }, [online]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Сбой — повторяем сами через 30 с, не больше трёх раз подряд; при конфликте
+  // версий не повторяем: там решает человек (ConflictDialog).
+  useEffect(() => {
+    if (!shouldAutoRetry(saveFailures, online, !!conflict) || publicationPending) return
+    const timer = setTimeout(retrySave, SAVE_RETRY_MS)
+    return () => clearTimeout(timer)
+  }, [saveFailures, online, conflict, publicationPending]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (unsaved.current) { e.preventDefault(); e.returnValue = '' } }
     window.addEventListener('beforeunload', warn)
@@ -6633,9 +6677,10 @@ export default function TeacherCourseEditorPage() {
     setActivePage('constructor')
   }
 
+  // Запись подтверждена базой: время — в строку статуса, счётчик сбоев — в ноль.
   function flash() {
-    setSavedFlash(true)
-    setTimeout(() => setSavedFlash(false), 2000)
+    setLastSavedAt(Date.now())
+    setSaveFailures(0)
   }
 
   // Returns true when the course row (title/description/status/access) made it
@@ -7306,7 +7351,7 @@ export default function TeacherCourseEditorPage() {
       setSaving(false)
       clearCourseDraftAfterSync(seq, ok as boolean)
       if (ok) { setPublishErr(null); flash() }
-      else setPublishErr(t('Не удалось сохранить курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
+      else noteSaveFailure(t('Не удалось сохранить курс — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
     })
   }
 
@@ -7503,11 +7548,14 @@ export default function TeacherCourseEditorPage() {
           <span ref={headTitleRef} style={{ minWidth: 0, maxWidth: '100%' }}>
             <FadeText style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}>{courseTitle}</FadeText>
           </span>
-          <span role="status" aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 4, position: 'absolute', top: 34, height: 16, flexShrink: 0, fontSize: 12, color: 'var(--color-text-3)', whiteSpace: 'nowrap' }}>
-            {saving || autosaving > 0
-              ? <><Loader2 size={12} style={{ animation: 'spin 0.9s linear infinite' }} /> {t('Сохранение…')}</>
-              : savedFlash ? <><Check size={12} strokeWidth={2.5} /> {t('Сохранено!')}</> : null}
-          </span>
+          <SaveStatusLine
+            style={{ position: 'absolute', top: 34, height: 16, flexShrink: 0 }}
+            saving={saving || autosaving > 0}
+            lastSavedAt={lastSavedAt}
+            failed={saveFailures > 0}
+            pendingChanges={unsaved.current}
+            persisted={!!course.dbCourseId}
+          />
         </div>
         <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Сверка с готовым курсом. Кнопка есть только у курса, собранного из
@@ -7696,7 +7744,17 @@ export default function TeacherCourseEditorPage() {
       <AlertStack
         style={{ flexShrink: 0, margin: '0 24px 8px' }}
         items={[
-          !!publishErr && !conflict && {
+          // Сбой записи — «Не сохранено: причина» с «Повторить» (концепт ПК, вариант A).
+          // Без сети карточки нет: это не ошибка, строка статуса уже говорит
+          // «Нет сети — сохраню, когда появится», и правки уйдут сами.
+          saveFailures > 0 && !conflict && online && {
+            id: 'save-err', tone: 'danger', title: `${t('Не сохранено')}:`,
+            text: `${saveFailReason.current ?? ''} ${shouldAutoRetry(saveFailures, online, false)
+              ? t('Правки целы в этой вкладке — повторю сам через 30 с.')
+              : t('Правки целы в этой вкладке.')}`,
+            action: { label: t('Повторить'), onClick: retrySave },
+          },
+          !!publishErr && !conflict && !(saveFailures > 0 && publishErr === saveFailText.current) && {
             id: 'publish-err', tone: 'danger', text: publishErr,
             onClose: () => setPublishErr(null),
           },
