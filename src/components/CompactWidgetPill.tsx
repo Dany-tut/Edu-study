@@ -403,7 +403,7 @@ function PomoControls() {
         </button>
         <button data-hover="layer"
           onClick={e => { stop(e); pomoReset() }}
-          aria-label={t('Повторить')}
+          aria-label={t('Сбросить таймер')}
           style={{
             width: 38, height: 38, borderRadius: 12, border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
