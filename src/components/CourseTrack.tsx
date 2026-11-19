@@ -34,6 +34,8 @@ import { useT, useTc } from '../lib/i18n'
 import { TRACK_STATUS, trackPalette } from '../lib/theme'
 import type { StudentDiaryEntry } from '../lib/studentDiary'
 import { homeModuleDebts } from '../lib/studentHomeWork'
+import { confirmWaveReady, markWaveSeen, preloadConfirmWave, WAVE_PALETTES, waveSeen } from '../lib/confirmWave'
+import { useConfirmWave } from '../lib/confirmWave/useConfirmWave'
 
 type HomeWorkProps = { homeWorks?: readonly StudentDiaryEntry[]; today?: string; onOpenDebts?: (course: string, module: number) => void }
 
@@ -126,6 +128,33 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
   const resume = courseResumeTarget(subject)
   const openModules = subject.modules.filter((_, index) => !isCourseModuleLocked(subject, index))
   const activeModule = openModules.find(m => m.id === activeModuleId)
+  // Волна по треку: модуль закрыт (все уроки зачтены) — один раз на модуль,
+  // слева направо вдоль трека, в цветах Огонька и с большим числом искр.
+  // Формула закрытия та же, что у таблетки модуля в ModuleChain.
+  const moduleWave = useConfirmWave<HTMLDivElement, HTMLDivElement>()
+  const closedKey = activeModule && activeModule.lessons.length > 0
+    && activeModule.lessons.every(l => l.result ? l.result.passed : l.status === 'completed')
+    ? `${subject.id}:${activeModule.id}` : null
+  useEffect(() => {
+    if (!closedKey || waveSeen('modules', closedKey)) return
+    let gone = false
+    const timer = window.setTimeout(() => {
+      void preloadConfirmWave().then(() => {
+        if (gone || waveSeen('modules', closedKey)) return
+        const host = moduleWave.hostRef.current
+        const r = host?.getBoundingClientRect()
+        // Только когда трек на экране: волну, которую никто не видел, не тратим.
+        if (!r || r.bottom <= 0 || r.top >= window.innerHeight) return
+        markWaveSeen('modules', closedKey)
+        if (!confirmWaveReady()) return
+        moduleWave.begin({
+          type: 'horizontal', weight: 'major', palette: WAVE_PALETTES.ogonek, cornerRadius: 24,
+          source: { x: -20, y: r.height * 0.15, w: 40, h: r.height * 0.7 },
+        })?.play()
+      })
+    }, 600)
+    return () => { gone = true; window.clearTimeout(timer) }
+  }, [closedKey, moduleWave])
     ?? openModules.find(m => m.id === resume.moduleId)
     ?? openModules[0]
   const effectiveModuleId = activeModule?.id
@@ -289,8 +318,8 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
       {/* ── Track body: auto height, centered content. Сверху минус: над
            кружками GLOW_PAD под свечение, и без поправки трек отъезжал бы от
            строки курса на 24 px вместо 12. ── */}
-      <div className="flex items-center" style={{ marginTop: `var(--home-track-pull-up, ${TRACK_PULL_UP}px)`, paddingBottom: 12 }}>
-        <div className="flex items-center gap-6 w-full">
+      <div ref={moduleWave.hostRef} className="flex items-center" style={{ marginTop: `var(--home-track-pull-up, ${TRACK_PULL_UP}px)`, paddingBottom: 12 }}>
+        <div ref={moduleWave.liveRef} className="flex items-center gap-6 w-full">
 
           {/* Full-width track — nodes distributed across the whole row */}
           <div ref={trackAreaRef} className="flex-1 min-w-0 relative">

@@ -6,6 +6,8 @@ import { useT, useTc } from '../../../lib/i18n'
 import { getViewAs } from '../../../lib/owner'
 import { useSwipeBack } from '../../../lib/useSwipeBack'
 import { tactile } from '../../../lib/feedback'
+import { WAVE_PALETTES } from '../../../lib/confirmWave'
+import { useConfirmWave } from '../../../lib/confirmWave/useConfirmWave'
 import MobileScreen from '../../MobileScreen'
 import BackCircle from '../../BackCircle'
 import { GlassPill } from '../../mobileChrome'
@@ -74,6 +76,8 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
+  const wave = useConfirmWave<HTMLElement>()
+  const chipRef = useRef<HTMLSpanElement>(null)
   const [saveError, setSaveError] = useState('')
   const [draftWarning, setDraftWarning] = useState(false)
   const done = current ? published[current.id] : undefined
@@ -108,7 +112,12 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
       const ok = await save(current.id, verdict, Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0,
         draft.comment.trim(), { photos: current.reviewPhotos, board: current.reviewBoard }, current.answers?.attemptId)
       if (!ok) throw new Error('save')
+      // Кольцо «Проверено» — только на зачёт; доработка меняет вид тихо.
+      const ring = verdict === 'accepted'
+        ? wave.begin({ type: 'center', source: chipRef.current, palette: WAVE_PALETTES.ogonek, cornerRadius: 24 })
+        : null
       clearDraft(key); setPublished(old => ({ ...old, [current.id]: verdict })); setSelectedId(current.id)
+      ring?.play()
       onPublished(current.id, verdict)
     } catch { setSaveError(t(draftWarning ? 'Не удалось сохранить проверку. Не закрывайте экран и попробуйте ещё раз.' : 'Не удалось сохранить проверку. Черновик сохранён — попробуйте ещё раз.')) }
     finally { busyRef.current = false; setBusy(false) }
@@ -133,12 +142,14 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
       {demo && demoNote && <Alert tone="info" text={t('Учебный пример')} />}
       {loadError && <Alert tone="danger" text={t(loadError)} action={{label:t('Повторить'),onClick:()=>void reload()}} />}
       {loading && !demo ? <p role="status" className="mhr-muted">{t('Загрузка…')}</p> : current ? <>
-        <section className="mhr-card mhr-identity">
+        <section ref={wave.hostRef} className="mhr-card mhr-identity">
+          <div ref={wave.liveRef} style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
           <p className="mhr-muted">{tc(homework.title)}</p>
           <h1>{tn(current.studentName)}</h1>
           <p className="mhr-muted">{homework.groupName}</p>
-          <span className={'mhr-chip' + (done === 'accepted' ? ' mhr-chip-green' : done === 'returned' ? ' mhr-chip-yellow' : ' mhr-chip-purple')}>{t(done === 'accepted' ? 'Проверено' : done === 'returned' ? 'На доработке' : 'На проверке')}</span>
+          <span ref={chipRef} className={'mhr-chip' + (done === 'accepted' ? ' mhr-chip-green' : done === 'returned' ? ' mhr-chip-yellow' : ' mhr-chip-purple')}>{t(done === 'accepted' ? 'Проверено' : done === 'returned' ? 'На доработке' : 'На проверке')}</span>
           {!done && pending.length > 1 && <StudentPicker options={pending.map(s => ({ id: s.id, name: tn(s.studentName) }))} value={current.id} disabled={busy} onChange={setSelectedId} />}
+          </div>
         </section>
         {done ? <section className="mhr-card" role="status"><h2>{t('Проверка сохранена')}</h2><p className="mhr-muted">{t(done === 'accepted' ? 'Проверено' : 'На доработке')}{done === 'accepted' ? ` · ${score}%` : ''}</p></section> : <>
           <section className="mhr-card"><h2>{t('Ответы ученика')}</h2>

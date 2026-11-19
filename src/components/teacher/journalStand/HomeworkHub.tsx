@@ -11,6 +11,8 @@ import type { ReviewHandoff } from './homeworkReviewHandoff'
 import { useHomeworkCardAi } from '../../../lib/useHomeworkCardAi'
 import { confirmAiGrade } from '../../../lib/useAiGrades'
 import { AiReviewSummary, AiTaskFeedback, AiCommentDraft } from './AiReviewConcept'
+import { WAVE_PALETTES } from '../../../lib/confirmWave'
+import { useConfirmWave } from '../../../lib/confirmWave/useConfirmWave'
 import './homeworkHub.css'
 import './homeworkReview.css'
 
@@ -98,6 +100,7 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
 }) {
   const [drafts, setDrafts] = useState<Record<string, { score: string; comment: string }>>({})
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [search, setSearch] = useState('')
+  const wave = useConfirmWave<HTMLElement>(), submitRef = useRef<HTMLButtonElement>(null)
   const [expanded, setExpanded] = useState(false)
   const [answerFilter, setAnswerFilter] = useState<'all' | 'manual' | 'errors'>('all')
   const body = useRef<HTMLDivElement>(null)
@@ -141,14 +144,21 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
     if (verdict === 'accepted' && (!draft.score.trim() || !Number.isFinite(score) || score < 0 || score > 100)) {setError('Укажите итог от 0 до 100%.');return}
     if (verdict === 'returned' && !draft.comment.trim()) {setError('Добавьте комментарий: что нужно исправить.');return}
     setBusy(true);setError('')
+    // Кольцо «Зачтено» на панели итогов: от «Сохраняем…» к результату. Доработка — тихо.
+    let ring: ReturnType<typeof wave.begin> = null
+    if (verdict === 'accepted') {
+      await new Promise(r => requestAnimationFrame(r))
+      ring = wave.begin({ type: 'center', source: submitRef.current, palette: WAVE_PALETTES.ogonek })
+    }
     try {
       await onSave(entry, {verdict, score: Number.isFinite(score) ? score : 0, comment: draft.comment})
+      ring?.play(); ring = null
       if (verdict === 'accepted' && ai.grade && ['graded', 'dismissed'].includes(ai.grade.status)) {
         // Final teacher review has already succeeded; an AI bookkeeping error must not undo it.
         void confirmAiGrade(ai.grade.id, score).catch(() => {})
       }
     } catch(e) {setError(e instanceof Error ? e.message : 'Не удалось сохранить проверку. Попробуйте ещё раз.')}
-    finally {setBusy(false)}
+    finally {ring?.cancel();setBusy(false)}
   }
   const at = entry ? stack.findIndex(e => e.key === entry.key) : -1
   const group = data.groups.find(g => g.id === entry?.student.groupId)
@@ -214,7 +224,8 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
                 : <div className="jh-document-empty"><ClipboardList size={28}/><h3>Работа ещё не сдана</h3><p>Ответы появятся здесь после сдачи учеником.</p><span>{entry.work.status}</span></div>}
             </div>
           </article>
-          <aside className="jh-review-inspector" aria-label="Результат и действия проверки">
+          <aside ref={wave.hostRef} className="jh-review-inspector" aria-label="Результат и действия проверки">
+            <div ref={wave.liveRef} className="jh-inspector-live">
             {pending ? <form className="jh-inspector-form" onSubmit={e=>{e.preventDefault();void save('accepted')}}>
               <div className="jh-inspector-heading"><h3>Проверка работы</h3><p>Итог увидит ученик</p></div><div className="jh-inspector-scroll" key={draftKey}>
               {aiSummary}<div className="jh-inspector-fields">
@@ -224,13 +235,14 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
               </div>{ai.grade?.comment && <div className="jh-ai-comment"><AiCommentDraft key={draftKey} comment={ai.grade.comment}
                 busy={busy || draft.comment.includes(ai.grade.comment)}
                 onUse={() => updateDraft({comment: draft.comment.trim() ? draft.comment + '\n\n' + ai.grade!.comment : ai.grade!.comment})}/></div>}
-              {history}</div><div className="jh-inspector-actions">{error&&<p className="jh-error" role="alert">{error}</p>}<button type="submit" className="cj-button cj-primary" disabled={busy}>{busy?'Сохраняем…':'Завершить проверку'}</button><button type="button" className="cj-button" disabled={busy} onClick={()=>void save('returned')}>На доработку</button></div>
+              {history}</div><div className="jh-inspector-actions">{error&&<p className="jh-error" role="alert">{error}</p>}<button ref={submitRef} type="submit" className="cj-button cj-primary" disabled={busy}>{busy?'Сохраняем…':'Завершить проверку'}</button><button type="button" className="cj-button" disabled={busy} onClick={()=>void save('returned')}>На доработку</button></div>
             </form> : <>
               <div className="jh-inspector-heading"><h3>{(entry.work.attempts?.length??0)>1?'Лучший итог':'Результат работы'}</h3><p>{entry.work.source}</p></div><div className="jh-inspector-scroll" key={draftKey}>{aiSummary}<div className="jh-inspector-result"><div className={'jh-final-result '+(entry.work.status==='Зачтено'?'jh-result-passed':entry.work.status==='Ниже порога'?'jh-result-low':'')}><strong>{entry.work.score===null||['На доработке','Пересдача'].includes(entry.work.status)?'—':entry.work.score}<small>{entry.work.score!==null&&!['На доработке','Пересдача'].includes(entry.work.status)?'%':''}</small></strong><span>{entry.work.status}</span></div>
                 {payload && <div className="jh-score-context">{entry.work.source!=='Тестли'&&autoPercent!==null&&<span>Автопроверка <b>{autoPercent}%</b></span>}<span>Порог зачёта <b>{entry.work.threshold}%</b></span></div>}
                 {row?.review_comment&&<div className="jh-inspector-comment"><h4>Комментарий преподавателя</h4><p>{row.review_comment}</p></div>}
               </div>{history}</div>
             </>}
+            </div>
           </aside>
         </> : <p className="jh-empty">Работа больше не доступна. Закройте окно и обновите журнал.</p>}
       </div>
