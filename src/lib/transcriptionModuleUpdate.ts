@@ -20,25 +20,40 @@ export const MODULE_DOWNLOAD_URL = `/downloads/Iskra-Transcription-Mac-v${TRANSC
 
 /** Что модуль на этом Mac сказал о себе. selfUpdate — умеет POST /update.
  * app — версия приложения «Искра · Расшифровка» вокруг модуля (если модуль её знает). */
-export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean; app?: string }
+export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean; app?: string; appRemembered?: boolean }
 
-// С этой версии приложение для Mac обновляется само. Более старое нужно один
-// раз заменить вручную — об этом и говорит сайт.
-export const APP_SELF_UPDATE_SINCE = '1.0.9'
 const older = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }) < 0
 
-/** Приложение на Mac старое и само не обновится: предложить скачать новое. */
+/** Приложение на Mac старше выпущенного — предложить новое. Без исключения для
+ * 1.0.9+: оно умеет обновляться само, но только пока открыто его окно, а
+ * фоновая служба (в ней и идёт расшифровка) приложение не обновляет. Код модуля
+ * обновляется сам, а .app с хелпером Vision — нет: новые возможности приложения
+ * (например, кириллица в слайдах с 1.0.10) приходят только с новым DMG. */
 export function appNeedsManualUpdate(app?: string) {
-  return !!app && older(app, TRANSCRIPTION_PRODUCT_VERSION) && older(app, APP_SELF_UPDATE_SINCE)
+  return !!app && older(app, TRANSCRIPTION_PRODUCT_VERSION)
+}
+
+// Последняя версия приложения, которую назвал модуль. Модуль запускается по
+// запросу и засыпает после простоя — тогда версию берём из этой памяти.
+const APP_SEEN_KEY = 'iskra.transcription.appVersion'
+function rememberApp(app?: string) {
+  try { if (app) localStorage.setItem(APP_SEEN_KEY, app) } catch { /* без хранилища — без памяти */ }
+}
+function rememberedApp() {
+  try { return localStorage.getItem(APP_SEEN_KEY) || undefined } catch { return undefined }
 }
 
 export async function readModule(): Promise<ModuleInfo> {
   try {
     const { version, update, app } = await localRequest('/version', '', { signal: AbortSignal.timeout(2500) })
+    const known = typeof app === 'string' && app ? app : undefined
+    rememberApp(known)
     return { freshness: version === TRANSCRIPTION_MODULE_VERSION ? 'current' : 'outdated', local: version, selfUpdate: update === true,
-      app: typeof app === 'string' ? app : undefined }
+      app: known }
   } catch (error) {
-    return { freshness: error instanceof LocalTranscriptionUnavailable ? 'unknown' : 'outdated', selfUpdate: false }
+    const app = rememberedApp()
+    return { freshness: error instanceof LocalTranscriptionUnavailable ? 'unknown' : 'outdated', selfUpdate: false,
+      app, appRemembered: !!app }
   }
 }
 
@@ -71,7 +86,7 @@ export function updateModule(token: string): Promise<boolean | null> {
   return updating
 }
 
-export type ModuleState = { phase: ModuleFreshness | 'updating' | 'failed'; local?: string; selfUpdate: boolean; app?: string }
+export type ModuleState = { phase: ModuleFreshness | 'updating' | 'failed'; local?: string; selfUpdate: boolean; app?: string; appRemembered?: boolean }
 
 /**
  * Проверка для карточки модуля: при открытии и при возврате на вкладку.
@@ -85,7 +100,7 @@ export function useModuleState(enabled: boolean, token: string): ModuleState {
     const run = async () => {
       const info = await readModule()
       if (!alive) return
-      if (info.freshness !== 'outdated' || !info.selfUpdate || !token) { setState({ phase: info.freshness, local: info.local, selfUpdate: info.selfUpdate, app: info.app }); return }
+      if (info.freshness !== 'outdated' || !info.selfUpdate || !token) { setState({ phase: info.freshness, local: info.local, selfUpdate: info.selfUpdate, app: info.app, appRemembered: info.appRemembered }); return }
       setState({ phase: 'updating', local: info.local, selfUpdate: true, app: info.app })
       const ok = await updateModule(token)
       if (!alive) return
@@ -141,7 +156,7 @@ export function useModuleUpdateNotice() {
         add({
           type: 'module_update',
           title: t('Вышла новая версия приложения расшифровки'),
-          body: t('Скачайте «Искра · Расшифровка» {version} в профиле → «Интеграции» и откройте её. Дальше приложение будет обновляться само.').replace('{version}', TRANSCRIPTION_PRODUCT_VERSION),
+          body: t('Скачайте «Искра · Расшифровка» {version} в профиле → «Интеграции» и перенесите в «Программы» с заменой. Код модуля обновляется сам, приложение — нет.').replace('{version}', TRANSCRIPTION_PRODUCT_VERSION),
           action: { label: t('Открыть'), page: '#/teacher/profile', tab: 'integrations' },
           link: { page: 'teacher/profile' },
         })
