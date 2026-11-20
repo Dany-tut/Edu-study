@@ -526,7 +526,11 @@ def start():
         # Быстрое распознавание из UI: движок задаётся на задание и перекрывает env.
         engine=request.form.get('engine','')
         engine=engine if engine in ('whisper','gigaam','auto') else ''
-        job={'id':jid,'owner':token,'mode':mode,'titleRegion':region,'link':link,'tracks':names,'completed':[], 'state':{'stage':'В очереди','queuedAt':time.time()},'training':request.form.get('training')=='1','engine':engine}
+        # Название урока и курса от страницы — подпись задания в виджете очереди
+        # (виден в любом браузере этого профиля, не только в том, что ставил).
+        lesson_title=str(request.form.get('lessonTitle',''))[:200]
+        course_title=str(request.form.get('courseTitle',''))[:200]
+        job={'id':jid,'owner':token,'mode':mode,'titleRegion':region,'link':link,'tracks':names,'completed':[], 'state':{'stage':'В очереди','queuedAt':time.time()},'training':request.form.get('training')=='1','engine':engine,'lessonTitle':lesson_title,'courseTitle':course_title}
         job_store.save(folder, job)
         jobs[jid]=job
         enqueue(jid)
@@ -594,6 +598,8 @@ def _queue_brief(jid, job):
     """Краткий статус задания для виджета очереди в нав-баре."""
     state=job['state']
     item={'id':jid,'mode':job.get('mode','text'),'stage':state.get('stage','')}
+    if job.get('lessonTitle'): item['lessonTitle']=job['lessonTitle']
+    if job.get('courseTitle'): item['courseTitle']=job['courseTitle']
     for flag in ('done','error','cancelled','cancelling'):
         if state.get(flag): item[flag]=True
     try:
