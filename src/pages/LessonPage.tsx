@@ -1069,9 +1069,6 @@ export default function LessonPage() {
 
       {/* Итоги занятия из записи — сразу под видео: таймкоды ведут в плеер выше. */}
       <RecapSummary paragraphs={recapParas} seek={canSeek ? seekTo : undefined} scale={scale} />
-      {lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
-        <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime} hidden={montagePlan?.skip}
-          seek={canSeek ? seekTo : undefined} />}
       {lesson.description?.trim() && (
         <section style={{
           padding: 24, borderRadius: 24,
@@ -1206,6 +1203,12 @@ export default function LessonPage() {
           </div>
         ))}
       </div>
+
+      {/* ── Расшифровка — в самом низу, под описанием и материалами, и только
+          если учитель отметил «Показывать ученику». ── */}
+      {lesson.transcript?.forStudents && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
+        <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime} hidden={montagePlan?.skip}
+          seek={canSeek ? seekTo : undefined} />}
 
     </div>
   )

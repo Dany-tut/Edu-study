@@ -20,6 +20,7 @@ import { SeasonCurrentNode } from './season/Season'
 import { useSeason } from '../lib/season'
 import type { ScheduleState } from '../lib/scheduleState'
 import ScheduleStatusBadge from './ScheduleStatusBadge'
+import { textFadeLines } from '../lib/textFades'
 import type { LessonAssessment } from '../lib/lessonAssessments'
 import { lessonNo } from '../lib/lessonNumber'
 
@@ -276,7 +277,9 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
         </span>
         {showScheduleStatus && scheduleState && <ScheduleStatusBadge state={scheduleState} />}
         {caption && (
-          <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, whiteSpace: 'nowrap', marginTop: 2 }}>
+          // Подпись уже́ шага между кружками (~88 px): длинная («Смотреть запись»)
+          // переносится в две строки, а не наезжает на соседнюю.
+          <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, marginTop: 2, maxWidth: 76, lineHeight: 1.15, ...textFadeLines(2), overflowWrap: 'anywhere', hyphens: 'auto' }}>
             {caption}
           </span>
         )}
