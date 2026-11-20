@@ -15,12 +15,15 @@ import hashlib
 import io
 import re
 import signal
+import wave
 import zipfile
 
 from flask import Flask, abort, jsonify, request
 from link_video import fetch, downloaded, LIMIT, DownloadUnavailable
 from media_tools import FFMPEG
 import job_store
+import asr_config
+import vad_segment
 from job_control import supervise
 from slide_chapters import REGIONS
 
@@ -64,7 +67,7 @@ def module_version(root=ROOT):
     return fingerprint({p.name: p.read_bytes() for p in root.iterdir() if p.is_file() and is_code(p.name)})
 VERSION = module_version()
 # Large speech/topic models are prepared by the first real transcription only.
-from model_cache import MODEL_SPECS, ensure_model
+from model_cache import MODEL_SPECS, ensure_model, ensure_asr_assets
 
 def prepare_voice_models():
     """Optional setup runs alongside the server. Jobs can proceed without it."""
@@ -257,6 +260,50 @@ def process(job, folder, link):
         gate.release()
 
 
+AUDIO_FORMATS='mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac'
+
+def _ffmpeg_segments(source, folder, worker_lock, whitelist):
+    """Прежняя резка: ровно по 90 с (ffmpeg segment)."""
+    args=[FFMPEG,'-nostdin','-v','error']
+    if whitelist: args+=['-protocol_whitelist','file,pipe','-format_whitelist',AUDIO_FORMATS]
+    args+=['-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(folder/'audio-%05d.wav')]
+    return subprocess.run(args,capture_output=True,pass_fds=(worker_lock.fileno(),)).returncode
+
+def _vad_segments(source, folder, worker_lock, whitelist):
+    """Декодируем всё в один wav и режем по паузам (Silero VAD). True — получилось.
+    Куски остаются подряд и покрывают всю запись — инвариант конвейера цел."""
+    full=folder/'.full.wav'
+    args=[FFMPEG,'-nostdin','-v','error']
+    if whitelist: args+=['-protocol_whitelist','file,pipe','-format_whitelist',AUDIO_FORMATS]
+    args+=['-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','wav',str(full)]
+    try:
+        if subprocess.run(args,capture_output=True,pass_fds=(worker_lock.fileno(),)).returncode:
+            return False
+        with wave.open(str(full)) as f: dur=f.getnframes()/f.getframerate()
+        speech=vad_segment.speech_segments(full, asr_config.silero_path(), max_speech=90.0)
+        if speech is None: return False
+        cuts=vad_segment.plan_cuts(speech, dur, chunk_max=90.0, min_chunk=20.0)
+        vad_segment.slice_wav(full, cuts, folder)
+        return bool(sorted(folder.glob('audio-*.wav')))
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print(f'VAD-резка не удалась: {type(error).__name__}: {error}',flush=True)
+        return False
+    finally:
+        full.unlink(missing_ok=True)
+
+def segment_audio(source, folder, worker_lock, whitelist=True):
+    """Нарезать звук на audio-*.wav. По флагу ISKRA_VAD_SEGMENT — по паузам (VAD),
+    иначе — как раньше, по 90 с. VAD не вышел → тихо откатываемся на 90 с."""
+    for old in folder.glob('audio-*.wav'): old.unlink()
+    if asr_config.vad_segment_enabled():
+        if _vad_segments(source, folder, worker_lock, whitelist):
+            print('Звук нарезан по паузам (VAD).',flush=True); return
+        for old in folder.glob('audio-*.wav'): old.unlink()  # на всякий случай — частичная нарезка
+        print('Режем по 90 с (VAD недоступен).',flush=True)
+    if _ffmpeg_segments(source, folder, worker_lock, whitelist):
+        raise ValueError('Не удалось прочитать звук. Проверьте файл или ссылку.')
+
+
 def run_pipeline(job,folder,link):
     worker_lock = open(folder / '.worker.lock', 'a')
     fcntl.flock(worker_lock, fcntl.LOCK_EX)
@@ -286,12 +333,12 @@ def run_pipeline(job,folder,link):
                 raise ValueError(error.read_text() if error.exists() else 'Не удалось прочитать заголовки слайдов.')
             stage('Готово', mode='slides', chapters=json.loads((folder/'chapters.json').read_text()), done=True)
             return
+        # Модели ускорения (GigaAM / Silero VAD) — только если учитель включил
+        # флаг; best-effort, задание не падает, если не скачались.
+        ensure_asr_assets(asr_config.engine(), asr_config.vad_segment_enabled())
         stage('Готовим звуковую дорожку')
-        cmd=[FFMPEG,'-nostdin','-v','error','-protocol_whitelist','file,pipe','-format_whitelist','mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac','-i',str(source),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(folder/'audio-%05d.wav')]
         if 'audio' not in job['completed']:
-            for old in folder.glob('audio-*.wav'): old.unlink()
-            if subprocess.run(cmd,capture_output=True,pass_fds=(worker_lock.fileno(),)).returncode:
-                raise ValueError('Не удалось прочитать звук. Проверьте файл или ссылку.')
+            segment_audio(source, folder, worker_lock, whitelist=True)
             job['completed'].append('audio')
             job_store.save(folder, job)
         if job.get('training') and not training_audio(job['id']).exists():
@@ -342,8 +389,9 @@ def recognize_tracks(job,folder,env,worker_lock):
     for i,name in enumerate(job['tracks']):
         sub=folder/f'track{i}'
         sub.mkdir(exist_ok=True)
-        cmd=[FFMPEG,'-nostdin','-v','error','-i',str(folder/f'track-{i}'),'-map','0:a:0','-vn','-ac','1','-ar','16000','-f','segment','-segment_time','90','-reset_timestamps','1',str(sub/'audio-%05d.wav')]
-        if subprocess.run(cmd,capture_output=True,pass_fds=(worker_lock.fileno(),)).returncode:
+        try:
+            segment_audio(folder/f'track-{i}', sub, worker_lock, whitelist=False)
+        except ValueError:
             raise ValueError(f'Не удалось прочитать дорожку «{name}».')
         python=os.environ.get('ISKRA_WHISPER_PYTHON',sys.executable)
         subprocess.run([python,str(ROOT/'recognize.py'),str(sub)],check=True,env=env,pass_fds=(worker_lock.fileno(),))

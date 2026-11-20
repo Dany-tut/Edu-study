@@ -1,6 +1,8 @@
 """Validate complete model snapshots; repair metadata without discarding weights."""
 import json
 import os
+import subprocess
+import tempfile
 from pathlib import Path
 
 MODEL_SPECS = (
@@ -95,3 +97,70 @@ def ensure_model(repo, kind, stage):
     except Exception as error:
         print(f'Model preparation failed ({repo}): {type(error).__name__}: {error}', flush=True)
         raise ValueError('Не удалось подготовить модель ' + label + '. Проверьте интернет и свободное место. При повторной попытке Искра докачает недостающие файлы.') from error
+
+
+# ── Модели ускорения (волна 2): GigaAM и Silero VAD ─────────────────────────
+# Это asset-файлы sherpa-onnx (не HF-снапшоты), качаются с релизов k2-fsa, как
+# модели голосов в server.prepare_voice_models. Нужны только если учитель включил
+# флаг (ISKRA_ASR_ENGINE / ISKRA_VAD_SEGMENT), иначе не скачиваются вовсе.
+_RELEASE = 'https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/'
+
+
+def _curl(url, dest, timeout=620):
+    subprocess.run(['/usr/bin/curl', '-fsSL', '--max-time', str(timeout - 20), '-o', str(dest), url],
+                   check=True, timeout=timeout)
+
+
+def _fetch_file(url, dest):
+    """Скачать одиночный файл атомарно. True — удалось или уже есть."""
+    dest = Path(dest)
+    if dest.exists():
+        return True
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with tempfile.TemporaryDirectory(dir=dest.parent) as directory:
+            download = Path(directory) / 'download'
+            _curl(url, download)
+            download.replace(dest)
+        return True
+    except (OSError, subprocess.SubprocessError) as error:
+        print(f'Не удалось скачать {url}: {type(error).__name__}: {error}', flush=True)
+        return False
+
+
+def _fetch_archive(url, base, members):
+    """Скачать .tar.bz2 один раз и разложить перечисленные пути в base/<basename>."""
+    base = Path(base)
+    if all((base / Path(member).name).is_file() for member in members):
+        return True
+    base.mkdir(parents=True, exist_ok=True)
+    try:
+        with tempfile.TemporaryDirectory(dir=base) as directory:
+            archive = Path(directory) / 'archive.tar.bz2'
+            _curl(url, archive)
+            subprocess.run(['/usr/bin/tar', '-xjf', str(archive), '-C', directory, *members],
+                           check=True, timeout=180)
+            for member in members:
+                (Path(directory) / member).replace(base / Path(member).name)
+        return True
+    except (OSError, subprocess.SubprocessError) as error:
+        print(f'Не удалось подготовить {url}: {type(error).__name__}: {error}', flush=True)
+        return False
+
+
+def ensure_asr_assets(engine, vad):
+    """Best-effort: докачать только то, что включено флагами. Никогда не роняет
+    задание — распознавание само откатится на whisper / резку по 90 с."""
+    import asr_config
+    if engine in ('gigaam', 'auto'):
+        model, tokens = asr_config.gigaam_paths()
+        base = asr_config.asr_assets_dir() / asr_config.GIGAAM_DIRNAME
+        # Качаем только дефолтную модель; свой путь (ISKRA_GIGAAM_MODEL) не трогаем.
+        if model == base / 'model.int8.onnx' and tokens == base / 'tokens.txt' and not (model.is_file() and tokens.is_file()):
+            _fetch_archive(_RELEASE + asr_config.GIGAAM_DIRNAME + '.tar.bz2', base,
+                           [asr_config.GIGAAM_DIRNAME + '/model.int8.onnx',
+                            asr_config.GIGAAM_DIRNAME + '/tokens.txt'])
+    if vad:
+        silero = asr_config.silero_path()
+        if silero == asr_config.asr_assets_dir() / 'silero_vad.onnx':
+            _fetch_file(_RELEASE + 'silero_vad.onnx', silero)
