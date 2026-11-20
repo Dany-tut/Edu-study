@@ -20,6 +20,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getSubject, registrySubjectPalette, darken, lighten, mixHex, hexToRgba } from './subjects'
+import { setThemeColor } from './themeColor'
 
 /** Глубина перекраски. Порядок — от слабой к сильной, каждая включает предыдущую. */
 export type TintLevel = 'off' | 'accent' | 'soft' | 'ambient'
@@ -259,8 +260,7 @@ export function applyCourseTint(hex: string | null, level: TintLevel, dark: bool
   // Полоса статуса в Safari красится в тот же фон, что и страница, иначе на
   // уровне «среда» сверху остаётся серый кант чужого оттенка.
   const bg = vars['--color-bg'] ?? (dark ? NEUTRAL.dark.bg : NEUTRAL.light.bg)
-  const meta = document.querySelector('meta[name="theme-color"]:not([media])')
-  if (meta) meta.setAttribute('content', bg)
+  setThemeColor(bg)
 }
 
 /**
