@@ -453,3 +453,6 @@
   --segmented-track-radius: 11px;
   --segmented-item-radius: 7px;
 }
+
+/* Видимая плашка в карточке (модуль спит / не ответил) — без раскрытия «Управления модулем». */
+.transcription-module-notice { margin-top: 12px; }
