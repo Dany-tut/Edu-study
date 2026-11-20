@@ -1,0 +1,50 @@
+[
+ {
+  "width": 0.1177,
+  "confidence": 1,
+  "y": 0.0986,
+  "height": 0.0787,
+  "text": "File Home",
+  "x": 0.0145
+ },
+ {
+  "width": 0.0552,
+  "confidence": 1,
+  "y": 0.0986,
+  "height": 0.0775,
+  "text": "Insert",
+  "x": 0.1599
+ },
+ {
+  "width": 0.05,
+  "confidence": 1,
+  "y": 0.0938,
+  "height": 0.0828,
+  "text": "Draw",
+  "x": 0.2453
+ },
+ {
+  "width": 0.1951,
+  "confidence": 1,
+  "y": 0.0892,
+  "height": 0.1095,
+  "text": "Design Slide Show",
+  "x": 0.3225
+ },
+ {
+  "width": 0.0571,
+  "confidence": 1,
+  "y": 0.3626,
+  "height": 0.0846,
+  "text": "2 of 31",
+  "x": 0.0231
+ },
+ {
+  "width": 0.6305,
+  "confidence": 1,
+  "y": 0.6172,
+  "height": 0.2948,
+  "text": "Клеточное строение",
+  "x": 0.2784
+ }
+]

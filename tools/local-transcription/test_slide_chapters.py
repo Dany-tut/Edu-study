@@ -10,13 +10,13 @@ from slide_chapters import heading, scan, same, suspicious
 
 
 class SlideChapterTests(unittest.TestCase):
-    def test_noise_is_reviewable_but_does_not_beat_real_heading(self):
+    def test_noise_never_beats_or_replaces_real_heading(self):
         for noise in ['V гч ···', 'sm rч ···', 'mm o ···', 'om V', 'мт ч ···', 'mm ч ···']:
             self.assertTrue(suspicious(noise))
             # Ellipsis/mixed-script fragments must not outrank a readable heading.
-            if suspicious(noise):
-                self.assertEqual(heading([{'text':noise,'height':.3,'y':0}, {'text':'ТРИПАНОСОМА','height':.1,'y':.2}]), 'ТРИПАНОСОМА')
-                self.assertEqual(heading([{'text':noise,'height':.3,'y':0}]), noise)
+            self.assertEqual(heading([{'text':noise,'height':.3,'y':0}, {'text':'ТРИПАНОСОМА','height':.1,'y':.2}]), 'ТРИПАНОСОМА')
+            # A frame with only shards has no heading: better no chapter than «om V».
+            self.assertEqual(heading([{'text':noise,'height':.3,'y':0}]), '')
         for short in ['pH', 'Na', 'Ёж', 'ДНК', 'РНК']:
             self.assertEqual(heading([{'text':short,'height':.1,'y':.1}]), short)
 

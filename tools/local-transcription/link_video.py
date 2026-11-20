@@ -1,4 +1,5 @@
-import ipaddress, re, shutil, socket, subprocess, sys
+import hashlib, ipaddress, os, re, shutil, socket, subprocess, sys, time
+from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urljoin, urlsplit, urlunsplit
@@ -9,6 +10,15 @@ class DownloadUnavailable(Exception):
 LIMIT=2*1024**3
 DRIVE_HOSTS=frozenset({'drive.google.com','www.drive.google.com','drive.usercontent.google.com'})
 VIDEO_CHECK_SECONDS=30
+# Parallel Range download: Drive throttles one connection; several pieces in
+# parallel fill the line. Small files stay one request.
+PARTS=6
+PART_MIN=8*1024**2
+PART_RETRIES=4
+# Downloaded Drive videos are kept on this Mac, so the same lesson in another
+# mode (text ↔ slides) or a retry does not download again.
+CACHE_DAYS=7
+CACHE_KEEP=5
 
 def downloaded(folder):
     """Bytes on disk and the expected size; total is 0 when the source did not say."""
@@ -34,6 +44,12 @@ def drive_file_id(url):
 def drive_download_url(file_id):
     if not re.fullmatch(r'[A-Za-z0-9_-]{10,200}',file_id):raise ValueError('Некорректная ссылка Google Drive.')
     return 'https://drive.google.com/uc?'+urlencode({'export':'download','id':file_id})
+
+def drive_direct_url(file_id):
+    """Straight to the file host with the usual confirmation: skips the
+    uc → redirect → virus-scan page round trips. Falls back to the page flow."""
+    if not re.fullmatch(r'[A-Za-z0-9_-]{10,200}',file_id):raise ValueError('Некорректная ссылка Google Drive.')
+    return 'https://drive.usercontent.google.com/download?'+urlencode({'id':file_id,'export':'download','confirm':'t'})
 
 class _DrivePage(HTMLParser):
     """Read only Drive confirmation form controls and download links."""
@@ -89,7 +105,7 @@ def _public_ip(host,port):
     if not addresses or not all(a.is_global for a in addresses):raise ValueError('Нужна общедоступная ссылка на видео.')
     return str(addresses[0])
 
-def _curl_once(url, folder, limit, cookie_file=None, body_name='.drive-response'):
+def _curl_once(url, folder, limit, cookie_file=None, body_name='.drive-response', extra=()):
     """Make one pinned request; redirects are returned to the caller for revalidation."""
     p=urlsplit(url)
     if p.scheme not in ('http','https') or not p.hostname or p.username or p.password:
@@ -100,6 +116,7 @@ def _curl_once(url, folder, limit, cookie_file=None, body_name='.drive-response'
     cmd=['curl','-q','--noproxy','*','--silent','--connect-timeout','15','--max-time','900','--max-filesize',str(limit),
          '--resolve',f'{p.hostname}:{port}:{addr}','--output',str(body),'--dump-header',str(headers)]
     if cookie_file:cmd.extend(['--cookie',str(cookie_file),'--cookie-jar',str(cookie_file)])
+    cmd.extend(extra)
     cmd.extend(['--write-out','%{http_code}\n%{redirect_url}\n%{content_type}','--',url])
     result=subprocess.run(cmd,capture_output=True,text=True)
     values=result.stdout.split('\n',2)
@@ -116,25 +133,136 @@ def _verify_video(path, ffmpeg='ffmpeg'):
     if result.returncode:
         raise ValueError('Ссылка должна открывать видео для скачивания. Проверьте доступ Google Drive или выберите файл.')
 
+def _total_from_headers(folder):
+    """Full size from the last `Content-Range: bytes 0-0/N` response."""
+    try: text=(folder/'.download-headers').read_text(errors='replace')
+    except OSError: return 0
+    found=re.findall(r'(?im)^content-range:\s*bytes\s+\d+-\d+/(\d+)',text)
+    return int(found[-1]) if found else 0
+
+def _download_parts(url, folder, total, cookie_file):
+    """Fetch [0, total) as PARTS parallel Range requests to the same pinned
+    address, each resumed after a dropped connection; then join in order.
+
+    Part files are `download.<total>.<n>` so progress counts them and a retry
+    of the same file continues where it stopped."""
+    p=urlsplit(url); port=p.port or 443
+    addr=_public_ip(p.hostname,port); addr=f'[{addr}]' if ':' in addr else addr
+    count=PARTS if total>=PART_MIN*2 else 1
+    size=-(-total//count)
+    spans=[(n,n*size,min(total,(n+1)*size)-1) for n in range(count)]
+    for old in folder.glob('download.*.*'):
+        if not old.name.startswith(f'download.{total}.'):old.unlink(missing_ok=True)
+    def piece(span):
+        n,start,end=span; path=folder/f'download.{total}.{n}'
+        for attempt in range(PART_RETRIES):
+            have=path.stat().st_size if path.exists() else 0
+            if have>end-start+1: path.unlink(); have=0
+            if have==end-start+1: return
+            cmd=['curl','-q','--noproxy','*','--silent','--fail','--connect-timeout','15','--max-time','900',
+                 '--speed-limit','1024','--speed-time','60',
+                 '--resolve',f'{p.hostname}:{port}:{addr}','--range',f'{start+have}-{end}']
+            if cookie_file and Path(cookie_file).exists():cmd.extend(['--cookie',str(cookie_file)])
+            with open(path,'ab') as out:
+                result=subprocess.run([*cmd,'--output','-','--',url],stdout=out,stderr=subprocess.DEVNULL)
+            got=path.stat().st_size
+            if got==end-start+1: return
+            if result.returncode not in (0,18,28,52,55,56) and got==have:
+                raise ValueError('Google Drive прервал скачивание. Повторите или выберите файл.')
+            time.sleep(min(8,2**attempt))
+        raise DownloadUnavailable()
+    with ThreadPoolExecutor(count) as pool:
+        list(pool.map(piece,spans))
+    joined=folder/'download.joined'
+    with open(joined,'wb') as out:
+        for n,_,_ in spans:
+            path=folder/f'download.{total}.{n}'
+            with open(path,'rb') as part: shutil.copyfileobj(part,out,16*1024*1024)
+    for n,_,_ in spans:(folder/f'download.{total}.{n}').unlink(missing_ok=True)
+    if joined.stat().st_size!=total:
+        joined.unlink(missing_ok=True)
+        raise ValueError('Видео скачано не полностью. Повторите или выберите файл.')
+    return joined
+
+def _cache_dir(folder):
+    # Jobs live in <home>/jobs/<id>; the cache sits next to them. Elsewhere
+    # (tests, manual runs) there is no cache.
+    folder=Path(folder).resolve()
+    return folder.parent.parent/'video-cache' if folder.parent.name=='jobs' else None
+
+def _cache_key(file_id):
+    return hashlib.sha256(('drive:'+file_id).encode()).hexdigest()[:32]
+
+def _from_cache(folder, file_id, ffmpeg):
+    if _cache_dir(folder) is None:return False
+    cached=_cache_dir(folder)/_cache_key(file_id)
+    try:
+        size=cached.stat().st_size
+        if not size or time.time()-cached.stat().st_mtime>CACHE_DAYS*86400:return False
+        _verify_video(cached,ffmpeg)
+        target=folder/'input'
+        target.unlink(missing_ok=True)
+        try: os.link(cached,target)
+        except OSError: shutil.copyfile(cached,target)
+        os.utime(cached)
+    except (OSError, ValueError):
+        return False
+    (folder/'.download-size').write_text(f'{size}\n')
+    return True
+
+def _store_cache(folder, file_id):
+    cache=_cache_dir(folder)
+    if cache is None:return
+    try:
+        cache.mkdir(mode=0o700,exist_ok=True)
+        entry=cache/_cache_key(file_id); tmp=cache/(entry.name+'.tmp')
+        tmp.unlink(missing_ok=True)
+        try: os.link(folder/'input',tmp)  # same disk: no extra space while the job keeps it
+        except OSError: return
+        tmp.replace(entry)
+        entries=sorted((p for p in cache.iterdir() if p.is_file() and not p.name.endswith('.tmp')),key=lambda p:p.stat().st_mtime,reverse=True)
+        for index,old in enumerate(entries):
+            if index>=CACHE_KEEP or time.time()-old.stat().st_mtime>CACHE_DAYS*86400:old.unlink(missing_ok=True)
+    except OSError:
+        pass
+
 def fetch_drive(url,folder,limit,ffmpeg='ffmpeg'):
     file_id=drive_file_id(url)
     if not file_id:raise ValueError('Нужна публичная ссылка Google Drive на видеофайл.')
-    current=drive_download_url(file_id); cookie_file=folder/'.drive-cookies'; seen=set()
+    if _from_cache(folder,file_id,ffmpeg):return
+    current=drive_direct_url(file_id); cookie_file=folder/'.drive-cookies'; seen=set()
+    fallback=drive_download_url(file_id)
     try:
-        for _ in range(8):
+        for _ in range(10):
             if current in seen:raise ValueError('Слишком много переадресаций Google Drive.')
             seen.add(current)
-            rc,code,target,mime,body=_curl_once(current,folder,limit,cookie_file)
+            # Ask for one byte first: a Range answer tells the size and that
+            # pieces can be fetched in parallel; a page or full body is handled below.
+            rc,code,target,mime,body=_curl_once(current,folder,limit,cookie_file,'download.response',extra=('--range','0-0'))
             if not rc and code.startswith('3') and target:
                 current=target; body.unlink(missing_ok=True); continue
-            if rc:raise ValueError('Не удалось скачать файл Google Drive. Проверьте публичный доступ или выберите файл.')
-            if code!='200':raise ValueError('Не удалось скачать файл Google Drive. Проверьте публичный доступ или выберите файл.')
+            if rc or code not in ('200','206'):
+                if current!=fallback and fallback not in seen:
+                    current=fallback; body.unlink(missing_ok=True); continue
+                raise ValueError('Не удалось скачать файл Google Drive. Проверьте публичный доступ или выберите файл.')
             if 'text/html' in mime.lower():
+                if code=='206':
+                    body.unlink(missing_ok=True)
+                    rc,code,_,mime,body=_curl_once(current,folder,limit,cookie_file,'download.response')
                 html=body.read_text(errors='replace')
                 confirmed=drive_confirmation_url(html,current,file_id,cookie_file)
                 body.unlink(missing_ok=True)
+                if not confirmed and fallback not in seen:
+                    current=fallback; continue
                 if not confirmed:raise ValueError('Google Drive не отдал публичное видео. Проверьте доступ «Все, у кого есть ссылка» или выберите файл.')
                 current=confirmed; continue
+            if code=='206':
+                body.unlink(missing_ok=True)
+                total=_total_from_headers(folder)
+                if not total or total>limit or total>LIMIT:
+                    raise ValueError('Размер видео превышает допустимый лимит или файл скачан не полностью.')
+                (folder/'.download-size').write_text(f'{total}\n')
+                body=_download_parts(current,folder,total,cookie_file)
             size=body.stat().st_size if body.exists() else 0
             if not size or size>limit or size>LIMIT:
                 body.unlink(missing_ok=True)
@@ -142,11 +270,14 @@ def fetch_drive(url,folder,limit,ffmpeg='ffmpeg'):
             _verify_video(body,ffmpeg)
             body.replace(folder/'input')
             (folder/'.download-size').write_text(f'{size}\n')
+            _store_cache(folder,file_id)
             return
         raise ValueError('Слишком много переадресаций Google Drive.')
     finally:
         (folder/'.drive-cookies').unlink(missing_ok=True)
         (folder/'.drive-response').unlink(missing_ok=True)
+        (folder/'download.response').unlink(missing_ok=True)
+        (folder/'download.joined').unlink(missing_ok=True)
 
 def fetch(url,folder):
     try: return _fetch(url,folder)
