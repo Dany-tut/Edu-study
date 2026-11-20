@@ -776,7 +776,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       <input type="file" multiple accept="audio/*,.m4a" aria-label="Дорожки участников" disabled={busy} onChange={e => setTracks([...(e.target.files ?? [])])} />
     </label>}
     {!pending && mode === 'text' && <div className="transcription-training">
-      <span><strong>Быстрое распознавание (эксперимент)</strong><small>Русскую речь распознаёт быстрее, с пунктуацией. Смешанную речь (с английским и т.п.) оставляет обычному движку. Первый запуск скачивает модель (~320 МБ).</small></span>
+      <span><strong>Быстрое распознавание (эксперимент)</strong><small>Русскую речь распознаёт быстрее и с пунктуацией; английские вставки сам отдаёт точному движку — покусочно, в одной расшифровке. Первый запуск скачивает модель (~320 МБ).</small></span>
       <Switch checked={fastAsr} onChange={toggleFastAsr} disabled={busy} label="Быстрое распознавание (эксперимент)" />
     </div>}
     {!pending && mode === 'text' && <div className="transcription-training">
