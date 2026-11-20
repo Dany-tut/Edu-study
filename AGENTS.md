@@ -35,7 +35,8 @@
 изменения своей задачи, коммит (хук обновит `public/version.json`),
 `npx tsc --noEmit` и `npm run build` локально, затем `git pull --rebase origin main`
 и `git push origin HEAD:main`. Отказ пуша — снова `pull --rebase` и пуш; в конфликте
-`public/version.json` взять версию `main` и пересобрать номер (`npm run release:check`).
+`public/version.json` взять версию `main`, затем `npm run stamp` и отдельный коммит —
+иначе Vercel отклонит выпуск («newer build number»).
 Не публикуйте незавершённые изменения других чатов, не коммитьте в устаревший
 локальный `main` основной копии. Check `Типы, сторожа, сборка` идёт уже после
 пуша: красный — чините следующим коммитом сразу. Force-push в `main` запрещён.

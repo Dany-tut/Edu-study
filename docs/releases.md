@@ -21,7 +21,8 @@ v0 и Marketplace для production запрещены политикой Vercel
    опубликованный коммит и новый номер сборки.
 4. `git pull --rebase origin main`, затем `git push origin HEAD:main` обычным
    fast-forward. Если пуш отклонён — повторить rebase и пуш. В конфликте
-   `public/version.json` взять версию `main` и пересобрать номер.
+   `public/version.json` взять версию `main`, затем `npm run stamp` и коммит:
+   без нового номера Vercel отклонит выпуск.
 5. GitHub Actions check `Типы, сторожа, сборка` запускается после пуша и не
    блокирует его. Красный check чинится следующим коммитом сразу; сломанную
    сборку Vercel в прод не выпускает.
