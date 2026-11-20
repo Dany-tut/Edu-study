@@ -92,195 +92,21 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-check]')
         run: npm run release:check
 
-      - name: Связка трека и календаря
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:course-track && npm run check:schedule && npm run check:attendance
-
-      - name: Диагностическая телеметрия (H1)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:diagnostics
-
-      - name: Серверный монитор и восстановление
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:server-monitor && npm run check:monitor-db
-
+      # Быстрый гейт (решение Дани 20.11.2026): блокируют только типы,
+      # защита релизов, ключи в клиенте, отпечаток модуля и сборка.
+      # Сторожа интерфейса и браузерные тесты из гейта убраны — их можно
+      # гонять локально (npm run check:ui и т.д.).
       - name: Типы (tsc --noEmit)
         if: steps.scope.outputs.scope != 'chapter-ui'
         id: types
         continue-on-error: true
         run: npx tsc --noEmit
 
-      - name: Главная ученика (check:student-home)
+      # Отпечаток модуля расшифровки: без него преподы получают сломанное
+      # самообновление. Секунда, поэтому остаётся в быстром гейте.
+      - name: Отпечаток модуля расшифровки
         if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:student-home
-
-      # ── Сторожа содержания ────────────────────────────────────────────────
-      #
-      # Порядок — от быстрых к медленным, чтобы дешёвая поломка всплывала в
-      # логе раньше. Четыре последних гоняются через esbuild (они импортируют
-      # исходники приложения), поэтому идут в конце.
-
-      - name: Виды дневника (check:diary-views)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:diary-views && npm run check:student-journal
-
-      - name: Словарь слов (check:gloss)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: gloss
-        continue-on-error: true
-        run: npm run check:gloss
-
-      - name: Английский интерфейс (check:i18n)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: i18n
-        continue-on-error: true
-        run: npm run check:i18n
-
-      - name: Полнота и параллельная загрузка журнала
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:journal-loading && npm run check:journal-summary
-
-      - name: Напоминания ученикам в Telegram (SQL и бот)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:reminders
-
-      - name: Изоляция личного учебного примера
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: node scripts/checkPersonalStudentDemo.mjs
-
-      - name: Просмотр кабинета преподавателя (check:teacher-view)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run check:teacher-view
-
-      - name: Переводы вопросов (check:questions)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: questions
-        continue-on-error: true
-        run: npm run check:questions
-
-      - name: Конспекты (check:prose)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: prose
-        continue-on-error: true
-        run: npm run check:prose
-
-      - name: Примеры к словам (check:examples)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: examples
-        continue-on-error: true
-        run: npm run check:examples
-
-      - name: Сцены (check:scenes)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: scenes
-        continue-on-error: true
-        run: npm run check:scenes
-
-      - name: Лента (check:feed)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: feed
-        continue-on-error: true
-        run: npm run check:feed
-
-      - name: Методика (check:logic)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: logic
-        continue-on-error: true
-        run: npm run check:logic
-
-      - name: Стандарт урока (check:lesson)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: lesson
-        continue-on-error: true
-        run: npm run check:lesson && npm run check:video-access
-
-      - name: Позиции верных ответов (check:choicepos)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: choicepos
-        continue-on-error: true
-        run: npm run check:choicepos
-
-      # Лёгкие таблицы (язык старых ссылок тренажёра) собираются скриптом из
-      # данных. Разойтись они могут молча: присланная ссылка перестаёт открывать
-      # материал, а сборка при этом зелёная.
-      - name: Лёгкие таблицы (check:light)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: light
-        continue-on-error: true
-        run: npm run check:light
-
-      - name: Назначения курса (check:course-access)
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        id: courseaccess
-        continue-on-error: true
-        run: npm run check:course-access
-
-      - name: Границы и покрытие иконок Loop
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        run: npm run icons:check
-
-      - name: Правила интерфейса (check:ui)
-        run: npm run check:ui
-
-      - name: Подготовить Chromium
-        run: |
-          playwright_dir=$(mktemp -d)
-          npm install --prefix "$playwright_dir" --no-save --package-lock=false --ignore-scripts playwright@1.64.1
-          ln -s "$playwright_dir/node_modules/playwright" node_modules/playwright
-          "$playwright_dir/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Геометрия и режимы глав
-        env:
-          ISKRA_BROWSER_CHANNEL: chromium
-          ISKRA_QA_OUTPUT: /tmp/iskra-chapter-header-qa
-        run: node scripts/checkChapterHeaderBrowser.mjs
-
-      - name: Ученический просмотр записи
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        env:
-          ISKRA_BROWSER_CHANNEL: chromium
-          ISKRA_QA_OUTPUT: /tmp/iskra-recording-preview-qa
-        run: |
-          node scripts/checkStudentRecordingBrowser.mjs
-          node scripts/checkTranscriptionAttemptBrowser.mjs
-          npx esbuild scripts/checkTranscriptionEta.mjs --bundle --platform=node --format=esm --outfile=/tmp/check-transcription-eta.mjs
-          node /tmp/check-transcription-eta.mjs
-
-      - name: Переходы и геометрия мини-виджета
-        if: steps.scope.outputs.scope != 'chapter-ui'
-        env:
-          ISKRA_PLAYWRIGHT_MODULE: playwright
-          ISKRA_BROWSER_CHANNEL: chromium
-          ISKRA_QA_OUTPUT: /tmp/iskra-topbar-qa
-          VITE_SUPABASE_URL: https://qa.invalid
-          VITE_SUPABASE_PUBLISHABLE_KEY: qa-fixture-key
-        run: |
-          npx vite --host 127.0.0.1 --port 5173 --strictPort > /tmp/iskra-topbar-vite.log 2>&1 &
-          vite_pid=$!
-          trap 'kill "$vite_pid"' EXIT
-          for attempt in $(seq 1 60); do
-            if curl --fail --silent http://127.0.0.1:5173/ > /dev/null; then break; fi
-            sleep 1
-          done
-          npm run check:student-topbar
-          npm run check:calendar-browser
-          npm run check:shelf-filters-browser
-          ISKRA_QA_OUTPUT=/tmp/iskra-google-form-qa npm run check:google-form-modal
-          ISKRA_BROWSER_CHANNEL=chromium node scripts/checkClaudeAccessRaces.mjs
-          node scripts/checkOAuthConsentRaces.mjs
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: student-topbar-geometry
-          path: |
-            /tmp/iskra-chapter-header-qa
-            /tmp/iskra-recording-preview-qa/
-            /tmp/iskra-topbar-qa/
-            /tmp/iskra-calendar-day-qa/
-            /tmp/iskra-shelf-filters/
-            /tmp/iskra-google-form-qa/
-          if-no-files-found: ignore
+        run: node scripts/buildTranscriptionModule.mjs --check
 
       # Сам поиск ключей идёт внутри `npm run build` по готовому dist/.
       # Здесь — проверка, что сторож вообще что-то ловит, а не молча зелёный.
@@ -309,18 +135,6 @@ jobs:
             fi
           }
           check "типы"                  "${{ steps.types.outcome }}"
-          check "check:gloss"           "${{ steps.gloss.outcome }}"
-          check "check:i18n"            "${{ steps.i18n.outcome }}"
-          check "check:questions"       "${{ steps.questions.outcome }}"
-          check "check:prose"           "${{ steps.prose.outcome }}"
-          check "check:examples"        "${{ steps.examples.outcome }}"
-          check "check:scenes"          "${{ steps.scenes.outcome }}"
-          check "check:feed"            "${{ steps.feed.outcome }}"
-          check "check:logic"           "${{ steps.logic.outcome }}"
-          check "check:lesson"          "${{ steps.lesson.outcome }}"
-          check "check:choicepos"       "${{ steps.choicepos.outcome }}"
-          check "check:light"           "${{ steps.light.outcome }}"
-          check "check:course-access"    "${{ steps.courseaccess.outcome }}"
           check "сборка"                "${{ steps.build.outcome }}"
           exit $fail
 
