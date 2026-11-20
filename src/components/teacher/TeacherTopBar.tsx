@@ -472,8 +472,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 // Otherwise the tab grows when the count arrives and shifts the
                 // neighboring items in the centered navigation pill.
                 // Внешние поля у всех вкладок одинаковы — зазоры между вкладками
-                // ровные. Слово журнала держит по центру невидимое зеркало слота
-                // слева (ниже); счётчик — трейлинг справа, слово не сдвигает.
+                // ровные. Счётчик — обычный инлайн-элемент после слова: слово
+                // у «Журнала» чуть левее центра на пол-бейджа, без слотов-зеркал.
                 padding: `0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
@@ -493,12 +493,6 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                     pointerEvents: 'none',
                   }}
                 />
-              {/* Зеркало слота счётчика слева — пустое, той же ширины, что
-                  зарезервированный слот справа. Держит слово оптически по центру
-                  таблетки, не сдвигая его. Только у журнала в развёрнутом виде. */}
-              {item.id === 'gradebook' && !collapsed && (
-                <span aria-hidden style={{ width: 40, height: 18, marginRight: 8, flexShrink: 0 }} />
-              )}
               <span style={{
                 position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', overflow: 'hidden',
                 maxWidth: collapsed ? 22 : 0, opacity: collapsed ? 1 : 0,
@@ -517,11 +511,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   сверху/снизу), свёрнутая до иконки — в углу. */}
               {collapsed
                 ? <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 3, right: 1, zIndex: 2 }} />
-                : item.id === 'gradebook'
-                  ? <span aria-hidden={badgeCount <= 0} style={{ position: 'relative', zIndex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', width: 40, height: 18, marginLeft: 8, flexShrink: 0 }}>
-                      <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} />
-                    </span>
-                  : null}
+                : <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} style={{ position: 'relative', zIndex: 1, marginLeft: 8, flexShrink: 0 }} />}
             </motion.button>
           )
         })}
