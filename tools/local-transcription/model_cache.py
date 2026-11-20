@@ -100,9 +100,10 @@ def ensure_model(repo, kind, stage):
 
 
 # ── Модели ускорения (волна 2): GigaAM и Silero VAD ─────────────────────────
-# Это asset-файлы sherpa-onnx (не HF-снапшоты), качаются с релизов k2-fsa, как
-# модели голосов в server.prepare_voice_models. Нужны только если учитель включил
-# флаг (ISKRA_ASR_ENGINE / ISKRA_VAD_SEGMENT), иначе не скачиваются вовсе.
+# Нужны только если учитель включил флаг (ISKRA_ASR_ENGINE / ISKRA_VAD_SEGMENT),
+# иначе не скачиваются вовсе. GigaAM v3 e2e-CTC берём с зеркала sherpa-onnx на HF
+# (две нужные модели из репозитория, не весь ~5 ГБ). Silero VAD — одиночный файл
+# с релиза k2-fsa.
 _RELEASE = 'https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/'
 
 
@@ -128,23 +129,21 @@ def _fetch_file(url, dest):
         return False
 
 
-def _fetch_archive(url, base, members):
-    """Скачать .tar.bz2 один раз и разложить перечисленные пути в base/<basename>."""
+def _hf_fetch(repo, files, base):
+    """Скачать перечисленные файлы из HF-репозитория в base. True — все на месте."""
     base = Path(base)
-    if all((base / Path(member).name).is_file() for member in members):
+    if all((base / name).is_file() for name in files):
         return True
     base.mkdir(parents=True, exist_ok=True)
     try:
-        with tempfile.TemporaryDirectory(dir=base) as directory:
-            archive = Path(directory) / 'archive.tar.bz2'
-            _curl(url, archive)
-            subprocess.run(['/usr/bin/tar', '-xjf', str(archive), '-C', directory, *members],
-                           check=True, timeout=180)
-            for member in members:
-                (Path(directory) / member).replace(base / Path(member).name)
-        return True
-    except (OSError, subprocess.SubprocessError) as error:
-        print(f'Не удалось подготовить {url}: {type(error).__name__}: {error}', flush=True)
+        from huggingface_hub import hf_hub_download
+        for name in files:
+            if (base / name).is_file():
+                continue
+            hf_hub_download(repo_id=repo, filename=name, local_dir=str(base))
+        return all((base / name).is_file() for name in files)
+    except Exception as error:  # noqa: BLE001 — сеть/хаб/место: откат на whisper
+        print(f'Не удалось скачать GigaAM с {repo}: {type(error).__name__}: {error}', flush=True)
         return False
 
 
@@ -156,10 +155,17 @@ def ensure_asr_assets(engine, vad):
         model, tokens = asr_config.gigaam_paths()
         base = asr_config.asr_assets_dir() / asr_config.GIGAAM_DIRNAME
         # Качаем только дефолтную модель; свой путь (ISKRA_GIGAAM_MODEL) не трогаем.
-        if model == base / 'model.int8.onnx' and tokens == base / 'tokens.txt' and not (model.is_file() and tokens.is_file()):
-            _fetch_archive(_RELEASE + asr_config.GIGAAM_DIRNAME + '.tar.bz2', base,
-                           [asr_config.GIGAAM_DIRNAME + '/model.int8.onnx',
-                            asr_config.GIGAAM_DIRNAME + '/tokens.txt'])
+        if (model == base / asr_config.GIGAAM_MODEL_FILE and tokens == base / asr_config.GIGAAM_TOKENS_FILE
+                and not (model.is_file() and tokens.is_file())):
+            # Своё зеркало (R2) через ISKRA_GIGAAM_URL_BASE — прямые URL двух файлов;
+            # иначе — HF-зеркало по умолчанию.
+            url_base = os.environ.get('ISKRA_GIGAAM_URL_BASE', '').rstrip('/')
+            if url_base:
+                _fetch_file(f'{url_base}/{asr_config.GIGAAM_MODEL_FILE}', model)
+                _fetch_file(f'{url_base}/{asr_config.GIGAAM_TOKENS_FILE}', tokens)
+            else:
+                _hf_fetch(asr_config.GIGAAM_HF_REPO,
+                          [asr_config.GIGAAM_MODEL_FILE, asr_config.GIGAAM_TOKENS_FILE], base)
     if vad:
         silero = asr_config.silero_path()
         if silero == asr_config.asr_assets_dir() / 'silero_vad.onnx':

@@ -333,9 +333,11 @@ def run_pipeline(job,folder,link):
                 raise ValueError(error.read_text() if error.exists() else 'Не удалось прочитать заголовки слайдов.')
             stage('Готово', mode='slides', chapters=json.loads((folder/'chapters.json').read_text()), done=True)
             return
-        # Модели ускорения (GigaAM / Silero VAD) — только если учитель включил
-        # флаг; best-effort, задание не падает, если не скачались.
-        ensure_asr_assets(asr_config.engine(), asr_config.vad_segment_enabled())
+        # Движок задания (из UI) перекрывает env; пусто → env/дефолт.
+        asr_engine_choice = job.get('engine') or asr_config.engine()
+        # Модели ускорения (GigaAM / Silero VAD) — только если включено; best-effort,
+        # задание не падает, если не скачались.
+        ensure_asr_assets(asr_engine_choice, asr_config.vad_segment_enabled())
         stage('Готовим звуковую дорожку')
         if 'audio' not in job['completed']:
             segment_audio(source, folder, worker_lock, whitelist=True)
@@ -349,6 +351,7 @@ def run_pipeline(job,folder,link):
                            capture_output=True,pass_fds=(worker_lock.fileno(),))
         ensure_models(stage)
         env=dict(os.environ,HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false')
+        if job.get('engine'): env['ISKRA_ASR_ENGINE']=job['engine']
         if job.get('tracks') and 'recognize.py' not in job['completed']:
             stage('Распознаём речь')
             recognize_tracks(job,folder,env,worker_lock)
@@ -463,7 +466,10 @@ def start():
                 (folder/'terms.json').write_text(json.dumps({'prompt':[str(t)[:80] for t in data.get('prompt',[])][:120],
                     'replace':[[str(h)[:80],str(w)[:80]] for h,w in data.get('replace',[]) if isinstance(h,str) and isinstance(w,str)][:400]},ensure_ascii=False))
             except (ValueError, TypeError, AttributeError): pass
-        job={'id':jid,'owner':token,'mode':mode,'titleRegion':region,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'},'training':request.form.get('training')=='1'}
+        # Быстрое распознавание из UI: движок задаётся на задание и перекрывает env.
+        engine=request.form.get('engine','')
+        engine=engine if engine in ('whisper','gigaam','auto') else ''
+        job={'id':jid,'owner':token,'mode':mode,'titleRegion':region,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'},'training':request.form.get('training')=='1','engine':engine}
         job_store.save(folder, job)
         jobs[jid]=job
         threading.Thread(target=process,args=(job,folder,link),daemon=True).start()
