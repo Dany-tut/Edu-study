@@ -17,7 +17,9 @@ export interface SavedMontage {
   /** Итоги урока на момент применения монтажа — для сравнения уроков курса. */
   stats?: LessonStatsSummary
 }
-export interface LessonTranscript { source: string; segments: TranscriptSegment[]; speakers?: MontageSpeaker[]; montage?: SavedMontage }
+export interface LessonTranscript { source: string; segments: TranscriptSegment[]; speakers?: MontageSpeaker[]; montage?: SavedMontage
+  /** Учитель отметил «Показывать ученику»; без отметки ученик расшифровку не видит. */
+  forStudents?: boolean }
 /** Голос от модуля. embedding (отпечаток) — только в черновике на этом
  *  компьютере: в урок не сохраняется, нужен, чтобы запомнить голос на Mac. */
 export interface ModuleVoice { id: string; embedding?: string; name?: string; match?: { label: string; role: 'teacher' | 'student' } }
@@ -81,8 +83,9 @@ export function readTranscript(value: unknown): LessonTranscript | undefined {
     Number.isFinite(s.end) && s.end > s.start && typeof s.text === 'string' && s.text.trim())) return
   const segments = (value.segments as TranscriptSegment[]).filter(s => !isPhantomLine(s.text))
   if (!segments.length) return
-  const v = value as { speakers?: unknown; montage?: unknown }
+  const v = value as { speakers?: unknown; montage?: unknown; forStudents?: unknown }
   return { source: value.source, segments,
+    ...(v.forStudents === true ? { forStudents: true } : {}),
     ...(readSpeakers(v.speakers) ? { speakers: readSpeakers(v.speakers) } : {}),
     ...(readMontage(v.montage) ? { montage: readMontage(v.montage) } : {}) }
 }

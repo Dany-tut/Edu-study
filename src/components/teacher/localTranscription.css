@@ -122,6 +122,7 @@
    идёт с !important и весом 0,3,1 — перебиваем её весом 0,4,1. */
 :is(.recording-lines,.timecode-editor) .transcript-line-text textarea:focus {background:var(--color-bg-3);outline:none !important}
 .transcript-tools {border-top:1px solid var(--color-border-soft);padding-top:6px}
+.transcript-audience {display:flex;align-items:center;min-height:32px;padding:0 2px}
 /* Одна высота у всех кнопок панели глав (--rail-control-h): «Сохранить»,
    «Сохраняем…», «Добавлено», иконки и ряд «Таймкод» — при смене
    состояния ряд не меняет высоту и список над ним не скачет. */

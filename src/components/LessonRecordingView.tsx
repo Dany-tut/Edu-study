@@ -127,7 +127,9 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
             </span>
           )}
         </div>
-        <div ref={chapterListRef} className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', minHeight: 0, paddingRight: 10 }}>
+        {/* overscroll contain: долистали таймкоды до конца — колесо не
+            уезжает дальше и не тянет за собой страницу. */}
+        <div ref={chapterListRef} className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', overscrollBehavior: 'contain', minHeight: 0, paddingRight: 10 }}>
           {timecodes.map((tc, i) => {
             const active = i === activeChapter
             // Глава кончается там, где начинается следующая; последняя — на
