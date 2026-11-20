@@ -1261,7 +1261,9 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
    класс или инлайн-стиль со своим border-radius его перебивает (:where — вес 0).
    Строкам списков на всю ширину нужен не layer, а data-hover="row". */
 :where([data-hover=layer]) {border-radius:8px}
-[data-hover=layer]::after {content:'';position:absolute;inset:0;border-radius:inherit;background:currentColor;opacity:0;pointer-events:none;transition:opacity .15s;z-index:1}
+/* --hover-inset: у кнопки с зоной касания 44 px плашка рисуется только вокруг
+   иконки и не вылезает за строку таблицы. */
+[data-hover=layer]::after {content:'';position:absolute;inset:var(--hover-inset, 0);border-radius:inherit;background:currentColor;opacity:0;pointer-events:none;transition:opacity .15s;z-index:1}
 @media (hover:hover) and (pointer:fine) {
   [data-hover=layer]:hover:not(:disabled):not([aria-disabled=true])::after {opacity:.1}
   /* data-hover="card" (кликабельная карточка/виджет целиком) — без засветки:

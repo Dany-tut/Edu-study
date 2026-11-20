@@ -1299,7 +1299,7 @@ function RosterDescription({ text, compact = false }: { text: string; compact?: 
         type="button" aria-expanded={expanded}
         aria-label={t(expanded ? 'Свернуть' : 'Показать все')}
         onClick={event => { event.stopPropagation(); setExpanded(value => !value) }}
-        style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: 0, marginTop: -14, marginBottom: -14, border: 0, borderRadius: 4, background: 'transparent', color: 'var(--color-muted)', cursor: 'pointer' }}
+        style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: 0, marginTop: -14, marginBottom: -14, border: 0, borderRadius: 6, background: 'transparent', color: 'var(--color-muted)', cursor: 'pointer', '--hover-inset': '12px' } as React.CSSProperties}
       >{expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>}
     </div>
   )
