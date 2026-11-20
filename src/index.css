@@ -1224,6 +1224,16 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 /* Text windows are measured by textFades; mask only when their content overflows. */
 .text-fade { overflow:hidden; text-overflow:clip; white-space:nowrap; min-width:0; --iskra-text-fade-lines:1; }
 .text-fade-2 { display:block; overflow:hidden; max-height:2lh; --iskra-text-fade-lines:2; }
+
+/* Бегущая строка (components/MarqueeText): пауза → плавно до конца → пауза →
+   обратно. Фейды — переменными с @property, чтобы края проявлялись плавно. */
+@property --mq-l { syntax:'<length>'; inherits:false; initial-value:0px; }
+@property --mq-r { syntax:'<length>'; inherits:false; initial-value:0px; }
+.marquee-text { --mq-l:0px; --mq-r:0px; display:block; min-width:0; overflow:hidden; white-space:nowrap;
+  transition: --mq-l .35s ease, --mq-r .35s ease;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--mq-l), #000 calc(100% - var(--mq-r)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--mq-l), #000 calc(100% - var(--mq-r)), transparent); }
+.marquee-text-inner { display:inline-block; vertical-align:top; will-change:transform; }
 .loop-select option { -webkit-text-fill-color: var(--color-text); color: var(--color-text); background: var(--color-bg); }
 @media (forced-colors: active) {
   .loop-select select { -webkit-text-fill-color: currentColor !important; }
