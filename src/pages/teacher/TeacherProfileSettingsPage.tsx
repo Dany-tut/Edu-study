@@ -292,6 +292,11 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
     setTimeout(() => setSaved(false), 2500)
   }
 
+  // Десктоп: тело камеры нарисовано ниже центра рамки иконки (~1.2px), а подпись
+  // поднята на 0.12em — на глаз иконка «ниже строки». Подпись поднимаем меньше, иконку — на 1px.
+  const photoLabelLift = embedded === 'profile' ? '-0.12em' : '-0.04em'
+  const photoIconStyle: React.CSSProperties | undefined = embedded === 'profile' ? undefined : { position: 'relative', top: -1 }
+
   const photoBtnStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6,
     // Десктоп: иконка слева (14px + gap 6) компенсируется равным правым полем —
@@ -398,8 +403,8 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
               onClick={() => pickImageFile(setCropFile)}
               style={photoBtnStyle}
             >
-              <Camera size={14} strokeWidth={2} />
-              <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
+              <Camera size={14} strokeWidth={2} style={photoIconStyle} />
+              <span style={{ position: 'relative', top: photoLabelLift }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
             </motion.button>
             {avatarPath && (
               <motion.button data-hover="layer"
@@ -407,8 +412,8 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
                 onClick={removePhoto}
                 style={photoBtnStyle}
               >
-                <X size={14} strokeWidth={2} />
-                <span style={{ position: 'relative', top: '-0.12em' }}>{t('Убрать фото')}</span>
+                <X size={14} strokeWidth={2} style={photoIconStyle} />
+                <span style={{ position: 'relative', top: photoLabelLift }}>{t('Убрать фото')}</span>
               </motion.button>
             )}
           </div>
