@@ -13,8 +13,8 @@
 .cj-button, .cj-icon-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; min-height: 36px; border: 1px solid var(--color-border-soft); background: var(--color-bg-2); color: var(--color-text); border-radius: 999px; font-size: 12px; font-weight: 550; cursor: pointer; }
 .cj-button:hover, .cj-icon-button:hover { background: var(--color-bg-3); }
 .cj-icon-button { width: 36px; padding: 8px; }
-.cj-primary { background: var(--color-accent); color: white; border-color: transparent; }
-.cj-primary:hover { background: var(--color-accent); filter: brightness(1.07); }
+.cj-primary { background: var(--grad-purple); color: white; border-color: transparent; }
+.cj-primary:hover { background: var(--grad-purple); filter: brightness(1.07); }
 .cj-demo { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 14px; border-radius: 12px; background: var(--color-purple-soft); color: var(--color-text-2); font-size: 11px; line-height: 1.5; }
 .cj-demo > span { color: var(--color-accent); font-weight: 650; white-space: nowrap; }
 .cj-context { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; background: rgba(var(--glass-rgb), .82); border: 1px solid var(--color-border-glass); box-shadow: var(--shadow-sm-page); padding: 20px 22px; border-radius: 22px; }
