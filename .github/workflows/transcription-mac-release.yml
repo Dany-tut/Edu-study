@@ -71,7 +71,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Iskra-Transcription-Mac-${{ github.sha }}
-          path: .build/transcription-macos/Iskra-Transcription-Mac-v*.zip
+          path: |
+            .build/transcription-macos/Iskra-Transcription-Mac-v*.zip
+            .build/transcription-macos/Iskra-Transcription-Mac-v*.dmg
           if-no-files-found: error
 
       - name: Publish versioned installer asset
@@ -84,11 +86,13 @@ jobs:
           PRODUCT_VERSION="$(sed -n "s/.*= '\([^']*\)'.*/\1/p" src/lib/transcriptionProductVersion.ts | head -1)"
           TAG="transcription-$VERSION"
           ASSET=".build/transcription-macos/Iskra-Transcription-Mac-v$PRODUCT_VERSION.zip"
+          DMG=".build/transcription-macos/Iskra-Transcription-Mac-v$PRODUCT_VERSION.dmg"
           test -f "$ASSET"
+          test -f "$DMG"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$ASSET" --clobber
+            gh release upload "$TAG" "$ASSET" "$DMG" --clobber
           else
-            gh release create "$TAG" "$ASSET" \
+            gh release create "$TAG" "$ASSET" "$DMG" \
               --title "Искра · Расшифровка v$PRODUCT_VERSION" \
               --notes "Подписанное и нотариально заверенное приложение Искры для расшифровки на Mac. Версия $PRODUCT_VERSION; сборка $VERSION."
           fi
