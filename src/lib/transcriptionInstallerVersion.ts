@@ -1,3 +1,3 @@
 // Создаётся scripts/buildTranscriptionModule.mjs — не править руками.
 // Версия установщика: версия модуля плюс исходники macOS-приложения.
-export const TRANSCRIPTION_INSTALLER_VERSION = '6aae2df3a1a5'
+export const TRANSCRIPTION_INSTALLER_VERSION = '8779a5273ea5'

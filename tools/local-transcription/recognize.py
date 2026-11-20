@@ -5,7 +5,7 @@ import numpy as np
 from progress import record
 from model_cache import MODEL_SPECS, require_model
 import asr_config
-from asr_engine import GigaAM, segments_from_ctc, looks_mixed, available as gigaam_available
+from asr_engine import GigaAM, segments_from_ctc, available as gigaam_available
 
 folder=Path(sys.argv[1])
 # Движок и флаги — из окружения (asr_config). По умолчанию: whisper, без
@@ -151,19 +151,62 @@ def gigaam_chunk(giga,samples,rate,length):
         found.append(seg)
     return found
 
-def decide_engine(chunk):
-    """auto: по первому куску. Русский монолог → GigaAM, иначе whisper."""
-    with wave.open(str(chunk)) as f:
-        rate=f.getframerate()
-        samples=np.frombuffer(f.readframes(f.getnframes()),dtype=np.int16).astype(np.float32)/32768.0
-    try:
-        result=mlx_whisper.transcribe(samples,path_or_hf_repo=str(whisper_model()),verbose=None,condition_on_previous_text=False)
-    except Exception as error:
-        print(f'auto: проба языка не удалась ({error}) — whisper.',flush=True); return 'whisper'
-    text=' '.join(s['text'] for s in result.get('segments',[]))
-    mixed=looks_mixed(result.get('language'),text)
-    print(f'auto: язык={result.get("language")}, mixed={mixed} → {"whisper" if mixed else "gigaam"}',flush=True)
-    return 'whisper' if mixed else 'gigaam'
+# ── Комбо (auto): русская речь — GigaAM, английские вставки — whisper ────────
+# Движок не на весь урок, а на каждый ~30-секундный кусок. GigaAM (русская модель)
+# на английских словах выдаёт латиницу («cell membrane» → «сelmemбrin»), а на
+# чистом русском латиницы нет. Поэтому: гоним кусок через быстрый GigaAM; если в
+# его выводе набралось латинских букв — в куске был английский, переснимаем этот
+# кусок точным whisper. Так русские участки быстрые и с пунктуацией, а английские
+# вставки корректны, всё в одной расшифровке. Проба языка по аудио (detect_language)
+# тут не годится — она видит лишь доминирующий язык и английские вставки пропускает.
+COMBO_LATIN_MIN=2   # столько латинских букв в выводе GigaAM по куску → переснять whisper
+
+def _collect_whisper(result,samples,rate,base):
+    """Реплики из результата whisper по куску samples; base — начало куска в записи."""
+    out=[]; length=len(samples)/rate
+    for s in result['segments']:
+        text=s['text'].strip()
+        start=max(0,s['start']); end=min(length,s['end'])
+        db=level(samples,start,end,rate)
+        if db<SILENT_DB or (text.lower() in HALLUCINATIONS and db<-45) or echoes_prompt(text): continue
+        if s.get('no_speech_prob',0)<0.8 and end>start and any(c.isalnum() for c in text):
+            seg=dict(start=round(base+start,3),end=round(base+end,3),text=fix(text))
+            if WANT_WORDS:
+                words=words_of(s.get('words'),base)
+                if words: seg['words']=words
+            out.append(seg)
+    return out
+
+def _whisper_piece(audio,samples,rate,base):
+    kwargs=dict(path_or_hf_repo=str(whisper_model()),verbose=None,condition_on_previous_text=False)
+    if PROMPT: kwargs['initial_prompt']=PROMPT
+    if WANT_WORDS: kwargs['word_timestamps']=True
+    return _collect_whisper(mlx_whisper.transcribe(audio,**kwargs),samples,rate,base)
+
+def _gigaam_piece(giga,audio,samples,rate,base):
+    """Реплики GigaAM по куску + его сырой текст (для проверки на латиницу)."""
+    text,timestamps,tokens=giga.recognize(audio,rate)
+    out=[]; length=len(samples)/rate
+    for seg in segments_from_ctc(tokens,timestamps,shift=base,want_words=WANT_WORDS):
+        start=seg['start']-base; end=min(length,seg['end']-base)
+        if level(samples,start,end,rate)<SILENT_DB: continue
+        seg['text']=fix(seg['text'])
+        if not WANT_WORDS: seg.pop('words',None)
+        out.append(seg)
+    return out,text
+
+def combo_chunk(giga,samples,rate,length):
+    """Покусочный роутинг: GigaAM, а куски с английским — переснять whisper."""
+    found=[]
+    for a,b in pieces(samples,rate):
+        sub=samples[a:b]; base=offset+a/rate
+        audio=sub.astype(np.float32)/32768.0
+        giga_segs,giga_text=_gigaam_piece(giga,audio,sub,rate,base)
+        if len(re.findall(r'[A-Za-z]',giga_text))>=COMBO_LATIN_MIN:
+            found+=_whisper_piece(audio,sub,rate,base)   # в куске английский — точный whisper
+        else:
+            found+=giga_segs
+    return found
 
 if __name__=='__main__':
     engine=ENGINE
@@ -175,13 +218,13 @@ if __name__=='__main__':
             except Exception as error: print(f'GigaAM не загрузился ({error}).',flush=True); giga=None
         if giga is None:
             print('GigaAM недоступен — распознаём whisper.',flush=True); engine='whisper'
-        elif engine=='auto':
-            engine=decide_engine(chunks[0]) if chunks else 'whisper'
     for chunk in chunks:
         with wave.open(str(chunk)) as f:
             rate=f.getframerate(); length=f.getnframes()/rate
             samples=np.frombuffer(f.readframes(f.getnframes()),dtype=np.int16)
-        segments+=gigaam_chunk(giga,samples,rate,length) if engine=='gigaam' else whisper_chunk(chunk,samples,rate,length)
+        if engine=='auto': segments+=combo_chunk(giga,samples,rate,length)
+        elif engine=='gigaam': segments+=gigaam_chunk(giga,samples,rate,length)
+        else: segments+=whisper_chunk(chunk,samples,rate,length)
         offset+=length
         record(folder,'Распознаём речь',offset,total,'seconds')
     (folder/'segments.json').write_text(json.dumps(segments,ensure_ascii=False))
