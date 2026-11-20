@@ -86,13 +86,14 @@ export function updateModule(token: string): Promise<boolean | null> {
   return updating
 }
 
-export type ModuleState = { phase: ModuleFreshness | 'updating' | 'failed'; local?: string; selfUpdate: boolean; app?: string; appRemembered?: boolean }
+/** checked — модуль уже опрошен (до первого ответа phase тоже 'unknown'). */
+export type ModuleState = { phase: ModuleFreshness | 'updating' | 'failed'; local?: string; selfUpdate: boolean; app?: string; appRemembered?: boolean; checked?: boolean }
 
 /**
  * Проверка для карточки модуля: при открытии и при возврате на вкладку.
  * Модуль, который умеет обновляться сам, обновляется сразу, без вопросов.
  */
-export function useModuleState(enabled: boolean, token: string): ModuleState {
+export function useModuleState(enabled: boolean, token: string, refresh = 0): ModuleState {
   const [state, setState] = useState<ModuleState>({ phase: 'unknown', selfUpdate: false })
   useEffect(() => {
     if (!enabled) { setState({ phase: 'unknown', selfUpdate: false }); return }
@@ -100,20 +101,20 @@ export function useModuleState(enabled: boolean, token: string): ModuleState {
     const run = async () => {
       const info = await readModule()
       if (!alive) return
-      if (info.freshness !== 'outdated' || !info.selfUpdate || !token) { setState({ phase: info.freshness, local: info.local, selfUpdate: info.selfUpdate, app: info.app, appRemembered: info.appRemembered }); return }
-      setState({ phase: 'updating', local: info.local, selfUpdate: true, app: info.app })
+      if (info.freshness !== 'outdated' || !info.selfUpdate || !token) { setState({ phase: info.freshness, local: info.local, selfUpdate: info.selfUpdate, app: info.app, appRemembered: info.appRemembered, checked: true }); return }
+      setState({ phase: 'updating', local: info.local, selfUpdate: true, app: info.app, checked: true })
       const ok = await updateModule(token)
       if (!alive) return
       // Свежий код модуля сообщает версию приложения — перечитать её.
       const after = ok ? await readModule() : info
       if (!alive) return
-      setState(ok ? { phase: 'current', local: TRANSCRIPTION_MODULE_VERSION, selfUpdate: true, app: after.app } : { phase: ok === null ? 'outdated' : 'failed', local: info.local, selfUpdate: true, app: info.app })
+      setState(ok ? { phase: 'current', local: TRANSCRIPTION_MODULE_VERSION, selfUpdate: true, app: after.app, checked: true } : { phase: ok === null ? 'outdated' : 'failed', local: info.local, selfUpdate: true, app: info.app, checked: true })
     }
     void run()
     const onVisible = () => { if (document.visibilityState === 'visible') void run() }
     document.addEventListener('visibilitychange', onVisible)
     return () => { alive = false; document.removeEventListener('visibilitychange', onVisible) }
-  }, [enabled, token])
+  }, [enabled, token, refresh])
   return state
 }
 
