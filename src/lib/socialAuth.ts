@@ -186,7 +186,7 @@ async function finishIdentityLink() {
   if (!user) return false
   if (user.id !== pending.userId) {
     localStorage.removeItem(LINK_KEY)
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
     throw new Error('Подключение вернуло другой аккаунт. Войдите по почте в исходный профиль.')
   }
   if (!user.identities?.some(identity => identity.provider === pending.provider)) return false
@@ -502,7 +502,7 @@ async function finishSocialLoginImpl() {
       })
       if (claimError) {
         endOAuthAttempt('auth_failed')
-        await supabase.auth.signOut()
+        await supabase.auth.signOut({ scope: 'local' })
         localStorage.removeItem(OAUTH_ROLE_KEY)
         throw new Error(/already used/i.test(claimError.message)
           ? 'Это приглашение уже использовано другим аккаунтом. Попросите учителя новую ссылку.'
@@ -560,7 +560,7 @@ async function finishSocialLoginImpl() {
   }
 
   endOAuthAttempt('auth_failed')
-  await supabase.auth.signOut()
+  await supabase.auth.signOut({ scope: 'local' })
   localStorage.removeItem(OAUTH_ROLE_KEY)
   throw new Error(selectedRole === 'student'
     ? 'Эта учётная запись ещё не подключена к профилю ученика. Попросите учителя связать аккаунт.'

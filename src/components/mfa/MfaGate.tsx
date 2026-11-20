@@ -52,7 +52,7 @@ export default function MfaGate({ children }: { children: ReactNode }) {
 
 async function signOut() {
   clearStudentSession()
-  await supabase.auth.signOut().catch(() => {})
+  await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
   window.location.hash = '#/'
 }
 

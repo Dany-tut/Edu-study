@@ -14,7 +14,7 @@ import { supabase } from './supabase'
  */
 export async function signOutAndReload(hash: string) {
   try {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut({ scope: 'local' })
     if (error) await supabase.auth.signOut({ scope: 'local' })
   } catch {
     await supabase.auth.signOut({ scope: 'local' }).catch(() => {})

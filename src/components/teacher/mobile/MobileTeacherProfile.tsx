@@ -219,7 +219,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
   const logout = async () => {
     tactile()
     void trackNow('logout', { role: 'teacher' })
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
     window.location.hash = '#/teacher'
     window.location.reload()
   }

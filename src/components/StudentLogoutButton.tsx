@@ -25,7 +25,7 @@ export default function StudentLogoutButton({ onComplete }: { onComplete: () => 
     try {
       // Keep the existing default scope. Do not release the latch on a UI
       // timeout: signOut cannot be aborted and may still be running in the SDK.
-      const { error } = await supabase.auth.signOut()
+      const { error } = await supabase.auth.signOut({ scope: 'local' })
       if (error) throw error
       const { data, error: sessionError } = await supabase.auth.getSession()
       if (sessionError) throw sessionError

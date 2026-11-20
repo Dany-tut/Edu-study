@@ -92,7 +92,7 @@ try {
     e.click()
   })
   await p.waitForFunction(() => window.__calls.length === 1)
-  assert.deepEqual(await p.evaluate(() => window.__calls), [[]])
+  assert.deepEqual(await p.evaluate(() => window.__calls), [[{ scope: 'local' }]])
   await p.clock.runFor(180000)
   assert.deepEqual(
     await p.evaluate(() => [
@@ -107,7 +107,7 @@ try {
     true,
   )
   results.push(
-    'single flight survives180s; original scope/no args; no premature clear/navigation',
+    'single flight survives180s; local scope only; no premature clear/navigation',
   )
   await p.evaluate(() => window.__resolve({ error: new Error('offline') }))
   await p.getByRole('alert').waitFor()
