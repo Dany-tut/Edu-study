@@ -50,47 +50,78 @@ def read_image(path_to_helper, encoded, timeout=15):
         return []
 
 
-class VisionStream:
-    """One helper process for the whole job: frames in as PPM, a JSON line out."""
+class Stalled(Exception):
+    pass
 
-    def __init__(self, path_to_helper, timeout=30):
-        self.timeout = timeout
-        self.process = subprocess.Popen([path_to_helper, '--stream'], stdin=subprocess.PIPE,
+
+class VisionStream:
+    """One helper process for the whole job: frames in as PPM, a JSON line out.
+
+    Vision occasionally stalls inside TextRecognition (an internal semaphore
+    that never fires, seen a few times in hundreds of runs). A stalled or dead
+    helper is killed and restarted, and the frame is read again; only repeated
+    failures of the same frame end the job.
+    """
+
+    def __init__(self, path_to_helper, timeout=15, first_timeout=45, attempts=3):
+        self.path, self.timeout, self.first_timeout, self.attempts = path_to_helper, timeout, first_timeout, attempts
+        self.restarts = 0
+        self.process = None
+        self.start()
+
+    def start(self):
+        self.process = subprocess.Popen([self.path, '--stream'], stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0)
         self.pending = b''
         # The first frame loads Vision's text model; under load (speech running
-        # in parallel) that alone can take tens of seconds.
+        # in parallel) that alone can take a while.
         self.first = True
 
-    def __call__(self, image):
-        """`image` — RGB uint8 array (h, w, 3)."""
+    def once(self, image):
         height, width = image.shape[:2]
         try:
             self.process.stdin.write(b'P6\n%d %d\n255\n' % (width, height))
             self.process.stdin.write(image.tobytes())
             self.process.stdin.flush()
         except (BrokenPipeError, OSError) as error:
-            raise ValueError('Распознавание слайдов остановилось. Повторите задание.') from error
-        deadline = time.monotonic() + (max(self.timeout, 120) if self.first else self.timeout)
-        self.first = False
+            raise Stalled() from error
+        deadline = time.monotonic() + (self.first_timeout if self.first else self.timeout)
         while b'\n' not in self.pending:
             left = deadline - time.monotonic()
-            if left <= 0 or not select.select([self.process.stdout], [], [], left)[0]:
-                raise ValueError('Распознавание слайдов не ответило вовремя. Повторите задание.')
+            if left <= 0 or not select.select([self.process.stdout], [], [], left)[0]: raise Stalled()
             part = os.read(self.process.stdout.fileno(), 65536)
-            if not part: raise ValueError('Распознавание слайдов остановилось. Повторите задание.')
+            if not part: raise Stalled()
             self.pending += part
+        self.first = False
         line, self.pending = self.pending.split(b'\n', 1)
         try: return lines_from(json.loads(line))
         except ValueError: return []
 
+    def __call__(self, image):
+        """`image` — RGB uint8 array (h, w, 3)."""
+        for attempt in range(self.attempts):
+            try: return self.once(image)
+            except Stalled:
+                self.kill()
+                if attempt+1 == self.attempts: break
+                self.restarts += 1
+                self.start()
+        raise ValueError('Распознавание слайдов не отвечает. Перезапустите Mac и повторите задание.')
+
+    def kill(self):
+        if self.process is None: return
+        if self.process.poll() is None: self.process.kill()
+        self.close()
+
     def close(self):
+        if self.process is None: return
         for stream in (self.process.stdin, self.process.stdout):
             try: stream.close()
             except OSError: pass
         try: self.process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             self.process.kill(); self.process.wait()
+        self.process = None
 
     def __enter__(self): return self
 

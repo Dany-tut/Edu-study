@@ -95,6 +95,47 @@ def frames(command):
             except subprocess.TimeoutExpired: process.kill(); process.wait()
 
 
+@contextmanager
+def timed_frames(command):
+    """Frames plus their stream times from a `showinfo` filter in `command`.
+
+    showinfo logs to stderr (needs `-v info`); a thread drains it so neither
+    pipe can fill up and stall FFmpeg. Yields an iterator of (seconds, image).
+    """
+    import re
+    import threading
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
+    times, ready = deque(), threading.Condition()
+    done = [False]
+    def drain():
+        for line in iter(process.stderr.readline, b''):
+            match = re.search(rb'Parsed_showinfo.*?pts_time:\s*(-?[\d.]+)', line)
+            if match:
+                with ready: times.append(float(match.group(1))); ready.notify()
+        with ready: done[0] = True; ready.notify()
+    reader = threading.Thread(target=drain, daemon=True); reader.start()
+    def stream():
+        while True:
+            image = ppm(process.stdout)
+            if image is None: break
+            with ready:
+                if not ready.wait_for(lambda: times or done[0], timeout=45) or not times:
+                    raise ValueError('Не удалось прочитать время кадра видео.')
+                at = times.popleft()
+            yield at, image
+        if process.wait(timeout=10): raise ValueError('Не удалось прочитать видео до конца.')
+    try:
+        yield stream()
+    finally:
+        process.stdout.close()
+        if process.poll() is None:
+            process.terminate()
+            try: process.wait(timeout=2)
+            except subprocess.TimeoutExpired: process.kill(); process.wait()
+        reader.join(timeout=2)
+        process.stderr.close()
+
+
 class TitleCache:
     """Compare against OCR'd frames, not the last frame (no gradual drift).
 

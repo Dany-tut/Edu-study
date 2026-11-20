@@ -13,7 +13,7 @@ from functools import lru_cache
 
 from media_tools import FFMPEG, duration as media_duration
 from progress import record
-from slide_frames import TitleCache, frames, ppm_bytes
+from slide_frames import TitleCache, frames, ppm_bytes, timed_frames
 import frame_ocr
 
 REGIONS = {
@@ -23,6 +23,12 @@ REGIONS = {
 }
 SAFE = ['-protocol_whitelist', 'file,pipe', '-format_whitelist', 'mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac']
 STEP = 2
+# Keyframe scan: when the title band is the same on two keyframes up to this
+# far apart, the slide in between is not read densely. Typical recorders put a
+# keyframe every 2–10 s. A different slide shown for less than this between two
+# showings of the same slide can be missed; longer gaps are read densely, and a
+# video whose keyframes are mostly further apart gets one sequential pass.
+MAX_KEY_GAP = 20
 
 
 def ensure_runtime(folder):
@@ -135,7 +141,8 @@ def ui_chrome(text):
     if not words: return False
     strong = sum(w in UI_STRONG for w in words)
     ui = strong + sum(w in UI_WEAK for w in words)
-    return (strong and ui >= len(words)*.5) or (ui >= 3 and ui >= len(words)*.75)
+    # «Slide Show», «Ask Copilot»: several UI words and nothing else.
+    return (strong and ui >= len(words)*.5) or (ui >= 3 and ui >= len(words)*.75) or (len(words) >= 2 and ui == len(words))
 
 
 def real_word(word):
@@ -197,18 +204,22 @@ def heading(lines):
 def scan(read, duration, report=lambda *_: None):
     """Two observations reject transient overlays. Deduplicate across the video.
 
-    Coarse sampling2s, binary refinement to0.5s around first appearance.
-    Brief headings shorter than the sample interval may be missed.
+    `duration` — seconds (uniform samples every STEP) or a sorted list of sample
+    times. Refinement bisects to 0.5 s between the previous sample and the first
+    appearance. Brief headings seen only once may be missed.
     """
-    times = list(range(0, max(1, math.ceil(duration)), STEP))
+    times = list(range(0, max(1, math.ceil(duration)), STEP)) if isinstance(duration, (int, float)) else list(duration)
     chapters, pending, first_seen = [], None, []
+    previous = {}
     for index, at in enumerate(times):
+        previous[at] = times[index-1] if index else max(0, at-STEP)
         title = read(at)
         if title and not any(same(title, text) for _, text in first_seen): first_seen.append((at, title))
         if title and pending and same(title, pending[1]):
             if not any(same(title, row['title']) for row in chapters):
                 first = next(t for t, text in first_seen if same(title, text))
-                lo, hi = max(0, first-STEP), first
+                lo, hi = min(previous.get(first, first-STEP), first), first
+                lo = max(0, lo)
                 while hi-lo > .5:
                     middle = (lo+hi)/2
                     if same(read(middle), title): hi = middle
@@ -221,48 +232,117 @@ def scan(read, duration, report=lambda *_: None):
     return sorted(chapters, key=lambda row: row['start'])
 
 
-def process_video(source, duration, region, engine, report=lambda *_: None):
-    """`engine(rgb_image) -> rows` with text and geometry (Vision or RapidOCR)."""
+def keyframe_changes(samples, unchanged, gap=MAX_KEY_GAP):
+    """Intervals between keyframes that need dense sampling: the title band
+    changed, or keyframes are too far apart to vouch for what was in between."""
+    spans = []
+    for (a, sig_a), (b, sig_b) in zip(samples, samples[1:]):
+        if b-a > gap or not unchanged(sig_a, sig_b):
+            if spans and spans[-1][1] >= a: spans[-1] = (spans[-1][0], b)
+            else: spans.append((a, b))
+    return spans
+
+
+def process_video(source, duration, region, engine, report=lambda *_: None, stage=lambda *_: None):
+    """`engine(rgb_image) -> rows` with text and geometry (Vision or RapidOCR).
+
+    1. Keyframes only (no full decode): the title band at each keyframe.
+    2. Dense 2 s samples only where the band changed between keyframes.
+    Videos with sparse keyframes fall back to one sequential 2 s pass.
+    `stage(phase, done, total, unit)` reports honest progress per phase.
+    """
     x, y, w, h = REGIONS[region]
     crop = f'crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale=min(1800\\,iw*2):-2'
     started = time.monotonic()
-    timing = {'readFrameSeconds': 0.0, 'ocrSeconds': 0.0}
+    timing = {'readFrameSeconds': 0.0, 'ocrSeconds': 0.0, 'keyframeSeconds': 0.0}
     def timed_recognize(image):
         before = time.monotonic()
         result = heading(engine(image))
         timing['ocrSeconds'] += time.monotonic()-before
         return result
     cache = TitleCache(timed_recognize)
-    # Round timestamps upwards: a frame occurring after t must not be assigned
-    # to sample t. Refinement below still seeks directly around a new heading.
-    command = [FFMPEG, '-nostdin', '-v', 'error', '-threads', '2', '-filter_threads', '1',
-        *SAFE, '-i', str(source), '-an', '-sn', '-vf',
-        f'fps=1/{STEP}:start_time=0:round=up:eof_action=pass,{crop}',
+    decode = [FFMPEG, '-nostdin', '-threads', '2', '-filter_threads', '1', *SAFE]
+    titles = {}
+
+    def probe(at):
+        # Keep pre-seek frames for fps to choose the frame displayed at
+        # this time. Accurate seek would jump to a future frame in VFR.
+        out = subprocess.run([*decode, '-v', 'error', '-ss', str(at), '-noaccurate_seek', '-i', str(source),
+            '-frames:v', '1', '-vf', f'fps=2:start_time=0:round=up:eof_action=pass,{crop}', '-f', 'image2pipe', '-c:v', 'ppm', '-'],
+            capture_output=True, timeout=30, check=True)
+        return ppm_bytes(out.stdout)
+
+    # 1. Keyframes, at most one per STEP (all-intra video stays cheap).
+    keys = []
+    before = time.monotonic()
+    command = [*decode, '-v', 'info', '-skip_frame', 'nokey', '-i', str(source), '-an', '-sn', '-fps_mode', 'passthrough',
+        '-vf', f"select='isnan(prev_selected_t)+gte(t-prev_selected_t\\,{STEP})',showinfo,{crop}",
         '-f', 'image2pipe', '-c:v', 'ppm', '-']
+    try:
+        with timed_frames(command) as stream:
+            for at, image in stream:
+                at = max(0.0, round(at, 3))
+                keys.append((at, cache.signature(image)))
+                titles[at] = cache.read(image, at)
+                stage('Ищем смену слайдов', min(at, duration), duration, 'seconds')
+    except (ValueError, TimeoutError, subprocess.SubprocessError):
+        keys = []
+    timing['keyframeSeconds'] = time.monotonic()-before
+    gaps = sorted(b-a for (a, _), (b, _) in zip(keys, keys[1:]))
+    sparse = len(keys) < 2 or gaps[len(gaps)//2] > MAX_KEY_GAP
+    if not sparse and keys[0][0] > MAX_KEY_GAP: keys.insert(0, (0.0, None))
+    if not sparse and duration-keys[-1][0] > MAX_KEY_GAP: keys.append((duration, None))
     sampled = 0
-    with frames(command) as stream:
-        @lru_cache(maxsize=16)
-        def read(at):
-            nonlocal sampled
-            before = time.monotonic()
-            # scan visits coarse samples monotonically, with occasional earlier
-            # bisection probes. Never move/restart the sequential decoder for those.
-            if at == sampled*STEP:
-                try: image = next(stream)
-                except StopIteration as error: raise ValueError('Видео закончилось раньше ожидаемого. Проверьте запись.') from error
+
+    def dense(a, b):
+        """Samples every STEP inside [a, b] from one short sequential decode."""
+        nonlocal sampled
+        out = []
+        command = [*decode, '-v', 'error', '-ss', str(a), '-i', str(source), '-t', str(max(STEP, b-a)), '-an', '-sn',
+            '-vf', f'fps=1/{STEP}:start_time=0:round=up:eof_action=pass,{crop}', '-f', 'image2pipe', '-c:v', 'ppm', '-']
+        with frames(command) as stream:
+            for index, image in enumerate(stream):
+                at = round(a+index*STEP, 3)
+                if at > b: break
                 sampled += 1
-            else:
-                # Keep pre-seek frames for fps to choose the frame displayed at
-                # this time. Accurate seek would jump to a future frame in VFR.
-                out = subprocess.run([FFMPEG, '-nostdin', '-v', 'error', '-threads', '2',
-                    '-filter_threads', '1', *SAFE, '-ss', str(at), '-noaccurate_seek', '-i', str(source),
-                    '-frames:v', '1', '-vf', f'fps=2:start_time=0:round=up:eof_action=pass,{crop}', '-f', 'image2pipe', '-c:v', 'ppm', '-'],
-                    capture_output=True, timeout=30, check=True)
-                image = ppm_bytes(out.stdout)
-            timing['readFrameSeconds'] += time.monotonic()-before
-            return cache.read(image, at)
-        result = scan(read, duration, report)
-    return result, dict(samples=sampled, ocr=cache.calls, reused=cache.hits,
+                titles.setdefault(at, cache.read(image, at))
+                out.append(at)
+        return out
+
+    before = time.monotonic()
+    if sparse:
+        # Sequential 2 s pass over the whole video (previous behaviour).
+        titles.clear()
+        stage('Ищем заголовки слайдов', 0, duration, 'seconds')
+        command = [*decode, '-v', 'error', '-i', str(source), '-an', '-sn', '-vf',
+            f'fps=1/{STEP}:start_time=0:round=up:eof_action=pass,{crop}', '-f', 'image2pipe', '-c:v', 'ppm', '-']
+        with frames(command) as stream:
+            for index, image in enumerate(stream):
+                at = index*STEP
+                if at >= max(1, math.ceil(duration)): break
+                sampled += 1
+                titles[at] = cache.read(image, at)
+                stage('Ищем заголовки слайдов', min(at, duration), duration, 'seconds')
+    else:
+        unchanged = lambda a, b: a is not None and b is not None and TitleCache.unchanged(a, b)
+        spans = keyframe_changes(keys, unchanged)
+        for index, (a, b) in enumerate(spans):
+            stage('Читаем слайды', index, len(spans), 'slides')
+            dense(a, b)
+        stage('Читаем слайды', len(spans), len(spans), 'slides')
+    timing['readFrameSeconds'] = time.monotonic()-before
+
+    @lru_cache(maxsize=64)
+    def read(at):
+        if at in titles: return titles[at]
+        before = time.monotonic()
+        image = probe(at)
+        timing['readFrameSeconds'] += time.monotonic()-before
+        return cache.read(image, at)
+    times = sorted(t for t in titles if t <= duration)
+    result = scan(read, times, report)
+    return result, dict(keyframes=len(keys), samples=sampled, ocr=cache.calls, reused=cache.hits,
+                        mode='sequential' if sparse else 'keyframes',
                         elapsedSeconds=time.monotonic()-started, **timing)
 
 
@@ -271,12 +351,15 @@ def main(source, folder, region):
     if region not in REGIONS: raise ValueError('Выберите расположение заголовка на слайде.')
     duration = media_duration(source, SAFE)
     if duration <= 0: raise ValueError('Не удалось определить длительность видео.')
-    progress = lambda done, total: record(folder, 'Читаем слайды', done, total, 'frames', 'Ищем заголовки слайдов')
+    progress = lambda *_: None
+    def stage(phase, done, total, unit):
+        record(folder, 'Читаем слайды', done, total, unit, phase)
     vision = frame_ocr.helper()
     if vision:
         # Apple Vision from the .app: Cyrillic + Latin, nothing to install.
         with frame_ocr.VisionStream(vision) as engine:
-            chapters, metrics = process_video(source, duration, region, engine, progress)
+            chapters, metrics = process_video(source, duration, region, engine, progress, stage)
+            metrics['visionRestarts'] = engine.restarts
     else:
         try:
             ensure_runtime(folder)
@@ -287,7 +370,7 @@ def main(source, folder, region):
             rapid = ocr_engine()
         except Exception as error:
             raise ValueError('Не удалось подготовить распознавание слайдов. Проверьте интернет и свободное место на Mac, затем повторите.') from error
-        chapters, metrics = process_video(source, duration, region, lambda image: rapid_rows(rapid, image), progress)
+        chapters, metrics = process_video(source, duration, region, lambda image: rapid_rows(rapid, image), progress, stage)
     print(f"Slide OCR metrics ({'vision' if vision else 'rapidocr'}): {metrics}", flush=True)
     if not chapters:
         raise ValueError('Заголовки не найдены. Выберите другую область слайда и повторите. Текущие главы не изменены.')

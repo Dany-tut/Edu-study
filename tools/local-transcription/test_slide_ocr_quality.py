@@ -81,11 +81,50 @@ class HelperDetectionTests(unittest.TestCase):
             self.assertEqual(json.loads((Path(folder)/'chapters.json').read_text()), [{'start':0,'title':'Митоз'}])
 
 
+class KeyframeScanTests(unittest.TestCase):
+    def test_dense_reading_only_where_title_changed_or_keyframes_far_apart(self):
+        from slide_chapters import keyframe_changes
+        same = lambda a, b: a == b
+        keys = [(0, 'A'), (10, 'A'), (20, 'B'), (30, 'B'), (40, 'B'), (70, 'B'), (80, 'C'), (90, 'C')]
+        self.assertEqual(keyframe_changes(keys, same), [(10, 20), (40, 80)])
+        self.assertEqual(keyframe_changes([(0, 'A'), (10, 'A')], same), [])
+
+
+class StreamRecoveryTests(unittest.TestCase):
+    def test_stalled_helper_is_restarted_and_frame_reread(self):
+        import numpy as np
+        with tempfile.TemporaryDirectory() as directory:
+            marker = Path(directory)/'started'
+            helper = Path(directory)/'helper'
+            # First start hangs without answering; the restart answers normally.
+            helper.write_text(f'''#!/bin/sh
+if [ ! -f "{marker}" ]; then touch "{marker}"; sleep 30; exit 0; fi
+while IFS= read -r magic; do IFS= read -r size; IFS= read -r depth
+  set -- $size; head -c $(( $1 * $2 * 3 )) >/dev/null
+  echo '[{{"text":"Митоз","x":0,"y":0.1,"width":0.5,"height":0.3}}]'
+done
+'''); helper.chmod(0o755)
+            with frame_ocr.VisionStream(str(helper), timeout=2, first_timeout=1) as engine:
+                rows = engine(np.zeros((4, 6, 3), dtype=np.uint8))
+                self.assertEqual(engine.restarts, 1)
+                self.assertEqual(rows[0]['text'], 'Митоз')
+                self.assertEqual(engine(np.zeros((4, 6, 3), dtype=np.uint8))[0]['text'], 'Митоз')
+
+    def test_helper_that_never_answers_fails_the_job(self):
+        import numpy as np
+        with tempfile.TemporaryDirectory() as directory:
+            helper = Path(directory)/'helper'
+            helper.write_text('#!/bin/sh\nsleep 30\n'); helper.chmod(0o755)
+            with frame_ocr.VisionStream(str(helper), timeout=1, first_timeout=1, attempts=2) as engine:
+                with self.assertRaisesRegex(ValueError, 'не отвечает'):
+                    engine(np.zeros((4, 6, 3), dtype=np.uint8))
+
+
 @unittest.skipUnless(os.environ.get('ISKRA_TEST_FRAME_TEXT') and os.environ.get('ISKRA_TEST_FFMPEG'),
                      'Local Vision helper + FFmpeg fixture test (macOS)')
 class VisionVideoTests(unittest.TestCase):
     """End to end: fixture slides → video → bundled-helper OCR → chapters."""
-    def test_chapters_from_screen_recording(self):
+    def chapters(self, keyint):
         import slide_chapters
         ffmpeg = os.environ['ISKRA_TEST_FFMPEG']
         with tempfile.TemporaryDirectory() as directory, \
@@ -95,11 +134,25 @@ class VisionVideoTests(unittest.TestCase):
             subprocess.run([ffmpeg, '-nostdin', '-v', 'error',
                 '-loop', '1', '-t', '8', '-i', str(FIXTURES/'slide-screen-chrome.png'),
                 '-loop', '1', '-t', '8', '-i', str(FIXTURES/'slide-screen-chrome-2.png'),
-                '-filter_complex', '[0][1]concat=n=2:v=1,fps=5,format=yuv420p', '-c:v', 'libx264', str(video)], check=True)
+                '-filter_complex', '[0][1]concat=n=2:v=1,fps=5,format=yuv420p', '-c:v', 'libx264',
+                '-g', str(keyint), '-keyint_min', str(keyint), '-sc_threshold', '0', str(video)], check=True)
             helper = frame_ocr.helper()
             self.assertIsNotNone(helper)
             with frame_ocr.VisionStream(helper) as engine:
-                chapters, _ = slide_chapters.process_video(video, 16, 'top-left', engine)
+                return slide_chapters.process_video(video, 16, 'top-left', engine)
+
+    def test_keyframe_scan(self):
+        # A keyframe every 3 s (15 frames at 5 fps): change found between keyframes.
+        chapters, metrics = self.chapters(15)
+        self.assertEqual(metrics['mode'], 'keyframes')
+        self.check(chapters)
+
+    def test_sequential_fallback_for_sparse_keyframes(self):
+        chapters, metrics = self.chapters(250)
+        self.assertEqual(metrics['mode'], 'sequential')
+        self.check(chapters)
+
+    def check(self, chapters):
         self.assertEqual([row['title'] for row in chapters], ['Клеточное строение', 'Деление клетки'])
         self.assertEqual(chapters[0]['start'], 0)
         self.assertLessEqual(abs(chapters[1]['start']-8), 1)
