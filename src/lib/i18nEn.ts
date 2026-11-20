@@ -10,6 +10,17 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  // Виджет очереди расшифровки в нав-баре учителя (TranscriptionQueueWidget).
+  // «Расшифровка» и «идёт» уже есть ключами ниже — не дублируем.
+  'в очереди': 'queued',
+  'В очереди': 'Queued',
+  'Идёт обработка': 'Processing',
+  'Останавливаем…': 'Stopping…',
+  'Остановить расшифровку': 'Stop transcription',
+  'Убрать из очереди': 'Remove from queue',
+  'позиция': 'position',
+  'Пока хватает памяти, записи обрабатываются параллельно; иначе ждут очереди.':
+    'While memory allows, recordings run in parallel; otherwise they wait in the queue.',
   'Запись урока пока недоступна': 'The lesson recording is not available yet',
   'Код из Тестли': 'Testly code',
   'Вставьте код через меню поля.': 'Paste the code using the field menu.',
