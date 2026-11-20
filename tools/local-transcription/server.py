@@ -159,7 +159,9 @@ def version():
     # Без токена: версия не секрет, а подсказать «обновите модуль» нужно и
     # до подключения компьютера.
     # update — модуль умеет обновляться сам (POST /update).
-    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True, queue=True)
+    # app — версия Mac-приложения (с v1.0.11): сайт пишет «вышла новая» без догадок.
+    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True, queue=True,
+                   app=os.environ.get('ISKRA_APP_VERSION') or None)
 
 UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
 # Исполняемые файлы архива не переносятся при самообновлении: подписанный ffmpeg

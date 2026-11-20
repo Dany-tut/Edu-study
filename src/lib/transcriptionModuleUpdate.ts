@@ -19,12 +19,14 @@ export type ModuleFreshness = 'current' | 'outdated' | 'unknown'
 export const MODULE_DOWNLOAD_URL = `/downloads/Iskra-Transcription-Mac-v${TRANSCRIPTION_PRODUCT_VERSION}.dmg`
 
 /** Что модуль на этом Mac сказал о себе. selfUpdate — умеет POST /update. */
-export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean }
+/** app — версия Mac-приложения; её сообщают приложения с v1.0.11, у старых её нет. */
+export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean; app?: string }
 
 export async function readModule(): Promise<ModuleInfo> {
   try {
-    const { version, update } = await localRequest('/version', '', { signal: AbortSignal.timeout(2500) })
-    return { freshness: version === TRANSCRIPTION_MODULE_VERSION ? 'current' : 'outdated', local: version, selfUpdate: update === true }
+    const { version, update, app } = await localRequest('/version', '', { signal: AbortSignal.timeout(2500) })
+    return { freshness: version === TRANSCRIPTION_MODULE_VERSION ? 'current' : 'outdated', local: version, selfUpdate: update === true,
+      app: typeof app === 'string' && app ? app : undefined }
   } catch (error) {
     return { freshness: error instanceof LocalTranscriptionUnavailable ? 'unknown' : 'outdated', selfUpdate: false }
   }
@@ -59,7 +61,17 @@ export function updateModule(token: string): Promise<boolean | null> {
   return updating
 }
 
-export type ModuleState = { phase: ModuleFreshness | 'updating' | 'failed'; local?: string; selfUpdate: boolean }
+export type ModuleState = { phase: ModuleFreshness | 'updating' | 'failed'; local?: string; selfUpdate: boolean; app?: string }
+
+/** «1.0.9» < «1.0.10»: сравнение по числам, а не по строке. */
+export function olderAppVersion(installed: string, latest: string) {
+  const a = installed.split('.').map(Number), b = latest.split('.').map(Number)
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i] || 0, y = b[i] || 0
+    if (x !== y) return x < y
+  }
+  return false
+}
 
 /**
  * Проверка для карточки модуля: при открытии и при возврате на вкладку.
@@ -73,11 +85,11 @@ export function useModuleState(enabled: boolean, token: string): ModuleState {
     const run = async () => {
       const info = await readModule()
       if (!alive) return
-      if (info.freshness !== 'outdated' || !info.selfUpdate || !token) { setState({ phase: info.freshness, local: info.local, selfUpdate: info.selfUpdate }); return }
-      setState({ phase: 'updating', local: info.local, selfUpdate: true })
+      if (info.freshness !== 'outdated' || !info.selfUpdate || !token) { setState({ phase: info.freshness, local: info.local, selfUpdate: info.selfUpdate, app: info.app }); return }
+      setState({ phase: 'updating', local: info.local, selfUpdate: true, app: info.app })
       const ok = await updateModule(token)
       if (!alive) return
-      setState(ok ? { phase: 'current', local: TRANSCRIPTION_MODULE_VERSION, selfUpdate: true } : { phase: ok === null ? 'outdated' : 'failed', local: info.local, selfUpdate: true })
+      setState(ok ? { phase: 'current', local: TRANSCRIPTION_MODULE_VERSION, selfUpdate: true, app: info.app } : { phase: ok === null ? 'outdated' : 'failed', local: info.local, selfUpdate: true, app: info.app })
     }
     void run()
     const onVisible = () => { if (document.visibilityState === 'visible') void run() }

@@ -89,6 +89,6 @@ jobs:
             gh release upload "$TAG" "$ASSET" --clobber
           else
             gh release create "$TAG" "$ASSET" \
-              --title "Искра — Расшифровка v$PRODUCT_VERSION" \
+              --title "Искра · Расшифровка v$PRODUCT_VERSION" \
               --notes "Подписанное и нотариально заверенное приложение Искры для расшифровки на Mac. Версия $PRODUCT_VERSION; сборка $VERSION."
           fi

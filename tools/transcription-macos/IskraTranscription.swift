@@ -28,6 +28,34 @@ private enum Companion {
             || current.deletingLastPathComponent().path == "/Applications"
     }
 
+    /// Older copies of this app (same bundle id, same or lower version) left in
+    /// /Applications or ~/Applications go to the Trash, so Launchpad shows one
+    /// app. Running copies are left alone; Downloads is not touched (macOS would
+    /// ask the teacher for folder access). Called only from the installed copy.
+    static func trashOtherCopies() {
+        let current = Bundle.main.bundleURL.resolvingSymlinksInPath().path
+        let id = Bundle.main.bundleIdentifier ?? "ru.iskra.transcription"
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+        let folders = [URL(fileURLWithPath: "/Applications", isDirectory: true), installedURL.deletingLastPathComponent()]
+        let running = Set(NSRunningApplication.runningApplications(withBundleIdentifier: id)
+            .compactMap { $0.bundleURL?.resolvingSymlinksInPath().path })
+        var old: [URL] = []
+        for folder in folders {
+            let items = (try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
+            for url in items where url.pathExtension == "app" {
+                let path = url.resolvingSymlinksInPath().path
+                guard path != current, !running.contains(path), let bundle = Bundle(url: url),
+                      bundle.bundleIdentifier == id else { continue }
+                let other = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+                if other.compare(version, options: .numeric) != .orderedDescending { old.append(url) }
+            }
+        }
+        guard !old.isEmpty else { return }
+        NSWorkspace.shared.recycle(old) { trashed, _ in
+            for url in trashed.keys { print("Iskra transcription: old copy moved to Trash: \(url.path)") }
+        }
+    }
+
     static func installResources() throws {
         try FileManager.default.createDirectory(at: appSupport, withIntermediateDirectories: true)
         let marker = module.appendingPathComponent(".launcher-install-version")
@@ -48,7 +76,7 @@ private enum Companion {
 
     static func register() throws {
         guard isInstalled(Bundle.main.bundleURL) else {
-            throw failure("Откройте установленную копию «Искра — расшифровка» из папки «Программы».")
+            throw failure("Откройте установленную копию «Искра · Расшифровка» из папки «Программы».")
         }
         try installResources()
         // A missing Background Task Management record may be reported as
@@ -248,6 +276,8 @@ private func runService() -> Never {
         setenv("ISKRA_FFMPEG", resource.appendingPathComponent("ffmpeg").path, 1)
         setenv("ISKRA_FRAME_TEXT", Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/IskraFrameText").path, 1)
         setenv("ISKRA_PACKAGED_MODULE", "1", 1)
+        // The site compares it with the latest release and says so plainly.
+        setenv("ISKRA_APP_VERSION", Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "", 1)
         guard dup2(log.fileDescriptor, STDOUT_FILENO) >= 0,
               dup2(log.fileDescriptor, STDERR_FILENO) >= 0 else {
             throw Companion.failure("Не удалось открыть журнал обработчика.")
@@ -288,6 +318,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         requestedStart = requestedStart || CommandLine.arguments.contains("--start")
         buildMenu()
         if installInApplicationsIfNeeded() { return }
+        Companion.trashOtherCopies()
         handleStart()
         checkForUpdates(userInitiated: false)
         updateTimer = Timer.scheduledTimer(withTimeInterval: Updater.checkInterval, repeats: true) { [weak self] _ in
@@ -299,7 +330,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let main = NSMenu()
         let appItem = NSMenuItem()
         main.addItem(appItem)
-        let menu = NSMenu(title: "Искра — расшифровка")
+        let menu = NSMenu(title: "Искра · Расшифровка")
         menu.addItem(withTitle: "Проверить обновления…", action: #selector(checkUpdatesClicked), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Скрыть", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
@@ -423,7 +454,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Keep the ARC-owned window alive when the red close button hides it.
         // Dock reopen and asynchronous status updates reuse this same window.
         window.isReleasedWhenClosed = false
-        window.title = "Искра — расшифровка"
+        window.title = "Искра · Расшифровка"
         window.center()
         let content = NSView(frame: frame)
         window.contentView = content
