@@ -1,6 +1,7 @@
 import { PLATFORM } from '../../lib/platform'
 import HScrollFade from '../../components/HScrollFade'
 import { textFadeStyle } from '../../lib/textFades'
+import { plainTitle } from '../../lib/lessonKey'
 import { RefreshCw as LoopUiRefreshCw } from '../../components/icons/appIcons'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
@@ -9098,7 +9099,7 @@ export default function TeacherConstructorPage() {
           c.lessons.map((l, i) => ({
             short_id: `${shortId}-${i}`,
             course_id: dbCourse.id,
-            title: l.title,
+            title: plainTitle(l.title),
             position: i,
             lesson_number: i,
           })),

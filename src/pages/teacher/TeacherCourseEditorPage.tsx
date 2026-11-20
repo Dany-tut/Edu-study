@@ -11,6 +11,7 @@ import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
 import Model3DPicker from '../../components/teacher/Model3DPicker'
 import FipiPicker, { FipiToggle } from '../../components/teacher/FipiPicker'
+import { plainTitle } from '../../lib/lessonKey'
 import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
@@ -6996,7 +6997,8 @@ export default function TeacherCourseEditorPage() {
       short_id: shortIdByLessonId[lesson.id] ?? `${shortId}-${i}`,
       course_id: courseDbId,
       module_id: moduleDbIdByLocalId[moduleLocalId] ?? null,
-      title: lesson.title,
+      // Номер урока рисует интерфейс — в названии его не храним.
+      title: plainTitle(lesson.title),
       position: i,
       lesson_number: i,
       youtube_url: lesson.videoUrl ?? null,

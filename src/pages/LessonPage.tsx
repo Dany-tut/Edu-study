@@ -1,5 +1,6 @@
 import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
 import { RecapSummary, SelfCheck } from '../components/LessonRecapBlocks'
+import MarqueeText from '../components/MarqueeText'
 import { playbackPlan } from '../lib/lessonMontage'
 import { useNow } from '../lib/useNow'
 import { textFadeStyle } from '../lib/textFades'
@@ -935,10 +936,11 @@ export default function LessonPage() {
         </motion.button>
 
         <h1
-          className="flex-1 min-w-0 text-fade text-center"
-          style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)' }}
+          className="flex-1 min-w-0 text-center"
+          style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}
         >
-          {t('Занятие')} #{lesson.number + 1} {tContent(lesson.title)}
+          {/* Длинное название не обрезаем: пауза — и строка плавно доезжает до конца. */}
+          <MarqueeText>{`${t('Занятие')} #${lesson.number + 1} ${tContent(lesson.title)}`}</MarqueeText>
         </h1>
 
         {date && <div
@@ -998,7 +1000,7 @@ export default function LessonPage() {
 
             <div
               ref={dockTitleRef}
-              className="min-w-0 text-fade"
+              className="min-w-0"
               style={{
                 fontSize: 14, fontWeight: 700, color: 'var(--color-text)', flexShrink: 1,
                 maxWidth: dockTitleMax,
@@ -1007,7 +1009,7 @@ export default function LessonPage() {
                 ...dockGlass, pointerEvents: 'auto',
               }}
             >
-              {tContent(lesson.title)}
+              <MarqueeText>{tContent(lesson.title)}</MarqueeText>
             </div>
 
             <div style={{ flexGrow: 1, flexBasis: 0 }} />
