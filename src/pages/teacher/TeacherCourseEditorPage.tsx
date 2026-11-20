@@ -531,7 +531,10 @@ function LeftCourseMeta({
         </div>
       </div>
 
-      <NumberStartField value={course.numberStart ?? 1} onChange={v => setCourse(c => ({ ...c, numberStart: v }))} />
+      {/* Без колонки в базе (миграция ещё не накатана) поля нет — см. loadNumberStart. */}
+      {course.numberStart != null && (
+        <NumberStartField value={course.numberStart} onChange={v => setCourse(c => ({ ...c, numberStart: v }))} />
+      )}
 
       {/* Description */}
       <textarea

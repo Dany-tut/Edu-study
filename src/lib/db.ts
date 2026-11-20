@@ -783,7 +783,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
   const { data, error } = await supabase
     .from('courses')
     .select(`
-      id, short_id, title, subject, student_ids, group_ids, number_start,
+      id, short_id, title, subject, student_ids, group_ids,
       course_modules (
         id, label, position,
         lessons ( id, short_id, title, lesson_number, shape, has_hard, youtube_url, timecodes, kind, test_tasks, scheduled_date, scheduled_time, rec_date, rec_time, lesson_sched_manual, materials )

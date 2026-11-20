@@ -9,7 +9,7 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
 
   const { data: dbCourse, error } = await supabase
     .from('courses')
-    .select('id, title, subject, level, status, description, color, bg, seed_stamp, number_start, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, chapter_variants, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
+    .select('id, title, subject, level, status, description, color, bg, seed_stamp, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, chapter_variants, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
     .eq('short_id', shortId)
     .abortSignal(signal)
     .single()
@@ -61,7 +61,19 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
     description: dbCourse.description ?? '',
     color: dbCourse.color ?? 'var(--color-purple)', bg: dbCourse.bg ?? 'var(--color-purple-soft)',
     seedStamp: dbCourse.seed_stamp ?? undefined,
-    numberStart: lessonNumberShift((dbCourse as { number_start?: number | null }).number_start) + 1,
+    numberStart: await loadNumberStart(dbCourse.id, signal),
     groupIds, studentIds, modules, lessons,
   }
+}
+
+/**
+ * courses.number_start отдельным запросом: миграцию на прод накатывают
+ * отдельно, и до неё колонки нет. Тогда — undefined: поле в редакторе
+ * скрыто и в сохранение не уходит, курс открывается как раньше.
+ */
+export async function loadNumberStart(courseId: string, signal: AbortSignal): Promise<number | undefined> {
+  const { data, error } = await supabase
+    .from('courses').select('number_start').eq('id', courseId).abortSignal(signal).maybeSingle()
+  if (error || !data) return undefined
+  return lessonNumberShift((data as { number_start?: number | null }).number_start) + 1
 }
