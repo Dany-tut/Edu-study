@@ -1846,8 +1846,19 @@ export function CenterRecording({
     setLocalUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [localFile])
-  const source = useMemo(() => lesson.videoUrl ? parseVideoSource(lesson.videoUrl) :
-    localUrl ? { kind: 'file' as const, url: localUrl } : undefined, [lesson.videoUrl, localUrl])
+  // Файл с компьютера при ссылке — тот же ролик: учитель смотрит и ставит главы
+  // по нему (Google Диск в iframe не перематывается), ученики — по ссылке.
+  const linkSource = useMemo(() => lesson.videoUrl ? parseVideoSource(lesson.videoUrl) : undefined, [lesson.videoUrl])
+  const source = useMemo(() => localFile && localUrl ? { kind: 'file' as const, url: localUrl } : linkSource,
+    [localFile, localUrl, linkSource])
+  const localInput = useRef<HTMLInputElement>(null)
+  // Ссылку сменили на другую — прикреплённый файл был от прежней записи.
+  // Первая ссылка к уже открытому файлу (запись без ссылки) его сохраняет.
+  const linkedUrl = useRef(lesson.videoUrl)
+  useEffect(() => {
+    if (linkedUrl.current && lesson.videoUrl !== linkedUrl.current) setLocalFile(null)
+    linkedUrl.current = lesson.videoUrl
+  }, [lesson.videoUrl])
   // Ссылка на облачный диск — показываем бренд-логотип и название (приписку).
   const disk = useMemo(() => detectDisk(lesson.videoUrl), [lesson.videoUrl])
   const playerRef = useRef<LessonVideoHandle>(null)
@@ -1941,17 +1952,39 @@ export function CenterRecording({
             </button>
           </>
         ) : (<>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
           <span style={{ fontSize: 13, color: 'var(--color-text-3)', minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
             {lesson.videoUrl || localFile?.name}
           </span>
-          {disk && (
+          {/* С прикреплённым файлом бренд диска уже в значке слева — место чипу файла. */}
+          {disk && !localFile && (
             <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 9px 2px 7px', borderRadius: 999, background: 'var(--color-bg-3)', color: 'var(--color-text-3)' }}>
               <DiskLogo provider={disk.id} size={11} />
               <span style={{ fontSize: 11, fontWeight: 700 }}>{disk.name}</span>
             </span>
           )}
         </div>
+        {lesson.videoUrl && (localFile ? (
+          <span title={t('Файл с компьютера — для плеера и расшифровки')} style={{ flexShrink: 1, minWidth: 90, maxWidth: 220, display: 'inline-flex', alignItems: 'center', gap: 5, height: 26, padding: '0 4px 0 9px', borderRadius: 999, background: 'var(--color-green-soft)', color: 'var(--color-green-text)' }}>
+            <Upload size={12} style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 11, fontWeight: 700, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', ...textFadeStyle }}>{localFile.name}</span>
+            <button data-hover="layer" type="button" onClick={() => setLocalFile(null)} aria-label={t('Открепить файл с компьютера')} title={t('Открепить файл')}
+              style={{ width: 20, height: 20, borderRadius: 999, border: 'none', background: 'transparent', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 }}>
+              <LoopMarkX size={11} />
+            </button>
+          </span>
+        ) : (<>
+          <input ref={localInput} type="file" accept="video/*,audio/*,.mkv" hidden onChange={event => {
+            const file = event.currentTarget.files?.[0]
+            event.currentTarget.value = ''
+            if (file) setLocalFile(file)
+          }} />
+          <button data-hover="layer" type="button" onClick={() => localInput.current?.click()}
+            title={t('Тот же ролик с компьютера: расшифровка без скачивания с диска, плеер с перемоткой. Ученики смотрят по ссылке.')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
+            <Upload size={13} /> {t('Файл с компьютера')}
+          </button>
+        </>))}
         <button data-hover="layer" onClick={() => setLinkMode(true)}
           style={{ fontSize: 12, color: 'var(--color-green-text)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, flexShrink: 0 }}>
           {t('Изменить')}
@@ -2003,10 +2036,11 @@ export function CenterRecording({
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ marginBottom: 4 }}>{linkRow}</div>
             {localFile && !lesson.videoUrl && <small role="status">Видео открыто с компьютера. Текст и главы можно сохранить в уроке. Чтобы ученики могли смотреть запись, добавьте ссылку через «Изменить».</small>}
+            {localFile && lesson.videoUrl && <small role="status">{t('Плеер и расшифровка берут файл с компьютера — скачивать с диска не нужно. Ученики смотрят запись по ссылке.')}</small>}
             {source ? (
               <>
                 <LessonVideoPlayer
-                  key={lesson.videoUrl}
+                  key={JSON.stringify([lesson.videoUrl, localUrl])}
                   ref={playerRef}
                   source={source}
                   title={tc(lesson.title)}
@@ -2020,7 +2054,7 @@ export function CenterRecording({
                     это снаружи нельзя (другой домен). Поэтому не ловим ошибку, а
                     заранее подсказываем учителю единственную её причину — так ему
                     не нужно гадать по чужой заглушке. */}
-                {source.kind === 'gdrive' && (
+                {linkSource?.kind === 'gdrive' && (
                   <div style={{
                     display: 'flex', alignItems: 'flex-start', gap: 8, padding: '9px 12px',
                     borderRadius: 12, background: 'var(--color-bg-2)',
@@ -2097,7 +2131,7 @@ export function CenterRecording({
 
   return (
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingBottom: RECORDING_BLEED }}>
-      {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} courseTitle={courseTitle} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
+      {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} courseTitle={courseTitle} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} localFile={lesson.videoUrl ? localFile : null} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         recap={recapControl} recapSignal={recapSignal}
         chapterVariants={lesson.chapterVariants} existingChapters={codes}
