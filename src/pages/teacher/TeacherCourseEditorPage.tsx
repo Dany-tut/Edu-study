@@ -1757,11 +1757,13 @@ function montagePlan(lesson: CELesson) {
 }
 
 export function CenterRecording({
-  lesson, onUpdate, onSaveTranscript, onSaveChapters, onSaveLink, saveUnavailable, courseKey, published, loading, linesSlot, trend, preview = false, subject = '', recapCourse,
+  lesson, onUpdate, onSaveTranscript, onSaveChapters, onSaveLink, saveUnavailable, courseKey, courseTitle, published, loading, linesSlot, trend, preview = false, subject = '', recapCourse,
 }: {
   lesson: CELesson
   /** Предмет курса — словарь расшифровки этого предмета. */
   subject?: string
+  /** Название курса — подпись задания в виджете очереди расшифровки. */
+  courseTitle?: string
   /** «Предпросмотр»: плеер пропускает вырезанное и ускоряет тихое — как у ученика. */
   preview?: boolean
   /** Курс для итогов урока: язык и предмет набора карточек, ученики курса. */
@@ -2095,7 +2097,7 @@ export function CenterRecording({
 
   return (
     <div className="recording-workspace" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingBottom: RECORDING_BLEED }}>
-      {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
+      {loading || !transcription || (linkMode && !lesson.videoUrl && !localFile) ? content(null) : <TranscriptionAction key={JSON.stringify([owner, lesson.id, lesson.videoUrl, localFile?.name, localFile?.size, localFile?.lastModified])} trend={trend} subject={termsSubject(subject)} lessonTitle={lesson.title} courseTitle={courseTitle} lessonText={[lesson.description, lesson.theory, ...(lesson.timecodes ?? []).map(c => c.label)].filter(Boolean).join('\n')} owner={owner} lessonKey={JSON.stringify([courseKey,lesson.id])} source={lesson.videoUrl ?? ''} file={lesson.videoUrl ? null : localFile} published={published}
         existing={lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript, timecodes: codes } : undefined}
         recap={recapControl} recapSignal={recapSignal}
         chapterVariants={lesson.chapterVariants} existingChapters={codes}
@@ -7992,7 +7994,7 @@ export default function TeacherCourseEditorPage() {
                           subject: getSubject(course.subject)?.id ?? course.subject,
                           studentIds: [...new Set([...course.studentIds, ...allStudents.filter(st => st.groupId && course.groupIds.includes(st.groupId)).map(st => st.id)])],
                         }}
-                        courseKey={course.id} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
+                        courseKey={course.id} courseTitle={course.title} loading={!!(course.metadataPending || course.heavyPending)} published={course.status === 'published'}
                         key={lessonShortIdById[selectedLesson.id] ?? selectedLesson.id}
                         lesson={selectedLesson}
                         onUpdate={updateLesson}

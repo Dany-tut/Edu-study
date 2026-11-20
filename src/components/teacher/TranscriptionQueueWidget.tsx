@@ -2,10 +2,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { createPortal } from 'react-dom'
 import { AudioLines, Loader2, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
+import FadeText from '../FadeText'
 import { useT } from '../../lib/i18n'
 import { dropdownSurface } from '../../lib/dropdownStyle'
 import { localRequest } from '../../lib/localTranscription'
 import { useTranscriptionOwner } from './LocalTranscription'
+import { useTeacher } from '../../store/teacherStore'
+import { openLessonInCourseEditor } from '../../lib/teacherNav'
 import './transcriptionQueueWidget.css'
 
 // Статус очереди расшифровки компьютера. Таблетка живёт в правом кластере
@@ -26,6 +29,57 @@ export type QueueJob = {
   cancelling?: boolean
   position?: number
   progress?: { current: number; total: number; unit?: string }
+  // Контекст урока: с сервера (кросс-девайс, позже) или из localStorage того
+  // браузера, что ставил задание. lessonId — для перехода в Конструктор.
+  lessonTitle?: string
+  courseTitle?: string
+  lessonId?: string
+}
+
+/** Карта jobId → контекст урока из локальных записей заданий этого браузера
+ *  (iskra.transcription.job.*). Ключ кодирует [owner, [courseKey, lessonId]];
+ *  название урока/курса дописывается при постановке задания (LocalTranscription). */
+function localLessonInfo(): Map<string, { lessonTitle?: string; courseTitle?: string; lessonId?: string }> {
+  const map = new Map<string, { lessonTitle?: string; courseTitle?: string; lessonId?: string }>()
+  const prefix = 'iskra.transcription.job.'
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (!key || !key.startsWith(prefix)) continue
+      let lessonId: string | undefined
+      try {
+        const lessonKey = JSON.parse(key.slice(prefix.length))[1]
+        const parts = JSON.parse(lessonKey)
+        lessonId = Array.isArray(parts) && typeof parts[1] === 'string' ? parts[1] : undefined
+      } catch { continue }
+      let value: Record<string, unknown> | null
+      try { value = JSON.parse(localStorage.getItem(key) || 'null') } catch { continue }
+      if (!value || typeof value.id !== 'string') continue
+      map.set(value.id, {
+        lessonTitle: typeof value.lessonTitle === 'string' ? value.lessonTitle : undefined,
+        courseTitle: typeof value.courseTitle === 'string' ? value.courseTitle : undefined,
+        lessonId,
+      })
+    }
+  } catch { /* приватный режим и т.п. — без контекста, покажем этап */ }
+  return map
+}
+
+/** Дополнить задания контекстом урока: серверные поля (если появятся) в
+ *  приоритете, пробелы закрывает локальная карта. */
+function withLessonContext(data: QueueData): QueueData {
+  const info = localLessonInfo()
+  const fill = (job: QueueJob): QueueJob => {
+    const local = info.get(job.id)
+    if (!local) return job
+    return {
+      ...job,
+      lessonTitle: job.lessonTitle ?? local.lessonTitle,
+      courseTitle: job.courseTitle ?? local.courseTitle,
+      lessonId: job.lessonId ?? local.lessonId,
+    }
+  }
+  return { ...data, running: data.running.map(fill), queued: data.queued.map(fill) }
 }
 export type QueueData = {
   running: QueueJob[]
@@ -105,7 +159,7 @@ export function useTranscriptionQueue() {
         const next = readQueue(await localRequest('/queue', token || ''))
         if (cancelled) return
         misses = 0
-        setData(next && (next.counts.running + next.counts.queued) > 0 ? next : null)
+        setData(next && (next.counts.running + next.counts.queued) > 0 ? withLessonContext(next) : null)
       } catch {
         if (cancelled) return
         misses += 1
@@ -152,6 +206,7 @@ function Ring({ percent, size = 20 }: { percent?: number; size?: number }) {
  *  было собрать в QA-стенде с мок-данными. */
 export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; onCancel: (id: string) => void }) {
   const t = useT()
+  const openCourseEditor = useTeacher(s => s.openCourseEditor)
   const [open, setOpen] = useState(false)
   const pillRef = useRef<HTMLButtonElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
@@ -185,6 +240,12 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
   const { running, queued } = data
   const nRun = data.counts.running, nQueue = data.counts.queued
   const percent = overallPercent(running)
+  // Клик по заданию → открыть его урок в Конструкторе (lessonId из записи).
+  const openLesson = (job: QueueJob) => {
+    if (!job.lessonId) return
+    setOpen(false)
+    void openLessonInCourseEditor(job.lessonId!, openCourseEditor)
+  }
   // Текст таблетки: «N идёт», при очереди добавляем «· M в очереди».
   const label = nRun > 0 ? `${nRun} ${t('идёт')}` : `${nQueue} ${t('в очереди')}`
   const dim = nRun > 0 && nQueue > 0 ? ` · ${nQueue} ${t('в очереди')}` : ''
@@ -209,32 +270,54 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
             <div className="tqw-pop-list">
               {running.map(job => {
                 const p = jobPercent(job)
+                // Первая строка — урок (если известен), вторая — этап. Нет урока
+                // (старое задание/другой браузер) → этап становится заголовком.
+                const title = job.lessonTitle || job.stage || t('Идёт обработка')
+                const meta = job.cancelling ? t('Останавливаем…') : (job.lessonTitle ? job.stage : '')
                 return (
                   <div className="tqw-job" key={job.id}>
-                    <span className="tqw-job-ic" data-run>
-                      {job.cancelling ? <Loader2 size={15} className="tqw-spin" /> : <AudioLines size={15} />}
-                    </span>
-                    <div className="tqw-job-body">
-                      <div className="tqw-job-title">{job.cancelling ? t('Останавливаем…') : job.stage || t('Идёт обработка')}</div>
-                      <div className="tqw-prog"><i style={{ width: (p ?? 30) + '%' }} data-indeterminate={p === undefined} /></div>
-                    </div>
-                    <span className="tqw-job-tail">{p !== undefined ? `${p}%` : ''}</span>
+                    <button type="button" className="tqw-job-open" disabled={!job.lessonId}
+                      aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
+                      onClick={() => openLesson(job)}>
+                      <span className="tqw-job-ic" data-run>
+                        {job.cancelling ? <Loader2 size={15} className="tqw-spin" /> : <AudioLines size={15} />}
+                      </span>
+                      <div className="tqw-job-body">
+                        <div className="tqw-job-title">{title}</div>
+                        {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
+                        {meta && <div className="tqw-job-meta">{meta}</div>}
+                        <div className="tqw-prog"><i style={{ width: (p ?? 30) + '%' }} data-indeterminate={p === undefined} /></div>
+                      </div>
+                      <span className="tqw-job-tail">{p !== undefined ? `${p}%` : ''}</span>
+                    </button>
                     <button type="button" className="tqw-x" aria-label={t('Остановить расшифровку')} disabled={job.cancelling}
                       onClick={() => onCancel(job.id)}><X size={14} /></button>
                   </div>
                 )
               })}
-              {queued.map(job => (
-                <div className="tqw-job tqw-queued" key={job.id}>
-                  <span className="tqw-job-ic">{job.position ?? '·'}</span>
-                  <div className="tqw-job-body">
-                    <div className="tqw-job-title">{job.stage || t('В очереди')}</div>
-                    <div className="tqw-job-meta">{t('В очереди')}{job.position ? ` · ${t('позиция')} ${job.position}` : ''}</div>
+              {queued.map(job => {
+                const title = job.lessonTitle || t('В очереди')
+                // Без дубля: если урок известен — «в очереди · позиция N»; если нет —
+                // заголовок уже «В очереди», во второй строке только позиция.
+                const pos = job.position ? `${t('позиция')} ${job.position}` : ''
+                const meta = job.lessonTitle ? [t('в очереди'), pos].filter(Boolean).join(' · ') : pos
+                return (
+                  <div className="tqw-job tqw-queued" key={job.id}>
+                    <button type="button" className="tqw-job-open" disabled={!job.lessonId}
+                      aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
+                      onClick={() => openLesson(job)}>
+                      <span className="tqw-job-ic">{job.position ?? '·'}</span>
+                      <div className="tqw-job-body">
+                        <div className="tqw-job-title">{title}</div>
+                        {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
+                        {meta && <div className="tqw-job-meta">{meta}</div>}
+                      </div>
+                    </button>
+                    <button type="button" className="tqw-x" aria-label={t('Убрать из очереди')}
+                      onClick={() => onCancel(job.id)}><X size={14} /></button>
                   </div>
-                  <button type="button" className="tqw-x" aria-label={t('Убрать из очереди')}
-                    onClick={() => onCancel(job.id)}><X size={14} /></button>
-                </div>
-              ))}
+                )
+              })}
             </div>
             </ScrollFade>
             <p className="tqw-foot">{t('Пока хватает памяти, записи обрабатываются параллельно; иначе ждут очереди.')}</p>
