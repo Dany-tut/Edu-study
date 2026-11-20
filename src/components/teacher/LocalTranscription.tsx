@@ -220,7 +220,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <p>{module.phase === 'failed'
             ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
             : appUpdate
-              ? `Вышла версия ${TRANSCRIPTION_PRODUCT_VERSION} приложения «Искра · Расшифровка», у вас ${module.app}. Установите её один раз — дальше приложение будет обновляться само.`
+              ? `Вышла версия ${TRANSCRIPTION_PRODUCT_VERSION} приложения «Искра · Расшифровка», у вас ${module.app}${module.appRemembered ? ' (по последней проверке: модуль сейчас не запущен)' : ''}. Скачайте её и перенесите в «Программы» с заменой. Код модуля обновляется сам, приложение — нет.`
               : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
             <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
