@@ -295,7 +295,10 @@ type TranscriptionMode = 'text' | 'slides'
 type Pending = { id: string; source: string; fileSignature?: string; mode?: TranscriptionMode; titleRegion?: string; failure?: string; dismissed?: boolean }
 const megabytes = (bytes: number) => (bytes / 1048576).toFixed(1) + ' МБ'
 const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file.lastModified])
-type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft, variants?: ChapterVariants) => Promise<boolean>
+type Props = { owner: string; lessonKey: string; source: string; file?: File | null
+  /** Тот же ролик с компьютера при уроке со ссылкой: модуль берёт его, а не
+   *  скачивает с диска; расшифровка остаётся привязанной к ссылке (source). */
+  localFile?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft, variants?: ChapterVariants) => Promise<boolean>
   /** Предмет словаря расшифровки (termsSubject) и название урока — подсказка модулю. */
   subject?: string; lessonTitle?: string
   /** Название курса — для подписи задания в виджете очереди расшифровки. */
@@ -581,7 +584,7 @@ function TranscriptionActionState(props: ActionProps) {
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
       <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={chapters.generate}><RotateCcw size={16}/></button>
-      {draft && <MontageAction draft={draft} change={change} corrected={corrected} disabled={saving} file={props.file} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />}
+      {draft && <MontageAction draft={draft} change={change} corrected={corrected} disabled={saving} file={props.file ?? props.localFile} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />}
       <button data-hover="layer" aria-label="Посмотреть как ученик" title="Посмотреть как ученик" onClick={() => setView('preview')}><Eye size={16}/></button>
     </div>
   </>
@@ -607,7 +610,7 @@ function TranscriptionActionState(props: ActionProps) {
   </>
 }
 
-function Review({ owner, lessonKey, source, file, subject, lessonTitle, courseTitle, lessonText, initialMode, onSlidesReady, onReady, onClose, onFailed }: Props & { onFailed: (message: string) => void; initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, localFile, subject, lessonTitle, courseTitle, lessonText, initialMode, onSlidesReady, onReady, onClose, onFailed }: Props & { onFailed: (message: string) => void; initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
@@ -667,7 +670,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, courseTi
     // который сохранит его в job для кросс-девайса).
     if (lessonTitle) form.append('lessonTitle', lessonTitle)
     if (courseTitle) form.append('courseTitle', courseTitle)
-    const inputFile = selectedFile ?? file
+    const inputFile = selectedFile ?? file ?? localFile
     if (inputFile) form.append('video', inputFile)
     else form.append('link', source.trim())
     if (mode === 'text') for (const track of tracks) form.append('tracks', track)
@@ -804,8 +807,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, courseTi
       <p className="transcription-hint">Выберите область с названием темы, без постоянной подписи курса. Перед применением можно проверить и поправить найденные главы.</p>
     </>}
     {!pending && <label className="transcription-picker">
-      <Upload size={18}/><strong>{selectedFile ? selectedFile.name : 'Выбрать исходный файл вместо ссылки'}</strong>
-      <small>Выберите то же видео, что добавлено в урок. Доступ к просмотру по ссылке не всегда разрешает скачивание для обработки.</small>
+      <Upload size={18}/><strong>{selectedFile ? selectedFile.name : localFile ? `Файл с компьютера: ${localFile.name}` : 'Выбрать исходный файл вместо ссылки'}</strong>
+      <small>{localFile && !selectedFile ? 'Обработаем этот файл без скачивания с диска. Расшифровка останется у ссылки для учеников.' : 'Выберите то же видео, что добавлено в урок. Доступ к просмотру по ссылке не всегда разрешает скачивание для обработки.'}</small>
       <input type="file" accept="video/*,audio/*,.mkv" aria-label="Исходный файл для обработки" disabled={busy} onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}/>
     </label>}
     {!pending && mode === 'text' && <p className="transcription-hint">Используем запись этого урока. После обработки вы сможете проверить текст и главы.</p>}
