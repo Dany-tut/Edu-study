@@ -47,8 +47,7 @@ while True: time.sleep(.1)
     def start_job(self,jid):
         job={'id':jid,'owner':self.token,'link':'','completed':[], 'state':{'stage':'Разделяем голоса','stageStartedAt':time.time()-600}}
         folder=self.s.JOBS/jid;folder.mkdir();self.s.job_store.save(folder,job);self.s.jobs[jid]=job
-        self.assertTrue(self.s.gate.acquire(False))
-        thread=threading.Thread(target=self.s.process,args=(job,folder,''));thread.start();self.threads.append((thread,folder))
+        thread=threading.Thread(target=self.s.run_job,args=(jid,));thread.start();self.threads.append((thread,folder))
         end=time.monotonic()+10
         while not (folder/'ready').exists():
             if time.monotonic()>end:self.fail('worker did not start')
@@ -67,9 +66,9 @@ while True: time.sleep(.1)
             self.assertTrue(state['canCancel']);self.assertGreaterEqual(state['elapsedSeconds'],600)
             response=self.request('delete','/jobs/'+jid)
             self.assertEqual(response.status_code,202)
-            self.assertTrue(response.json['cancelling']);self.assertTrue(self.s.gate.locked())
+            self.assertTrue(response.json['cancelling']);self.assertIn(jid,self.s.running)
             thread.join(10);self.assertFalse(thread.is_alive())
-            self.assertFalse(members(pid));self.assertFalse(self.s.gate.locked())
+            self.assertFalse(members(pid));self.assertNotIn(jid,self.s.running)
             state=self.request('get','/jobs/'+jid).json
             self.assertTrue(state['cancelled']);self.assertFalse(state.get('done',False))
             self.assertTrue(self.s.job_store.load(self.s.JOBS)[jid]['state']['cancelled'])
@@ -91,11 +90,16 @@ while True: time.sleep(.1)
 
     def test_cancel_queued_job_before_process_launch(self):
         jid='e'*32;folder=self.s.JOBS/jid;folder.mkdir()
-        job={'id':jid,'owner':self.token,'link':'','state':{'stage':'Запись принята'}}
-        self.s.jobs[jid]=job;self.s.job_store.save(folder,job);self.s.gate.acquire()
+        job={'id':jid,'owner':self.token,'link':'','state':{'stage':'В очереди'}}
+        self.s.jobs[jid]=job;self.s.job_store.save(folder,job)
+        # Задание ждёт в очереди — отмена снимает его из очереди сразу, без запуска.
+        with self.s.queue_cv: self.s.pending.append(jid)
         self.assertEqual(self.request('delete','/jobs/'+jid).status_code,202)
-        self.s.process(job,folder,'')
-        self.assertTrue(job['state']['cancelled']);self.assertFalse(self.s.gate.locked())
+        self.assertNotIn(jid,self.s.pending)
+        self.assertTrue(self.s.jobs[jid]['state']['cancelled'])
+        # Повторный прогон супервизора ничего не запускает: маркер .cancel на месте.
+        self.s.run_job(jid)
+        self.assertTrue(job['state']['cancelled']);self.assertNotIn(jid,self.s.running)
         self.assertFalse((folder/'ready').exists())
 
 if __name__=='__main__':unittest.main()

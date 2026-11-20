@@ -32,6 +32,7 @@ import { supabase } from '../../lib/supabase'
 import { trackNow } from '../../lib/analytics'
 import { useTheme } from '../../store/themeStore'
 import NotificationBell from '../NotificationBell'
+import TranscriptionQueueWidget from './TranscriptionQueueWidget'
 import { PILL_WIDTH } from './TeacherCompactPill'
 import NotificationPopup from '../NotificationPopup'
 import { useNotificationsStore } from '../../store/notificationsStore'
@@ -521,6 +522,8 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        {/* Статус очереди расшифровки — виден, только когда что-то идёт/ждёт. */}
+        <TranscriptionQueueWidget />
         <div ref={bellRef} style={{ display: 'inline-flex' }}>
           <NotificationBell active={notifOpen} friendCount={friends.incoming.length} onClick={() => { void friends.refresh(); setNotifOpen(o => !o) }} />
         </div>
