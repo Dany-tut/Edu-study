@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { createPortal } from 'react-dom'
 import { AudioLines, Loader2, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
+import FadeText from '../FadeText'
 import { useT } from '../../lib/i18n'
 import { dropdownSurface } from '../../lib/dropdownStyle'
 import { localRequest } from '../../lib/localTranscription'
@@ -282,7 +283,8 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
                         {job.cancelling ? <Loader2 size={15} className="tqw-spin" /> : <AudioLines size={15} />}
                       </span>
                       <div className="tqw-job-body">
-                        <div className="tqw-job-title">{title}{job.courseTitle && job.lessonTitle && <span className="tqw-course">{job.courseTitle}</span>}</div>
+                        <div className="tqw-job-title">{title}</div>
+                        {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
                         {meta && <div className="tqw-job-meta">{meta}</div>}
                         <div className="tqw-prog"><i style={{ width: (p ?? 30) + '%' }} data-indeterminate={p === undefined} /></div>
                       </div>
@@ -306,7 +308,8 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
                       onClick={() => openLesson(job)}>
                       <span className="tqw-job-ic">{job.position ?? '·'}</span>
                       <div className="tqw-job-body">
-                        <div className="tqw-job-title">{title}{job.courseTitle && job.lessonTitle && <span className="tqw-course">{job.courseTitle}</span>}</div>
+                        <div className="tqw-job-title">{title}</div>
+                        {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
                         {meta && <div className="tqw-job-meta">{meta}</div>}
                       </div>
                     </button>

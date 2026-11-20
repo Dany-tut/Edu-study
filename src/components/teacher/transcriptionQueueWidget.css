@@ -74,7 +74,9 @@
 .tqw-job-open:hover:not(:disabled) { background: var(--color-bg-5); }
 .tqw-job-open:disabled { cursor: default; }
 
-.tqw-course { margin-left: 6px; font-size: 11px; font-weight: 500; color: var(--color-text-3); }
+/* Курс — отдельной строкой под названием, всегда в одну строку (фейд по
+   TEXT-01 от FadeText, без многоточия); переносится только название урока. */
+.tqw-course { font-size: 11px; font-weight: 500; color: var(--color-text-3); margin-top: 1px; }
 
 .tqw-job-ic {
   width: 28px; height: 28px;
