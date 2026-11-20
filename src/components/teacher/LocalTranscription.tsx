@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { ArrowDownToLine, ArrowRight, AudioLines, Loader2, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
+import Checkbox from '../Checkbox'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
 import MontageAction from './MontageAction'
 import Switch from '../Switch'
@@ -527,7 +528,7 @@ function TranscriptionActionState(props: ActionProps) {
       if (job?.failure) { localStorage.setItem(storageKey, JSON.stringify({...job, dismissed:true})); setAttemptFailure('') }
       setView('entry')
     }}
-      onReady={result => { change(result); changeVariants({...variants, active:'text', text:result.timecodes}); setView('entry') }} /> :
+      onReady={result => { change(draft?.transcript.forStudents ? {...result, transcript: {...result.transcript, forStudents: true}} : result); changeVariants({...variants, active:'text', text:result.timecodes}); setView('entry') }} /> :
       <section className="transcription-inline">
         <button data-hover="layer" type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
@@ -579,6 +580,12 @@ function TranscriptionActionState(props: ActionProps) {
     {correctionNotice && <small role="status">{correctionNotice} {correctionNotice.includes('ещё не отправлены') && <button type="button" onClick={() => void syncCorrections()}>Повторить отправку</button>}</small>}
     {localSaveFailed && <small role="alert">Не удалось сохранить черновик в браузере. Не обновляйте страницу до сохранения в урок.</small>}
     {(failed || badChapter || badLine) && <small role="alert">{failed ? failed : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
+    {/* Без отметки ученик видит только таймкоды, расшифровки у него нет. */}
+    {draft && <div className="transcript-audience">
+      <Checkbox checked={!!draft.transcript.forStudents} disabled={saving}
+        onChange={on => change({...draft, transcript: {...draft.transcript, forStudents: on || undefined}})}
+        labelStyle={{fontSize: 13, color: 'var(--color-text-2)'}}>Показывать ученику</Checkbox>
+    </div>}
     <div className="transcript-tools">
       {working || chapterDirty ? <button className="transcription-rail-action" disabled={saving || badChapter || !!(working && badLine) || !chapters.available} onClick={apply}>
         <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
