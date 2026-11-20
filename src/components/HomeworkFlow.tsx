@@ -41,6 +41,8 @@ import {
 import { easierSameElement } from '../lib/lessonLadder'
 import { okChime, missBlip } from '../lib/feedback'
 import StarBurst from './StarBurst'
+import { confirmWaveReady, preloadConfirmWave, pulseConfirmEdge, subjectWavePalette } from '../lib/confirmWave'
+import { useConfirmWave } from '../lib/confirmWave/useConfirmWave'
 import ScriptHint from './ScriptHint'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData, ownerStudentIdFor, subjectSlugFor, subjectAliases } from '../store/studentDataStore'
@@ -399,12 +401,17 @@ function ResultModal({
   score,
   recommendationScore,
   showHard = true,
+  waveSubject,
+  waveAccent,
   onContinue,
 }: {
   context: 'basic' | 'hard'
   score?: number
   recommendationScore?: number
   showHard?: boolean
+  /** Предмет и акцент курса: волна сдачи идёт в цвете предмета. */
+  waveSubject?: string
+  waveAccent?: string
   onContinue: (emojiIndex: number | null, goToHard?: boolean) => void | Promise<void>
 }) {
   const t = useT()
@@ -424,10 +431,37 @@ function ResultModal({
   const view = homeworkResultView({ context, score, passingScore: recommendationScore, hasHard: showHard })
   const pending = view.state === 'pending'
   const passed = view.state === 'passed'
+  // Волна подтверждения: успешная сдача (зачёт или отправка учителю) приходит
+  // волной в цвете предмета, её искры влетают в баллы. Волна заменяет салют и
+  // хлопушку, а не добавляется к ним. Ниже порога — без волны, как раньше.
+  // Решение принимается один раз при открытии: без WebGL2 / с Reduce Motion — прежний вид.
+  const wave = useConfirmWave()
+  const [waveMode] = useState(() => (passed || pending) && confirmWaveReady())
+  const [intro, setIntro] = useState(waveMode)
+  const waveStarted = useRef(false)
+  const scoreRef = useRef<HTMLSpanElement>(null)
+  const startWave = () => {
+    if (!intro || waveStarted.current) return
+    waveStarted.current = true
+    const handle = wave.begin({
+      palette: subjectWavePalette(waveSubject, waveAccent),
+      cornerRadius: 36,
+      sparksTo: passed ? () => scoreRef.current : null,
+    })
+    setIntro(false)
+    handle?.play()
+  }
+  // Страховка: если анимация появления не сообщила о конце, итог не прячется.
+  useEffect(() => {
+    if (!intro) return
+    const timer = window.setTimeout(startWave, 1200)
+    return () => window.clearTimeout(timer)
+  })
+  const hideUntilWave: React.CSSProperties | undefined = intro ? { visibility: 'hidden' } : undefined
 
   return (
     <>
-      <ConfettiCanvas active={!!passed} bannerRef={bannerRef} />
+      <ConfettiCanvas active={!!passed && !waveMode} bannerRef={bannerRef} />
     <motion.div
       key="result-backdrop"
       initial={{ opacity: 0 }}
@@ -444,10 +478,12 @@ function ResultModal({
       }}
     >
       <motion.div
+        ref={wave.hostRef}
         initial={{ scale: 0.88, opacity: 0, y: 28 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.92, opacity: 0, y: 16 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+        onAnimationComplete={startWave}
         style={{
           width: '100%', maxWidth: 480,
           borderRadius: 36,
@@ -457,6 +493,7 @@ function ResultModal({
           display: 'flex', flexDirection: 'column',
         }}
       >
+        <div ref={wave.liveRef} style={{ display: 'flex', flexDirection: 'column', background: 'var(--color-bg-input)' }}>
         {/* Шапка итогов. Заливка семантическим цветом на всю ширину модалки
             давала то же, что и в плашке итогов: жёлтый на графите — оливковая
             грязь, purple-soft 0.46 — тяжёлая плита под самым крупным текстом.
@@ -466,9 +503,18 @@ function ResultModal({
           background: 'var(--color-bg-3)',
           display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 16,
         }}>
-          {passed ? (
+          {passed && !waveMode ? (
             <div style={{ flexShrink: 0, marginTop: -6, marginBottom: -6 }}>
               <PartyPopperLottie size={66} />
+            </div>
+          ) : passed ? (
+            <div style={{
+              width: 54, height: 54, borderRadius: 18, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: intro ? 'var(--color-bg-input)' : 'var(--color-green-soft)',
+              color: intro ? 'var(--color-accent)' : 'var(--color-green-text)',
+            }}>
+              {intro ? <Send size={24} /> : <CheckCircle2 size={26} />}
             </div>
           ) : (
             <div style={{
@@ -491,7 +537,9 @@ function ResultModal({
               {pending ? t('Работа отправлена') : t('Результат ДЗ')}
             </p>
             <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2, marginBottom: 8 }}>
-              {pending
+              {intro
+                ? t('Домашка сдана')
+                : pending
                 ? t('Отправлено на проверку!')
                 : passed
                   ? `${t('Отлично')}, ${score} ${t('из 100!')}`
@@ -499,7 +547,7 @@ function ResultModal({
               }
             </h2>
             {!passed && (
-              <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>
+              <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', ...hideUntilWave }}>
                 {pending
                   ? t('Преподаватель посмотрит твою работу и даст обратную связь. Обычно это занимает до 24 часов.')
                   /* «нужно 80+» ушло в полосу порога ниже — та же логика, что в
@@ -510,15 +558,16 @@ function ResultModal({
             )}
           </div>
           {!pending && (
-            <div style={{ flexShrink: 0, textAlign: 'right' }}>
-              <span style={{
+            <div style={{ flexShrink: 0, textAlign: 'right', ...hideUntilWave }}>
+              <span ref={scoreRef} style={{
+                display: 'inline-block',
                 fontSize: 42, fontWeight: 700, lineHeight: 1, color: 'var(--color-text)',
               }}>{score}</span>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)', marginTop: 2 }}>{t('баллов')}</p>
             </div>
           )}
           {passed && (
-            <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', width: '100%', marginTop: -8 }}>
+            <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)', width: '100%', marginTop: -8, ...hideUntilWave }}>
               {view.offerHard
                 ? t('База закрыта уверенно. Открылся необязательный хард-уровень с разбором от преподавателя.')
                 : t('База закрыта уверенно.')}
@@ -527,7 +576,7 @@ function ResultModal({
           {/* Та же полоса порога, что и в плашке итогов: ученик видит одну и ту
               же картину и в модалке сразу после сдачи, и на странице под ней. */}
           {!pending && score !== undefined && recommendationScore !== undefined && (
-            <div className="flex flex-col" style={{ gap: 8, width: '100%' }}>
+            <div className="flex flex-col" style={{ gap: 8, width: '100%', ...hideUntilWave }}>
               <div style={{
                 position: 'relative', height: 8, borderRadius: 999,
                 background: 'rgba(var(--spoiler-dot-rgb), 0.12)',
@@ -638,6 +687,7 @@ function ResultModal({
               {t('Продолжить')}
             </motion.button>
           )}
+        </div>
         </div>
       </motion.div>
     </motion.div>
@@ -1725,6 +1775,8 @@ export default function HomeworkFlow({
   // остаётся запасной (та самая брендовая), как было до этой правки.
   const tintOff = useTint(s => s.level) === 'off'
   const palette = subjectTheme(tintOff ? undefined : (subjectSlugFor(subject) ?? subject), dark)
+  // Чанк волны подтверждения грузится заранее: к сдаче он уже на месте.
+  useEffect(() => { void preloadConfirmWave() }, [])
   const readingVisible = useReadingVisible(s => s.visible)
   const setHomeworkWidgetFeedback = useDashboard(s => s.setHomeworkWidgetFeedback)
   const clearHomeworkWidgetFeedback = useDashboard(s => s.clearHomeworkWidgetFeedback)
@@ -1859,7 +1911,12 @@ export default function HomeworkFlow({
    * они вспыхивали бы заново на каждом рендере.
    */
   const [burst, setBurst] = useState<{ id: string; n: number } | null>(null)
-  const fireBurst = (id: string) => setBurst(b => ({ id, n: (b?.n ?? 0) + 1 }))
+  const fireBurst = (id: string) => {
+    setBurst(b => ({ id, n: (b?.n ?? 0) + 1 }))
+    // Верный ответ — тихий контур по краю карточки задания (только где карточка
+    // есть: ПК и айпад в ландшафте). Полная волна — только на сдаче.
+    if (!isMobile) pulseConfirmEdge(questionSectionRefs.current[id], { palette: subjectWavePalette(subjectSlugFor(subject) ?? subject, palette.accent), cornerRadius: 24 })
+  }
   const setHardCompleted = useDashboard(s => s.setHardCompleted)
   // Teacher's verdict on the hard essay, synced from `lesson_progress` on load.
   // Drives the submitted-panel badge so an accept/return actually shows here.
@@ -3136,6 +3193,8 @@ export default function HomeworkFlow({
           score={showResultModal === 'basic' && !homeworkResult(buildBasicSnapshot(), basicScore).pending ? basicScore : undefined}
           recommendationScore={passingScore}
           showHard={showHard}
+          waveSubject={flowSubject}
+          waveAccent={palette.accent}
           onContinue={async (emojiIndex, goToHard) => {
             const attemptId = state.attemptId ?? useStudentData.getState().progress[lessonId]?.result?.attemptId
             const self = emojiIndex != null
