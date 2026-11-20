@@ -1,4 +1,5 @@
 import { textFadeStyle } from '../../lib/textFades'
+import { plainTitle } from '../../lib/lessonKey'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
@@ -1163,7 +1164,7 @@ export default function TeacherLessonEditorPage() {
       const { error: lessonErr } = await supabase.from('lessons').update({
         // Название пишем и в урок: иначе переименование здесь жило бы только в
         // расписании, а следующее сохранение курса вернуло бы старое имя.
-        ...(meta.title.trim() ? { title: meta.title.trim() } : {}),
+        ...(plainTitle(meta.title) ? { title: plainTitle(meta.title) } : {}),
         youtube_url: videoUrl.trim() || null,
         timecodes,
         description: description.trim() || null,

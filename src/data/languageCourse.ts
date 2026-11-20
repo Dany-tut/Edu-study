@@ -28,7 +28,7 @@
 // (seedImages.ts). Фотографий в сидах нет — их учитель добавляет сам.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { numberedTitle } from '../lib/lessonKey'
+import { lessonBody } from '../lib/lessonKey'
 import { GAP_MARK, TASK_TYPES, answerSide, placeCorrect, spreadMulti } from './taskTypes'
 import type { PatternItem, TaskPayload, TaskTypeId, TfVerdict } from './taskTypes'
 import { getSubject } from '../lib/subjects'
@@ -2298,10 +2298,10 @@ export function buildLanguageCourse(spec: LanguageCourseSpec, courseId: string):
 
       lessons.push({
         id,
-        // Номер сквозной по курсу (его же ставит сверка с сидом), порция —
-        // словом в хвосте. Двойной номер «1.2 Тема» из этого места и давал в
-        // списке «7. 2 Тема»: сверка снимала только первое число (lib/lessonKey).
-        title: numberedTitle(`${unit.title}${split ? ` · часть ${k + 1}` : ''}`, lessons.length + 1),
+        // Номер в название не пишем — его рисует интерфейс («Занятие #7»).
+        // Порция — словом в хвосте: двойной номер «1.2 Тема» давал в списке
+        // «7. 2 Тема» (lib/lessonKey).
+        title: lessonBody(`${unit.title}${split ? ` · часть ${k + 1}` : ''}`),
         number: lessons.length + 1,
         kind: 'lesson',
         // Дата занятия у сида не проставлена (её ставит учитель под свою группу),

@@ -18,8 +18,12 @@
 // старых курсов не выглядит для сверки как «132 урока пропали, 132 новых».
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Сквозной номер курса в начале названия: «7. », «7) ». */
-const LEAD_NUMBER = /^\d+[.)]\s*/
+/**
+ * Сквозной номер в начале названия: «7. », «7) », «№ 7. », «#7. ».
+ * Номер урока рисует интерфейс («Занятие #7», «#7» на треке), поэтому в
+ * самом названии его не храним — иначе выходит «Занятие #40 № 40. Тема».
+ */
+const LEAD_NUMBER = /^(?:[№#]\s*)?\d+[.)]\s*/
 /** Старая запись сида: «1.2 Тема» — номер юнита и номер порции. */
 const DOTTED = /^(\d+)\.(\d+)\s+(.+)$/
 /**
@@ -78,15 +82,4 @@ export function lessonBody(raw: string): string {
  */
 export function plainTitle(raw: string): string {
   return (raw ?? '').trim().replace(LEAD_NUMBER, '').trim()
-}
-
-/** Название с номером: то, что видит ученик в списке уроков. */
-export function numberedTitle(raw: string, index: number): string {
-  const body = lessonBody(raw)
-  return body ? `${index}. ${body}` : `${index}.`
-}
-
-/** То же, но тело задаётся отдельно (сверка сама решает, чьё это название). */
-export function withNumber(body: string, index: number): string {
-  return body ? `${index}. ${body}` : `${index}.`
 }

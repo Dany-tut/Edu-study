@@ -26,7 +26,7 @@
 
 import { COURSE_SEEDS } from '../data/courseSeeds'
 import { t as tr } from './i18n'
-import { lessonBody, plainTitle, withNumber } from './lessonKey'
+import { lessonBody, plainTitle } from './lessonKey'
 import { normalizeTaskType } from '../data/taskTypes'
 import type { CourseEdData, CELesson, CEModule } from '../pages/teacher/TeacherCourseEditorPage'
 
@@ -607,11 +607,12 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
     mod.lessonIds = [...mod.lessonIds.slice(0, pos), unit.id, ...mod.lessonIds.slice(pos)]
   })
 
-  // Номер урока и номер в его названии — сквозные по курсу, иначе после вставки
-  // в середину курс читается как «11, 14, 12, 13».
+  // Номер урока — сквозной по курсу, иначе после вставки в середину курс
+  // читается как «11, 14, 12, 13». В название номер не пишем: его рисует
+  // интерфейс («Занятие #7»), а сохранённый — двоится и съезжает.
   //
   // Порцию, записанную старым способом («7. 2 Тема»), переписываем словами
-  // («7. Тема · часть 2») — но только урокам сида: у урока, заведённого
+  // («Тема · часть 2») — но только урокам сида: у урока, заведённого
   // учителем, цифра в начале названия может быть его частью («5 минут
   // разговора»), и трогать её нельзя.
   const freshBodies = new Set(fresh.lessons.map(l => lessonBody(l.title)))
@@ -620,7 +621,7 @@ export async function applySeedChanges(course: CourseEdData, keys: Set<string>):
     return {
       ...l,
       number: i + 1,
-      title: withNumber(freshBodies.has(body) ? body : plainTitle(l.title ?? ''), i + 1),
+      title: freshBodies.has(body) ? body : plainTitle(l.title ?? ''),
     }
   })
 
