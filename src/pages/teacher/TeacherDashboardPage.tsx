@@ -19,6 +19,7 @@ const TeacherHomeworkReviewPage = lazy(() => retryImport(() => import('./Teacher
 const TeacherHardReviewPage = lazy(() => retryImport(() => import('./TeacherHardReviewPage')))
 const TeacherLessonEditorPage = lazy(() => retryImport(() => import('./TeacherLessonEditorPage')))
 import TeacherCompactPill from '../../components/teacher/TeacherCompactPill'
+import { useTranscriptionQueue } from '../../components/teacher/TranscriptionQueueWidget'
 const TeacherStudentDashboardPage = lazy(() => retryImport(() => import('./TeacherStudentDashboardPage')))
 const TeacherCourseEditorPage = lazy(() => retryImport(() => import('./TeacherCourseEditorPage')))
 const TeacherCardSetEditorPage = lazy(() => retryImport(() => import('./TeacherCardSetEditorPage')))
@@ -56,6 +57,13 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
   const studentId = useTeacher(s => s.selectedStudentId)
   const setActivePage = useTeacher(s => s.setActivePage)
   const headerDocked = useTeacher(s => s.headerDocked)
+  // Очередь расшифровки показывается слайдом правого островка. На страницах
+  // редакторов островок обычно скрыт, но пока идёт расшифровка он остаётся —
+  // только со статусом, без карусели.
+  const transcription = useTranscriptionQueue()
+  const islandHiddenOn = activePage === 'homework-review' || activePage === 'lesson-editor' || activePage === 'constructor'
+    || activePage === 'course-editor' || activePage === 'cards-editor' || activePage === 'student'
+  const transcriptionLive = !!transcription.data && (transcription.data.counts.running + transcription.data.counts.queued) > 0
   const isDesktop = useIsDesktop()
   // iPad: всё управление в капсуле справа (docs/platforms.md §1.1), не в топбаре.
   // Версия по PLATFORM, не по ширине: айпад в ландшафте получает десктоп-контент.
@@ -214,7 +222,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         {/* Right column — widget appears/disappears independently */}
         <div style={{ display: 'flex', alignItems: 'center', alignSelf: 'center', paddingLeft: 10, pointerEvents: 'none' }}>
           <AnimatePresence>
-            {activePage !== 'homework-review' && activePage !== 'lesson-editor' && activePage !== 'constructor' && activePage !== 'course-editor' && activePage !== 'cards-editor' && activePage !== 'student' && !headerDocked && (
+            {!headerDocked && (transcriptionLive || !islandHiddenOn) && (
               <motion.div
                 key="top-right-slot"
                 initial={{ opacity: 0, y: -8 }}
@@ -223,7 +231,10 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
                 transition={{ duration: 0.38, ease: [0.34, 1.56, 0.64, 1] }}
                 style={{ pointerEvents: 'auto' }}
               >
-                <TeacherCompactPill />
+                <TeacherCompactPill
+                  transcription={transcriptionLive ? transcription.data : null}
+                  onCancelTranscription={transcription.cancel}
+                  transcriptionOnly={islandHiddenOn} />
               </motion.div>
             )}
           </AnimatePresence>

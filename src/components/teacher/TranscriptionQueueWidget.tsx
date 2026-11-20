@@ -1,18 +1,15 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { createPortal } from 'react-dom'
-import { AudioLines, Loader2, X } from '../icons/appIcons'
-import ScrollFade from '../ScrollFade'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Loader2, X } from '../icons/appIcons'
 import FadeText from '../FadeText'
 import { useT } from '../../lib/i18n'
-import { dropdownSurface } from '../../lib/dropdownStyle'
 import { localRequest } from '../../lib/localTranscription'
 import { useTranscriptionOwner } from './LocalTranscription'
 import { useTeacher } from '../../store/teacherStore'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
 import './transcriptionQueueWidget.css'
 
-// Статус очереди расшифровки компьютера. Таблетка живёт в правом кластере
-// верхнего нав-бара учителя и видна, только когда что-то идёт или ждёт
+// Статус очереди расшифровки компьютера. Живёт слайдом в правом островке
+// бара учителя (TeacherCompactPill) и виден, только когда что-то идёт или ждёт
 // очереди. Данные — GET /queue локального модуля (owner-scoped). Пустой ответ
 // или спящий модуль → виджета нет; разбудить модуль только ради статуса нельзя,
 // поэтому /queue никогда не поднимает компаньон — обычный fetch, тихо падающий.
@@ -187,151 +184,62 @@ export function useTranscriptionQueue() {
   return { data, cancel, refresh }
 }
 
-function Ring({ percent, size = 20 }: { percent?: number; size?: number }) {
-  const r = size / 2 - 1.6
-  const c = 2 * Math.PI * r
-  const off = percent === undefined ? c * 0.72 : c * (1 - percent / 100)
-  return (
-    <span className="tqw-ring" aria-hidden style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className={percent === undefined ? 'tqw-ring-spin' : undefined}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeOpacity="0.22" strokeWidth="2.4" />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={off} transform={`rotate(-90 ${size / 2} ${size / 2})`} />
-      </svg>
-    </span>
-  )
+/** Задание, о котором рассказывает свёрнутый островок: первое идущее, иначе первое в очереди. */
+export function leadJob(data: QueueData): QueueJob | undefined {
+  return data.running[0] ?? data.queued[0]
 }
 
-/** Презентационная таблетка + поповер. Данные приходят снаружи, чтобы её можно
- *  было собрать в QA-стенде с мок-данными. */
-export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; onCancel: (id: string) => void }) {
+/** Строка задания расшифровки в правом островке бара учителя.
+ *  hideTitle — заголовок урока уже стоит в шапке островка (первое задание). */
+export function TranscriptionJobRow({ job, queued, hideTitle, onCancel }: {
+  job: QueueJob
+  queued?: boolean
+  hideTitle?: boolean
+  onCancel: (id: string) => void
+}) {
   const t = useT()
   const openCourseEditor = useTeacher(s => s.openCourseEditor)
-  const [open, setOpen] = useState(false)
-  const pillRef = useRef<HTMLButtonElement>(null)
-  const popRef = useRef<HTMLDivElement>(null)
-  const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
-
-  const place = useCallback(() => {
-    const r = pillRef.current?.getBoundingClientRect()
-    if (r) setAnchor({ top: r.bottom + 10, left: r.left + r.width / 2 })
-  }, [])
-  useLayoutEffect(() => { if (open) place() }, [open, place])
-  useEffect(() => {
-    if (!open) return
-    const update = () => place()
-    window.addEventListener('resize', update)
-    window.addEventListener('scroll', update, true)
-    const onDown = (e: PointerEvent) => {
-      if (popRef.current?.contains(e.target as Node) || pillRef.current?.contains(e.target as Node)) return
-      setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('resize', update)
-      window.removeEventListener('scroll', update, true)
-      document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open, place])
-
-  const { running, queued } = data
-  const nRun = data.counts.running, nQueue = data.counts.queued
-  const percent = overallPercent(running)
-  // Клик по заданию → открыть его урок в Конструкторе (lessonId из записи).
-  const openLesson = (job: QueueJob) => {
-    if (!job.lessonId) return
-    setOpen(false)
-    void openLessonInCourseEditor(job.lessonId!, openCourseEditor)
+  const p = queued ? undefined : jobPercent(job)
+  // Нет урока (старое задание/другой браузер) → этап становится заголовком.
+  const title = job.lessonTitle || (queued ? t('В очереди') : job.stage || t('Идёт обработка'))
+  const pos = job.position ? `${t('позиция')} ${job.position}` : ''
+  const meta = queued
+    ? (job.lessonTitle ? [t('в очереди'), pos].filter(Boolean).join(' · ') : pos)
+    : job.cancelling ? t('Останавливаем…') : (job.lessonTitle || hideTitle ? job.stage : '')
+  const open = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (job.lessonId) void openLessonInCourseEditor(job.lessonId, openCourseEditor)
   }
-  // Текст таблетки: «N идёт», при очереди добавляем «· M в очереди».
-  const label = nRun > 0 ? `${nRun} ${t('идёт')}` : `${nQueue} ${t('в очереди')}`
-  const dim = nRun > 0 && nQueue > 0 ? ` · ${nQueue} ${t('в очереди')}` : ''
-  const aria = `${t('Расшифровка')}: ${nRun} ${t('идёт')}, ${nQueue} ${t('в очереди')}`
-
   return (
-    <>
-      <button ref={pillRef} type="button" className="tqw-pill" aria-label={aria} aria-expanded={open}
-        onClick={() => setOpen(o => !o)}>
-        <Ring percent={percent} />
-        <span className="tqw-pill-text">{label}{dim && <span className="tqw-dim">{dim}</span>}</span>
+    <div className={'tqw-job' + (queued ? ' tqw-queued' : '')}>
+      <button type="button" className="tqw-job-open" disabled={!job.lessonId}
+        aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
+        onClick={open}>
+        <div className="tqw-job-body">
+          {!hideTitle && <div className="tqw-job-title">{title}</div>}
+          {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
+          {(meta || p !== undefined) && (
+            <div className="tqw-job-meta">
+              {job.cancelling && <Loader2 size={11} className="tqw-spin" />}
+              <span className="tqw-job-stage">{meta}</span>
+              {p !== undefined && <span className="tqw-job-pct">{p}%</span>}
+            </div>
+          )}
+          {!queued && <div className="tqw-prog"><i style={{ width: (p ?? 30) + '%' }} data-indeterminate={p === undefined} /></div>}
+        </div>
       </button>
-      {open && anchor && createPortal(
-        <div ref={popRef} style={{ position: 'fixed', top: anchor.top, left: anchor.left, zIndex: 1000, transform: 'translateX(-50%)' } as CSSProperties}>
-          <div className="tqw-pop" style={dropdownSurface}>
-            <div className="tqw-pop-head">
-              <AudioLines size={16} />
-              <strong>{t('Расшифровка')}</strong>
-              <span className="tqw-pop-counts">{nRun} {t('идёт')}{nQueue > 0 ? ` · ${nQueue} ${t('в очереди')}` : ''}</span>
-            </div>
-            <ScrollFade maxHeight="min(52vh, 360px)" fadeHeight={12}>
-            <div className="tqw-pop-list">
-              {running.map(job => {
-                const p = jobPercent(job)
-                // Первая строка — урок (если известен), вторая — этап. Нет урока
-                // (старое задание/другой браузер) → этап становится заголовком.
-                const title = job.lessonTitle || job.stage || t('Идёт обработка')
-                const meta = job.cancelling ? t('Останавливаем…') : (job.lessonTitle ? job.stage : '')
-                return (
-                  <div className="tqw-job" key={job.id}>
-                    <button type="button" className="tqw-job-open" disabled={!job.lessonId}
-                      aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
-                      onClick={() => openLesson(job)}>
-                      <span className="tqw-job-ic" data-run>
-                        {job.cancelling ? <Loader2 size={15} className="tqw-spin" /> : <AudioLines size={15} />}
-                      </span>
-                      <div className="tqw-job-body">
-                        <div className="tqw-job-title">{title}</div>
-                        {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
-                        {meta && <div className="tqw-job-meta">{meta}</div>}
-                        <div className="tqw-prog"><i style={{ width: (p ?? 30) + '%' }} data-indeterminate={p === undefined} /></div>
-                      </div>
-                      <span className="tqw-job-tail">{p !== undefined ? `${p}%` : ''}</span>
-                    </button>
-                    <button type="button" className="tqw-x" aria-label={t('Остановить расшифровку')} disabled={job.cancelling}
-                      onClick={() => onCancel(job.id)}><X size={14} /></button>
-                  </div>
-                )
-              })}
-              {queued.map(job => {
-                const title = job.lessonTitle || t('В очереди')
-                // Без дубля: если урок известен — «в очереди · позиция N»; если нет —
-                // заголовок уже «В очереди», во второй строке только позиция.
-                const pos = job.position ? `${t('позиция')} ${job.position}` : ''
-                const meta = job.lessonTitle ? [t('в очереди'), pos].filter(Boolean).join(' · ') : pos
-                return (
-                  <div className="tqw-job tqw-queued" key={job.id}>
-                    <button type="button" className="tqw-job-open" disabled={!job.lessonId}
-                      aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
-                      onClick={() => openLesson(job)}>
-                      <span className="tqw-job-ic">{job.position ?? '·'}</span>
-                      <div className="tqw-job-body">
-                        <div className="tqw-job-title">{title}</div>
-                        {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
-                        {meta && <div className="tqw-job-meta">{meta}</div>}
-                      </div>
-                    </button>
-                    <button type="button" className="tqw-x" aria-label={t('Убрать из очереди')}
-                      onClick={() => onCancel(job.id)}><X size={14} /></button>
-                  </div>
-                )
-              })}
-            </div>
-            </ScrollFade>
-            <p className="tqw-foot">{t('Пока хватает памяти, записи обрабатываются параллельно; иначе ждут очереди.')}</p>
-          </div>
-        </div>,
-        document.body,
-      )}
-    </>
+      <button type="button" className="tqw-x" disabled={job.cancelling}
+        aria-label={queued ? t('Убрать из очереди') : t('Остановить расшифровку')}
+        onClick={e => { e.stopPropagation(); onCancel(job.id) }}><X size={14} /></button>
+    </div>
   )
 }
 
-/** Контейнер для нав-бара: сам тянет данные и прячется, когда заданий нет. */
-export default function TranscriptionQueueWidget() {
-  const { data, cancel } = useTranscriptionQueue()
-  if (!data || (data.counts.running + data.counts.queued) === 0) return null
-  return <TranscriptionQueuePill data={data} onCancel={cancel} />
+/** Сводка для подписи островка: «1 идёт · 2 в очереди». */
+export function queueSummary(data: QueueData, t: (s: string) => string): string {
+  const { running, queued } = data.counts
+  return [running > 0 ? `${running} ${t('идёт')}` : '', queued > 0 ? `${queued} ${t('в очереди')}` : '']
+    .filter(Boolean).join(' · ')
 }
+
+export { overallPercent }
