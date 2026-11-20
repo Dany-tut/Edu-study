@@ -94,8 +94,17 @@ def segments_from_ctc(tokens, timestamps, shift=0.0, want_words=False):
             flush_segment(last_end)
             seg_start = start
         if token == ' ' or token == '':
+            # char-CTC (v2, v3-plain): пробел — отдельный токен между словами.
             flush_word(last_end if last_end is not None else start)
             cur_chars.append(' ')
+        elif token.startswith(' '):
+            # BPE (v3 e2e): ведущий пробел в токене = начало нового слова.
+            flush_word(last_end if last_end is not None else start)
+            piece = token[1:]
+            cur_chars.append(' ')
+            cur_chars.append(piece)
+            word_start = start
+            word_chars.append(piece)
         else:
             if word_start is None:
                 word_start = start

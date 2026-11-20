@@ -43,6 +43,14 @@ class SegmentsFromCtcTests(unittest.TestCase):
         segs = a.segments_from_ctc(list('да'), [0.0, 0.1])
         self.assertNotIn('words', segs[0])
 
+    def test_bpe_leading_space_tokens(self):
+        # v3 e2e: пробел зашит в токен (' С', ' на'), а не отдельным токеном.
+        tokens = [' С', 'е', 'го', 'д', 'н', 'я', ' на', ' у', 'ро', 'к', 'е']
+        timestamps = [i * 0.1 for i in range(len(tokens))]
+        segs = a.segments_from_ctc(tokens, timestamps, want_words=True)
+        self.assertEqual(segs[0]['text'], 'Сегодня на уроке')
+        self.assertEqual([w['word'] for w in segs[0]['words']], ['Сегодня', 'на', 'уроке'])
+
     def test_mismatched_lengths_return_empty(self):
         self.assertEqual(a.segments_from_ctc(['а', 'б'], [0.0]), [])
 

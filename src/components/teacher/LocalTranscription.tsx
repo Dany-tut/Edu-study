@@ -296,6 +296,9 @@ export type TranscriptRail = {
 
 /** Время реплики целиком и одной ширины во всём списке: 00:06 … 59:59, а если в записи есть часы — 00:00:06 … 02:20:20. */
 const TRAINING_KEY = 'iskra.transcription.training'
+// Быстрое распознавание (эксперимент): движок GigaAM для русской речи. Значение
+// 'auto' безопасно — смешанную речь (RU+EN и т.п.) модуль сам оставляет на whisper.
+const FAST_ASR_KEY = 'iskra.transcription.fastAsr'
 
 function lineClock(seconds: number, withHours: boolean) {
   const s = Math.max(0, Math.floor(seconds)), two = (n: number) => String(n).padStart(2, '0')
@@ -617,6 +620,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
   // Уровень Б: копить звук исправленных реплик на этом Mac для дообучения модели.
   const [keepTraining, setKeepTraining] = useState(() => { try { return localStorage.getItem(TRAINING_KEY) === '1' } catch { return false } })
   const toggleTraining = (on: boolean) => { setKeepTraining(on); try { localStorage.setItem(TRAINING_KEY, on ? '1' : '0') } catch { /* без памяти — только на эту запись */ } }
+  const [fastAsr, setFastAsr] = useState(() => { try { return localStorage.getItem(FAST_ASR_KEY) === '1' } catch { return false } })
+  const toggleFastAsr = (on: boolean) => { setFastAsr(on); try { localStorage.setItem(FAST_ASR_KEY, on ? '1' : '0') } catch { /* без памяти — только на эту запись */ } }
   const slidesReadyRef = useRef(onSlidesReady)
   useEffect(() => { slidesReadyRef.current = onSlidesReady }, [onSlidesReady])
   const readyRef = useRef(onReady)
@@ -630,6 +635,8 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     if (inputFile) form.append('video', inputFile)
     else form.append('link', source.trim())
     if (mode === 'text') for (const track of tracks) form.append('tracks', track)
+    // Быстрое распознавание: русскую речь ведём через GigaAM, смешанную — whisper (auto).
+    if (mode === 'text' && fastAsr) form.append('engine', 'auto')
     setBusy(true)
     try {
       requestTranscriptionCompanionStart()
@@ -768,6 +775,10 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       <small>{tracks.length ? tracks.map(t => t.name).join(', ') : 'Zoom умеет сохранять звук каждого отдельным файлом. С ними голоса подпишутся точно, по именам файлов.'}</small>
       <input type="file" multiple accept="audio/*,.m4a" aria-label="Дорожки участников" disabled={busy} onChange={e => setTracks([...(e.target.files ?? [])])} />
     </label>}
+    {!pending && mode === 'text' && <div className="transcription-training">
+      <span><strong>Быстрое распознавание (эксперимент)</strong><small>Русскую речь распознаёт быстрее, с пунктуацией. Смешанную речь (с английским и т.п.) оставляет обычному движку. Первый запуск скачивает модель (~320 МБ).</small></span>
+      <Switch checked={fastAsr} onChange={toggleFastAsr} disabled={busy} label="Быстрое распознавание (эксперимент)" />
+    </div>}
     {!pending && mode === 'text' && <div className="transcription-training">
       <span><strong>Учить распознавание на моих правках</strong><small>Звук исправленных реплик остаётся только на этом Mac — из него потом дообучим модель. Ученикам и в Искру он не уходит.</small></span>
       <Switch checked={keepTraining} onChange={toggleTraining} disabled={busy} label="Учить распознавание на моих правках" />
