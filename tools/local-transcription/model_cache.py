@@ -157,8 +157,15 @@ def ensure_asr_assets(engine, vad):
         # Качаем только дефолтную модель; свой путь (ISKRA_GIGAAM_MODEL) не трогаем.
         if (model == base / asr_config.GIGAAM_MODEL_FILE and tokens == base / asr_config.GIGAAM_TOKENS_FILE
                 and not (model.is_file() and tokens.is_file())):
-            _hf_fetch(asr_config.GIGAAM_HF_REPO,
-                      [asr_config.GIGAAM_MODEL_FILE, asr_config.GIGAAM_TOKENS_FILE], base)
+            # Своё зеркало (R2) через ISKRA_GIGAAM_URL_BASE — прямые URL двух файлов;
+            # иначе — HF-зеркало по умолчанию.
+            url_base = os.environ.get('ISKRA_GIGAAM_URL_BASE', '').rstrip('/')
+            if url_base:
+                _fetch_file(f'{url_base}/{asr_config.GIGAAM_MODEL_FILE}', model)
+                _fetch_file(f'{url_base}/{asr_config.GIGAAM_TOKENS_FILE}', tokens)
+            else:
+                _hf_fetch(asr_config.GIGAAM_HF_REPO,
+                          [asr_config.GIGAAM_MODEL_FILE, asr_config.GIGAAM_TOKENS_FILE], base)
     if vad:
         silero = asr_config.silero_path()
         if silero == asr_config.asr_assets_dir() / 'silero_vad.onnx':

@@ -72,11 +72,20 @@
   Караоке‑подсветка в плеере — это волна 3, здесь только данные.
 
 ## Границы
-Трогал только конвейер расшифровки (`tools/local-transcription`) + регенерацию
-версии модуля (`src/lib/transcriptionModuleVersion.ts`,
-`transcriptionInstallerVersion.ts` — автогенерятся сборщиком, правятся только им).
-Плеер, кабинет ученика, итоги урока (lesson‑recap) и формат
-`lessons.content.transcript` не трогал. Новые поля — только аддитивно.
+Основное — конвейер расшифровки (`tools/local-transcription`) + регенерация версии
+модуля (`src/lib/transcriptionModuleVersion.ts`, `transcriptionInstallerVersion.ts`
+— автогенерятся сборщиком). Плеер, кабинет ученика, итоги урока (lesson‑recap) и
+формат `lessons.content.transcript` не трогал; новые поля — только аддитивно.
+
+**Исключение (по прямой просьбе Дани):** добавлен тумблер «Быстрое распознавание
+(эксперимент)» в окне расшифровки преподавателя
+(`src/components/teacher/LocalTranscription.tsx`, режим «По тексту»). Это выходит
+за первоначальную рамку оператора «только env, UI не трогать», но нужно, чтобы
+препод мог тестировать без env‑переменных. Тумблер по умолчанию **выключен**
+(поведение по умолчанию прежнее), шлёт заданию `engine=auto`; сервер (`server.py`)
+читает поле `engine` на задание и перекрывает им env только для этого задания.
+Строки — русские, как и весь этот компонент (он не i18n‑зирован). Студенческий
+UI, плеер и формат расшифровки по‑прежнему не затронуты.
 
 ## Замеры
 
@@ -144,9 +153,28 @@ python benchmark.py урок1.mp4 урок2.m4a --engines whisper,gigaam --seg f
 ## Что осталось на следующий инкремент
 - **Измерить на реальных уроках** (RU и RU+EN) через `benchmark.py` — решить,
   стоит ли GigaAM включать в тестовую сборку по умолчанию для русских монологов.
-- **Перезалить модели v3 на своё зеркало** (R2), как ffmpeg, чтобы не зависеть от
-  стороннего HF‑репозитория `Smirnov75/GigaAM-v3-sherpa-onnx` (сейчас — дефолтный
-  источник; лицензия MIT, но это сторонний релиз).
+- **Перезалить модели v3 на свой R2** (как ffmpeg) и выставить `ISKRA_GIGAAM_URL_BASE`
+  — тогда прод не зависит от стороннего HF `Smirnov75/GigaAM-v3-sherpa-onnx`
+  (лицензия MIT, но сторонний релиз). Переключение источника уже готово в коде
+  (env `ISKRA_GIGAAM_URL_BASE`), осталась сама заливка — шаги ниже.
+
+### Заливка моделей v3 на R2 (чтобы не зависеть от чужого HF)
+Нужны два файла (их же использует модуль): `gigaam_v3_e2e_ctc_int8.onnx` (~320 МБ)
+и `gigaam_v3_e2e_ctc_tokens.txt`. Скачать с зеркала и залить в свой бакет:
+```
+# скачать два файла
+python - <<'PY'
+from huggingface_hub import hf_hub_download
+for f in ("gigaam_v3_e2e_ctc_int8.onnx","gigaam_v3_e2e_ctc_tokens.txt"):
+    print(hf_hub_download(repo_id="Smirnov75/GigaAM-v3-sherpa-onnx", filename=f, local_dir="gigaam-v3"))
+PY
+# залить в R2 (пример для rclone/aws cli — под свой бакет и публичный префикс)
+aws s3 cp gigaam-v3/gigaam_v3_e2e_ctc_int8.onnx   s3://<bucket>/models/gigaam-v3/ --endpoint-url <R2_endpoint>
+aws s3 cp gigaam-v3/gigaam_v3_e2e_ctc_tokens.txt  s3://<bucket>/models/gigaam-v3/ --endpoint-url <R2_endpoint>
+```
+Затем в окружении модуля (или в `start.command`) задать базовый URL без имён файлов:
+`export ISKRA_GIGAAM_URL_BASE=https://<публичный-домен-R2>/models/gigaam-v3`.
+Модуль скачает `<base>/gigaam_v3_e2e_ctc_int8.onnx` и `…_tokens.txt`.
 - **RNN‑T‑вариант GigaAM** (`from_transducer`) — если захочется сравнить с CTC;
   сейчас загрузчик только CTC.
 - **Караоке‑подсветка слова в плеере** — волна 3 (данные `words` уже готовит этот PR).
