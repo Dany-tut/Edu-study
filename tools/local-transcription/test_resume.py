@@ -67,9 +67,9 @@ class ResumeTests(unittest.TestCase):
         job,self.folder=self.job();other='c'*64;(self.s.HOME/other).touch()
         result=self.client.get('/jobs/'+job['id'],base_url='http://127.0.0.1:18764',headers={**self.headers,'Authorization':'Bearer '+other})
         self.assertEqual(result.status_code,404)
-    def test_invalid_upload_releases_gate(self):
+    def test_invalid_upload_enqueues_nothing(self):
         result=self.client.post('/jobs',base_url='http://127.0.0.1:18764',headers=self.headers,data={})
-        self.assertEqual(result.status_code,400);self.assertFalse(self.s.gate.locked())
+        self.assertEqual(result.status_code,400);self.assertEqual(self.s.pending,[])
 
     def test_production_origins_connect_and_preflight(self):
         for origin in ('https://iskra-study.ru', 'https://edu-study-app.vercel.app'):
@@ -113,9 +113,10 @@ class ResumeTests(unittest.TestCase):
     def test_job_keeps_terms_and_training_flag(self):
         url=dict(base_url='http://127.0.0.1:18764',headers=self.headers)
         terms=json.dumps({'prompt':['s-подуровень'],'replace':[['из-под уровн*','s-подуровн*'],[1,'x']]})
-        with patch.object(self.s.threading,'Thread'):
-            r=self.client.post('/jobs',data={'link':'https://example.com/v','terms':terms,'training':'1'},**url)
-        jid=r.get_json()['id'];self.s.gate.release()
+        r=self.client.post('/jobs',data={'link':'https://example.com/v','terms':terms,'training':'1'},**url)
+        jid=r.get_json()['id']
+        # Задание принято и встало в очередь (диспетчер в тесте не запущен).
+        self.assertIn(jid,self.s.pending)
         saved=json.loads((self.s.JOBS/jid/'terms.json').read_text())
         self.assertEqual(saved,{'prompt':['s-подуровень'],'replace':[['из-под уровн*','s-подуровн*']]})
         self.assertTrue(self.s.jobs[jid]['training'])
@@ -163,10 +164,11 @@ class ResumeTests(unittest.TestCase):
         self.assertTrue(os.access(root/'start.command',os.X_OK))
 
     def test_update_waits_for_running_job(self):
-        self.assertTrue(self.s.gate.acquire(False))
+        with self.s.queue_cv: self.s.running.add('b'*32)
         try:
             r=self.client.post('/update',json={},base_url='http://127.0.0.1:18764',headers=self.headers)
             self.assertEqual(r.status_code,409)
-        finally: self.s.gate.release()
+        finally:
+            with self.s.queue_cv: self.s.running.discard('b'*32)
 
 if __name__=='__main__': unittest.main()

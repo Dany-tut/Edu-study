@@ -26,6 +26,7 @@ import asr_config
 import vad_segment
 from job_control import supervise
 from slide_chapters import REGIONS
+import capacity
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = LIMIT + 1024 * 1024
@@ -39,7 +40,17 @@ PRODUCTION_ORIGINS = frozenset({
 DEV_ORIGIN = os.environ.get('ISKRA_APP_ORIGIN')
 UPDATE_URL = 'https://iskra-study.ru'
 ALLOWED_ORIGINS = PRODUCTION_ORIGINS | ({DEV_ORIGIN} if DEV_ORIGIN else set())
+# Re-entrancy guard INSIDE a worker process only (job_worker.py → run_pipeline).
+# It is process-local; server-side concurrency is handled by the queue below.
 gate = threading.Lock()
+# Адаптивная очередь. Задание всегда принимается и встаёт в `pending`;
+# диспетчер запускает его, когда машина тянет (см. capacity.can_start).
+# `running` — множество идущих заданий; обе структуры под `queue_cv`.
+QUEUE_CONFIG = capacity.load_config()
+pending = []            # jids ждущих очереди, в порядке приёма (FIFO)
+running = set()         # jids, которые сейчас обрабатываются
+queue_cv = threading.Condition()
+updating = threading.Event()  # идёт самообновление — новых заданий не запускаем
 JOBS = HOME / 'jobs'
 JOBS.mkdir(mode=0o700, exist_ok=True)
 # Голоса: модели разделения и запомненные отпечатки. Отпечатки — биометрия,
@@ -148,7 +159,7 @@ def version():
     # Без токена: версия не секрет, а подсказать «обновите модуль» нужно и
     # до подключения компьютера.
     # update — модуль умеет обновляться сам (POST /update).
-    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True)
+    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True, queue=True)
 
 UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
 # Исполняемые файлы архива не переносятся при самообновлении: подписанный ffmpeg
@@ -194,16 +205,22 @@ def update():
     (curl), поэтому macOS не помечает их «из интернета» и не просит разрешения."""
     device()
     expected=str((request.get_json(silent=True) or {}).get('version',''))[:12]
-    if not gate.acquire(False): return jsonify(error='Модуль занят расшифровкой. Обновится, когда она закончится.'),409
+    with queue_cv:
+        if running: return jsonify(error='Модуль занят расшифровкой. Обновится, когда она закончится.'),409
+        # Встаём на паузу: диспетчер не берёт новых, пока перезапускаемся.
+        # Задания, пришедшие в очередь за эти полсекунды, подхватит resume_jobs
+        # после рестарта.
+        updating.set()
     try:
         got=subprocess.run(['curl','-fsSL','--max-time','120',UPDATE_URL+'/downloads/iskra-transcription-mac.zip'],capture_output=True)
         if got.returncode: raise ValueError('Не удалось скачать обновление. Проверьте интернет.')
         version=install(got.stdout, expected)
     except (ValueError, zipfile.BadZipFile) as error:
-        gate.release()
+        updating.clear()
+        with queue_cv: queue_cv.notify_all()
         return jsonify(error=str(error) if isinstance(error, ValueError) else 'Архив обновления повреждён.'),502
     print(f'Модуль обновлён до {version}, перезапускаемся…', flush=True)
-    # Замок не отпускаем: новых заданий до перезапуска не будет.
+    # Паузу не снимаем: новых заданий до перезапуска не будет.
     threading.Timer(0.5, restart).start()
     return jsonify(version=version),202
 
@@ -257,7 +274,48 @@ def process(job, folder, link):
                 if artifact.name not in ('job.json', '.worker.lock', '.cancel'):
                     if artifact.is_dir(): shutil.rmtree(artifact)
                     else: artifact.unlink(missing_ok=True)
-        gate.release()
+
+
+def run_job(jid):
+    """Один супервизор на задание. Снимает его с `running` по завершении и будит
+    диспетчер — чтобы тот запустил следующее из очереди."""
+    job = jobs.get(jid)
+    if job is None: return
+    with queue_cv: running.add(jid)
+    try:
+        process(job, JOBS / jid, job.get('link', ''))
+    finally:
+        with queue_cv:
+            running.discard(jid)
+            queue_cv.notify_all()
+
+
+def dispatcher():
+    """Пока в очереди есть задания и машина тянет — запускает следующее
+    параллельно; иначе ждёт и перепроверяет ёмкость."""
+    while True:
+        started = None
+        # Замеряем ёмкость вне замка, чтобы vm_stat не держал очередь.
+        avail = capacity.available_ram_gb()
+        load = capacity.load_per_core()
+        with queue_cv:
+            if pending and not updating.is_set() and capacity.can_start(
+                    len(running), avail, load, QUEUE_CONFIG):
+                started = pending.pop(0)
+                running.add(started)  # резервируем слот до старта потока
+            if started is None:
+                queue_cv.wait(timeout=QUEUE_CONFIG.poll_sec)
+        if started is not None:
+            threading.Thread(target=run_job, args=(started,), daemon=True).start()
+            # Дать памяти задания «проявиться» до следующего решения.
+            time.sleep(QUEUE_CONFIG.warmup_sec)
+
+
+def enqueue(jid):
+    with queue_cv:
+        if jid not in pending and jid not in running:
+            pending.append(jid)
+        queue_cv.notify_all()
 
 
 AUDIO_FORMATS='mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac'
@@ -437,12 +495,11 @@ def start():
     region = request.form.get('titleRegion', 'top-left')
     if mode not in ('text', 'slides') or region not in REGIONS:
         return jsonify(error='Неизвестный режим или область заголовка.'), 400
-    if not gate.acquire(False): return jsonify(error='На компьютере уже обрабатывается запись.'),409
+    # Приём больше не отказывает «занят»: задание всегда встаёт в очередь.
     folder=None
     try:
         size=request.content_length or 0
         if size and shutil.disk_usage(JOBS).free < 2*size+128*1024**2:
-            gate.release()
             return jsonify(error='Недостаточно свободного места на Mac для этой записи.'),413
         file=request.files.get('video')
         link=request.form.get('link','').strip()
@@ -469,14 +526,13 @@ def start():
         # Быстрое распознавание из UI: движок задаётся на задание и перекрывает env.
         engine=request.form.get('engine','')
         engine=engine if engine in ('whisper','gigaam','auto') else ''
-        job={'id':jid,'owner':token,'mode':mode,'titleRegion':region,'link':link,'tracks':names,'completed':[], 'state':{'stage':'Запись принята'},'training':request.form.get('training')=='1','engine':engine}
+        job={'id':jid,'owner':token,'mode':mode,'titleRegion':region,'link':link,'tracks':names,'completed':[], 'state':{'stage':'В очереди','queuedAt':time.time()},'training':request.form.get('training')=='1','engine':engine}
         job_store.save(folder, job)
         jobs[jid]=job
-        threading.Thread(target=process,args=(job,folder,link),daemon=True).start()
+        enqueue(jid)
         return jsonify(id=jid),202
     except Exception:
         if folder:shutil.rmtree(folder, ignore_errors=True)
-        gate.release()
         raise
 
 @app.delete('/jobs/<jid>')
@@ -491,6 +547,14 @@ def cancel_job(jid):
         # The marker survives a service restart and is separate from the worker's
         # atomic checkpoint. Only the supervisor declares terminal cancellation.
         (JOBS / jid / '.cancel').touch(mode=0o600)
+        # Ещё не запущено (ждёт в очереди) — отменяем сразу, снимая из очереди:
+        # супервизора, который объявил бы отмену, здесь нет.
+        with queue_cv:
+            if jid in pending:
+                pending.remove(jid)
+                job['state'] = {'stage': 'Расшифровка отменена', 'cancelled': True}
+                job_store.save(JOBS / jid, job)
+                return jsonify(job['state']), 202
         job['state'] = {**job['state'], 'stage': 'Останавливаем обработку', 'cancelling': True, 'done': False}
         return jsonify(job['state']), 202
 
@@ -501,6 +565,13 @@ def progress(jid):
     if not job or job['owner']!=token:abort(404)
     state=job['state'].copy()
     state['canCancel']=True
+    with queue_cv:
+        if jid in pending:
+            state['queued']=True
+            state['position']=pending.index(jid)+1
+            state['queueAhead']=sum(1 for q in pending[:pending.index(jid)] if jobs.get(q,{}).get('owner')==token)
+        elif jid in running:
+            state['running']=True
     if state.get('stageStartedAt'):
         state['elapsedSeconds']=max(0, time.time()-state['stageStartedAt'])
     if state['stage']=='Скачиваем видео':
@@ -518,6 +589,34 @@ def progress(jid):
                 state['progressAgeSeconds']=max(0,time.time()-detail.get('updatedAt', time.time()))
         except (FileNotFoundError, ValueError):pass
     return jsonify(state)
+
+def _queue_brief(jid, job):
+    """Краткий статус задания для виджета очереди в нав-баре."""
+    state=job['state']
+    item={'id':jid,'mode':job.get('mode','text'),'stage':state.get('stage','')}
+    for flag in ('done','error','cancelled','cancelling'):
+        if state.get(flag): item[flag]=True
+    try:
+        detail=json.loads((JOBS/jid/'progress.json').read_text())
+        if detail.get('step')==state.get('stage') and detail.get('total'):
+            item['progress']={'current':detail.get('current',0),'total':detail['total'],
+                              'unit':detail.get('unit','')}
+    except (FileNotFoundError, ValueError):pass
+    return item
+
+@app.get('/queue')
+def queue_status():
+    """Сводка очереди для виджета: что идёт и что ждёт — только задания этого
+    компьютера (owner-токен). Общий счётчик + позиции."""
+    token=device()
+    with queue_cv:
+        run_ids=[j for j in running if jobs.get(j,{}).get('owner')==token]
+        pend=[(pos,j) for pos,j in enumerate(pending,1) if jobs.get(j,{}).get('owner')==token]
+    running_out=[_queue_brief(j, jobs[j]) for j in run_ids if j in jobs]
+    queued_out=[{**_queue_brief(j, jobs[j]),'position':pos} for pos,j in pend if j in jobs]
+    return jsonify(running=running_out, queued=queued_out,
+                   counts={'running':len(running_out),'queued':len(queued_out)},
+                   maxParallel=QUEUE_CONFIG.max_parallel)
 
 @app.post('/training')
 def training():
@@ -556,17 +655,19 @@ def prune_training():
         if f.stat().st_mtime<edge: f.unlink(missing_ok=True)
 
 def resume_jobs():
-    # Serial worker: do not overlap heavy model processes after a restart.
+    # После перезапуска незавершённые задания снова встают в очередь; запускать
+    # их параллельно или нет — решит диспетчер по ёмкости машины.
     for job in list(jobs.values()):
         if job['state'].get('done') or job['state'].get('error') or job['state'].get('cancelled'): continue
-        gate.acquire()
-        process(job, JOBS/job['id'], job['link'])
+        enqueue(job['id'])
 
 def idle_shutdown():
     """Stop the on-demand LaunchAgent after 30 idle minutes and no active job."""
     while True:
         time.sleep(30)
-        if not gate.locked() and time.monotonic()-last_activity>=IDLE_STOP_SECONDS:
+        with queue_cv:
+            busy = bool(running) or bool(pending)
+        if not busy and not updating.is_set() and time.monotonic()-last_activity>=IDLE_STOP_SECONDS:
             os.kill(os.getpid(),signal.SIGTERM)
             return
 
@@ -578,7 +679,8 @@ if __name__=='__main__':
         print('Модуль Искры уже работает. Вернитесь в браузер.', flush=True)
         sys.exit(0)
     prune_training()
-    threading.Thread(target=resume_jobs, daemon=True).start()
+    resume_jobs()
+    threading.Thread(target=dispatcher, daemon=True).start()
     threading.Thread(target=idle_shutdown, daemon=True).start()
     if os.environ.get('ISKRA_PACKAGED_MODULE') == '1':
         threading.Thread(target=prepare_voice_models, daemon=True).start()
