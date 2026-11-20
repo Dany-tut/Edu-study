@@ -294,7 +294,9 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
 
   const photoBtnStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6,
-    padding: '8px 12px', borderRadius: 10, minHeight: 44,
+    // Десктоп: иконка слева (14px + gap 6) компенсируется равным правым полем —
+    // слово стоит по центру кнопки и под подписью роли, а не смещено вправо.
+    padding: embedded === 'profile' ? '8px 12px' : '8px 32px 8px 12px', borderRadius: 10, minHeight: 44,
     border: embedded === 'profile' ? 0 : '1px solid var(--color-border-medium)',
     background: embedded === 'profile' ? 'transparent' : 'var(--color-bg-3)',
     color: embedded === 'profile' ? 'var(--color-purple-text)' : 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
