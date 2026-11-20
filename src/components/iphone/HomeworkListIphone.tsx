@@ -16,6 +16,7 @@ import { useT, useTc } from '../../lib/i18n'
 import MobileSheet from '../MobileSheet'
 import { useDashboard } from '../../store/dashboardStore'
 import { Check, ChevronRight, Search, X } from '../icons/appIcons'
+import { lessonNo } from '../../lib/lessonNumber'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // «ДЗ» ученика — ТОЛЬКО приложение на iPhone (GLASS && PLATFORM === 'iphone').
@@ -160,12 +161,12 @@ export default function HomeworkListIphone({
                   }}
                 >
                   <span style={{ width: 40, height: 40, borderRadius: 13, flexShrink: 0, display: 'grid', placeItems: 'center', background: tone.bg, color: tone.text, fontWeight: 800, fontSize: 15 }}>
-                    {showScore ? row.lesson.points : row.lesson.number + 1}
+                    {showScore ? row.lesson.points : lessonNo(row.lesson)}
                   </span>
                   <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ ...textFadeStyle, whiteSpace: 'nowrap', overflow: 'hidden', fontSize: 15, fontWeight: 600, lineHeight: 1.25 }}>{tc(row.lesson.title)}</span>
                     <span style={{ ...textFadeStyle, whiteSpace: 'nowrap', overflow: 'hidden', fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.3 }}>
-                      {t('Занятие №')}{row.lesson.number + 1} · {t(lessonStatusLabel(row.status, row.lesson.kind))}
+                      {t('Занятие №')}{lessonNo(row.lesson)} · {t(lessonStatusLabel(row.status, row.lesson.kind))}
                     </span>
                   </span>
                   {!locked && <ChevronRight size={16} style={{ flexShrink: 0, color: 'var(--color-text-5)' }} />}

@@ -15,6 +15,7 @@ import ScheduleStatusBadge from './ScheduleStatusBadge'
 import { appFlag } from '../lib/cardGroups'
 import { useT, useTc } from '../lib/i18n'
 import CourseTrack from './CourseTrack'
+import { lessonNo } from '../lib/lessonNumber'
 
 /**
  * НОВАЯ ГЛАВНАЯ УЧЕНИКА (компьютер) — концепт 1 «Сначала — что делать»
@@ -142,7 +143,7 @@ function ContinueCard({ info }: { info: { lesson: Lesson; subject: Subject } | n
         {label} · {tc(subject.name)}
       </div>
       <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.15,  ...textFadeLines(2),  overflow: 'hidden' }}>
-        {t('Занятие')} #{lesson.number + 1} · {tc(lesson.title)}
+        {t('Занятие')} #{lessonNo(lesson)} · {tc(lesson.title)}
       </div>
       <div style={{ fontSize: 14, fontWeight: 500, opacity: 0.85, ...NUM }}>
         {t('урок')} {idx + 1} {t('из')} {all.length}

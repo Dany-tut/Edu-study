@@ -1,14 +1,15 @@
+import { lessonNumberShift } from './lessonNumber'
 import { supabase } from './supabase'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Authoritative editor metadata, loaded after navigation. Never save the
  * shelf's incomplete snapshot if this request fails or is cancelled. */
-export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<Pick<CourseEdData, 'title' | 'subject' | 'level' | 'status' | 'description' | 'color' | 'bg' | 'seedStamp' | 'groupIds' | 'studentIds' | 'modules' | 'lessons'>> {
+export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<Pick<CourseEdData, 'title' | 'subject' | 'level' | 'status' | 'description' | 'color' | 'bg' | 'seedStamp' | 'numberStart' | 'groupIds' | 'studentIds' | 'modules' | 'lessons'>> {
   let modules: CourseEdData['modules'] = []
 
   const { data: dbCourse, error } = await supabase
     .from('courses')
-    .select('id, title, subject, level, status, description, color, bg, seed_stamp, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, chapter_variants, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
+    .select('id, title, subject, level, status, description, color, bg, seed_stamp, number_start, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, chapter_variants, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
     .eq('short_id', shortId)
     .abortSignal(signal)
     .single()
@@ -60,6 +61,7 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
     description: dbCourse.description ?? '',
     color: dbCourse.color ?? 'var(--color-purple)', bg: dbCourse.bg ?? 'var(--color-purple-soft)',
     seedStamp: dbCourse.seed_stamp ?? undefined,
+    numberStart: lessonNumberShift((dbCourse as { number_start?: number | null }).number_start) + 1,
     groupIds, studentIds, modules, lessons,
   }
 }

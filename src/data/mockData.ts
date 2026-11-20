@@ -15,7 +15,10 @@ export interface Lesson {
   dbId?: string
   id: string
   title: string
+  /** Позиция в курсе с нуля. На экран — через lessonNo(), там же сдвиг курса. */
   number: number
+  /** courses.number_start − 1: курс с середины года показывает «#63», «#64»… */
+  numberShift?: number
   status: LessonStatus
   shape: LessonShape
   points?: number

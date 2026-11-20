@@ -136,6 +136,7 @@ import '../../components/teacher/lessonRecapPanel.css'
 import { termsSubject } from '../../lib/transcriptTerms'
 import { readTranscript, transcriptTime, type LessonTranscript } from '../../lib/localTranscription'
 import { playbackPlan, type LessonStatsSummary } from '../../lib/lessonMontage'
+import { lessonNumberShift } from '../../lib/lessonNumber'
 
 export interface CELesson {
   transcript?: LessonTranscript
@@ -259,6 +260,11 @@ export interface CourseEdData {
    */
   seedStamp?: string
   /**
+   * С какого номера курс нумерует уроки на экране (courses.number_start).
+   * Курс с середины года: 63 → первый урок «#63». Только показ — см. lessonNumber.ts.
+   */
+  numberStart?: number
+  /**
    * Курс открыт «лёгким»: уроки приехали без конспектов, домашек и файлов —
    * это мегабайты, из-за которых открытие ждало по 2–6 секунд. Пока флаг
    * стоит, тяжёлую половину догружает useHeavyLessons, а сохранение (и ручное,
@@ -366,6 +372,36 @@ function Label({ children }: { children: React.ReactNode }) {
     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.4, marginBottom: 6, paddingLeft: 13 }}>
       {children}
     </div>
+  )
+}
+
+/**
+ * «Нумерация с N» — курс, начатый с середины года, показывает уроки как #63,
+ * #64… Подпись внутри поля (правило платформы), число справа. Пока пишут —
+ * держим строку; в курс уходит только целое 1…NUMBER_START_MAX, пустое → 1.
+ */
+function NumberStartField({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const t = useT()
+  const [draft, setDraft] = useState(String(value))
+  useEffect(() => { setDraft(String(value)) }, [value])
+  const commit = (raw: string) => {
+    const n = lessonNumberShift(raw) + 1
+    setDraft(String(n))
+    if (n !== value) onChange(n)
+  }
+  return (
+    <label style={{ ...inputSt, display: 'flex', alignItems: 'center', gap: 10, padding: '0 14px', height: 44, flexShrink: 0, cursor: 'text' }}>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{t('Нумерация уроков с')}</span>
+      <input
+        aria-label={t('Нумерация уроков с')}
+        value={draft}
+        inputMode="numeric"
+        onChange={e => setDraft(e.target.value.replace(/\D/g, '').slice(0, 4))}
+        onBlur={e => commit(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
+        style={{ width: 56, border: 'none', outline: 'none', background: 'transparent', textAlign: 'right', fontSize: 14, fontWeight: 600, color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums', padding: 0 }}
+      />
+    </label>
   )
 }
 
@@ -494,6 +530,8 @@ function LeftCourseMeta({
           </div>
         </div>
       </div>
+
+      <NumberStartField value={course.numberStart ?? 1} onChange={v => setCourse(c => ({ ...c, numberStart: v }))} />
 
       {/* Description */}
       <textarea
@@ -5583,7 +5621,7 @@ function RightPanelLessons({
   ]
   // 1-based display position per lesson (follows visual order, not creation order).
   const displayIndexById: Record<string, number> = {}
-  orderedIds.forEach((id, i) => { displayIndexById[id] = i + 1 })
+  orderedIds.forEach((id, i) => { displayIndexById[id] = i + (course.numberStart ?? 1) })
 
   const multiMode = selectedIds.size > 0
 
@@ -6898,6 +6936,9 @@ export default function TeacherCourseEditorPage() {
           // `?? null` затирал бы колонку при сохранении курса, открытого из
           // старого черновика, где поля ещё нет.
           ...(c.seedStamp ? { seed_stamp: c.seedStamp } : {}),
+          // Ключ только когда поле известно: курс из старого черновика без него
+          // не должен сбросить «нумерацию с 63» обратно на 1.
+          ...(c.numberStart != null ? { number_start: c.numberStart } : {}),
         },
         { onConflict: 'short_id' }
       )
