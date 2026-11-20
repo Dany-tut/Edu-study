@@ -1,0 +1,50 @@
+[
+ {
+  "text": "File Home",
+  "y": 0.0986,
+  "x": 0.0145,
+  "width": 0.1177,
+  "height": 0.0787,
+  "confidence": 1
+ },
+ {
+  "text": "Insert",
+  "y": 0.0986,
+  "x": 0.1599,
+  "width": 0.0552,
+  "height": 0.0775,
+  "confidence": 1
+ },
+ {
+  "text": "3 of 31",
+  "y": 0.362,
+  "x": 0.023,
+  "width": 0.0572,
+  "height": 0.093,
+  "confidence": 1
+ },
+ {
+  "text": "Draw",
+  "y": 0.0938,
+  "x": 0.2453,
+  "width": 0.05,
+  "height": 0.0828,
+  "confidence": 1
+ },
+ {
+  "text": "Design Slide Show",
+  "y": 0.0986,
+  "x": 0.3227,
+  "width": 0.1948,
+  "height": 0.0915,
+  "confidence": 1
+ },
+ {
+  "y": 0.6127,
+  "width": 0.4927,
+  "height": 0.2827,
+  "confidence": 1,
+  "x": 0.2718,
+  "text": "Деление клетки"
+ }
+]

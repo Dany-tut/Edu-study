@@ -4,12 +4,17 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from media_tools import FFMPEG, duration as media_duration
 from progress import record
+import frame_ocr
+from slide_chapters import heading as pick_heading, meaningful as title_like
 
 source, dest=map(Path,sys.argv[1:])
 safe=['-protocol_whitelist','file,pipe','-format_whitelist','mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac']
-# Чтение слайдов — необязательный этап: нет компилятора Swift (ISKRA_FRAME_TEXT)
+# Чтение слайдов — необязательный этап: нет хелпера Vision (ISKRA_FRAME_TEXT)
 # или не удалось узнать длительность — просто нет заголовков, расшифровка цела.
+# Хелпер из .app ≤ 1.0.8 читает только латиницу и отдаёт строки без геометрии:
+# его вывод проходит тот же фильтр мусора, но без выбора по размеру.
 frame_text=os.environ.get('ISKRA_FRAME_TEXT')
+vision=frame_ocr.helper()
 try:
     duration=media_duration(source, safe)
 except ValueError:
@@ -33,11 +38,16 @@ for index,t in enumerate(times):
     record(dest.parent,'Читаем слайды',index,len(times),'frames')
     image=subprocess.run([FFMPEG,'-nostdin','-v','error',*safe,'-ss',str(t),'-i',str(source),'-frames:v','1','-vf','scale=min(1000\\,iw):-2','-f','image2pipe','-c:v','mjpeg','-'],capture_output=True,timeout=30)
     if not image.stdout: continue
-    try:
-        out=subprocess.run([frame_text],input=image.stdout,capture_output=True,timeout=4)
-        lines=json.loads(out.stdout)
-    except (ValueError,subprocess.TimeoutExpired):lines=[]
-    heading=next((line for line in lines[:3] if meaningful(line)), '')
+    if vision:
+        # Заголовок — крупный текст в верхней части кадра; хром записи экрана отсекается.
+        rows=[row for row in frame_ocr.read_image(vision,image.stdout) if row['y']<.45]
+        heading=pick_heading(rows)
+    else:
+        try:
+            out=subprocess.run([frame_text],input=image.stdout,capture_output=True,timeout=15)
+            lines=[line for line in json.loads(out.stdout) if isinstance(line,str)]
+        except (ValueError,TypeError,OSError,subprocess.SubprocessError):lines=[]
+        heading=next((line for line in lines[:3] if meaningful(line) and title_like(line)), '')
     if heading and pending and similar(heading,pending[1]) and not similar(heading,last):
         slides.append(dict(start=pending[0],text=heading))
         last=heading

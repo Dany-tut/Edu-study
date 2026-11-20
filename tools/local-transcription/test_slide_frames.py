@@ -77,11 +77,12 @@ class VideoTimingTests(unittest.TestCase):
             filters=r'drawbox=color=blue:t=fill:enable=between(t\,5.5\,9),drawbox=color=white:t=fill:enable=gte(t\,9),select=eq(n\,0)+eq(n\,11)+eq(n\,18)+eq(n\,31)'
             subprocess.run([ffmpeg,'-nostdin','-v','error','-f','lavfi','-i','color=red:s=320x180:r=2:d=16',
                             '-vf',filters,'-fps_mode','vfr','-c:v','libx264','-threads','2',str(video)],check=True)
-            def label(_,image):
-                blue,green,red=image[0,0]
-                return 'Белая тема' if min(blue,green,red)>200 else 'Синяя тема' if blue>red else 'Красная тема'
-            with patch.object(slides,'FFMPEG',ffmpeg),patch.object(slides,'recognize',side_effect=label):
-                result,metrics=slides.process_video(video,16,'top-left',None)
+            def engine(image):
+                red,green,blue=image[0,0]
+                text='Белая тема' if min(blue,green,red)>200 else 'Синяя тема' if blue>red else 'Красная тема'
+                return [{'text':text,'height':.3,'y':.1}]
+            with patch.object(slides,'FFMPEG',ffmpeg):
+                result,metrics=slides.process_video(video,16,'top-left',engine)
             self.assertEqual(result,[{'start':0,'title':'Красная тема'}, {'start':5.5,'title':'Синяя тема'}, {'start':9,'title':'Белая тема'}])
             self.assertLess(metrics['ocr'],metrics['samples'])
 

@@ -41,7 +41,14 @@ export MACOSX_DEPLOYMENT_TARGET=13.0
 swiftc -O -framework AppKit -framework CoreServices -framework ServiceManagement \
   -o "$APP_CONTENTS/MacOS/IskraTranscription" "$ROOT/tools/transcription-macos/IskraTranscription.swift"
 
+# OCR слайдов (Apple Vision, русский + английский) собирается здесь, в CI, и
+# вшивается в .app: у учителя swiftc не нужен. Модуль берёт путь из
+# ISKRA_FRAME_TEXT и проверяет протокол через --version.
 swiftc -O -o "$APP_CONTENTS/MacOS/IskraFrameText" "$ROOT/tools/local-transcription/frame_text.swift"
+if [[ "$("$APP_CONTENTS/MacOS/IskraFrameText" --version </dev/null)" != "iskra-frame-text 2" ]]; then
+  echo "IskraFrameText собран, но не отвечает протоколом 2." >&2
+  exit 1
+fi
 
 cat > "$APP_CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

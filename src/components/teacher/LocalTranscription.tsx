@@ -238,7 +238,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   </section>
 }
 
-type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'chapters' | 'bytes' | 'chunks' | 'segments' | 'voices'; phase?: string; updatedAt?: number }
+type JobProgress = { current: number; total: number; unit: 'seconds' | 'frames' | 'slides' | 'chapters' | 'bytes' | 'chunks' | 'segments' | 'voices'; phase?: string; updatedAt?: number }
 function timeLeft(seconds: number) {
   if (seconds < 60) return 'меньше минуты'
   const minutes = Math.ceil(seconds / 60)
@@ -795,6 +795,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, courseTi
     {pending && !error && !cancelled && <>
       <small className="transcription-hint" aria-live="polite">{stage || 'Проверяем обработку…'}{stageStartedAt > 0 && ` · прошло ${elapsed}`}</small>
       {progress?.phase && <small className="transcription-hint">{progress.phase}{progress.total > 0 ? ": процент относится к этой фазе" : ""}</small>}
+      {stage === 'Скачиваем видео' && <small className="transcription-hint">Быстрее — выберите файл на Mac: остановите задание и начните заново с файлом записи.</small>}
       {progressAge !== undefined && progressAge >= 30 && <small className="transcription-hint">Обработчик ещё запущен. Новых данных о прогрессе нет {transcriptTime(progressAge)} — это не подтверждает зависание.</small>}
       <p className="transcription-hint">Можно обновить страницу и вернуться в этот урок. Принятое задание остаётся на Mac.<br />Если интернет пропадёт во время скачивания, модуль дождётся связи.</p>
       <ol className="transcription-job-steps">{stages.map((step, i) => {
@@ -809,7 +810,7 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, courseTi
         </li>
       })}</ol>
       {(eta || (progress && progress.total > 0)) && <small className="transcription-hint">
-        {progress && progress.total > 0 && <>{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'chapters' ? 'глав' : progress.unit === 'chunks' ? 'фрагментов звука' : progress.unit === 'segments' ? 'реплик' : progress.unit === 'voices' ? 'голосов' : 'записи')}{eta && ' · '}</>}
+        {progress && progress.total > 0 && <>{metric(progress.current)} из {metric(progress.total)}{progress.unit === 'bytes' ? '' : ' ' + (progress.unit === 'frames' ? 'кадров' : progress.unit === 'slides' ? 'слайдов' : progress.unit === 'chapters' ? 'глав' : progress.unit === 'chunks' ? 'фрагментов звука' : progress.unit === 'segments' ? 'реплик' : progress.unit === 'voices' ? 'голосов' : 'записи')}{eta && ' · '}</>}
         {eta && (progress && progress.total > 0 ? eta : eta[0].toUpperCase() + eta.slice(1))}
       </small>}
     </>}
