@@ -5,8 +5,10 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
   ChevronLeft, ChevronRight, BookOpen, ClipboardList, BarChart2, PenLine,
   X, ArrowRight, UserPlus, CheckCircle2, FileText, Brain, Banknote, NotebookPen, CalendarClock, CalendarX,
-  Bell, Clock, RotateCcw, Trophy,
+  Bell, Clock, RotateCcw, Trophy, AudioLines,
 } from '../icons/appIcons'
+import ScrollFade from '../ScrollFade'
+import { TranscriptionJobRow, leadJob, queueSummary, overallPercent, type QueueData } from './TranscriptionQueueWidget'
 import { useTeacher } from '../../store/teacherStore'
 import { useDashboard } from '../../store/dashboardStore'
 import { useHomework } from '../../lib/useHomework'
@@ -29,6 +31,50 @@ const META: Record<number, { kicker: string; accent: string }> = {
   2: { kicker: 'Журнал',     accent: '#C47800' },
   3: { kicker: 'Заработок',  accent: '#1E9E63' },
   4: { kicker: 'Действия',   accent: '#E07B00' },
+  5: { kicker: 'Расшифровка', accent: 'var(--color-accent)' },
+}
+
+/** Слайд 5: очередь расшифровки. Свёрнут — урок первого задания; раскрыт —
+ *  у первого задания этап/прогресс, ниже остальные задания. Иконка одна — в аватаре. */
+function TranscriptionPreview({ data, expanded, onCancel }: {
+  data: QueueData
+  expanded: boolean
+  onCancel: (id: string) => void
+}) {
+  const t = useT()
+  const lead = leadJob(data)
+  if (!lead) return null
+  const leadQueued = !data.running.includes(lead)
+  const rest = [
+    ...data.running.filter(j => j !== lead).map(job => ({ job, queued: false })),
+    ...data.queued.filter(j => j !== lead).map(job => ({ job, queued: true })),
+  ]
+  const title = lead.lessonTitle || (leadQueued ? t('В очереди') : lead.stage || t('Идёт обработка'))
+  return (
+    <PillContent
+      avatar={
+        <div style={{
+          width: '100%', height: '100%', background: 'var(--color-accent)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+        }}>
+          <AudioLines size={18} />
+        </div>
+      }
+      kicker={`${t('Расшифровка')} · ${queueSummary(data, t)}`}
+      title={title}
+      expanded={expanded}
+      detail={
+        <ScrollFade maxHeight={190} fadeHeight={12}>
+          <div className="tqw-list">
+            <TranscriptionJobRow job={lead} queued={leadQueued} hideTitle onCancel={onCancel} />
+            {rest.map(({ job, queued }) => (
+              <TranscriptionJobRow key={job.id} job={job} queued={queued} onCancel={onCancel} />
+            ))}
+          </div>
+        </ScrollFade>
+      }
+    />
+  )
 }
 
 const MORPH = { type: 'spring' as const, stiffness: 360, damping: 32, mass: 0.7 }
@@ -511,15 +557,33 @@ function QuickActionsWidget({ expanded: _expanded }: { expanded: boolean }) {
 }
 
 // ── Main pill ──────────────────────────────────────────────────────────────
-export default function TeacherCompactPill() {
+export default function TeacherCompactPill({ transcription = null, onCancelTranscription, transcriptionOnly = false }: {
+  /** Очередь расшифровки (null — заданий нет): первый слайд островка. */
+  transcription?: QueueData | null
+  onCancelTranscription?: (id: string) => void
+  /** На страницах редакторов островок показывает только расшифровку. */
+  transcriptionOnly?: boolean
+} = {}) {
   const t = useT()
   const { homework: allHomework } = useHomework()
   const hasHwToCheck = allHomework.some(hw => hw.submittedCount - hw.reviewedCount > 0)
 
-  const WIDGETS = hasHwToCheck ? [0, 1, 2, 3, 4] : [1, 2, 3, 4]
+  const BASE = hasHwToCheck ? [0, 1, 2, 3, 4] : [1, 2, 3, 4]
+  const WIDGETS = transcription ? (transcriptionOnly ? [5] : [5, ...BASE]) : BASE
   const total = WIDGETS.length
 
-  const [[idx, dir], setIdx] = useState<[number, number]>([0, 0])
+  const [[rawIdx, dir], setIdx] = useState<[number, number]>([0, 0])
+  // Набор слайдов меняется (появилась/закончилась расшифровка) — индекс не
+  // должен вылететь за край.
+  const idx = rawIdx % total
+  // Новая расшифровка — островок сам переходит на её слайд.
+  const hadTranscription = useRef(!!transcription)
+  useEffect(() => {
+    if (transcription && !hadTranscription.current) setIdx([0, -1])
+    if (!transcription && hadTranscription.current) setIdx([0, 1])
+    hadTranscription.current = !!transcription
+  }, [transcription])
+  const cancelTranscription = (id: string) => onCancelTranscription?.(id)
   const [expanded, setExpanded] = useState(false)
   const [hovering, setHovering] = useState(false)
   // Phase-driven visibility for staged animation
@@ -578,7 +642,7 @@ export default function TeacherCompactPill() {
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [widgetId, notifActive])
+  }, [widgetId, notifActive, transcription])
 
   const clearPhase = () => { phaseTimers.current.forEach(clearTimeout); phaseTimers.current = [] }
   const after = (ms: number, fn: () => void) => {
@@ -691,7 +755,9 @@ export default function TeacherCompactPill() {
       >
         {notifActive
           ? <NotifPreview latest={latest} extra={live.length - 1} onAction={() => {}} onClose={() => {}} />
-          : <PreviewById widgetId={widgetId} expanded />}
+          : widgetId === 5 && transcription
+            ? <TranscriptionPreview data={transcription} expanded onCancel={() => {}} />
+            : <PreviewById widgetId={widgetId} expanded />}
       </div>
 
       <motion.div
@@ -785,7 +851,9 @@ export default function TeacherCompactPill() {
               >
                 {notifActive
                   ? <NotifPreview latest={latest} extra={live.length - 1} onAction={handleNotifAction} onClose={dismissNotif} />
-                  : <PreviewById widgetId={widgetId} expanded={expanded} />}
+                  : widgetId === 5 && transcription
+                    ? <TranscriptionPreview data={transcription} expanded={expanded} onCancel={cancelTranscription} />
+                    : <PreviewById widgetId={widgetId} expanded={expanded} />}
               </motion.div>
             </AnimatePresence>
           </motion.div>
@@ -820,6 +888,17 @@ export default function TeacherCompactPill() {
             </>
           )}
         </motion.div>
+
+        {/* Прогресс расшифровки — тонкая линия по низу островка, пока он свёрнут. */}
+        {!notifActive && !expanded && widgetId === 5 && transcription && transcription.counts.running > 0 && (() => {
+          const pct = overallPercent(transcription.running)
+          return (
+            <div style={{ position: 'absolute', left: 24, right: 24, bottom: 6, height: 2, borderRadius: 2, background: 'var(--color-border)', overflow: 'hidden', pointerEvents: 'none' }}>
+              <div className={pct === undefined ? 'tqw-island-indeterminate' : undefined}
+                style={{ height: '100%', width: pct === undefined ? '34%' : `${pct}%`, background: 'var(--color-accent)', borderRadius: 2, transition: 'width 0.4s ease' }} />
+            </div>
+          )
+        })()}
 
         {/* Live-notification 30 s drain bar */}
         {notifActive && (

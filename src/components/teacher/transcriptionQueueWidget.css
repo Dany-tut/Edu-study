@@ -1,53 +1,11 @@
-/* Виджет очереди расшифровки в правом кластере верхнего нав-бара учителя.
-   Таблетка повторяет язык бара (радиус 14, акцентный тинт), поповер — скин
-   выпадающих меню (dropdownSurface). Без обрезки текста многоточием (правило
-   TEXT-01): длинные подписи переносятся. */
+/* Строки очереди расшифровки в правом островке бара учителя
+   (TeacherCompactPill). Без обрезки текста многоточием (правило TEXT-01):
+   длинные подписи переносятся, курс — в одну строку с фейдом. */
 
-.tqw-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 44px;
-  padding: 0 11px 0 9px;
-  border-radius: 14px;
-  border: none;
-  cursor: pointer;
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--color-accent);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 650;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-.tqw-pill:hover { background: rgba(var(--accent-rgb), 0.2); }
-
-.tqw-ring { display: inline-flex; flex-shrink: 0; }
-.tqw-ring svg { display: block; }
-.tqw-ring-spin { animation: tqw-rotate 1.1s linear infinite; transform-origin: center; }
+.tqw-list { display: flex; flex-direction: column; gap: 2px; margin: 0 -8px; }
+.tqw-ring-spin, .tqw-spin { animation: tqw-rotate 1.1s linear infinite; transform-origin: center; }
 @keyframes tqw-rotate { to { transform: rotate(360deg); } }
 
-.tqw-pill-text { display: inline-flex; gap: 4px; }
-.tqw-dim { color: var(--color-text-3); font-weight: 600; }
-
-/* ---- поповер ---- */
-.tqw-pop {
-  width: 320px;
-  max-width: calc(100vw - 24px);
-  color: var(--color-text);
-  /* dropdownSurface задаёт стекло/радиус/тень/паддинг инлайном */
-}
-.tqw-pop-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 6px 2px;
-  color: var(--color-text);
-}
-.tqw-pop-head { color: var(--color-text-3); padding: 4px 8px 6px; }
-.tqw-pop-head strong { font-size: 13px; color: var(--color-text); }
-
-.tqw-pop-list { display: flex; flex-direction: column; gap: 2px; }
 
 .tqw-job {
   display: flex;
@@ -111,13 +69,5 @@
 .tqw-x:hover:not(:disabled) { background: rgba(var(--accent-rgb), 0.14); color: var(--color-accent); }
 .tqw-x:disabled { opacity: 0.5; cursor: default; }
 
-.tqw-spin { animation: tqw-rotate 1.1s linear infinite; transform-origin: center; }
-
-.tqw-foot {
-  margin: 6px 6px 2px;
-  padding-top: 8px;
-  border-top: 1px solid var(--color-border);
-  font-size: 10.5px;
-  line-height: 1.45;
-  color: var(--color-text-3);
-}
+/* Неопределённый прогресс в свёрнутом островке. */
+.tqw-island-indeterminate { animation: tqw-slide 1.4s ease-in-out infinite; }
