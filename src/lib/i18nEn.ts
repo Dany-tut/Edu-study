@@ -2714,6 +2714,7 @@ export const EN: Record<string, string> = {
   "Услышано": "Heard",
   "Услышано — совпало с образцом": "Heard — matches the model",
   "Образец": "Model",
+  "Повторить вслух": "Repeat aloud",
   "Не прозвучало": "Not heard",
   "Справился с заданием": "Task completed",
   "Разберём ошибку": "Let's review the mistake",

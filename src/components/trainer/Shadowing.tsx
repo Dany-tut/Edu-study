@@ -280,7 +280,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           </button>
         ) : (
           <button data-hover="layer" onClick={() => void startRec()} style={btn('var(--color-red-text)', false)}>
-            <Mic size={16} /> {mine ? t('Ещё раз') : t('Повторить')}
+            <Mic size={16} /> {mine ? t('Ещё раз') : t('Повторить вслух')}
           </button>
         )}
 
