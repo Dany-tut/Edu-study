@@ -248,7 +248,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
               ? `Вышла версия ${TRANSCRIPTION_PRODUCT_VERSION} приложения «Искра · Расшифровка», у вас ${module.app}${module.appRemembered ? ' (по последней проверке: модуль сейчас не запущен)' : ''}. Скачайте её и перенесите в «Программы» с заменой. Код модуля обновляется сам, приложение — нет.`
               : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
-            <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
+            <span>Скачать<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
           </a>
         </div>
         <div className="transcription-launch-guide transcription-module-management" inert={!connected || !showSetup}

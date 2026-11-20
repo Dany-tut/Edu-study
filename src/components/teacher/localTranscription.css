@@ -297,6 +297,16 @@
 .transcription-update { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 20px; background: var(--color-yellow-soft); }
 .transcription-update p { flex: 1; min-width: 0; max-width: none; margin: 0; padding: 4px 0 4px 8px; color: var(--color-text); }
 .transcription-update .integration-action { flex: none; align-self: stretch; width: auto; padding-inline: 16px; }
+/* Кнопка скачивания — яркая жёлтая, а не цвет контейнера: это главное
+   действие плашки. Тёмный текст на жёлтом ≥ 9:1 в обеих темах. */
+.transcription-update .integration-action {
+  border-color: transparent;
+  background: #F7D23E;
+  color: #2B2200;
+  font-weight: 700;
+}
+.transcription-update .integration-action:hover { background: #FFDD55; color: #2B2200; }
+.transcription-update .integration-action:active { background: #E9C22C; }
 @media (max-width: 600px) {
   .transcription-update { flex-direction: column; align-items: stretch; gap: 8px; }
   .transcription-update p { padding: 8px 8px 0; }
@@ -365,7 +375,9 @@
   grid-template-columns: minmax(0, 1fr);
   animation: none;
 }
-.transcription-module .transcription-setup[data-connected=true] { background: transparent; }
+/* Подключённый модуль: плашка обновления и «Работа в фоне» встают по краям
+   ряда кнопок («Управление модулем» … «Отключить»), без внутреннего отступа. */
+.transcription-module .transcription-setup[data-connected=true] { background: transparent; padding-inline: 0; }
 .transcription-setup > .transcription-walkthrough,
 .transcription-setup > .transcription-module-management,
 .transcription-walkthrough-page { grid-area: 1 / 1; }
