@@ -5,6 +5,7 @@ import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkVideo } from './icons/loopArtwork'
 import { type ScheduleDay, type ScheduleLesson } from '../data/mockData'
 import { resolveScheduleLesson } from '../lib/db'
+import { lessonNo } from '../lib/lessonNumber'
 import { scheduleRowStatus } from '../lib/scheduleAttendance'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
@@ -55,6 +56,12 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
   const glassFade = season.on('hero') && !isCenter
   const { tc } = useTc()
   const subjects = useStudentData(s => s.subjects)
+  // Номер берём у самого урока курса: там и свежая позиция, и сдвиг
+  // «нумерация с N». В строке календаря номер записан на момент сохранения.
+  const shownNo = (l: ScheduleLesson) => {
+    const match = resolveScheduleLesson(l, subjects).lesson
+    return match ? lessonNo(match) : l.lessonNumber + 1
+  }
   const openLesson = useDashboard(s => s.openLesson)
   const openCourses = useDashboard(s => s.openCourses)
   const setActiveSubject = useDashboard(s => s.setActiveSubject)
@@ -236,7 +243,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5" style={{ marginBottom: 4 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: (isEmphasized || isMissed) ? pal.text : 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {tc(lesson.subject)}{mobile ? ` · #${lesson.lessonNumber + 1}` : ''}
+                        {tc(lesson.subject)}{mobile ? ` · #${shownNo(lesson)}` : ''}
                       </span>
                       {st.phase !== 'today' && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                       {isMissed && (
@@ -258,7 +265,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                       )}
                     </div>
                     <FadeText className="schedule-lesson-title" style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
-                      {mobile ? tc(lesson.lessonTitle) : `${t('Занятие')} #${lesson.lessonNumber + 1} ${tc(lesson.lessonTitle)}`}
+                      {mobile ? tc(lesson.lessonTitle) : `${t('Занятие')} #${shownNo(lesson)} ${tc(lesson.lessonTitle)}`}
                     </FadeText>
                   </div>
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>

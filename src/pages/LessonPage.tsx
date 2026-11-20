@@ -44,6 +44,7 @@ import { useTheme } from '../store/themeStore'
 import { MOBILE_TOP_INSET, MOBILE_PILL_H } from '../lib/mobileTokens'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { useScreenBack } from '../lib/useScreenBack'
+import { lessonNo } from '../lib/lessonNumber'
 
 /** «1 файл / 2 файла / 5 файлов». */
 function plural(n: number, one: string, few: string, many: string) {
@@ -940,7 +941,7 @@ export default function LessonPage() {
           style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', margin: 0 }}
         >
           {/* Длинное название не обрезаем: пауза — и строка плавно доезжает до конца. */}
-          <MarqueeText>{`${t('Занятие')} #${lesson.number + 1} ${tContent(lesson.title)}`}</MarqueeText>
+          <MarqueeText>{`${t('Занятие')} #${lessonNo(lesson)} ${tContent(lesson.title)}`}</MarqueeText>
         </h1>
 
         {date && <div

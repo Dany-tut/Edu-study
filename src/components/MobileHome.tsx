@@ -728,7 +728,7 @@ function HeroContinue({ lesson, subjectName, progress }: { lesson: Lesson; subje
         minHeight: 38,
          ...textFadeLines(2),  overflow: 'hidden',
       }}>
-        {t('Занятие')} #{lesson.number + 1} · {tc(lesson.title)}
+        {t('Занятие')} #{lessonNo(lesson)} · {tc(lesson.title)}
       </div>
       <div style={{ height: 5, background: 'rgba(255,255,255,0.25)', borderRadius: 99, overflow: 'hidden', marginBottom: 10 }}>
         <div style={{ width: `${Math.max(4, progress)}%`, height: '100%', background: '#fff', borderRadius: 99 }} />
@@ -742,6 +742,7 @@ function HeroContinue({ lesson, subjectName, progress }: { lesson: Lesson; subje
 }
 
 import type { Subject } from '../data/mockData'
+import { lessonNo } from '../lib/lessonNumber'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Плитки переходов

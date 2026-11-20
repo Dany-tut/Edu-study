@@ -35,6 +35,7 @@ import { useStudentTz } from '../lib/studentTz'
 import { wallDateTimeInTz } from '../lib/teacherTz'
 import { useT, useLang } from '../lib/i18n'
 import '../components/diary/studentDiary.css'
+import { lessonNo } from '../lib/lessonNumber'
 
 export type DiaryTab = 'journal' | 'work' | 'lessons'
 const tone = (status: StudentDiaryEntry['status']) => {
@@ -123,7 +124,7 @@ function Row({
   return (
     <button type="button" className="ds-work-row" onClick={() => onOpen(entry)}>
       <span className="ds-work-number" style={tone(entry.status)}>
-        {entry.lesson.number + 1}
+        {lessonNo(entry.lesson)}
       </span>
       <span className="ds-work-copy">
         <CourseLabel entry={entry} />

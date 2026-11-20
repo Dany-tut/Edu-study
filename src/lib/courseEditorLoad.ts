@@ -1,9 +1,10 @@
+import { lessonNumberShift } from './lessonNumber'
 import { supabase } from './supabase'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Authoritative editor metadata, loaded after navigation. Never save the
  * shelf's incomplete snapshot if this request fails or is cancelled. */
-export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<Pick<CourseEdData, 'title' | 'subject' | 'level' | 'status' | 'description' | 'color' | 'bg' | 'seedStamp' | 'groupIds' | 'studentIds' | 'modules' | 'lessons'>> {
+export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<Pick<CourseEdData, 'title' | 'subject' | 'level' | 'status' | 'description' | 'color' | 'bg' | 'seedStamp' | 'numberStart' | 'groupIds' | 'studentIds' | 'modules' | 'lessons'>> {
   let modules: CourseEdData['modules'] = []
 
   const { data: dbCourse, error } = await supabase
@@ -60,6 +61,19 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
     description: dbCourse.description ?? '',
     color: dbCourse.color ?? 'var(--color-purple)', bg: dbCourse.bg ?? 'var(--color-purple-soft)',
     seedStamp: dbCourse.seed_stamp ?? undefined,
+    numberStart: await loadNumberStart(dbCourse.id, signal),
     groupIds, studentIds, modules, lessons,
   }
+}
+
+/**
+ * courses.number_start отдельным запросом: миграцию на прод накатывают
+ * отдельно, и до неё колонки нет. Тогда — undefined: поле в редакторе
+ * скрыто и в сохранение не уходит, курс открывается как раньше.
+ */
+export async function loadNumberStart(courseId: string, signal: AbortSignal): Promise<number | undefined> {
+  const { data, error } = await supabase
+    .from('courses').select('number_start').eq('id', courseId).abortSignal(signal).maybeSingle()
+  if (error || !data) return undefined
+  return lessonNumberShift((data as { number_start?: number | null }).number_start) + 1
 }

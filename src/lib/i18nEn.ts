@@ -553,6 +553,7 @@ export const EN: Record<string, string> = {
   'Этим цветом предмет видите вы и ваши ученики. Ученик может выбрать свой — у вас останется этот.': 'You and your students see the subject in this colour. A student may pick their own — yours stays.',
   'Ученик': 'Student',
   'Уровень': 'Level',
+  'Нумерация уроков с': 'Lesson numbering starts at',
   'Разметка заданий': 'Task taxonomy',
   'Разметка': 'Taxonomy',
   'Вместе с ней исчезнут все наборы и карточки внутри. Отменить это нельзя.': 'Every set and card inside goes with it. This cannot be undone.',

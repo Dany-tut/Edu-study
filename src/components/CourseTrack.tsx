@@ -36,6 +36,7 @@ import type { StudentDiaryEntry } from '../lib/studentDiary'
 import { homeModuleDebts } from '../lib/studentHomeWork'
 import { confirmWaveReady, markWaveSeen, preloadConfirmWave, WAVE_PALETTES, waveSeen } from '../lib/confirmWave'
 import { useConfirmWave } from '../lib/confirmWave/useConfirmWave'
+import { lessonNo } from '../lib/lessonNumber'
 
 type HomeWorkProps = { homeWorks?: readonly StudentDiaryEntry[]; today?: string; onOpenDebts?: (course: string, module: number) => void }
 
@@ -491,7 +492,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                         )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontSize: 12, fontWeight: 500, color: selectedDetail.palette.text, lineHeight: 1 }}>
-                            {t('Занятие')} #{selectedLesson.number + 1}
+                            {t('Занятие')} #{lessonNo(selectedLesson)}
                             {selectedDate && (
                               <span style={{ color: 'var(--color-muted)', fontWeight: 500 }}> · {selectedDate}</span>
                             )}

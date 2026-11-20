@@ -5,6 +5,7 @@ import { getTrackLessonStatus, type TrackLessonStatus } from './lessonStatus'
 import { gradedTrackResult } from './homeworkResult'
 import { hwRef } from './extraHomework'
 import { isCourseModuleLocked } from './moduleAccess'
+import { lessonNo } from './lessonNumber'
 
 export type DiaryMetadata = {
   hasMain: boolean
@@ -126,7 +127,7 @@ export function diaryPriority(entry: StudentDiaryEntry, today: string) {
             : 5
 }
 export function diaryWorkLabel(entry: StudentDiaryEntry) {
-  return `${entry.lesson.kind === 'test' ? 'Тест' : 'ДЗ'} №${entry.lesson.number + 1}${entry.suffix ? ` · ${entry.suffix}` : ''}`
+  return `${entry.lesson.kind === 'test' ? 'Тест' : 'ДЗ'} №${lessonNo(entry.lesson)}${entry.suffix ? ` · ${entry.suffix}` : ''}`
 }
 export const diaryStatusText = (entry: StudentDiaryEntry) =>
   entry.status === 'current' || entry.status === 'today'

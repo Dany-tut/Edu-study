@@ -22,6 +22,7 @@ import type { ScheduleState } from '../lib/scheduleState'
 import ScheduleStatusBadge from './ScheduleStatusBadge'
 import { textFadeLines } from '../lib/textFades'
 import type { LessonAssessment } from '../lib/lessonAssessments'
+import { lessonNo } from '../lib/lessonNumber'
 
 type IconProps = { color?: string; size?: number }
 type CustomIcon = (props: IconProps) => ReactElement
@@ -206,7 +207,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
           ...(silhouette === 'screen' && { left: -4, right: -4 }),
           rotate: isDiamond ? '45deg' : '0deg',
         }}
-        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lesson.number + 1}: ${tc(lesson.title)} · ${statusDescription}${overdueLabel ? ` · ${overdueLabel}` : ''}`}
+        aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lessonNo(lesson)}: ${tc(lesson.title)} · ${statusDescription}${overdueLabel ? ` · ${overdueLabel}` : ''}`}
         title={statusDescription}
       >
         {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} />}
@@ -272,7 +273,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
           style={{ fontSize: 10, fontWeight: 600, color: 'var(--track-muted-text)', whiteSpace: 'nowrap' }}
         >
           {/* В теме под фонарём/конфетой — «Урок N · сейчас», как в макетах. */}
-          {seasonNode ? `${tr('Урок')} ${lesson.number + 1} · ${tr('сейчас')}` : `#${lesson.number + 1}`}
+          {seasonNode ? `${tr('Урок')} ${lessonNo(lesson)} · ${tr('сейчас')}` : `#${lessonNo(lesson)}`}
         </span>
         {showScheduleStatus && scheduleState && <ScheduleStatusBadge state={scheduleState} />}
         {caption && (

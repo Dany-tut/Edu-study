@@ -25,6 +25,7 @@ import { useT, useTc } from '../lib/i18n'
 import { GLASS } from '../lib/nativeGlass'
 import { PLATFORM } from '../lib/platform'
 import HomeworkListIphone from '../components/iphone/HomeworkListIphone'
+import { lessonNo } from '../lib/lessonNumber'
 
 type StatusFilter = 'all' | 'active' | 'done'
 const FILTER_OPTIONS: Array<{ id: StatusFilter; label: string }> = [
@@ -594,7 +595,7 @@ export default function CoursesPage() {
                   </span>
                 )}
                 <span style={{ fontSize: 15, fontWeight: 600, color: st.label, lineHeight: 1.2 }}>
-                  {t('Занятие №')}{lesson.number + 1}
+                  {t('Занятие №')}{lessonNo(lesson)}
                 </span>
                 <span
                   className="text-fade-2"

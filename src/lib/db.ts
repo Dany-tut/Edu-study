@@ -1,3 +1,4 @@
+import { lessonNumberShift } from './lessonNumber'
 import { readTranscript } from './localTranscription'
 import { resolveStudentSubject } from './studentSubject'
 /**
@@ -400,6 +401,7 @@ interface DbCourse {
   subject: string
   student_ids: string[] | null
   group_ids: string[] | null
+  number_start?: number | null
   course_modules: Array<{
     id: string
     label: string
@@ -520,7 +522,8 @@ type LessonTuple = [
   boolean | null, unknown,
 ]
 type ModuleTuple = [number, string, LessonTuple[]]
-type CourseTuple = [string, string, string, string, string[] | null, string[] | null, ModuleTuple[]]
+/** Последний элемент — courses.number_start; у старой функции его нет. */
+type CourseTuple = [string, string, string, string, string[] | null, string[] | null, ModuleTuple[], number?]
 type ProgressTuple = [string, string, LessonStatus, number, string, string | null, boolean]
 type TrackPayload = {
   rows?: Array<[string, string | null]>
@@ -610,7 +613,8 @@ export async function fetchStudentTrack(
     ?? rows.find(r => (groupIds ?? []).includes(r.groupId))?.id
 
   const subjects: Subject[] = (payload.courses ?? []).map(c => {
-    const [cid, shortId, title, subject, studentIds, groupIds, mods] = c
+    const [cid, shortId, title, subject, studentIds, groupIds, mods, numberStart] = c
+    const numberShift = lessonNumberShift(numberStart)
     return {
       id: shortId,
       dbId: cid,
@@ -632,6 +636,7 @@ export async function fetchStudentTrack(
             dbId: lid,
             title: lTitle,
             number: num,
+            numberShift,
             status: 'locked' as LessonStatus,
             kind: kind === 'test' ? 'test' as const : 'lesson' as const,
             testTasks: Array.isArray(testTasks) ? testTasks as Lesson['testTasks'] : undefined,
@@ -847,6 +852,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
               dbId: l.id,
               title: l.title,
               number: l.lesson_number,
+              numberShift: lessonNumberShift(course.number_start),
               status: 'locked' as LessonStatus,
               kind: l.kind === 'test' ? 'test' as const : 'lesson' as const,
               testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : undefined,

@@ -1,5 +1,6 @@
 import type { Lesson } from '../data/mockData'
 import { getDisplayLessonStatus, type LessonDisplayStatus } from './lessonStatus'
+import { lessonNo } from './lessonNumber'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Список «ДЗ» ученика: группы, фильтр, сортировка и поиск — БЕЗ разметки.
@@ -77,7 +78,7 @@ export function groupHomework(lessons: Lesson[], filters: HomeworkFilters, now: 
   const q = filters.search.trim().toLowerCase()
   const rows: HomeworkRow[] = []
   for (const lesson of lessons) {
-    if (q && !(lesson.title.toLowerCase().includes(q) || String(lesson.number + 1).includes(q))) continue
+    if (q && !(lesson.title.toLowerCase().includes(q) || String(lessonNo(lesson)).includes(q))) continue
     const status = getDisplayLessonStatus(lesson, now)
     const group = homeworkGroupOf(status)
     if (filters.hideLocked && group === 'locked') continue
