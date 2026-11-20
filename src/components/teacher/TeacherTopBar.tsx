@@ -4,7 +4,7 @@ import { useTeacherGuides } from './guides/TeacherGuides'
 import { textFadeStyle } from '../../lib/textFades'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownSurface } from '../../lib/dropdownStyle'
-import CountBadge, { countBadgeInset } from '../CountBadge'
+import CountBadge from '../CountBadge'
 import {
   Home, Users, ClipboardList, BookOpen, Layers, GraduationCap, Wallet,
   ChevronLeft, ChevronRight,
@@ -471,10 +471,10 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 // Reserve the journal badge slot before its async query returns.
                 // Otherwise the tab grows when the count arrives and shifts the
                 // neighboring items in the centered navigation pill.
-                // Поля журнала симметричны (countBadgeInset — тот же зазор, что
-                // сверху/снизу), а слово держит по центру невидимое зеркало
-                // слота слева (ниже). Счётчик — трейлинг справа, слово не сдвигает.
-                padding: `0 ${item.id === 'gradebook' && !collapsed ? countBadgeInset(44) : squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px 0 ${item.id === 'gradebook' && !collapsed ? countBadgeInset(44) : squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
+                // Внешние поля у всех вкладок одинаковы — зазоры между вкладками
+                // ровные. Слово журнала держит по центру невидимое зеркало слота
+                // слева (ниже); счётчик — трейлинг справа, слово не сдвигает.
+                padding: `0 ${squeeze === 3 ? NAV_PAD_TIGHT : NAV_PAD}px`, height: 44, borderRadius: 20, border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#fff' : 'var(--color-muted)',
                 background: 'transparent',
