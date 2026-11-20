@@ -99,6 +99,8 @@ if [[ "$MODE" == "--verify" ]]; then
   codesign --force --deep --sign - "$APP"
   codesign --verify --deep --strict --verbose=2 "$APP"
   plutil -lint "$APP_CONTENTS/Info.plist" "$APP_CONTENTS/Library/LaunchAgents/com.iskra.transcription.agent.plist"
+  # Окно установщика тем же путём, что в CI (раскладка из DS_Store, без Finder).
+  bash "$ROOT/scripts/buildTranscriptionDmg.sh" "$APP" "$BUILD/Iskra-Transcription-Mac-v$PRODUCT_VERSION.dmg"
   echo "Сборка установщика проверена: $APP"
   exit 0
 fi
@@ -115,4 +117,15 @@ xcrun notarytool submit "$BUILD/notary-payload.zip" \
 xcrun stapler staple "$APP"
 spctl --assess --type execute --verbose=4 "$APP"
 ditto -c -k --keepParent "$APP" "$BUILD/Iskra-Transcription-Mac-v$PRODUCT_VERSION.zip"
+
+# DMG для первой установки: окно с фоном Искры и ярлыком «Программы».
+# Подписан, нотаризован и заштампован, как и приложение внутри.
+DMG="$BUILD/Iskra-Transcription-Mac-v$PRODUCT_VERSION.dmg"
+bash "$ROOT/scripts/buildTranscriptionDmg.sh" "$APP" "$DMG"
+codesign --force --timestamp --sign "$APPLE_DEVELOPER_ID" "$DMG"
+xcrun notarytool submit "$DMG" \
+  --key "$APPLE_NOTARY_PRIVATE_KEY" --key-id "$APPLE_NOTARY_KEY_ID" --issuer "$APPLE_NOTARY_ISSUER_ID" --wait
+xcrun stapler staple "$DMG"
+spctl --assess --type open --context context:primary-signature --verbose=4 "$DMG"
 echo "$BUILD/Iskra-Transcription-Mac-v$PRODUCT_VERSION.zip"
+echo "$DMG"
