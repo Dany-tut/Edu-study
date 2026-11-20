@@ -40,6 +40,23 @@ class QueueTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 202)
         self.assertIn(resp.get_json()['id'], self.s.pending)
 
+    def test_lesson_title_and_course_travel_to_queue(self):
+        # Название урока/курса со страницы хранится в job и отдаётся в /queue —
+        # подпись задания в виджете видна в любом браузере этого профиля.
+        jid = self.post(link='https://example.com/a', lessonTitle='Гидролиз солей',
+                        courseTitle='Химия ЕГЭ 2027').get_json()['id']
+        self.assertEqual(self.s.jobs[jid]['lessonTitle'], 'Гидролиз солей')
+        summary = self.client.get('/queue', base_url='http://127.0.0.1:18764', headers=self.headers).json
+        queued = summary['queued'][0]
+        self.assertEqual((queued['lessonTitle'], queued['courseTitle']), ('Гидролиз солей', 'Химия ЕГЭ 2027'))
+
+    def test_queue_item_omits_empty_lesson_title(self):
+        # Старая страница без названия — поле не навязывается (fallback на этап).
+        jid = self.post(link='https://example.com/b').get_json()['id']
+        summary = self.client.get('/queue', base_url='http://127.0.0.1:18764', headers=self.headers).json
+        item = next(q for q in summary['queued'] if q['id'] == jid)
+        self.assertNotIn('lessonTitle', item)
+
     def test_jobs_endpoint_reports_queue_position(self):
         first = self.post(link='https://example.com/a').get_json()['id']
         second = self.post(link='https://example.com/b').get_json()['id']
