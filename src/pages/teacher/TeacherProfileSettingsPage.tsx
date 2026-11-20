@@ -390,7 +390,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
             {role === 'admin' ? t('Администратор') : t('Учитель')}
           </div>}
 
-          <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginBottom: 18 }}>
             <motion.button data-hover="layer"
               whileTap={{ scale: 0.96 }}
               onClick={() => pickImageFile(setCropFile)}
