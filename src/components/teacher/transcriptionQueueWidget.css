@@ -52,11 +52,29 @@
 .tqw-job {
   display: flex;
   align-items: flex-start;
+  gap: 2px;
+}
+/* Открыть урок в Конструкторе — кликабельная зона задания (кроме ✕). */
+.tqw-job-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
   gap: 10px;
   padding: 8px 6px;
   border-radius: 9px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--color-text);
+  transition: background 0.12s;
 }
-.tqw-job:hover { background: var(--color-bg-5); }
+.tqw-job-open:hover:not(:disabled) { background: var(--color-bg-5); }
+.tqw-job-open:disabled { cursor: default; }
+
+.tqw-course { margin-left: 6px; font-size: 11px; font-weight: 500; color: var(--color-text-3); }
 
 .tqw-job-ic {
   width: 28px; height: 28px;
@@ -83,7 +101,7 @@
 .tqw-prog i[data-indeterminate] { width: 34% !important; animation: tqw-slide 1.4s ease-in-out infinite; }
 @keyframes tqw-slide { 0% { margin-left: -34%; } 100% { margin-left: 100%; } }
 
-.tqw-job-tail { font-size: 11px; color: var(--color-text-3); font-weight: 600; flex-shrink: 0; margin-top: 7px; min-width: 26px; text-align: right; }
+.tqw-job-tail { font-size: 11px; color: var(--color-text-3); font-weight: 600; flex-shrink: 0; margin-top: 1px; min-width: 26px; text-align: right; }
 
 .tqw-x {
   width: 26px; height: 26px;
@@ -92,6 +110,7 @@
   background: transparent; color: var(--color-text-3);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  margin-top: 6px;
   transition: background 0.12s, color 0.12s;
 }
 .tqw-x:hover:not(:disabled) { background: rgba(var(--accent-rgb), 0.14); color: var(--color-accent); }

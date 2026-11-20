@@ -268,6 +268,8 @@ const fileSignature = (file: File) => JSON.stringify([file.name, file.size, file
 type Props = { owner: string; lessonKey: string; source: string; file?: File | null; existing?: LocalDraft; published?: boolean; onApply: (draft: LocalDraft, variants?: ChapterVariants) => Promise<boolean>
   /** Предмет словаря расшифровки (termsSubject) и название урока — подсказка модулю. */
   subject?: string; lessonTitle?: string
+  /** Название курса — для подписи задания в виджете очереди расшифровки. */
+  courseTitle?: string
   chapterVariants?: ChapterVariants
   existingChapters?: LessonTimecode[]
   onApplyChapters?: (variants: ChapterVariants) => Promise<boolean>
@@ -575,7 +577,7 @@ function TranscriptionActionState(props: ActionProps) {
   </>
 }
 
-function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonText, initialMode, onSlidesReady, onReady, onClose, onFailed }: Props & { onFailed: (message: string) => void; initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {
+function Review({ owner, lessonKey, source, file, subject, lessonTitle, courseTitle, lessonText, initialMode, onSlidesReady, onReady, onClose, onFailed }: Props & { onFailed: (message: string) => void; initialMode: TranscriptionMode; onSlidesReady: (chapters: LessonTimecode[]) => void; onReady: (result: LocalDraft) => void; onClose: () => void }) {
   const key = 'iskra.transcription.job.' + JSON.stringify([owner, lessonKey])
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
@@ -631,6 +633,10 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
     setUnavailable(false)
     const form = new FormData()
     form.append('mode', mode); form.append('titleRegion', titleRegion)
+    // Контекст урока — подпись задания в виджете очереди (и под будущий бэкенд,
+    // который сохранит его в job для кросс-девайса).
+    if (lessonTitle) form.append('lessonTitle', lessonTitle)
+    if (courseTitle) form.append('courseTitle', courseTitle)
     const inputFile = selectedFile ?? file
     if (inputFile) form.append('video', inputFile)
     else form.append('link', source.trim())
@@ -662,7 +668,10 @@ function Review({ owner, lessonKey, source, file, subject, lessonTitle, lessonTe
       if (mode === 'text' && keepTraining) form.append('training', '1')
       if (!mounted.current) return
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
-      const job = { id, mode, titleRegion, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined }
+      // lessonTitle/courseTitle — чтобы виджет очереди подписал задание названием
+      // урока и дал переход в Конструктор (lessonId берётся из ключа задания).
+      const job = { id, mode, titleRegion, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined,
+        ...(lessonTitle ? { lessonTitle } : {}), ...(courseTitle ? { courseTitle } : {}) }
       if (!mounted.current) return
       localStorage.setItem(key, JSON.stringify(job))
       setPending(job)

@@ -18,6 +18,7 @@ export const EN: Record<string, string> = {
   'Останавливаем…': 'Stopping…',
   'Остановить расшифровку': 'Stop transcription',
   'Убрать из очереди': 'Remove from queue',
+  'Открыть урок в Конструкторе': 'Open the lesson in the editor',
   'позиция': 'position',
   'Пока хватает памяти, записи обрабатываются параллельно; иначе ждут очереди.':
     'While memory allows, recordings run in parallel; otherwise they wait in the queue.',
