@@ -4,9 +4,20 @@ import mlx_whisper
 import numpy as np
 from progress import record
 from model_cache import MODEL_SPECS, require_model
+import asr_config
+from asr_engine import GigaAM, segments_from_ctc, looks_mixed, available as gigaam_available
 
 folder=Path(sys.argv[1])
-model=require_model(*MODEL_SPECS[0])
+# Движок и флаги — из окружения (asr_config). По умолчанию: whisper, без
+# пословных таймкодов — поведение модуля не меняется.
+ENGINE=asr_config.engine()
+WANT_WORDS=asr_config.word_timestamps_enabled()
+# Веса whisper грузим лениво: при форсированном GigaAM они вообще не нужны.
+_whisper=None
+def whisper_model():
+    global _whisper
+    if _whisper is None: _whisper=require_model(*MODEL_SPECS[0])
+    return _whisper
 offset=0
 segments=[]
 chunks=sorted(folder.glob('audio-*.wav'))
@@ -86,27 +97,91 @@ def pieces(samples,rate):
         out.append((start,best)); start=best
     return out
 
+def whisper_transcribe(audio_or_path):
+    kwargs=dict(path_or_hf_repo=str(whisper_model()),verbose=None,condition_on_previous_text=False)
+    if WANT_WORDS: kwargs['word_timestamps']=True
+    return kwargs,mlx_whisper.transcribe(audio_or_path,**kwargs)
+
+def words_of(segment_words,base):
+    """Пословные таймкоды whisper → аддитивное поле words, сдвинутое в запись."""
+    out=[]
+    for w in segment_words or []:
+        word=str(w.get('word','')).strip()
+        if not word: continue
+        out.append({'word':word,'start':round(max(0,base+w.get('start',0)),3),'end':round(base+w.get('end',0),3)})
+    return out
+
+def whisper_chunk(chunk,samples,rate,length):
+    """Реплики whisper из одного куска — как раньше, плюс words при флаге."""
+    found=[]
+    # Без словаря — как раньше, кусок целиком: подсказывать нечего.
+    for a,b in (pieces(samples,rate) if PROMPT else [(0,len(samples))]):
+        if PROMPT:
+            audio=samples[a:b].astype(np.float32)/32768.0
+            kwargs=dict(path_or_hf_repo=str(whisper_model()),verbose=None,condition_on_previous_text=False,initial_prompt=PROMPT)
+            if WANT_WORDS: kwargs['word_timestamps']=True
+            result=mlx_whisper.transcribe(audio,**kwargs)
+        else:
+            _,result=whisper_transcribe(str(chunk))
+        shift=a/rate
+        for s in result['segments']:
+            text=s['text'].strip()
+            start=max(0,shift+s['start'])
+            end=min(length,shift+s['end'])
+            db=level(samples,start,end,rate)
+            if db<SILENT_DB or (text.lower() in HALLUCINATIONS and db<-45) or echoes_prompt(text): continue
+            if (s.get('no_speech_prob',0)<0.8 and end>start and any(c.isalnum() for c in text)):
+                seg=dict(start=round(offset+start,3),end=round(offset+end,3),text=fix(text))
+                if WANT_WORDS:
+                    words=words_of(s.get('words'),offset+shift)
+                    if words: seg['words']=words
+                found.append(seg)
+    return found
+
+def gigaam_chunk(giga,samples,rate,length):
+    """Реплики GigaAM из одного куска: по паузам между символами, с фильтром тишины."""
+    audio=samples.astype(np.float32)/32768.0
+    _,timestamps,tokens=giga.recognize(audio,rate)
+    found=[]
+    for seg in segments_from_ctc(tokens,timestamps,shift=offset,want_words=WANT_WORDS):
+        start=seg['start']-offset; end=min(length,seg['end']-offset)
+        if level(samples,start,end,rate)<SILENT_DB: continue
+        seg['text']=fix(seg['text'])
+        if not WANT_WORDS: seg.pop('words',None)
+        found.append(seg)
+    return found
+
+def decide_engine(chunk):
+    """auto: по первому куску. Русский монолог → GigaAM, иначе whisper."""
+    with wave.open(str(chunk)) as f:
+        rate=f.getframerate()
+        samples=np.frombuffer(f.readframes(f.getnframes()),dtype=np.int16).astype(np.float32)/32768.0
+    try:
+        result=mlx_whisper.transcribe(samples,path_or_hf_repo=str(whisper_model()),verbose=None,condition_on_previous_text=False)
+    except Exception as error:
+        print(f'auto: проба языка не удалась ({error}) — whisper.',flush=True); return 'whisper'
+    text=' '.join(s['text'] for s in result.get('segments',[]))
+    mixed=looks_mixed(result.get('language'),text)
+    print(f'auto: язык={result.get("language")}, mixed={mixed} → {"whisper" if mixed else "gigaam"}',flush=True)
+    return 'whisper' if mixed else 'gigaam'
+
 if __name__=='__main__':
+    engine=ENGINE
+    giga=None
+    if engine in ('gigaam','auto'):
+        model_p,tokens_p=asr_config.gigaam_paths()
+        if gigaam_available(model_p,tokens_p):
+            try: giga=GigaAM(model_p,tokens_p)
+            except Exception as error: print(f'GigaAM не загрузился ({error}).',flush=True); giga=None
+        if giga is None:
+            print('GigaAM недоступен — распознаём whisper.',flush=True); engine='whisper'
+        elif engine=='auto':
+            engine=decide_engine(chunks[0]) if chunks else 'whisper'
     for chunk in chunks:
         with wave.open(str(chunk)) as f:
             rate=f.getframerate(); length=f.getnframes()/rate
             samples=np.frombuffer(f.readframes(f.getnframes()),dtype=np.int16)
-        # Без словаря — как раньше, кусок целиком: подсказывать нечего.
-        for a,b in (pieces(samples,rate) if PROMPT else [(0,len(samples))]):
-            if PROMPT:
-                audio=samples[a:b].astype(np.float32)/32768.0
-                result=mlx_whisper.transcribe(audio,path_or_hf_repo=str(model),verbose=None,condition_on_previous_text=False,initial_prompt=PROMPT)
-            else:
-                result=mlx_whisper.transcribe(str(chunk),path_or_hf_repo=str(model),verbose=None,condition_on_previous_text=False)
-            shift=a/rate
-            for s in result['segments']:
-                text=s['text'].strip()
-                start=max(0,shift+s['start'])
-                end=min(length,shift+s['end'])
-                db=level(samples,start,end,rate)
-                if db<SILENT_DB or (text.lower() in HALLUCINATIONS and db<-45) or echoes_prompt(text): continue
-                if (s.get('no_speech_prob',0)<0.8 and end>start and any(c.isalnum() for c in text)):
-                    segments.append(dict(start=round(offset+start,3),end=round(offset+end,3),text=fix(text)))
+        segments+=gigaam_chunk(giga,samples,rate,length) if engine=='gigaam' else whisper_chunk(chunk,samples,rate,length)
         offset+=length
         record(folder,'Распознаём речь',offset,total,'seconds')
     (folder/'segments.json').write_text(json.dumps(segments,ensure_ascii=False))
