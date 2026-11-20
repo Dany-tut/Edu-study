@@ -1,6 +1,7 @@
 import AppKit
 import CoreServices
 import Foundation
+import Security
 import ServiceManagement
 
 private let agentPlist = "com.iskra.transcription.agent.plist"
@@ -102,6 +103,139 @@ private enum Companion {
 
 }
 
+/// Обновление самого приложения, как у обычных программ на Mac: раз в несколько
+/// часов смотрим манифест на сайте Искры, качаем подписанный DMG и меняем
+/// установленную копию на месте. Ставим только сборку с тем же bundle id и той же
+/// командой разработчика, что у работающей копии; без подписи (локальная
+/// сборка) автообновление выключено.
+private enum Updater {
+    static let site = URL(string: "https://iskra-study.ru")!
+    static let manifestURL = site.appendingPathComponent("downloads/transcription-mac-latest.json")
+    static let bundleID = "ru.iskra.transcription"
+    static let checkInterval: TimeInterval = 4 * 3600
+    static let lastCheckKey = "IskraLastUpdateCheck"
+
+    struct Manifest: Decodable { let version: String; let url: String }
+    enum Outcome { case current(String), installed(String) }
+
+    static var currentVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+    }
+
+    static func isNewer(_ candidate: String, than current: String) -> Bool {
+        candidate.compare(current, options: .numeric) == .orderedDescending
+    }
+
+    static func failure(_ message: String) -> NSError {
+        NSError(domain: "IskraTranscriptionUpdate", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
+    }
+
+    static func teamID(of url: URL) -> String? {
+        var code: SecStaticCode?
+        guard SecStaticCodeCreateWithPath(url as CFURL, [], &code) == errSecSuccess, let code else { return nil }
+        var info: CFDictionary?
+        guard SecCodeCopySigningInformation(code, SecCSFlags(rawValue: kSecCSSigningInformation), &info) == errSecSuccess,
+              let dict = info as? [String: Any] else { return nil }
+        return dict[kSecCodeInfoTeamIdentifier as String] as? String
+    }
+
+    /// Подпись Developer ID той же команды и тот же bundle id, вложенный код тоже.
+    static func verify(_ app: URL, team: String) throws {
+        var code: SecStaticCode?
+        var requirement: SecRequirement?
+        let text = "anchor apple generic and identifier \"\(bundleID)\" and certificate leaf[subject.OU] = \"\(team)\""
+        guard SecStaticCodeCreateWithPath(app as CFURL, [], &code) == errSecSuccess, let code,
+              SecRequirementCreateWithString(text as CFString, [], &requirement) == errSecSuccess, let requirement
+        else { throw failure("Не удалось проверить подпись обновления.") }
+        let flags = SecCSFlags(rawValue: kSecCSCheckAllArchitectures | kSecCSStrictValidate | kSecCSCheckNestedCode)
+        guard SecStaticCodeCheckValidity(code, flags, requirement) == errSecSuccess else {
+            throw failure("Подпись обновления не совпала. Обновление не установлено.")
+        }
+    }
+
+    static func run(_ tool: String, _ args: [String]) throws -> Data {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: tool)
+        process.arguments = args
+        let output = Pipe()
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
+        try process.run()
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else { throw failure("Не удалось открыть образ обновления.") }
+        return data
+    }
+
+    /// nil — обновлять нечего (или автообновление недоступно для этой копии).
+    static func available() async throws -> Manifest? {
+        guard teamID(of: Bundle.main.bundleURL) != nil else { return nil }
+        let request = URLRequest(url: manifestURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+        let manifest = try JSONDecoder().decode(Manifest.self, from: data)
+        return isNewer(manifest.version, than: currentVersion) ? manifest : nil
+    }
+
+    /// Скачать, проверить и поставить поверх работающей копии. Работающие
+    /// процессы (окно и фоновая служба) держат старые файлы до перезапуска.
+    static func install(_ manifest: Manifest) async throws {
+        let target = Bundle.main.bundleURL
+        guard let team = teamID(of: target) else { throw failure("Эта копия не подписана, обновите её вручную.") }
+        guard let url = URL(string: manifest.url, relativeTo: site)?.absoluteURL,
+              url.scheme == "https", url.host == site.host else { throw failure("Неверный адрес обновления.") }
+        let (downloaded, response) = try await URLSession.shared.download(from: url)
+        defer { try? FileManager.default.removeItem(at: downloaded) }
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw failure("Не удалось скачать обновление.") }
+        try await Task.detached(priority: .utility) {
+            try replace(target, fromImage: downloaded, version: manifest.version, team: team)
+        }.value
+    }
+
+    private static func replace(_ target: URL, fromImage image: URL, version: String, team: String) throws {
+        let fm = FileManager.default
+        let mount = fm.temporaryDirectory.appendingPathComponent("iskra-update-\(UUID().uuidString)", isDirectory: true)
+        try fm.createDirectory(at: mount, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: mount) }
+        _ = try run("/usr/bin/hdiutil", ["attach", "-nobrowse", "-readonly", "-noautoopen", "-noverify",
+                                         "-mountpoint", mount.path, image.path])
+        defer { _ = try? run("/usr/bin/hdiutil", ["detach", mount.path, "-force"]) }
+        let apps = try fm.contentsOfDirectory(at: mount, includingPropertiesForKeys: nil).filter {
+            $0.pathExtension == "app" && Bundle(url: $0)?.bundleIdentifier == bundleID
+        }
+        guard apps.count == 1, let app = apps.first else { throw failure("В образе обновления нет приложения Искры.") }
+        let found = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+        guard found == version, isNewer(found, than: currentVersion) else { throw failure("В образе другая версия приложения.") }
+        try verify(app, team: team)
+
+        let folder = target.deletingLastPathComponent()
+        let lockURL = Companion.appSupport.appendingPathComponent(".update.lock")
+        try fm.createDirectory(at: Companion.appSupport, withIntermediateDirectories: true)
+        let lock = open(lockURL.path, O_CREAT | O_WRONLY | O_CLOEXEC | O_NOFOLLOW, 0o600)
+        guard lock >= 0, flock(lock, LOCK_EX | LOCK_NB) == 0 else {
+            if lock >= 0 { close(lock) }
+            throw failure("Обновление уже устанавливается.")
+        }
+        defer { close(lock) }
+        let staging = folder.appendingPathComponent(".Iskra-transcription-update-\(UUID().uuidString).app", isDirectory: true)
+        defer { try? fm.removeItem(at: staging) }
+        do { try fm.copyItem(at: app, to: staging) }
+        catch { throw failure("Нет доступа к папке «\(folder.lastPathComponent)». Скачайте обновление на сайте Искры.") }
+        try verify(staging, team: team)
+        _ = try fm.replaceItemAt(target, withItemAt: staging)
+        LSRegisterURL(target as CFURL, true)
+    }
+
+    /// Новый процесс откроет уже обновлённую копию, когда этот завершится.
+    static func relaunch(arguments: [String]) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "while kill -0 \"$1\" 2>/dev/null; do sleep 0.2; done; shift; exec /usr/bin/open \"$@\"",
+                             "sh", String(getpid()), "-n", Bundle.main.bundleURL.path, "--args"] + arguments
+        try? process.run()
+    }
+}
+
 private func runService() -> Never {
     do {
         let logURL = Companion.appSupport.appendingPathComponent("transcription-service.log")
@@ -140,6 +274,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var stopButton: NSButton!
     private var settingsButton: NSButton!
     private var revealButton: NSButton!
+    private var versionLabel: NSTextField!
+    private var updateTask: Task<Void, Never>?
+    private var updateTimer: Timer?
 
     private var startTask: Task<Void, Never>?
     private var pendingApproval = false
@@ -149,8 +286,73 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildWindow()
         requestedStart = requestedStart || CommandLine.arguments.contains("--start")
+        buildMenu()
         if installInApplicationsIfNeeded() { return }
         handleStart()
+        checkForUpdates(userInitiated: false)
+        updateTimer = Timer.scheduledTimer(withTimeInterval: Updater.checkInterval, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.checkForUpdates(userInitiated: false) }
+        }
+    }
+
+    private func buildMenu() {
+        let main = NSMenu()
+        let appItem = NSMenuItem()
+        main.addItem(appItem)
+        let menu = NSMenu(title: "Искра — расшифровка")
+        menu.addItem(withTitle: "Проверить обновления…", action: #selector(checkUpdatesClicked), keyEquivalent: "").target = self
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Скрыть", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        menu.addItem(withTitle: "Выйти", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appItem.submenu = menu
+        let windowItem = NSMenuItem()
+        main.addItem(windowItem)
+        let windowMenu = NSMenu(title: "Окно")
+        windowMenu.addItem(withTitle: "Закрыть", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        windowItem.submenu = windowMenu
+        NSApp.mainMenu = main
+    }
+
+    @objc private func checkUpdatesClicked() { checkForUpdates(userInitiated: true) }
+
+    /// Фоновая проверка не чаще раза в checkInterval и молча; ручная — всегда
+    /// и с ответом. Пока окно запускает службу, перезапуск откладываем.
+    private func checkForUpdates(userInitiated: Bool) {
+        guard updateTask == nil, !installing, Companion.isInstalled(Bundle.main.bundleURL) else { return }
+        let defaults = UserDefaults.standard
+        if !userInitiated, Date().timeIntervalSince1970 - defaults.double(forKey: Updater.lastCheckKey) < Updater.checkInterval - 60 { return }
+        defaults.set(Date().timeIntervalSince1970, forKey: Updater.lastCheckKey)
+        updateTask = Task {
+            defer { updateTask = nil }
+            do {
+                guard let manifest = try await Updater.available() else {
+                    if userInitiated { inform("Установлена последняя версия", "Версия \(Updater.currentVersion).") }
+                    return
+                }
+                versionLabel.stringValue = "Версия \(Updater.currentVersion) · устанавливаем обновление \(manifest.version)…"
+                try await Updater.install(manifest)
+                await startTask?.value
+                versionLabel.stringValue = "Обновлено до \(manifest.version) · перезапуск…"
+                Updater.relaunch(arguments: window.isVisible ? [] : ["--start"])
+                NSApp.terminate(nil)
+            } catch {
+                versionLabel.stringValue = versionText()
+                if userInitiated { inform("Не удалось обновить", error.localizedDescription) }
+            }
+        }
+    }
+
+    private func inform(_ title: String, _ text: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = text
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
+    }
+
+    private func versionText() -> String {
+        let build = (Bundle.main.infoDictionary?["IskraInstallerVersion"] as? String ?? "").prefix(7)
+        return "Версия \(Updater.currentVersion) · сборка \(build)"
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -249,9 +451,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         revealButton.isHidden = true
         content.addSubview(revealButton)
 
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
-        let build = (Bundle.main.infoDictionary?["IskraInstallerVersion"] as? String ?? "").prefix(7)
-        let versionLabel = label("Версия \(version) · сборка \(build)", size: 10, weight: .regular)
+        versionLabel = label(versionText(), size: 10, weight: .regular)
         versionLabel.textColor = .tertiaryLabelColor
         versionLabel.frame = NSRect(x: 28, y: 14, width: 404, height: 16); content.addSubview(versionLabel)
 

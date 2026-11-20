@@ -47,6 +47,7 @@ dist-refresh409-qa/
 # тоже не коммитим: скрипт скачивает его по закреплённому URL с проверкой sha256
 # и кэширует в node_modules/.cache.
 public/downloads/iskra-transcription-mac.zip
+public/downloads/transcription-mac-latest.json
 tools/local-transcription/ffmpeg
 tools/local-transcription/ffmpeg.gz
 tools/local-transcription/ffprobe

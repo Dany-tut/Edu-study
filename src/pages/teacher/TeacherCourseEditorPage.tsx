@@ -1995,8 +1995,8 @@ export function CenterRecording({
         // для этого опущен на RECORDING_BLEED, а .recording-workspace его
         // возвращает): карточка глав кончается на одной линии с рельсой
         // реплик и списком уроков, а тени остаётся место под ней.
-        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0,margin:`-12px -16px ${-22 - RECORDING_BLEED}px -16px`}}
-          scrollStyle={{height:'100%',boxSizing:'border-box',padding:`12px 16px ${RECORDING_BLEED}px 16px`}}>
+        <ScrollFade overlayScrollbar maxHeight="100%" style={{flex:1,minHeight:0,margin:`-12px -16px ${-22 - RECORDING_BLEED}px ${-16 - RECORDING_SIDE_BLEED}px`}}
+          scrollStyle={{height:'100%',boxSizing:'border-box',padding:`12px 16px ${RECORDING_BLEED}px ${16 + RECORDING_SIDE_BLEED}px`}}>
         <div className="recording-player-layout" style={{ '--recording-player-max-width': PLAYER_MAX_W, flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', gap: 14 } as React.CSSProperties}>
           <div style={{ flex: 1, minWidth: 0, maxWidth: PLAYER_MAX_W, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ marginBottom: 4 }}>{linkRow}</div>
@@ -6034,6 +6034,8 @@ const RAIL_BLEED = 24
 // уходит в него, чтобы низ карточки глав совпал с рельсой и списком уроков, а
 // её тень не обрезалась краем колонки.
 const RECORDING_BLEED = 24
+// Левый запас под тень плеера в «Записи»: зазор между рельсой и центром.
+const RECORDING_SIDE_BLEED = 14
 // Сверху запас меньше: тень уходит вверх всего на ~8px (blur 28 / 2 − сдвиг 6),
 // а широкая полоса легла бы поверх кнопок шапки и перехватывала их клики.
 const RAIL_BLEED_TOP = 12
@@ -7850,8 +7852,13 @@ export default function TeacherCourseEditorPage() {
 
         {/* CENTER — без `layout`-анимации: ширину колонке даёт flex, лишняя
             layout-анимация только дралась бы с ним. */}
+        {/* В «Записи» колонка заходит в зазор до рельсы (gap 14) и возвращает
+            его отступом: overflow колонки режет тень плеера, а так ей есть
+            куда лечь слева. */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          marginBottom: selectedLesson && selectedLesson.kind !== 'test' && lessonMode === 'recording' ? -RECORDING_BLEED : 0 }}>
+          ...(selectedLesson && selectedLesson.kind !== 'test' && lessonMode === 'recording'
+            ? { marginBottom: -RECORDING_BLEED, marginLeft: -RECORDING_SIDE_BLEED, paddingLeft: RECORDING_SIDE_BLEED }
+            : {}) }}>
           {/* Ключ — только «карточка курса» или «урок», без id урока, и без
               AnimatePresence.
               Причина: под `mode="wait"` каждая смена ключа запускает цикл

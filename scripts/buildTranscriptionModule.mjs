@@ -23,13 +23,14 @@
 //   node scripts/buildTranscriptionModule.mjs          — собрать архив (нужна сеть при первом запуске)
 //   node scripts/buildTranscriptionModule.mjs --check  — сверить версию (офлайн, архив не трогает)
 import { createHash } from 'node:crypto'
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { deflateRawSync, inflateRawSync, crc32 } from 'node:zlib'
 
 const ROOT = new URL('..', import.meta.url).pathname
 const MODULE = join(ROOT, 'tools/local-transcription')
 const ZIP = join(ROOT, 'public/downloads/iskra-transcription-mac.zip')
+const UPDATE_MANIFEST = join(ROOT, 'public/downloads/transcription-mac-latest.json')
 const VERSION_TS = join(ROOT, 'src/lib/transcriptionModuleVersion.ts')
 const INSTALLER_VERSION_TS = join(ROOT, 'src/lib/transcriptionInstallerVersion.ts')
 const PRODUCT_VERSION_TS = join(ROOT, 'src/lib/transcriptionProductVersion.ts')
@@ -173,4 +174,15 @@ if (process.argv.includes('--check')) {
   mkdirSync(dirname(ZIP), { recursive: true })
   writeFileSync(ZIP, zip)
   console.log(`Transcription module ${version}: ${entries.length} files, ${(zip.length / 1048576).toFixed(1)} MB → public/downloads/iskra-transcription-mac.zip`)
+
+  // Адрес свежего приложения для автообновления на Mac. Приложение сверяет
+  // версию и подпись само; без подписанного DMG манифеста нет — обновления тоже.
+  const productVersion = /'([^']+)'/.exec(readFileSync(PRODUCT_VERSION_TS, 'utf8'))?.[1]
+  const dmg = `Iskra-Transcription-Mac-v${productVersion}.dmg`
+  if (productVersion && existsSync(join(dirname(ZIP), dmg))) {
+    writeFileSync(UPDATE_MANIFEST, JSON.stringify({ version: productVersion, url: `/downloads/${dmg}` }) + '\n')
+  } else {
+    rmSync(UPDATE_MANIFEST, { force: true })
+    console.warn(`Нет ${dmg}: манифест автообновления Mac не создан.`)
+  }
 }
