@@ -377,7 +377,9 @@
 }
 /* Подключённый модуль: плашка обновления и «Работа в фоне» встают по краям
    ряда кнопок («Управление модулем» … «Отключить»), без внутреннего отступа. */
-.transcription-module .transcription-setup[data-connected=true] { background: transparent; padding-inline: 0; }
+/* Снизу тоже без своего отступа: под последней кнопкой остаются только
+   18 px карточки — столько же, сколько слева. */
+.transcription-module .transcription-setup[data-connected=true] { background: transparent; padding-inline: 0; padding-bottom: 0; }
 .transcription-setup > .transcription-walkthrough,
 .transcription-setup > .transcription-module-management,
 .transcription-walkthrough-page { grid-area: 1 / 1; }
