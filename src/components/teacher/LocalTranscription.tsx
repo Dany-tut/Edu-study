@@ -47,7 +47,21 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
   // Модуль на Mac старше архива на сайте. Новый обновляется сам, в фоне;
   // скачивать архив руками нужно только старому, без POST /update.
-  const module = useModuleState(connected, connected ? localStorage.getItem(tokenKey(owner)) || '' : '')
+  const [refresh, setRefresh] = useState(0)
+  const module = useModuleState(connected, connected ? localStorage.getItem(tokenKey(owner)) || '' : '', refresh)
+  // Модуль спит (это норма после простоя) и версию приложения не назвал ни
+  // разу: не молчим, а предлагаем разбудить приложение и проверить.
+  const [wake, setWake] = useState<'idle' | 'waking' | 'missing'>('idle')
+  const offline = connected && !!module.checked && module.phase === 'unknown' && !module.app
+  async function wakeModule() {
+    setWake('waking')
+    try {
+      requestTranscriptionCompanionStart()
+      await waitForTranscriptionCompanion(45_000)
+      setWake('idle')
+      setRefresh(value => value + 1)
+    } catch { setWake('missing') }
+  }
   // Старое приложение (до автообновления) заменяют один раз вручную.
   const appUpdate = module.phase !== 'updating' && appNeedsManualUpdate(module.app)
   const manualUpdate = (module.phase === 'outdated' && !module.selfUpdate) || module.phase === 'failed' || appUpdate
@@ -115,6 +129,16 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
     <div className="transcription-module-body">
       <div className="transcription-module-state" inert={!connected} data-inactive={!connected}>
         <p>Фоновый модуль запускается по запросу из Искры. Терминал открывать не нужно; код модуля обновляется автоматически.</p>
+        {offline && <div className="transcription-update transcription-module-notice" role="status">
+          <p>{wake === 'missing'
+            ? `«Искра · Расшифровка» не ответила. Если её нет в «Программах», скачайте v${TRANSCRIPTION_PRODUCT_VERSION} и перенесите туда.`
+            : 'Модуль сейчас не запущен — версию приложения не проверить.'}</p>
+          {wake === 'missing'
+            ? <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>Скачать v{TRANSCRIPTION_PRODUCT_VERSION}</a>
+            : <button type="button" className="integration-action" disabled={wake === 'waking'} onClick={() => void wakeModule()}>
+              {wake === 'waking' ? 'Проверяем…' : 'Проверить'}
+            </button>}
+        </div>}
         <div className="transcription-connected-actions">
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
