@@ -273,6 +273,8 @@ def process_video(source, duration, region, engine, report=lambda *_: None, stag
         return ppm_bytes(out.stdout)
 
     # 1. Keyframes, at most one per STEP (all-intra video stays cheap).
+    # The phase is shown at once: the first frame also loads Vision's model.
+    stage('Ищем смену слайдов', 0, duration, 'seconds')
     keys = []
     before = time.monotonic()
     command = [*decode, '-v', 'info', '-skip_frame', 'nokey', '-i', str(source), '-an', '-sn', '-fps_mode', 'passthrough',
@@ -285,6 +287,8 @@ def process_video(source, duration, region, engine, report=lambda *_: None, stag
                 keys.append((at, cache.signature(image)))
                 titles[at] = cache.read(image, at)
                 stage('Ищем смену слайдов', min(at, duration), duration, 'seconds')
+    except frame_ocr.VisionFailed:
+        raise  # the reader itself failed: not a reason to re-read the whole video
     except (ValueError, TimeoutError, subprocess.SubprocessError):
         keys = []
     timing['keyframeSeconds'] = time.monotonic()-before

@@ -104,20 +104,43 @@ while IFS= read -r magic; do IFS= read -r size; IFS= read -r depth
   echo '[{{"text":"Митоз","x":0,"y":0.1,"width":0.5,"height":0.3}}]'
 done
 '''); helper.chmod(0o755)
-            with frame_ocr.VisionStream(str(helper), timeout=2, first_timeout=1) as engine:
+            with frame_ocr.VisionStream(str(helper), timeout=2, first_timeout=1, single_timeout=1) as engine:
                 rows = engine(np.zeros((4, 6, 3), dtype=np.uint8))
                 self.assertEqual(engine.restarts, 1)
                 self.assertEqual(rows[0]['text'], 'Митоз')
                 self.assertEqual(engine(np.zeros((4, 6, 3), dtype=np.uint8))[0]['text'], 'Митоз')
 
-    def test_helper_that_never_answers_fails_the_job(self):
+    def test_stream_stalls_switch_to_frame_by_frame_then_fail_cleanly(self):
         import numpy as np
         with tempfile.TemporaryDirectory() as directory:
             helper = Path(directory)/'helper'
-            helper.write_text('#!/bin/sh\nsleep 30\n'); helper.chmod(0o755)
-            with frame_ocr.VisionStream(str(helper), timeout=1, first_timeout=1, attempts=2) as engine:
-                with self.assertRaisesRegex(ValueError, 'не отвечает'):
-                    engine(np.zeros((4, 6, 3), dtype=np.uint8))
+            # --stream never answers; --lines answers once, then hangs.
+            marker = Path(directory)/'lines-once'
+            helper.write_text(f'''#!/bin/sh
+if [ "$1" = "--lines" ] && [ ! -f "{marker}" ]; then touch "{marker}"; cat >/dev/null
+  echo '[{{"text":"Мейоз","x":0,"y":0.1,"width":0.5,"height":0.3}}]'; exit 0; fi
+sleep 30
+'''); helper.chmod(0o755)
+            frame = np.zeros((4, 6, 3), dtype=np.uint8)
+            with frame_ocr.VisionStream(str(helper), timeout=1, first_timeout=1, single_timeout=1) as engine:
+                self.assertEqual(engine(frame)[0]['text'], 'Мейоз')  # after two stream stalls
+                self.assertTrue(engine.single)
+                self.assertEqual(engine(frame), [])                    # one per-frame timeout is tolerated
+                with self.assertRaisesRegex(frame_ocr.VisionFailed, 'не отвечает'):
+                    engine(frame)
+
+    def test_large_frame_is_written_whole(self):
+        import numpy as np
+        with tempfile.TemporaryDirectory() as directory:
+            helper = Path(directory)/'helper'
+            # Reads exactly one 1800×400 frame (header 16 bytes + body), slowly, then answers.
+            size = 16 + 1800*400*3
+            helper.write_text(f'''#!/bin/sh
+sleep 1; head -c {size} >/dev/null; echo '[{{"text":"Ок","x":0,"y":0,"width":1,"height":0.2}}]'; sleep 5
+'''); helper.chmod(0o755)
+            with frame_ocr.VisionStream(str(helper), timeout=10, first_timeout=10) as engine:
+                self.assertEqual(engine(np.zeros((400, 1800, 3), dtype=np.uint8))[0]['text'], 'Ок')
+                self.assertEqual(engine.restarts, 0)
 
 
 @unittest.skipUnless(os.environ.get('ISKRA_TEST_FRAME_TEXT') and os.environ.get('ISKRA_TEST_FFMPEG'),

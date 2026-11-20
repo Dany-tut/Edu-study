@@ -54,38 +54,58 @@ class Stalled(Exception):
     pass
 
 
+class VisionFailed(ValueError):
+    """Vision did not answer even frame by frame: the job ends with this text."""
+
+
+def write_all(stream, data, deadline):
+    """Whole frame into the pipe. A raw pipe write may take only part of a
+    large buffer (seen with 1.7 MB frames); a hung helper must not block us."""
+    fd = stream.fileno()
+    view = memoryview(data)
+    while view:
+        left = deadline - time.monotonic()
+        if left <= 0 or not select.select([], [fd], [], left)[1]: raise Stalled()
+        try: written = os.write(fd, view[:1 << 16])
+        except (BrokenPipeError, OSError) as error: raise Stalled() from error
+        view = view[written:]
+
+
 class VisionStream:
-    """One helper process for the whole job: frames in as PPM, a JSON line out.
+    """Frames in as PPM, rows out. One helper process for the whole job.
 
-    Vision occasionally stalls inside TextRecognition (an internal semaphore
-    that never fires, seen a few times in hundreds of runs). A stalled or dead
-    helper is killed and restarted, and the frame is read again; only repeated
-    failures of the same frame end the job.
+    Vision occasionally stalls inside TextRecognition. A stalled helper is
+    killed and restarted; after STREAM_STALLS stalls the job continues with a
+    separate helper process per frame (`--lines`), which has not stalled in
+    our runs. Only when that also fails twice in a row does the job end.
     """
+    STREAM_STALLS = 2
 
-    def __init__(self, path_to_helper, timeout=15, first_timeout=45, attempts=3):
-        self.path, self.timeout, self.first_timeout, self.attempts = path_to_helper, timeout, first_timeout, attempts
+    def __init__(self, path_to_helper, timeout=15, first_timeout=45, single_timeout=30):
+        self.path, self.timeout, self.first_timeout, self.single_timeout = path_to_helper, timeout, first_timeout, single_timeout
         self.restarts = 0
+        self.single = False
+        self.single_failures = 0
         self.process = None
         self.start()
 
     def start(self):
         self.process = subprocess.Popen([self.path, '--stream'], stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0)
+        os.set_blocking(self.process.stdin.fileno(), False)
         self.pending = b''
         # The first frame loads Vision's text model; under load (speech running
         # in parallel) that alone can take a while.
         self.first = True
 
-    def once(self, image):
+    @staticmethod
+    def ppm(image):
         height, width = image.shape[:2]
-        try:
-            self.process.stdin.write(b'P6\n%d %d\n255\n' % (width, height))
-            self.process.stdin.write(image.tobytes())
-            self.process.stdin.flush()
-        except (BrokenPipeError, OSError) as error:
-            raise Stalled() from error
+        return b'P6\n%d %d\n255\n' % (width, height) + image.tobytes()
+
+    def once(self, image):
         deadline = time.monotonic() + (self.first_timeout if self.first else self.timeout)
+        write_all(self.process.stdin, self.ppm(image), deadline)
         while b'\n' not in self.pending:
             left = deadline - time.monotonic()
             if left <= 0 or not select.select([self.process.stdout], [], [], left)[0]: raise Stalled()
@@ -97,16 +117,33 @@ class VisionStream:
         try: return lines_from(json.loads(line))
         except ValueError: return []
 
+    def one_shot(self, image):
+        try:
+            out = subprocess.run([self.path, '--lines'], input=self.ppm(image), capture_output=True,
+                                 timeout=self.single_timeout)
+        except (OSError, subprocess.SubprocessError):
+            out = None
+        if out is None or out.returncode:
+            self.single_failures += 1
+            if self.single_failures >= 2:
+                raise VisionFailed('Распознавание слайдов не отвечает. Перезапустите Mac и повторите задание.')
+            return []
+        self.single_failures = 0
+        try: return lines_from(json.loads(out.stdout or b'[]'))
+        except ValueError: return []
+
     def __call__(self, image):
         """`image` — RGB uint8 array (h, w, 3)."""
-        for attempt in range(self.attempts):
+        while not self.single:
             try: return self.once(image)
             except Stalled:
                 self.kill()
-                if attempt+1 == self.attempts: break
                 self.restarts += 1
+                if self.restarts >= self.STREAM_STALLS:
+                    self.single = True
+                    break
                 self.start()
-        raise ValueError('Распознавание слайдов не отвечает. Перезапустите Mac и повторите задание.')
+        return self.one_shot(image)
 
     def kill(self):
         if self.process is None: return
