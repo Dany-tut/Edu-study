@@ -264,7 +264,6 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
             <div className="tqw-pop-head">
               <AudioLines size={16} />
               <strong>{t('Расшифровка')}</strong>
-              <span className="tqw-pop-counts">{nRun} {t('идёт')}{nQueue > 0 ? ` · ${nQueue} ${t('в очереди')}` : ''}</span>
             </div>
             <ScrollFade maxHeight="min(52vh, 360px)" fadeHeight={12}>
             <div className="tqw-pop-list">
@@ -279,16 +278,18 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
                     <button type="button" className="tqw-job-open" disabled={!job.lessonId}
                       aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
                       onClick={() => openLesson(job)}>
-                      <span className="tqw-job-ic" data-run>
-                        {job.cancelling ? <Loader2 size={15} className="tqw-spin" /> : <AudioLines size={15} />}
-                      </span>
                       <div className="tqw-job-body">
                         <div className="tqw-job-title">{title}</div>
                         {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
-                        {meta && <div className="tqw-job-meta">{meta}</div>}
+                        {(meta || p !== undefined) && (
+                          <div className="tqw-job-meta">
+                            {job.cancelling && <Loader2 size={11} className="tqw-spin" />}
+                            <span className="tqw-job-stage">{meta}</span>
+                            {p !== undefined && <span className="tqw-job-pct">{p}%</span>}
+                          </div>
+                        )}
                         <div className="tqw-prog"><i style={{ width: (p ?? 30) + '%' }} data-indeterminate={p === undefined} /></div>
                       </div>
-                      <span className="tqw-job-tail">{p !== undefined ? `${p}%` : ''}</span>
                     </button>
                     <button type="button" className="tqw-x" aria-label={t('Остановить расшифровку')} disabled={job.cancelling}
                       onClick={() => onCancel(job.id)}><X size={14} /></button>
@@ -306,7 +307,6 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
                     <button type="button" className="tqw-job-open" disabled={!job.lessonId}
                       aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
                       onClick={() => openLesson(job)}>
-                      <span className="tqw-job-ic">{job.position ?? '·'}</span>
                       <div className="tqw-job-body">
                         <div className="tqw-job-title">{title}</div>
                         {job.courseTitle && job.lessonTitle && <FadeText className="tqw-course">{job.courseTitle}</FadeText>}
@@ -320,7 +320,7 @@ export function TranscriptionQueuePill({ data, onCancel }: { data: QueueData; on
               })}
             </div>
             </ScrollFade>
-            <p className="tqw-foot">{t('Пока хватает памяти, записи обрабатываются параллельно; иначе ждут очереди.')}</p>
+            {nQueue > 0 && <p className="tqw-foot">{t('Пока хватает памяти, записи обрабатываются параллельно; иначе ждут очереди.')}</p>}
           </div>
         </div>,
         document.body,
