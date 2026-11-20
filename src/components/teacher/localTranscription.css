@@ -291,10 +291,15 @@
 @container (max-width: 500px) {
   .transcription-connected-actions > .integration-action:first-child { flex: 1 1 100%; width: 100%; }
 }
-.transcription-update { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; background: var(--color-yellow-soft); }
-.transcription-update p { flex: 1; min-width: 0; color: var(--color-text); }
-.transcription-update .integration-action { flex: none; width: auto; }
-@media (max-width: 600px) { .transcription-update { flex-direction: column; align-items: stretch; } }
+/* Кнопка — в одинаковых 8 px от верха, низа и правого края; скругление
+   плашки = скругление кнопки (12) + отступ (8). Текст — в 16 px от края. */
+.transcription-update { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 20px; background: var(--color-yellow-soft); }
+.transcription-update p { flex: 1; min-width: 0; max-width: none; margin: 0; padding: 4px 0 4px 8px; color: var(--color-text); }
+.transcription-update .integration-action { flex: none; align-self: stretch; width: auto; padding-inline: 16px; }
+@media (max-width: 600px) {
+  .transcription-update { flex-direction: column; align-items: stretch; gap: 8px; }
+  .transcription-update p { padding: 8px 8px 0; }
+}
 
 .transcription-walkthrough { display: grid; gap: 14px; }
 .transcription-setup .transcription-walkthrough-steps {

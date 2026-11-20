@@ -26,17 +26,23 @@ node "$ROOT/scripts/buildTranscriptionModule.mjs"
 rm -rf "$BUILD"
 mkdir -p "$APP_CONTENTS/MacOS" "$APP_CONTENTS/Resources" "$APP_CONTENTS/Library/LaunchAgents"
 # Системная иконка собирается из брендового PNG без сторонних зависимостей.
+# На крупных размерах — плашка с версией (scripts/transcriptionIconBadge.swift):
+# иконка внутри приложения и после автообновления показывает его версию.
+# 16 и 32 px — без плашки, там её не прочитать.
 ICONSET="$BUILD/iskra.iconset"
 mkdir -p "$ICONSET"
+BADGED="$BUILD/icon-badged.png"
+swift "$ROOT/scripts/transcriptionIconBadge.swift" "$ROOT/public/icon-512.png" "$PRODUCT_VERSION" "$BADGED"
 for SIZE in 16 32 128 256 512; do
-  sips -z "$SIZE" "$SIZE" "$ROOT/public/icon-512.png" --out "$ICONSET/icon_${SIZE}x${SIZE}.png" >/dev/null
-  if [[ "$SIZE" != 512 ]]; then
-    DOUBLE=$((SIZE * 2))
-    sips -z "$DOUBLE" "$DOUBLE" "$ROOT/public/icon-512.png" --out "$ICONSET/icon_${SIZE}x${SIZE}@2x.png" >/dev/null
-  fi
+  for SCALE in 1 2; do
+    SUFFIX=""; [[ "$SCALE" == 2 ]] && SUFFIX="@2x"
+    PIXELS=$((SIZE * SCALE))
+    SRC="$BADGED"; (( PIXELS <= 64 )) && SRC="$ROOT/public/icon-512.png"
+    sips -z "$PIXELS" "$PIXELS" "$SRC" --out "$ICONSET/icon_${SIZE}x${SIZE}${SUFFIX}.png" >/dev/null
+  done
 done
 iconutil -c icns "$ICONSET" -o "$APP_CONTENTS/Resources/iskra.icns"
-rm -rf "$ICONSET"
+rm -rf "$ICONSET" "$BADGED"
 export MACOSX_DEPLOYMENT_TARGET=13.0
 swiftc -O -framework AppKit -framework CoreServices -framework ServiceManagement \
   -o "$APP_CONTENTS/MacOS/IskraTranscription" "$ROOT/tools/transcription-macos/IskraTranscription.swift"
@@ -56,8 +62,10 @@ cat > "$APP_CONTENTS/Info.plist" <<PLIST
 <plist version="1.0"><dict>
   <key>CFBundleExecutable</key><string>IskraTranscription</string>
   <key>CFBundleIdentifier</key><string>ru.iskra.transcription</string>
-  <key>CFBundleName</key><string>Искра — Расшифровка</string>
-  <key>CFBundleDisplayName</key><string>Искра — Расшифровка</string>
+  <key>CFBundleName</key><string>Искра — расшифровка</string>
+  <key>CFBundleDisplayName</key><string>Искра — расшифровка</string>
+  <key>LSHasLocalizedDisplayName</key><true/>
+  <key>CFBundleDevelopmentRegion</key><string>ru</string>
   <key>CFBundleIconFile</key><string>iskra.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$PRODUCT_VERSION</string>
@@ -73,6 +81,15 @@ cat > "$APP_CONTENTS/Info.plist" <<PLIST
   </dict></array>
 </dict></plist>
 PLIST
+
+# Имя в Finder, лаунчере и меню — «Искра · Расшифровка». Файл остаётся
+# «Искра — расшифровка.app»: по этому пути приложение ставит себя, его находят
+# автообновление и фоновый агент; переименование дало бы вторую копию у учителей.
+# macOS показывает локализованное имя, когда имя файла совпадает с CFBundleDisplayName.
+for LPROJ in ru en Base; do
+  mkdir -p "$APP_CONTENTS/Resources/$LPROJ.lproj"
+  printf '"CFBundleDisplayName" = "Искра · Расшифровка";\n"CFBundleName" = "Искра · Расшифровка";\n' > "$APP_CONTENTS/Resources/$LPROJ.lproj/InfoPlist.strings"
+done
 
 ditto -x -k "$ROOT/public/downloads/iskra-transcription-mac.zip" "$APP_CONTENTS/Resources"
 mv "$APP_CONTENTS/Resources/Iskra" "$APP_CONTENTS/Resources/TranscriptionModule"

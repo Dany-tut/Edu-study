@@ -19,7 +19,7 @@ export type ModuleFreshness = 'current' | 'outdated' | 'unknown'
 export const MODULE_DOWNLOAD_URL = `/downloads/Iskra-Transcription-Mac-v${TRANSCRIPTION_PRODUCT_VERSION}.dmg`
 
 /** Что модуль на этом Mac сказал о себе. selfUpdate — умеет POST /update.
- * app — версия приложения «Искра — расшифровка» вокруг модуля (если модуль её знает). */
+ * app — версия приложения «Искра · Расшифровка» вокруг модуля (если модуль её знает). */
 export type ModuleInfo = { freshness: ModuleFreshness; local?: string; selfUpdate: boolean; app?: string }
 
 // С этой версии приложение для Mac обновляется само. Более старое нужно один
@@ -141,7 +141,7 @@ export function useModuleUpdateNotice() {
         add({
           type: 'module_update',
           title: t('Вышла новая версия приложения расшифровки'),
-          body: t('Скачайте «Искра — расшифровка» {version} в профиле → «Интеграции» и откройте её. Дальше приложение будет обновляться само.').replace('{version}', TRANSCRIPTION_PRODUCT_VERSION),
+          body: t('Скачайте «Искра · Расшифровка» {version} в профиле → «Интеграции» и откройте её. Дальше приложение будет обновляться само.').replace('{version}', TRANSCRIPTION_PRODUCT_VERSION),
           action: { label: t('Открыть'), page: '#/teacher/profile', tab: 'integrations' },
           link: { page: 'teacher/profile' },
         })

@@ -6152,7 +6152,7 @@ export const EN: Record<string, string> = {
   "Вышла новая версия модуля расшифровки": "A new version of the transcription module is out",
   "Скачайте приложение в профиле → «Интеграции» и откройте его.": "Download the app in Profile → “Integrations” and open it.",
   "Вышла новая версия приложения расшифровки": "A new version of the transcription app is out",
-  "Скачайте «Искра — расшифровка» {version} в профиле → «Интеграции» и откройте её. Дальше приложение будет обновляться само.": "Download “Iskra Transcription” {version} in Profile → “Integrations” and open it. After that the app updates itself.",
+  "Скачайте «Искра · Расшифровка» {version} в профиле → «Интеграции» и откройте её. Дальше приложение будет обновляться само.": "Download “Iskra Transcription” {version} in Profile → “Integrations” and open it. After that the app updates itself.",
   // Сортировка обратной связи (Заявки → Темы / Сводка недели)
   "Без типа": "No type",
   "Все экраны": "All screens",
