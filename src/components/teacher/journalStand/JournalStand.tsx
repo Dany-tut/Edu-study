@@ -26,7 +26,7 @@ import { useNow } from '../../../lib/useNow'
 import { performanceDiagnostics, performanceStage } from '../../../lib/platformPerformance'
 import TestlyMark from '../../TestlyMark'
 import TeacherSelect from '../TeacherSelect'
-import { ArrowLeft, BookOpen, CalendarCheck, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
+import { ArrowLeft, BookOpen, CalendarCheck, Check, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, Play, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
 import { useScrollEdges } from './useScrollEdges'
 import { matrixRuns } from './matrixRuns'
 import { columnSpacers } from './columnWindow'
@@ -176,13 +176,47 @@ export function ScopePicker({
     </div>
   )
 }
-function Attendance({ work }: { work: StudentWork }) {
-  if (!work.slot.lesson) return <span>—</span>
+const HW_DONE = ['Зачтено', 'Сдано без балла', 'На проверке']
+const HW_DEBT = ['Просрочено', 'Ниже порога', 'На доработке']
+/** Значок ДЗ в углу клетки посещаемости: ✓ сдано, ! долг; иначе ничего. */
+function homeworkMark(work: StudentWork): 'done' | 'debt' | null {
+  return HW_DONE.includes(work.status) ? 'done' : HW_DEBT.includes(work.status) ? 'debt' : null
+}
+/** Подпись клетки посещаемости словами: для aria-label и подсказки. */
+function attendanceWords(work: StudentWork): string[] {
+  if (!work.slot.lesson) return []
+  const recording = work.attendanceReason === 'Запись урока'
+  const words = recording
+    ? [work.watched ? 'Запись урока просмотрена' : 'Запись урока не просмотрена']
+    : [work.present === null ? 'Нет отметки' : work.present ? 'Был' : 'Пропуск',
+      ...(work.grade != null ? ['Оценка ' + work.grade] : []),
+      ...(work.present && work.watched ? ['Пересматривал запись'] : [])]
+  const hw = homeworkMark(work)
+  if (hw) words.push('ДЗ: ' + work.status.toLowerCase())
+  return words
+}
+/** Цветная клетка посещаемости: заливка по оценке, «Н» — пропуск, штриховка — запись урока. */
+function Attendance({ work, unavailable }: { work: StudentWork; unavailable: boolean }) {
+  if (!work.slot.lesson) return <small>—</small>
+  const recording = work.attendanceReason === 'Запись урока'
+  if (unavailable && !recording && work.present == null && work.grade == null && !work.watched)
+    return <small>{work.attendanceReason}</small>
+  const hw = homeworkMark(work)
+  const grade = work.present && work.grade != null ? Math.max(2, Math.min(5, Math.round(work.grade))) : null
+  const tone = recording ? (work.watched ? 'recording' : 'recording-idle')
+    : work.present === false ? 'absent'
+    : work.present ? (grade != null ? 'grade-' + grade : 'present')
+    : 'empty'
   return (
-    <span>
-      {work.present === true ? 'Был' : work.present === false ? 'Пропуск' : 'Нет отметки'}
-      {work.grade != null ? ` · ${work.grade}` : ''}
-      {work.watched ? ' · запись изучена' : ''}
+    <span className="js-mark" data-tone={tone} aria-hidden>
+      {recording ? <Play size={13} />
+        : work.present === false ? 'Н'
+        : work.present ? (work.grade ?? 'Был')
+        : null}
+      {(hw || (work.present && work.watched)) && <span className="js-mark-badges">
+        {hw && <span data-badge={hw}>{hw === 'done' ? <Check size={11} /> : '!'}</span>}
+        {work.present && work.watched && <span data-badge="replay"><Play size={9} /></span>}
+      </span>}
     </span>
   )
 }
@@ -674,20 +708,21 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                   const w = byStudent.get(student.id)?.get(col.ref)
                   const unavailable = !withWork && !!onOpenAttendance && !w?.attendanceCell
                   const active = selected.student === student.id && detail === col.ref
+                  const label = !w ? '' : [student.name, col.title,
+                    ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
+                    ...(selected.tab !== 'Работы' ? attendanceWords(w) : []),
+                    ...(unavailable && w.attendanceReason && w.attendanceReason !== 'Запись урока' ? [w.attendanceReason] : []),
+                  ].join(' · ')
                   return <td key={col.ref} aria-colindex={(columnPositions.get(col.ref) ?? 0) + 2} colSpan={span} className={!w ? 'js-unassigned-run' : undefined} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
                     <button type="button" disabled={unavailable} data-selected-work={active || undefined} aria-pressed={active}
-                      className="js-cell" aria-label={[student.name, col.title,
-                        ...(withWork ? [w.source, w.status === 'На проверке' && onOpenWork ? 'Проверить' : w.score === null ? w.status : w.score + '% · ' + w.status] : []),
-                        ...(selected.tab !== 'Работы' && w.slot.lesson ? [w.present === null ? 'Нет отметки' : w.present ? 'Был' : 'Пропуск', ...(w.grade != null ? ['Оценка ' + w.grade] : []), ...(w.watched ? ['Запись изучена'] : [])] : []),
-                        ...(unavailable && w.attendanceReason ? [w.attendanceReason] : []),
-                      ].join(' · ')}
+                      className="js-cell" aria-label={label} title={withWork ? undefined : label.split(' · ').slice(1).join(' · ')}
                       onClick={() => {
                         set({ student: student.id, workRef: col.ref })
                         if (withWork) onOpenWork?.(student.id, col.ref)
                         else if (w.attendanceCell) onOpenAttendance?.([w.attendanceCell])
                       }}>
                       {withWork && (w.status === 'На проверке' && onOpenWork ? <span className="jh-pending-action">Проверить</span> : <Badge work={w} />)}
-                      {selected.tab !== 'Работы' && <small>{(!unavailable || w.present != null || w.grade != null || w.watched) && <Attendance work={w}/>} {unavailable && w.attendanceReason}</small>}
+                      {selected.tab !== 'Работы' && <Attendance work={w} unavailable={unavailable} />}
                       {withWork && !source && <Source value={w.source}/>}
                     </button>
                   ) : <span className="js-stat-value" title="Не назначено">—</span>}</td>
