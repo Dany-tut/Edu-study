@@ -39,7 +39,7 @@ const setupHints = [
   ['Скачайте Искру для Mac', 'Нажмите фиолетовую кнопку выше. Когда загрузка закончится, откройте DMG-файл из списка загрузок браузера.', ''],
   ['Откройте загрузки', 'Когда загрузка закончится, нажмите значок загрузок в верхней панели браузера. Если значка нет, откройте «Загрузки» в Finder.', 'Открылись загрузки'],
   ['Перенесите Искру в «Программы»', 'Откройте скачанный DMG-файл. В появившемся окне перетащите значок Искры на папку Applications («Программы») рядом. Дождитесь окончания копирования.', 'Искра перенесена'],
-  ['Запустите «Искра — расшифровка»', 'Откройте Finder → «Программы» и запустите «Искра — расшифровка». Если macOS попросит разрешение на работу в фоне, включите службу через настройки в окне приложения.', 'Приложение открыто'],
+  ['Запустите «Искра · Расшифровка»', 'Откройте Finder → «Программы» и запустите «Искра · Расшифровка». Если macOS попросит разрешение на работу в фоне, включите службу через настройки в окне приложения.', 'Приложение открыто'],
   ['Подключите компьютер', 'Вернитесь в эту вкладку и нажмите «Подключить компьютер». Если браузер попросит доступ к локальной сети, разрешите его.', ''],
 ] as const
 
@@ -181,7 +181,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
                 </div>}
                 {index === 3 && <div className="transcription-guide-example">
                   <span><FolderOpen size={16} aria-hidden /> Finder · Загрузки</span>
-                  <strong>Искра — расшифровка</strong>
+                  <strong>Искра · Расшифровка</strong>
                 </div>}
                 <div className="transcription-walkthrough-actions">
                   {index > 0 && <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(index - 1)}>Назад</button>}
@@ -206,7 +206,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
                 <span><Settings size={16} aria-hidden /> Системные настройки</span>
                 <span>Основные / Объекты входа и расширения</span>
                 <span>Разрешить в фоновом режиме</span>
-                <strong>Искра — расшифровка <ToggleRight size={20} aria-hidden /> <span className="sr-only">Включено</span></strong>
+                <strong>Искра · Расшифровка <ToggleRight size={20} aria-hidden /> <span className="sr-only">Включено</span></strong>
               </div>
               <div className="transcription-walkthrough-actions">
                 <button type="button" className="integration-action" onClick={() => setShowPermission(false)}>Назад</button>
@@ -220,7 +220,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <p>{module.phase === 'failed'
             ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
             : appUpdate
-              ? `Вышла версия ${TRANSCRIPTION_PRODUCT_VERSION} приложения «Искра — расшифровка», у вас ${module.app}. Установите её один раз — дальше приложение будет обновляться само.`
+              ? `Вышла версия ${TRANSCRIPTION_PRODUCT_VERSION} приложения «Искра · Расшифровка», у вас ${module.app}. Установите её один раз — дальше приложение будет обновляться само.`
               : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
             <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
@@ -232,7 +232,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <p>{module.local
             ? `${module.app ? `Приложение ${module.app} · ` : ''}модуль ${module.local.slice(0, 7)}${module.selfUpdate && !manualUpdate ? ' · обновляется сам' : ''}`
             : 'Версия модуля пока недоступна.'}</p>
-          <p>Откройте «Искра — расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
+          <p>Откройте «Искра · Расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
           <p>Разрешение находится в разделе «Системные настройки / Основные / Объекты входа и расширения / Разрешить в фоновом режиме».</p>
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
             <span>Скачать для переустановки<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
