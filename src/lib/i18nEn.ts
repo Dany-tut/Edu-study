@@ -6150,7 +6150,9 @@ export const EN: Record<string, string> = {
   "Сначала подтвердите вход кодом из приложения": "First confirm sign-in with a code from the app",
   "Двухфакторная защита уже отключена": "Two-factor protection is already off",
   "Вышла новая версия модуля расшифровки": "A new version of the transcription module is out",
-  "Скачайте обновление в профиле → «Интеграции» и перезапустите start.command.": "Download the update in Profile → “Integrations” and restart start.command.",
+  "Скачайте приложение в профиле → «Интеграции» и откройте его.": "Download the app in Profile → “Integrations” and open it.",
+  "Вышла новая версия приложения расшифровки": "A new version of the transcription app is out",
+  "Скачайте «Искра · Расшифровка» {version} в профиле → «Интеграции» и откройте её. Дальше приложение будет обновляться само.": "Download “Iskra Transcription” {version} in Profile → “Integrations” and open it. After that the app updates itself.",
   // Сортировка обратной связи (Заявки → Темы / Сводка недели)
   "Без типа": "No type",
   "Все экраны": "All screens",

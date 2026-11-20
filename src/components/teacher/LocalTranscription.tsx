@@ -8,7 +8,7 @@ import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
 import { hasChapterVariant, prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
 import type { LessonTimecode } from '../../data/lessonContent'
-import { MODULE_DOWNLOAD_URL, useModuleState, readModule, updateModule, olderAppVersion } from '../../lib/transcriptionModuleUpdate'
+import { MODULE_DOWNLOAD_URL, appNeedsManualUpdate, useModuleState, readModule, updateModule } from '../../lib/transcriptionModuleUpdate'
 import { TranscriptionEta } from '../../lib/transcriptionEta'
 import { TRANSCRIPTION_PRODUCT_VERSION } from '../../lib/transcriptionProductVersion'
 import { fetchTermsPack, termsForModule } from '../../lib/transcriptTerms'
@@ -43,19 +43,14 @@ const setupHints = [
   ['Подключите компьютер', 'Вернитесь в эту вкладку и нажмите «Подключить компьютер». Если браузер попросит доступ к локальной сети, разрешите его.', ''],
 ] as const
 
-// Последняя версия приложения, которая не сообщала свою версию модулю.
-const LAST_SILENT_APP_VERSION = '1.0.10'
-
 export function TranscriptionModuleCard({ owner, onConnected }: { owner: string; onConnected?: () => void }) {
   const [connected, setConnected] = useState(() => !!localStorage.getItem(tokenKey(owner)))
   // Модуль на Mac старше архива на сайте. Новый обновляется сам, в фоне;
   // скачивать архив руками нужно только старому, без POST /update.
   const module = useModuleState(connected, connected ? localStorage.getItem(tokenKey(owner)) || '' : '')
-  const manualUpdate = (module.phase === 'outdated' && !module.selfUpdate) || module.phase === 'failed'
-  // Вышло новое Mac-приложение. Версию сообщают приложения с v1.0.11; если
-  // модуль на связи, а версии нет — у учителя v1.0.10 или старше.
-  const appOutdated = connected && !!module.local
-    && olderAppVersion(module.app || LAST_SILENT_APP_VERSION, TRANSCRIPTION_PRODUCT_VERSION)
+  // Старое приложение (до автообновления) заменяют один раз вручную.
+  const appUpdate = module.phase !== 'updating' && appNeedsManualUpdate(module.app)
+  const manualUpdate = (module.phase === 'outdated' && !module.selfUpdate) || module.phase === 'failed' || appUpdate
   const downloadKey = 'iskra.transcription.downloadStarted.' + owner
   const stepKey = 'iskra.transcription.setupStep.' + owner
   const [setupStep, setSetupStep] = useState(() => {
@@ -113,19 +108,13 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         <p>Текст записи и таймкоды глав · Mac с Apple Silicon</p>
       </div>
       <span className="transcription-module-status" data-connected={connected}
-        data-tone={module.phase === 'updating' ? 'progress' : manualUpdate || appOutdated ? 'update' : undefined}>
-        {module.phase === 'updating' ? 'Обновляем…' : manualUpdate ? 'Нужно обновить' : appOutdated ? `Вышла v${TRANSCRIPTION_PRODUCT_VERSION}` : connected ? 'Подключён' : 'Не подключён'}
+        data-tone={module.phase === 'updating' ? 'progress' : manualUpdate ? 'update' : undefined}>
+        {module.phase === 'updating' ? 'Обновляем…' : manualUpdate ? 'Нужно обновить' : connected ? 'Подключён' : 'Не подключён'}
       </span>
     </header>
     <div className="transcription-module-body">
       <div className="transcription-module-state" inert={!connected} data-inactive={!connected}>
         <p>Фоновый модуль запускается по запросу из Искры. Терминал открывать не нужно; код модуля обновляется автоматически.</p>
-        {appOutdated && !manualUpdate && <div className="transcription-update transcription-app-update" role="status">
-          <p>{module.app
-            ? `Вышла новая версия приложения — v${TRANSCRIPTION_PRODUCT_VERSION}, у вас v${module.app}. Оно обновится само, или скачайте сейчас.`
-            : `Вышла новая версия приложения — v${TRANSCRIPTION_PRODUCT_VERSION}. Скачайте её и перенесите в «Программы».`}</p>
-          <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>Скачать v{TRANSCRIPTION_PRODUCT_VERSION}</a>
-        </div>}
         <div className="transcription-connected-actions">
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
@@ -230,7 +219,9 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           data-inactive={!connected || !manualUpdate || showSetup}>
           <p>{module.phase === 'failed'
             ? 'Не удалось обновить файлы модуля автоматически. Скачайте приложение Искры заново и откройте его.'
-            : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
+            : appUpdate
+              ? `Вышла версия ${TRANSCRIPTION_PRODUCT_VERSION} приложения «Искра · Расшифровка», у вас ${module.app}. Установите её один раз — дальше приложение будет обновляться само.`
+              : 'Обновите приложение Искры один раз. Дальнейшие обновления модуля придут автоматически.'}</p>
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>
             <span>Скачать тестовую версию<br />v{TRANSCRIPTION_PRODUCT_VERSION}</span>
           </a>
@@ -238,7 +229,9 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
         <div className="transcription-launch-guide transcription-module-management" inert={!connected || !showSetup}
           data-inactive={!connected || !showSetup}>
           <h4>Работа в фоне</h4>
-          <p>{module.local ? `Версия ${module.local.slice(0, 7)}${module.selfUpdate && !manualUpdate ? ' · обновляется сама' : ''}` : 'Версия модуля пока недоступна.'}</p>
+          <p>{module.local
+            ? `${module.app ? `Приложение ${module.app} · ` : ''}модуль ${module.local.slice(0, 7)}${module.selfUpdate && !manualUpdate ? ' · обновляется сам' : ''}`
+            : 'Версия модуля пока недоступна.'}</p>
           <p>Откройте «Искра · Расшифровка», чтобы посмотреть статус или остановить обработчик. Он не запускается при входе в Mac и завершает работу после периода простоя.</p>
           <p>Разрешение находится в разделе «Системные настройки / Основные / Объекты входа и расширения / Разрешить в фоновом режиме».</p>
           <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>

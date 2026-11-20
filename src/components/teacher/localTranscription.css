@@ -453,5 +453,3 @@
   --segmented-track-radius: 11px;
   --segmented-item-radius: 7px;
 }
-/* «Вышла новая версия приложения» — видно сразу, без «Управления модулем». */
-.transcription-app-update { margin-top: 12px; }

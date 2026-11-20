@@ -276,8 +276,6 @@ private func runService() -> Never {
         setenv("ISKRA_FFMPEG", resource.appendingPathComponent("ffmpeg").path, 1)
         setenv("ISKRA_FRAME_TEXT", Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/IskraFrameText").path, 1)
         setenv("ISKRA_PACKAGED_MODULE", "1", 1)
-        // The site compares it with the latest release and says so plainly.
-        setenv("ISKRA_APP_VERSION", Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "", 1)
         guard dup2(log.fileDescriptor, STDOUT_FILENO) >= 0,
               dup2(log.fileDescriptor, STDERR_FILENO) >= 0 else {
             throw Companion.failure("Не удалось открыть журнал обработчика.")

@@ -1,6 +1,7 @@
 """Loopback-only Iskra processing companion. It never receives any Supabase credential."""
 import json
 import os
+import plistlib
 from pathlib import Path
 import secrets
 import shutil
@@ -159,9 +160,18 @@ def version():
     # Без токена: версия не секрет, а подсказать «обновите модуль» нужно и
     # до подключения компьютера.
     # update — модуль умеет обновляться сам (POST /update).
-    # app — версия Mac-приложения (с v1.0.11): сайт пишет «вышла новая» без догадок.
-    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True, queue=True,
-                   app=os.environ.get('ISKRA_APP_VERSION') or None)
+    # app — версия приложения «Искра — расшифровка», в котором лежит модуль:
+    # по ней сайт предлагает поставить новое приложение. Самообновление кода
+    # доносит этот ответ и до старых приложений, которые сами не обновляются.
+    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True, queue=True, app=app_version())
+
+def app_version():
+    ffmpeg=os.environ.get('ISKRA_FFMPEG')
+    if os.environ.get('ISKRA_PACKAGED_MODULE')!='1' or not ffmpeg: return None
+    try:
+        with open(Path(ffmpeg).parents[2]/'Info.plist','rb') as f: value=plistlib.load(f).get('CFBundleShortVersionString')
+    except (OSError, ValueError, plistlib.InvalidFileException): return None
+    return value if isinstance(value,str) and re.fullmatch(r'\d+(\.\d+){0,3}',value) else None
 
 UPDATE_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
 # Исполняемые файлы архива не переносятся при самообновлении: подписанный ffmpeg
