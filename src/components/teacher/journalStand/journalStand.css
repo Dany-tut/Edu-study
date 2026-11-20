@@ -235,6 +235,23 @@
 .js-cell > small { overflow-wrap: anywhere; }
 .js-cell .cj-badge, .js-pill .cj-badge { border-radius: 7px; padding: 3px 7px; }
 .js-cell:disabled { cursor: default; }
+/* Посещаемость: цветная клетка — заливка по оценке, «Н» пропуск, штриховка запись урока; значки ДЗ в углу. */
+.js-cell:has(> .js-mark) { justify-items: stretch; padding: 4px 6px; }
+.js-mark { --mark-bg: var(--color-bg-3); --mark-fg: var(--color-text-3); position: relative; display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 10px; background: var(--mark-bg); color: var(--mark-fg); font-size: 15px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.js-mark[data-tone='grade-5'], .js-mark[data-tone='present'] { --mark-bg: var(--color-green-soft); --mark-fg: var(--color-green-text); }
+.js-mark[data-tone='grade-4'] { --mark-bg: var(--color-teal-pill-bg); --mark-fg: var(--color-teal-pill-text); }
+.js-mark[data-tone='grade-3'] { --mark-bg: var(--color-yellow-soft); --mark-fg: var(--color-yellow-text); }
+.js-mark[data-tone='grade-2'] { --mark-bg: var(--color-red-soft); --mark-fg: var(--color-red-text); }
+.js-mark[data-tone='present'] { font-size: 12px; }
+.js-mark[data-tone='absent'] { --mark-bg: transparent; --mark-fg: var(--color-red-text); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-red-text) 55%, transparent); font-size: 13px; }
+.js-mark:is([data-tone='recording'], [data-tone='recording-idle']) { --mark-fg: var(--color-blue-pill-text); background: repeating-linear-gradient(135deg, var(--color-blue-pill-bg) 0 6px, transparent 6px 10px); }
+.js-mark[data-tone='recording-idle'] { --mark-fg: var(--color-text-3); background: repeating-linear-gradient(135deg, var(--color-bg-3) 0 6px, transparent 6px 10px); }
+.js-mark-badges { position: absolute; top: -4px; right: -5px; display: flex; gap: 2px; }
+.js-mark-badges > span { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 999px; color: #fff; font-size: 10px; font-weight: 800; box-shadow: 0 0 0 2px var(--color-bg-card); }
+.js-mark-badges > [data-badge='done'] { background: var(--grad-purple); }
+.js-mark-badges > [data-badge='debt'] { background: #F08A24; }
+.js-mark-badges > [data-badge='replay'] { background: #3B8FE0; }
+.js-cell[aria-pressed='true'] .js-mark-badges > span { box-shadow: 0 0 0 2px var(--color-purple-soft); }
 .js-name:hover, .js-cell:enabled:hover { background: var(--color-bg-3); }
 .js-name[aria-pressed='true'], .js-cell[aria-pressed='true'] { background: var(--color-purple-soft); }
 .js-cell[aria-pressed='true'] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 48%, transparent); }
