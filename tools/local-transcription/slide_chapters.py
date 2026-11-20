@@ -13,7 +13,8 @@ from functools import lru_cache
 
 from media_tools import FFMPEG, duration as media_duration
 from progress import record
-from slide_frames import TitleCache, frames
+from slide_frames import TitleCache, frames, ppm_bytes
+import frame_ocr
 
 REGIONS = {
     'top-left': (0, 0, .65, .24), 'top-right': (.35, 0, .65, .24),
@@ -25,7 +26,8 @@ STEP = 2
 
 
 def ensure_runtime(folder):
-    """Install OCR separately: never change the running speech environment.
+    """Fallback only (app without the Vision helper, ≤ 1.0.8): install RapidOCR
+    separately; never change the running speech environment.
 
     Runs inside the supervised job group, including pip/model downloads, so
     cancellation terminates setup too. Incomplete setup is retried next time.
@@ -59,9 +61,10 @@ def ocr_engine():
     })
 
 
-def recognize(engine, image):
-    result = engine(image)
-    if result.boxes is None or not result.txts: return ''
+def rapid_rows(engine, image):
+    """RapidOCR rows from an RGB frame (RapidOCR expects BGR arrays)."""
+    result = engine(image[..., ::-1].copy())
+    if result.boxes is None or not result.txts: return []
     height, width = result.img.shape[:2]
     lines = []
     for box, text, score in zip(result.boxes, result.txts, result.scores):
@@ -80,7 +83,7 @@ def recognize(engine, image):
         row.sort(key=lambda line: line['x'])
         merged.append(dict(text=' '.join(line['text'] for line in row), x=min(line['x'] for line in row),
                            y=min(line['y'] for line in row), height=max(line['height'] for line in row)))
-    return heading(merged)
+    return merged
 
 
 def normalize(text):
@@ -95,15 +98,68 @@ def same(a, b):
 
 
 def suspicious(text):
-    """Prefer a legible heading over toolbar fragments; never discard a sole
-    candidate, which remains available for human review with its original OCR."""
+    """Prefer a legible heading over toolbar fragments (ranking only)."""
     if re.search(r'[·…]|\.{2,}', text): return True
     words = re.findall(r'[^\W\d_]+', text, re.UNICODE)
     if any(re.search('[а-яё]', w, re.I) and re.search('[a-z]', w, re.I) for w in words): return True
     if len(words) > 1 and all(re.fullmatch('[a-z]{1,2}|[IVX]+', w) for w in words): return True
-    exceptions = {'ДНК', 'РНК', 'ЦНС', 'ПНС', 'ЖКТ', 'DNA', 'RNA', 'ATP', 'PH', 'NA'}
-    prose = [w for w in words if w.upper() not in exceptions and not re.fullmatch('[IVXLCDM]+', w)]
+    prose = [w for w in words if w.upper() not in ABBREVIATIONS and not re.fullmatch('[IVXLCDM]+', w)]
     return bool(prose) and not any(re.search('[аеёиоуыэюяaeiouy]', w, re.I) for w in prose)
+
+
+ABBREVIATIONS = {'ДНК', 'РНК', 'ЦНС', 'ПНС', 'ЖКТ', 'АТФ', 'DNA', 'RNA', 'ATP', 'PH', 'NA'}
+# Screen recordings put the presentation app around the slide: menu tabs,
+# Copilot/Zoom buttons, «2 of 31». Compared lowercase, word by word.
+# STRONG — words of the app itself, never a slide heading on their own.
+UI_STRONG = set("""
+file home insert draw design transitions animations review help share copilot
+notes arrange extensions add-ons addons designer mute unmute participants toolbar undo redo sorter
+файл главная вставка рисование конструктор переходы слайд-шоу рецензирование справка заметки
+примечания демонстрацию поделиться расположить дополнения правка
+""".split())
+# WEAK — also ordinary words («Reading», «Запись реакции»); count only in bulk.
+UI_WEAK = set("""
+ask present presenting slide slides show view comments record recording format tools zoom chat reactions stop screen
+sharing video audio leave meeting fit search outline normal reading english united states russian
+new tab window edit options more layout theme background
+слайд слайды показ вид демонстрация экрана комментарии запись формат инструменты начать
+остановить чат участники звук
+""".split())
+COUNTER = re.compile(r'\b(?:slide|page|слайд|стр|страница)?\.?\s*\d+\s*(?:of|из|/)\s*\d+\b', re.I)
+
+
+def ui_chrome(text):
+    """Toolbar, tab strip or «N of M» counter of the recording app, not the slide."""
+    if COUNTER.search(text): return True
+    words = [w.casefold() for w in re.findall(r'[^\W\d_][\w-]*', text, re.UNICODE)]
+    if not words: return False
+    strong = sum(w in UI_STRONG for w in words)
+    ui = strong + sum(w in UI_WEAK for w in words)
+    return (strong and ui >= len(words)*.5) or (ui >= 3 and ui >= len(words)*.75)
+
+
+def real_word(word):
+    """A word a person would write on a slide, not an OCR shard."""
+    if word.upper() in ABBREVIATIONS: return True
+    if re.fullmatch('[А-ЯЁ]{2,5}', word): return True  # АТФ, ЕГЭ-style abbreviations
+    if re.search('[а-яё]', word, re.I) and re.search('[a-z]', word, re.I): return False
+    # Case flips inside a word («KneTorue», «eAMHMua») are Cyrillic read as Latin.
+    if re.search('[a-zа-яё][A-ZА-ЯЁ]', word) and not re.fullmatch('[a-z][A-Z][a-z]+', word): return False
+    vowel = re.search('[аеёиоуыэюяaeiouy]', word, re.I)
+    if re.search('[а-яё]', word, re.I): return bool(vowel) and len(word) >= 2
+    return bool(vowel) and len(word) >= 3
+
+
+ELEMENTS = set("""H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge
+As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho
+Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No
+Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og pH""".split())
+
+
+def has_real_words(text):
+    words = re.findall(r'[^\W\d_]+', text, re.UNICODE)
+    if len(words) == 1 and words[0] in ELEMENTS: return True  # Na, pH — chemistry slides
+    return any(real_word(w) and w.casefold() not in UI_STRONG for w in words)
 
 
 def meaningful(text):
@@ -112,17 +168,22 @@ def meaningful(text):
     if re.match(r'^\d+[.)]\s', text): return False  # bullet-point body text
     if re.search(r'\b(егэ|огэ)\b', text, re.I) and len(text.split()) <= 5: return False
     if re.search(r'https?://|www\.|@|©|copyright', text, re.I): return False
+    if re.match(r'[/\\|_~^<>]', text): return False  # frame-edge OCR shard («/Uy …»)
+    if ui_chrome(text) or not has_real_words(text): return False
     return True
 
 
 def heading(lines):
     candidates = [line for line in lines if isinstance(line, dict) and meaningful(str(line.get('text', '')))]
     if not candidates: return ''
-    # Large text near the beginning of the selected title band wins. Body lists,
-    # page numbers and course footers are excluded before ranking.
+    # Large text in the selected title band wins: size first, nearness to the
+    # top second. Body lists, page numbers, footers and app chrome are already out.
     readable = [line for line in candidates if not suspicious(line['text'])]
-    if readable: candidates = readable
-    best = max(candidates, key=lambda line: float(line.get('height', 0)) / (.12 + max(0, float(line.get('y', 0)))))
+    if not readable: return ''
+    candidates = readable
+    tallest = max(float(line.get('height', 0)) for line in candidates)
+    if tallest > 0: candidates = [line for line in candidates if float(line.get('height', 0)) >= tallest*.6]
+    best = max(candidates, key=lambda line: float(line.get('height', 0)) / (1 + max(0, float(line.get('y', 0)))))
     text = best['text'].strip()
     continuation = [line for line in candidates if line is not best
         and abs(float(line.get('x', 0))-float(best.get('x', 0))) < .08
@@ -161,13 +222,14 @@ def scan(read, duration, report=lambda *_: None):
 
 
 def process_video(source, duration, region, engine, report=lambda *_: None):
+    """`engine(rgb_image) -> rows` with text and geometry (Vision or RapidOCR)."""
     x, y, w, h = REGIONS[region]
     crop = f'crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale=min(1800\\,iw*2):-2'
     started = time.monotonic()
     timing = {'readFrameSeconds': 0.0, 'ocrSeconds': 0.0}
     def timed_recognize(image):
         before = time.monotonic()
-        result = recognize(engine, image)
+        result = heading(engine(image))
         timing['ocrSeconds'] += time.monotonic()-before
         return result
     cache = TitleCache(timed_recognize)
@@ -192,14 +254,11 @@ def process_video(source, duration, region, engine, report=lambda *_: None):
             else:
                 # Keep pre-seek frames for fps to choose the frame displayed at
                 # this time. Accurate seek would jump to a future frame in VFR.
-                import cv2
-                import numpy as np
                 out = subprocess.run([FFMPEG, '-nostdin', '-v', 'error', '-threads', '2',
                     '-filter_threads', '1', *SAFE, '-ss', str(at), '-noaccurate_seek', '-i', str(source),
-                    '-frames:v', '1', '-vf', f'fps=2:start_time=0:round=up:eof_action=pass,{crop}', '-f', 'image2pipe', '-c:v', 'png', '-'],
+                    '-frames:v', '1', '-vf', f'fps=2:start_time=0:round=up:eof_action=pass,{crop}', '-f', 'image2pipe', '-c:v', 'ppm', '-'],
                     capture_output=True, timeout=30, check=True)
-                image = cv2.imdecode(np.frombuffer(out.stdout, dtype=np.uint8), cv2.IMREAD_COLOR)
-                if image is None: raise ValueError('Не удалось прочитать кадр видео.')
+                image = ppm_bytes(out.stdout)
             timing['readFrameSeconds'] += time.monotonic()-before
             return cache.read(image, at)
         result = scan(read, duration, report)
@@ -210,20 +269,26 @@ def process_video(source, duration, region, engine, report=lambda *_: None):
 def main(source, folder, region):
     folder, source = Path(folder), Path(source)
     if region not in REGIONS: raise ValueError('Выберите расположение заголовка на слайде.')
-    try:
-        ensure_runtime(folder)
-    except (OSError, subprocess.SubprocessError) as error:
-        raise ValueError('Не удалось подготовить распознавание слайдов. Проверьте интернет и свободное место на Mac, затем повторите.') from error
-    record(folder, 'Читаем слайды', 0, 0, 'frames', 'Загружаем распознавание слайдов')
-    try:
-        engine = ocr_engine()
-    except Exception as error:
-        raise ValueError('Не удалось подготовить распознавание слайдов. Проверьте интернет и свободное место на Mac, затем повторите.') from error
     duration = media_duration(source, SAFE)
     if duration <= 0: raise ValueError('Не удалось определить длительность видео.')
-    chapters, metrics = process_video(source, duration, region, engine,
-        lambda done, total: record(folder, 'Читаем слайды', done, total, 'frames', 'Ищем заголовки слайдов'))
-    print(f'Slide OCR metrics: {metrics}', flush=True)
+    progress = lambda done, total: record(folder, 'Читаем слайды', done, total, 'frames', 'Ищем заголовки слайдов')
+    vision = frame_ocr.helper()
+    if vision:
+        # Apple Vision from the .app: Cyrillic + Latin, nothing to install.
+        with frame_ocr.VisionStream(vision) as engine:
+            chapters, metrics = process_video(source, duration, region, engine, progress)
+    else:
+        try:
+            ensure_runtime(folder)
+        except (OSError, subprocess.SubprocessError) as error:
+            raise ValueError('Не удалось подготовить распознавание слайдов. Проверьте интернет и свободное место на Mac, затем повторите.') from error
+        record(folder, 'Читаем слайды', 0, 0, 'frames', 'Загружаем распознавание слайдов')
+        try:
+            rapid = ocr_engine()
+        except Exception as error:
+            raise ValueError('Не удалось подготовить распознавание слайдов. Проверьте интернет и свободное место на Mac, затем повторите.') from error
+        chapters, metrics = process_video(source, duration, region, lambda image: rapid_rows(rapid, image), progress)
+    print(f"Slide OCR metrics ({'vision' if vision else 'rapidocr'}): {metrics}", flush=True)
     if not chapters:
         raise ValueError('Заголовки не найдены. Выберите другую область слайда и повторите. Текущие главы не изменены.')
     (folder/'chapters.json').write_text(json.dumps(chapters, ensure_ascii=False))

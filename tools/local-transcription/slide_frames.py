@@ -1,4 +1,8 @@
-"""Bounded sequential frame extraction and conservative OCR reuse."""
+"""Bounded sequential frame extraction and conservative OCR reuse.
+
+numpy only: the Vision path runs in the speech runtime, which has no OpenCV.
+Frames are RGB uint8 arrays (h, w, 3).
+"""
 import os
 import select
 import subprocess
@@ -40,8 +44,35 @@ def ppm(stream):
     body = exact(stream, w*h*3)
     if len(body) != w*h*3: raise ValueError('Неполный кадр видео.')
     import numpy as np
-    import cv2
-    return cv2.cvtColor(np.frombuffer(body, dtype=np.uint8).reshape(h,w,3), cv2.COLOR_RGB2BGR)
+    return np.frombuffer(body, dtype=np.uint8).reshape(h,w,3)
+
+
+def ppm_bytes(data):
+    """A single PPM frame already in memory (seek probes)."""
+    import tempfile
+    # ppm() reads a real descriptor with a deadline; a regular file is always ready.
+    with tempfile.TemporaryFile() as handle:
+        handle.write(data); handle.flush(); handle.seek(0)
+        image = ppm(handle)
+    if image is None: raise ValueError('Не удалось прочитать кадр видео.')
+    return image
+
+
+def area_resize(gray, width, height):
+    """Box-average resize (like cv2.INTER_AREA when shrinking)."""
+    import numpy as np
+    def axis(size, count):
+        edges = np.linspace(0, size, count+1)
+        lo = np.minimum(np.floor(edges[:-1]).astype(int), size-1)
+        hi = np.maximum(lo+1, np.ceil(edges[1:]).astype(int))
+        return lo, hi
+    rows = gray.astype(np.float32)
+    lo, hi = axis(rows.shape[0], height)
+    cumulative = np.vstack([np.zeros((1, rows.shape[1]), np.float32), np.cumsum(rows, axis=0)])
+    rows = (cumulative[hi]-cumulative[lo]) / (hi-lo)[:, None]
+    lo, hi = axis(rows.shape[1], width)
+    cumulative = np.hstack([np.zeros((rows.shape[0], 1), np.float32), np.cumsum(rows, axis=1)])
+    return (cumulative[:, hi]-cumulative[:, lo]) / (hi-lo)[None, :]
 
 
 @contextmanager
@@ -78,9 +109,15 @@ class TitleCache:
 
     @staticmethod
     def signature(image):
-        import cv2
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        return cv2.GaussianBlur(cv2.resize(gray, (512,128), interpolation=cv2.INTER_AREA), (3,3), 0)
+        import numpy as np
+        rgb = image.astype(np.float32)
+        gray = rgb[..., 0]*.299 + rgb[..., 1]*.587 + rgb[..., 2]*.114
+        small = area_resize(gray, 512, 128)
+        # 3×3 Gaussian (1-2-1), edges replicated.
+        padded = np.pad(small, 1, mode='edge')
+        small = (padded[:-2]+2*padded[1:-1]+padded[2:]) / 4
+        small = (small[:, :-2]+2*small[:, 1:-1]+small[:, 2:]) / 4
+        return np.clip(np.rint(small), 0, 255).astype(np.uint8)
 
     @staticmethod
     def unchanged(a, b):
