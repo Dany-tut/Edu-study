@@ -6598,7 +6598,7 @@ export default function TeacherCourseEditorPage() {
     // причиной, а не тишина: без catch карточка «Не сохранено» не появлялась вовсе.
     return syncAccessToSupabase(c).catch((e: unknown) => {
       console.error('[syncAccessToSupabase] save threw', e)
-      saveIssue.current = `${t('Сохранение прервалось')}: ${courseSaveCause(e instanceof Error ? { message: e.message } : null)}`
+      saveIssue.current = courseSaveReason('exception', e instanceof Error ? { message: e.message } : { message: String(e) }, c.dbCourseId ?? c.id)
       return false
     }).then(ok => {
       clearCourseDraftAfterSync(seq, ok)
@@ -6958,12 +6958,12 @@ export default function TeacherCourseEditorPage() {
     if (courseErr) console.error('[syncAccessToSupabase] course upsert failed', courseErr)
     const courseDbId = courseUpsert?.id
     let writeStamp: string | null = (courseUpsert as { updated_at?: string } | null)?.updated_at ?? null
-    if (!courseDbId) { saveIssue.current = courseSaveReason('course', courseErr); return false }
+    if (!courseDbId) { saveIssue.current = courseSaveReason('course', courseErr, shortId); return false }
     async function finishSave() {
       // Publication becomes visible only after lessons, access and schedule succeed.
       if (c.status !== latestCourse.current.status) {
         const { data, error } = await supabase.from('courses').update({ status: c.status }).eq('id', courseDbId!).select('updated_at').single()
-        if (error) { saveIssue.current = courseSaveReason('status', error); return await writeFailed() }
+        if (error) { saveIssue.current = courseSaveReason('status', error, shortId); return await writeFailed() }
         writeStamp = data?.updated_at ?? writeStamp
       }
       baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
@@ -6976,7 +6976,7 @@ export default function TeacherCourseEditorPage() {
       attempted: Array<CourseSlot & { id?: string }> = [],
     ) {
       const slot = readGroupScheduleConflict(error)
-      if (!slot) { saveIssue.current = courseSaveReason('schedule', error); return writeFailed() }
+      if (!slot) { saveIssue.current = courseSaveReason('schedule', error, shortId); return writeFailed() }
 
       const candidates = attempted.filter(row => row.group_id === slot.groupId
         && row.date === slot.date && row.time_start === slot.time)
@@ -6996,7 +6996,7 @@ export default function TeacherCourseEditorPage() {
       const group = groups.find(group => group.id === slot.groupId)?.name
       const location = [group, `${day}, ${slot.time.slice(0, 5)} ${t('МСК')}`].filter(Boolean).join(' · ')
       const detail = [location, ...titles].join(' · ')
-      saveIssue.current = `${courseSaveStageText('schedule')}. ${t('Совпало время начала занятий.')}\n${detail}\n${t('Измените время одного из занятий и повторите сохранение.')}`
+      saveIssue.current = `${courseSaveStageText('schedule')} ${t('Совпало время начала занятий.')}\n${detail}\n${t('Измените время одного из занятий и повторите сохранение.')}`
       return writeFailed()
     }
 
@@ -7160,7 +7160,7 @@ export default function TeacherCourseEditorPage() {
         // курс. Возвращаем неудачу, чтобы вызывающий показал ошибку и не гасил
         // черновик из sessionStorage: он единственная копия этой работы.
         console.error('[syncAccessToSupabase] lessons upsert failed', lessonsErr)
-        saveIssue.current = courseSaveReason('lessons', lessonsErr)
+        saveIssue.current = courseSaveReason('lessons', lessonsErr, shortId)
         return await writeFailed()
       }
       for (const r of (lessonResult ?? []) as Array<{ updated_at: string }>) {
@@ -7192,7 +7192,7 @@ export default function TeacherCourseEditorPage() {
     const { error: deleteError } = await delQuery
     if (deleteError) {
       console.error('[syncAccessToSupabase] lessons delete failed', deleteError)
-      saveIssue.current = courseSaveReason('lessonsDelete', deleteError)
+      saveIssue.current = courseSaveReason('lessonsDelete', deleteError, shortId)
       return await writeFailed()
     }
 
@@ -7203,7 +7203,7 @@ export default function TeacherCourseEditorPage() {
     })
     if (accessError || !access) {
       console.error('[syncAccessToSupabase] course access save failed', accessError)
-      saveIssue.current = courseSaveReason('access', accessError)
+      saveIssue.current = courseSaveReason('access', accessError, shortId)
       return await writeFailed()
     }
     if (access.updated_at > (writeStamp ?? '')) writeStamp = access.updated_at
@@ -7266,7 +7266,7 @@ export default function TeacherCourseEditorPage() {
       .select('id, lessons(id, lesson_number, title)')
       .eq('short_id', shortId)
       .single()
-    if (!courseRow) { saveIssue.current = courseSaveReason('schedule', courseRowErr); return await writeFailed() }
+    if (!courseRow) { saveIssue.current = courseSaveReason('schedule', courseRowErr, shortId); return await writeFailed() }
 
     const dbLessons = (courseRow.lessons ?? []) as Array<{ id: string; lesson_number: number; title: string }>
 
@@ -7331,7 +7331,7 @@ export default function TeacherCourseEditorPage() {
     if (plan.removeBeforeWrite.length) {
       const { data: journal, error: journalError } = await supabase.from('teacher_lesson_sessions')
         .select('schedule_id').in('schedule_id', plan.removeBeforeWrite)
-      if (journalError) { console.error('schedule_lessons journal lookup failed:', journalError); saveIssue.current = courseSaveReason('schedule', journalError); return writeFailed() }
+      if (journalError) { console.error('schedule_lessons journal lookup failed:', journalError); saveIssue.current = courseSaveReason('schedule', journalError, shortId); return writeFailed() }
       const withJournal = new Set((journal ?? []).map(row => row.schedule_id))
       const obsolete = plan.removeBeforeWrite.filter(id => !withJournal.has(id))
       if (obsolete.length > 0) {
