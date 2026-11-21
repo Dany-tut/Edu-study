@@ -6,8 +6,10 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import threading
 import time
 import unicodedata
+from contextlib import contextmanager
 from difflib import SequenceMatcher
 from functools import lru_cache
 
@@ -350,6 +352,23 @@ def process_video(source, duration, region, engine, report=lambda *_: None, stag
                         elapsedSeconds=time.monotonic()-started, **timing)
 
 
+@contextmanager
+def ticking(folder, phase, every=2.0):
+    """Phase with elapsed seconds while a blocking step runs (no known total):
+    the page sees the job alive instead of a frozen 0%."""
+    done = threading.Event()
+    started = time.monotonic()
+    def tick():
+        while True:
+            record(folder, 'Читаем слайды', round(time.monotonic()-started), 0, 'seconds', phase)
+            if done.wait(every): return
+    thread = threading.Thread(target=tick, daemon=True)
+    thread.start()
+    try: yield
+    finally:
+        done.set(); thread.join()
+
+
 def main(source, folder, region):
     folder, source = Path(folder), Path(source)
     if region not in REGIONS: raise ValueError('Выберите расположение заголовка на слайде.')
@@ -362,6 +381,8 @@ def main(source, folder, region):
     if vision:
         # Apple Vision from the .app: Cyrillic + Latin, nothing to install.
         with frame_ocr.VisionStream(vision) as engine:
+            with ticking(folder, 'Загружаем распознавание слайдов'):
+                engine.warm()
             chapters, metrics = process_video(source, duration, region, engine, progress, stage)
             metrics['visionRestarts'] = engine.restarts
     else:

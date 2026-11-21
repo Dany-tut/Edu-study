@@ -50,3 +50,13 @@ class CapacityControllerTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PickNextTests(unittest.TestCase):
+    def test_second_slides_job_waits_others_pass_it(self):
+        from capacity import pick_next
+        slides = {'s1', 's2'}.__contains__
+        self.assertEqual(pick_next(['s2', 't1'], {'s1'}, slides), 't1')
+        self.assertIsNone(pick_next(['s2'], {'s1'}, slides))
+        self.assertEqual(pick_next(['s2', 't1'], {'t0'}, slides), 's2')
+        self.assertEqual(pick_next(['t1', 's2'], set(), slides), 't1')

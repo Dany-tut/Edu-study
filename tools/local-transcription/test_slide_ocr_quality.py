@@ -126,21 +126,72 @@ sleep 30
                 self.assertEqual(engine(frame)[0]['text'], 'Мейоз')  # after two stream stalls
                 self.assertTrue(engine.single)
                 self.assertEqual(engine(frame), [])                    # one per-frame timeout is tolerated
-                with self.assertRaisesRegex(frame_ocr.VisionFailed, 'не отвечает'):
+                with self.assertRaisesRegex(frame_ocr.VisionFailed, 'Повторите задание'):
                     engine(frame)
 
     def test_large_frame_is_written_whole(self):
         import numpy as np
         with tempfile.TemporaryDirectory() as directory:
             helper = Path(directory)/'helper'
-            # Reads exactly one 1800×400 frame (header 16 bytes + body), slowly, then answers.
-            size = 16 + 1800*400*3
-            helper.write_text(f'''#!/bin/sh
-sleep 1; head -c {size} >/dev/null; echo '[{{"text":"Ок","x":0,"y":0,"width":1,"height":0.2}}]'; sleep 5
+            # Reads each frame (warm-up, then 1800×400) only after a pause, then answers.
+            helper.write_text('''#!/bin/sh
+sleep 1
+while IFS= read -r magic; do IFS= read -r size; IFS= read -r depth
+  set -- $size; head -c $(( $1 * $2 * 3 )) >/dev/null
+  echo '[{"text":"Ок","x":0,"y":0,"width":1,"height":0.2}]'
+done
 '''); helper.chmod(0o755)
             with frame_ocr.VisionStream(str(helper), timeout=10, first_timeout=10) as engine:
                 self.assertEqual(engine(np.zeros((400, 1800, 3), dtype=np.uint8))[0]['text'], 'Ок')
                 self.assertEqual(engine.restarts, 0)
+
+
+class ColdStartTests(unittest.TestCase):
+    STREAM = """while IFS= read -r magic; do IFS= read -r size; IFS= read -r depth
+  set -- $size; head -c $(( $1 * $2 * 3 )) >/dev/null
+  echo '[{"text":"Митоз","x":0,"y":0.1,"width":0.5,"height":0.3}]'
+done
+"""
+
+    def test_slow_model_load_is_waited_for_not_taken_for_a_stall(self):
+        # Cold Vision on a teacher's Mac: 17.8 s before the first answer.
+        import numpy as np
+        with tempfile.TemporaryDirectory() as directory:
+            helper = Path(directory)/'helper'
+            helper.write_text('#!/bin/sh\nsleep 3\n' + self.STREAM); helper.chmod(0o755)
+            with frame_ocr.VisionStream(str(helper), timeout=1, first_timeout=8) as engine:
+                engine.warm()
+                self.assertEqual(engine.restarts, 0)
+                frame = np.zeros((4, 6, 3), dtype=np.uint8)
+                self.assertEqual(engine(frame)[0]['text'], 'Митоз')
+                self.assertEqual(engine(frame)[0]['text'], 'Митоз')
+                self.assertEqual(engine.restarts, 0)
+
+    def test_first_one_shot_gets_the_cold_start_deadline(self):
+        import numpy as np
+        with tempfile.TemporaryDirectory() as directory:
+            helper = Path(directory)/'helper'
+            # Stream never answers; each --lines process loads the model for 2 s.
+            helper.write_text("""#!/bin/sh
+if [ "$1" = "--lines" ]; then sleep 2; cat >/dev/null
+  echo '[{"text":"Мейоз","x":0,"y":0.1,"width":0.5,"height":0.3}]'; exit 0; fi
+sleep 30
+"""); helper.chmod(0o755)
+            with frame_ocr.VisionStream(str(helper), timeout=1, first_timeout=4, single_timeout=1) as engine:
+                engine.single = True
+                self.assertEqual(engine(np.zeros((4, 6, 3), dtype=np.uint8))[0]['text'], 'Мейоз')
+
+    def test_warm_up_phase_ticks_while_model_loads(self):
+        import slide_chapters
+        with tempfile.TemporaryDirectory() as folder:
+            seen = []
+            with slide_chapters.ticking(Path(folder), 'Загружаем распознавание слайдов', every=0.05):
+                for _ in range(20):
+                    import time; time.sleep(0.03)
+                    seen.append(json.loads((Path(folder)/'progress.json').read_text())['updatedAt'])
+            progress = json.loads((Path(folder)/'progress.json').read_text())
+            self.assertEqual(progress['phase'], 'Загружаем распознавание слайдов')
+            self.assertGreater(len(set(seen)), 2)
 
 
 @unittest.skipUnless(os.environ.get('ISKRA_TEST_FRAME_TEXT') and os.environ.get('ISKRA_TEST_FFMPEG'),

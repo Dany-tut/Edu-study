@@ -107,3 +107,18 @@ def can_start(running_count, available_gb, load, cfg):
     if load is not None and load > cfg.cpu_ceil:
         return False
     return True
+
+
+def pick_next(pending, running, exclusive):
+    """Первое задание из очереди, которое можно запустить рядом с идущими.
+
+    exclusive(jid) — задание из тех, что идут строго по одному (сейчас —
+    «По слайдам»: два Vision-прохода разом на одном Mac вешали хелпер при
+    загрузке модели). Такое задание ждёт, пока идёт другое такое же, а
+    задания за ним в очереди не ждут и запускаются как раньше.
+    """
+    busy = any(exclusive(jid) for jid in running)
+    for jid in pending:
+        if not (busy and exclusive(jid)):
+            return jid
+    return None

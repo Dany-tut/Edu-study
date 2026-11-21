@@ -302,6 +302,11 @@ def run_job(jid):
             queue_cv.notify_all()
 
 
+def slides_job(jid):
+    job = jobs.get(jid)
+    return bool(job) and job.get('mode') == 'slides'
+
+
 def dispatcher():
     """Пока в очереди есть задания и машина тянет — запускает следующее
     параллельно; иначе ждёт и перепроверяет ёмкость."""
@@ -313,8 +318,10 @@ def dispatcher():
         with queue_cv:
             if pending and not updating.is_set() and capacity.can_start(
                     len(running), avail, load, QUEUE_CONFIG):
-                started = pending.pop(0)
-                running.add(started)  # резервируем слот до старта потока
+                started = capacity.pick_next(pending, running, slides_job)
+                if started is not None:
+                    pending.remove(started)
+                    running.add(started)  # резервируем слот до старта потока
             if started is None:
                 queue_cv.wait(timeout=QUEUE_CONFIG.poll_sec)
         if started is not None:

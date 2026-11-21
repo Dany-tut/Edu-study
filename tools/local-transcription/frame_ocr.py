@@ -81,11 +81,17 @@ class VisionStream:
     """
     STREAM_STALLS = 2
 
-    def __init__(self, path_to_helper, timeout=15, first_timeout=45, single_timeout=30):
+    # Cold Vision start measured on a teacher's Mac: 17.8 s wall at 2.8 s CPU
+    # (the text model is loaded from disk); warm frames take 0.2 s. Under load
+    # (another job running) the load can take much longer, so the first
+    # answer of every helper process gets a generous deadline.
+    def __init__(self, path_to_helper, timeout=15, first_timeout=60, single_timeout=30):
         self.path, self.timeout, self.first_timeout, self.single_timeout = path_to_helper, timeout, first_timeout, single_timeout
         self.restarts = 0
+        self.warmed = False
         self.single = False
         self.single_failures = 0
+        self.single_ok = False
         self.process = None
         self.start()
 
@@ -103,9 +109,29 @@ class VisionStream:
         height, width = image.shape[:2]
         return b'P6\n%d %d\n255\n' % (width, height) + image.tobytes()
 
+    # Small grey frame with a dark bar: makes Vision load its text model
+    # before the first real frame, so a slow load is not taken for a stall.
+    WARM_FRAME = b'P6\n96 32\n255\n' + b''.join(
+        (b'\x20\x20\x20' if 8 <= y < 24 and 8 <= x < 88 else b'\xf0\xf0\xf0') for y in range(32) for x in range(96))
+
+    def warm(self):
+        """Load Vision's model once with a generous deadline. Never raises:
+        a failed warm-up only means the first real frame retries the load."""
+        if self.warmed or self.single: return
+        self.warmed = True
+        try: self.exchange(self.WARM_FRAME)
+        except Stalled:
+            self.kill()
+            self.restarts += 1
+            if self.restarts >= self.STREAM_STALLS: self.single = True
+            else: self.start()
+
     def once(self, image):
+        return lines_from(self.exchange(self.ppm(image)))
+
+    def exchange(self, frame):
         deadline = time.monotonic() + (self.first_timeout if self.first else self.timeout)
-        write_all(self.process.stdin, self.ppm(image), deadline)
+        write_all(self.process.stdin, frame, deadline)
         while b'\n' not in self.pending:
             left = deadline - time.monotonic()
             if left <= 0 or not select.select([self.process.stdout], [], [], left)[0]: raise Stalled()
@@ -114,26 +140,32 @@ class VisionStream:
             self.pending += part
         self.first = False
         line, self.pending = self.pending.split(b'\n', 1)
-        try: return lines_from(json.loads(line))
+        try: return json.loads(line)
         except ValueError: return []
 
     def one_shot(self, image):
+        # Every `--lines` process loads the model itself; the first one after
+        # a failure (or the first ever) may need the cold-start time.
+        timeout = self.first_timeout if self.single_failures or not self.single_ok else self.single_timeout
         try:
             out = subprocess.run([self.path, '--lines'], input=self.ppm(image), capture_output=True,
-                                 timeout=self.single_timeout)
+                                 timeout=timeout)
         except (OSError, subprocess.SubprocessError):
             out = None
         if out is None or out.returncode:
             self.single_failures += 1
             if self.single_failures >= 2:
-                raise VisionFailed('Распознавание слайдов не отвечает. Перезапустите Mac и повторите задание.')
+                raise VisionFailed('Распознавание слайдов не ответило вовремя. Повторите задание — '
+                                   'обычно со второго раза всё проходит.')
             return []
         self.single_failures = 0
+        self.single_ok = True
         try: return lines_from(json.loads(out.stdout or b'[]'))
         except ValueError: return []
 
     def __call__(self, image):
         """`image` — RGB uint8 array (h, w, 3)."""
+        self.warm()
         while not self.single:
             try: return self.once(image)
             except Stalled:
