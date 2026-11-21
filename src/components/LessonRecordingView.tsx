@@ -6,6 +6,9 @@ import { activeTimecodeIndex } from '../data/lessonContent'
 import { useScrollFades } from '../lib/useScrollFades'
 import { useT } from '../lib/i18n'
 import { emptyWatch, type VideoWatch } from '../lib/videoProgress'
+import { PLATFORM } from '../lib/platform'
+import { MOBILE_PILL_H, MOBILE_TOP_INSET } from '../lib/mobileTokens'
+import SoftEdge from './SoftEdge'
 
 type PlayerProps = ComponentProps<typeof LessonVideoPlayer>
 type RecordingProps = Pick<PlayerProps, 'source' | 'title' | 'badge' | 'durationLabel' | 'montage'> & {
@@ -35,10 +38,32 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
 }: RecordingProps) {
   const t = useT()
   const playing = videoDuration > 0
+  const mobileStickyVideo = timecodes.length > 0 && (PLATFORM === 'iphone' || PLATFORM === 'android')
+  const iosSoftEdges = PLATFORM === 'iphone' || PLATFORM === 'ipad'
   const activeChapter = activeTimecodeIndex(timecodes, videoTime)
   const chapterListRef = useRef<HTMLDivElement>(null)
   const chapterRowRefs = useRef<Record<number, HTMLButtonElement | null>>({})
-  useScrollFades(chapterListRef, timecodes.length > 0)
+  const [chapterEdges, setChapterEdges] = useState({ top: false, bottom: false })
+  useScrollFades(chapterListRef, timecodes.length > 0 && !iosSoftEdges)
+  useEffect(() => {
+    if (!iosSoftEdges) return
+    const list = chapterListRef.current
+    if (!list) return
+    const update = () => {
+      const top = list.scrollTop > 1
+      const bottom = list.scrollHeight - list.clientHeight - list.scrollTop > 1
+      setChapterEdges(previous => previous.top === top && previous.bottom === bottom ? previous : { top, bottom })
+    }
+    const observer = new ResizeObserver(update)
+    observer.observe(list)
+    if (list.firstElementChild) observer.observe(list.firstElementChild)
+    list.addEventListener('scroll', update, { passive: true })
+    update()
+    return () => {
+      observer.disconnect()
+      list.removeEventListener('scroll', update)
+    }
+  }, [iosSoftEdges, timecodes.length])
   // Подтянуть активную строку в видимую часть списка. Скроллим сам контейнер, а
   // не через scrollIntoView: тот тянет за собой и страницу целиком.
   useEffect(() => {
@@ -59,6 +84,7 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
       className={timecodes.length ? 'grid lg:grid-cols-[minmax(0,1fr)_320px] items-stretch' : 'grid'}
       style={{ gap: 16 }}
     >
+      <div className="flex flex-col lg:contents" style={{ gap: 10 }}>
       {/* Плеер: свой корпус поверх YouTube/RuTube/файла + учёт просмотра.
           Ширину колонки ограничиваем ровно там, где 16:9 упирается в
           потолок высоты (PLAYER_MAX_W) — иначе на широком мониторе видео
@@ -66,27 +92,41 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
           центру; с панелью она прижата к ней, чтобы зазор между видео и
           списком глав оставался тем же, что и всюду в сетке. */}
       <div
-        className="flex flex-col min-w-0"
+        className="contents min-w-0 lg:flex lg:flex-col"
         style={{ gap: 10, width: '100%', maxWidth: PLAYER_MAX_W, marginInline: timecodes.length ? 'auto 0' : 'auto' }}
       >
-        <LessonVideoPlayer
-          key={recordingKey}
-          ref={playerRef}
-          source={source}
-          title={title}
-          badge={badge}
-          durationLabel={durationLabel}
-          timecodes={timecodes}
-          initialWatch={watch}
-          onPersist={onPersist}
-          onTime={onTime}
-          montage={montage}
-        />
+        <div style={{
+          width: '100%',
+          maxWidth: PLAYER_MAX_W,
+          marginInline: timecodes.length ? 'auto 0' : 'auto',
+          position: mobileStickyVideo ? 'sticky' : 'relative',
+          top: mobileStickyVideo ? `calc(${MOBILE_TOP_INSET} + ${MOBILE_PILL_H}px + 8px)` : undefined,
+          zIndex: mobileStickyVideo ? 30 : undefined,
+        }}>
+          <LessonVideoPlayer
+            key={recordingKey}
+            ref={playerRef}
+            source={source}
+            title={title}
+            badge={badge}
+            durationLabel={durationLabel}
+            timecodes={timecodes}
+            initialWatch={watch}
+            onPersist={onPersist}
+            onTime={onTime}
+            montage={montage}
+          />
+        </div>
 
-        {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
-            попадает — считаются только отрезки, пройденные воспроизведением. */}
-        <LessonVideoProgress watch={watch} duration={videoDuration || watch.duration} />
-        {progressFooter}
+        <div className="flex flex-col" style={{
+          gap: 10, width: '100%', maxWidth: PLAYER_MAX_W,
+          marginInline: timecodes.length ? 'auto 0' : 'auto',
+        }}>
+          {/* Сколько записи реально отсмотрено. Перемотка в конец сюда не
+              попадает — считаются только отрезки, пройденные воспроизведением. */}
+          <LessonVideoProgress watch={watch} duration={videoDuration || watch.duration} />
+          {progressFooter}
+        </div>
       </div>
 
       {/* Timecodes panel.
@@ -127,9 +167,16 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
             </span>
           )}
         </div>
-        {/* overscroll contain: долистали таймкоды до конца — колесо не
-            уезжает дальше и не тянет за собой страницу. */}
-        <div ref={chapterListRef} className="flex flex-col flex-1" style={{ gap: 2, overflowY: 'auto', overscrollBehavior: 'contain', minHeight: 0, paddingRight: 10 }}>
+        {/* На телефоне прокручивается список глав; у нижнего края жест
+            передаётся странице, чтобы дальше открывались следующие блоки. */}
+        <div style={{ position: 'relative', display: 'flex', flex: '1 1 auto', minHeight: 0 }}>
+        <div ref={chapterListRef} className="flex flex-col flex-1" style={{
+          gap: 2, overflowY: 'auto',
+          overscrollBehavior: mobileStickyVideo ? 'auto' : 'contain',
+          WebkitOverflowScrolling: mobileStickyVideo ? 'touch' : undefined,
+          scrollBehavior: 'smooth',
+          minHeight: 0, paddingRight: 10,
+        }}>
           {timecodes.map((tc, i) => {
             const active = i === activeChapter
             // Глава кончается там, где начинается следующая; последняя — на
@@ -181,9 +228,17 @@ export default function LessonRecordingView({ recordingKey, source, title, badge
             )
           })}
         </div>
+        {iosSoftEdges && (
+          <>
+            <SoftEdge edge="top" size="22px" strength={chapterEdges.top ? 1 : 0} zIndex={3} />
+            <SoftEdge edge="bottom" size="22px" strength={chapterEdges.bottom ? 1 : 0} zIndex={3} />
+          </>
+        )}
+        </div>
       </div>
       </div>
       )}
+      </div>
     </div>
   )
 }
