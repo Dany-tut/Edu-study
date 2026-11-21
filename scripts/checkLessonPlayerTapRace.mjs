@@ -9,7 +9,9 @@ const output = process.env.PLAYER_TEST_OUTPUT || '/tmp/iskra-player-tap-race'
 await mkdir(output, { recursive: true })
 const browser = await chromium.launch({ channel: process.env.PLAYER_BROWSER_CHANNEL || 'msedge', headless: true })
 try {
-  for (const viewport of [{ width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
+  const viewports = [{ width: 1440, height: 900 }, { width: 844, height: 390 }, { width: 390, height: 844 }, { width: 320, height: 568 }]
+  const selectedWidth = Number(process.env.PLAYER_TEST_VIEWPORT)
+  for (const viewport of (selectedWidth ? viewports.filter(item => item.width === selectedWidth) : viewports)) {
     const page = await browser.newPage({ viewport })
     page.setDefaultTimeout(5000)
     page.setDefaultNavigationTimeout(60000)
@@ -61,13 +63,19 @@ try {
         await page.mouse.move(r.x + r.width / 2, r.y + r.height / 2)
         // Real users move to hidden controls first; Playwright locator.click
         // otherwise waits for hit testing before moving the pointer to wake them.
-        await page.waitForTimeout(20)
-        const next = await locator.boundingBox()
-        const hit = await locator.evaluate(element => {
-          const r = element.getBoundingClientRect()
-          return element.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))
-        })
-        assert.ok(hit, 'The visible control owns its hit target')
+        const deadline = Date.now() + 300
+        let next, hit = false
+        do {
+          await page.waitForTimeout(20)
+          next = await locator.boundingBox()
+          hit = await locator.evaluate(element => {
+            const r = element.getBoundingClientRect()
+            const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+            return { owns: element.contains(top), top: top?.tagName, topClass: typeof top?.className === 'string' ? top.className : '', box: [r.x, r.y, r.width, r.height] }
+          })
+        } while (!hit.owns && Date.now() < deadline)
+        if (!hit.owns) await page.screenshot({ path: `${output}/${viewport.width}-hit-target-failure.png` })
+        assert.ok(hit.owns, `The visible control owns its hit target: ${JSON.stringify(hit)}`)
         await page.mouse.click(next.x + next.width / 2, next.y + next.height / 2)
       }
       const frameTap = async () => {
@@ -85,6 +93,14 @@ try {
         const after = await video.evaluate(v => ({ time: v.currentTime, paused: v.paused }))
         assert.equal(after.paused, false, label)
         assert.ok(after.time > before + .1, `${label}: media currentTime advances`)
+      }
+      await setPaused()
+      await video.evaluate(v => v.dispatchEvent(new Event('loadeddata', { bubbles: true })))
+      await page.waitForTimeout(800)
+      assert.ok(await video.evaluate(v => v.paused), 'A late loadeddata event must not undo an explicit Pause')
+      if (process.env.PLAYER_TEST_PAUSE_ONLY === '1') {
+        console.log(`${viewport.width}x${viewport.height}: late loadeddata did not resume an explicitly paused video`)
+        continue
       }
       const fullscreenButton = page.getByRole('button', { name: 'Во весь экран', exact: true })
       const modes = viewport.width > 600 ? [false, true, false] : [true, false, true]
@@ -140,7 +156,9 @@ try {
       assert.deepEqual(errors, [])
       console.log(`${viewport.width}x${viewport.height}: rapid mixed clicks, repeated fullscreen/exit, toolbar/centre Play, Pause ownership, frame single/double taps, hit targets and time advancement passed`)
     } finally {
-      await writeFile(`${output}/${viewport.width}-trace.json`, JSON.stringify(await page.evaluate(() => window.playerTrace || []), null, 2))
+      // Keep the original assertion/navigation error if the document context
+      // disappeared (for example, while exiting fullscreen).
+      try { await writeFile(`${output}/${viewport.width}-trace.json`, JSON.stringify(await page.evaluate(() => window.playerTrace || []), null, 2)) } catch { /* trace is best-effort */ }
       await page.close()
     }
   }

@@ -7,6 +7,7 @@ import ScrollFade from '../ScrollFade'
 type Row = { id: number; created_at: string; event: string; path: string | null; role: string; session_id: string; meta: Record<string, unknown>; ua: string | null; user_id: string | null; student_id: string | null }
 const columns = 'id,created_at,event,path,role,session_id,meta,ua,user_id,student_id'
 const failures = [...INCIDENT_EVENTS, 'network_offline']
+const videoEvents = new Set(['video_buffering_start', 'video_buffering_end', 'video_unexpected_seek', 'video_playback_error', 'video_playback_retry', 'video_dropped_frames'])
 const box = { padding: 16, borderRadius: 16, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)' }
 const button = { minHeight: 44, padding: '8px 12px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)', color: 'var(--color-text)', cursor: 'pointer' }
 export default function AnalyticsDiagnostics({ days }: { days: number }) {
@@ -59,6 +60,12 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
   const bad = requests.filter(r => Number(r.meta.status) === 0 || Number(r.meta.status) >= 400)
   const slow = requests.filter(r => Number(r.meta.duration_ms) >= 3000)
   const incidents = [...rows, ...requests.filter(r => bad.includes(r) || slow.includes(r))].sort((a, b) => b.created_at.localeCompare(a.created_at))
+  const videoIncidents = rows.filter(r => videoEvents.has(r.event))
+  const videoBuffering = videoIncidents.filter(r => r.event === 'video_buffering_start')
+  const videoSeeks = videoIncidents.filter(r => r.event === 'video_unexpected_seek')
+  const videoErrors = videoIncidents.filter(r => r.event === 'video_playback_error' || r.event === 'video_playback_retry')
+  const videoDroppedFrames = videoIncidents.filter(r => r.event === 'video_dropped_frames')
+  const videoSessions = new Set(videoIncidents.map(r => r.session_id)).size
   const durations = requests.map(r => Number(r.meta.duration_ms)).filter(Number.isFinite).sort((a,b) => a-b)
   function download() {
     const url = URL.createObjectURL(new Blob([JSON.stringify({ product: 'Искра', exported_at: new Date().toISOString(), period_days: days, scope: 'Latest 500 incidents, 500 requests, 200 session events; client telemetry only', rows, requests, session, timeline }, null, 2)], { type: 'application/json' }))
@@ -82,12 +89,30 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
         ].map(([label, value]) => <div key={label} style={box}><div style={{ fontSize: 12 }}>{label}</div><strong style={{ fontSize: 24 }}>{value}</strong></div>)}
       </div>
       <div style={box}>
+        <h4 style={{ margin: '0 0 8px' }}>Видео · события плеера</h4>
+        <p style={{ margin: '0 0 12px', color: 'var(--color-text-3)', fontSize: 13 }}>
+          {videoIncidents.length
+            ? `События в текущей выборке: ${videoIncidents.length}. Они также доступны в списке сбоев и цепочке сессии.`
+            : 'В текущей выборке сбоев видео нет. Новые старты видны в цепочке сессии; старые рывки и буферизации задним числом не восстановить.'}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+          {[
+            ['Буферизации дольше 0,75 с', videoBuffering.length],
+            ['Неожиданные скачки позиции', videoSeeks.length],
+            ['Ошибки и повторы источника', videoErrors.length],
+            ['Просадки кадров', videoDroppedFrames.length],
+            ['Сессии с событиями видео', videoSessions],
+          ].map(([label, value]) => <div key={label} style={{ ...box, padding: 12 }}><div style={{ fontSize: 12 }}>{label}</div><strong style={{ fontSize: 22 }}>{value}</strong></div>)}
+        </div>
+      </div>
+      <div style={box}>
         <h4 style={{ marginTop: 0 }}>Сбои · выберите сессию для разбора</h4>
         {!incidents.length && <p>В выборке сбоев нет. Это не гарантия отсутствия проблем.</p>}
         <ScrollFade maxHeight={420}>
           {incidents.map(r => <button data-hover="layer" key={r.id} style={{ ...button, display: 'block', width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={() => setSession(r.session_id)}>
             <strong>{String(r.meta.msg ?? r.meta.endpoint ?? r.event)}</strong><br />
             {new Date(r.created_at).toLocaleString('ru-RU')} · {r.role} · {r.path} · {String(r.meta.app_version ?? 'Версия неизвестна')}
+            {videoEvents.has(r.event) && <> · устройство {String(r.meta.client_platform ?? 'неизвестно')} · время устройства {String(r.meta.client_local_time ?? 'неизвестно')} ({String(r.meta.client_timezone ?? 'часовой пояс неизвестен')})</>}
             {r.event === 'api_request' && <span> · HTTP {String(r.meta.status)} · {String(r.meta.duration_ms)} мс</span>}
           </button>)}
         </ScrollFade>

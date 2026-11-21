@@ -38,6 +38,8 @@ import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
 import { montageTimeline } from '../lib/lessonMontage'
 import { useT } from '../lib/i18n'
+import { trackEvent } from '../lib/analytics'
+import { clientDiagnostics } from '../lib/incidentTelemetry'
 import {
   addWatched, formatClock, hasResumePoint, MAX_STEP, watchedSeconds, watchRatio,
   withCompletion, withNativePlayed, type VideoWatch,
@@ -309,6 +311,15 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   /** Предыдущий тик: по разнице решаем, просмотр это или перемотка. */
   const lastTick = useRef<number | null>(null)
   const lastTickWall = useRef(performance.now())
+  const expectedSeekUntil = useRef(0)
+  const lastJumpReport = useRef(0)
+  const bufferStartedAt = useRef<number | null>(null)
+  const bufferReported = useRef(false)
+  const bufferTimer = useRef<number | null>(null)
+  const playbackStartedReported = useRef(false)
+  const playbackRequestedAt = useRef<number | null>(null)
+  const lastFrameQuality = useRef<{ dropped: number; decoded: number } | null>(null)
+  const lastDroppedFrameReport = useRef(0)
   /** Начало непрерывно отсматриваемого куска — от него растёт текущий отрезок. */
   const segStart = useRef<number | null>(null)
   /** Последняя секунда, отданная наружу. */
@@ -363,6 +374,83 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   /** Скорость монтажа сейчас — для плашки «Ускорено ×4» поверх кадра. */
   const [montageFast, setMontageFast] = useState<number | null>(null)
   const pausedRef = useRef(false); pausedRef.current = paused
+  const playerKind = originalSource.kind === 'gdrive' ? 'gdrive' : source.kind
+  const playerMeta = (extra: Record<string, unknown> = {}) => {
+    const video = videoRef.current
+    let bufferedAheadSeconds: number | null = null
+    if (video) {
+      for (let i = 0; i < video.buffered.length; i++) {
+        if (video.buffered.start(i) <= video.currentTime && video.buffered.end(i) >= video.currentTime) {
+          bufferedAheadSeconds = Math.round((video.buffered.end(i) - video.currentTime) * 10) / 10
+          break
+        }
+      }
+    }
+    return {
+      player: playerKind,
+      ...clientDiagnostics(),
+      current_seconds: Math.max(0, Math.round(currentRef.current)),
+      duration_seconds: Math.max(0, Math.round(durationRef.current)),
+      playback_rate: video?.playbackRate ?? rateRef.current,
+      ...(video ? { ready_state: video.readyState, network_state: video.networkState,
+        video_width: video.videoWidth, video_height: video.videoHeight, buffered_ahead_seconds: bufferedAheadSeconds } : {}),
+      ...extra,
+    }
+  }
+  useEffect(() => {
+    if (started && playbackRequestedAt.current === null) playbackRequestedAt.current = performance.now()
+  }, [started])
+  const reportPlaybackStarted = () => {
+    if (playbackStartedReported.current) return
+    playbackStartedReported.current = true
+    const requestedAt = playbackRequestedAt.current
+    trackEvent('video_playback_started', playerMeta({ startup_ms: requestedAt === null ? null : Math.round(performance.now() - requestedAt) }))
+  }
+  const reportBufferStart = () => {
+    if (bufferStartedAt.current !== null) return
+    bufferStartedAt.current = performance.now()
+    bufferReported.current = false
+    bufferTimer.current = window.setTimeout(() => {
+      if (bufferStartedAt.current === null || bufferReported.current) return
+      bufferReported.current = true
+      trackEvent('video_buffering_start', playerMeta({ startup: !playbackStartedReported.current }))
+    }, 750)
+  }
+  const reportBufferEnd = () => {
+    const startedAt = bufferStartedAt.current
+    if (startedAt === null) return
+    const durationMs = Math.round(performance.now() - startedAt)
+    if (bufferTimer.current !== null) window.clearTimeout(bufferTimer.current)
+    bufferTimer.current = null
+    if (bufferReported.current) trackEvent('video_buffering_end', playerMeta({ duration_ms: durationMs }))
+    bufferStartedAt.current = null
+    bufferReported.current = false
+  }
+  useEffect(() => () => {
+    if (bufferTimer.current !== null) window.clearTimeout(bufferTimer.current)
+  }, [])
+  useEffect(() => {
+    if (!started || source.kind === 'youtube' || source.kind === 'rutube') return
+    const timer = window.setInterval(() => {
+      const video = videoRef.current
+      if (!video || video.paused || video.ended) return
+      const quality = video.getVideoPlaybackQuality?.()
+      const dropped = quality?.droppedVideoFrames ?? (video as HTMLVideoElement & { webkitDroppedFrameCount?: number }).webkitDroppedFrameCount
+      const decoded = quality?.totalVideoFrames ?? (video as HTMLVideoElement & { webkitDecodedFrameCount?: number }).webkitDecodedFrameCount
+      if (typeof dropped !== 'number' || typeof decoded !== 'number') return
+      const previous = lastFrameQuality.current
+      lastFrameQuality.current = { dropped, decoded }
+      if (!previous) return
+      const droppedDelta = Math.max(0, dropped - previous.dropped)
+      const decodedDelta = Math.max(0, decoded - previous.decoded)
+      const sampledFrames = droppedDelta + decodedDelta
+      if (droppedDelta < 3 || sampledFrames < 30 || droppedDelta / sampledFrames < 0.02 || performance.now() - lastDroppedFrameReport.current < 10000) return
+      lastDroppedFrameReport.current = performance.now()
+      trackEvent('video_dropped_frames', playerMeta({ dropped_frames_interval: droppedDelta, decoded_frames_interval: decodedDelta,
+        dropped_frames_total: dropped, decoded_frames_total: decoded, sample_interval_ms: 5000 }))
+    }, 5000)
+    return () => window.clearInterval(timer)
+  }, [started, source.kind])
   const gestureRef = useRef<'scrub' | 'ff' | 'rw' | null>(null)
   const boostRef = useRef(2)
   const lockedRef = useRef(false)
@@ -436,6 +524,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   const doPlay = useCallback(() => {
     cancelFrameTap()
+    pausedRef.current = false
     if (source.kind === 'youtube') ytRef.current?.playVideo()
     else if (source.kind === 'rutube') ruSend('player:play')
     else {
@@ -453,6 +542,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   const doPause = useCallback(() => {
     cancelFrameTap()
+    pausedRef.current = true
     if (source.kind === 'youtube') ytRef.current?.pauseVideo()
     else if (source.kind === 'rutube') ruSend('player:pause')
     else videoRef.current?.pause()
@@ -462,6 +552,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const doSeek = useCallback((sec: number) => {
     cancelFrameTap()
     const s = Math.max(0, duration ? Math.min(sec, duration - 0.3) : sec)
+    expectedSeekUntil.current = performance.now() + 2500
     // Разрываем накопление: перемотанный кусок отсмотренным не считается.
     lastTick.current = null
     segStart.current = null
@@ -593,9 +684,18 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
             if (!alive) return
             const S = window.YT?.PlayerState
             if (!S) return
-            if (e.data === S.PLAYING) { setPaused(false); setEnded(false); setDuration(d => d || ytRef.current?.getDuration() || 0) }
+            if (e.data === S.BUFFERING) reportBufferStart()
+            if (e.data === S.PLAYING) {
+              reportBufferEnd()
+              reportPlaybackStarted()
+              setPaused(false); setEnded(false); setDuration(d => d || ytRef.current?.getDuration() || 0)
+            }
             if (e.data === S.PAUSED) setPaused(true)
             if (e.data === S.ENDED) { setPaused(true); setEnded(true) }
+          },
+          onError: (e: { data: number }) => {
+            if (!alive) return
+            trackEvent('video_playback_error', playerMeta({ engine_error_code: e.data }))
           },
         },
       })
@@ -616,7 +716,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     if (!started || source.kind !== 'rutube') return
     const onMessage = (e: MessageEvent) => {
       if (typeof e.data !== 'string') return
-      let msg: { type?: string; data?: { time?: number; duration?: number; state?: string } }
+      let msg: { type?: string; data?: { time?: number; duration?: number; state?: string; error?: string | number } }
       try { msg = JSON.parse(e.data) } catch { return }
       switch (msg.type) {
         case 'player:ready':
@@ -629,10 +729,18 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
         case 'player:durationChange':
           if (typeof msg.data?.duration === 'number') setDuration(msg.data.duration)
           break
+        case 'player:error':
+          trackEvent('video_playback_error', playerMeta({ engine_error_code: typeof msg.data?.error === 'number' ? msg.data.error : 'rutube-error' }))
+          break
         case 'player:changeState': {
           const st = msg.data?.state
+          if (typeof st === 'string' && /buffer/i.test(st)) reportBufferStart()
+          if (st === 'playing') reportBufferEnd()
           ruPlaying.current = st === 'playing'
-          if (st === 'playing') { setPaused(false); setEnded(false) }
+          if (st === 'playing') {
+            reportPlaybackStarted()
+            setPaused(false); setEnded(false)
+          }
           if (st === 'paused' || st === 'stopped') setPaused(true)
           if (st === 'ended') { setPaused(true); setEnded(true) }
           break
@@ -714,6 +822,14 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       const now = performance.now()
       const elapsed = Math.max(0, (now - lastTickWall.current) / 1000)
       lastTickWall.current = now
+      if (prev !== null && playing && elapsed > 0 && elapsed < 2 && now > expectedSeekUntil.current) {
+        const expectedStep = elapsed * rateRef.current
+        const delta = time - prev
+        if (Math.abs(delta - expectedStep) >= 3 && now - lastJumpReport.current >= 5000) {
+          lastJumpReport.current = now
+          trackEvent('video_unexpected_seek', playerMeta({ delta_seconds: Math.round(delta * 10) / 10, elapsed_ms: Math.round(elapsed * 1000) }))
+        }
+      }
       lastTick.current = playing ? time : null
       if (!playing) { segStart.current = null; return }
       const step = prev === null ? Infinity : time - prev
@@ -1096,31 +1212,50 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           ref={videoRef}
           src={source.url}
           crossOrigin={originalSource.kind === 'gdrive' ? 'anonymous' : source.crossOrigin}
-          autoPlay
           playsInline
           disablePictureInPicture
           onLoadedMetadata={e => {
+            expectedSeekUntil.current = performance.now() + 2500
             e.currentTarget.currentTime = startAt
             e.currentTarget.preservesPitch = true
             e.currentTarget.playbackRate = rateRef.current
             applyVolume(volume, muted)
             setDuration(e.currentTarget.duration || 0)
           }}
-          onLoadedData={e => { void e.currentTarget.play().catch(() => setPaused(true)) }}
-          onSeeking={() => { lastTick.current = null; segStart.current = null }}
+          onLoadedData={e => {
+            // A delayed loadeddata must not undo an explicit Pause pressed
+            // while the media was still loading or seeking.
+            if (!pausedRef.current) void e.currentTarget.play().catch(() => { pausedRef.current = true; setPaused(true) })
+          }}
+          onWaiting={() => reportBufferStart()}
+          onStalled={() => reportBufferStart()}
+          onPlaying={() => {
+            reportBufferEnd()
+            reportPlaybackStarted()
+          }}
+          onSeeking={e => {
+            lastTick.current = null; segStart.current = null
+            if (performance.now() > expectedSeekUntil.current && !pausedRef.current) {
+              trackEvent('video_unexpected_seek', playerMeta({ reason: 'media-seeking', target_seconds: Math.round(e.currentTarget.currentTime) }))
+            }
+          }}
           onError={() => {
+            const video = videoRef.current
+            const errorMeta = playerMeta({ media_error_code: video?.error?.code ?? null, network_state: video?.networkState ?? null, ready_state: video?.readyState ?? null })
             // Поток Диска с прямого адреса не дошёл: один раз тихо повторяем через
             // прокси с той же секунды, и только потом показываем ошибку.
             if (originalSource.kind === 'gdrive' && driveProxyAvailable && !driveViaProxy) {
+              trackEvent('video_playback_retry', { ...errorMeta, retry: 'drive-proxy' })
               setStartAt(currentRef.current)
               setDriveUrl('')
               setDriveViaProxy(true)
               return
             }
+            trackEvent('video_playback_error', errorMeta)
             setMediaError(true); setPaused(true)
           }}
-          onPlay={() => { setPaused(false); setEnded(false) }}
-          onPause={() => { persist(); setPaused(true) }}
+          onPlay={() => { reportBufferEnd(); pausedRef.current = false; setPaused(false); setEnded(false) }}
+          onPause={() => { reportBufferEnd(); pausedRef.current = true; persist(); setPaused(true) }}
           onEnded={() => { persist(); setPaused(true); setEnded(true) }}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: '#000' }}
         />

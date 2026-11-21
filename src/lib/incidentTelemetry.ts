@@ -1,6 +1,7 @@
 // Diagnostic context contains technical breadcrumbs, never form values or OAuth URLs.
 export const INCIDENT_EVENTS = new Set(['js_error', 'promise_rejection', 'react_crash', 'widget_crash',
-  'native_crash', 'bootstrap_error', 'api_slow', 'api_stalled', 'ui_freeze', 'ui_loading_stalled', 'ui_blank', 'operation_failed', 'auth_failed', 'auth_stalled', 'resource_error'])
+  'native_crash', 'bootstrap_error', 'api_slow', 'api_stalled', 'ui_freeze', 'ui_loading_stalled', 'ui_blank', 'operation_failed', 'auth_failed', 'auth_stalled', 'resource_error',
+  'video_buffering_start', 'video_buffering_end', 'video_unexpected_seek', 'video_playback_error', 'video_playback_retry', 'video_dropped_frames'])
 type Breadcrumb = { at: string; event: string; path: string | null; endpoint?: string; status?: number }
 const breadcrumbs: Breadcrumb[] = []
 export function rememberDiagnosticEvent(event: string, path: string | null, meta: Record<string, unknown>) {
@@ -25,10 +26,35 @@ export function sanitizeIncidentMeta(meta: Record<string, unknown>): Record<stri
   }
   return clean(meta) as Record<string, unknown>
 }
+/** Device and clock context for troubleshooting, without geolocation or media identity. */
+export function clientDiagnostics() {
+  const nav = navigator as Navigator & { userAgentData?: { platform?: string; mobile?: boolean }; connection?: { effectiveType?: string; rtt?: number; downlink?: number; type?: string } }
+  const platformHint = nav.userAgentData?.platform ?? navigator.platform ?? ''
+  const ua = navigator.userAgent
+  const platform = /android/i.test(platformHint + ' ' + ua) ? 'Android'
+    : /iphone|ipad|ipod/i.test(ua) ? (/ipad/i.test(ua) ? 'iPad' : 'iPhone')
+      : /mac/i.test(platformHint) && navigator.maxTouchPoints > 1 ? 'iPad'
+      : /mac/i.test(platformHint) ? 'Mac'
+        : /win/i.test(platformHint) ? 'Windows'
+          : /linux/i.test(platformHint) ? 'Linux'
+            : 'Браузер'
+  const now = new Date()
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown'
+  const connection = nav.connection
+  return {
+    client_platform: platform,
+    client_timezone: timeZone,
+    client_local_time: new Intl.DateTimeFormat('sv-SE', { timeZone, hour12: false, dateStyle: 'short', timeStyle: 'medium' }).format(now),
+    client_utc_offset_min: -now.getTimezoneOffset(),
+    ...(connection ? { network_effective_type: connection.effectiveType ?? null, network_rtt_ms: connection.rtt ?? null,
+      network_downlink_mbps: connection.downlink ?? null, network_type: connection.type ?? null } : {}),
+  }
+}
 export function incidentContext() {
   return { incident_id: crypto.randomUUID(), breadcrumbs: [...breadcrumbs],
     language: navigator.language, visibility: document.visibilityState,
-    screen: `${screen.width}×${screen.height}`, pixel_ratio: window.devicePixelRatio }
+    screen: `${screen.width}×${screen.height}`, pixel_ratio: window.devicePixelRatio,
+    ...clientDiagnostics() }
 }
 /** Visible-window checks: sleep/background suspension must not look like a freeze. */
 export function installRuntimeDiagnostics(report: (event: string, meta: Record<string, unknown>) => void) {
