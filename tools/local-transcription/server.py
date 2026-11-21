@@ -26,7 +26,7 @@ import job_store
 import asr_config
 import vad_segment
 from job_control import supervise
-from slide_chapters import REGIONS
+from slide_chapters import region_box
 import capacity
 
 app = Flask(__name__)
@@ -163,7 +163,7 @@ def version():
     # app — версия приложения «Искра — расшифровка», в котором лежит модуль:
     # по ней сайт предлагает поставить новое приложение. Самообновление кода
     # доносит этот ответ и до старых приложений, которые сами не обновляются.
-    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True, queue=True, app=app_version())
+    return jsonify(version=VERSION, update=True, cancel=True, slideChapters=True, customRegion=True, queue=True, app=app_version())
 
 def app_version():
     ffmpeg=os.environ.get('ISKRA_FFMPEG')
@@ -512,7 +512,7 @@ def start():
     token=device()
     mode = request.form.get('mode', 'text')
     region = request.form.get('titleRegion', 'top-left')
-    if mode not in ('text', 'slides') or region not in REGIONS:
+    if mode not in ('text', 'slides') or region_box(region) is None:
         return jsonify(error='Неизвестный режим или область заголовка.'), 400
     # Приём больше не отказывает «занят»: задание всегда встаёт в очередь.
     folder=None

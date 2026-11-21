@@ -34,6 +34,12 @@ class QueueTests(unittest.TestCase):
         self.assertEqual(len(self.s.pending), 2)
         self.assertEqual(self.s.pending, [first.get_json()['id'], second.get_json()['id']])
 
+    def test_slides_job_takes_teacher_drawn_region(self):
+        ok = self.post(link='https://example.com/a', mode='slides', titleRegion='custom:0.05,0.04,0.5,0.12')
+        self.assertEqual(ok.status_code, 202)
+        self.assertEqual(self.s.jobs[ok.get_json()['id']]['titleRegion'], 'custom:0.05,0.04,0.5,0.12')
+        self.assertEqual(self.post(link='https://example.com/b', mode='slides', titleRegion='custom:0.9,0,0.5,0.2').status_code, 400)
+
     def test_job_is_accepted_even_while_another_is_running(self):
         with self.s.queue_cv: self.s.running.add('busy' + '0' * 28)
         resp = self.post(link='https://example.com/c')

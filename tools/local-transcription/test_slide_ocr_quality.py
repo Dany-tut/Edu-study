@@ -81,6 +81,17 @@ class HelperDetectionTests(unittest.TestCase):
             self.assertEqual(json.loads((Path(folder)/'chapters.json').read_text()), [{'start':0,'title':'Митоз'}])
 
 
+class CustomRegionTests(unittest.TestCase):
+    def test_teacher_drawn_region_in_frame_fractions(self):
+        from slide_chapters import region_box, REGIONS
+        self.assertEqual(region_box('top-left'), REGIONS['top-left'])
+        self.assertEqual(region_box('custom:0.05,0.04,0.5,0.12'), (0.05, 0.04, 0.5, 0.12))
+        self.assertAlmostEqual(region_box('custom:0.5,0.9,0.50001,0.1')[2], 0.5)
+        for bad in ('custom:', 'custom:1,2', 'custom:a,b,c,d', 'custom:-0.1,0,0.5,0.2', 'custom:0,0,0.01,0.2',
+                    'custom:0.6,0,0.5,0.2', 'custom:nan,0,0.5,0.2', 'left', None):
+            self.assertIsNone(region_box(bad), bad)
+
+
 class KeyframeScanTests(unittest.TestCase):
     def test_dense_reading_only_where_title_changed_or_keyframes_far_apart(self):
         from slide_chapters import keyframe_changes

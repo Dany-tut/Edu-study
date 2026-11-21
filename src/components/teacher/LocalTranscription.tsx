@@ -8,6 +8,7 @@ import Switch from '../Switch'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
 import { taxonCase } from '../../lib/taxonCase'
+import { SlideRegionPicker, PRESET_BOXES, rememberRegion, rememberedRegion } from './SlideRegionPicker'
 import { hasChapterVariant, prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
 import type { LessonTimecode } from '../../data/lessonContent'
 import { MODULE_DOWNLOAD_URL, appNeedsManualUpdate, useModuleState, readModule, updateModule } from '../../lib/transcriptionModuleUpdate'
@@ -624,7 +625,8 @@ function Review({ owner, lessonKey, source, file, localFile, subject, lessonTitl
   const token = localStorage.getItem(tokenKey(owner)) || ''
   const [pending, setPending] = useState(() => readPending(owner, lessonKey, source, file))
   const [mode, setMode] = useState<TranscriptionMode>(pending?.mode ?? initialMode)
-  const [titleRegion, setTitleRegion] = useState(pending?.titleRegion ?? 'top-left')
+  const [titleRegion, setTitleRegion] = useState(() => pending?.titleRegion ?? rememberedRegion(owner, lessonKey, courseTitle) ?? 'top-left')
+  const [presetRegion, setPresetRegion] = useState(() => PRESET_BOXES[titleRegion] ? titleRegion : 'top-left')
   const stages = mode === 'slides' ? ['Видео', 'Читаем слайды'] : textStages
   const [busy, setBusy] = useState(false)
   const [preparation, setPreparation] = useState('Передаём запись…')
@@ -702,7 +704,10 @@ function Review({ owner, lessonKey, source, file, localFile, subject, lessonTitl
       }
       if (!mounted.current) return
       setPreparation('Передаём запись…')
-      if (mode === 'slides' && !(await localRequest('/version', '')).slideChapters) throw new Error('Для глав по слайдам обновите модуль в профиле Искры и повторите.')
+      if (mode === 'slides') {
+        const caps = await localRequest('/version', '')
+        if (!caps.slideChapters || (titleRegion.startsWith('custom:') && !caps.customRegion)) throw new Error('Для глав по слайдам обновите модуль в профиле Искры и повторите.')
+      }
       // Словарь предмета: термины — подсказка Whisper, пары — исправления.
       // Нет словаря — модуль распознаёт как раньше.
       const pack = mode === 'text' ? await fetchTermsPack(subject ?? '') : []
@@ -712,6 +717,7 @@ function Review({ owner, lessonKey, source, file, localFile, subject, lessonTitl
       const { id } = await localRequest('/jobs', token, { method: 'POST', body: form })
       // lessonTitle/courseTitle — чтобы виджет очереди подписал задание названием
       // урока и дал переход в Конструктор (lessonId берётся из ключа задания).
+      if (mode === 'slides') rememberRegion(owner, lessonKey, courseTitle, titleRegion)
       const job = { id, mode, titleRegion, source: source.trim(), fileSignature: file ? fileSignature(file) : undefined,
         ...(lessonTitle ? { lessonTitle } : {}), ...(courseTitle ? { courseTitle } : {}) }
       if (!mounted.current) return
@@ -808,12 +814,15 @@ function Review({ owner, lessonKey, source, file, localFile, subject, lessonTitl
     {!pending && mode === 'slides' && <>
       <p className="transcription-hint">Главы из названий на слайдах, без повторного распознавания речи. Повторяющаяся тема появится только один раз — в момент первого появления.</p>
       <label className="slide-region-label">Где находится заголовок</label>
-      <TeacherSelect value={titleRegion} onChange={setTitleRegion} disabled={busy} clearable={false} search={false} options={[
+      <TeacherSelect value={titleRegion.startsWith('custom:') ? 'custom' : titleRegion} onChange={value => { if (value !== 'custom') { setTitleRegion(value); setPresetRegion(value) } }} disabled={busy} clearable={false} search={false} options={[
         {value:'top-left',label:'Слева вверху'}, {value:'top-right',label:'Справа вверху'},
         {value:'top',label:'Сверху по всей ширине'}, {value:'bottom-left',label:'Слева внизу'},
         {value:'bottom-right',label:'Справа внизу'}, {value:'bottom',label:'Снизу по всей ширине'},
+        ...(titleRegion.startsWith('custom:') ? [{value:'custom',label:'Своя область на кадре'}] : []),
       ]} />
-      <p className="transcription-hint">Выберите область с названием темы, без постоянной подписи курса. Перед применением можно проверить и поправить найденные главы.</p>
+      <SlideRegionPicker source={source} file={selectedFile ?? file ?? localFile} region={titleRegion} disabled={busy}
+        onChange={setTitleRegion} onReset={() => setTitleRegion(presetRegion)} />
+      <p className="transcription-hint">Перед применением можно проверить и поправить найденные главы.</p>
     </>}
     {!pending && <label className="transcription-picker">
       <Upload size={18}/><strong>{selectedFile ? selectedFile.name : localFile ? `Файл с компьютера: ${localFile.name}` : 'Выбрать исходный файл вместо ссылки'}</strong>

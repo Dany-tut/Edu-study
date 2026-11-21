@@ -476,3 +476,24 @@
 
 /* Видимая плашка в карточке (модуль спит / не ответил) — без раскрытия «Управления модулем». */
 .transcription-module-notice { margin-top: 12px; }
+
+/* Зона заголовка на кадре видео («По слайдам»): учитель обводит название темы. */
+.slide-region-picker { display:grid; gap:8px; }
+.slide-region-stage { position:relative; width:100%; overflow:hidden; border-radius:12px; border:1px solid var(--color-border); background:var(--color-bg-3); cursor:crosshair; touch-action:none; user-select:none; }
+.slide-region-stage[data-disabled] { cursor:default; }
+.slide-region-stage video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; background:#000; }
+.slide-region-wait { position:absolute; inset:0; display:grid; place-items:center; padding:16px; text-align:center; font-size:13px; line-height:1.45; color:var(--color-text-3); }
+.slide-region-box { position:absolute; box-sizing:border-box; border:2px solid var(--color-control-accent); border-radius:6px; box-shadow:0 0 0 9999px rgb(0 0 0 / .45); pointer-events:none; }
+.slide-region-box:not([data-custom]) { border-style:dashed; }
+.slide-region-scrub { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--color-text-3); font-variant-numeric:tabular-nums; }
+.slide-region-scrub > span { flex:none; }
+.slide-region-scrub > span:first-child { min-width:72px; color:var(--color-text-2); }
+.slide-region-track { position:relative; flex:1; height:6px; border-radius:3px; background:var(--color-border); }
+.slide-region-track > div { position:absolute; inset-block:0; left:0; border-radius:3px; background:var(--color-control-accent); pointer-events:none; }
+.slide-region-track input { position:absolute; inset:-10px 0; width:100%; height:26px; margin:0; opacity:0; cursor:pointer; }
+.slide-region-track input:focus-visible { opacity:0; }
+.slide-region-track:focus-within { outline:2px solid var(--color-control-accent); outline-offset:4px; }
+.slide-region-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.slide-region-foot small { display:inline-flex; align-items:center; gap:6px; }
+.slide-region-foot button { display:inline-flex; align-items:center; gap:6px; }
+.slide-region-note { margin:0; }

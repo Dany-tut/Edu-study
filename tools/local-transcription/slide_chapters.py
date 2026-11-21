@@ -23,6 +23,21 @@ REGIONS = {
     'bottom-left': (0, .76, .65, .24), 'bottom-right': (.35, .76, .65, .24),
     'top': (0, 0, 1, .24), 'bottom': (0, .76, 1, .24),
 }
+CUSTOM = 'custom:'
+
+
+def region_box(region):
+    """(x, y, w, h) in frame fractions: a preset name, or `custom:x,y,w,h`
+    drawn by the teacher over a frame of the video. None when invalid."""
+    if region in REGIONS: return REGIONS[region]
+    if not isinstance(region, str) or not region.startswith(CUSTOM): return None
+    try: x, y, w, h = (float(part) for part in region[len(CUSTOM):].split(','))
+    except ValueError: return None
+    if not all(math.isfinite(v) for v in (x, y, w, h)): return None
+    if x < 0 or y < 0 or w < .02 or h < .02 or x+w > 1.0001 or y+h > 1.0001: return None
+    return (x, y, min(w, 1-x), min(h, 1-y))
+
+
 SAFE = ['-protocol_whitelist', 'file,pipe', '-format_whitelist', 'mov,matroska,webm,avi,mpeg,mpegts,asf,flv,ogg,wav,mp3,aac,flac']
 STEP = 2
 # Keyframe scan: when the title band is the same on two keyframes up to this
@@ -253,7 +268,7 @@ def process_video(source, duration, region, engine, report=lambda *_: None, stag
     Videos with sparse keyframes fall back to one sequential 2 s pass.
     `stage(phase, done, total, unit)` reports honest progress per phase.
     """
-    x, y, w, h = REGIONS[region]
+    x, y, w, h = region_box(region)
     crop = f'crop=iw*{w}:ih*{h}:iw*{x}:ih*{y},scale=min(1800\\,iw*2):-2'
     started = time.monotonic()
     timing = {'readFrameSeconds': 0.0, 'ocrSeconds': 0.0, 'keyframeSeconds': 0.0}
@@ -371,7 +386,7 @@ def ticking(folder, phase, every=2.0):
 
 def main(source, folder, region):
     folder, source = Path(folder), Path(source)
-    if region not in REGIONS: raise ValueError('Выберите расположение заголовка на слайде.')
+    if region_box(region) is None: raise ValueError('Выберите расположение заголовка на слайде.')
     duration = media_duration(source, SAFE)
     if duration <= 0: raise ValueError('Не удалось определить длительность видео.')
     progress = lambda *_: None
