@@ -1104,7 +1104,20 @@ export default function LessonPage() {
           timecodes={timecodes} watch={watch} onPersist={persistWatch} onTime={onPlayerTime}
           videoTime={videoTime} videoDuration={videoDuration} montage={montagePlan}
           progressFooter={<>
-            {watchSyncFailed && <p role="status" style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')} <button data-hover="layer" type="button" onClick={() => persistWatch(watch)} style={{ minHeight: 44 }}>{t('Повторить')}</button></p>}
+            {watchSyncFailed && (
+              <div role="status" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 12, width: '100%', color: 'var(--color-muted)', fontSize: 13, lineHeight: 1.25,
+              }}>
+                <span style={{ flex: '1 1 38ch', minWidth: 0, maxWidth: '38ch' }}>
+                  {t('Прогресс сохранён на этом устройстве. Не удалось синхронизировать.')}
+                </span>
+                <button data-hover="layer" type="button" onClick={() => persistWatch(watch)}
+                  style={{ flex: '0 0 auto', minHeight: 44, whiteSpace: 'nowrap' }}>
+                  {t('Повторить')}
+                </button>
+              </div>
+            )}
             {studyProgress.attended && <p style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Запись можно пересмотреть для повторения.')}</p>}
           </>} />
       )}
