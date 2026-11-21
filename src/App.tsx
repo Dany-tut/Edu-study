@@ -448,7 +448,7 @@ function AppRoutes() {
 
   if (hash.startsWith('#/teacher')) {
     const groupsFallback = hash.startsWith('#/teacher/groups') ? <JournalSkeleton page table groups /> : undefined
-    const routeFallback = hash.startsWith('#/teacher/constructor') ? <ConstructorLoadingState />
+    const routeFallback = hash.startsWith('#/teacher/constructor') ? <ConstructorLoadingState standalone />
       : hash.startsWith('#/teacher/gradebook') || hash === '#/teacher/homework' ? <JournalSkeleton page /> : groupsFallback
     const workspace = (
       <>

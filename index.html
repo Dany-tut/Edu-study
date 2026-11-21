@@ -32,12 +32,26 @@
       /* Заглушка первого кадра — см. #boot в разметке ниже. */
       :root { --boot-bg: #F5F5F6; --boot-block: rgba(0,0,0,0.055) }
       html[data-theme="dark"] { --boot-bg: #111113; --boot-block: rgba(255,255,255,0.06) }
-      html, body { background: var(--boot-bg) }
-      #boot { max-width: 980px; margin: 0 auto; padding: 24px 20px 0 }
+      html, body { background: var(--boot-bg); margin: 0 }
+      #boot { max-width: 980px; margin: 0 auto; padding: 32px 28px 0 } /* +8 — бывшее поле body */
       #boot i { display: block; background: var(--boot-block); border-radius: 18px;
                 animation: boot-pulse 1.6s ease-in-out infinite }
       @keyframes boot-pulse { 0%, 100% { opacity: .6 } 50% { opacity: 1 } }
-      @media (prefers-reduced-motion: reduce) { #boot i { animation: none } }
+      @media (prefers-reduced-motion: reduce) { #boot i, #boot-tc i { animation: none } }
+      /* Конструктор учителя на ПК: заглушка по сетке страницы, а не ученическая
+         колонка 980 px по центру. Иначе при F5 скелетон прыгал: центр → левый
+         верхний угол → на место. Числа — как в ConstructorLoadingState. */
+      #boot-tc { display: none; position: relative; padding: 100px 32px 0 }
+      #boot-tc i { display: block; background: var(--boot-block); animation: boot-pulse 1.6s ease-in-out infinite }
+      #boot-tc .p { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: min(690px, 56vw); height: 60px; border-radius: 30px }
+      #boot-tc .r { display: flex; gap: 14px; height: 40px }
+      #boot-tc .r i { height: 40px; border-radius: 20px }
+      #boot-tc .g { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 20px }
+      #boot-tc .g i { height: 164px; border-radius: 20px }
+      @media (min-width: 1024px) {
+        html[data-boot="constructor"] #boot { display: none }
+        html[data-boot="constructor"] #boot-tc { display: block }
+      }
     </style>
     <!-- Фавикон + заголовок переключаются по маршруту: ученик (фиолетовая плитка) / учитель (ночная плитка).
          apple-touch-icon is intentionally NOT switched — iOS reads it once at add-time. -->
@@ -50,6 +64,9 @@
           document.documentElement.setAttribute('data-theme',
             localStorage.getItem('theme') === 'dark' ? 'dark' : 'light')
         } catch (e) {}
+        // Какую заглушку первого кадра показать (см. #boot-tc).
+        if (location.hash.indexOf('#/teacher/constructor') === 0)
+          document.documentElement.setAttribute('data-boot', 'constructor')
         function syncIcon() {
           var teacher = location.hash.indexOf('#/teacher') === 0
           var href = teacher ? '/icon-teacher.svg?v=3' : '/icon.svg?v=3'
@@ -94,6 +111,11 @@
         <i style="height:26vh;min-height:150px;margin-top:38px"></i>
         <i style="height:88px;margin-top:16px"></i>
         <i style="height:88px;margin-top:16px;width:68%"></i>
+      </div>
+      <div id="boot-tc" aria-hidden="true">
+        <i class="p"></i>
+        <div class="r"><i style="width:40px"></i><i style="width:104px"></i><i style="width:88px"></i><i style="width:96px"></i><i style="width:110px"></i></div>
+        <div class="g"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
     </div>
     <!-- Нижний слой (док + навигация) живёт ЗДЕСЬ, а не в #root, и намеренно
