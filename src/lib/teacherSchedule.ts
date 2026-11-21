@@ -34,10 +34,20 @@ export interface SchedItem {
   isIndividual?: boolean
   cancelled: boolean
   rec: boolean
+  /** Запись, а не занятие: узел «Запись» или урок «В записи». Открывается
+   *  «с HH:MM», конца нет (endTime пустой), «идёт сейчас» не бывает,
+   *  «Начать / Завершить урок» не нужны. `rec` — только узел «Запись»: по нему
+   *  выбирается шаблон ДЗ записи. */
+  recording?: boolean
   /** Строка родилась из урока курса — перенос пишет дату и в урок. */
   fromCourse: boolean
   lessonId?: string | null
   status?: 'upcoming' | 'live' | 'completed' | 'cancelled'
+}
+
+/** Строка расписания — запись: узел «Запись» или урок курса «В записи». */
+function isRecordingRow(r: { node_type: string | null; lessons?: { delivery_mode: string | null } | null }): boolean {
+  return r.node_type === 'rec' || r.lessons?.delivery_mode === 'recording'
 }
 
 export type SchedUndo = Record<string, unknown>
@@ -101,7 +111,7 @@ export function useTeacherWeek(start: string) {
     }
     supabase
       .from('schedule_lessons')
-      .select('id, date, time_start, time_end, lesson_title, lesson_number, group_id, student_id, status, node_type, lesson_id, groups(name, color)')
+      .select('id, date, time_start, time_end, lesson_title, lesson_number, group_id, student_id, status, node_type, lesson_id, groups(name, color), lessons(delivery_mode)')
       .gte('date', start)
       .lte('date', addDays(start, 6))
       .then(({ data, error }) => {
@@ -115,6 +125,7 @@ export function useTeacherWeek(start: string) {
           group_id: string | null; student_id: string | null; status: string | null
           node_type: string | null; lesson_id: string | null
           groups: { name: string; color: string | null } | null
+          lessons: { delivery_mode: string | null } | null
         }
         const rows = ((data ?? []) as unknown as Row[]).filter(r =>
           (r.group_id && myGroups.has(r.group_id)) || (r.student_id && myStudents.has(r.student_id)))
@@ -130,7 +141,7 @@ export function useTeacherWeek(start: string) {
             id: r.id,
             date: String(r.date).slice(0, 10),
             time: (r.time_start ?? '').padStart(5, '0').slice(0, 5),
-            endTime: (r.time_end ?? '').slice(0, 5),
+            endTime: isRecordingRow(r) ? '' : (r.time_end ?? '').slice(0, 5),
             title: r.lesson_title ?? '',
             number: r.lesson_number,
             groupId: r.group_id,
@@ -142,6 +153,7 @@ export function useTeacherWeek(start: string) {
             isIndividual: r.group_id ? group?.isIndividual ?? false : true,
             cancelled: r.status === 'cancelled',
             rec: r.node_type === 'rec',
+            recording: isRecordingRow(r),
             fromCourse: !!r.lesson_id,
             lessonId: r.lesson_id,
             status: r.status as SchedItem['status'],
@@ -199,7 +211,7 @@ export async function fetchGroupUpcoming(groupId: string): Promise<SchedItem[]> 
   const today = todayMsk()
   const { data } = await supabase
     .from('schedule_lessons')
-    .select('id, date, time_start, time_end, lesson_title, lesson_number, group_id, student_id, status, node_type, lesson_id')
+    .select('id, date, time_start, time_end, lesson_title, lesson_number, group_id, student_id, status, node_type, lesson_id, lessons(delivery_mode)')
     .eq('group_id', groupId)
     .gte('date', today)
     .lte('date', addDays(today, 42))
@@ -211,10 +223,11 @@ export async function fetchGroupUpcoming(groupId: string): Promise<SchedItem[]> 
     lesson_title: string | null; lesson_number: number | null
     group_id: string | null; student_id: string | null
     status: string | null; node_type: string | null; lesson_id: string | null
+    lessons: { delivery_mode: string | null } | null
   }
   const seen = new Set<string>()
   const out: SchedItem[] = []
-  for (const r of (data ?? []) as Row[]) {
+  for (const r of (data ?? []) as unknown as Row[]) {
     const key = `${r.date}|${(r.time_start ?? '').padStart(5, '0')}|${r.lesson_title ?? ''}|${r.node_type ?? ''}`
     if (seen.has(key)) continue
     seen.add(key)
@@ -222,7 +235,7 @@ export async function fetchGroupUpcoming(groupId: string): Promise<SchedItem[]> 
       id: r.id,
       date: String(r.date).slice(0, 10),
       time: (r.time_start ?? '').padStart(5, '0').slice(0, 5),
-      endTime: (r.time_end ?? '').slice(0, 5),
+      endTime: isRecordingRow(r) ? '' : (r.time_end ?? '').slice(0, 5),
       title: r.lesson_title ?? '',
       number: r.lesson_number,
       groupId: r.group_id,
@@ -231,6 +244,7 @@ export async function fetchGroupUpcoming(groupId: string): Promise<SchedItem[]> 
       color: 'var(--color-purple)',
       cancelled: false,
       rec: r.node_type === 'rec',
+      recording: isRecordingRow(r),
       fromCourse: !!r.lesson_id,
     })
   }

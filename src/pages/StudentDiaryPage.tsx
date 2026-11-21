@@ -292,7 +292,7 @@ export default function StudentDiaryPage({
                   <div className="ds-upcoming-bottom">
                     <span>
                       <Video size={15} />
-                      {upcoming.row.endTime ? `${upcoming.row.time}–${upcoming.row.endTime}` : ''}
+                      {upcoming.event.recording ? `${t('Запись с')} ${upcoming.row.time}` : upcoming.row.endTime && upcoming.row.endTime !== upcoming.row.time ? `${upcoming.row.time}–${upcoming.row.endTime}` : upcoming.row.time}
                     </span>
                     <button
                       type="button"

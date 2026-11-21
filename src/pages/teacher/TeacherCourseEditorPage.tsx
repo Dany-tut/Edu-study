@@ -1412,7 +1412,12 @@ function ScheduleCard({
   const notMsk = !isMsk(teacherTz)
 
   const accent = 'var(--color-green-text)'
-  const footerText = isRec
+  // Запись — узел «Запись» или урок «В записи» — открывается в момент и не
+  // длится: вместо длительности подпись «Запись доступна с».
+  const noDuration = isRec || lesson.deliveryMode === 'recording'
+  const footerText = noDuration && !isRec
+    ? `${t('Ученик увидит запись')} ${date} ${t('с')} ${time}`
+    : isRec
     ? (mirrors
         ? t('Появится у ученика как запись · урок зеркалит эту дату')
         : `${t('Появится у ученика как запись')} ${date} ${t('в')} ${time}`)
@@ -1444,14 +1449,14 @@ function ScheduleCard({
         />
         <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-muted)', lineHeight: 1.4 }}>
           {lesson.deliveryMode === 'recording'
-            ? t('Урок засчитывается после просмотра 90% записи.')
-            : t('Онлайн или очно: присутствие в журнале засчитывает урок. Пропустившие смотрят запись.')}
+            ? t('Урок засчитывается после просмотра 90% записи, тогда откроется ДЗ.')
+            : t('Онлайн или очно: ДЗ откроется после «Завершить урок», а если не нажали — в конце урока по расписанию. Пропустившие смотрят запись.')}
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Calendar size={14} style={{ color: date ? accent : 'var(--color-muted)' }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: date ? 'var(--color-text)' : 'var(--color-text-3)' }}>
-          {isRec ? t('Дата записи') : t('Дата урока')}
+          {noDuration ? t('Запись доступна с') : t('Дата урока')}
         </span>
         {date && (
           <button data-hover="layer"
@@ -1468,7 +1473,7 @@ function ScheduleCard({
           value={time ?? ''}
           onChange={setTime}
           icon={Clock}
-          placeholder={t('Начало')}
+          placeholder={noDuration ? t('Время') : t('Начало')}
           allowEmpty
           options={Array.from({ length: 32 }, (_, i) => {
             const h = Math.floor(i / 2) + 7
@@ -1477,7 +1482,7 @@ function ScheduleCard({
             return { value: tm, label: tm }
           })}
         />
-        <PickerSelect
+        {!noDuration && <PickerSelect
           value={String(duration ?? 90)}
           onChange={v => setDuration(Number(v))}
           icon={Clock}
@@ -1486,7 +1491,7 @@ function ScheduleCard({
             // Часы — целой частью: 90 мин это «1 ч 30 м», а не «1.5 ч 30 м».
             label: m < 60 ? `${m} ${t('мин')}` : `${Math.floor(m / 60)} ${t('ч')}${m % 60 ? ` ${m % 60} ${t('м')}` : ''}`,
           }))}
-        />
+        />}
       </div>
       {date && time && (
         <div style={{ marginTop: 12, fontSize: 11, color: accent, display: 'flex', alignItems: 'flex-start', gap: 6, lineHeight: 1.4 }}>
@@ -7293,7 +7298,12 @@ export default function TeacherCourseEditorPage() {
           lesson_id: dbLesson!.id,
           date: dotToIso(date),
           time_start: time,
-          time_end: addMinutes(time, dur ?? 90),
+          // Запись не идёт, а открывается: «Запись доступна с». Конца у неё
+          // нет — time_end = time_start (столбец NOT NULL), и нигде не
+          // покажется «до HH:MM» и «идёт сейчас». Живой урок — начало +
+          // выбранная длительность: по этому концу откроется ДЗ, если учитель
+          // не нажал «Завершить урок».
+          time_end: nodeType === 'rec' || lesson.deliveryMode === 'recording' ? time : addMinutes(time, dur ?? 90),
           lesson_title: lesson.title || dbLesson!.title,
           // Must match lessons.lesson_number (0-based) so resolveScheduleLesson's
           // byNumber lookup lands on the right lesson — NOT lessonIndex + 1.

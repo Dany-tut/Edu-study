@@ -316,7 +316,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   const list = (items ?? []).filter(i => i.date === day)
   const markedDays = useMemo(() => new Set((items ?? []).filter(item => !item.cancelled).map(item => item.date)), [items])
   const status = (item: SchedItem) => sessions[item.id]?.completed_at ? 'completed' : sessions[item.id]?.started_at ? 'live' : item.status ?? (item.cancelled ? 'cancelled' : 'upcoming')
-  const next = list.find(i => status(i) === 'live') ?? list.find(i => status(i) === 'upcoming')
+  const next = list.find(i => status(i) === 'live') ?? list.find(i => status(i) === 'upcoming' && !i.recording)
   const reviewCount = homework.filter(h => h.status !== 'closed').reduce((n, h) => n + Math.max(0, h.submittedCount - h.reviewedCount), 0)
   const dateLabel = (value: string) => { const label = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', weekday: 'long' }).format(new Date(`${value}T12:00:00`)); return label.charAt(0).toUpperCase() + label.slice(1) }
   const selectedStatus = selected ? detail?.session?.completed_at ? 'completed' : detail?.session?.started_at ? 'live' : selected.status ?? 'upcoming' : 'upcoming'
@@ -363,7 +363,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
   type DayAct = { id: string; label: string; run: () => void; disabled?: boolean; busy?: boolean; secondary?: boolean }
   const dayActs: DayAct[] = []
   if (selected && detail && !loading) {
-    if (view === 'detail' && selectedStatus === 'upcoming' && !selected.cancelled) dayActs.push({ id: 'start', label: t('Начать занятие'), run: () => { void mutate({ action: 'start', note }, 'detail') }, disabled: busy || readOnly })
+    if (view === 'detail' && selectedStatus === 'upcoming' && !selected.cancelled && !selected.recording) dayActs.push({ id: 'start', label: t('Начать занятие'), run: () => { void mutate({ action: 'start', note }, 'detail') }, disabled: busy || readOnly })
     if (view === 'detail' && selectedStatus === 'live') dayActs.push({ id: 'finish', label: t('Завершить занятие'), run: () => setView('finish'), disabled: busy || readOnly })
     if (view === 'detail' && selectedStatus === 'completed') dayActs.push({ id: 'ready', label: t(isPublished ? 'Сводка выдачи' : 'Подготовить ДЗ'), run: () => setView(isPublished ? 'receipt' : 'homework'), disabled: busy || readOnly })
     if (view === 'attendance') dayActs.push({ id: 'save', label: t('Сохранить отметки'), run: () => { void mutate({ attendance }, 'detail') }, disabled: busy || readOnly, busy })
@@ -468,11 +468,11 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
       {scheduleItems.map(item => {
         const state = status(item)
         const session = sessions[item.id]
-        const label = state === 'live' ? 'Идёт сейчас' : state === 'completed' ? 'Завершено' : state === 'cancelled' ? 'Отменено' : item.id === next?.id ? 'Ближайшее занятие' : ''
+        const label = state === 'cancelled' ? 'Отменено' : item.recording ? 'Запись' : state === 'live' ? 'Идёт сейчас' : state === 'completed' ? 'Завершено' : item.id === next?.id ? 'Ближайшее занятие' : ''
         return <button data-hover="row" key={item.id} type="button" className="teacher-day-lesson"
           data-next={item.id === next?.id || undefined} disabled={item.cancelled}
           onClick={() => { tactile(); open(item) }}>
-          <time dateTime={item.time}>{item.time}{item.endTime && <small>{item.endTime}</small>}</time>
+          <time dateTime={item.time}>{item.time}{item.recording ? <small>{t('запись')}</small> : item.endTime && <small>{item.endTime}</small>}</time>
           <span>
             <strong>{tn(item.who) || tc(item.title) || t('Занятие')}</strong>
             {label && <small className="teacher-day-lesson-status">{t(label)}</small>}
@@ -521,8 +521,8 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
             const session = sessions[item.id]
             const missingHw = !!session?.completed_at && !session.homework_id
             return <Card key={item.id} tone={state === 'live' || item.id === next?.id ? 'focus' : state === 'completed' ? 'success' : undefined}>
-              <p style={{ ...muted, textAlign: 'center', fontWeight: 600 }}>{t(state === 'live' ? 'Идёт сейчас' : state === 'completed' ? 'Завершено' : state === 'cancelled' ? 'Отменено' : item.id === next?.id ? 'Ближайшее занятие' : 'Занятие')}</p>
-              <h2 style={{ ...heading, fontSize: item.id === next?.id ? 25 : 20 }}>{item.time}{item.endTime ? ` — ${item.endTime}` : ''}</h2>
+              <p style={{ ...muted, textAlign: 'center', fontWeight: 600 }}>{t(state === 'cancelled' ? 'Отменено' : item.recording ? 'Запись' : state === 'live' ? 'Идёт сейчас' : state === 'completed' ? 'Завершено' : item.id === next?.id ? 'Ближайшее занятие' : 'Занятие')}</p>
+              <h2 style={{ ...heading, fontSize: item.id === next?.id ? 25 : 20 }}>{item.recording ? `${t('с')} ${item.time}` : `${item.time}${item.endTime ? ` — ${item.endTime}` : ''}`}</h2>
               <PersonLine icon="schedule"><strong style={{ fontSize: 16 }}>{tn(item.who)}</strong><p style={muted}>{tc(item.title) || t('Тема не указана')}</p></PersonLine>
               {session?.homework_id && <p style={{ ...muted, color: PAIR.success.text }}>{t('Домашняя работа выдана')}</p>}
               {missingHw && <p style={{ ...muted, color: PAIR.review.text }}>{t('Домашняя работа пока не выдана')}</p>}

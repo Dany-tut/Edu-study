@@ -146,7 +146,7 @@ export default function MobileTeacherCalendar() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: subjColors(selected).accent, flexShrink: 0 }} />
-            <strong style={{ fontSize: 16 }}>{selected.time}{selected.endTime ? ` – ${selected.endTime}` : ''}</strong>
+            <strong style={{ fontSize: 16 }}>{selected.recording ? `${t('Запись с')} ${selected.time}` : `${selected.time}${selected.endTime ? ` – ${selected.endTime}` : ''}`}</strong>
             {selected.cancelled && <span style={{ fontSize: 12, fontWeight: 700, color: PAIR.error.text, background: PAIR.error.bg, borderRadius: 999, padding: '2px 8px' }}>{t('Отменено')}</span>}
           </div>
           <p style={{ margin: 0, fontSize: 14, color: 'var(--color-muted)' }}>{dayFull(selected.date)}</p>
@@ -276,7 +276,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
                         border: 'none', borderLeft: `3px solid ${accent}`, borderRadius: 8, padding: single ? '6px 8px' : '4px 5px', overflow: 'hidden',
                         background: bg, color: accent, opacity: ev.cancelled ? .5 : 1, textDecoration: ev.cancelled ? 'line-through' : 'none' }}>
                       <div style={{ fontSize: single ? 12 : 9.5, fontWeight: 700, lineHeight: 1.15, ...textFadeStyle, ...textFadeLines(single ? 1 : 2) }}>{tn(ev.who) || tc(ev.title) || t('Занятие')}</div>
-                      <div style={{ fontSize: single ? 11 : 9, fontWeight: 500, opacity: .85, ...textFadeStyle, ...textFadeLines(1) }}>{ev.time}{single && ev.endTime ? `–${ev.endTime}` : ''}{single ? ` · ${tc(ev.title) || ''}` : ''}</div>
+                      <div style={{ fontSize: single ? 11 : 9, fontWeight: 500, opacity: .85, ...textFadeStyle, ...textFadeLines(1) }}>{ev.recording ? `${t('Запись с')} ${ev.time}` : `${ev.time}${single && ev.endTime ? `–${ev.endTime}` : ''}`}{single ? ` · ${tc(ev.title) || ''}` : ''}</div>
                     </button>
                   )
                 })}

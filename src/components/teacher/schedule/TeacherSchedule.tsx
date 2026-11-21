@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-motion'
-import { ArrowUpRight, CalendarDays, LayoutList, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus } from '../../icons/appIcons'
+import { ArrowUpRight, CalendarDays, LayoutList, CalendarClock, CalendarX, CalendarCheck, ChevronLeft, ChevronRight, ChevronDown, ArrowRightToLine, UserCheck, Plus, Play, Square } from '../../icons/appIcons'
+import { lessonLifecycleAction, runLessonLifecycle, type LessonLifecycleAction } from '../../../lib/lessonLifecycle'
 import Modal, { ModalClose } from '../../Modal'
 import MobileSheet from '../../MobileSheet'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
@@ -162,7 +163,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
   }
 
   // ── действия ───────────────────────────────────────────────────────────────
-  const run = async (fn: () => Promise<{ undo: SchedUndo }>, text: string) => {
+  const run = async (fn: () => Promise<{ undo?: SchedUndo }>, text: string) => {
     if (busy) return
     setBusy(true)
     try {
@@ -346,7 +347,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
       )}
 
       <CalendarOverlays ref={overlays} mobile={mobile} onOpen={onOpen}
-        onAttendance={onAttendance} onAction={run} onSelectDay={go} />
+        onAttendance={onAttendance} onAction={run} onSelectDay={go} lifecycle={!mobile && !readOnly} />
 
       {createPortal(
         <AnimatePresence>
@@ -408,7 +409,7 @@ function useLiveLesson(item: SchedItem) {
       window.removeEventListener('focus', sync)
       document.removeEventListener('visibilitychange', sync)
     }
-  }, [item.date, item.time, item.endTime, item.cancelled, item.rec, item.status])
+  }, [item.date, item.time, item.endTime, item.cancelled, item.rec, item.recording, item.status])
   return { live: isScheduleLive(item, now), ended: isScheduleEnded(item, now) }
 }
 
@@ -434,10 +435,10 @@ function CardBody({ item, lifted = false, preview = false, context = false }: { 
           <strong>{item.who}</strong>
           {live && <Chip tone={mobile ? 'live' : 'now'}>{t('ИДЁТ СЕЙЧАС')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
-          {item.rec && <Chip>{t('Запись')}</Chip>}
+          {(item.rec || item.recording) && <Chip>{t('Запись')}</Chip>}
         </div>
         <div className="calendar-context-lesson-time">
-          <strong>{startTime}{endTime ? `–${endTime}` : ''}</strong>
+          <strong>{item.recording ? `${t('с')} ${startTime}` : `${startTime}${endTime ? `–${endTime}` : ''}`}</strong>
           {localStart && <span>{item.time}{item.endTime ? `–${item.endTime}` : ''} МСК</span>}
         </div>
         {sub && <span className="calendar-context-lesson-detail">{sub}</span>}
@@ -459,6 +460,7 @@ function CardBody({ item, lifted = false, preview = false, context = false }: { 
         <span style={{ fontSize: 16, fontWeight: 700, color: item.cancelled ? 'var(--color-text-4)' : 'var(--color-text)', textDecoration: item.cancelled ? 'line-through' : undefined }}>{startTime}</span>
         {localStart
           ? <span style={{ fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: 'var(--color-text-2)', whiteSpace: 'nowrap' }}>{item.time} МСК</span>
+          : item.recording ? <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-2)' }}>{t('запись')}</span>
           : item.endTime && <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-2)' }}>{endTime}</span>}
         {localStart && item.endTime && <span style={{ fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: 'var(--color-text-2)' }}>до {endTime}</span>}
       </span>
@@ -468,7 +470,7 @@ function CardBody({ item, lifted = false, preview = false, context = false }: { 
             fontSize: 15, fontWeight: 700, color: item.cancelled ? 'var(--color-text-3)' : 'var(--color-text)',
           }}>{item.who}</span>}
           {live && <Chip tone={mobile ? 'live' : 'now'}>{t('ИДЁТ СЕЙЧАС')}</Chip>}
-          {item.rec && <Chip>{t('Запись')}</Chip>}
+          {(item.rec || item.recording) && <Chip>{t('Запись')}</Chip>}
           {item.cancelled && <Chip tone="danger">{t('Отменено')}</Chip>}
         </span>
         {sub && (preview
@@ -628,9 +630,11 @@ export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
   mobile: boolean
   onOpen?: (item: SchedItem) => void
   onAttendance: (item: SchedItem) => void
-  onAction: (fn: () => Promise<{ undo: SchedUndo }>, text: string) => Promise<void>
+  onAction: (fn: () => Promise<{ undo?: SchedUndo }>, text: string) => Promise<void>
   onSelectDay: (day: string) => void
-}>(function CalendarOverlays({ mobile, onOpen, onAttendance, onAction, onSelectDay }, ref) {
+  /** ПК: «Начать / Завершить урок» в карточке занятия. На телефоне они в «Моём дне». */
+  lifecycle?: boolean
+}>(function CalendarOverlays({ mobile, onOpen, onAttendance, onAction, onSelectDay, lifecycle = false }, ref) {
   const t = useT()
   const [menu, setMenu] = useState<{ item: SchedItem; rect: DOMRect; source?: HTMLElement; expand?: number; session: number } | null>(null)
   const menuSession = useRef(0)
@@ -668,6 +672,12 @@ export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
             onClose={() => dismissMenu()}
             onOpen={onOpen && (() => dismissMenu(() => onOpen(menu.item)))}
             onAttendance={() => dismissMenu(() => onAttendance(menu.item))}
+            onLifecycle={lifecycle ? action => {
+              const it = menu.item
+              setMenu(null)
+              void onAction(async () => { await runLessonLifecycle(it, action); return {} },
+                action === 'start' ? t('Урок начат') : t('Урок завершён — ДЗ открыто ученикам'))
+            } : undefined}
             onMove={days => {
               const it = menu.item
               setMenu(null)
@@ -723,8 +733,9 @@ export const CalendarOverlays = forwardRef<CalendarOverlayHandle, {
 // only after the final owner leaves, using the visibility from before any menu.
 const hiddenMenuSources = new WeakMap<HTMLElement, { visibility: string; owners: number }>()
 
-function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, onAttendance, onMove, onShift, onCancel, onRestore, onDeep }: {
+function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, onAttendance, onLifecycle, onMove, onShift, onCancel, onRestore, onDeep }: {
   item: SchedItem
+  onLifecycle?: (action: LessonLifecycleAction) => void
   rect: DOMRect
   source?: HTMLElement
   expand?: number
@@ -739,6 +750,8 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
 }) {
   const t = useT()
   const [sub, setSub] = useState(false)
+  // Действие с занятием фиксируем на открытии меню: оно не меняется под курсором.
+  const [lifecycle] = useState(() => onLifecycle ? lessonLifecycleAction(item) : null)
   const isPresent = useIsPresent()
   const reducedMotion = useReducedMotion()
   const transition = { duration: reducedMotion ? 0 : isPresent ? 0.14 : 0.1, ease: CALENDAR_EASE }
@@ -878,6 +891,7 @@ function ContextMenu({ item, rect: anchorRect, source, expand, onClose, onOpen, 
         <div ref={contentRef} className="calendar-context-content no-scrollbar">
         <div className="calendar-context-actions">
           <div style={{ marginTop: -1 }}>
+            {lifecycle && row(t(lifecycle === 'start' ? 'Начать урок' : 'Завершить урок'), lifecycle === 'start' ? Play : Square, () => onLifecycle!(lifecycle), { primary: true })}
             {onOpen && row(t('Открыть урок'), ArrowUpRight, onOpen, { primary: true })}
             {!item.cancelled && row(t('Перенести'), CalendarClock, () => setSub(s => !s), { open: sub })}
           </div>

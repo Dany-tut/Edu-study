@@ -307,7 +307,7 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
                 const past = !live && isScheduleEnded(item)
                 const top = y(start) + 2
                 const height = Math.max(22, y(end) - y(start) - 4)
-                const meta = [item.time && `${item.time}${item.endTime ? `–${item.endTime}` : ''}`, item.title].filter(Boolean).join(' · ')
+                const meta = [item.recording ? t('Запись') : '', item.time && (item.recording ? `${t('с')} ${item.time}` : `${item.time}${item.endTime ? `–${item.endTime}` : ''}`), item.title].filter(Boolean).join(' · ')
                 return (
                   <button key={item.id} type="button" data-hover="card" className="tcal-event"
                     data-live={live || undefined} data-past={past || undefined} data-cancelled={item.cancelled || undefined}
@@ -338,7 +338,7 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
                 <div ref={ghost} className="tcal-event" data-ghost aria-hidden
                   style={{ top: y(drop.start) + 2, height: Math.max(22, (drop.len / 60) * rowH - 4), left: 4, width: 'calc(100% - 8px)', ['--ev' as string]: drop.item.color || 'var(--color-accent)' }}>
                   <b>{drop.item.who}</b>
-                  <span>{fmtMinutes(drop.start)}–{fmtMinutes(drop.start + drop.len)}</span>
+                  <span>{drop.item.recording ? `${t('с')} ${fmtMinutes(drop.start)}` : `${fmtMinutes(drop.start)}–${fmtMinutes(drop.start + drop.len)}`}</span>
                 </div>
               )}
               {d === today && now >= from && now <= to && <div className="tcal-now" style={{ top: y(now) }} aria-hidden />}
@@ -351,7 +351,7 @@ export default function WeekGrid({ days, items, today, onOpen, onMove, onAdd }: 
           <span>{new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'ru-RU', {
             day: 'numeric', month: 'short',
           }).format(new Date(`${drop.day}T12:00:00`))}</span>
-          <span>{fmtMinutes(drop.start)}–{fmtMinutes(drop.start + drop.len)}</span>
+          <span>{drop.item.recording ? `${t('с')} ${fmtMinutes(drop.start)}` : `${fmtMinutes(drop.start)}–${fmtMinutes(drop.start + drop.len)}`}</span>
         </div>
       )}
     </div>

@@ -28,7 +28,9 @@ import {
   emptyWatch, loadVideoWatch, saveVideoWatch, type VideoWatch,
 } from '../lib/videoProgress'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
-import { lessonScheduleDate } from '../lib/lessonStatus'
+import { getLessonScheduleState, lessonScheduleDate } from '../lib/lessonStatus'
+import { useStudentTz } from '../lib/studentTz'
+import { useLang } from '../lib/i18n'
 import { ownerStudentIdFor } from '../store/studentDataStore'
 import type { CourseReaction } from '../data/mockData'
 import { EMOJI_STEPS } from '../components/homeworkSteps'
@@ -499,7 +501,7 @@ function readBasicProgress(lessonId: string, homework: LessonHomework): { unlock
   }
 }
 
-function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false, timeLocked = false }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string; videoRequired?: boolean; timeLocked?: boolean }) {
+function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false, timeLocked = false, recording = false }: { lessonId: string; homework: LessonHomework; onOpen: () => void; title?: string; videoRequired?: boolean; timeLocked?: boolean; recording?: boolean }) {
   const t = useT()
   const [{ unlocked, score }, setProgress] = useState(() => readBasicProgress(lessonId, homework))
   const assessment = useDashboard(s => s.lessonAssessments[lessonId])
@@ -536,7 +538,7 @@ function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false
   const hardIconSize = (!hardUnlocked && !hardStatus) ? 18 : 20
 
   const rows = [
-    { id: 'base' as const, icon: timeLocked || videoRequired ? Lock : GraduationCap, iconSize: 20, title: timeLocked ? t('ДЗ откроется через 90 минут после начала урока') : videoRequired ? t('Сначала просмотрите видео') : title ?? t('Домашка') },
+    { id: 'base' as const, icon: timeLocked || videoRequired ? Lock : GraduationCap, iconSize: 20, title: timeLocked ? t(recording ? 'ДЗ откроется вместе с записью' : 'ДЗ откроется после урока') : videoRequired ? t('Откроется после просмотра 90% записи') : title ?? t('Домашка') },
     ...(hardUnlocked || hardStatus ? [{ id: 'hard' as const, icon: hardIcon, iconSize: hardIconSize, title: t('Сложный уровень') }] : []),
   ]
   const basicEstimatedTime = homework.levels.find(level => level.id === 'basic')?.estimatedMinutes
@@ -687,6 +689,35 @@ function HomeworkCard({ lessonId, homework, onOpen, title, videoRequired = false
   )
 }
 
+/** Слот плеера, пока записи нет: до «Запись доступна с» или пока живой урок
+ *  ждёт ссылку от учителя. Той же рамки, что и плеер, — страница не прыгает,
+ *  когда запись появится. */
+function RecordingPlaceholder({ opensAt }: { opensAt: number | null }) {
+  const t = useT()
+  const tz = useStudentTz(s => s.tz)
+  const lang = useLang(s => s.lang)
+  const when = opensAt == null ? '' : new Intl.DateTimeFormat(lang === 'ru' ? 'ru-RU' : 'en-GB', {
+    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: tz,
+  }).format(opensAt)
+  return (
+    <section role="status" style={{
+      aspectRatio: '16 / 9', maxHeight: 420, width: '100%', borderRadius: 24, padding: 24,
+      background: 'rgba(var(--glass-rgb), 0.96)', border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-2)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center',
+    }}>
+      <span aria-hidden style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--color-bg-3)', color: 'var(--color-muted)', display: 'grid', placeItems: 'center' }}>
+        {opensAt == null ? <Clock size={22} /> : <Lock size={22} />}
+      </span>
+      <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, textWrap: 'balance' }}>
+        {opensAt == null ? t('Запись готовится') : `${t('Запись откроется')} ${when}`}
+      </h2>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4, maxWidth: 320, textWrap: 'balance' }}>
+        {opensAt == null ? t('Урок завершён. Запись появится здесь, как только учитель её добавит.') : t('Домашка откроется после просмотра 90% записи.')}
+      </p>
+    </section>
+  )
+}
+
 export default function LessonPage() {
   const accessNow = useNow()
   const t = useT()
@@ -834,7 +865,15 @@ export default function LessonPage() {
 
   const detail = getLessonDetail(lesson)
   const date = lessonScheduleDate(lesson, 'short')
-  const videoSource = detail.videoSource
+  // «В записи»: до «Запись доступна с» скрыт сам плеер, а не только ДЗ.
+  const slot = lesson.kind === 'test' ? null : getLessonScheduleState(lesson, accessNow)
+  const recordingOpensAt = slot?.recording && slot.startMs != null && accessNow.getTime() < slot.startMs ? slot.startMs : null
+  const videoSource = recordingOpensAt == null ? detail.videoSource : undefined
+  // Живой урок кончился (учитель нажал «Завершить» или прошёл конец по
+  // расписанию), а ссылки нет — запись готовится. Неделю: дальше у урока
+  // её, скорее всего, не будет вовсе.
+  const recordingPreparing = !detail.videoSource && !!slot && !slot.recording && slot.hasEnded
+    && slot.phase !== 'cancelled' && accessNow.getTime() - (slot.endMs ?? slot.startMs ?? 0) < 7 * 86_400_000
 
   const timecodes = detail.timecodes
   // Монтаж записи (если преподаватель его применил): что плеер пропускает и ускоряет.
@@ -1056,6 +1095,9 @@ export default function LessonPage() {
       {/* ── Row 1: video + timecodes — only when recording exists ──
           Колонка справа появляется только у урока со своими таймкодами: пустой
           рамке с чужими главами там делать нечего, видео занимает всю ширину. */}
+      {(recordingOpensAt != null || recordingPreparing) && (
+        <RecordingPlaceholder opensAt={recordingOpensAt} />
+      )}
       {videoSource && (
         <LessonRecordingView recordingKey={lesson.id} playerRef={playerRef} source={videoSource}
           title={tContent(lesson.title)} badge={videoBadge} durationLabel={detail.duration}
@@ -1193,20 +1235,20 @@ export default function LessonPage() {
         <MaterialsTile materials={detail.files.materials ?? []} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
-            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} timeLocked={homeworkTimeLocked(lesson, accessNow)} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />
+            <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} timeLocked={homeworkTimeLocked(lesson, accessNow)} recording={lesson.deliveryMode === 'recording'} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />
           </div>
         )}
         {/* Доп. домашки — такие же карточки, у каждой своя сдача (lib/extraHomework). */}
         {getExtraHomeworks(lesson).map(x => (
           <div key={x.id} style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
-            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} timeLocked={homeworkTimeLocked(lesson, accessNow)} videoRequired={homeworkNeedsVideo({ ...lesson, watch }, hwRef(lesson.id, x.id))} title={extraHwLabel(x.index, x.total, t)} />
+            <HomeworkCard lessonId={hwRef(lesson.id, x.id)} homework={x.homework} onOpen={() => openHomework(x.id)} timeLocked={homeworkTimeLocked(lesson, accessNow)} recording={lesson.deliveryMode === 'recording'} videoRequired={homeworkNeedsVideo({ ...lesson, watch }, hwRef(lesson.id, x.id))} title={extraHwLabel(x.index, x.total, t)} />
           </div>
         ))}
       </div>
 
       {/* ── Расшифровка — в самом низу, под описанием и материалами, и только
           если учитель отметил «Показывать ученику». ── */}
-      {lesson.transcript?.forStudents && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
+      {videoSource && lesson.transcript?.forStudents && lesson.transcript.source === (lesson.videoUrl?.trim() || '') &&
         <LessonTranscriptPanel transcript={lesson.transcript} time={videoTime} hidden={montagePlan?.skip}
           seek={canSeek ? seekTo : undefined} />}
 

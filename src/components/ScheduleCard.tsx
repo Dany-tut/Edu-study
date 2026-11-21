@@ -271,7 +271,9 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
                   <div className="flex-shrink-0 flex items-center" style={{ gap: 10 }}>
                     {lesson.time && <div style={{ minWidth: 54, textAlign: 'right' }}>
                       <span style={{ fontSize: 18, fontWeight: 600, color: isMissed ? pal.text : 'var(--color-text)', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textDecoration: isCancelled ? 'line-through' : undefined }}>{lesson.time}</span>
-                      {lesson.endTime && <p style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('до')} {lesson.endTime}</p>}
+                      {st.recording
+                        ? st.phase === 'upcoming' && <p style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('запись')}</p>
+                        : lesson.endTime && lesson.endTime !== lesson.time && <p style={{ fontSize: 10, color: 'var(--color-muted)', marginTop: 4 }}>{t('до')} {lesson.endTime}</p>}
                     </div>}
                     <div aria-hidden="true" className="schedule-row-media" style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {!isCancelled && (st.phase === 'available' ? <BookOpen size={18} color={pal.text} /> : <LoopSvg

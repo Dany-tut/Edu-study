@@ -20,16 +20,16 @@ storage.clear()
 
 assert.equal(homeworkNeedsVideo({ ...lesson, videoUrl: 'https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz/view' }), true, 'Native Drive playback must count toward the prerequisite')
 
-for (const seconds of [0, 69.9, 70, 90, 100]) {
+for (const seconds of [0, 70, 89.9, 90, 100]) {
   const watch = { position: 100, duration: 100, ranges: [[0, seconds]] as [number, number][], completed: false, updatedAt: '' }
-  assert.equal(withCompletion(watch).completed, seconds >= 70)
+  assert.equal(withCompletion(watch).completed, seconds >= 90)
   assert.equal(watchRatio(watch), seconds / 100, 'Completion threshold must not rescale watched percentage')
   for (const videoUrl of [lesson.videoUrl, 'https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz/view']) {
-    assert.equal(homeworkNeedsVideo({ ...lesson, videoUrl, watch }), seconds < 70, 'Saved coverage unlocks homework without another playback tick')
+    assert.equal(homeworkNeedsVideo({ ...lesson, videoUrl, watch }), seconds < 90, 'Saved coverage unlocks homework without another playback tick')
   }
 }
 assert.equal(withCompletion({ position: 0, duration: 100, ranges: [], completed: true, updatedAt: '' }).completed, true, 'Previously earned completion remains valid')
-console.log('PASS: 70% boundary, full-duration percentage, saved coverage, Drive, seeking, attendance and drafts')
+console.log('PASS: 90% boundary, full-duration percentage, saved coverage, Drive, seeking, attendance and drafts')
 
 const { homeworkTimeLocked } = await import('../src/lib/homeworkAccess')
 const { buildStudentDiary } = await import('../src/lib/studentDiary')
@@ -42,7 +42,42 @@ for (const time of ['2026-11-02T14:59:59Z', '2026-11-02T15:00:00Z', '2026-11-02T
 }
 assert.equal(homeworkTimeLocked(scheduled, new Date('2026-11-02T16:30:00Z')), false, 'Opens at 19:30 Moscow')
 assert.equal(homeworkTimeLocked({ ...scheduled, deliveryMode: 'recording' }, new Date('2026-11-02T15:00:00Z')), false)
-console.log('PASS: scheduled homework release before start, during lesson, exact 90-minute boundary and diary exclusion')
+assert.equal(homeworkTimeLocked({ ...scheduled, deliveryMode: 'recording' }, new Date('2026-11-02T14:59:59Z')), true, 'Recording homework waits for «available from»')
+console.log('PASS: scheduled homework release before start, during lesson, legacy 90-minute boundary and diary exclusion')
+
+// Calendar slot: live lesson ends at its chosen duration or when the teacher finishes it.
+const { useStudentData } = await import('../src/store/studentDataStore')
+const { getLessonScheduleState } = await import('../src/lib/lessonStatus')
+const linked = { ...scheduled, dbId: 'db-1' } as Lesson
+const withSlot = (slot: Record<string, unknown>, l: Lesson = linked) => useStudentData.setState({
+  subjects: [{ id: 'course', name: 'Химия', modules: [{ id: 1, lessons: [l] }] }] as any,
+  scheduleDays: [{ date: '2026-11-02', lessons: [{ id: 's1', lessonId: 'db-1', subject: 'Химия', lessonTitle: 'x', lessonNumber: 0, time: '18:00', kind: 'lesson', ...slot }] }] as any,
+})
+withSlot({ endTime: '19:00', status: 'upcoming' })
+assert.equal(homeworkTimeLocked(linked, new Date('2026-11-02T15:59:59Z')), true, 'Live: locked until the scheduled end')
+assert.equal(homeworkTimeLocked(linked, new Date('2026-11-02T16:00:00Z')), false, 'Live: opens at start + chosen duration (60 min), not +90')
+withSlot({ endTime: '19:30', status: 'completed' })
+assert.equal(homeworkTimeLocked(linked, new Date('2026-11-02T15:20:00Z')), false, 'Live: «Завершить урок» opens homework at once')
+withSlot({ endTime: '19:30', status: 'cancelled' })
+assert.equal(homeworkTimeLocked(linked, new Date('2026-11-02T18:00:00Z')), true, 'Cancelled stays locked')
+// Recording: no end (time_end = time_start); available from the start, the same day.
+const rec = { ...linked, deliveryMode: 'recording' } as Lesson
+withSlot({ endTime: '18:00', status: 'upcoming' }, rec)
+assert.equal(homeworkTimeLocked(rec, new Date('2026-11-02T14:59:00Z')), true)
+assert.equal(homeworkTimeLocked(rec, new Date('2026-11-02T15:00:00Z')), false)
+const recState = getLessonScheduleState(rec, new Date('2026-11-02T15:01:00Z'))!
+assert.equal(recState.recording, true)
+assert.equal(recState.phase, 'available', 'Recording without end is open right away, not next day')
+assert.equal(recState.recordingAvailable, true)
+// Diverged «Запись» node of a live lesson: same — open from its start, no live phase.
+const recNode = { ...linked, id: 'check~rec', nodeType: 'rec' } as Lesson
+withSlot({ endTime: '18:00', status: 'upcoming', kind: 'rec' }, recNode)
+const nodeState = getLessonScheduleState(recNode, new Date('2026-11-02T15:01:00Z'))!
+assert.equal(nodeState.phase, 'available')
+assert.equal(nodeState.isCurrent, false)
+assert.equal(nodeState.recordingAvailable, true)
+useStudentData.setState({ subjects: [], scheduleDays: [] } as any)
+console.log('PASS: live end = chosen duration, «Завершить урок», cancelled, recording same-day release, diverged rec node')
 
 // A background timer may sleep for a minute while a 10x video plays ten minutes.
 const native = (ranges: [number, number][], currentTime: number, duration = 1200) => ({
@@ -63,8 +98,11 @@ assert.equal(watchedSeconds(nativeWatch.ranges), 630, 'Rewind and repeated sampl
 const restored = JSON.parse(JSON.stringify(nativeWatch))
 nativeWatch = withNativePlayed(restored, native([[600, 810]], 810))
 assert.equal(watchedSeconds(nativeWatch.ranges), 840, 'Resume merges browser ranges with saved coverage')
-assert.equal(nativeWatch.completed, true, 'Exactly 70% still completes the watch')
+assert.equal(nativeWatch.completed, false, '70% no longer completes the watch')
+nativeWatch = withNativePlayed(nativeWatch, native([[810, 1080]], 1080))
+assert.equal(watchedSeconds(nativeWatch.ranges), 1080)
+assert.equal(nativeWatch.completed, true, 'Exactly 90% completes the watch')
 const tail = withNativePlayed(emptyWatch(), native([[0, 12.75]], 12.75, 20))
 assert.equal(watchedSeconds(tail.ranges), 12.75, 'Pause/ended/pagehide snapshots keep the final fragment')
 assert.equal(withNativePlayed(tail, native([], 0, NaN)).duration, 20, 'Metadata reload retains known duration')
-console.log('PASS: native background 10x, paused/buffering, seeks, replay, resume, final tail and unchanged 70%')
+console.log('PASS: native background 10x, paused/buffering, seeks, replay, resume, final tail and 90% threshold')

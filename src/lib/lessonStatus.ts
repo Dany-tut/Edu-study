@@ -57,6 +57,8 @@ export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date(), eve
   // Locked and current lessons both depend on whether the lesson sits on the
   // calendar, so resolve its scheduled slot (any day in the window) once.
   const status = lesson.status === 'unviewed' && (event?.isCurrent || lessonStudyProgress(lesson).completed) ? 'current' : lesson.status
+  // Запись до «Запись доступна с» — ещё не «Смотреть запись»: плеер скрыт.
+  if (status === 'unviewed' && event?.recording && event.phase === 'upcoming') return event.isToday ? 'today' : 'current'
   if (status !== 'locked' && status !== 'current') return status
 
   // Test nodes don't have recordings to view — a locked test must stay locked
@@ -72,24 +74,33 @@ export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date(), eve
   return event.isToday && !event.hasEnded ? 'today' : 'current'
 }
 
+/** Запись («В записи» или отдельный узел «Запись») открывается в момент
+ *  «Запись доступна с» и конца не имеет: в базе её time_end = time_start.
+ *  Живой урок отдаёт запись после конца урока. */
+function recordingOpen(state: ScheduleState, recording: boolean): boolean {
+  return recording ? state.phase === 'available' : state.hasEnded
+}
+
 /** One event state is shared by the calendar, mobile home and track. */
 export function getStudentScheduleState(row: ScheduleLesson, date: string, now: Date, timeZone: string, subjects: Subject[]) {
   const match = resolveScheduleLesson(row, subjects).lesson
+  const recording = row.kind === 'rec' || match?.nodeType === 'rec' || match?.deliveryMode === 'recording'
   const state = getScheduleState({
     ...row, date,
-    materialOnly: match?.kind === 'test' || match?.nodeType === 'lesson' || (match?.deliveryMode === 'recording' && row.kind !== 'rec'),
+    materialOnly: match?.kind === 'test' || match?.nodeType === 'lesson' || recording,
   }, now, timeZone)
-  return { ...state, recordingAvailable: state.hasEnded && !!match?.videoUrl?.trim() }
+  return { ...state, recording, recordingAvailable: recordingOpen(state, recording) && !!match?.videoUrl?.trim() }
 }
 
 export function getLessonScheduleState(lesson: Lesson, now: Date = new Date()): ScheduleState | null {
   const slot = lessonScheduleSlot(lesson, now)
   if (!slot) return null
+  const recording = lesson.nodeType === 'rec' || lesson.deliveryMode === 'recording'
   const state = getScheduleState({
     ...slot,
-    materialOnly: lesson.kind === 'test' || lesson.nodeType === 'lesson' || (lesson.deliveryMode === 'recording' && lesson.nodeType !== 'rec'),
+    materialOnly: lesson.kind === 'test' || lesson.nodeType === 'lesson' || recording,
   }, now, useStudentTz.getState().tz)
-  return { ...state, recordingAvailable: state.hasEnded && !!lesson.videoUrl?.trim() }
+  return { ...state, recording, recordingAvailable: recordingOpen(state, recording) && !!lesson.videoUrl?.trim() }
 }
 
 function lessonScheduleSlot(lesson: Lesson, now = new Date()): ScheduleSlot | null {

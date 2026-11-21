@@ -25,6 +25,8 @@ export interface ScheduleState {
   secondsUntil: number | null
   minutesUntil: number | null
   recordingAvailable?: boolean
+  /** Слот — запись без конца («Запись доступна с»), а не живое занятие. */
+  recording?: boolean
 }
 
 const labels: Record<SchedulePhase, string | null> = {
