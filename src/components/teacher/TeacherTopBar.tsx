@@ -511,7 +511,15 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   сверху/снизу), свёрнутая до иконки — в углу. */}
               {collapsed
                 ? <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 3, right: 1, zIndex: 2 }} />
-                : <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} style={{ position: 'relative', zIndex: 1, marginLeft: 8, flexShrink: 0 }} />}
+                : item.id === 'gradebook' && <span aria-hidden={badgeCount <= 0} style={{
+                    // Keep the journal tab's geometry stable while the pending
+                    // count is fetched (and when it transitions back to zero).
+                    width: 32, height: 18, marginLeft: 8, flexShrink: 0,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    position: 'relative', zIndex: 1,
+                  }}>
+                    <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} />
+                  </span>}
             </motion.button>
           )
         })}

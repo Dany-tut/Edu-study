@@ -8071,6 +8071,7 @@ export default function TeacherConstructorPage() {
   const [courses, setCourses] = useState<Course[]>(_cachedCourses ?? [])
   const [trainers, setTrainers] = useState<Trainer[]>(_cachedTrainers ?? [])
   const [widgets, setWidgets] = useState<Widget[]>(_cachedWidgets ?? [])
+  const [coursesLoading, setCoursesLoading] = useState(_cachedCourses === null)
   const [dbLoading, setDbLoading] = useState(_cachedCourses === null)
   const [ownerId, setOwnerId] = useState<string | null>(_cachedOwnerId)
   const [editMode, setEditMode] = useState(false)
@@ -8100,15 +8101,16 @@ export default function TeacherConstructorPage() {
         const uid = await getOwnerId()
         _cachedOwnerId = uid
         setOwnerId(uid)
+        // These catalogs don't gate the course shelf. Start them before the
+        // shared-course lookup, then let the first visible cards render as soon
+        // as their own query completes instead of waiting for every catalog.
+        const trainersRequest = supabase.from('trainers').select('*').order('created_at')
+        const widgetsRequest = supabase.from('widgets').select('*').order('created_at')
         const sharedIds = await fetchSharedCourseIds(uid)
         const courseQuery = sharedIds.length
           ? supabase.from('courses').select(COURSE_CARD_SELECT).or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
           : supabase.from('courses').select(COURSE_CARD_SELECT).eq('created_by', uid).order('created_at')
-        const [{ data: cData }, { data: tData }, { data: wData }] = await Promise.all([
-          courseQuery,
-          supabase.from('trainers').select('*').order('created_at'),
-          supabase.from('widgets').select('*').order('created_at'),
-        ])
+        const { data: cData } = await courseQuery
         loadColorOverridesFromDB().then(overrides => {
           Object.entries(overrides).forEach(([subject, hex]) => {
             const existing = CUSTOM_META.get(subject)
@@ -8117,14 +8119,17 @@ export default function TeacherConstructorPage() {
           })
         })
         const c = cData ? cData.map((x: any) => dbCourseToLocal(x, uid)) : []
-        const t = tData ? tData.map(dbTrainerToLocal) : []
-        const w = wData ? wData.map(dbWidgetToLocal) : []
-        _cachedCourses = c; _cachedTrainers = t; _cachedWidgets = w
+        _cachedCourses = c
         setCourses(prev => {
           const dbIds = new Set(c.map((x: Course) => x.id))
           const localOnly = prev.filter(x => !dbIds.has(x.id))
           return [...localOnly, ...c]
         })
+        setCoursesLoading(false)
+        const [{ data: tData }, { data: wData }] = await Promise.all([trainersRequest, widgetsRequest])
+        const t = tData ? tData.map(dbTrainerToLocal) : []
+        const w = wData ? wData.map(dbWidgetToLocal) : []
+        _cachedTrainers = t; _cachedWidgets = w
         setTrainers(t); setWidgets(w)
         setDbLoading(false)
       } finally {
@@ -9751,7 +9756,7 @@ export default function TeacherConstructorPage() {
                 } : undefined}>
               <div ref={testGridRef} className={activeTab === 'testing' ? 'tests-grid' : undefined}
                 style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: DIAG_GRID_GAP, position: 'relative' }}>
-                {activeTab === 'course' && dbLoading &&
+                {activeTab === 'course' && coursesLoading &&
                   Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
                 {activeTab === 'course' && filteredCourses.map(c => (
                   <div key={c.id} className={flashId === c.id ? 'constructor-card-flash' : undefined}
