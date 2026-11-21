@@ -9,6 +9,7 @@ import { createRoot } from 'react-dom/client'
 import { MotionConfig } from 'framer-motion'
 import './index.css'
 import { startTextFades } from './lib/textFades'
+import { installTableHeaderWheel } from './lib/tableHeaderWheel'
 import App from './App.tsx'
 import MfaGate from './components/mfa/MfaGate'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -153,6 +154,7 @@ const FeedbackTriageStand = import.meta.env.DEV && (window.location.pathname.rep
   ? lazy(() => import('./components/teacher/feedbackTriageStand/FeedbackTriageStand')) : null
 
 startTextFades()
+installTableHeaderWheel()
 if (IS_IOS) startSoftEdges()
 
 // Install diagnostics before rendering; App's later call is idempotent.

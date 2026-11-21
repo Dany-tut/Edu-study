@@ -557,29 +557,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
     () => new Map(entries.map(e => [e.student.id, new Map(e.works.map(w => [w.slot.ref, w]))])), [entries]
   )
   const withWork = selected.tab === 'Работы'
-  useEffect(() => {
-    const scroller = frame.current
-    if (!withWork || !scroller) return
-
-    const scrollHeader = (event: WheelEvent) => {
-      if (!event.cancelable || event.ctrlKey || event.metaKey ||
-        !(event.target instanceof Element) || !event.target.closest('thead')) return
-
-      const mode = event.deltaMode
-      const { deltaX, deltaY } = event
-      const delta = Math.abs(deltaX) >= Math.abs(deltaY) ? deltaX : deltaY
-      if (!delta) return
-
-      // Consume the gesture at the edges too, so the student rows stay put.
-      event.preventDefault()
-      const unit = mode === WheelEvent.DOM_DELTA_LINE ? 16 :
-        mode === WheelEvent.DOM_DELTA_PAGE ? scroller.clientWidth : 1
-      scroller.scrollLeft += delta * unit
-    }
-
-    scroller.addEventListener('wheel', scrollHeader, { passive: false })
-    return () => scroller.removeEventListener('wheel', scrollHeader)
-  }, [frame, withWork])
+  // Колесо над шапкой листает таблицу вбок — общий слушатель lib/tableHeaderWheel.
   const attendanceColumns = new Map<string, JournalCell[]>()
   if (!withWork && onOpenAttendance) {
     for (const { works } of visible) {
