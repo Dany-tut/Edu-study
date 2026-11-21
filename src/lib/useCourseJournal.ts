@@ -1,3 +1,4 @@
+import { attendanceSourceReady } from './journalTransfer'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
@@ -185,7 +186,8 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
         eventsAndMarks,
         journalPages<CourseJournalData['assignments'][number]>(offset => supabase.from('homework')
           .select('id, lesson_id, group_id, title, due_date, status, basicTask:basic_tasks->0' + (completeWorkList ? ',assignedAt:assigned_at,basicTasks:basic_tasks' : '')).eq('created_by', owner).order('id').range(offset, offset + 499).abortSignal(signal).retry(false), signal),
-        byIds<CourseJournalData['legacy'][number]>('lesson_attendance', 'id, student_id, lesson_date, lesson_title, present, grade', 'student_id', ids, signal),
+        attendanceSourceReady().then(withSource => byIds<CourseJournalData['legacy'][number]>('lesson_attendance',
+          'id, student_id, lesson_date, lesson_title, present, grade' + (withSource ? ', source' : ''), 'student_id', ids, signal)),
         byIds<CourseJournalData['attempts'][number]>('homework_attempts', 'id, student_id, lesson_ref, number, status, score, passing_score, submitted_at, review_comment', 'student_id', ids, signal)
           .catch(error => { if (signal.aborted) throw error; warnings.push('История попыток недоступна. Показаны текущие результаты работ.'); return [] }),
       ])

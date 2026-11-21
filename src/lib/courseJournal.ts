@@ -32,6 +32,8 @@ export interface JournalAssignment {
 export interface JournalMark { schedule_id: string; attendance: Record<string, boolean | null> }
 export interface JournalLegacyMark {
   student_id: string; lesson_date: string; lesson_title: string; present: boolean; grade: number | null
+  /** live | recording | transfer — после миграции 20261121120000. */
+  source?: string
 }
 export interface JournalAttempt extends HomeworkAttempt { student_id: string; lesson_ref: string }
 export interface CourseJournalData {
@@ -56,6 +58,8 @@ export interface JournalCell {
   passed: boolean
   due: string | null; required: boolean; attention: boolean
   needsAttendance: boolean
+  /** Отметка перенесена из прошлого журнала и не списывала занятие. */
+  transferred: boolean
 }
 
 export const OUTSIDE_COURSES = '__outside__'
@@ -175,7 +179,9 @@ export function journalCell(data: CourseJournalData, index: ReturnType<typeof bu
   const ended = !!event && eventHasEnded(event, today, time)
   const needsAttendance = !cancelled && applicable && ended && present === null && column.lesson?.kind !== 'test' && !column.recording && column.lesson?.delivery_mode !== 'recording'
   return { column, student, event, present, grade, cancelled, applicable, watched, watchStarted,
-    studied: !cancelled && (watched || (column.lesson?.delivery_mode !== 'recording' && present === true)),
+    // «Был» на записи — учитель провёл её в Телемосте: зачёт, как у живого урока.
+    studied: !cancelled && (watched || present === true),
+    transferred: legacy?.source === 'transfer' && present !== null && present === legacy.present,
     work, related: index.related.get(`${student.id}:${column.lesson?.short_id ?? column.id}`) ?? [],
     state, score: homeworkDisplayScore(result), latestScore: result?.percent ?? null,
     passingScore: result?.passingScore ?? 80, passed: result?.passed === true, attempts, due, required: required && !cancelled && applicable,

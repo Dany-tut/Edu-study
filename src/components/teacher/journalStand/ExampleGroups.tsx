@@ -13,6 +13,11 @@ import { applyStandReview, nativeHomeworkReviewId, type HomeworkEntry, type Revi
 
 import { addFullReviewExample, fullReviewExample, fullReviewAiExample, saveFullReviewExample, FULL_REVIEW_EXAMPLE_ID, FULL_REVIEW_EXAMPLE_TITLE } from './fullReviewExample'
 import { handoffHomeworkReview } from './homeworkReviewHandoff'
+import AttendanceEditor, { type AttendancePreset } from './AttendanceEditor'
+import JournalImport from '../JournalImport'
+import { LessonDateDialog } from './TransferTools'
+import { journalCell, type JournalCell, type JournalColumn } from '../../../lib/courseJournal'
+import type { Student } from '../../../data/teacherMockData'
 
 const FullReviewEditor = lazy(() => import('../../../pages/teacher/TeacherHomeworkReviewPage').then(m => ({default:m.HomeworkReviewEditor})))
 const StudentWidgetsStand = lazy(() => import('./StudentWidgetsStand'))
@@ -95,6 +100,9 @@ function exampleData() {
       if (i < 4) l.extraHw = [{id:'practice', date:day(followups[i]), tasks:extraTypes.map(type => ({type}))}]
     }
     const course = data.courses.find(c => c.id === l.course_id)!
+    // Перенос прошлого: первый урок прошёл до Искры (нет строки расписания), третий — в записи.
+    if (chem && i === 2) l.delivery_mode = 'recording'
+    if (chem && i === 0) continue
     for (const group of data.groups) {
       const id = group.id + ':' + l.id
       data.events.push({id, lesson_id:l.id, node_type:'lesson', group_id:group.id, student_id:null,
@@ -102,7 +110,9 @@ function exampleData() {
         subject:course.subject, status:l.scheduled_date! < today ? 'completed' : 'upcoming'})
       if (i < 4) {
         const members = data.students.filter(s => s.groupId === group.id)
-        data.marks.push({schedule_id:id, attendance:Object.fromEntries(members.map((s,j) => [s.id,(j+i)%7!==3]))})
+        data.marks.push({schedule_id:id, attendance:Object.fromEntries(members.map((s,j) => [s.id, chem && i === 2 ? (j % 3 === 0 ? true : null) : (j+i)%7!==3]))})
+        if (chem && i === 1) for (const [j, s] of members.entries()) if (j % 4 === 1)
+          data.legacy.push({student_id:s.id, lesson_date:l.scheduled_date!, lesson_title:l.title, present:(j+i)%7!==3, grade:null, source:'transfer'})
       }
     }
     for (const [j, s] of data.students.entries()) {
@@ -146,6 +156,10 @@ export default function ExampleGroups() {
   const change = (v: Partial<StandSelection>) => setState((p) => ({ ...p, ...v }))
   const [gid, setGroup] = useState(data.groups[0].id)
   const [add, setAdd] = useState<'groups' | 'students' | null>(null)
+  const [transfer, setTransfer] = useState(false)
+  const [editor, setEditor] = useState<{ cells: JournalCell[]; preset?: AttendancePreset } | null>(null)
+  const [lessonDate, setLessonDate] = useState<{ column: JournalColumn; students: Student[] } | null>(null)
+  const [importScope, setImportScope] = useState<{ students: Student[]; columns: JournalColumn[] } | null>(null)
   const [name, setName] = useState('')
   const [page, setPage] = useState<ExamplePage>(pageFromHash)
   const [reviewStudent, setReviewStudent] = useState(() => new URLSearchParams(window.location.hash.split('?')[1]).get('student') ?? 'example-group-0-0')
@@ -280,6 +294,11 @@ export default function ExampleGroups() {
           />
         </div>
         <Matrix
+          onOpenAttendance={(cells, preset) => setEditor({ cells, preset })}
+          transfer={transfer}
+          onTransfer={setTransfer}
+          onImport={(students, columns) => setImportScope({ students, columns })}
+          onSetDate={(column, students) => setLessonDate({ column, students })}
           onOpenWork={homework.openStudent}
           onOpenAssignment={ref => homework.openAssignment(ref, entries.map(e => e.student.id))}
           groups={data.groups}
@@ -307,6 +326,10 @@ export default function ExampleGroups() {
         </>}
       </div>
       {homework.dialog}
+      {editor && <AttendanceEditor cells={editor.cells} preset={editor.preset} transfer={transfer} data={data} onSaved={() => {}} onClose={() => setEditor(null)} />}
+      {lessonDate && <LessonDateDialog data={data} column={lessonDate.column} students={lessonDate.students} today={today} onSaved={() => {}} onClose={() => setLessonDate(null)} />}
+      {importScope && <JournalImport data={data} columns={importScope.columns} students={importScope.students}
+        cellOf={(student, column) => journalCell(data, index.journal, student, column, today)} onSaved={() => {}} onClose={() => setImportScope(null)} />}
       {add && (
         <Modal
           title={add === 'groups' ? 'Добавить группу в пример' : 'Добавить ученика в пример'}

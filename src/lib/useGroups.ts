@@ -888,7 +888,9 @@ export function useAttendance(groupId: string | null) {
     entries: { studentId: string; present: boolean | null; grade?: number | null }[],
     lessonTitle = '',
     scheduleId?: string,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    /** Перенос прошлого: сервер не списывает такие отметки с баланса. */
+    source?: 'transfer'
   ) {
     signal?.throwIfAborted()
     // A personal lesson given to a group member (student-scoped schedule row,
@@ -919,10 +921,15 @@ export function useAttendance(groupId: string | null) {
     // Exact event marks survive multiple lessons on the same date and may be
     // saved after the lesson. null remains explicitly unmarked.
     if (scheduleId) {
-      const request = supabase.rpc('teacher_journal_save', {
-        p_schedule: scheduleId, p_entries: entries,
-      })
-      const { error } = await (signal ? request.abortSignal(signal) : request)
+      const send = (withSource: boolean) => {
+        const request = supabase.rpc('teacher_journal_save', {
+          p_schedule: scheduleId, p_entries: entries, ...(withSource ? { p_source: source } : {}),
+        })
+        return signal ? request.abortSignal(signal) : request
+      }
+      let { error } = await send(!!source)
+      // До миграции source у RPC нет третьего параметра: сохраняем как раньше.
+      if (error && source && error.code === 'PGRST202') ({ error } = await send(false))
       signal?.throwIfAborted()
       if (error) throw error
     }

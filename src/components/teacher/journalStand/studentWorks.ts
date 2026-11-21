@@ -48,6 +48,8 @@ export interface StudentWork {
   attendanceReason?: string
   grade?: number | null
   present: boolean | null
+  /** Отметка из переноса прошлого: занятие не списывалось. */
+  transferred: boolean
   watched: boolean
   studied: boolean
   points: string[]
@@ -308,12 +310,14 @@ export function studentWorks(
         dates: dates.sort(),
         returned: returnedAttempts.length > 0 || status === 'На доработке',
         resubmitted,
-        attendanceCell: cell && !attendanceReason ? cell : undefined,
+        // Урок в записи тоже можно отметить: «Был» на трансляции засчитывает урок.
+        attendanceCell: cell && cell.event && !cell.cancelled && (!attendanceReason || attendanceReason === 'Запись урока') ? cell : undefined,
         attendanceReason,
         grade: cell?.grade ?? null,
         present: cell?.present ?? null,
         watched: cell?.watched ?? false,
         studied: cell?.studied ?? false,
+        transferred: cell?.transferred ?? false,
         points,
       },
     ]

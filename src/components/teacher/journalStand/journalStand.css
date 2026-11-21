@@ -585,3 +585,9 @@
   .js-tabs.cj-tabs button:has(.js-pending-count) { padding-inline: 10px calc((var(--js-tab-h, 32px) - 18px) / 2); }
   .js-pending-lessons summary { min-height: 44px; }
 }
+/* Урок в записи: «Был» (провёл в Телемосте) — зелёная отметка с кружком ▶; без отметки — штриховка. */
+.js-mark-play { display: grid; place-items: center; flex: 0 0 auto; width: 15px; height: 15px; margin-right: 5px; border-radius: 999px; color: currentColor; }
+.js-mark[data-recording][data-tone^='grade-'] .js-mark-play, .js-mark[data-recording][data-tone='present'] .js-mark-play { background: var(--color-blue-pill-text); color: var(--color-bg-card); }
+.js-mark:is([data-tone='recording'], [data-tone='recording-idle']) { font-size: 11.5px; }
+/* Перенесено из прошлого журнала: точка, занятие не списывалось. */
+.js-mark[data-transferred]::after { content: ''; position: absolute; left: 4px; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--color-text-3); opacity: .6; }

@@ -1,0 +1,30 @@
+.mjt { display: grid; gap: 12px; min-width: 0; }
+.mjt-banner { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #F08A24 15%, var(--color-bg-card)); color: color-mix(in srgb, #F08A24 70%, var(--color-text)); }
+.mjt-banner p { margin: 0; font-size: 13px; line-height: 1.35; color: var(--color-text); }
+.mjt-banner b { color: color-mix(in srgb, #F08A24 70%, var(--color-text)); }
+.mjt-chips { display: flex; gap: 6px; width: max-content; padding: 2px 0; }
+.mjt-chips button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--color-bg-3); color: var(--color-text-2); font: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.mjt-chips button[aria-pressed='true'] { background: var(--color-purple-soft); color: var(--color-accent); }
+.mjt-chips button[data-missing] { background: transparent; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #F08A24 80%, transparent); color: color-mix(in srgb, #F08A24 75%, var(--color-text)); }
+.mjt-card { display: grid; gap: 4px; padding: 12px; border-radius: 18px; background: var(--color-bg-card); box-shadow: inset 0 0 0 1px var(--color-border); min-width: 0; }
+.mjt-card header { display: grid; gap: 2px; min-width: 0; }
+.mjt-card header strong { font-size: 17px; font-weight: 750; }
+.mjt-card header small { color: var(--color-text-3); font-size: 13px; }
+.mjt-date { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; margin-top: 8px; border: 1.5px dashed color-mix(in srgb, #F08A24 80%, transparent); border-radius: 14px; background: transparent; color: color-mix(in srgb, #F08A24 75%, var(--color-text)); font: inherit; font-size: 15px; font-weight: 700; }
+.mjt-bulk { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.mjt-bulk .cj-button { min-height: 40px; border-radius: 999px; }
+.mjt-row { display: flex; align-items: center; gap: 10px; min-height: 56px; border-top: 1px solid var(--color-border); }
+.mjt-who { flex: 1; min-width: 0; display: grid; gap: 2px; padding: 6px 0; border: 0; background: transparent; color: var(--color-text); font: inherit; text-align: left; }
+.mjt-who strong { font-size: 15px; font-weight: 650; min-width: 0; }
+.mjt-who small { color: var(--color-text-3); font-size: 12.5px; line-height: 1.3; }
+.mjt-toggle { display: flex; gap: 4px; flex: 0 0 auto; }
+.mjt-toggle button { width: 48px; height: 44px; border: 0; border-radius: 12px; background: var(--color-bg-3); color: var(--color-text-3); font: inherit; font-size: 14px; font-weight: 700; }
+.mjt-toggle button[data-v='p'][aria-pressed='true'] { background: var(--color-green-soft); color: var(--color-green-text); }
+.mjt-toggle button[data-v='a'][aria-pressed='true'] { background: transparent; color: var(--color-red-text); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--color-red-text) 55%, transparent); }
+/* Android и веб: фиксированные таблетки над нижней навигацией (platforms.md §1.2). */
+.mjt-bar { position: sticky; bottom: calc(env(safe-area-inset-bottom, 0px) + 116px); z-index: 5; display: flex; gap: 8px; margin-top: 4px; }
+.mjt-pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 18px; border: 0; border-radius: 16px; background: color-mix(in srgb, var(--color-bg-card) 84%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 2px 10px rgba(0,0,0,.10), inset 0 0 0 1px var(--color-border); color: var(--color-text); font: inherit; font-size: 15px; font-weight: 650; }
+.mjt-pill.mjt-primary { flex: 1; background: var(--color-accent); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+[data-theme='dark'] .mjt-pill.mjt-primary { color: #16112e; }
+.mjt-pill:disabled { background: var(--color-bg-3); color: var(--color-text-3); box-shadow: inset 0 0 0 1px var(--color-border); }
+.mjt-pill:active { transform: scale(.98); }

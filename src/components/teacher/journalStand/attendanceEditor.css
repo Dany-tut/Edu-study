@@ -7,3 +7,17 @@
 .ja-options .cj-button { min-width: 44px; min-height: 44px; }
 .ja-options .cj-button[aria-pressed="true"] { background: var(--color-purple-soft); color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
 .ja-options .cj-button:disabled { opacity: .45; }
+.ja-banner { margin: 0; padding: 10px 12px; border-radius: 12px; font-size: 13px; line-height: 1.4; }
+.ja-banner[data-tone='transfer'] { background: color-mix(in srgb, #F08A24 16%, transparent); color: var(--color-text); }
+.ja-banner[data-tone='recording'] { background: var(--color-blue-pill-bg); color: var(--color-blue-pill-text); }
+.ja-bulk { margin-top: 0; }
+.ja-hw-score { align-items: center; }
+.ja-or { color: var(--color-text-3); font-size: 13px; }
+.ja-percent { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px; border-radius: 11px; background: var(--color-bg-input, var(--color-bg-3)); box-shadow: inset 0 0 0 1px var(--color-border); }
+.ja-percent input { width: 44px; border: 0; background: transparent; color: var(--color-text); font: inherit; font-size: 16px; font-weight: 600; outline: none; text-align: right; }
+.ja-percent span { color: var(--color-text-3); font-size: 13px; }
+.ja-percent:focus-within { box-shadow: inset 0 0 0 1.5px var(--color-accent); }
+.ja-subtitle { margin: 0; }
+.ja-sheet-footer { display: flex; gap: 8px; width: 100%; }
+.ja-sheet-footer .cj-button { flex: 1; min-height: 48px; justify-content: center; }
+.cj-mobile.ja-editor .ja-options .cj-button { min-height: 44px; font-size: 15px; }

@@ -2,8 +2,12 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSP
 import ScrollFade from '../../ScrollFade'
 import { textFadeLines } from '../../../lib/textFades'
 import CountBadge from '../../CountBadge'
+import { COMPLETE_RATIO } from '../../../lib/videoProgress'
 import { useJournalPending, type PendingJournal } from '../../../lib/useGroups'
-import AttendanceEditor from './AttendanceEditor'
+import AttendanceEditor, { type AttendancePreset } from './AttendanceEditor'
+import JournalImport from '../JournalImport'
+import { LessonDateDialog, TransferBanner, TransferMenu } from './TransferTools'
+import './transferTools.css'
 import JournalSkeleton from '../JournalSkeleton'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { useIsDesktop } from '../../../lib/useIsDesktop'
@@ -18,7 +22,7 @@ import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
 import { printStudentCard, StudentDashboardReport } from '../../../pages/teacher/TeacherStudentDashboardPage'
 import { useTeacher } from '../../../store/teacherStore'
 import { useCourseJournal } from '../../../lib/useCourseJournal'
-import { OUTSIDE_COURSES, scheduleAttendanceCells, type JournalCell, type CourseJournalData } from '../../../lib/courseJournal'
+import { journalCell, OUTSIDE_COURSES, scheduleAttendanceCells, type JournalCell, type JournalColumn, type CourseJournalData } from '../../../lib/courseJournal'
 import { JOURNAL_SCHEDULE_EVENT, JOURNAL_SCHEDULE_KEY } from '../../../store/notificationsStore'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
@@ -26,7 +30,7 @@ import { useNow } from '../../../lib/useNow'
 import { performanceDiagnostics, performanceStage } from '../../../lib/platformPerformance'
 import TestlyMark from '../../TestlyMark'
 import TeacherSelect from '../TeacherSelect'
-import { ArrowLeft, BookOpen, CalendarCheck, Check, ChevronRight, CircleAlert, ClipboardList, LayoutGrid, Play, RefreshCw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
+import { ArrowLeft, BookOpen, CalendarCheck, Check, ChevronRight, CircleAlert, ClipboardList, ClipboardPaste, LayoutGrid, Play, RefreshCw, RotateCcw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
 import { useScrollEdges } from './useScrollEdges'
 import { matrixRuns } from './matrixRuns'
 import { columnSpacers } from './columnWindow'
@@ -74,6 +78,8 @@ export const initial: StandSelection = {
   search: '',
 }
 const WORK_TITLE_FADE = textFadeLines(2)
+/** Порог зачёта по просмотру записи (videoProgress). */
+const WATCH_PERCENT = Math.round(COMPLETE_RATIO * 100) + ' %'
 const fraction = (a: number, b: number) => (b ? a + ' / ' + b : '—')
 function Source({ value }: { value: WorkSource }) {
   return (
@@ -187,10 +193,13 @@ function attendanceWords(work: StudentWork): string[] {
   if (!work.slot.lesson) return []
   const recording = work.attendanceReason === 'Запись урока'
   const words = recording
-    ? [work.watched ? 'Запись урока просмотрена' : 'Запись урока не просмотрена']
+    ? [work.present === true ? 'Был на уроке в записи' : work.present === false ? 'Не был' : 'Урок в записи',
+      ...(work.grade != null ? ['Оценка ' + work.grade] : []),
+      work.watched ? 'Запись просмотрена' : 'Запись не просмотрена']
     : [work.present === null ? 'Нет отметки' : work.present ? 'Был' : 'Пропуск',
       ...(work.grade != null ? ['Оценка ' + work.grade] : []),
       ...(work.present && work.watched ? ['Пересматривал запись'] : [])]
+  if (work.transferred) words.push('Перенесено, без списания')
   const hw = homeworkMark(work)
   if (hw) words.push('ДЗ: ' + work.status.toLowerCase())
   return words
@@ -203,22 +212,33 @@ function Attendance({ work, unavailable }: { work: StudentWork; unavailable: boo
     return <small>{work.attendanceReason}</small>
   const hw = homeworkMark(work)
   const grade = work.present && work.grade != null ? Math.max(2, Math.min(5, Math.round(work.grade))) : null
-  const tone = recording ? (work.watched ? 'recording' : 'recording-idle')
-    : work.present === false ? 'absent'
+  // Запись: «Был» — учитель провёл её вживую (зачёт сразу), без отметки — штриховка
+  // и зачёт по просмотру. Отметка у записи необязательна.
+  const tone = work.present === false ? 'absent'
     : work.present ? (grade != null ? 'grade-' + grade : 'present')
+    : recording ? (work.watched ? 'recording' : 'recording-idle')
     : 'empty'
+  const replay = !recording && work.present && work.watched
   return (
-    <span className="js-mark" data-tone={tone} aria-hidden>
-      {recording ? <Play size={13} />
-        : work.present === false ? 'Н'
+    <span className="js-mark" data-tone={tone} data-recording={recording || undefined} data-transferred={work.transferred || undefined} aria-hidden>
+      {recording && work.present !== false && <i className="js-mark-play"><Play size={work.present ? 8 : 11} /></i>}
+      {work.present === false ? 'Н'
         : work.present ? (work.grade ?? 'Был')
+        : recording ? (work.watched ? WATCH_PERCENT : '—')
         : null}
-      {(hw || (work.present && work.watched)) && <span className="js-mark-badges">
+      {(hw || replay) && <span className="js-mark-badges">
         {hw && <span data-badge={hw}>{hw === 'done' ? <Check size={11} /> : '!'}</span>}
-        {work.present && work.watched && <span data-badge="replay"><Play size={9} /></span>}
+        {replay && <span data-badge="replay"><Play size={9} /></span>}
       </span>}
     </span>
   )
+}
+/** ДЗ в клетке переноса: «ДЗ 4» / «ДЗ 80 %» / «ДЗ ✓» / «ДЗ —». */
+function TransferHomework({ work }: { work: StudentWork }) {
+  const hw = homeworkMark(work)
+  const grade = (work.submission?.attachments as { transfer?: { grade?: number } } | null)?.transfer?.grade
+  const text = hw === 'done' ? 'ДЗ ' + (grade ?? (work.score !== null ? work.score + ' %' : '✓')) : hw === 'debt' ? 'ДЗ —' : 'ДЗ'
+  return <span className="js-cell-hw" data-hw={hw ?? 'none'} aria-hidden>{text}</span>
 }
 export function ProfileWorks({
   list,
@@ -313,7 +333,12 @@ export function ProfileWorks({
 interface MatrixProps {
   profileId?: (student: Student) => string
   pendingAttendance?: PendingJournal[]
-  onOpenAttendance?: (cells: JournalCell[]) => void
+  onOpenAttendance?: (cells: JournalCell[], preset?: AttendancePreset) => void
+  /** Режим «Перенос прошлого»: отметки без списания, ДЗ без сдачи, меню столбца и строки. */
+  transfer?: boolean
+  onTransfer?: (on: boolean) => void
+  onImport?: (students: Student[], columns: JournalColumn[]) => void
+  onSetDate?: (column: JournalColumn, students: Student[]) => void
   onOpenWork?: (studentId: string, workRef: string) => void
   onOpenAssignment?: (workRef: string) => void
   groups: Group[]
@@ -345,8 +370,9 @@ function monogram(name: string) {
 /** Статусы работ, из-за которых ученик «требует внимания». */
 const ATTENTION_STATUSES = ['Просрочено', 'На проверке', 'На доработке', 'Ниже порога']
 const needsAttention = (e: RosterEntry) => e.works.some(w => ATTENTION_STATUSES.includes(w.status))
-function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, attentionCount, workViews }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
+function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, attentionCount, workViews, transferButton }: Pick<MatrixProps, 'selected' | 'set' | 'picker'> & {
   attention: boolean; toggle: () => void; pendingCount: number; attentionCount: number
+  transferButton?: ReactNode
   /** «По ученикам / По домашкам» — в той же строке, сразу за вкладками. */
   workViews?: ReactNode
 }) {
@@ -391,6 +417,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
         </button>
       </span>}
       {workViews}
+      {transferButton}
       <div className="js-filter-area" ref={area} onKeyDown={e => {
         if (e.key === 'Escape' && filters) { e.stopPropagation(); setFilters(false); trigger.current?.focus() }
       }} onBlur={e => {
@@ -478,11 +505,20 @@ export function Matrix(props: MatrixProps) {
     aria-label={'Журнал успеваемости · ' + groupLabel}>
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
       pendingCount={props.pendingAttendance?.length ?? 0} attentionCount={entries.filter(needsAttention).length} attention={!overview && attention} toggle={() => setAttention(v => !v)}
+      transferButton={props.onTransfer && selected.tab !== 'Обзор' && <button type="button" className="cj-button js-transfer-toggle" aria-pressed={!!props.transfer}
+        title="Перенос прошлых уроков: отметки без списания с баланса"
+        onClick={() => { const next = !props.transfer; props.onTransfer!(next); if (next) set({ tab: 'Посещаемость', workRef: '' }) }}>
+        <RotateCcw size={15} /><span>Перенос прошлого</span></button>}
       workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
         <button data-hover="layer" type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
         <button data-hover="layer" type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
       </div>} /></div>
-    {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && <details className="js-pending-lessons">
+    {props.transfer && selected.tab === 'Посещаемость' && <TransferBanner actions={<>
+      {props.onImport && <button type="button" className="cj-button" onClick={() => props.onImport!(
+        entries.map(e => e.student), props.slots.flatMap(s => s.lesson?.lesson ? [s.lesson] : []))}><ClipboardPaste size={15} />Вставить из таблицы</button>}
+      <button type="button" className="cj-button cj-primary" onClick={() => props.onTransfer?.(false)}>Готово</button>
+    </>} />}
+    {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && !props.transfer && <details className="js-pending-lessons">
       <summary><ChevronRight size={16} aria-hidden="true" />Незаполненная посещаемость · {props.pendingAttendance.length}</summary>
       <ScrollFade maxHeight="min(24dvh, 180px)">
         <p>Занятия за последние 30 дней по всем группам и ученикам. Фильтры журнала на этот список не влияют.</p>
@@ -491,7 +527,7 @@ export function Matrix(props: MatrixProps) {
         </li>)}</ul>
       </ScrollFade>
     </details>}
-    {selected.tab === 'Посещаемость' && props.onOpenAttendance && <p className="cj-note" role="status">Нажмите ячейку, чтобы отметить посещаемость или поставить оценку. Название урока открывает отметки для учеников из текущего списка, у которых есть это занятие в расписании.</p>}
+    {selected.tab === 'Посещаемость' && props.onOpenAttendance && !props.transfer && <p className="cj-note" role="status">Нажмите ячейку, чтобы отметить посещаемость или поставить оценку. Название урока открывает отметки для учеников из текущего списка, у которых есть это занятие в расписании.</p>}
     {overview ? <GroupOverview key={[selected.strip, groupLabel, selected.course, selected.module].join(':')}
       entries={entries} studentId={selected.student} search={selected.search} today={today} scopeLabel={scopeLabel}
       groupLabel={groupLabel} studentGroupLabel={groups.find(g => g.id === entry?.student.groupId)?.name} example={example} onStudent={student => {setReportHost(null);set({student,workRef:''})}}
@@ -508,7 +544,7 @@ export function Matrix(props: MatrixProps) {
   </section>
 }
 
-function LessonMatrix({ entries, slots, selected, set, today, position, attention, onOpenWork, onOpenAssignment, onOpenAttendance }: MatrixProps & {attention: boolean}) {
+function LessonMatrix({ entries, slots, selected, set, today, position, attention, onOpenWork, onOpenAssignment, onOpenAttendance, transfer, onSetDate }: MatrixProps & {attention: boolean}) {
   const { viewport, scroller: frame } = useScrollEdges()
   const detail = selected.workRef ?? ''
   const visible = entries.filter(e =>
@@ -555,6 +591,13 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
       }
     }
   }
+  // Уроки без строки расписания: в переносе им сначала указывают дату.
+  const missingDate = new Map<string, Student[]>()
+  if (transfer && !withWork) for (const { student, works } of visible) for (const w of works) {
+    if (w.attendanceReason !== 'Нет занятия в расписании' || !w.slot.lesson?.lesson) continue
+    missingDate.set(w.slot.ref, [...(missingDate.get(w.slot.ref) ?? []), student])
+  }
+  const rowCells = (id: string) => [...(byStudent.get(id)?.values() ?? [])].flatMap(w => w.attendanceCell ? [w.attendanceCell] : [])
   function canFocusColumn(id: string | null | undefined, ref: string) {
     const work = id ? byStudent.get(id)?.get(ref) : undefined
     if (!withWork && onOpenAttendance) return id ? !!work?.attendanceCell : attendanceColumns.has(ref)
@@ -686,6 +729,17 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}><span className="js-work-title-text" style={WORK_TITLE_FADE}>{col.title}</span></button>
                     : <span className="js-col-title js-work-title-text" style={WORK_TITLE_FADE} title={col.title}>{col.title}</span>)
                     : !withWork && onOpenAttendance && attendanceColumns.has(col.ref) ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(attendanceColumns.get(col.ref)!)}>{col.title}</button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
+                  {transfer && !withWork && (attendanceColumns.has(col.ref) || missingDate.has(col.ref)) && <div className="jt-head-actions">
+                    {missingDate.has(col.ref) && onSetDate && <button type="button" className="jt-date-chip" data-hover="layer"
+                      onClick={() => onSetDate(col.lesson!, missingDate.get(col.ref)!)}><CalendarCheck size={13} />Указать дату</button>}
+                    {attendanceColumns.has(col.ref) && onOpenAttendance && <TransferMenu label={'Столбец · ' + col.title}
+                      caption={[col.title, shortDate(displayDate)].join(' · ')} items={[
+                        { label: 'Все были на уроке', onSelect: () => onOpenAttendance(attendanceColumns.get(col.ref)!, 'present') },
+                        { label: 'Все сдали ДЗ', onSelect: () => onOpenAttendance(attendanceColumns.get(col.ref)!, 'homework') },
+                        { label: 'Открыть отметки столбца', onSelect: () => onOpenAttendance(attendanceColumns.get(col.ref)!) },
+                        { label: 'Очистить столбец', onSelect: () => onOpenAttendance(attendanceColumns.get(col.ref)!, 'clear') },
+                      ]} />}
+                  </div>}
                   {withWork && <div className="js-col-source">{hasHomework && (source ? <Source value={source} /> : 'Разные источники')}
                     {nearest && upcoming === nearest && col.due === nearest && col.due !== displayDate &&
                       <time dateTime={nearest}>до {shortDate(nearest).replace(/\s\d{4}$/, '')}</time>}
@@ -698,10 +752,19 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
             <tbody>{visible.map(({ student }) => (
               <tr key={student.id} data-student-id={student.id}>
                 <th scope="row" aria-colindex={1}>
+                  <div className="js-name-row">
                   <button type="button" className="js-name" title={student.name} aria-label={student.name}
                     aria-pressed={entry?.student.id === student.id} onClick={() => set({ student: student.id, workRef: '' })}>
                     <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span><span>{student.name}</span>
                   </button>
+                  {transfer && !withWork && onOpenAttendance && rowCells(student.id).length > 0 && <TransferMenu label={'Строка · ' + student.name}
+                    caption={student.name} items={[
+                      { label: 'Был на всех уроках', onSelect: () => onOpenAttendance(rowCells(student.id), 'present') },
+                      { label: 'ДЗ сдано на всех', onSelect: () => onOpenAttendance(rowCells(student.id), 'homework') },
+                      { label: 'Открыть отметки строки', onSelect: () => onOpenAttendance(rowCells(student.id)) },
+                      { label: 'Очистить строку', onSelect: () => onOpenAttendance(rowCells(student.id), 'clear') },
+                    ]} />}
+                  </div>
                 </th>
                 {before.map((span, i) => <td key={"before-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
                 {rows.get(student.id)?.map(({ item: { col, source, upcoming }, span }) => {
@@ -723,6 +786,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                       }}>
                       {withWork && (w.status === 'На проверке' && onOpenWork ? <span className="jh-pending-action">Проверить</span> : <Badge work={w} />)}
                       {selected.tab !== 'Работы' && <Attendance work={w} unavailable={unavailable} />}
+                      {transfer && !withWork && w.attendanceCell && <TransferHomework work={w} />}
                       {withWork && !source && <Source value={w.source}/>}
                     </button>
                   ) : <span className="js-stat-value" title="Не назначено">—</span>}</td>
@@ -754,7 +818,11 @@ export default function JournalStand({ owner, user, production = false }: { owne
   const pendingAttendance = useJournalPending(null)
   const allowed = useTeacherAccess(s => s.loaded && s.canPage(page))
   const journalActive = ['groups', 'gradebook', 'student'].includes(page)
-  const [attendanceCells, setAttendanceCells] = useState<JournalCell[] | null>(null)
+  const [attendanceCells, setAttendanceCellsState] = useState<{ cells: JournalCell[]; preset?: AttendancePreset } | null>(null)
+  const setAttendanceCells = (cells: JournalCell[] | null, preset?: AttendancePreset) => setAttendanceCellsState(cells ? { cells, preset } : null)
+  const [transfer, setTransfer] = useState(false)
+  const [lessonDate, setLessonDate] = useState<{ column: JournalColumn; students: Student[] } | null>(null)
+  const [importScope, setImportScope] = useState<{ students: Student[]; columns: JournalColumn[] } | null>(null)
   const storageKey = 'iskra:journal-stand:' + owner
   const [selected, setSelected] = useState<StandSelection>(() => {
     try {
@@ -990,6 +1058,10 @@ export default function JournalStand({ owner, user, production = false }: { owne
                       profileId={student => canonicalProfile(student).id}
                       pendingAttendance={pendingAttendance}
                       onOpenAttendance={setAttendanceCells}
+                      transfer={transfer}
+                      onTransfer={setTransfer}
+                      onImport={(students, columns) => setImportScope({ students, columns })}
+                      onSetDate={(column, students) => setLessonDate({ column, students })}
                       onOpenWork={homework.openStudent}
                       onOpenAssignment={ref => homework.openAssignment(ref, unique.map(e => e.student.id))}
                       groups={data.groups}
@@ -1036,6 +1108,14 @@ export default function JournalStand({ owner, user, production = false }: { owne
           </>
         )
       }
-    />{homework.dialog}{attendanceCells && <AttendanceEditor cells={attendanceCells} onSaved={reload} onClose={() => setAttendanceCells(null)} />}</TeacherGuides>
+    />{homework.dialog}
+    {attendanceCells && <AttendanceEditor key={transfer ? 'transfer' : 'marks'} cells={attendanceCells.cells} preset={attendanceCells.preset}
+      transfer={transfer} data={data ?? undefined} onSaved={reload} onClose={() => setAttendanceCells(null)} />}
+    {lessonDate && data && <LessonDateDialog data={data} column={lessonDate.column} students={lessonDate.students} today={today}
+      onSaved={reload} onClose={() => setLessonDate(null)} />}
+    {importScope && data && index && <JournalImport data={data} columns={importScope.columns} students={importScope.students}
+      cellOf={(student, column) => journalCell(data, index.journal, student, column, today)}
+      onSaved={reload} onClose={() => setImportScope(null)} />}
+    </TeacherGuides>
   )
 }

@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, Search, Users, X, Filter, BarChart2 } from '../icons/appIcons'
+import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, RotateCcw, Search, Users, X, Filter, BarChart2 } from '../icons/appIcons'
+import AttendanceEditor from './journalStand/AttendanceEditor'
+import MobileJournalTransfer from './MobileJournalTransfer'
+import { isRecordingColumn } from '../../lib/journalTransfer'
 import JournalSkeleton from './JournalSkeleton'
 import Modal from '../Modal'
 import MobileSheet from '../MobileSheet'
@@ -59,7 +62,8 @@ function attendanceLabel(cell: JournalCell) {
   if (cell.cancelled) return 'Отменено'
   if (cell.column.assignment) return 'Домашняя работа'
   if (cell.column.lesson?.kind === 'test') return 'Тест'
-  if (cell.column.recording || cell.column.lesson?.delivery_mode === 'recording') return 'Запись'
+  // Запись: «Был» — учитель провёл её в Телемосте; без отметки зачёт даёт просмотр.
+  if (isRecordingColumn(cell.column)) return cell.present === true ? 'Был' : cell.present === false ? 'Не был' : cell.watched ? 'Запись просмотрена' : 'Запись'
   return cell.present === true ? 'Был' : cell.present === false ? 'Пропуск' : 'Нет отметки'
 }
 function WorkBadge({ cell }: { cell: JournalCell }) {
@@ -73,7 +77,7 @@ function WorkBadge({ cell }: { cell: JournalCell }) {
 }
 function Detail({ cell, data, courseId, onClose, onMark, onChange, mobile }: {
   cell: JournalCell; data: CourseJournalData; courseId: string; onClose: () => void
-  onMark: (id: string) => void; onChange: (update?: (data: CourseJournalData) => CourseJournalData) => void; mobile: boolean
+  onMark: (cell: JournalCell) => void; onChange: (update?: (data: CourseJournalData) => CourseJournalData) => void; mobile: boolean
 }) {
   const t = useT()
   const { tn, tc } = useTc()
@@ -139,7 +143,7 @@ function Detail({ cell, data, courseId, onClose, onMark, onChange, mobile }: {
     </div>
     {cell.present === false && cell.watched && <p className="cj-note">{t('Пропуск сохранён. Материал зачтён по просмотру записи.')}</p>}
     <div className="cj-detail-actions">
-      {cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && <button className="cj-button" type="button" disabled={busy} onClick={() => onMark(cell.event!.id)}>{t('Отметить занятие')}</button>}
+      {cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && <button className="cj-button" type="button" disabled={busy} onClick={() => onMark(cell)}>{t('Отметить занятие')}</button>}
       <button className="cj-button" type="button" disabled={busy || existingTask || demoTask} onClick={() => void createTask()}><Plus size={14} />{t(existingTask || demoTask ? 'Задача уже создана' : 'Создать задачу')}</button>
     </div>
     {(cell.score !== null || cell.latestScore !== null) && <p className="cj-note">{t('Лучший результат')}: {cell.score ?? '—'}% · {t('Последний результат')}: {cell.latestScore ?? '—'}%</p>}
@@ -200,6 +204,10 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
   const [selected, setSelected] = useState<{ studentId: string; columnId: string } | null>(restored.current ?? null)
   const [expandedStudents, setExpandedStudents] = useState<Record<string, boolean>>({})
   const [markId, setMarkId] = useState<string | null>(null)
+  const [editCells, setEditCells] = useState<JournalCell[] | null>(null)
+  const [transfer, setTransfer] = useState(false)
+  const [transferBar, setTransferBar] = useState<{ dirty: number; busy: boolean }>({ dirty: 0, busy: false })
+  const transferActions = useRef<{ save: () => void; paste: () => void }>({ save: () => {}, paste: () => {} })
   const [demoPresent, setDemoPresent] = useState<Record<string, boolean | null>>({})
   const pendingId = useTeacher(s => s.pendingGradebookLessonId)
   const clearPending = useTeacher(s => s.clearPendingGradebookLesson)
@@ -313,7 +321,16 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     {data.warnings.map(warning => <Alert key={warning} tone="warning" text={t(warning)} />)}
     {mobile ? <>
       {nativeIphone ? <>
-        <NativeJournalBar bar={{
+        {transfer ? <NativeJournalBar bar={{
+          bottomTabBarSideInset: 40,
+          bottom: [
+            { id: 'journal-transfer-paste', kind: 'circle', symbol: 'doc.on.clipboard', label: t('Вставить из таблицы') },
+            { id: 'journal-transfer-done', kind: 'pill', title: transferBar.busy ? t('Сохранение…') : transferBar.dirty ? `${t('Сохранить')} · ${transferBar.dirty}` : t('Готово') },
+          ],
+        }} onTap={id => {
+          if (id === 'journal-transfer-paste') transferActions.current.paste()
+          if (id === 'journal-transfer-done') { if (transferBar.dirty) transferActions.current.save(); else setTransfer(false) }
+        }} onMenu={() => {}} /> : <NativeJournalBar bar={{
           bottomTabBarSideInset: 40,
           bottom: [
             { id: 'journal-search', kind: 'circle', symbol: 'magnifyingglass', label: t('Поиск ученика'), active: !!query },
@@ -338,7 +355,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
             const next = journalSections.find(([key]) => key === value)
             if (next) setMode(next[0])
           }
-        }} />
+        }} />}
         <MobileSheet open={mobileSearchOpen} onClose={() => setMobileSearchOpen(false)} title={t('Поиск ученика')}
           footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileSearchOpen(false)}>{t('Готово')}</button>}>
           <div className="course-journal cj-mobile">{studentSearch}</div>
@@ -350,7 +367,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
             <Filter size={18} />{activeMobileFilters > 0 && <span className="cj-mobile-filter-count">{activeMobileFilters}</span>}
           </button>
         </section>
-        <div className="cj-mobile-search-row">{studentSearch}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
+        <div className="cj-mobile-search-row">{studentSearch}{!data.demo && <button className="cj-icon-button" type="button" aria-label={t('Перенос прошлого')} aria-pressed={transfer} onClick={() => setTransfer(v => !v)}><RotateCcw size={18} /></button>}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
       </>}
       <MobileSheet open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} title={t('Фильтры')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileFiltersOpen(false)}>{t('Готово')}</button>}>
         <div className="course-journal cj-mobile cj-mobile-filter-panel">
@@ -358,6 +375,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
           <button className="cj-button" type="button" disabled={activeMobileFilters === 0} onClick={() => { setGroupId('all'); setModuleId('all') }}>{t('Сбросить фильтры')}</button>
           <div className="cj-mobile-panel-actions"><button className="cj-button" type="button" disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} />{t('Обновить журнал')}</button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} />CSV</button></div>
           {nativeIphone && <button className="cj-button" type="button" onClick={() => { setMobileFiltersOpen(false); setMobileSummaryOpen(true) }}><BarChart2 size={17} />{t('Результаты')}</button>}
+          {!data.demo && <button className="cj-button" type="button" aria-pressed={transfer} onClick={() => { setMobileFiltersOpen(false); setTransfer(v => !v) }}><RotateCcw size={17} />{t(transfer ? 'Выйти из переноса' : 'Перенос прошлого')}</button>}
           {data.demo && <p className="cj-note">{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}</p>}
         </div>
       </MobileSheet>
@@ -376,8 +394,14 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
       {!mobile && <button className="cj-button cj-primary" type="button" disabled={!scheduleIds.length} onClick={() => openMark(pendingEvents[0]?.id ?? scheduleIds[0])}><Plus size={15} />{t('Отметить занятие')}</button>}
     </div>}
     {onlyAttention && <div className="cj-active-filter"><CircleAlert size={14} /><span>{t('Показаны ученики, которым нужно внимание')}</span><button data-hover="layer" type="button" onClick={() => setOnlyAttention(false)}>{t('Сбросить')}</button></div>}
-    {pendingEvents.length > 0 && <div className="cj-pending-alert"><CircleAlert size={17} /><span>{t('Есть незаполненные занятия')}: {pendingEvents.length}</span><button data-hover="layer" type="button" onClick={() => openMark(pendingEvents[0].id)}>{t('Заполнить')}<ChevronRight size={13} /></button></div>}
-    {(!students.length || !columns.length) ? <div className="cj-empty"><BookOpen size={28} /><h3>{t(!roster.length ? 'На этот курс пока не назначены ученики' : !allColumns.length ? 'В журнале пока нет занятий' : 'Ничего не найдено')}</h3><p>{t(!roster.length ? 'Назначьте курс группе или отдельным ученикам в материалах курса.' : 'Попробуйте изменить фильтры или поиск.')}</p></div>
+    {pendingEvents.length > 0 && !(mobile && transfer) && <div className="cj-pending-alert"><CircleAlert size={17} /><span>{t('Есть незаполненные занятия')}: {pendingEvents.length}</span><button data-hover="layer" type="button" onClick={() => openMark(pendingEvents[0].id)}>{t('Заполнить')}<ChevronRight size={13} /></button></div>}
+    {mobile && transfer && index && !data.demo ? <MobileJournalTransfer key={courseId} data={data} index={index} students={filteredRoster} columns={allColumns}
+      today={today} time={now.time} nativeIphone={nativeIphone} onExit={() => setTransfer(false)} onSaved={reload}
+      onBar={bar => {
+        transferActions.current = { save: bar.save, paste: bar.paste }
+        if (bar.dirty !== transferBar.dirty || bar.busy !== transferBar.busy) setTransferBar({ dirty: bar.dirty, busy: bar.busy })
+      }} />
+    : (!students.length || !columns.length) ? <div className="cj-empty"><BookOpen size={28} /><h3>{t(!roster.length ? 'На этот курс пока не назначены ученики' : !allColumns.length ? 'В журнале пока нет занятий' : 'Ничего не найдено')}</h3><p>{t(!roster.length ? 'Назначьте курс группе или отдельным ученикам в материалах курса.' : 'Попробуйте изменить фильтры или поиск.')}</p></div>
       : mobile && mode !== 'stats' ? <div className="cj-mobile-list">{students.map(student => {
         const row = cells.get(student.id) ?? []; const stats = journalSummary(row, today)
         const expanded = nativeIphone ? expandedStudents[student.id] ?? students.length === 1 : students.length === 1
@@ -402,7 +426,11 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
         </button></td>)}<td className="cj-total"><strong>{stats.passed}<span>/{stats.required}</span></strong><div className="cj-mini-progress"><i style={{ width: stats.required ? `${stats.passed / stats.required * 100}%` : '0%' }} /></div></td></tr>
       })}</tbody></table></JournalTable>}
     <footer className="cj-legend"><span><i className="cj-legend-green" />{t('Зачтено')}</span><span><i className="cj-legend-amber" />{t('Нужен следующий шаг')}</span><span><i className="cj-legend-gray" />{t('Нет отметки — не пропуск')}</span><p>{t('Сложная часть необязательна. Будущие работы не входят в доступный объём.')}</p></footer>
-    <AnimatePresence>{detailCell && <Detail key={`${detailCell.student.id}:${detailCell.column.id}`} cell={detailCell} data={data} courseId={courseId} onClose={() => setSelected(null)} onMark={openMark} mobile={mobile} onChange={update => { if (update) setData(old => old ? update(old) : old); else reload() }} />}</AnimatePresence>
+    <AnimatePresence>{detailCell && <Detail key={`${detailCell.student.id}:${detailCell.column.id}`} cell={detailCell} data={data} courseId={courseId} onClose={() => setSelected(null)} onMark={cell => {
+      // Урок в записи отмечают в окне с пояснением: «Был» засчитывает урок и не списывает занятие.
+      if (isRecordingColumn(cell.column) && !data.demo) { setSelected(null); setEditCells([cell]) } else openMark(cell.event!.id)
+    }} mobile={mobile} onChange={update => { if (update) setData(old => old ? update(old) : old); else reload() }} />}</AnimatePresence>
+    {editCells && <AttendanceEditor mobile={mobile} cells={editCells} data={data} onSaved={reload} onClose={() => setEditCells(null)} />}
     {markId && !data.demo && <LessonGradeModal key={markId} groupId={markedEvent?.group_id ?? null} initialLessonId={markId} scheduleIds={scheduleIds} eventRecords={eventRecords} onClose={() => { setMarkId(null); reload() }} />}
     {markId && data.demo && <Modal title={t('Отметить занятие')} subtitle={`${markedEvent?.lesson_title} · ${dateLabel(markedEvent?.date ?? null)}`} onClose={() => setMarkId(null)} width={540} footer={<button className="cj-button cj-primary" type="button" onClick={saveDemoMarks}>{t('Сохранить отметки')}</button>}><div className="course-journal cj-demo-marks"><p className="cj-note">{t('Без отметки — не значит пропуск. Можно заполнить позже.')}</p><button type="button" className="cj-button" onClick={() => setDemoPresent(Object.fromEntries(markRoster.map(s => [s.id, true])))}>{t('Все присутствовали')}</button>{markRoster.map(student => <div key={student.id}><strong>{tn(student.name)}</strong><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === true} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === true ? null : true }))}>{t('Был')}</button><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === false} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === false ? null : false }))}>{t('Пропуск')}</button></div>)}</div></Modal>}
   </div>
