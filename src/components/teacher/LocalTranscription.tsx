@@ -7,6 +7,7 @@ import MontageAction from './MontageAction'
 import Switch from '../Switch'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
+import { taxonCase } from '../../lib/taxonCase'
 import { hasChapterVariant, prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
 import type { LessonTimecode } from '../../data/lessonContent'
 import { MODULE_DOWNLOAD_URL, appNeedsManualUpdate, useModuleState, readModule, updateModule } from '../../lib/transcriptionModuleUpdate'
@@ -779,7 +780,7 @@ function Review({ owner, lessonKey, source, file, localFile, subject, lessonTitl
         if (!read) throw new Error('Нет реплик для проверки.')
         // Голоса от модуля: реплики сразу с говорящими, узнанные — по имени.
         const { transcript, voices } = applyModuleVoices(read, state.voices)
-        readyRef.current({ transcript: {...transcript, segments: transcript.segments.map(s => ({...s,text:correctedText(s.text,'speech',memory)}))}, jobId: job.id, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
+        readyRef.current({ transcript: {...transcript, segments: transcript.segments.map(s => ({...s,text:correctedText(taxonCase(s.text),'speech',memory)}))}, jobId: job.id, ...(voices ? { voices } : {}), timecodes: state.chapters.map((c: { start: number; title: string }) =>
           ({ seconds: c.start, time: transcriptTime(c.start), label: correctedText(sentenceTitle(c.title), 'text-title', memory) })) })
       } catch (e) {
         if (!active) return

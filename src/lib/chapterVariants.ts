@@ -1,4 +1,5 @@
 import type { LessonTimecode } from '../data/lessonContent'
+import { taxonCase } from './taxonCase'
 
 export type ChapterMode = 'text' | 'slides'
 export interface ChapterVariants {
@@ -32,8 +33,8 @@ export function sentenceTitle(raw: string): string {
     return word.toLocaleLowerCase('ru')
   })
   const first = text.match(/\p{L}+/u)?.[0] ?? ''
-  if (first !== first.toLowerCase() && first !== first.toUpperCase()) return folded
-  return folded.replace(/\p{L}/u, c => c.toLocaleUpperCase('ru'))
+  if (first !== first.toLowerCase() && first !== first.toUpperCase()) return taxonCase(folded)
+  return taxonCase(folded.replace(/\p{L}/u, c => c.toLocaleUpperCase('ru')))
 }
 export function titleConcern(text: string): string | undefined {
   if (/[·…]|\.{2,}/.test(text)) return 'Похоже на обрывок текста'
