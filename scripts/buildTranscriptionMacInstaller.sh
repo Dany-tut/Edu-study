@@ -44,7 +44,7 @@ done
 iconutil -c icns "$ICONSET" -o "$APP_CONTENTS/Resources/iskra.icns"
 rm -rf "$ICONSET" "$BADGED"
 export MACOSX_DEPLOYMENT_TARGET=13.0
-swiftc -O -framework AppKit -framework CoreServices -framework ServiceManagement \
+swiftc -O -framework AppKit -framework CoreServices -framework ServiceManagement -framework UserNotifications \
   -o "$APP_CONTENTS/MacOS/IskraTranscription" "$ROOT/tools/transcription-macos/IskraTranscription.swift"
 
 # OCR слайдов (Apple Vision, русский + английский) собирается здесь, в CI, и
@@ -94,6 +94,8 @@ done
 ditto -x -k "$ROOT/public/downloads/iskra-transcription-mac.zip" "$APP_CONTENTS/Resources"
 mv "$APP_CONTENTS/Resources/Iskra" "$APP_CONTENTS/Resources/TranscriptionModule"
 cp "$ROOT/tools/transcription-macos/com.iskra.transcription.agent.plist" "$APP_CONTENTS/Library/LaunchAgents/"
+# Огонёк в окне приложения: настроение по состоянию службы.
+cp "$ROOT"/tools/transcription-macos/mascot-*.png "$APP_CONTENTS/Resources/"
 
 if [[ "$MODE" == "--verify" ]]; then
   codesign --force --deep --sign - "$APP"

@@ -108,7 +108,7 @@ const ts = `// Создаётся scripts/buildTranscriptionModule.mjs — не 
 export const TRANSCRIPTION_MODULE_VERSION = '${version}'
 `
 
-const installerFiles = [...readdirSync(MAC_INSTALLER).filter(name => /\.(swift|plist)$/.test(name)).sort(), 'scripts/buildTranscriptionMacInstaller.sh', 'src/lib/transcriptionProductVersion.ts']
+const installerFiles = [...readdirSync(MAC_INSTALLER).filter(name => /\.(swift|plist|png)$/.test(name)).sort(), 'scripts/buildTranscriptionMacInstaller.sh', 'src/lib/transcriptionProductVersion.ts']
 const installerHash = createHash('sha256').update(version + '\0')
 for (const name of installerFiles) {
   const path = name === 'scripts/buildTranscriptionMacInstaller.sh' ? INSTALLER_SCRIPT

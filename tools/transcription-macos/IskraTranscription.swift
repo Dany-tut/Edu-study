@@ -3,6 +3,7 @@ import CoreServices
 import Foundation
 import Security
 import ServiceManagement
+import UserNotifications
 
 private let agentPlist = "com.iskra.transcription.agent.plist"
 private let agentLabel = "com.iskra.transcription.agent"
@@ -293,31 +294,437 @@ private func runService() -> Never {
 
 if CommandLine.arguments.contains("--service") { runService() }
 
+// MARK: - Палитра и элементы окна
+
+private let iskraURL = URL(string: "https://iskra-study.ru/#/teacher")!
+
+private func rgb(_ value: UInt32, _ alpha: CGFloat = 1) -> NSColor {
+    NSColor(srgbRed: CGFloat((value >> 16) & 0xff) / 255, green: CGFloat((value >> 8) & 0xff) / 255,
+            blue: CGFloat(value & 0xff) / 255, alpha: alpha)
+}
+
+/// Цвет, который сам переключается вместе с темой macOS.
+private func themed(_ light: UInt32, _ dark: UInt32, _ lightAlpha: CGFloat = 1, _ darkAlpha: CGFloat = 1) -> NSColor {
+    NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? rgb(dark, darkAlpha) : rgb(light, lightAlpha)
+    }
+}
+
+/// Цвета Искры (src/index.css: --color-accent, --color-purple-soft, --grad-purple).
+private enum Palette {
+    static let accent = themed(0x6354CF, 0xA99BF5)
+    static let accentText = themed(0x3D33A0, 0xDAD3FB)
+    static let soft = themed(0xE7E4FB, 0x7C6CE0, 1, 0.3)
+    static let tile = themed(0xFFFFFF, 0x343339)
+    static let line = themed(0x000000, 0xFFFFFF, 0.1, 0.1)
+    static let track = themed(0x000000, 0xFFFFFF, 0.08, 0.12)
+    static let ok = themed(0x1F9D55, 0x34C46A)
+    static let err = themed(0xD63B30, 0xFF6A5E)
+    static let warn = themed(0xB86E00, 0xF0A43A)
+    static let gradient = NSGradient(starting: rgb(0x9180E6), ending: rgb(0x6354CF))!
+}
+
+/// Подложка рисуется в draw(), поэтому цвета следуют теме без перекраски слоёв.
+private final class Panel: NSView {
+    var fill: NSColor?
+    var stroke: NSColor?
+    var radius: CGFloat
+    var gradient: NSGradient?
+
+    init(fill: NSColor? = nil, stroke: NSColor? = nil, radius: CGFloat = 10, gradient: NSGradient? = nil) {
+        self.fill = fill; self.stroke = stroke; self.radius = radius; self.gradient = gradient
+        super.init(frame: .zero)
+        translatesAutoresizingMaskIntoConstraints = false
+    }
+    required init?(coder: NSCoder) { fatalError("not used") }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let path = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.25, dy: 0.25), xRadius: radius, yRadius: radius)
+        if let gradient { gradient.draw(in: path, angle: -45) } else if let fill { fill.setFill(); path.fill() }
+        if let stroke { stroke.setStroke(); path.lineWidth = 0.5; path.stroke() }
+    }
+}
+
+/// Полоса прогресса; без доли — бегущий отрезок (без анимации при «Уменьшить движение»).
+private final class ProgressBar: NSView {
+    let fraction: Double?
+    private var phase: CGFloat = 0
+    private var timer: Timer?
+
+    init(_ fraction: Double?) {
+        self.fraction = fraction
+        super.init(frame: .zero)
+        translatesAutoresizingMaskIntoConstraints = false
+        heightAnchor.constraint(equalToConstant: 4).isActive = true
+    }
+    required init?(coder: NSCoder) { fatalError("not used") }
+
+    override func viewDidMoveToWindow() {
+        timer?.invalidate(); timer = nil
+        guard window != nil, fraction == nil, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.phase = (self.phase + 0.012).truncatingRemainder(dividingBy: 1.3)
+                self.needsDisplay = true
+            }
+        }
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let track = NSBezierPath(roundedRect: bounds, xRadius: 2, yRadius: 2)
+        Palette.track.setFill(); track.fill()
+        let width = bounds.width
+        let rect: NSRect
+        if let fraction { rect = NSRect(x: 0, y: 0, width: max(4, width * CGFloat(min(max(fraction, 0), 1))), height: bounds.height) }
+        else { rect = NSRect(x: (phase - 0.3) * width, y: 0, width: width * 0.3, height: bounds.height) }
+        NSGraphicsContext.saveGraphicsState()
+        track.addClip()
+        Palette.gradient.draw(in: NSBezierPath(roundedRect: rect, xRadius: 2, yRadius: 2), angle: 0)
+        NSGraphicsContext.restoreGraphicsState()
+    }
+}
+
+/// Тумблер в цвете Искры: системный NSSwitch красится только системным акцентом.
+private final class Toggle: NSControl {
+    var isOn = false { didSet { needsDisplay = true; setAccessibilityValue(isOn ? 1 : 0) } }
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        translatesAutoresizingMaskIntoConstraints = false
+        setAccessibilityRole(.checkBox)
+        setAccessibilityLabel("Расшифровка на этом Mac")
+    }
+    required init?(coder: NSCoder) { fatalError("not used") }
+
+    override var intrinsicContentSize: NSSize { NSSize(width: 46, height: 28) }
+    override var acceptsFirstResponder: Bool { isEnabled }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let track = NSBezierPath(roundedRect: bounds, xRadius: bounds.height / 2, yRadius: bounds.height / 2)
+        (isOn ? Palette.accent : Palette.track).setFill(); track.fill()
+        let knob = NSRect(x: isOn ? bounds.width - 25 : 3, y: 3, width: 22, height: 22)
+        NSGraphicsContext.saveGraphicsState()
+        let shadow = NSShadow(); shadow.shadowBlurRadius = 3; shadow.shadowOffset = NSSize(width: 0, height: -1)
+        shadow.shadowColor = NSColor.black.withAlphaComponent(0.3); shadow.set()
+        NSColor.white.withAlphaComponent(isEnabled ? 1 : 0.6).setFill()
+        NSBezierPath(ovalIn: knob).fill()
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    override func mouseDown(with event: NSEvent) { flip() }
+    override func keyDown(with event: NSEvent) {
+        if event.charactersIgnoringModifiers == " " { flip() } else { super.keyDown(with: event) }
+    }
+    override func accessibilityPerformPress() -> Bool { flip(); return true }
+
+    private func flip() {
+        guard isEnabled else { return }
+        isOn.toggle()
+        sendAction(action, to: target)
+    }
+}
+
+/// Главная кнопка — градиент Искры, как «Готово» на сайте.
+private final class PrimaryButton: NSButton {
+    convenience init(_ title: String, target: AnyObject?, action: Selector?) {
+        self.init(frame: .zero)
+        isBordered = false
+        self.title = title
+        self.target = target
+        self.action = action
+        attributedTitle = NSAttributedString(string: title, attributes: [
+            .foregroundColor: NSColor.white, .font: NSFont.systemFont(ofSize: 13, weight: .medium)])
+        translatesAutoresizingMaskIntoConstraints = false
+        setContentHuggingPriority(.required, for: .horizontal)
+    }
+
+    override var intrinsicContentSize: NSSize {
+        let size = attributedTitle.size()
+        return NSSize(width: ceil(size.width) + 28, height: 28)
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let path = NSBezierPath(roundedRect: bounds, xRadius: 7, yRadius: 7)
+        Palette.gradient.draw(in: path, angle: -45)
+        if isHighlighted { NSColor.black.withAlphaComponent(0.15).setFill(); path.fill() }
+        let size = attributedTitle.size()
+        attributedTitle.draw(at: NSPoint(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2))
+    }
+}
+
+private func secondaryButton(_ title: String, target: AnyObject?, action: Selector) -> NSButton {
+    let button = NSButton(title: title, target: target, action: action)
+    button.bezelStyle = .rounded
+    button.setContentHuggingPriority(.required, for: .horizontal)
+    return button
+}
+
+private func linkButton(_ title: String, size: CGFloat = 13, color: NSColor = Palette.accent,
+                        target: AnyObject?, action: Selector) -> NSButton {
+    let button = NSButton(title: title, target: target, action: action)
+    button.isBordered = false
+    button.attributedTitle = NSAttributedString(string: title, attributes: [
+        .foregroundColor: color, .font: NSFont.systemFont(ofSize: size, weight: .medium)])
+    button.setContentHuggingPriority(.required, for: .horizontal)
+    return button
+}
+
+private func text(_ value: String, _ size: CGFloat, _ weight: NSFont.Weight = .regular,
+                  _ color: NSColor = .labelColor, wrap: CGFloat? = nil) -> NSTextField {
+    let field = wrap == nil ? NSTextField(labelWithString: value) : NSTextField(wrappingLabelWithString: value)
+    field.font = .systemFont(ofSize: size, weight: weight)
+    field.textColor = color
+    if let wrap {
+        field.preferredMaxLayoutWidth = wrap
+        field.setContentCompressionResistancePriority(.required, for: .vertical)
+    } else {
+        field.lineBreakMode = .byTruncatingTail
+        field.cell?.truncatesLastVisibleLine = true
+    }
+    return field
+}
+
+private func spacer() -> NSView {
+    let view = NSView()
+    view.setContentHuggingPriority(NSLayoutConstraint.Priority(1), for: .horizontal)
+    view.setContentHuggingPriority(NSLayoutConstraint.Priority(1), for: .vertical)
+    view.setContentCompressionResistancePriority(NSLayoutConstraint.Priority(1), for: .horizontal)
+    return view
+}
+
+private func row(_ views: [NSView], spacing: CGFloat = 10, align: NSLayoutConstraint.Attribute = .centerY) -> NSStackView {
+    let stack = NSStackView(views: views)
+    stack.orientation = .horizontal
+    stack.spacing = spacing
+    stack.alignment = align
+    return stack
+}
+
+private func column(_ views: [NSView], spacing: CGFloat = 8, fill: Bool = false) -> NSStackView {
+    let stack = NSStackView()
+    stack.orientation = .vertical
+    stack.spacing = spacing
+    stack.alignment = .leading
+    for view in views {
+        stack.addArrangedSubview(view)
+        if fill { view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true }
+    }
+    return stack
+}
+
+private func padded(_ view: NSView, _ horizontal: CGFloat, _ vertical: CGFloat, in container: NSView = NSView()) -> NSView {
+    view.translatesAutoresizingMaskIntoConstraints = false
+    container.translatesAutoresizingMaskIntoConstraints = false
+    container.addSubview(view)
+    NSLayoutConstraint.activate([
+        view.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: horizontal),
+        view.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -horizontal),
+        view.topAnchor.constraint(equalTo: container.topAnchor, constant: vertical),
+        view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -vertical),
+    ])
+    return container
+}
+
+/// Карточка-список: строки во всю ширину, между ними тонкая линия.
+private func card(_ rows: [NSView], radius: CGFloat = 10) -> NSView {
+    let stack = NSStackView()
+    stack.orientation = .vertical
+    stack.spacing = 0
+    stack.alignment = .leading
+    for (index, item) in rows.enumerated() {
+        if index > 0 {
+            let line = Panel(fill: Palette.line, radius: 0)
+            line.heightAnchor.constraint(equalToConstant: 1).isActive = true
+            stack.addArrangedSubview(line)
+            line.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        }
+        stack.addArrangedSubview(item)
+        item.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+    }
+    return padded(stack, 0, 0, in: Panel(fill: Palette.tile, stroke: Palette.line, radius: radius))
+}
+
+private enum Tone { case accent, warn, err }
+
+private func pill(_ value: String, _ tone: Tone) -> NSView {
+    let color: NSColor = tone == .accent ? Palette.accentText : tone == .warn ? Palette.warn : Palette.err
+    let back: NSColor = tone == .accent ? Palette.soft
+        : (tone == .warn ? Palette.warn : Palette.err).withAlphaComponent(0.16)
+    let label = text(value, 12, .semibold, color)
+    label.setContentCompressionResistancePriority(.required, for: .horizontal)
+    let view = padded(label, 9, 3, in: Panel(fill: back, radius: 10))
+    view.setContentHuggingPriority(.required, for: .horizontal)
+    return view
+}
+
+/// Огонёк, маскот Искры. Картинки лежат в Resources приложения.
+private func mascot(_ mood: String, size: CGFloat) -> NSView {
+    let view = NSImageView()
+    view.translatesAutoresizingMaskIntoConstraints = false
+    if let url = Bundle.main.url(forResource: "mascot-\(mood)", withExtension: "png") { view.image = NSImage(contentsOf: url) }
+    view.imageScaling = .scaleProportionallyUpOrDown
+    view.widthAnchor.constraint(equalToConstant: size).isActive = true
+    view.heightAnchor.constraint(equalToConstant: size).isActive = true
+    return view
+}
+
+/// Время по-русски, 24 часа, независимо от настроек формата.
+private func clock(_ date: Date) -> String {
+    let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+    return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
+}
+
+private func plural(_ n: Int, _ one: String, _ few: String, _ many: String) -> String {
+    let mod10 = n % 10, mod100 = n % 100
+    if mod10 == 1 && mod100 != 11 { return one }
+    if (2...4).contains(mod10) && !(12...14).contains(mod100) { return few }
+    return many
+}
+
+// MARK: - Очередь уроков
+
+/// Задание расшифровки, как его видит обработчик (tools/local-transcription:
+/// jobs/<id>/job.json и progress.json). Окно читает те же файлы, из которых
+/// обработчик отвечает островку Искры на GET /queue, — прогресс совпадает.
+struct QueueJob: Equatable {
+    enum Kind: Equatable { case running, queued, done, failed }
+    let id: String
+    let title: String
+    let kind: Kind
+    let stage: String
+    let percent: Int?
+    let finished: Date?
+    let order: Double
+}
+
+private enum JobsReader {
+    /// Та же папка, что у обработчика (server.py: ISKRA_TRANSCRIPTION_HOME/jobs).
+    static var folder: URL {
+        let home = ProcessInfo.processInfo.environment["ISKRA_TRANSCRIPTION_HOME"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? Companion.appSupport.appendingPathComponent("transcription", isDirectory: true)
+        return home.appendingPathComponent("jobs", isDirectory: true)
+    }
+
+    static func read(now: Date = Date()) -> [QueueJob] {
+        let fm = FileManager.default
+        let dirs = (try? fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
+        let today = Calendar.current.startOfDay(for: now)
+        var active: [QueueJob] = []
+        var finished: [QueueJob] = []
+        for dir in dirs {
+            let file = dir.appendingPathComponent("job.json")
+            guard let data = try? Data(contentsOf: file),
+                  let job = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                  let state = job["state"] as? [String: Any] else { continue }
+            if state["cancelled"] as? Bool == true { continue }
+            let id = job["id"] as? String ?? dir.lastPathComponent
+            let stage = state["stage"] as? String ?? ""
+            let changed = modified(file)
+            let title = titleOf(job)
+            if state["done"] as? Bool == true || state["error"] as? Bool == true {
+                guard changed >= today else { continue }
+                let ok = state["done"] as? Bool == true
+                finished.append(QueueJob(id: id, title: title, kind: ok ? .done : .failed, stage: stage,
+                                         percent: nil, finished: changed, order: -changed.timeIntervalSince1970))
+                continue
+            }
+            // Задание без движения полдня — след старого сбоя, а не работа.
+            let progressFile = dir.appendingPathComponent("progress.json")
+            guard now.timeIntervalSince(max(changed, modified(progressFile))) < 12 * 3600 else { continue }
+            let queuedAt = (state["queuedAt"] as? Double) ?? changed.timeIntervalSince1970
+            if stage == "В очереди" {
+                active.append(QueueJob(id: id, title: title, kind: .queued, stage: stage, percent: nil, finished: nil, order: queuedAt))
+            } else {
+                active.append(QueueJob(id: id, title: title, kind: .running, stage: stage,
+                                       percent: percent(progressFile, stage: stage), finished: nil, order: queuedAt - 1e10))
+            }
+        }
+        active.sort { $0.order < $1.order }
+        finished.sort { $0.order < $1.order }
+        return active + finished.prefix(3)
+    }
+
+    private static func titleOf(_ job: [String: Any]) -> String {
+        let lesson = (job["lessonTitle"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let course = (job["courseTitle"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        switch (course.isEmpty, lesson.isEmpty) {
+        case (false, false): return "\(course) · \(lesson)"
+        case (true, false): return lesson
+        case (false, true): return course
+        default: return "Запись урока"
+        }
+    }
+
+    private static func modified(_ url: URL) -> Date {
+        (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+    }
+
+    private static func percent(_ url: URL, stage: String) -> Int? {
+        guard let data = try? Data(contentsOf: url),
+              let detail = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              detail["step"] as? String == stage,
+              let total = (detail["total"] as? NSNumber)?.doubleValue, total > 0,
+              let current = (detail["current"] as? NSNumber)?.doubleValue else { return nil }
+        return min(99, max(0, Int(current / total * 100)))
+    }
+}
+
+// MARK: - Окно
+
+enum Phase: Equatable {
+    case checking          // окно открылось, смотрим, работает ли служба
+    case installing        // копируем приложение в «Программы»
+    case openInstalled     // нужно открыть установленную копию
+    case permission        // macOS ждёт разрешения фоновой службы
+    case preparing         // служба запускается, в первый раз — качает компоненты
+    case failed(String, step: Int)  // step: 1 — разрешение, 2 — компоненты, 0 — установка
+    case ready             // всё готово: тумблер и очередь
+}
+
+private struct Screen: Equatable {
+    var phase: Phase
+    var serviceOn: Bool
+    var jobs: [QueueJob]
+    var version: String
+}
+
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     private var window: NSWindow!
-    private var statusLabel: NSTextField!
-    private var detailLabel: NSTextField!
-    private var startButton: NSButton!
-    private var stopButton: NSButton!
-    private var settingsButton: NSButton!
-    private var revealButton: NSButton!
-    private var versionLabel: NSTextField!
+    private var root: NSView!
+    private var stack: NSStackView!
+    private var shown: Screen?
+    private var phase: Phase = .checking
+    private var serviceOn = false
+    private var jobs: [QueueJob] = []
+    private var versionNote: String?
+    private var knownFinished: Set<String>?
+    private var askedNotifications = false
     private var updateTask: Task<Void, Never>?
     private var updateTimer: Timer?
+    private var pollTimer: Timer?
+    private var polling = false
 
     private var startTask: Task<Void, Never>?
     private var pendingApproval = false
     private var requestedStart = false
     private var installing = false
+    private let preview = ProcessInfo.processInfo.environment["ISKRA_WINDOW_PREVIEW"]
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if let preview { showPreview(preview); return }
+        UNUserNotificationCenter.current().delegate = self
         buildWindow()
         requestedStart = requestedStart || CommandLine.arguments.contains("--start")
         buildMenu()
         if installInApplicationsIfNeeded() { return }
         Companion.trashOtherCopies()
         handleStart()
+        poll()
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.poll() }
+        }
         checkForUpdates(userInitiated: false)
         updateTimer = Timer.scheduledTimer(withTimeInterval: Updater.checkInterval, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.checkForUpdates(userInitiated: false) }
@@ -358,14 +765,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     if userInitiated { inform("Установлена последняя версия", "Версия \(Updater.currentVersion).") }
                     return
                 }
-                versionLabel.stringValue = "Версия \(Updater.currentVersion) · устанавливаем обновление \(manifest.version)…"
+                versionNote = "Версия \(Updater.currentVersion) · устанавливаем обновление \(manifest.version)…"
+                render()
                 try await Updater.install(manifest)
                 await startTask?.value
-                versionLabel.stringValue = "Обновлено до \(manifest.version) · перезапуск…"
+                versionNote = "Обновлено до \(manifest.version) · перезапуск…"
+                render()
                 Updater.relaunch(arguments: window.isVisible ? [] : ["--start"])
                 NSApp.terminate(nil)
             } catch {
-                versionLabel.stringValue = versionText()
+                versionNote = nil
+                render()
                 if userInitiated { inform("Не удалось обновить", error.localizedDescription) }
             }
         }
@@ -411,7 +821,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return true
         }
         installing = true
-        statusLabel.stringValue = "Устанавливаем приложение…"
+        setPhase(.installing)
         do {
             try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
             let lockURL = target.deletingLastPathComponent().appendingPathComponent(".iskra-transcription-install.lock")
@@ -441,133 +851,327 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             showInstallRecovery()
         } catch {
             installing = false
-            showError("Не удалось установить приложение в папку «Программы». \(error.localizedDescription)")
+            showError("Не удалось установить приложение в папку «Программы». \(error.localizedDescription)", step: 0)
         }
         return true
     }
 
+    // MARK: Отрисовка
+
     private func buildWindow() {
-        let frame = NSRect(x: 0, y: 0, width: 460, height: 300)
-        window = NSWindow(contentRect: frame, styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        let width: CGFloat = 480
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: width, height: 420), styleMask: [.titled, .closable], backing: .buffered, defer: false)
         // Keep the ARC-owned window alive when the red close button hides it.
         // Dock reopen and asynchronous status updates reuse this same window.
         window.isReleasedWhenClosed = false
         window.title = "Искра · Расшифровка"
+        root = Panel(fill: .windowBackgroundColor, radius: 0)
+        root.translatesAutoresizingMaskIntoConstraints = true
+        window.contentView = root
+        stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 14
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
+            stack.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -24),
+            stack.topAnchor.constraint(equalTo: root.topAnchor, constant: 18),
+            stack.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -18),
+            stack.widthAnchor.constraint(equalToConstant: width - 48),
+        ])
+        render(force: true)
         window.center()
-        let content = NSView(frame: frame)
-        window.contentView = content
 
-        let title = label("Фоновый модуль Искры", size: 22, weight: .semibold)
-        title.frame = NSRect(x: 28, y: 236, width: 404, height: 30); content.addSubview(title)
-        statusLabel = label("Проверяем службу…", size: 14, weight: .medium)
-        statusLabel.frame = NSRect(x: 28, y: 202, width: 404, height: 22); content.addSubview(statusLabel)
-        detailLabel = label("При расшифровке Искра запустит обработчик в фоне. Терминал не нужен.", size: 12, weight: .regular)
-        detailLabel.textColor = .secondaryLabelColor; detailLabel.lineBreakMode = .byWordWrapping; detailLabel.maximumNumberOfLines = 3
-        detailLabel.frame = NSRect(x: 28, y: 146, width: 404, height: 48); content.addSubview(detailLabel)
-
-        startButton = button("Запустить обработчик", action: #selector(startClicked))
-        startButton.frame = NSRect(x: 28, y: 92, width: 196, height: 38)
-        content.addSubview(startButton)
-        stopButton = button("Остановить", action: #selector(stopClicked))
-        stopButton.frame = NSRect(x: 232, y: 92, width: 110, height: 38)
-        content.addSubview(stopButton)
-        settingsButton = button("Настройки фоновой службы", action: #selector(settingsClicked))
-        settingsButton.frame = NSRect(x: 28, y: 42, width: 240, height: 32)
-        content.addSubview(settingsButton)
-
-        revealButton = button("Показать приложение в Finder", action: #selector(revealInstalledApp))
-        revealButton.frame = NSRect(x: 28, y: 92, width: 260, height: 38)
-        revealButton.isHidden = true
-        content.addSubview(revealButton)
-
-        versionLabel = label(versionText(), size: 10, weight: .regular)
-        versionLabel.textColor = .tertiaryLabelColor
-        versionLabel.frame = NSRect(x: 28, y: 14, width: 404, height: 16); content.addSubview(versionLabel)
-
-        if !requestedStart && !CommandLine.arguments.contains("--start") {
+        if preview == nil && !requestedStart && !CommandLine.arguments.contains("--start") {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
         }
     }
 
-    private func label(_ text: String, size: CGFloat, weight: NSFont.Weight) -> NSTextField {
-        let field = NSTextField(labelWithString: text)
-        field.font = .systemFont(ofSize: size, weight: weight)
-        return field
+    private func setPhase(_ next: Phase) {
+        phase = next
+        render()
     }
 
-    private func button(_ title: String, action: Selector) -> NSButton {
-        let button = NSButton(title: title, target: self, action: action)
-        button.bezelStyle = .rounded
-        return button
+    private func render(force: Bool = false) {
+        guard let stack else { return }
+        let screen = Screen(phase: phase, serviceOn: serviceOn, jobs: jobs, version: versionNote ?? versionText())
+        if !force && screen == shown { return }
+        shown = screen
+        stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        let body: [NSView]
+        switch phase {
+        case .ready, .checking: body = readyViews()
+        default: body = setupViews()
+        }
+        for view in body + [spacer(), footer(screen.version)] {
+            stack.addArrangedSubview(view)
+            view.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        }
+        // Высота — по содержимому, но не ниже 400, чтобы окно не прыгало между состояниями.
+        stack.layoutSubtreeIfNeeded()
+        let height = max(400, stack.fittingSize.height + 36)
+        let content = NSRect(x: 0, y: 0, width: 480, height: height)
+        var frame = window.frameRect(forContentRect: content)
+        if abs(frame.height - window.frame.height) > 0.5 {
+            frame.origin = NSPoint(x: window.frame.minX, y: window.frame.maxY - frame.height)
+            window.setFrame(frame, display: true)
+        }
+    }
+
+    private func footer(_ version: String) -> NSView {
+        let label = text(version, 11, .regular, .tertiaryLabelColor)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        let dot = text("·", 11, .regular, .tertiaryLabelColor)
+        return row([label, spacer(),
+                    linkButton("Журнал", size: 11, color: .secondaryLabelColor, target: self, action: #selector(logClicked)),
+                    dot,
+                    linkButton("Проверить обновления", size: 11, color: .secondaryLabelColor, target: self, action: #selector(checkUpdatesClicked))],
+                   spacing: 4)
+    }
+
+    private func head(_ mood: String, _ title: String, _ detail: String, _ badge: (String, Tone)?) -> NSView {
+        let width: CGFloat = badge == nil ? 330 : 210
+        let words = column([text(title, 18, .semibold, wrap: width), text(detail, 12.5, .regular, .secondaryLabelColor, wrap: width)], spacing: 3)
+        var items: [NSView] = [mascot(mood, size: 72), words, spacer()]
+        if let badge { items.append(pill(badge.0, badge.1)) }
+        return row(items, spacing: 12)
+    }
+
+    private enum StepState { case done, now, todo, bad }
+
+    private func step(_ state: StepState, _ number: Int, _ title: String, _ detail: String,
+                      action: NSView? = nil, progress: ProgressBar? = nil) -> NSView {
+        let dot: Panel
+        let mark: String
+        switch state {
+        case .done: dot = Panel(fill: Palette.ok, radius: 11); mark = "✓"
+        case .now: dot = Panel(radius: 11, gradient: Palette.gradient); mark = "\(number)"
+        case .bad: dot = Panel(fill: Palette.err, radius: 11); mark = "!"
+        case .todo: dot = Panel(stroke: .tertiaryLabelColor, radius: 11); mark = "\(number)"
+        }
+        let markLabel = text(mark, 12, .bold, state == .todo ? .secondaryLabelColor : .white)
+        markLabel.alignment = .center
+        markLabel.translatesAutoresizingMaskIntoConstraints = false
+        dot.addSubview(markLabel)
+        NSLayoutConstraint.activate([
+            dot.widthAnchor.constraint(equalToConstant: 22), dot.heightAnchor.constraint(equalToConstant: 22),
+            markLabel.centerXAnchor.constraint(equalTo: dot.centerXAnchor), markLabel.centerYAnchor.constraint(equalTo: dot.centerYAnchor),
+        ])
+        let titleLabel = text(title, 13, state == .todo ? .medium : .semibold, state == .todo ? .secondaryLabelColor : .labelColor)
+        var lines: [NSView] = [titleLabel, text(detail, 12, .regular, .secondaryLabelColor, wrap: action == nil ? 330 : 230)]
+        if let progress {
+            lines.append(progress)
+            progress.widthAnchor.constraint(equalToConstant: 220).isActive = true
+        }
+        var items: [NSView] = [dot, column(lines, spacing: 2), spacer()]
+        if let action { items.append(action) }
+        return padded(row(items, spacing: 12), 14, 12)
+    }
+
+    private func setupViews() -> [NSView] {
+        let back = secondaryButton("Вернуться в Искру", target: self, action: #selector(openIskra))
+        switch phase {
+        case .installing:
+            return [head("think", "Устанавливаем приложение", "Копируем «Искра · Расшифровка» в папку «Программы».", nil)]
+        case .openInstalled:
+            return [head("wave", "Откройте установленное приложение",
+                         "Покажите его в Finder и откройте выделенный файл. Затем вернитесь в Искру.", nil),
+                    row([PrimaryButton("Показать в Finder", target: self, action: #selector(revealInstalledApp))])]
+        case .permission:
+            return [head("think", "Нужно одно разрешение", "macOS спросит один раз. Потом окно обновится само.", ("Нужно действие", .warn)),
+                    card([step(.now, 1, "Разрешение macOS", "Разрешите фоновую службу Искры",
+                               action: PrimaryButton("Разрешить", target: self, action: #selector(settingsClicked))),
+                          step(.todo, 2, "Компоненты", "Модель распознавания и звук"),
+                          step(.todo, 3, "Обработчик", "Принимает уроки из Искры")]),
+                    row([back])]
+        case .preparing:
+            return [head("think", "Готовим расшифровку", "В первый раз это займёт несколько минут. Можно вернуться в Искру.", ("Подготовка", .accent)),
+                    card([step(.done, 1, "Разрешение macOS", "Разрешено"),
+                          step(.now, 2, "Компоненты", "Скачиваем модель распознавания и звук", progress: ProgressBar(nil)),
+                          step(.todo, 3, "Обработчик", "Запустится сам")]),
+                    row([back])]
+        case .failed(let message, let failedStep):
+            let retry = PrimaryButton("Повторить", target: self, action: #selector(startClicked))
+            if failedStep == 0 { return [head("sad", "Не получилось", message, nil)] }
+            let steps = failedStep == 1
+                ? [step(.bad, 1, "Разрешение macOS", message, action: PrimaryButton("Настройки", target: self, action: #selector(settingsClicked))),
+                   step(.todo, 2, "Компоненты", "Ждут разрешения"),
+                   step(.todo, 3, "Обработчик", "Ждёт разрешения")]
+                : [step(.done, 1, "Разрешение macOS", "Разрешено"),
+                   step(.bad, 2, "Компоненты", message, action: retry),
+                   step(.todo, 3, "Обработчик", "Ждёт компоненты")]
+            return [head("sad", "Не получилось подготовить", "Проверьте интернет и нажмите «Повторить».", ("Ошибка", .err)),
+                    card(steps), row([back])]
+        case .ready, .checking:
+            return readyViews()
+        }
+    }
+
+    private func readyViews() -> [NSView] {
+        let checking = phase == .checking
+        let on = serviceOn && !checking
+        let running = jobs.filter { $0.kind == .running }.count
+        let queued = jobs.filter { $0.kind == .queued }.count
+        let recentDone = jobs.contains { $0.kind == .done && ($0.finished.map { Date().timeIntervalSince($0) < 600 } ?? false) }
+        let mood = !on ? "wave" : running > 0 ? "think" : recentDone ? "joy" : "wave"
+        let subtitle: String
+        if checking { subtitle = "Проверяем службу…" }
+        else if !on { subtitle = "Выключена · Искра включит её сама, когда пришлёт урок" }
+        else if running > 0 {
+            subtitle = "Расшифровывает \(running) \(plural(running, "урок", "урока", "уроков"))"
+                + (queued > 0 ? ", ещё \(queued) в очереди" : "")
+        } else if queued > 0 { subtitle = "\(queued) \(plural(queued, "урок ждёт", "урока ждут", "уроков ждут")) очереди" }
+        else if recentDone { subtitle = "Включена · урок готов" }
+        else { subtitle = "Включена · ждёт уроки из Искры" }
+
+        let toggle = Toggle()
+        toggle.isOn = on
+        toggle.isEnabled = !checking && startTask == nil
+        toggle.target = self
+        toggle.action = #selector(toggleClicked(_:))
+        let titleLabel = text("Расшифровка на этом Mac", 15, .semibold)
+        let subtitleLabel = text(subtitle, 12, .regular, .secondaryLabelColor, wrap: 280)
+        let tile = padded(row([mascot(mood, size: 56), column([titleLabel, subtitleLabel], spacing: 3), spacer(), toggle], spacing: 12),
+                          14, 10, in: Panel(fill: Palette.tile, stroke: Palette.line, radius: 14))
+
+        var counts: [String] = []
+        if running > 0 { counts.append("\(running) \(plural(running, "идёт", "идут", "идут"))") }
+        if queued > 0 { counts.append("\(queued) \(plural(queued, "ждёт", "ждут", "ждут"))") }
+        let finished = jobs.filter { $0.kind == .done }.count
+        if counts.isEmpty && finished > 0 { counts.append("готово сегодня: \(finished)") }
+        let header = row([text("Уроки", 13, .semibold), spacer(), text(counts.joined(separator: " · "), 12, .regular, .secondaryLabelColor)])
+
+        let list: NSView
+        if jobs.isEmpty {
+            let empty = text("Сейчас ничего не расшифровывается. Загрузите видео урока в Искре — оно появится здесь.",
+                             12, .regular, .secondaryLabelColor, wrap: 400)
+            empty.alignment = .center
+            list = card([padded(empty, 14, 14)])
+        } else {
+            list = card(jobs.map { jobRow($0, serviceOn: on) })
+        }
+
+        let facts = row([text("Фоновая служба macOS", 12, .regular, .secondaryLabelColor), spacer(),
+                         text(preview != nil || Companion.service.status == .enabled ? "разрешена ·" : "нет разрешения ·", 12, .medium),
+                         linkButton("Настройки", size: 12, target: self, action: #selector(settingsClicked))], spacing: 4)
+        let open: NSView = on && running == 0 && recentDone
+            ? PrimaryButton("Открыть Искру", target: self, action: #selector(openIskra))
+            : secondaryButton("Открыть Искру", target: self, action: #selector(openIskra))
+        return [tile, header, list, facts, row([open])]
+    }
+
+    private func jobRow(_ job: QueueJob, serviceOn: Bool) -> NSView {
+        let title = text(job.title, 13, job.kind == .queued ? .medium : .semibold, job.kind == .queued ? .secondaryLabelColor : .labelColor)
+        title.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        let trailing: NSView
+        let detail: String
+        var bar: ProgressBar?
+        switch job.kind {
+        case .running:
+            trailing = text(job.percent.map { "\($0)%" } ?? "", 12, .regular, .secondaryLabelColor)
+            detail = serviceOn ? job.stage : "Продолжится, когда расшифровка включится"
+            if serviceOn { bar = ProgressBar(job.percent.map { Double($0) / 100 }) }
+        case .queued:
+            trailing = text("в очереди", 12, .regular, .secondaryLabelColor)
+            detail = serviceOn ? "Начнётся, когда освободится место" : "Начнётся, когда расшифровка включится"
+        case .done:
+            trailing = linkButton("Открыть в Искре", size: 12, target: self, action: #selector(openIskra))
+            detail = job.finished.map { "Готово сегодня в \(clock($0))" } ?? "Готово сегодня"
+        case .failed:
+            trailing = text("ошибка", 12, .medium, Palette.err)
+            detail = job.stage
+        }
+        let mark: NSView? = job.kind == .done ? text("✓", 13, .bold, Palette.ok) : nil
+        let top = row((mark.map { [$0] } ?? []) + [title, spacer(), trailing], spacing: 6)
+        var lines: [NSView] = [top, text(detail, 12, .regular, .secondaryLabelColor, wrap: 400)]
+        if let bar { lines.append(bar) }
+        return padded(column(lines, spacing: 4, fill: true), 14, 10)
+    }
+
+    // MARK: Служба
+
+    /// Раз в 2 секунды: жива ли служба и что в очереди. Окно перерисовывается,
+    /// только если что-то поменялось.
+    private func poll() {
+        guard !polling else { return }
+        polling = true
+        Task {
+            defer { polling = false }
+            let on = await Companion.isRunning()
+            let list = await Task.detached(priority: .utility) { JobsReader.read() }.value
+            serviceOn = on
+            jobs = list
+            announceFinished()
+            if on, startTask == nil {
+                switch phase {
+                case .checking, .failed(_, step: 2): phase = .ready
+                default: break
+                }
+            } else if !on, phase == .checking, startTask == nil {
+                phase = .ready
+            }
+            render()
+        }
     }
 
     private func handleStart() {
-        guard startTask == nil, !installing, revealButton.isHidden else { return }
+        guard startTask == nil, !installing, phase != .openInstalled else { return }
         guard Companion.isInstalled(Bundle.main.bundleURL) else {
             _ = installInApplicationsIfNeeded()
             return
         }
         startTask = Task {
-            defer { startTask = nil }
+            defer { startTask = nil; render(force: true) }
             do {
                 try Companion.register()
                 if Companion.service.status == .requiresApproval {
                     pendingApproval = true
-                    showRegistrationStatus()
+                    setPhase(.permission)
                     window.makeKeyAndOrderFront(nil)
                     NSApp.activate(ignoringOtherApps: true)
                     return
                 }
+                guard Companion.service.status == .enabled else {
+                    showError("macOS не зарегистрировала обработчик. Переустановите приложение и откройте его из папки «Программы».", step: 1)
+                    return
+                }
                 pendingApproval = false
-                statusLabel.stringValue = "Запускаем обработчик…"
-                detailLabel.stringValue = "При первом запуске подготавливаем компоненты. Можно вернуться в Искру."
                 if !(await Companion.isRunning()) {
                     try Task.checkCancellation()
                     try Companion.start()
                 }
-                let deadline = ContinuousClock.now + .seconds(285)
+                // Обычный запуск — пара секунд; шаги показываем, только если он затянулся
+                // (первый запуск качает компоненты), чтобы окно не мигало.
+                let started = ContinuousClock.now
+                let deadline = started + .seconds(285)
                 while ContinuousClock.now < deadline {
                     try Task.checkCancellation()
                     if await Companion.isRunning() {
                         try Task.checkCancellation()
-                        statusLabel.stringValue = "Служба работает"
-                        detailLabel.stringValue = "Вернитесь в Искру. Браузер продолжит подключение или обработку."
+                        serviceOn = true
+                        setPhase(.ready)
                         return
                     }
+                    if ContinuousClock.now - started > .seconds(2), phase != .preparing { setPhase(.preparing) }
                     try await Task.sleep(for: .seconds(1))
                 }
-                showError("Обработчик не ответил. Проверьте интернет и повторите запуск. Журнал: transcription-service.log в папке данных Искры.")
+                showError("Обработчик не ответил. Проверьте интернет и повторите запуск.", step: 2)
             } catch is CancellationError {
                 return
-            } catch { showError(error.localizedDescription) }
+            } catch { showError(error.localizedDescription, step: 2) }
         }
-    }
-
-    private func showRegistrationStatus() {
-        switch Companion.service.status {
-        case .enabled:
-            statusLabel.stringValue = "Фоновая служба разрешена"
-            detailLabel.stringValue = "Подключите компьютер или запустите расшифровку в Искре."
-        case .requiresApproval:
-            statusLabel.stringValue = "Нужно разрешение macOS"
-            detailLabel.stringValue = "Откройте настройки кнопкой ниже и разрешите фоновую службу Искры. Затем вернитесь сюда."
-        default:
-            showError("macOS не зарегистрировала обработчик. Переустановите приложение и откройте его из папки «Программы».")
-        }
+        render(force: true)
     }
 
     private func showInstallRecovery() {
         guard FileManager.default.fileExists(atPath: Companion.installedURL.path) else {
-            showError("Установленная копия не найдена. Закройте это окно и снова откройте приложение из ZIP.")
+            showError("Установленная копия не найдена. Закройте это окно и снова откройте приложение из образа.", step: 0)
             return
         }
-        startButton.isHidden = true
-        stopButton.isHidden = true
-        settingsButton.isHidden = true
-        revealButton.isHidden = false
-        statusLabel.stringValue = "Откройте установленное приложение"
-        detailLabel.stringValue = "Покажите приложение в Finder и откройте выделенный файл. Затем вернитесь в Искру."
+        setPhase(.openInstalled)
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -576,25 +1180,117 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.activateFileViewerSelecting([Companion.installedURL])
     }
 
-    private func showError(_ message: String) {
-        statusLabel?.stringValue = "Не удалось запустить службу"
-        detailLabel?.stringValue = message
+    private func showError(_ message: String, step: Int) {
+        setPhase(.failed(message, step: step))
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func startClicked() { handleStart() }
-    @objc private func stopClicked() {
+
+    @objc private func toggleClicked(_ sender: Toggle) {
+        if sender.isOn { handleStart(); return }
+        let active = jobs.filter { $0.kind == .running || $0.kind == .queued }
+        if !active.isEmpty {
+            let alert = NSAlert()
+            alert.messageText = "Выключить расшифровку?"
+            alert.informativeText = "\(active.count) \(plural(active.count, "урок", "урока", "уроков")) в работе. Расшифровка продолжится, когда вы снова её включите."
+            alert.addButton(withTitle: "Выключить")
+            alert.addButton(withTitle: "Отмена")
+            guard alert.runModal() == .alertFirstButtonReturn else { sender.isOn = true; return }
+        }
         pendingApproval = false
         startTask?.cancel()
         do {
             try Companion.stop()
-            statusLabel.stringValue = "Служба остановлена"
-            detailLabel.stringValue = "Службу можно снова запустить из Искры."
-        } catch { showError(error.localizedDescription) }
+            serviceOn = false
+            setPhase(.ready)
+        } catch { showError(error.localizedDescription, step: 2) }
     }
-    @objc private func settingsClicked() { SMAppService.openSystemSettingsLoginItems() }
 
+    @objc private func settingsClicked() { SMAppService.openSystemSettingsLoginItems() }
+    @objc private func openIskra() { NSWorkspace.shared.open(iskraURL) }
+    @objc private func logClicked() {
+        let log = Companion.appSupport.appendingPathComponent("transcription-service.log")
+        if FileManager.default.fileExists(atPath: log.path) { NSWorkspace.shared.open(log) }
+        else { inform("Журнал пока пуст", "Он появится после первого запуска обработчика.") }
+    }
+
+    // MARK: Уведомления
+
+    /// Готовый урок — уведомление macOS. Уроки, готовые до открытия окна, не объявляем.
+    private func announceFinished() {
+        let finished = Set(jobs.filter { $0.kind == .done }.map(\.id))
+        defer { knownFinished = (knownFinished ?? []).union(finished) }
+        if !askedNotifications, jobs.contains(where: { $0.kind == .running || $0.kind == .queued }) {
+            askedNotifications = true
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+        }
+        guard let known = knownFinished else { return }
+        for job in jobs where job.kind == .done && !known.contains(job.id) {
+            let content = UNMutableNotificationContent()
+            content.title = "Расшифровка готова"
+            content.body = job.title
+            content.sound = .default
+            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: job.id, content: content, trigger: nil))
+        }
+    }
+
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                            withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound])
+    }
+
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                            withCompletionHandler completionHandler: @escaping () -> Void) {
+        DispatchQueue.main.async { NSWorkspace.shared.open(iskraURL) }
+        completionHandler()
+    }
+
+    // MARK: Просмотр состояний для макетов и проверки
+
+    /// ISKRA_WINDOW_PREVIEW=<состояние> показывает окно с примером данных и ничего
+    /// не запускает; с ISKRA_WINDOW_SNAPSHOT=<путь.png> сохраняет снимок и выходит.
+    private func showPreview(_ name: String) {
+        let env = ProcessInfo.processInfo.environment
+        if let look = env["ISKRA_WINDOW_APPEARANCE"] { NSApp.appearance = NSAppearance(named: look == "dark" ? .darkAqua : .aqua) }
+        let now = Date()
+        let lesson14 = QueueJob(id: "a", title: "Химия · Урок 14. Окислительно-восстановительные реакции", kind: .running,
+                                stage: "Распознаём речь", percent: 48, finished: nil, order: 0)
+        let lesson9 = QueueJob(id: "b", title: "Биология · Урок 9. Митоз и мейоз", kind: .queued, stage: "В очереди",
+                               percent: nil, finished: nil, order: 1)
+        let lesson13 = QueueJob(id: "c", title: "Химия · Урок 13. Электролиз", kind: .done, stage: "Готово",
+                                percent: nil, finished: now.addingTimeInterval(-3 * 3600), order: 2)
+        let lesson14done = QueueJob(id: "a", title: lesson14.title, kind: .done, stage: "Готово",
+                                    percent: nil, finished: now.addingTimeInterval(-30), order: 1)
+        switch name {
+        case "permission": phase = .permission
+        case "preparing": phase = .preparing
+        case "failed": phase = .failed("Обработчик не ответил. Проверьте интернет и повторите запуск.", step: 2)
+        case "install": phase = .openInstalled
+        case "idle": phase = .ready; serviceOn = true
+        case "work": phase = .ready; serviceOn = true; jobs = [lesson14, lesson9, lesson13]
+        case "done": phase = .ready; serviceOn = true; jobs = [lesson14done, lesson13]
+        case "live": phase = .ready; serviceOn = true; jobs = JobsReader.read()
+        default: phase = .ready; serviceOn = false; jobs = [lesson13]
+        }
+        buildWindow()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        guard let out = env["ISKRA_WINDOW_SNAPSHOT"] else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
+            MainActor.assumeIsolated {
+                let view = window.contentView!
+                view.effectiveAppearance.performAsCurrentDrawingAppearance {
+                    if let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
+                        view.cacheDisplay(in: view.bounds, to: rep)
+                        try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: out))
+                    }
+                }
+                exit(0)
+            }
+        }
+    }
 }
 
 MainActor.assumeIsolated {
