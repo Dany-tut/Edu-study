@@ -62,6 +62,18 @@ const posOfRate = (rates: number[], r: number) => {
   }
   return rates.length - 1
 }
+/** Light desktop-only magnetic stop for important values on continuous sliders.
+ * The threshold is measured in CSS pixels so it stays equally subtle at every
+ * slider width and max value. Coarse pointers keep the native touch behavior. */
+const snapRangeToStop = (input: HTMLInputElement, value: number, stop: number, enabled: boolean) => {
+  if (!enabled) return value
+  const min = Number(input.min)
+  const max = Number(input.max)
+  const width = input.getBoundingClientRect().width
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min || width <= 0) return value
+  const distancePx = Math.abs(value - stop) / (max - min) * width
+  return distancePx <= 7 ? stop : value
+}
 const fmtRate = (r: number) => `${Math.round(r * 100) / 100}×`
 /** Через столько без движения мыши панель управления уезжает. */
 const IDLE_MS = 2600
@@ -223,6 +235,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 ) {
   const t = useT()
   const touch = useCoarsePointer()
+  const mouseSliderDrag = useRef(false)
   const [driveUrl, setDriveUrl] = useState('')
   const [driveError, setDriveError] = useState(false)
   const [driveAttempt, setDriveAttempt] = useState(0)
@@ -1557,8 +1570,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                       <input
                         type="range" min={0} max={maxVolume} step="any"
                         value={muted ? 0 : volume}
+                        onPointerDown={e => { mouseSliderDrag.current = !touch && e.pointerType === 'mouse' }}
+                        onPointerUp={() => { mouseSliderDrag.current = false }}
+                        onPointerCancel={() => { mouseSliderDrag.current = false }}
+                        onBlur={() => { mouseSliderDrag.current = false }}
                         onChange={e => {
-                          const v = Number(e.target.value)
+                          const v = snapRangeToStop(e.currentTarget, Number(e.currentTarget.value), 1, mouseSliderDrag.current)
                           setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
                         }}
                         aria-label={t('Уровень громкости')}
@@ -1626,15 +1643,17 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         </div>
                         <input type="range" min={0} max={rates.length - 1} step="any"
                           value={rateIndex}
+                          onPointerDown={e => { mouseSliderDrag.current = !touch && e.pointerType === 'mouse' }}
+                          onPointerUp={() => { mouseSliderDrag.current = false; setRateKnob(null) }}
+                          onPointerCancel={() => { mouseSliderDrag.current = false; setRateKnob(null) }}
                           onChange={e => {
                             if (lockedRef.current) endBoost()
-                            const p = Number(e.target.value)
+                            const p = snapRangeToStop(e.currentTarget, Number(e.currentTarget.value), posOfRate(rates, 1), mouseSliderDrag.current)
                             setRateKnob(p)
                             const r = rateAtPos(rates, p)
                             if (r !== rateRef.current) applyRate(r, false)
                           }}
-                          onPointerUp={() => setRateKnob(null)}
-                          onBlur={() => setRateKnob(null)}
+                          onBlur={() => { mouseSliderDrag.current = false; setRateKnob(null) }}
                           aria-label={t('Скорость воспроизведения')}
                           aria-valuetext={fmtRate(rate)}
                           className="video-volume lesson-player-volume-slider lesson-player-rate-slider"
