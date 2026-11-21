@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ArrowDownToLine, ArrowRight, AudioLines, Loader2, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
+import { ArrowDownToLine, ArrowRight, AudioLines, ChevronDown, Loader2, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import Checkbox from '../Checkbox'
 import LessonTranscriptPanel from '../LessonTranscriptPanel'
@@ -144,6 +144,7 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
             Управление модулем
+            <ChevronDown size={16} className="transcription-manage-chevron" aria-hidden />
           </button>
 
           <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}

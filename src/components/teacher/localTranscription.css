@@ -287,6 +287,11 @@
 .transcription-module-status[data-tone=progress] { background: var(--color-purple-soft); color: var(--color-purple-text); }
 /* Подключённый модуль: инструкция слева, версия, «Отключить» справа — как у Тестли. */
 .transcription-connected-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+/* «Управление модулем» раскрывает блок вниз — шеврон показывает вложение
+   и поворачивается, когда блок открыт. */
+.transcription-manage-chevron { flex: none; color: var(--color-text-2); transition: transform .2s ease; }
+[aria-expanded=true] > .transcription-manage-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .transcription-manage-chevron { transition: none; } }
 .transcription-module-version { flex: 1; min-width: 0; color: var(--color-text-3); font-size: 12px; font-variant-numeric: tabular-nums; }
 .transcription-connected-actions .integration-disconnect { flex: none; width: auto; padding-inline: 16px; }
 @container (max-width: 500px) {
