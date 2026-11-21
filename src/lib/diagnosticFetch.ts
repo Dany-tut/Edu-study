@@ -32,6 +32,7 @@ function pageContext() {
     visibility: typeof document !== 'undefined' ? document.visibilityState : 'unknown' }
 }
 let pageGeneration = 0
+let visibilityGeneration = 0
 let leaving = false
 let lifecycleInstalled = false
 export function diagnosticFetch(base: typeof fetch, backend: string): typeof fetch {
@@ -40,6 +41,7 @@ export function diagnosticFetch(base: typeof fetch, backend: string): typeof fet
     lifecycleInstalled = true
     window.addEventListener('pagehide', () => { leaving = true; pageGeneration++ })
     window.addEventListener('pageshow', () => { leaving = false; pageGeneration++ })
+    document.addEventListener('visibilitychange', () => { visibilityGeneration++ })
   }
   return async (input, init) => {
     let endpoint = ''
@@ -51,6 +53,7 @@ export function diagnosticFetch(base: typeof fetch, backend: string): typeof fet
     const initial = pageContext()
     const startOnline = navigator.onLine
     const generation = pageGeneration
+    const visibilityAtStart = visibilityGeneration
     const source = telemetrySource()
     const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined)
     const emit = (status: number, event = 'api_request', detail: Record<string, unknown> = {}) => {
@@ -62,9 +65,19 @@ export function diagnosticFetch(base: typeof fetch, backend: string): typeof fet
         page_changed: generation !== pageGeneration, page_leaving: leaving, signal_aborted: signal?.aborted ?? false,
         ...detail }) } catch { /* telemetry is best effort */ }
     }
-    const pending = (event: string) => { if (!signal?.aborted && !leaving && pageContext().visibility === 'visible') emit(-1, event) }
-    const slowTimer = endpoint ? setTimeout(() => pending('api_slow'), 8000) : undefined
-    const stallTimer = endpoint ? setTimeout(() => pending('api_stalled'), 30000) : undefined
+    const pending = (event: string, thresholdMs: number) => {
+      const elapsed = performance.now() - start
+      // Background tabs can suspend timers and release them together on resume.
+      // Those delayed callbacks are not evidence that the API stalled while the
+      // teacher was using the page. Only report requests observed continuously
+      // in the same visible route, and discard heavily delayed timer callbacks.
+      if (!signal?.aborted && !leaving && initial.visibility === 'visible'
+        && pageContext().visibility === 'visible' && pageContext().route === initial.route
+        && generation === pageGeneration && visibilityAtStart === visibilityGeneration
+        && elapsed <= thresholdMs + 10_000) emit(-1, event)
+    }
+    const slowTimer = endpoint ? setTimeout(() => pending('api_slow', 8000), 8000) : undefined
+    const stallTimer = endpoint ? setTimeout(() => pending('api_stalled', 30000), 30000) : undefined
     try {
       const response = await base(input, init)
       emit(response.status, 'api_request', { outcome: response.ok ? 'success' : 'http_error' })
