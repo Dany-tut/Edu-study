@@ -294,8 +294,8 @@ function AdminScreen() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="ms__row" style={{ justifyContent: 'space-between' }}>
             <div className="ms__row">
-              <button type="button" className="ms__chip" aria-pressed={tab === 'pending'} onClick={() => setTab('pending')}>Ждут решения · {pending}</button>
-              <button type="button" className="ms__chip" aria-pressed={tab === 'done'} onClick={() => setTab('done')}>Решённые · {st.proposals.length - pending}</button>
+              <button type="button" className="ms__chip" aria-pressed={tab === 'pending'} onClick={() => setTab('pending')}><OpticalText as="iskra-button-label">Ждут решения · {pending}</OpticalText></button>
+              <button type="button" className="ms__chip" aria-pressed={tab === 'done'} onClick={() => setTab('done')}><OpticalText as="iskra-button-label">Решённые · {st.proposals.length - pending}</OpticalText></button>
             </div>
             <div className="ms__row">
               <span className="ms__note">Глазное яблоко по МРТ:</span>

@@ -1773,7 +1773,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     border: 'none', backdropFilter: 'blur(8px)',
                   }}
                 >
-                  {t('Продолжить с')} {formatClock(resumeAt)}
+                  <OpticalText as="iskra-button-label">{t('Продолжить с')} {formatClock(resumeAt)}</OpticalText>
                 </button>
                 <button data-hover="layer"
                   onClick={() => { setStartAt(0); setStarted(true) }}

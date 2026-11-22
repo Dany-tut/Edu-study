@@ -939,7 +939,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.82' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
             >
-              №{n}
+              <OpticalText as="iskra-button-label">№{n}</OpticalText>
             </button>
           ))}
           {map.part2Lines.map(n => (
@@ -952,7 +952,7 @@ function SuggestBox({ section, lineNames, onPickLine, accent }: {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${accent}48` }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${accent}33` }}
             >
-              №{n} · {t('Ч2')}
+              <OpticalText as="iskra-button-label">№{n} · {t('Ч2')}</OpticalText>
             </button>
           ))}
         </div>
@@ -1402,7 +1402,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
             <button data-hover="layer" onClick={onRetryMistakes}
               style={{ width: '100%', padding: '12px', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 4px 14px ${palette.ring}` }}>
-              <XCircle size={16} />{t('Повторить ошибки')} ({wrongTasks.length})
+              <XCircle size={16} /><OpticalText as="iskra-button-label">{t('Повторить ошибки')} ({wrongTasks.length})</OpticalText>
             </button>
             {wrongLines.length > 0 && (
               <button data-hover="layer" onClick={() => onSimilarTasks(wrongLines)}
@@ -2046,7 +2046,7 @@ export default function BankTrainer({ subjectState }: {
                   color: active ? palette.accent : 'var(--color-muted)',
                   opacity: avail ? 1 : 0.4,
                 }}>
-                  {t('Часть')} {p}
+                  <OpticalText as="iskra-button-label">{t('Часть')} {p}</OpticalText>
                 </button>
               )})}
             </div>
@@ -2238,7 +2238,7 @@ export default function BankTrainer({ subjectState }: {
                   opacity: avail ? 1 : 0.4,
                   transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
                 }}>
-                  {t('Часть')} {p}
+                  <OpticalText as="iskra-button-label">{t('Часть')} {p}</OpticalText>
                 </button>
               )})}
             </div>

@@ -72,7 +72,7 @@ export default function WidgetSizeReview({ hiddenWidgets = [] }: { hiddenWidgets
           <span>В / Ш</span>{Array.from({ length: grid.columns }, (_, n) => <b key={`w${n}`}>{n + 1}</b>)}
           {Array.from({ length: grid.rows }, (_, y) => [<b key={`h${y}`}>{y + 1}</b>, ...Array.from({ length: grid.columns }, (_, x) => {
             const next = { w: x + 1, h: y + 1 }, valid = allowed(def, grid, next)
-            return <button data-hover="layer" key={`${x}-${y}`} disabled={!valid} aria-pressed={size.w === next.w && size.h === next.h} title={valid ? `${next.w}×${next.h}` : `Недоступно: минимум ${bounds.minW}×${bounds.minH}`} onClick={() => setSelected(next)}>{next.w}×{next.h}</button>
+            return <button data-hover="layer" key={`${x}-${y}`} disabled={!valid} aria-pressed={size.w === next.w && size.h === next.h} title={valid ? `${next.w}×${next.h}` : `Недоступно: минимум ${bounds.minW}×${bounds.minH}`} onClick={() => setSelected(next)}><OpticalText as="iskra-button-label">{next.w}×{next.h}</OpticalText></button>
           })])}
         </div></div>
         <p className="size-review-hint">Серые размеры недоступны. Календарь 1×1 запрещён. Прокрутка карточек доступна; действия с данными в этом просмотре отключены.</p>

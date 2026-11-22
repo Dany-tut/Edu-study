@@ -4637,7 +4637,7 @@ export default function HomeworkFlow({
                         fontSize: 14, fontWeight: 700, boxShadow: '0 12px 28px rgba(var(--accent-rgb), 0.28)',
                       }}
                     >
-                      {t('Вернуться к заданию')} {basicUnanswered[0].number}
+                      <OpticalText as="iskra-button-label">{t('Вернуться к заданию')} {basicUnanswered[0].number}</OpticalText>
                       <ArrowRight size={16} />
                     </motion.button>
                     <motion.button

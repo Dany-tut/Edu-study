@@ -3,6 +3,7 @@
 // не видит ни инструмента, ни настройки. Если учитель выключил выданную
 // функцию сам, рядом с его именем стоит «выкл.».
 // Общие рубильники расхода на ИИ (Обзор → «Расход на ИИ») по-прежнему главнее.
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import Switch from '../Switch'
 import { supabase } from '../../lib/supabase'
@@ -78,7 +79,7 @@ export default function AdminFeatureAccess({ teachers }: { teachers: Teacher[] }
                         background: on ? 'var(--color-purple-soft)' : 'transparent',
                         color: on ? 'var(--color-purple-text)' : 'var(--color-text-2)',
                       }}>
-                      {x.name}{on && off(x.id) ? ' · ' + t('выкл.') : ''}
+                      <OpticalText as="iskra-button-label">{x.name}{on && off(x.id) ? ' · ' + t('выкл.') : ''}</OpticalText>
                     </button>
                   )
                 })}

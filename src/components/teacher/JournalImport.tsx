@@ -194,8 +194,8 @@ export default function JournalImport({ mobile = false, data, columns, students,
 
   const mapStep = mobile ? <div className="ji-map">
     <div className="ji-tabs" role="group" aria-label="Что сопоставить">
-      <button type="button" aria-pressed={mobileTab === 'students'} onClick={() => setMobileTab('students')}>Ученики · {body.length}</button>
-      <button type="button" aria-pressed={mobileTab === 'lessons'} onClick={() => setMobileTab('lessons')}>Уроки · {header.length - 1}</button>
+      <button type="button" aria-pressed={mobileTab === 'students'} onClick={() => setMobileTab('students')}><OpticalText as="iskra-button-label">Ученики · {body.length}</OpticalText></button>
+      <button type="button" aria-pressed={mobileTab === 'lessons'} onClick={() => setMobileTab('lessons')}><OpticalText as="iskra-button-label">Уроки · {header.length - 1}</OpticalText></button>
     </div>
     {mobileTab === 'students' ? studentRows : lessonRows}
   </div> : <div className="ji-map">

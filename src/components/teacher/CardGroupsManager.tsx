@@ -1521,7 +1521,7 @@ function SubsetsEditor({ set, onChange, lang }: { set: CardSet; onChange: (s: Ca
         onClick={() => patchSubsets([...subsets, { id: newSubsetId(subsets.length), title: '', about: '', cards: [] }])}
         style={ghostBtn}
       >
-        + {t('Добавить стопку')}
+        <OpticalText as="iskra-button-label">+ {t('Добавить стопку')}</OpticalText>
       </button>
     </div>
   )

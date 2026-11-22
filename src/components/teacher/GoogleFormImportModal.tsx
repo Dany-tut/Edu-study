@@ -109,7 +109,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
         icon={<Link2 size={24} style={{ color: 'var(--color-accent)' }} />}
         footer={form ? <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button data-hover="layer" disabled={importing} onClick={() => { setForm(null); setError(null) }} style={{ ...btn('M', 'secondary'), minHeight: 44 }}><OpticalText as="iskra-button-label">{t('Назад')}</OpticalText></button>
-          <button data-hover="layer" onClick={handleImport} disabled={importing || !selectedCount} style={{ ...btn('M', 'primary'), background: 'var(--color-control-accent)', minHeight: 44 }}>{t('Импортировать')} {selectedCount || ''}</button>
+          <button data-hover="layer" onClick={handleImport} disabled={importing || !selectedCount} style={{ ...btn('M', 'primary'), background: 'var(--color-control-accent)', minHeight: 44 }}><OpticalText as="iskra-button-label">{t('Импортировать')} {selectedCount || ''}</OpticalText></button>
         </div> : undefined}>
           {!form && (
             <div style={{ marginTop: 14 }}>

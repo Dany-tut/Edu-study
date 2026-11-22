@@ -302,7 +302,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
                 background: tab === x.id ? 'var(--color-bg-2)' : 'transparent',
                 color: tab === x.id ? 'var(--color-text)' : 'var(--color-text-2)',
               }}>
-                {t(x.label)}{x.n ? ` · ${x.n}` : ''}
+                <OpticalText as="iskra-button-label">{t(x.label)}{x.n ? ` · ${x.n}` : ''}</OpticalText>
               </button>
             ))}
           </div>

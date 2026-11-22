@@ -1,4 +1,5 @@
 // Полка стикеров на мобильной главной: лента наград + тап → коллекция.
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import MobileHScroll from './MobileHScroll'
 import StickerBadge from './StickerBadge'
@@ -17,7 +18,7 @@ export default function MobileStickersRow() {
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
         <p style={{ fontSize: 12, fontWeight: 700, color:'inherit', margin: 0 }}>{t('Мои стикеры')}</p>
         <button data-hover="layer" onClick={() => setSelected(stickers[0].id)} style={{ fontSize: 12, fontWeight: 600, color:'var(--color-purple-text)', minHeight:44, background: 'none', border: 'none', padding: 0 }}>
-          {t('Коллекция')} · {stickers.length}
+          <OpticalText as="iskra-button-label">{t('Коллекция')} · {stickers.length}</OpticalText>
         </button>
       </div>
       <div style={{ marginLeft: -16, marginRight: -16 }}>

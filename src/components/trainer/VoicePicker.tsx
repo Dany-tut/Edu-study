@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -378,7 +379,7 @@ export default function VoicePicker({ lang, accent, soft, variant = 'field' }: {
                     fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)',
                   }}
                 >
-                  {t('Показать все голоса системы')} · {total}
+                  <OpticalText as="iskra-button-label">{t('Показать все голоса системы')} · {total}</OpticalText>
                 </button>
               )}
               </div>

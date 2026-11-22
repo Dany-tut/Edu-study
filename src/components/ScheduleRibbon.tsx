@@ -116,7 +116,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
                 const key = shift(`${month}-01`, i), hasLesson = byDate.get(key)?.lessons.some(lesson => lesson.status !== 'cancelled')
                 return <button type="button" key={key} className={`ssr-month-day${key === today ? ' ssr-now' : ''}`} aria-label={`${label(key)}${hasLesson ? ` · ${t('Есть занятие')}` : ''}`} aria-pressed={key === selected} onClick={() => choose(key)}><span className="ssr-day-number">{i + 1}</span>{hasLesson && <i aria-hidden="true" />}</button>
               })}
-            </div><div className="ssr-calendar-note" role="status">{pending ? t('Загрузка…') : failed ? <button data-hover="layer" type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Не удалось загрузить расписание')} · {t('Повторить загрузку')}</button> : <><i />{t('Есть занятие')}</>}</div>
+            </div><div className="ssr-calendar-note" role="status">{pending ? t('Загрузка…') : failed ? <button data-hover="layer" type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}><OpticalText as="iskra-button-label">{t('Не удалось загрузить расписание')} · {t('Повторить загрузку')}</OpticalText></button> : <><i />{t('Есть занятие')}</>}</div>
           </div>
 
   return <section className="student-schedule-ribbon" aria-label={t('Расписание')}>

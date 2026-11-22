@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeLines, textFadeStyle } from '../lib/textFades'
 import { ArrowRight } from './icons/appIcons'
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
@@ -210,7 +211,7 @@ function HomeworkCard({ items }: { items: Array<{ lesson: Lesson; subject: Subje
       })}
       {items.length > HW_SHOWN && (
         <button data-hover="layer" type="button" onClick={() => openCourses()} style={{ alignSelf: 'flex-start', marginTop: 4, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-control-accent)' }}>
-          {t('Ещё')} {items.length - HW_SHOWN} <ArrowRight size={14} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+          <OpticalText as="iskra-button-label">{t('Ещё')} {items.length - HW_SHOWN}</OpticalText> <ArrowRight size={14} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
         </button>
       )}
     </div>

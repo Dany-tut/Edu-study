@@ -436,7 +436,7 @@ export default function RichConditionEditor({
                           textAlign: 'left', fontWeight: fontSize === s ? 700 : 400,
                         }}
                       >
-                        {s}px
+                        <OpticalText as="iskra-button-label">{s}px</OpticalText>
                       </button>
                     ))}
                   </div>,

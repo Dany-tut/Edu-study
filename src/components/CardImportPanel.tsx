@@ -342,7 +342,7 @@ export default function CardImportPanel({
                   {t('Куда положить')}
                 </div>
                 <button data-hover="layer" onClick={() => setSplit(true)} style={pill(accent, split)}>
-                  {t('По стопкам')} · {groups.length}
+                  <OpticalText as="iskra-button-label">{t('По стопкам')} · {groups.length}</OpticalText>
                 </button>
                 <button data-hover="layer" onClick={() => setSplit(false)} style={pill(accent, !split)}>
                   <OpticalText as="iskra-button-label">{t('Одной кучей')}</OpticalText>
@@ -369,7 +369,7 @@ export default function CardImportPanel({
                 opacity: kept === 0 ? 0.45 : 1, cursor: kept === 0 ? 'default' : 'pointer',
               }}
             >
-              {asGroups ? t('Разложить по стопкам') : (addLabel ?? t('Добавить в набор'))} · {kept}
+              <OpticalText as="iskra-button-label">{asGroups ? t('Разложить по стопкам') : (addLabel ?? t('Добавить в набор'))} · {kept}</OpticalText>
             </button>
             {kept < rows.length && (
               <div style={{ fontSize: 12, color: 'var(--color-muted)' }}>

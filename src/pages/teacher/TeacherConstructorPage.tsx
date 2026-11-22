@@ -190,7 +190,7 @@ function GoogleFormBankCategoryModal({
           <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
           <button data-hover="layer" onClick={handleConfirm} disabled={saving}
             style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
-            {t('Импортировать')} {questions.length}
+            <OpticalText as="iskra-button-label">{t('Импортировать')} {questions.length}</OpticalText>
           </button>
         </div>
       </motion.div>
@@ -3619,7 +3619,7 @@ function CreatorView({
               {wType === 'pomodoro' && wItems.length > 0 && (
                 <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
                   style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Check size={14} /> {t('Обновить:')} {wPomoFocus} / {wPomoBreak} {t('мин')}
+                  <Check size={14} /> <OpticalText as="iskra-button-label">{t('Обновить:')} {wPomoFocus} / {wPomoBreak} {t('мин')}</OpticalText>
                 </motion.button>
               )}
 
@@ -7665,7 +7665,7 @@ function CustomTestCard({ test, isSelected, onClick, series }: {
             onClick={e => { e.stopPropagation(); series.onCollapse() }}
             style={cardChipTone('purple', { display: 'inline-flex', alignItems: 'center', gap: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}>
             <Layers size={12} strokeWidth={2.5} />
-            {series.n}/{series.total}
+            <OpticalText as="iskra-button-label">{series.n}/{series.total}</OpticalText>
           </button>
         )}
         {/* Уровень отдельным чипом: у ЕГЭ и ОГЭ бывают одинаковые названия и «Линия 1». */}
@@ -9497,7 +9497,7 @@ export default function TeacherConstructorPage() {
                           } as React.CSSProperties}
                         >
                           <Copy size={14} strokeWidth={2.5} />
-                          {t('Дублировать')} {checkedIds.size}
+                          <OpticalText as="iskra-button-label">{t('Дублировать')} {checkedIds.size}</OpticalText>
                         </button>
                       )}
                       <button data-hover="layer"
@@ -9511,7 +9511,7 @@ export default function TeacherConstructorPage() {
                         }}
                       >
                         <Trash2 size={14} strokeWidth={2.5} />
-                        {t('Удалить')} {checkedIds.size}
+                        <OpticalText as="iskra-button-label">{t('Удалить')} {checkedIds.size}</OpticalText>
                       </button>
                     </motion.div>
                   )}

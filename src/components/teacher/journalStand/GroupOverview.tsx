@@ -557,7 +557,7 @@ export default function GroupOverview({
                   setPage(0)
                 }}
               >
-                <CircleAlert size={14} />С просрочкой · {group.debtors}
+                <CircleAlert size={14} /><OpticalText as="iskra-button-label">С просрочкой · {group.debtors}</OpticalText>
               </button>
             </div>
           </div>

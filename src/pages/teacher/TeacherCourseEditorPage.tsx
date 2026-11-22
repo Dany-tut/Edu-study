@@ -860,7 +860,7 @@ function AssignPicker({
 
       {!query && !expanded && hiddenCount > 0 && (
         <button data-hover="layer" onClick={() => setExpanded(true)} style={{ ...btn('S', 'secondary'), alignSelf: 'flex-start' }}>
-          {t('Показать всех')} ({hiddenCount})
+          <OpticalText as="iskra-button-label">{t('Показать всех')} ({hiddenCount})</OpticalText>
         </button>
       )}
       {!query && expanded && (
@@ -1675,7 +1675,7 @@ export function TimecodeRail({
             items={[{id:'slides',label:'По слайдам'},{id:'text',label:'По тексту'}]} />
         </div>}
       </div>
-      {chapters && !chapters.available && <button type="button" className="transcription-rail-action" disabled={chapters.saving} onClick={chapters.generate}>Создать главы {chapters.mode === 'slides' ? 'по слайдам' : 'по тексту'}</button>}
+      {chapters && !chapters.available && <button type="button" className="transcription-rail-action" disabled={chapters.saving} onClick={chapters.generate}><OpticalText as="iskra-button-label">Создать главы {chapters.mode === 'slides' ? 'по слайдам' : 'по тексту'}</OpticalText></button>}
       <ScrollFade maxHeight="100%" fadeHeight={14} style={{ flex:1,minHeight:0 }}>
         {codes.map((tc, i) => {
           const isActive = i === active && total > 0
@@ -3870,7 +3870,7 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
                       color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                     }}
                   >
-                    + {t('Строка подстановки')}
+                    <OpticalText as="iskra-button-label">+ {t('Строка подстановки')}</OpticalText>
                   </button>
                 </div>
               )}

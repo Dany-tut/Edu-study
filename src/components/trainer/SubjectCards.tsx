@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeLines } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Карточки предмета в банке заданий
@@ -253,10 +254,10 @@ function SetRun({ item, subjectId, accent, owner, states }: {
       {dueOnly.length > 0 && dueOnly.length < all.length && (
         <div style={{ display: 'flex', gap: 8, alignSelf: 'flex-start' }}>
           <button data-hover="layer" type="button" onClick={() => setWhole(false)} style={pill(accent, !whole)}>
-            {dueOnly.length} {t('на сегодня')}
+            <OpticalText as="iskra-button-label">{dueOnly.length} {t('на сегодня')}</OpticalText>
           </button>
           <button data-hover="layer" type="button" onClick={() => setWhole(true)} style={pill(accent, whole)}>
-            {t('Весь набор')} · {all.length}
+            <OpticalText as="iskra-button-label">{t('Весь набор')} · {all.length}</OpticalText>
           </button>
         </div>
       )}

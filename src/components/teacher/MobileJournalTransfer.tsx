@@ -77,12 +77,12 @@ export default function MobileJournalTransfer({ data, index, students, columns, 
     <HScrollFade fadeMode="mask" fadeWidth={24} padTop={0} padBottom={0} style={{ minWidth: 0, maxWidth: '100%' }}>
       <div className="mjt-chips" role="group" aria-label="Урок">{past.map(c => <button type="button" key={c.id} aria-pressed={c.id === column.id}
         data-missing={!c.events.length || undefined} onClick={() => setColumnId(c.id)}>
-        {c.lesson?.lesson_number ? c.lesson.lesson_number + ' · ' : ''}{c.events.length ? c.title : 'дата?'}</button>)}</div>
+        <OpticalText as="iskra-button-label">{c.lesson?.lesson_number ? c.lesson.lesson_number + ' · ' : ''}{c.events.length ? c.title : 'дата?'}</OpticalText></button>)}</div>
     </HScrollFade>
     <section className="mjt-card">
       <header><strong><FadeText>{column.title}</FadeText></strong>
         <small>{shortDate(dateOf(column))} · {recording ? 'урок в записи' : 'живой урок'} · {cells.length} {cells.length === 1 ? 'ученик' : 'учеников'}</small></header>
-      {missing.length > 0 && <button type="button" className="mjt-date" onClick={() => setDateOpen(true)}><CalendarCheck size={16} />Указать дату{marked.length ? ` · ${missing.length} без даты` : ''}</button>}
+      {missing.length > 0 && <button type="button" className="mjt-date" onClick={() => setDateOpen(true)}><CalendarCheck size={16} /><OpticalText as="iskra-button-label">Указать дату{marked.length ? ` · ${missing.length} без даты` : ''}</OpticalText></button>}
       {marked.length > 0 && <div className="mjt-bulk">
         <button type="button" className="cj-button" onClick={() => setDraft(Object.fromEntries(marked.map(c => [c.student.id, true])))}><Check size={14} /><OpticalText as="iskra-button-label">Все были</OpticalText></button>
         <button type="button" className="cj-button" onClick={() => setEditor({ cells: marked, preset: 'homework' })}><OpticalText as="iskra-button-label">ДЗ сдали все</OpticalText></button>

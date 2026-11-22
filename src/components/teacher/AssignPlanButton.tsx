@@ -195,7 +195,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                     }}
                   >
                     <ChevronLeft size={14} />
-                    {t(PLAN_TIERS.find(p => p.code === pendingPlan)?.name ?? '')} · {t('на сколько?')}
+                    <OpticalText as="iskra-button-label">{t(PLAN_TIERS.find(p => p.code === pendingPlan)?.name ?? '')} · {t('на сколько?')}</OpticalText>
                   </button>
                   {PERIODS.map(per => (
                     <button data-hover="layer"

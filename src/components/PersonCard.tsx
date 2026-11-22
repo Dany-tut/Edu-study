@@ -101,7 +101,7 @@ export function PersonProfile({person,model,onClose,bottomSheet=false}:{person:P
   const content = (
     <div ref={body} className="pc-person-profile">
       <div className="pc-profile-cover"><span className="pc-cover-label">{t('Искра · вместе')}</span></div>
-      <div className="pc-profile-identity"><PersonAvatar person={visible} large/><PersonRole person={visible}/><h2>{visible.name??visible.handle}</h2><button data-hover="layer" className="pc-copy" onClick={async()=>{try{await navigator.clipboard.writeText('@'+visible.handle);if(alive.current)setCopied(true)}catch{if(alive.current)setError(t('Не удалось скопировать'))}}}>@{visible.handle}</button><span className="pc-copy-status" role="status">{copied?t('Скопировано'):''}</span></div>
+      <div className="pc-profile-identity"><PersonAvatar person={visible} large/><PersonRole person={visible}/><h2>{visible.name??visible.handle}</h2><button data-hover="layer" className="pc-copy" onClick={async()=>{try{await navigator.clipboard.writeText('@'+visible.handle);if(alive.current)setCopied(true)}catch{if(alive.current)setError(t('Не удалось скопировать'))}}}><OpticalText as="iskra-button-label">@{visible.handle}</OpticalText></button><span className="pc-copy-status" role="status">{copied?t('Скопировано'):''}</span></div>
       {error&&<div className="pc-profile-error" role="alert"><p>{t(error)}</p>{!detail&&<button data-hover="layer" className="pc-secondary" onClick={()=>setRetry(value=>value+1)}><OpticalText as="iskra-button-label">{t('Повторить')}</OpticalText></button>}</div>}
       {!detail&&!error&&<p role="status">{t('Загружаем профиль…')}</p>}
       {detail?.status==='missing'&&<p role="status">{t('Профиль больше недоступен.')}</p>}

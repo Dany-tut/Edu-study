@@ -369,7 +369,7 @@ function DoneList({ gaps }: { gaps: PhraseGap[] }) {
         alignSelf: 'flex-start', border: 'none', background: 'transparent', cursor: 'pointer', padding: 0,
         fontFamily: 'inherit', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)',
       }}>
-        {shown ? '▾' : '▸'} {t('Уже в карточках')} · {gaps.length}
+        <OpticalText as="iskra-button-label">{shown ? '▾' : '▸'} {t('Уже в карточках')} · {gaps.length}</OpticalText>
       </button>
       {shown && gaps.map(g => (
         <div key={g.id} style={{

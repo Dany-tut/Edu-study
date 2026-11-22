@@ -383,7 +383,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAn
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('completed')} disabled={busy}
           style={{ padding: '12px 0', borderRadius: 14, border: 'none', background: 'var(--grad-green)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 6px 18px rgba(42,125,79,0.28)', opacity: busy ? 0.6 : 1 }}>
-          <Check size={16} /> {t('Принять задание')} · {score}/5
+          <Check size={16} /> <OpticalText as="iskra-button-label">{t('Принять задание')} · {score}/5</OpticalText>
         </motion.button>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('returned')} disabled={busy}
           style={{ ...btn('M', 'secondary'), opacity: busy ? 0.6 : 1 }}>

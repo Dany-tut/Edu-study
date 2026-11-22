@@ -91,7 +91,7 @@ function SummaryBar({ ready, flagged, approved, busy, onApprove, onSend, mobile 
       </div>
       {approved > 0 && (
         <button data-hover="layer" type="button" disabled={busy} onClick={onSend} style={btn(mobile ? 'L' : 'M', 'secondary', { opacity: busy ? .5 : 1 })}>
-          <Send size={16} />{t('Отправить сейчас')} · {approved}
+          <Send size={16} /><OpticalText as="iskra-button-label">{t('Отправить сейчас')} · {approved}</OpticalText>
         </button>
       )}
       <button data-hover="layer" type="button" disabled={busy || !ready} onClick={onApprove} style={btn(mobile ? 'L' : 'M', 'primary', { opacity: busy || !ready ? .5 : 1 })}>

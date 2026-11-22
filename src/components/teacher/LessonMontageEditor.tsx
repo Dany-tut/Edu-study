@@ -863,6 +863,6 @@ function SettingsPanel({ settings, onChange, found, edited, onResetAll }: {
       items={[{ id: 'speed', label: 'Ускорить' }, { id: 'cut', label: 'Вырезать' }, { id: 'keep', label: 'Оставить' }]} />)}
     {row('Ускорение', 'Во сколько раз быстрее идёт ускоренная пауза.', <Segmented variant="filter" value={String(settings.speed) as '2' | '4' | '8'} onChange={v => set('speed', Number(v) as 2 | 4 | 8)}
       items={[{ id: '2', label: '×2' }, { id: '4', label: '×4' }, { id: '8', label: '×8' }]} />)}
-    {edited > 0 && <button data-hover="layer" type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onResetAll}><RotateCcw size={14} />Сбросить ручные правки ({edited})</button>}
+    {edited > 0 && <button data-hover="layer" type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onResetAll}><RotateCcw size={14} /><OpticalText as="iskra-button-label">Сбросить ручные правки ({edited})</OpticalText></button>}
   </div>
 }

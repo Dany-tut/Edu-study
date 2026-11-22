@@ -171,7 +171,7 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                     background: level.id === l.id ? soft : 'var(--color-bg-2)',
                     color: level.id === l.id ? accent : 'var(--color-text)',
                   }}>
-                    {t(l.label)} · {lang === 'en' ? l.silence : String(l.silence).replace('.', ',')} {t('с тишины')}
+                    <OpticalText as="iskra-button-label">{t(l.label)} · {lang === 'en' ? l.silence : String(l.silence).replace('.', ',')} {t('с тишины')}</OpticalText>
                   </button>
                 ))}
               </div>

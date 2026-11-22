@@ -691,7 +691,7 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
                 ...ghostBtn, height: 30, fontSize: 13,
                 background: i === step ? soft : 'var(--color-bg-3)', color: i === step ? accent : 'var(--color-text)',
               }}>
-                {wide ? `${t('Текст')} ${i + 1}` : i + 1} · {n}/{all[i].length}
+                <OpticalText as="iskra-button-label">{wide ? `${t('Текст')} ${i + 1}` : i + 1} · {n}/{all[i].length}</OpticalText>
               </button>
             )
           })}
@@ -766,7 +766,7 @@ function WritingRun({ mock, d, update, patch, accent }: RunProps & { accent: str
               background: i === step ? 'var(--grad-purple)' : 'var(--color-bg-3)',
               color: i === step ? '#fff' : 'var(--color-text)',
             }}>
-              Task {w.task} · {wordCount(texts[w.task] ?? '')} {t('сл.')}
+              <OpticalText as="iskra-button-label">Task {w.task} · {wordCount(texts[w.task] ?? '')} {t('сл.')}</OpticalText>
             </button>
           ))}
         </div>

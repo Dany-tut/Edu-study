@@ -191,7 +191,7 @@ function LineRow({ subject, l, accent, accentBg, updateLine, removeLine }: {
           <button data-hover="layer" key={p} onClick={() => updateLine(subject, l.n, { part: p })}
             style={{ padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', outline: 'none',
               background: l.part === p ? accentBg : 'transparent', color: l.part === p ? accent : 'var(--color-text-3)' }}>
-            {t('Ч')}{p}
+            <OpticalText as="iskra-button-label">{t('Ч')}{p}</OpticalText>
           </button>
         ))}
       </div>
