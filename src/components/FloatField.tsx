@@ -1,4 +1,5 @@
-import { useId, useState, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { useOpticalText } from '../lib/useOpticalText'
+import { useId, useRef, useState, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import GrowTextarea from './GrowTextarea'
 import './floatField.css'
 
@@ -45,6 +46,8 @@ type AreaProps = Common & { multiline: true; rows?: number } &
 
 export default function FloatField(props: InputProps | AreaProps) {
   const { label, value, onChange, error, hint, id, className, ...rest } = props
+  const labelRef = useRef<HTMLLabelElement>(null)
+  useOpticalText(labelRef)
   const autoId = useId()
   const fieldId = id ?? `ff-${autoId}`
   const noteId = `${fieldId}-note`
@@ -100,7 +103,7 @@ export default function FloatField(props: InputProps | AreaProps) {
       data-disabled={rest.disabled ? '' : undefined}
     >
       <div className="ff-box">
-        <label className="ff-label" htmlFor={fieldId}>
+        <label ref={labelRef} className="ff-label" htmlFor={fieldId}>
           {label}{rest.required ? <span aria-hidden className="ff-req"> *</span> : null}
         </label>
         {control}

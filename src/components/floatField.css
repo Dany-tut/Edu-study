@@ -28,7 +28,7 @@
 .ff-control::placeholder { color: var(--color-text-4); }
 
 .ff-label {
-  position: absolute; left: 13px; right: 13px; top: 16px;
+  position: absolute; left: 13px; right: 13px; top: calc(16px + var(--iskra-control-text-offset, 0px));
   font-size: 14px; line-height: 20px; color: var(--color-text-3);
   white-space: nowrap; overflow: hidden; pointer-events: none;
   transform-origin: left top;
@@ -56,7 +56,8 @@
 
 /* Телефон и планшет: текст 16 px — iOS не приближает страницу при фокусе. */
 :is([data-platform="iphone"], [data-platform="ipad"], [data-platform="android"]) .ff-control { font-size: 16px; }
-:is([data-platform="iphone"], [data-platform="ipad"], [data-platform="android"]) .ff-label { font-size: 16px; top: 15px; }
+/* The shared font correction replaces the old fixed 1px mobile lift. */
+:is([data-platform="iphone"], [data-platform="ipad"], [data-platform="android"]) .ff-label { font-size: 16px; top: calc(16px + var(--iskra-control-text-offset, 0px)); }
 :is([data-platform="iphone"], [data-platform="ipad"], [data-platform="android"]) .ff[data-floated] .ff-label { transform: translateY(-9px) scale(.75); }
 
 /* iPhone/iPad: как системные поля iOS — мягкая заливка, тонкая рамка,
