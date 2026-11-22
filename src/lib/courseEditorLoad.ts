@@ -1,16 +1,25 @@
 import { courseSnapshotStamp } from './courseSaveProvenance'
 import { lessonNumberShift } from './lessonNumber'
 import { supabase } from './supabase'
+import type { Witness } from './courseConfirmedBaseline'
 import type { CourseEdData } from '../pages/teacher/TeacherCourseEditorPage'
 
 /** Authoritative editor metadata, loaded after navigation. Never save the
  * shelf's incomplete snapshot if this request fails or is cancelled. */
-export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<Pick<CourseEdData, 'serverStamp' | 'title' | 'subject' | 'level' | 'status' | 'description' | 'color' | 'bg' | 'seedStamp' | 'numberStart' | 'groupIds' | 'studentIds' | 'modules' | 'lessons'>> {
+export type CourseMetadata = Pick<CourseEdData, 'serverStamp' | 'title' | 'subject' | 'level' | 'status' | 'description' | 'color' | 'bg' | 'seedStamp' | 'numberStart' | 'groupIds' | 'studentIds' | 'modules' | 'lessons'>
+export type CourseMetadataRead = {
+  metadata: CourseMetadata
+  witness: Witness
+  rawCourse: Record<string, unknown>
+  rawLessons: Array<Record<string, unknown>>
+  numberStart: { included: false } | { included: true; readCourseUpdatedAt: string }
+}
+export async function loadCourseEditorMetadata(shortId: string, signal: AbortSignal): Promise<CourseMetadataRead> {
   let modules: CourseEdData['modules'] = []
 
   const { data: dbCourse, error } = await supabase
     .from('courses')
-    .select('id, updated_at, title, subject, level, status, description, color, bg, seed_stamp, group_ids, student_ids, course_modules(id, label, position), lessons(updated_at, short_id, title, lesson_number, position, module_id, youtube_url, timecodes, chapter_variants, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
+    .select('id, created_by, updated_at, title, subject, level, status, description, color, bg, seed_stamp, group_ids, student_ids, course_modules(id, label, position), lessons(id, updated_at, short_id, title, lesson_number, position, module_id, youtube_url, timecodes, chapter_variants, description, kind, test_tasks, scheduled_date, scheduled_time, scheduled_duration, rec_date, rec_time, rec_duration, lesson_sched_manual, delivery_mode)')
     .eq('short_id', shortId)
     .abortSignal(signal)
     .single()
@@ -56,15 +65,29 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
   if (modules.length === 0) {
     modules = [{ id: `course-${shortId}`, label: '', expanded: true, lessonIds: lessons.map(l => l.id) }]
   }
-  return {
+  const numberStart = await readNumberStart(dbCourse.id, signal)
+  const metadata: CourseMetadata = {
     serverStamp: courseSnapshotStamp(dbCourse.updated_at, dbLessons.map((lesson: any) => lesson.updated_at)),
     title: dbCourse.title, subject: dbCourse.subject, level: dbCourse.level,
     status: dbCourse.status === 'published' ? 'published' : 'draft',
     description: dbCourse.description ?? '',
     color: dbCourse.color ?? 'var(--color-purple)', bg: dbCourse.bg ?? 'var(--color-purple-soft)',
     seedStamp: dbCourse.seed_stamp ?? undefined,
-    numberStart: await loadNumberStart(dbCourse.id, signal),
+    numberStart: numberStart.value,
     groupIds, studentIds, modules, lessons,
+  }
+  return {
+    metadata,
+    rawCourse: { id: dbCourse.id, title: dbCourse.title, subject: dbCourse.subject, level: dbCourse.level, status: dbCourse.status, description: dbCourse.description, color: dbCourse.color, bg: dbCourse.bg, seed_stamp: dbCourse.seed_stamp, ...(numberStart.value === undefined ? {} : { number_start: numberStart.rawValue }) },
+    rawLessons: structuredClone(dbLessons),
+    witness: {
+      courseId: dbCourse.id, courseShortId: shortId, ownerId: dbCourse.created_by ?? '',
+      courseUpdatedAt: dbCourse.updated_at,
+      modules: dbModules.map((m: any) => ({ id: m.id, label: m.label, position: m.position })),
+      lessons: dbLessons.map((l: any) => ({ id: l.id, shortId: l.short_id, moduleId: l.module_id, updatedAt: l.updated_at })),
+    },
+    numberStart: numberStart.value === undefined ? { included: false }
+      : { included: true, readCourseUpdatedAt: numberStart.updatedAt ?? '' },
   }
 }
 
@@ -73,9 +96,13 @@ export async function loadCourseEditorMetadata(shortId: string, signal: AbortSig
  * отдельно, и до неё колонки нет. Тогда — undefined: поле в редакторе
  * скрыто и в сохранение не уходит, курс открывается как раньше.
  */
-export async function loadNumberStart(courseId: string, signal: AbortSignal): Promise<number | undefined> {
+async function readNumberStart(courseId: string, signal: AbortSignal): Promise<{ value?: number; updatedAt?: string; rawValue?: number | null }> {
   const { data, error } = await supabase
-    .from('courses').select('number_start').eq('id', courseId).abortSignal(signal).maybeSingle()
-  if (error || !data) return undefined
-  return lessonNumberShift((data as { number_start?: number | null }).number_start) + 1
+    .from('courses').select('number_start,updated_at').eq('id', courseId).abortSignal(signal).maybeSingle()
+  if (error || !data) return {}
+  return { value: lessonNumberShift(data.number_start) + 1, updatedAt: data.updated_at, rawValue: data.number_start }
+}
+
+export async function loadNumberStart(courseId: string, signal: AbortSignal): Promise<number | undefined> {
+  return (await readNumberStart(courseId, signal)).value
 }

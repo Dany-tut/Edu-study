@@ -26,6 +26,10 @@ import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { Eye } from '../../components/icons/appIcons'
 import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
+import { createAuthDataChangeGuard } from '../../lib/authDataChange'
+import { captureConfirmedBaseline, baselineCanDriveDelta, type ConfirmedBaseline, type MetadataRead, type ReadToken, type Scope, type Witness } from '../../lib/courseConfirmedBaseline'
+import { prepareConfirmedSnapshot, advanceConfirmedContent } from '../../lib/courseContentAcknowledgement'
+import { courseContentSnapshot, courseContentDelta, courseDeltaProbeEnabled, type CourseContentSnapshot } from '../../lib/courseContentDelta'
 import CourseVisibilityButton from '../../components/teacher/CourseVisibilityButton'
 import { useCourseVisibility, flushCourseVisibility, loadCourseVisibility } from '../../lib/courseVisibility'
 import { courseModuleIdentitiesFor } from '../../lib/courseModuleIdentity'
@@ -6136,87 +6140,11 @@ const railInnerSt: React.CSSProperties = {
   padding: `${RAIL_BLEED_TOP}px ${RAIL_BLEED}px ${RAIL_BLEED}px`,
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
-
-export default function TeacherCourseEditorPage() {
-  const t = useT()
-  const setActivePage = useTeacher(s => s.setActivePage)
-  const editingCourseJson = useTeacher(s => s.editingCourseJson)
-  const setCourseEdited = useTeacher(s => s.setCourseEdited)
-  const { groups, addIndividualCard } = useGroups()
-  const allStudents = useAllStudents()
-
-  const [{ course, editRevision, recoveredDraft }, setCourseState] = useState(() => {
-    const base: CourseEdData = editingCourseJson
-      ? JSON.parse(editingCourseJson) as CourseEdData
-      : {
-          id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
-          color: 'var(--color-purple)', bg: 'var(--color-green-soft)',
-          groupIds: [], studentIds: [],
-          modules: [],
-          lessons: [],
-        }
-    // Unsaved edits win over the snapshot the editor was opened with: the
-    // editor loads the course from Supabase after navigation; that fetched
-    // data must NOT clobber a draft the
-    // teacher never got to save. The draft is cleared on successful save, so
-    // when no draft exists we fall through to the fresh DB snapshot.
-    const draft = readDraft<CourseEdData>(`coursed.${base.dbCourseId ?? base.id}.course`)
-    return { course: draft ?? base, editRevision: draft !== null ? 1 : 0, recoveredDraft: draft !== null }
-  })
-  const setCourse = useCallback<React.Dispatch<React.SetStateAction<CourseEdData>>>(edit => {
-    setCourseState(previous => {
-      const course = typeof edit === 'function' ? edit(previous.course) : edit
-      return course === previous.course ? previous : { ...previous, course, editRevision: previous.editRevision + 1 }
-    })
-  }, [])
-  // Server acknowledgements update editor data without counting as new teacher edits.
-  const reconcileCourse = useCallback((apply: (course: CourseEdData) => CourseEdData) => {
-    setCourseState(previous => {
-      const course = apply(previous.course)
-      return course === previous.course ? previous : { ...previous, course }
-    })
-  }, [])
-  const publishedEditRevision = useRef<number | null>(null)
-
-  const [heavyErr, setHeavyErr] = useState(false)
-  useEffect(() => {
-    if (!course.metadataPending || !course.dbCourseId) return
-    const controller = new AbortController()
-    loadCourseEditorMetadata(course.dbCourseId, controller.signal).then(metadata => {
-      if (controller.signal.aborted) return
-      setCourse(c => c.metadataPending ? { ...c, ...metadata, metadataPending: false } : c)
-    }).catch(() => {
-      if (!controller.signal.aborted) setHeavyErr(true)
-    })
-    return () => controller.abort()
-  }, [course.metadataPending, course.dbCourseId])
-
-  // ── Тяжёлая половина уроков ───────────────────────────────────────────────
-  //
-  // Конструктор открывает курс лёгким: список уроков, модули и расписание. У
-  // курса на 215 уроков конспекты и домашки — 2,5 МБ, и раньше редактор ждал их
-  // ДО открытия: клик по карточке на 2–6 секунд не менял на экране ничего.
-  // Теперь они приезжают сюда, вторым запросом, уже на открытом редакторе.
-  //
-  // Правки учителя во время загрузки не затираются: заполняем только те поля,
-  // которых в состоянии ещё нет. Если он успел что-то написать в пустом
-  // конспекте, останется написанное.
-  useEffect(() => {
-    if (course.metadataPending || !course.heavyPending || !course.dbCourseId) return
-    let alive = true
-    ;(async () => {
-      const { data, error } = await supabase
-        .from('courses')
-        .select('lessons(short_id, content, homework, materials)')
-        .eq('short_id', course.dbCourseId)
-        .single()
-      if (!alive) return
-      if (error || !data) { setHeavyErr(true); return }
+function mergeCourseHeavy(c: CourseEdData, rows: any[]): CourseEdData {
       const byId = new Map<string, any>(
-        ((data as any).lessons ?? []).map((l: any) => [l.short_id, l]),
+        rows.map((l: any) => [l.short_id, l]),
       )
-      setCourse(c => {
+
         if (!c.heavyPending) return c
         return {
           ...c,
@@ -6263,7 +6191,164 @@ export default function TeacherCourseEditorPage() {
             }
           }),
         }
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+export default function TeacherCourseEditorPage() {
+  const t = useT()
+  const setActivePage = useTeacher(s => s.setActivePage)
+  const editingCourseJson = useTeacher(s => s.editingCourseJson)
+  const setCourseEdited = useTeacher(s => s.setCourseEdited)
+  const { groups, addIndividualCard } = useGroups()
+  const allStudents = useAllStudents()
+
+  const [{ course, editRevision, recoveredDraft }, setCourseState] = useState(() => {
+    const base: CourseEdData = editingCourseJson
+      ? JSON.parse(editingCourseJson) as CourseEdData
+      : {
+          id: uid(), title: '', subject: 'Химия', level: 'ЕГЭ', status: 'draft',
+          color: 'var(--color-purple)', bg: 'var(--color-green-soft)',
+          groupIds: [], studentIds: [],
+          modules: [],
+          lessons: [],
+        }
+    // Unsaved edits win over the snapshot the editor was opened with: the
+    // editor loads the course from Supabase after navigation; that fetched
+    // data must NOT clobber a draft the
+    // teacher never got to save. The draft is cleared on successful save, so
+    // when no draft exists we fall through to the fresh DB snapshot.
+    const draft = readDraft<CourseEdData>(`coursed.${base.dbCourseId ?? base.id}.course`)
+    return { course: draft ?? base, editRevision: draft !== null ? 1 : 0, recoveredDraft: draft !== null }
+  })
+  const setCourse = useCallback<React.Dispatch<React.SetStateAction<CourseEdData>>>(edit => {
+    setCourseState(previous => {
+      const course = typeof edit === 'function' ? edit(previous.course) : edit
+      return course === previous.course ? previous : { ...previous, course, editRevision: previous.editRevision + 1 }
+    })
+  }, [])
+  // Server acknowledgements update editor data without counting as new teacher edits.
+  const reconcileCourse = useCallback((apply: (course: CourseEdData) => CourseEdData) => {
+    setCourseState(previous => {
+      const course = apply(previous.course)
+      return course === previous.course ? previous : { ...previous, course }
+    })
+  }, [])
+  const publishedEditRevision = useRef<number | null>(null)
+
+  const metadataRead = useRef<MetadataRead<{ course: CourseEdData; rawCourse: Record<string, unknown>; rawLessons: Array<Record<string, unknown>> }> | null>(null)
+  const reviewedContentOverwrite = useRef(false)
+  const confirmedContent = useRef<ConfirmedBaseline<CourseContentSnapshot> | null>(null)
+  const activeRead = useRef<ReadToken | null>(null)
+  const readScope = useRef<Scope>({ authEpoch: 0, ownerId: '' })
+  const readSequence = useRef(0)
+  useEffect(() => {
+    if (!courseDeltaProbeEnabled(course.dbCourseId ?? course.id)) return
+    const changed = createAuthDataChangeGuard()
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!changed(event, session)) return
+      const ownerId = session?.user.id ?? ''
+      if (event === 'INITIAL_SESSION' && (!readScope.current.ownerId || readScope.current.ownerId === ownerId)) {
+        readScope.current = { ...readScope.current, ownerId }
+        return
+      }
+      readScope.current = { authEpoch: readScope.current.authEpoch + 1, ownerId }
+      confirmedContent.current = null; metadataRead.current = null; activeRead.current = null; reviewedContentOverwrite.current = false
+    })
+    return () => data.subscription.unsubscribe()
+  }, [course.dbCourseId, course.id])
+  const [heavyErr, setHeavyErr] = useState(false)
+  useEffect(() => {
+    if (!course.metadataPending || !course.dbCourseId) return
+    const courseKey = course.dbCourseId
+    const controller = new AbortController()
+    void (async () => {
+      let token: ReadToken | null = null
+      if (courseDeltaProbeEnabled(courseKey) && !recoveredDraft) {
+        const epoch = readScope.current.authEpoch
+        const ownerId = await getOwnerId()
+        if (controller.signal.aborted || epoch !== readScope.current.authEpoch) return
+        readScope.current = { authEpoch: epoch, ownerId: ownerId ?? '' }
+        token = { courseShortId: courseKey, scope: { ...readScope.current }, requestId: ++readSequence.current }
+        activeRead.current = token
+      }
+      const { metadata, witness, numberStart, rawCourse, rawLessons } = await loadCourseEditorMetadata(courseKey, controller.signal)
+      if (controller.signal.aborted) return
+      if (token && token === activeRead.current && token.scope.authEpoch === readScope.current.authEpoch
+        && token.scope.ownerId === readScope.current.ownerId) {
+        metadataRead.current = {
+          origin: 'network-metadata', token, witness, sourceStamp: metadata.serverStamp ?? '', numberStart,
+          light: { course: { id: courseKey, dbCourseId: courseKey, ...structuredClone(metadata), metadataPending: false, heavyPending: true }, rawCourse, rawLessons },
+        }
+      }
+      reconcileCourse(c => {
+        if (!c.metadataPending || c.dbCourseId !== courseKey) return c
+        // Hydration is not an edit. Keep teacher changes made while this read
+        // was pending; only the pristine read above may become a delta source.
+        const merged = { ...c, metadataPending: false }
+        for (const key of Object.keys(metadata) as Array<keyof typeof metadata>) {
+          if (JSON.stringify(c[key]) === JSON.stringify(course[key])) Object.assign(merged, { [key]: metadata[key] })
+        }
+        return merged
       })
+    })().catch(() => {
+      if (!controller.signal.aborted) setHeavyErr(true)
+    })
+    return () => controller.abort()
+  }, [course.metadataPending, course.dbCourseId, recoveredDraft, reconcileCourse])
+
+  // ── Тяжёлая половина уроков ───────────────────────────────────────────────
+  //
+  // Конструктор открывает курс лёгким: список уроков, модули и расписание. У
+  // курса на 215 уроков конспекты и домашки — 2,5 МБ, и раньше редактор ждал их
+  // ДО открытия: клик по карточке на 2–6 секунд не менял на экране ничего.
+  // Теперь они приезжают сюда, вторым запросом, уже на открытом редакторе.
+  //
+  // Правки учителя во время загрузки не затираются: заполняем только те поля,
+  // которых в состоянии ещё нет. Если он успел что-то написать в пустом
+  // конспекте, останется написанное.
+  useEffect(() => {
+    if (course.metadataPending || !course.heavyPending || !course.dbCourseId) return
+    const courseKey = course.dbCourseId
+    const token = activeRead.current
+    const wantWitness = courseDeltaProbeEnabled(courseKey) && !!token && !recoveredDraft
+    let alive = true
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select(wantWitness
+          ? 'id,created_by,updated_at,course_modules(id,label,position),lessons(id,short_id,module_id,updated_at,content,homework,materials)'
+          : 'lessons(short_id, content, homework, materials)')
+        .eq('short_id', course.dbCourseId)
+        .single()
+      if (!alive) return
+      if (error || !data) { setHeavyErr(true); return }
+      const rows = (data as any).lessons ?? []
+      if (wantWitness && token) {
+        const heavy = data as any
+        const witness: Witness = {
+          courseId: heavy.id, courseShortId: courseKey, ownerId: heavy.created_by, courseUpdatedAt: heavy.updated_at,
+          modules: (heavy.course_modules ?? []).map((m: any) => ({ id: m.id, label: m.label, position: m.position })),
+          lessons: rows.map((l: any) => ({ id: l.id, shortId: l.short_id, moduleId: l.module_id, updatedAt: l.updated_at })),
+        }
+        confirmedContent.current = captureConfirmedBaseline({
+          metadata: metadataRead.current, heavy: { token, witness, rows }, activeToken: activeRead.current,
+          currentScope: readScope.current, recoveredDraft,
+          projectClean: (light, heavyRows) => {
+            const byRef = new Map(heavyRows.map((row: any) => [row.short_id, row]))
+            return { course: mergeCourseHeavy(light.course, [...heavyRows]), rawCourse: light.rawCourse,
+              rawLessons: light.rawLessons.map(row => ({ ...row, ...(byRef.get(row.short_id as string) as object) })) }
+          },
+          serialize: clean => {
+            const result = courseContentSnapshot(clean.course, witness.lessons)
+            if (!result || result.lessons.some(row => !row.id)) throw new Error('Course identities are not ready for a typed delta')
+            result.rawCourse = clean.rawCourse
+            result.rawLessons = Object.fromEntries(clean.rawLessons.map(row => [row.short_id as string, row]))
+            return result
+          },
+        })
+      }
+      reconcileCourse(c => c.heavyPending && c.dbCourseId === courseKey ? mergeCourseHeavy(c, rows) : c)
     })()
     return () => { alive = false }
     // Один заход на курс: дальше флаг снят, а по dbCourseId редактор не
@@ -6885,7 +6970,12 @@ export default function TeacherCourseEditorPage() {
       const foreignChanges = baselineStamp.current && currentStamp > baselineStamp.current
       const stamp = await saveLessonChapters(shortId, value, target.timecodes ?? [], target.chapterVariants)
       confirmedChapters.current.set(lessonId, value)
-      if (!foreignChanges && (!baselineStamp.current || stamp > baselineStamp.current)) baselineStamp.current = stamp
+      // A single-row chapter ACK cannot certify unchanged whole-course
+      // content. The controlled delta lane keeps its original source stamp;
+      // a subsequent whole save must use CAS/conflict review, never silently
+      // adopt a target lesson's potentially newer theory/homework version.
+      if (!courseDeltaProbeEnabled(latestCourse.current.dbCourseId ?? latestCourse.current.id)
+        && !foreignChanges && (!baselineStamp.current || stamp > baselineStamp.current)) baselineStamp.current = stamp
       setCourse(c => {
         // Late responses belong to the original lesson and source, never the selected one.
         const next = rebaseChapters(c)
@@ -7119,9 +7209,64 @@ export default function TeacherCourseEditorPage() {
       const ids = Object.fromEntries(atomicModules.map(m => [m.id, m.id]))
       await flushCourseVisibility(shortId, ids)
       const payload = courseAtomicRows(c, '', atomicModules, ids)
+      const typedBase = confirmedContent.current
+      const typedEnabled = courseDeltaProbeEnabled(shortId)
+      const reviewed = typedEnabled && reviewedContentOverwrite.current
+      if (typedEnabled) reviewedContentOverwrite.current = false
+      const canonicalSource = typedEnabled && typedBase
+        ? structuredClone(courseContentSnapshot(c, typedBase.lessons)) : null
+      const sameContentScope = typedBase?.ownerId === readScope.current.ownerId
+        && typedBase?.token.scope.authEpoch === readScope.current.authEpoch
+      const preservedSource = canonicalSource && typedBase && sameContentScope
+        ? prepareConfirmedSnapshot(typedBase.serialized, canonicalSource) : null
+      const typedReady = !reviewed && canonicalSource && canonicalSource.lessons.every(row => !!row.id)
+        && baselineCanDriveDelta(typedBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })
+      if (typedEnabled && typedReady && typedBase && canonicalSource && preservedSource) {
+        // Freeze the dispatched version before awaiting HTTP. A later teacher
+        // edit is queued separately and must never be certified by this ACK.
+        const base = typedBase, canonical = canonicalSource, preserved = preservedSource
+        const noAccessChanges = Object.values(changes).every(value => !value || Object.keys(value).length === 0)
+        const delta = noAccessChanges ? courseContentDelta(base.serialized, canonical, [...base.modules]) : null
+        const fullArgs = {
+          p_short_id: shortId, p_baseline: baselineStamp.current,
+          p_course: preserved.course, p_modules: preserved.modules,
+          p_lessons: preserved.lessons.map(({ id: _id, ...row }) => row), p_changes: changes,
+          p_expected_modules: base.modules,
+        }
+        const request = delta ? { p_short_id: shortId, p_baseline: baselineStamp.current, ...delta } : fullArgs
+        const expectedModules = delta ? base.modules.filter(m => !delta.p_module_ops.some(op => op.id === m.id && op.op === 'delete')).map(m => {
+          const op = delta.p_module_ops.find(op => op.id === m.id && op.op === 'patch')
+          return { ...m, ...(op?.set as object ?? {}) }
+        }) : canonical.modules
+        const expectedLessons = delta ? base.lessons.filter(l => !delta.p_lesson_deletes.some(op => op.id === l.id)).map(l => {
+          const patch = delta.p_lesson_patches.find(op => op.id === l.id)
+          return { id: l.id, shortId: l.shortId, moduleId: patch && Object.prototype.hasOwnProperty.call(patch.set, 'module_id') ? patch.set.module_id as string | null : l.moduleId }
+        }) : canonical.lessons.map(l => ({ id: l.id, shortId: l.short_id, moduleId: l.module_id as string | null }))
+        const started = performance.now()
+        // Select the engine before dispatch; an attempted write is never
+        // retried through another path after conflict or preservation failure.
+        const { data: saved, error } = await supabase.rpc(delta ? 'save_course_delta_probe_20261122'
+          : 'save_course_full_witness_probe_20261122', request)
+        try { trackEvent('course_save_probe_profile', courseSaveProbeMetrics(request, saved?._qa_profile, performance.now() - started)) } catch { /* Numeric diagnostics are non-fatal. */ }
+        if (error || !saved) {
+          if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
+            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+          } else saveIssue.current = courseSaveReason('course', error, shortId)
+          return false
+        }
+        confirmedContent.current = advanceConfirmedContent(base, canonical, preserved, saved, readScope.current, { modules: expectedModules, lessons: expectedLessons })
+        if (!confirmedContent.current) {
+          saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.')
+          return false
+        }
+        courseDbId = saved.course_id; writeStamp = saved.stamp; wrote = true
+        // Both restricted entries checked authoritative empty audience before
+        // writes; they cannot change access, seed progress or create schedules.
+        return finishSave()
+      }
       const probeArgs = {
         p_short_id: shortId, p_baseline: baselineStamp.current,
-        p_course: {
+        p_course: preservedSource?.course ?? {
           title: c.title, subject: c.subject, level: c.level, description: c.description ?? '',
           status: c.status !== latestCourse.current.status ? latestCourse.current.status : c.status,
           color: c.color, bg: c.bg,
@@ -7129,7 +7274,7 @@ export default function TeacherCourseEditorPage() {
           ...(c.numberStart != null ? { number_start: c.numberStart } : {}),
         },
         p_modules: atomicModules.map((m, position) => ({ id: m.id, label: m.label, position })),
-        p_lessons: payload.lessonRows.map(({ course_id: _course, ...row }) => row),
+        p_lessons: preservedSource ? preservedSource.lessons.map(({ id: _id, ...row }) => row) : payload.lessonRows.map(({ course_id: _course, ...row }) => row),
         p_changes: changes,
       }
       const probeStart = performance.now()
@@ -7145,6 +7290,9 @@ export default function TeacherCourseEditorPage() {
         } else saveIssue.current = courseSaveReason('course', error, shortId)
         return false
       }
+      // A six-argument stable ACK cannot certify complete witnesses. Saving
+      // remains available, but a fresh matched load is needed for later deltas.
+      if (typedEnabled) confirmedContent.current = null
       courseDbId = saved.course_id
       writeStamp = saved.stamp
       wrote = true
@@ -7731,6 +7879,7 @@ export default function TeacherCourseEditorPage() {
             const stamp = conflict.stamp
             setConflict(null)
             baselineStamp.current = stamp
+            reviewedContentOverwrite.current = courseDeltaProbeEnabled(latestCourse.current.dbCourseId ?? latestCourse.current.id)
             void runAutosave(latestCourse.current)
           }}
         />

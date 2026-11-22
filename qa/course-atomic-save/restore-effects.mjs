@@ -9,7 +9,7 @@ const { build } = require('esbuild')
 const { chromium } = require('playwright')
 const source = readFileSync(resolve(repo,'src/pages/teacher/TeacherCourseEditorPage.tsx'),'utf8')
 const part=(a,b)=>{const start=source.indexOf(a),end=source.indexOf(b,start);assert.ok(start>=0&&end>start,`${a} ... ${b}`);return source.slice(start,end)}
-const init=part('  const [{ course, editRevision, recoveredDraft }','  const [heavyErr, setHeavyErr]')
+const init=part('  const [{ course, editRevision, recoveredDraft }','  const metadataRead =')
 const draft=part('  const draftNs =','  // ── Сверка с сидом')
 const autosave=part('  const chapterProjection =','  // «Сохранено!»')
 const runAutosave=part('  function runAutosave(c:','  // Сбой записи:')
