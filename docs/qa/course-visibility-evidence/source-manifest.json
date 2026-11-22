@@ -1,0 +1,15 @@
+{
+  "base": "3a460837491b3cdf26bb124d10cb7e0ca0f63aee",
+  "files": {
+    "src/App.tsx": "634bf9c53a465b6603d19aab512d37e88628fac4335476390d75cefa20644b34",
+    "src/components/teacher/CourseVisibilityButton.tsx": "8ff8a7b41ee214013a2df322ffd77745443b438dec4f550caab6706eea8b4aee",
+    "src/components/teacher/courseVisibility.css": "a92dfee108ccf54a560ae3092473b15c1d1c6aa6e041e95ccaa81cf49f1dd141",
+    "src/lib/courseModuleIdentity.ts": "6df95f2bf978f5cb341c7532455cec9695de1c85a6e6c03b437e1ff48d05d916",
+    "src/lib/courseVisibility.ts": "2d24d37ae10acd66e6a8bcf795018f28705147d9b4905154faf72d36272e9761",
+    "src/lib/courseVisibilityModel.ts": "22e80e6fbbacc0ad21fa0ae4a1249253d45efd76b300ded87b9bd05d7baf7515",
+    "src/lib/db.ts": "448c03e57fcd96b7b168152e6be78db308ed99f50e4c3121b2db0911c4af0cb5",
+    "src/lib/i18nEn.ts": "5f2234159268cf188f387cf4de87ad0804ce876ea719e3bb6961e324fab632f5",
+    "src/pages/teacher/TeacherCourseEditorPage.tsx": "dd64a0a462e96f8a8143ec1d497193bb1441314c149abf6fdfd8e08e7b95ee06",
+    "supabase/migrations/20261122061050_course_item_visibility.sql": "3d18c08e9d8748a71e9b56e6743c3dd3d1d2c6e0f15a8ef1b22a2e1325d38124"
+  }
+}
