@@ -5,12 +5,17 @@ import json
 from pathlib import Path
 import tempfile
 import sys
+from types import SimpleNamespace
 sys.dont_write_bytecode = True
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('backup', Path(__file__).with_name('backupProductData.py'))
 backup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(backup)
+
+for stdout in ['[{"table_name":"public.lessons"}]', '{"rows":[{"table_name":"public.lessons"}]}']:
+    with patch.object(backup.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout=stdout)):
+        assert backup.query('unused', 'select fixture')[0]['table_name'] == 'public.lessons'
 
 
 def fixture_query(cli, sql):

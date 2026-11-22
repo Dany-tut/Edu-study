@@ -28,7 +28,10 @@ def query(cli, sql):
     if result.returncode:
         # Do not print rows, SQL or credentials to a launchd log.
         raise RuntimeError('Supabase backup query failed; no complete manifest published')
-    return json.loads(result.stdout)['rows']
+    data = json.loads(result.stdout)
+    # CLI JSON is an array outside an agent session, and a rows/boundary
+    # envelope inside Codex. launchd must support both without credentials/env hacks.
+    return data if isinstance(data, list) else data['rows']
 
 
 def verify(root):
