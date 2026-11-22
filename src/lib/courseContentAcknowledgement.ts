@@ -170,7 +170,11 @@ export function advanceConfirmedContent(
         if (!scalarEcho(raw, requested, patch.set ?? {}, lessonScalarKeys)) return null
         for (const [field, allowed] of [['homework', homeworkKeys], ['content', contentKeys]] as const) {
           const echo = patch[`${field}_set`] ?? {}
-          if (!record(echo) || !record(raw[field]) || !record(requested[field])
+          if (!record(echo)) return null
+          // An empty echo owns no JSON fields. Preserve a real SQL/JSON null
+          // instead of falsely rejecting a committed description-only edit.
+          if (Object.keys(echo).length === 0) continue
+          if (!record(raw[field]) || !record(requested[field])
             || !scalarEcho(raw[field] as Row, requested[field] as Row, echo, allowed)) return null
         }
         if (raw.module_id !== lessons.get(patch.id)!.moduleId) return null

@@ -199,5 +199,23 @@ test('later caller mutation of dispatch object cannot mutate promoted base', () 
   assert.equal(result.serialized.rawLessons['qa-0'].content.unknownContent.protected, true)
   assert.equal(result.lessons[0].updatedAt, oldStamp)
 })
+test('empty nested echoes preserve raw null on a description-only update', () => {
+  const f = fixture()
+  for (const field of ['homework', 'content']) {
+    f.base.serialized.rawLessons['qa-0'][field] = null
+    f.base.serialized.lessons[0][field] = {}
+    f.canonical.lessons[0][field] = {}
+  }
+  f.canonical.lessons[0].description = 'One changed description'
+  f.preserved = prepareConfirmedSnapshot(f.base.serialized, f.canonical)
+  f.ack.applied_lesson_patches = [{ id: lessonId(0), short_id: 'qa-0', set: { description: 'One changed description' }, homework_set: {}, content_set: {} }]
+  const result = advance(f); assert.ok(result)
+  assert.equal(result.serialized.rawLessons['qa-0'].homework, null)
+  assert.equal(result.serialized.rawLessons['qa-0'].content, null)
+})
+rejects('nonempty JSON echo cannot silently create an unrequested raw object', f => {
+  f.preserved.lessons[0].homework = null
+  f.ack.applied_lesson_patches = [{ id: lessonId(0), short_id: 'qa-0', set: {}, homework_set: { hwTitle: 'Unexpected' } }]
+})
 for (const field of ['base', 'canonical', 'preserved', 'ack']) rejects(`missing ${field} fails closed`, f => { f[field] = null })
 console.log(`PASS content acknowledgement ${count}cases: immutable writable-only preserved request,80row exact scope/roster, calendar/microsecond stamps, no unknownUUID promotion, raw canonical distinction, typed scalar/time echoes, late ACK/latest input isolation and malformed ACK fail-closed`)
