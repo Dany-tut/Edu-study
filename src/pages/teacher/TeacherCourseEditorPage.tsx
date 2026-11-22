@@ -1,3 +1,4 @@
+import MediaCaptionInput from '../../components/teacher/MediaCaptionInput'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LessonRecordingPreview } from '../../components/LessonRecordingView'
 import { enqueueChapterSave } from '../../lib/chapterSaveQueue'
@@ -2327,16 +2328,10 @@ function TheoryFigure({
             display: 'block', width: '100%', maxWidth: 340, borderRadius: 10, background: '#fff',
           }} />
         )}
-        <input
+        <MediaCaptionInput
           value={caption}
-          onChange={e => onCaption(e.target.value)}
+          onChange={onCaption}
           placeholder={model ? t('Подпись к модели (необязательно)') : t('Подпись к картинке')}
-          style={{
-            marginTop: 8, width: '100%', maxWidth: 340, padding: '4px 0',
-            border: 'none', borderBottom: '1px solid var(--color-border-medium)',
-            background: 'transparent', color: 'var(--color-text)',
-            fontSize: 12, fontFamily: 'inherit', outline: 'none',
-          }}
         />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
