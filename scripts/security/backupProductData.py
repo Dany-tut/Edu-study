@@ -85,9 +85,9 @@ def backup(cli, destination):
         return {'table': table, 'file': filename, 'rows': snapshot['row_count'],
                 'sha256': hashlib.sha256(blob).hexdigest()}
 
-    # Two independent read requests at a time; no scans of telemetry or caches.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        entries = list(executor.map(capture, tables))
+    # CLI initializes a database login for each command. Serialize SQL reads to
+    # avoid concurrent login initialization; Storage downloads remain bounded.
+    entries = [capture(table) for table in tables]
     storage_meta = json.loads(gzip.decompress((root / 'storage.objects.json.gz').read_bytes()))['rows']
 
     def capture_object(obj):
