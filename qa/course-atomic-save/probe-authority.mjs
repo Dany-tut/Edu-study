@@ -4,7 +4,7 @@ import {resolve} from 'node:path'
 const file=resolve('qa/course-atomic-save/database.mjs')
 const source=readFileSync(file,'utf8')
 const fixture=source.slice(0,source.indexOf('await as(owner)'))
-const probeFile=process.env.COURSE_PROBE_MIGRATION || 'supabase/migrations/20261122102717_course_probe_conflict_http.sql'
+const probeFile=process.env.COURSE_PROBE_MIGRATION || 'supabase/migrations/20261122104104_course_probe_stage_timings.sql'
 const sql=readFileSync(probeFile,'utf8').replaceAll('00e3a0efbf','qa-course').replaceAll('1eaf6264-0a38-41f7-bd53-4a404764393f','11111111-1111-4111-8111-111111111111')
 const tests=`
 await db.exec(${JSON.stringify(sql)});

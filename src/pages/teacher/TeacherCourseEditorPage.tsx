@@ -17,6 +17,8 @@ import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '../../lib/courseScheduleSync'
+import { trackEvent } from '../../lib/analytics'
+import { courseSaveProbeMetrics } from '../../lib/courseSaveProbeMetrics'
 import { courseAtomicModules, courseAtomicRows } from '../../lib/courseAtomicRows'
 import { courseSaveProvenance } from '../../lib/courseSaveProvenance'
 import { courseSaveCause, courseSaveReason, courseSaveStageText } from '../../lib/courseSaveReason'
@@ -7117,7 +7119,7 @@ export default function TeacherCourseEditorPage() {
       const ids = Object.fromEntries(atomicModules.map(m => [m.id, m.id]))
       await flushCourseVisibility(shortId, ids)
       const payload = courseAtomicRows(c, '', atomicModules, ids)
-      const { data: saved, error } = await supabase.rpc('save_course_content_probe_20261122', {
+      const probeArgs = {
         p_short_id: shortId, p_baseline: baselineStamp.current,
         p_course: {
           title: c.title, subject: c.subject, level: c.level, description: c.description ?? '',
@@ -7129,7 +7131,12 @@ export default function TeacherCourseEditorPage() {
         p_modules: atomicModules.map((m, position) => ({ id: m.id, label: m.label, position })),
         p_lessons: payload.lessonRows.map(({ course_id: _course, ...row }) => row),
         p_changes: changes,
-      })
+      }
+      const probeStart = performance.now()
+      const { data: saved, error } = await supabase.rpc('save_course_content_probe_20261122', probeArgs)
+      try {
+        if (saved?._qa_profile) trackEvent('course_save_probe_profile', courseSaveProbeMetrics(probeArgs, saved._qa_profile, performance.now() - probeStart))
+      } catch { /* Diagnostic delivery must never change a committed save acknowledgement. */ }
       // A failed transaction writes nothing. Never retry through the old path,
       // which could obscure a real version, permission or preservation error.
       if (error || !saved) {

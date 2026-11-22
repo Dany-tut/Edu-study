@@ -34,12 +34,12 @@ for(const count of [0,1,20]){
 assert.deepEqual(courseAtomicModules({...base,lessons:[],modules:[{...base.modules[0],label:'',lessonIds:[]}]}),[{...base.modules[0],label:'',lessonIds:[]}])
 assert.equal(courseAtomicModules({...base,dbCourseId:undefined}),null)
 assert.equal(courseAtomicModules({...base,modules:[{...base.modules[0],id:'legacy-local'}]}),null)
-function harness({response,error,delayed=false}={}){
+function harness({response,error,delayed=false,telemetryThrows=false}={}){
  const calls=[],baselineStamp={current:'2026-01-01T00:00:00Z'},latestCourse={current:structuredClone(base)},saveIssue={current:null},savedDrafts=[]
  let resolve,conflict=null
  const rpcPromise=delayed?new Promise(r=>resolve=r):null
- const normal={course_id:'db-course',stamp:'2026-01-02T00:00:00Z',access:{updated_at:'2026-01-02T00:00:00Z',student_ids:[],group_ids:[],access_modes:{}},lessons:[{id:'db-lesson',lesson_number:0,title:'Lesson'}]}
- const env={courseAtomicModules,courseAtomicRows,accessChangesForSave,acknowledgeCourseAccess,baselineStamp,latestCourse,saveIssue,
+ const normal={_qa_profile:{function_ms:123,steps:[]},course_id:'db-course',stamp:'2026-01-02T00:00:00Z',access:{updated_at:'2026-01-02T00:00:00Z',student_ids:[],group_ids:[],access_modes:{}},lessons:[{id:'db-lesson',lesson_number:0,title:'Lesson'}]}
+ const env={trackEvent:()=>{if(telemetryThrows)throw Error('diagnostic delivery unavailable')},courseSaveProbeMetrics:()=>({}),courseAtomicModules,courseAtomicRows,accessChangesForSave,acknowledgeCourseAccess,baselineStamp,latestCourse,saveIssue,
  supabase:{rpc:async(name,args)=>{calls.push({name,args});return rpcPromise??{data:response??normal,error:error??null}},from:()=>{throw Error('Unexpected legacy request')}},
  flushCourseVisibility:async()=>{calls.push({name:'flush'})},
  courseSaveReason:(_stage,e)=>e?.message??'failed',readGroupScheduleConflict:()=>null,t:s=>s,groups:[],allStudents:[],
@@ -68,3 +68,5 @@ assert.equal(await h.write(structuredClone(base)),false);assert.equal(h.getConfl
 }
 h=harness({delayed:true});const pending=h.write(structuredClone(base));await Promise.resolve();h.latestCourse.current={...h.latestCourse.current,description:'newer unsaved edit'};h.resolve();assert.equal(await pending,true);assert.equal(h.savedDrafts[0].description,'newer unsaved edit','late acknowledgement retains latest draft')
 console.log('PASS actual editor function:1RPC+visibility barrier, server CAS payload, no fallback, incomplete-data guards, conflict, preservation error, late ACK; serializer parity baseline0/1/20lessons')
+
+h=harness({telemetryThrows:true});assert.equal(await h.write(structuredClone(base)),true,'diagnostics must not turn committed ACK into failure');
