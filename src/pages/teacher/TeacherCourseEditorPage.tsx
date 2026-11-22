@@ -7133,7 +7133,7 @@ export default function TeacherCourseEditorPage() {
       // A failed transaction writes nothing. Never retry through the old path,
       // which could obscure a real version, permission or preservation error.
       if (error || !saved) {
-        if (error?.code === '40001' && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
+        if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
           setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
         } else saveIssue.current = courseSaveReason('course', error, shortId)
         return false

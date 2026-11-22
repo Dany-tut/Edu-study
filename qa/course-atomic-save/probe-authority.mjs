@@ -4,7 +4,7 @@ import {resolve} from 'node:path'
 const file=resolve('qa/course-atomic-save/database.mjs')
 const source=readFileSync(file,'utf8')
 const fixture=source.slice(0,source.indexOf('await as(owner)'))
-const probeFile=process.env.COURSE_PROBE_MIGRATION || 'supabase/migrations/20261122100928_course_content_qa_probe.sql'
+const probeFile=process.env.COURSE_PROBE_MIGRATION || 'supabase/migrations/20261122102717_course_probe_conflict_http.sql'
 const sql=readFileSync(probeFile,'utf8').replaceAll('00e3a0efbf','qa-course').replaceAll('1eaf6264-0a38-41f7-bd53-4a404764393f','11111111-1111-4111-8111-111111111111')
 const tests=`
 await db.exec(${JSON.stringify(sql)});
@@ -20,6 +20,7 @@ async function denied(actor,opts,pattern,mfa='on'){
  assert.equal(await snapshot(),before,'probe denial must leave all data/stamps/history unchanged');
  await as(owner);
 }
+await denied(owner,{baseline:'2000-01-01T00:00:00Z'},e=>e.code==='PT409' && e.message.startsWith('ISKRA_COURSE_CONFLICT:'));
 await denied(other,{},/QA probe scope denied/);
 await denied('',{},/QA probe scope denied/);
 await denied('anon',{},/permission denied/);

@@ -62,7 +62,9 @@ h=harness();assert.equal(await h.write({...base,heavyPending:true}),false);asser
 h=harness();assert.equal(await h.write({...base,metadataPending:true}),false);assert.equal(h.calls.length,0)
 h=harness({error:{code:'23514',message:'ISKRA_DATA_PRESERVATION: protected'}})
 assert.equal(await h.write(structuredClone(base)),false);assert.equal(h.baselineStamp.current,'2026-01-01T00:00:00Z');assert.equal(h.savedDrafts.length,0);assert.equal(h.calls.length,2,'no unsafe legacy fallback')
-h=harness({error:{code:'40001',message:'ISKRA_COURSE_CONFLICT:2026-01-03T00:00:00Z'}})
+for (const code of ['PT409','40001']) {
+h=harness({error:{code,message:'ISKRA_COURSE_CONFLICT:2026-01-03T00:00:00Z'}})
 assert.equal(await h.write(structuredClone(base)),false);assert.equal(h.getConflict()[2],'2026-01-03T00:00:00Z')
+}
 h=harness({delayed:true});const pending=h.write(structuredClone(base));await Promise.resolve();h.latestCourse.current={...h.latestCourse.current,description:'newer unsaved edit'};h.resolve();assert.equal(await pending,true);assert.equal(h.savedDrafts[0].description,'newer unsaved edit','late acknowledgement retains latest draft')
 console.log('PASS actual editor function:1RPC+visibility barrier, server CAS payload, no fallback, incomplete-data guards, conflict, preservation error, late ACK; serializer parity baseline0/1/20lessons')
