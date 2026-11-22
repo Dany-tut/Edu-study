@@ -68,7 +68,12 @@ export default function GrowTextarea({
     const el = ref.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${Math.max(minHeight, el.scrollHeight)}px`
+    const { boxSizing, paddingTop, paddingBottom } = getComputedStyle(el)
+    // scrollHeight includes padding, but not the frame around the scroll area.
+    const height = boxSizing === 'border-box'
+      ? el.scrollHeight + (el.offsetHeight - el.clientHeight)
+      : el.scrollHeight - parseFloat(paddingTop) - parseFloat(paddingBottom)
+    el.style.height = `${Math.max(minHeight, height)}px`
   }
 
   useLayoutEffect(fit, [value, minHeight])
