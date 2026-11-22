@@ -6146,7 +6146,7 @@ export default function TeacherCourseEditorPage() {
   const { groups, addIndividualCard } = useGroups()
   const allStudents = useAllStudents()
 
-  const [{ course, editRevision }, setCourseState] = useState(() => {
+  const [{ course, editRevision, recoveredDraft }, setCourseState] = useState(() => {
     const base: CourseEdData = editingCourseJson
       ? JSON.parse(editingCourseJson) as CourseEdData
       : {
@@ -6162,12 +6162,12 @@ export default function TeacherCourseEditorPage() {
     // teacher never got to save. The draft is cleared on successful save, so
     // when no draft exists we fall through to the fresh DB snapshot.
     const draft = readDraft<CourseEdData>(`coursed.${base.dbCourseId ?? base.id}.course`)
-    return { course: draft ?? base, editRevision: 0 }
+    return { course: draft ?? base, editRevision: draft !== null ? 1 : 0, recoveredDraft: draft !== null }
   })
   const setCourse = useCallback<React.Dispatch<React.SetStateAction<CourseEdData>>>(edit => {
     setCourseState(previous => {
       const course = typeof edit === 'function' ? edit(previous.course) : edit
-      return course === previous.course ? previous : { course, editRevision: previous.editRevision + 1 }
+      return course === previous.course ? previous : { ...previous, course, editRevision: previous.editRevision + 1 }
     })
   }, [])
   // Server acknowledgements update editor data without counting as new teacher edits.
@@ -6559,7 +6559,7 @@ export default function TeacherCourseEditorPage() {
   const chapterProjection = useRef(new WeakSet<CourseEdData>())
   const linkSave = useRef<((ok: boolean) => void) | null>(null)
   const autosaveArmed = useRef(false)
-  const autosaveEditRevision = useRef<number | null>(null)
+  const autosaveEditRevision = useRef<number | null>(course.dbCourseId && !recoveredDraft ? editRevision : null)
   useEffect(() => {
     if (chapterProjection.current.has(course)) { chapterProjection.current.delete(course); autosaveEditRevision.current = editRevision; return }
     const finishLink = linkSave.current
@@ -6601,7 +6601,7 @@ export default function TeacherCourseEditorPage() {
   // записи, и при неудаче врала: учитель видел «Сохранено!», а в базе пусто.
   // Пока последняя правка не доехала, `unsaved` поднят: по нему закрытие вкладки
   // спрашивает подтверждение, а уход из редактора дописывает курс напоследок.
-  const unsaved = useRef(false)
+  const unsaved = useRef(recoveredDraft)
   const latestCourse = useRef(course)
   latestCourse.current = course
   // Свежая функция, а не из первого рендера: та видит пустую карту уровней
@@ -7660,8 +7660,9 @@ export default function TeacherCourseEditorPage() {
             saving={saving || autosaving > 0}
             lastSavedAt={lastSavedAt}
             failed={saveFailures > 0}
-            pendingChanges={unsaved.current}
-            persisted={!!course.dbCourseId}
+            pendingChanges={unsaved.current || (!chapterProjection.current.has(course) && autosaveEditRevision.current !== editRevision)}
+            persisted={!!course.dbCourseId && !recoveredDraft}
+            requireCurrentAck
           />
         </div>
         <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>

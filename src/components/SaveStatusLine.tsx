@@ -10,12 +10,13 @@ import { clockTime, nextStatusChangeIn, saveStatusView } from '../lib/sync/saveS
  * «Нет сети — сохраню, когда появится», «Не сохранено». Не исчезает и не мигает.
  * Подробности ошибки и «Повторить» — в Alert экрана, здесь только статус.
  */
-export default function SaveStatusLine({ saving, lastSavedAt, failed, pendingChanges, persisted, style }: {
+export default function SaveStatusLine({ saving, lastSavedAt, failed, pendingChanges, persisted, requireCurrentAck = false, style }: {
   saving: boolean
   lastSavedAt: number | null
   failed: boolean
   pendingChanges: boolean
   persisted: boolean
+  requireCurrentAck?: boolean
   style?: CSSProperties
 }) {
   const t = useT()
@@ -27,11 +28,18 @@ export default function SaveStatusLine({ saving, lastSavedAt, failed, pendingCha
   if (!saving) savingSince.current = null
 
   const input = { saving, savingSince: savingSince.current, lastSavedAt, failed, online, pendingChanges, persisted, now: Date.now() }
-  const view = saveStatusView(input)
+  // Only display inputs change here. A stale browser network hint must not
+  // hide an active attempt; write activity and reconnect retries stay untouched.
+  const displayInput = requireCurrentAck ? {
+    ...input,
+    ...((pendingChanges || saving) ? { persisted: false, lastSavedAt: null } : {}),
+    ...(saving ? { online: true, failed: false } : {}),
+  } : input
+  const view = saveStatusView(displayInput)
 
   // Строка меняется со временем сама (400 мс, минута) — перерисоваться к этому моменту.
   const [, setTick] = useState(0)
-  const wait = nextStatusChangeIn(input)
+  const wait = nextStatusChangeIn(displayInput)
   useEffect(() => {
     if (wait === null) return
     const timer = setTimeout(() => setTick(n => n + 1), wait + 20)

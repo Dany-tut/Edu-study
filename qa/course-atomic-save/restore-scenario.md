@@ -1,0 +1,11 @@
+# Course restored draft / current ACK acceptance
+
+Before QA. Root owns editor/status files, base099924604696549e8318c540633b481e9c6c8ec6. UI design/layout/icons unchanged. Course-only status opt-in, shared other screens keep default. Sharedlogic exercised once in headlessChrome; no platform/device equivalence claimed. Physical iPhone/iPad/Androidnotcovered. LiveUIlimitednativeEdgePCdarktheme1466x905; broader interaction/theme matrix not claimed.
+
+Risk: restoredlocaldraft currentlyshowsSaved andfirstrevision0skip; priorACKSaved canflashbeforeeffectonnewrevision. Expected: dirty/pending untilreal latestACK; immutable sourcedstamp unchanged; stale/unverifiedfullsnapshotsfailclosed, no adoptionfreshremote. Active attempt showsSavingafter400ms evenfalse navigatoroffline; no mutationglobalonline/noretry effectcausedbydisplay.
+
+ActualReactsource effects:cleaninitialskip, recoveredautosavewithoutnewedit, firstframebefore900msdebounce/first400ms, priorACKthenB/C/olderACK, confirmedchapterprojection, offline/failure/unverified/stale/CASerror/explicitretry. Preserve latestdraft/stamp/IDs, no duplicateafterACK. Testtransport controlled; not realSQLsecurityproof.
+
+ProductionafterexactCI+4manifests: onlyQA00e3a0efbf,80lessons/4modules,0audience. TwoQA-tabs staleconflict→localuniqueunsaveddraft→reload: mustautomaticallyreturnhonestconflictwithouttyping,retainlocaltext/DBremote. Explicitchooseown→actualACK+DBmarker; newBwhileAinflight→nooldSaved/cleardraft. Reopen/hashfull80unchanged. Networktimingseparatefromreload/debounce. No realworkingcourses or groups touched. Cold/warm/progress/assignedrolloutoutsideacceptance.
+
+Local actualeffects PASS: explicitreadDraft reload, cleanmountskip, priorACK_A→B firstframe/predebounce/first400ms→C beforeACK_B, offline/reconnect, falseoffline+workingtransport(singlecall), failure, stale/unverifiedsource(no stampadoption), remotecommitafterdispatch, confirmedchapterprojection(nofullsave), ACKdoesnotenqueueitself. Existing checkCourseAutosaveBrowser, provenance/queue/visibility/auth/mutation/writeactivity guards PASS. Fixturemodels serverCAS; actualdatabase tests separate. Legacy ce-session withoutreadDraft/dirtymarker remains ambiguous and is not silentlypromoted.

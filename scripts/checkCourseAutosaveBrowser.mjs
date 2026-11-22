@@ -15,6 +15,7 @@ const calls=[],pending=[],drafts=new Map();let flashes=0,errors=0;
 const writeDraft=(k,v)=>drafts.set(k,v);const clearDrafts=()=>drafts.clear();const t=x=>x;const courseSaveReason=()=>"failed";
 function App(){
  const [{course,editRevision},setState]=useState({course:{id:'A',dbCourseId:'A',title:'Synthetic course',value:0,metadataPending:!!window.__initialMetadata},editRevision:0});
+ const recoveredDraft=false;
  const [autosaving,setAutosaving]=useState(0);const [publishErr,setPublishErr]=useState(null);
  const publishedEditRevision=useRef(null),baselineStamp=useRef('stamp'),saveIssue=useRef(null);
  const publicationPending=false;const setCourseEdited=()=>{};const flash=()=>{flashes++};const noteSaveFailure=()=>{errors++};
