@@ -63,6 +63,7 @@ export default function GrowTextarea({
   minHeight?: number
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
+  const minimumRef = useRef(minHeight)
 
   const fit = () => {
     const el = ref.current
@@ -73,10 +74,13 @@ export default function GrowTextarea({
     const height = boxSizing === 'border-box'
       ? el.scrollHeight + (el.offsetHeight - el.clientHeight)
       : el.scrollHeight - parseFloat(paddingTop) - parseFloat(paddingBottom)
-    el.style.height = `${Math.max(minHeight, height)}px`
+    el.style.height = `${Math.max(minimumRef.current, height)}px`
   }
 
-  useLayoutEffect(fit, [value, minHeight])
+  useLayoutEffect(() => {
+    minimumRef.current = minHeight
+    fit()
+  }, [value, minHeight])
 
   // Пересчёт на смену ширины (панель тянется). ResizeObserver сравнивает именно
   // ширину — иначе собственный set height зациклит наблюдателя.
