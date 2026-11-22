@@ -1,0 +1,6 @@
+/* The course rail title is a native textarea, not GrowTextarea. Center its
+   visible text block within the outlined field for one or multiple lines. */
+.editor-course-title {
+  padding-top: calc(12px - 0.16em) !important;
+  padding-bottom: calc(12px + 0.16em) !important;
+}

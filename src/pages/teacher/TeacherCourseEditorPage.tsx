@@ -1,3 +1,5 @@
+import '../../components/teacher/courseTitleOptical.css'
+import '../../components/teacher/choiceOptionLetter.css'
 import MediaCaptionInput from '../../components/teacher/MediaCaptionInput'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LessonRecordingPreview } from '../../components/LessonRecordingView'
@@ -500,7 +502,7 @@ function LeftCourseMeta({
   return (
     <OverlayScrollArea style={{ flex: 1 }} padding={RAIL_PAD} scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Title */}
-      <textarea
+      <textarea className="editor-course-title"
         ref={titleRef}
         rows={1}
         {...titleField}
@@ -3564,8 +3566,8 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
                           {isCorrect && <Check size={14} strokeWidth={2.5} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff' }} />}
                         </button>
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', borderRadius: 12, border: `2px solid ${isCorrect ? cfg.color : 'var(--color-border-medium)'}`, background: 'var(--color-bg-input)', overflow: 'hidden', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                          <div style={{ width: 32, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0 }}>{letter}</div>
-                          <AutoTextarea
+                          <div className="editor-choice-letter" style={{ width: 32, display: 'flex', justifyContent: 'center', fontWeight: 700, color: isCorrect ? cfg.color : 'var(--color-text-2)', flexShrink: 0, alignSelf: 'flex-start', padding: '10px 0', lineHeight: 1.4 }}>{letter}</div>
+                          <AutoTextarea className="editor-choice-answer"
                             value={ch}
                             onChange={v => { const next = [...choices]; next[ci] = v; onUpdate({ ...task, choices: next }) }}
                             placeholder={`${t('Вариант')} ${letter}…`}

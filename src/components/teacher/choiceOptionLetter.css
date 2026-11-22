@@ -1,0 +1,14 @@
+.editor-choice-letter { font-size: 14px; }
+
+/* Center the whole letter/answer pair within the outlined row. The generic
+   GrowTextarea lift is stronger; override it only for this choice-row pair. */
+.editor-choice-letter,
+.editor-choice-answer {
+  padding-top: calc(10px - 0.06em) !important;
+  padding-bottom: calc(10px + 0.06em) !important;
+}
+
+/* Match the app's font floor for touch textareas. */
+@media (pointer: coarse) and (max-width: 1023px) {
+  .editor-choice-letter { font-size: 16px; }
+}
