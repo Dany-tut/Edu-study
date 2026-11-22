@@ -11,12 +11,13 @@ create function auth.uid() returns uuid language sql stable as $$select nullif(c
 create function public.is_admin() returns boolean language sql stable as $$select false$$;
 create function public.mfa_ok() returns boolean language sql stable as $$select true$$;
 create table courses(id uuid primary key,short_id text unique,created_by uuid);
+create table course_shares(course_id uuid,teacher_id uuid);
 create table course_modules(id uuid primary key,course_id uuid references courses(id),label text,position int);
 create table lessons(id uuid primary key,course_id uuid references courses(id),module_id uuid references course_modules(id),short_id text,title text);
 create table lesson_progress(student_id uuid,lesson_ref text,status text);
 create function public.my_course_ids() returns uuid[] language sql stable as $$select array_agg(id) from public.courses$$;
 grant usage on schema auth to authenticated,anon;
-grant select,insert,update,delete on courses,course_modules,lessons,lesson_progress to authenticated;
+grant select,insert,update,delete on courses,course_modules,lessons,lesson_progress,course_shares to authenticated;
 alter table course_modules enable row level security; alter table lessons enable row level security;
 create policy base_modules on course_modules for all to authenticated using(true) with check(true);
 create policy base_lessons on lessons for all to authenticated using(true) with check(true);

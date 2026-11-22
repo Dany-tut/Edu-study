@@ -51,6 +51,8 @@ grant execute on function public.set_course_item_visibility(text,text,text,boole
 create policy module_student_visibility on public.course_modules as restrictive for select to authenticated
 using ((select public.is_admin()) or exists (
   select 1 from public.courses c where c.id=course_id and c.created_by=(select auth.uid())
+) or exists (
+  select 1 from public.course_shares cs where cs.course_id=course_modules.course_id and cs.teacher_id=(select auth.uid())
 ) or not exists (
   select 1 from public.course_item_visibility v where v.course_id=course_modules.course_id
     and v.item_kind='module' and v.item_key=course_modules.id::text and v.hidden
@@ -58,6 +60,8 @@ using ((select public.is_admin()) or exists (
 create policy lesson_student_visibility on public.lessons as restrictive for select to authenticated
 using ((select public.is_admin()) or exists (
   select 1 from public.courses c where c.id=course_id and c.created_by=(select auth.uid())
+) or exists (
+  select 1 from public.course_shares cs where cs.course_id=lessons.course_id and cs.teacher_id=(select auth.uid())
 ) or not exists (
   select 1 from public.course_item_visibility v where v.course_id=lessons.course_id and v.hidden
     and ((v.item_kind='lesson' and v.item_key=lessons.short_id)
