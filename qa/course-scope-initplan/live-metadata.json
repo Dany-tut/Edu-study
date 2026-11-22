@@ -1,0 +1,486 @@
+{
+  "policies": [
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT mfa_ok() AS mfa_ok)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_enrollments",
+      "permissive": "RESTRICTIVE",
+      "policyname": "mfa_required",
+      "with_check": "( SELECT mfa_ok() AS mfa_ok)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (student_id IN ( SELECT (unnest(my_student_ids()))::text AS unnest)) OR (course_id IN ( SELECT unnest(my_course_ids()) AS unnest)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_enrollments",
+      "permissive": "PERMISSIVE",
+      "policyname": "read_all_course_enrollments",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_enrollments",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_delete",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_enrollments",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_insert",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_enrollments",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_update",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(course_id IN ( SELECT courses.id\n   FROM courses\n  WHERE (courses.created_by = auth.uid())))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_enrollments",
+      "permissive": "PERMISSIVE",
+      "policyname": "write_own_course_enrollments",
+      "with_check": "(course_id IN ( SELECT courses.id\n   FROM courses\n  WHERE (courses.created_by = auth.uid())))"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT mfa_ok() AS mfa_ok)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_item_visibility",
+      "permissive": "RESTRICTIVE",
+      "policyname": "mfa_required",
+      "with_check": "( SELECT mfa_ok() AS mfa_ok)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = course_item_visibility.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_item_visibility",
+      "permissive": "PERMISSIVE",
+      "policyname": "visibility_owner_write",
+      "with_check": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = course_item_visibility.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (course_id IN ( SELECT unnest(my_course_ids()) AS unnest)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_item_visibility",
+      "permissive": "PERMISSIVE",
+      "policyname": "visibility_read",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (course_id IN ( SELECT unnest(my_course_ids()) AS unnest)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_modules",
+      "permissive": "PERMISSIVE",
+      "policyname": "anyone can read course_modules",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = course_modules.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_modules",
+      "permissive": "PERMISSIVE",
+      "policyname": "course_modules_owner_all",
+      "with_check": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = course_modules.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))))"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT mfa_ok() AS mfa_ok)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_modules",
+      "permissive": "RESTRICTIVE",
+      "policyname": "mfa_required",
+      "with_check": "( SELECT mfa_ok() AS mfa_ok)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = course_modules.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM course_shares cs\n  WHERE ((cs.course_id = course_modules.course_id) AND (cs.teacher_id = ( SELECT auth.uid() AS uid))))) OR (NOT (EXISTS ( SELECT 1\n   FROM course_item_visibility v\n  WHERE ((v.course_id = course_modules.course_id) AND (v.item_kind = 'module'::text) AND (v.item_key = (course_modules.id)::text) AND v.hidden)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_modules",
+      "permissive": "RESTRICTIVE",
+      "policyname": "module_student_visibility",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_modules",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_delete",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_modules",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_insert",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_modules",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_update",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT mfa_ok() AS mfa_ok)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_shares",
+      "permissive": "RESTRICTIVE",
+      "policyname": "mfa_required",
+      "with_check": "( SELECT mfa_ok() AS mfa_ok)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (teacher_id = ( SELECT auth.uid() AS uid)) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = course_shares.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_shares",
+      "permissive": "PERMISSIVE",
+      "policyname": "read_all_course_shares",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_shares",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_delete",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_shares",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_insert",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_shares",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_update",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(course_id IN ( SELECT courses.id\n   FROM courses\n  WHERE (courses.created_by = auth.uid())))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "course_shares",
+      "permissive": "PERMISSIVE",
+      "policyname": "write_own_course_shares",
+      "with_check": "(course_id IN ( SELECT courses.id\n   FROM courses\n  WHERE (courses.created_by = auth.uid())))"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT mfa_ok() AS mfa_ok)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "courses",
+      "permissive": "RESTRICTIVE",
+      "policyname": "mfa_required",
+      "with_check": "( SELECT mfa_ok() AS mfa_ok)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (id IN ( SELECT unnest(my_course_ids()) AS unnest)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "courses",
+      "permissive": "PERMISSIVE",
+      "policyname": "read_all_courses",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "courses",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_delete",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "courses",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_insert",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "courses",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_update",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(created_by = ( SELECT auth.uid() AS uid))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "courses",
+      "permissive": "PERMISSIVE",
+      "policyname": "write_own_courses",
+      "with_check": "(created_by = ( SELECT auth.uid() AS uid))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = lessons.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM course_shares cs\n  WHERE ((cs.course_id = lessons.course_id) AND (cs.teacher_id = ( SELECT auth.uid() AS uid))))) OR (NOT (EXISTS ( SELECT 1\n   FROM course_item_visibility v\n  WHERE ((v.course_id = lessons.course_id) AND v.hidden AND (((v.item_kind = 'lesson'::text) AND (v.item_key = lessons.short_id)) OR ((v.item_kind = 'module'::text) AND (v.item_key = (lessons.module_id)::text))))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lessons",
+      "permissive": "RESTRICTIVE",
+      "policyname": "lesson_student_visibility",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = lessons.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lessons",
+      "permissive": "PERMISSIVE",
+      "policyname": "lessons_owner_all",
+      "with_check": "(( SELECT is_admin() AS is_admin) OR (EXISTS ( SELECT 1\n   FROM courses c\n  WHERE ((c.id = lessons.course_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))))"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "( SELECT mfa_ok() AS mfa_ok)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lessons",
+      "permissive": "RESTRICTIVE",
+      "policyname": "mfa_required",
+      "with_check": "( SELECT mfa_ok() AS mfa_ok)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT is_admin() AS is_admin) OR (course_id IN ( SELECT unnest(my_course_ids()) AS unnest)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lessons",
+      "permissive": "PERMISSIVE",
+      "policyname": "read_all_lessons",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lessons",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_delete",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lessons",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_insert",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "( SELECT is_staff() AS is_staff)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lessons",
+      "permissive": "RESTRICTIVE",
+      "policyname": "staff_only_update",
+      "with_check": "( SELECT is_staff() AS is_staff)"
+    }
+  ],
+  "functions": [
+    {
+      "acl": "{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+      "name": "uid",
+      "owner": "supabase_auth_admin",
+      "config": null,
+      "schema": "auth",
+      "definition": "CREATE OR REPLACE FUNCTION auth.uid()\n RETURNS uuid\n LANGUAGE sql\n STABLE\nAS $function$\n  select \n  coalesce(\n    nullif(current_setting('request.jwt.claim.sub', true), ''),\n    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')\n  )::uuid\n$function$\n",
+      "security_definer": false
+    },
+    {
+      "acl": "{=X/supabase_auth_admin,postgres=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+      "name": "jwt",
+      "owner": "supabase_auth_admin",
+      "config": null,
+      "schema": "auth",
+      "definition": "CREATE OR REPLACE FUNCTION auth.jwt()\n RETURNS jsonb\n LANGUAGE sql\n STABLE\nAS $function$\n  select \n    coalesce(\n        nullif(current_setting('request.jwt.claim', true), ''),\n        nullif(current_setting('request.jwt.claims', true), '')\n    )::jsonb\n$function$\n",
+      "security_definer": false
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "is_admin",
+      "owner": "postgres",
+      "config": [
+        "search_path=public"
+      ],
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE\n SET search_path TO 'public'\nAS $function$ select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false); $function$\n",
+      "security_definer": false
+    },
+    {
+      "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "is_staff",
+      "owner": "postgres",
+      "config": [
+        "search_path=public"
+      ],
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.is_staff()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select public.is_admin() or exists (\n    select 1 from public.profiles p\n    where p.id = auth.uid() and p.role in ('teacher', 'admin')\n  );\n$function$\n",
+      "security_definer": true
+    },
+    {
+      "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "mfa_ok",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.mfa_ok()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select auth.uid() is null\n      or coalesce(auth.jwt() ->> 'aal', '') = 'aal2'\n      or not exists (\n        select 1 from auth.mfa_factors f\n        where f.user_id = auth.uid() and f.status = 'verified'\n      )\n$function$\n",
+      "security_definer": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "my_student_ids",
+      "owner": "postgres",
+      "config": [
+        "search_path=public"
+      ],
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.my_student_ids()\n RETURNS uuid[]\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select coalesce(array_agg(s.id), '{}'::uuid[])\n  from public.students s where s.auth_user_id = auth.uid();\n$function$\n",
+      "security_definer": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "my_group_ids",
+      "owner": "postgres",
+      "config": [
+        "search_path=public"
+      ],
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.my_group_ids()\n RETURNS uuid[]\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select coalesce(array_agg(distinct s.group_id), '{}'::uuid[])\n  from public.students s where s.auth_user_id = auth.uid() and s.group_id is not null;\n$function$\n",
+      "security_definer": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "my_taught_group_ids",
+      "owner": "postgres",
+      "config": [
+        "search_path=public"
+      ],
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.my_taught_group_ids()\n RETURNS uuid[]\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select coalesce(array_agg(g.id), '{}'::uuid[])\n  from public.groups g where g.created_by = auth.uid();\n$function$\n",
+      "security_definer": true
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "my_course_ids",
+      "owner": "postgres",
+      "config": [
+        "search_path=public"
+      ],
+      "schema": "public",
+      "definition": "CREATE OR REPLACE FUNCTION public.my_course_ids()\n RETURNS uuid[]\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  select coalesce(array_agg(c.id), '{}'::uuid[])\n  from public.courses c\n  where c.created_by = auth.uid()\n     or exists (select 1 from public.course_shares cs\n                 where cs.course_id = c.id and cs.teacher_id = auth.uid())\n     or c.student_ids && public.my_student_ids()\n     or c.group_ids   && public.my_group_ids()\n     or exists (select 1 from public.course_enrollments e\n                 where e.course_id = c.id\n                   and e.student_id = any (select unnest(public.my_student_ids())::text))\n     or exists (\n       select 1 from public.students s\n       where s.group_id = any (public.my_taught_group_ids())\n         and (s.id = any (c.student_ids)\n           or s.group_id = any (c.group_ids)\n           or exists (select 1 from public.course_enrollments e2\n                       where e2.course_id = c.id and e2.student_id = s.id::text))\n     );\n$function$\n",
+      "security_definer": true
+    }
+  ]
+}
