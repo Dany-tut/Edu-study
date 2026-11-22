@@ -2436,7 +2436,7 @@ export default function TeacherHomeworkCreatePage() {
       }
       clearDrafts(`${draftScope}.`)
       setPublished(true)
-      setTimeout(() => setActivePage('gradebook'), 1600)
+      setActivePage('gradebook')
     } finally {
       setPublishing(false)
     }

@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
 import { useGroups, useAllStudents } from './useGroups'
 import { LOAD_FIXTURE, fixtureWeek } from './loadFixture'
+import { createAuthDataChangeGuard } from './authDataChange'
+import { subscribeTeacherDataChanges } from './teacherDataRealtime'
 
 /*
  * Расписание учителя на неделю + перенос занятий (экран «Расписание»).
@@ -91,79 +93,119 @@ export function weekStart(day: string): string {
   return addDays(day, -((d.getDay() + 6) % 7))
 }
 
+// Separate response identity from roster enrichment: hydration/renames change
+// labels locally and must not fetch the same week again. The auth scope gates
+// the raw snapshot during render, before the next effect can start its read.
+let weekAuthScope = 0
+const weekAuthListeners = new Set<() => void>()
+const weekAuthChanged = createAuthDataChangeGuard()
+supabase.auth.onAuthStateChange((event, session) => {
+  if (!weekAuthChanged(event, session)) return
+  weekAuthScope++
+  for (const listener of weekAuthListeners) listener()
+})
+const subscribeWeekAuth = (listener: () => void) => {
+  weekAuthListeners.add(listener)
+  return () => { weekAuthListeners.delete(listener) }
+}
+const readWeekAuthScope = () => weekAuthScope
+
+type WeekRow = {
+  id: string; date: string; time_start: string | null; time_end: string | null
+  lesson_title: string | null; lesson_number: number | null
+  group_id: string | null; student_id: string | null; status: string | null
+  node_type: string | null; lesson_id: string | null
+  groups: { name: string; color: string | null } | null
+  lessons: { delivery_mode: string | null } | null
+}
+
 export function useTeacherWeek(start: string) {
   const { groups } = useGroups()
   const students = useAllStudents()
-  const [items, setItems] = useState<SchedItem[] | null>(null)
-  const [error, setError] = useState(false)
+  const scope = useSyncExternalStore(subscribeWeekAuth, readWeekAuthScope, readWeekAuthScope)
+  const [raw, setRaw] = useState<{ start: string; scope: number; rows: WeekRow[]; error: boolean } | null>(null)
   const [tick, setTick] = useState(0)
   const reload = useCallback(() => setTick(n => n + 1), [])
+  // Keep the established DEV example, but fetch once when real roster arrives.
+  const devDemo = import.meta.env.DEV && groups.length === 0
 
   useEffect(() => {
+    if (LOAD_FIXTURE || devDemo) return
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const unsubscribe = subscribeTeacherDataChanges(['schedule_lessons', 'groups', 'students'], change => {
+      if (change.eventType === 'SYNC' && change.syncKind === 'initial') return
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(reload, 120)
+    })
+    return () => { unsubscribe(); if (timer) clearTimeout(timer) }
+  }, [reload, scope, devDemo])
+
+  useEffect(() => {
+    if (LOAD_FIXTURE || devDemo) return
     let alive = true
-    setError(false)
-    if (LOAD_FIXTURE) { setItems(fixtureWeek(LOAD_FIXTURE, start)); return }
-    // DEV без входа: групп нет (getOwnerId = null) — показываем пример недели,
-    // как журнал и проверка (teacherDevDemo). Действия тогда упадут на сервере.
-    if (import.meta.env.DEV && groups.length === 0) {
-      setItems(devWeek(start))
-      return
-    }
-    supabase
+    const controller = new AbortController()
+    void Promise.resolve(supabase
       .from('schedule_lessons')
       .select('id, date, time_start, time_end, lesson_title, lesson_number, group_id, student_id, status, node_type, lesson_id, groups(name, color), lessons(delivery_mode)')
       .gte('date', start)
       .lte('date', addDays(start, 6))
+      .abortSignal(controller.signal))
       .then(({ data, error }) => {
-        if (!alive) return
-        if (error) { console.error('[schedule] week load failed', error); setItems([]); setError(true); return }
-        const myGroups = new Map(groups.map(g => [g.id, g]))
-        const myStudents = new Map(students.map(s => [s.id, s]))
-        type Row = {
-          id: string; date: string; time_start: string | null; time_end: string | null
-          lesson_title: string | null; lesson_number: number | null
-          group_id: string | null; student_id: string | null; status: string | null
-          node_type: string | null; lesson_id: string | null
-          groups: { name: string; color: string | null } | null
-          lessons: { delivery_mode: string | null } | null
-        }
-        const rows = ((data ?? []) as unknown as Row[]).filter(r =>
-          (r.group_id && myGroups.has(r.group_id)) || (r.student_id && myStudents.has(r.student_id)))
-        const key = (r: Row) => `${r.date}|${(r.time_start ?? '').padStart(5, '0')}|${r.lesson_title ?? ''}|${r.node_type ?? ''}`
-        const groupKeys = new Set(rows.filter(r => r.group_id).map(r => `${r.group_id}|${key(r)}`))
-        const out: SchedItem[] = []
-        for (const r of rows) {
-          const stu = r.student_id ? myStudents.get(r.student_id) : undefined
-          const group = myGroups.get(r.group_id ?? stu?.groupId ?? '')
-          // Строка ученика при строке его группы — двойник группового занятия.
-          if (!r.group_id && stu?.groupId && groupKeys.has(`${stu.groupId}|${key(r)}`)) continue
-          out.push({
-            id: r.id,
-            date: String(r.date).slice(0, 10),
-            time: (r.time_start ?? '').padStart(5, '0').slice(0, 5),
-            endTime: isRecordingRow(r) ? '' : (r.time_end ?? '').slice(0, 5),
-            title: r.lesson_title ?? '',
-            number: r.lesson_number,
-            groupId: r.group_id,
-            studentId: r.student_id,
-            who: r.groups?.name ?? stu?.name ?? '',
-            color: r.groups?.color ?? 'var(--color-purple)',
-            subject: group?.subject?.trim() || stu?.subject?.trim() || undefined,
-            level: group?.level?.trim() || undefined,
-            isIndividual: r.group_id ? group?.isIndividual ?? false : true,
-            cancelled: r.status === 'cancelled',
-            rec: r.node_type === 'rec',
-            recording: isRecordingRow(r),
-            fromCourse: !!r.lesson_id,
-            lessonId: r.lesson_id,
-            status: r.status as SchedItem['status'],
-          })
-        }
-        out.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
-        setItems(out)
+        if (!alive || scope !== weekAuthScope) return
+        if (error) console.error('[schedule] week load failed', error)
+        setRaw({ start, scope, rows: (error ? [] : data ?? []) as unknown as WeekRow[], error: !!error })
       })
-    return () => { alive = false }
-  }, [start, groups, students, tick])
+      .catch(error => {
+        if (!alive || scope !== weekAuthScope) return
+        console.error('[schedule] week load failed', error)
+        setRaw({ start, scope, rows: [], error: true })
+      })
+    return () => { alive = false; controller.abort() }
+  }, [start, tick, scope, devDemo])
+
+  const items = useMemo<SchedItem[] | null>(() => {
+    if (LOAD_FIXTURE) return fixtureWeek(LOAD_FIXTURE, start)
+    if (devDemo) return devWeek(start)
+    if (!raw || raw.start !== start || raw.scope !== scope) return null
+    const myGroups = new Map(groups.map(g => [g.id, g]))
+    const myStudents = new Map(students.map(s => [s.id, s]))
+
+    const rows = raw.rows.filter(r =>
+      (r.group_id && myGroups.has(r.group_id)) || (r.student_id && myStudents.has(r.student_id)))
+    const key = (r: WeekRow) => `${r.date}|${(r.time_start ?? '').padStart(5, '0')}|${r.lesson_title ?? ''}|${r.node_type ?? ''}`
+    const groupKeys = new Set(rows.filter(r => r.group_id).map(r => `${r.group_id}|${key(r)}`))
+    const out: SchedItem[] = []
+    for (const r of rows) {
+      const stu = r.student_id ? myStudents.get(r.student_id) : undefined
+      const group = myGroups.get(r.group_id ?? stu?.groupId ?? '')
+      // Строка ученика при строке его группы — двойник группового занятия.
+      if (!r.group_id && stu?.groupId && groupKeys.has(`${stu.groupId}|${key(r)}`)) continue
+      out.push({
+        id: r.id,
+        date: String(r.date).slice(0, 10),
+        time: (r.time_start ?? '').padStart(5, '0').slice(0, 5),
+        endTime: isRecordingRow(r) ? '' : (r.time_end ?? '').slice(0, 5),
+        title: r.lesson_title ?? '',
+        number: r.lesson_number,
+        groupId: r.group_id,
+        studentId: r.student_id,
+        who: r.groups?.name ?? stu?.name ?? '',
+        color: r.groups?.color ?? 'var(--color-purple)',
+        subject: group?.subject?.trim() || stu?.subject?.trim() || undefined,
+        level: group?.level?.trim() || undefined,
+        isIndividual: r.group_id ? group?.isIndividual ?? false : true,
+        cancelled: r.status === 'cancelled',
+        rec: r.node_type === 'rec',
+        recording: isRecordingRow(r),
+        fromCourse: !!r.lesson_id,
+        lessonId: r.lesson_id,
+        status: r.status as SchedItem['status'],
+      })
+    }
+    out.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    return out
+  }, [start, scope, raw, groups, students, devDemo])
+  const error = !!(!LOAD_FIXTURE && !devDemo && raw?.start === start && raw.scope === scope && raw.error)
 
   return { items, reload, error }
 }

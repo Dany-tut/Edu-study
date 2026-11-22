@@ -12,12 +12,12 @@ import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
 import Model3DPicker from '../../components/teacher/Model3DPicker'
 import FipiPicker, { FipiToggle } from '../../components/teacher/FipiPicker'
-import { plainTitle } from '../../lib/lessonKey'
 import { lessonShortIdMap } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '../../lib/courseScheduleSync'
+import { courseAtomicModules, courseAtomicRows } from '../../lib/courseAtomicRows'
 import { courseSaveProvenance } from '../../lib/courseSaveProvenance'
 import { courseSaveCause, courseSaveReason, courseSaveStageText } from '../../lib/courseSaveReason'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
@@ -93,7 +93,7 @@ import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seed
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
 import ConflictDialog, { type CourseConflict } from '../../components/teacher/ConflictDialog'
 import {
-  theoryToParagraphs, paragraphsToTheory, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
+  paragraphsToTheory, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
   cutTheoryAtFigures, joinTheoryAtFigures, setFigureCaption, moveTheoryFigure,
   type TheoryImage,
 } from '../../lib/theoryImages'
@@ -6910,88 +6910,11 @@ export default function TeacherCourseEditorPage() {
     // а недогруженный курс — это курс без конспектов и домашек.
     if (c.metadataPending || c.heavyPending) return false
 
-    // ── Защита от перезаписи устаревшей вкладкой ──────────────────────────────
-    //
-    // Сохранение пишет курс ЦЕЛИКОМ и удаляет уроки, которых нет в его копии в
-    // памяти. Вкладка, открытая до чужой правки, держит старый снимок — и
-    // «Сохранить» в ней молча стирает всё, что появилось с тех пор. Так уже
-    // потерялись два урока и два десятка заданий: вкладка провисела открытой,
-    // курс за это время обновили, и сохранение откатило его назад.
-    //
-    // Поэтому перед записью сверяем отпечаток. Свежее нашего — не пишем ничего
-    // и говорим человеку перезагрузить: слить две версии автоматически нельзя,
-    // а выбрать, чью работу потерять, может только он.
-    //
-    // Existing data must fail closed when version verification fails. An old
-    // draft without a source stamp is reviewed before the first write as well.
-    // Even a supposedly new seed can collide with a saved stable short_id.
-    // Check existence before upserting it; failed reads never mean "new".
-    let current: string | null
-    try { current = await readCourseStamp(shortId) } catch (error) {
-      saveIssue.current = courseSaveReason('course', error as { message?: string; code?: string }, shortId)
-      return false
-    }
-    if (current || c.dbCourseId || baselineStamp.current) {
-      const provenance = courseSaveProvenance(baselineStamp.current, current)
-      if (provenance === 'unverified') {
-        saveIssue.current = courseSaveReason('course', {
-          code: 'ISKRA_DATA_PRESERVATION', message: 'Could not verify the saved course version',
-        }, shortId)
-        return false
-      }
-      if (provenance === 'review') {
-        setConflict(await buildConflict(shortId, c, current!))
-        return false
-      }
-    }
-
-    // ── Любая запись ниже двигает updated_at в базе (триггеры set_updated_at на
-    // courses и lessons, миграция 0001). baselineStamp же раньше сдвигался ТОЛЬКО
-    // в самом конце успешного сохранения — и оборванный на полпути сейв (ошибка
-    // на уроках или расписании) оставлял базу впереди отпечатка. Следующий же
-    // автосейв через 900 мс читал current > baseline и принимал СВОЙ недописанный
-    // след за чужую правку: ложное «Курс изменили в другом месте» в одной вкладке.
-    // Поэтому после любого выхода, где мы успели что-то записать, отпечаток
-    // пересчитываем — даже если сохранение вернёт false. ──
+    let courseDbId: string | undefined
+    let writeStamp: string | null = null
     let wrote = false
-    const writeFailed = async () => { if (wrote) baselineStamp.current = writeStamp ?? await readCourseStamp(shortId); return false }
-
-    // created_by is REQUIRED: courses RLS `write_own_courses` gates every write
-    // with `with_check (created_by = auth.uid())`. A new-course INSERT that omits
-    // it lands created_by=NULL → RLS rejects the row → upsert returns null → the
-    // course silently never persists (shows "Опубликован" locally, absent in DB).
-    const ownerId = await getOwnerId()
     const changes = accessChangesForSave(c)
-
-    const { data: courseUpsert, error: courseErr } = await supabase
-      .from('courses')
-      .upsert(
-        {
-          short_id: shortId,
-          title: c.title, subject: c.subject, level: c.level,
-          description: c.description ?? '',
-          status: c.status !== latestCourse.current.status ? latestCourse.current.status : c.status, color: c.color, bg: c.bg,
-          created_by: ownerId,
-          // ОТПЕЧАТОК СИДА ПИШЕМ ОТСЮДА, иначе «Из сида» не закрывает вопрос:
-          // применение ставит штамп только в состояние редактора, а плитка в
-          // списке читает колонку — и точка «сид ушёл вперёд» горела бы вечно,
-          // сколько ни сверяйся. Ключ добавляем только когда штамп есть:
-          // `?? null` затирал бы колонку при сохранении курса, открытого из
-          // старого черновика, где поля ещё нет.
-          ...(c.seedStamp ? { seed_stamp: c.seedStamp } : {}),
-          // Ключ только когда поле известно: курс из старого черновика без него
-          // не должен сбросить «нумерацию с 63» обратно на 1.
-          ...(c.numberStart != null ? { number_start: c.numberStart } : {}),
-        },
-        { onConflict: 'short_id' }
-      )
-      .select('id, updated_at')
-      .single()
-
-    if (courseErr) console.error('[syncAccessToSupabase] course upsert failed', courseErr)
-    const courseDbId = courseUpsert?.id
-    let writeStamp: string | null = (courseUpsert as { updated_at?: string } | null)?.updated_at ?? null
-    if (!courseDbId) { saveIssue.current = courseSaveReason('course', courseErr, shortId); return false }
+    const writeFailed = async () => { if (wrote) baselineStamp.current = writeStamp ?? await readCourseStamp(shortId); return false }
     async function finishSave() {
       // Publication becomes visible only after lessons, access and schedule succeed.
       if (c.status !== latestCourse.current.status) {
@@ -7043,6 +6966,271 @@ export default function TeacherCourseEditorPage() {
     function scheduleEventName(row: Pick<CourseSlot, 'lesson_title' | 'node_type'>) {
       return row.node_type === 'rec' ? `«${row.lesson_title}» (${t('Запись')})` : `«${row.lesson_title}»`
     }
+    async function completeContentSave(access: { updated_at: string; student_ids: string[]; group_ids: string[]; access_modes: Record<string, AccessMode> }, keepShortIds: string[], ordered: Array<{ lesson: CELesson; moduleLocalId: string }>, savedLessons?: Array<{ id: string; lesson_number: number; title: string }>) {
+      if (access.updated_at > (writeStamp ?? '')) writeStamp = access.updated_at
+      if ((latestCourse.current.dbCourseId ?? latestCourse.current.id) === shortId) {
+        reconcileCourse(before => acknowledgeCourseAccess(before, changes, access))
+        const pendingModes = acknowledgeCourseAccess(latestCourse.current, changes, access).accessChanges?.modes
+        setAccessModes({ ...access.access_modes, ...pendingModes })
+      }
+      // Scheduling and full-access seeding must use the merged audience too.
+      c = { ...c, studentIds: access.student_ids ?? [], groupIds: access.group_ids ?? [] }
+      const groupMemberIds = allStudents.filter(s => s.groupId && c.groupIds.includes(s.groupId)).map(s => s.id)
+      const audienceIds = [...new Set([...c.studentIds, ...groupMemberIds])]
+      const effMode = (id: string): AccessMode => access.access_modes[id] ?? 'by_date'
+
+      // 'full' students get every lesson opened now (seed 'current', never clobber
+      // 'done'). 'by_date' is computed at read time; 'custom' stays manual — so
+      // neither seeds here.
+      {
+        const fullIds = audienceIds.filter(id => effMode(id) === 'full')
+        const refs = keepShortIds
+        if (fullIds.length > 0 && refs.length > 0) {
+          await supabase
+            .from('lesson_progress')
+            .update({ status: 'current' })
+            .in('lesson_ref', refs)
+            .in('student_id', fullIds)
+            .eq('status', 'locked')
+          const { data: existing } = await supabase
+            .from('lesson_progress')
+            .select('student_id, lesson_ref')
+            .in('lesson_ref', refs)
+            .in('student_id', fullIds)
+          const have = new Set((existing ?? []).map((r: { student_id: string; lesson_ref: string }) => `${r.student_id}|${r.lesson_ref}`))
+          const newRows: object[] = []
+          for (const id of fullIds) for (const ref of refs) {
+            if (!have.has(`${id}|${ref}`)) newRows.push({ student_id: id, lesson_ref: ref, subject: shortId, status: 'current' })
+          }
+          if (newRows.length > 0) {
+            const { error } = await supabase.from('lesson_progress').insert(newRows)
+            if (error) console.error('full-access seed failed:', error)
+          }
+        }
+      }
+
+      // Map each editor lesson to its persisted global index for scheduling below.
+      const lessonIndexById: Record<string, number> = {}
+      ordered.forEach(({ lesson }, i) => { lessonIndexById[lesson.id] = i })
+
+      // Sync scheduled lessons to calendar. A lesson contributes a calendar event
+      // for its lesson schedule and/or its recording schedule.
+      const scheduledLessons = c.lessons.filter(l =>
+        (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
+      if (c.groupIds.length === 0 && c.studentIds.length === 0) {
+        return await finishSave()
+      }
+
+      // Fetch course row + lessons from DB to get UUIDs
+      const { data: courseRow, error: courseRowErr } = savedLessons ? { data: { id: courseDbId!, lessons: savedLessons }, error: null } : await supabase
+        .from('courses')
+        .select('id, lessons(id, lesson_number, title)')
+        .eq('short_id', shortId)
+        .single()
+      if (!courseRow) { saveIssue.current = courseSaveReason('schedule', courseRowErr, shortId); return await writeFailed() }
+
+      const dbLessons = (courseRow.lessons ?? []) as Array<{ id: string; lesson_number: number; title: string }>
+
+      // Helper: DD.MM.YYYY → YYYY-MM-DD
+      function dotToIso(d: string) {
+        const [dd, mm, yyyy] = d.split('.')
+        return `${yyyy}-${mm}-${dd}`
+      }
+      // Helper: add minutes to HH:MM
+      function addMinutes(time: string, mins: number) {
+        const [h, m] = time.split(':').map(Number)
+        const total = h * 60 + m + mins
+        return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+      }
+
+      const rows: CourseSlot[] = []
+      for (const lesson of scheduledLessons) {
+        const dbLesson = dbLessons.find(l => l.lesson_number === lessonIndexById[lesson.id])
+        if (!dbLesson) continue
+
+        // Emit one calendar event (group-scoped + student-scoped rows).
+        function pushEvent(date: string, time: string, dur: number | undefined, nodeType: 'lesson' | 'rec') {
+          const base = {
+            lesson_id: dbLesson!.id,
+            date: dotToIso(date),
+            time_start: time,
+            // Запись не идёт, а открывается: «Запись доступна с». Конца у неё
+            // нет — time_end = time_start (столбец NOT NULL), и нигде не
+            // покажется «до HH:MM» и «идёт сейчас». Живой урок — начало +
+            // выбранная длительность: по этому концу откроется ДЗ, если учитель
+            // не нажал «Завершить урок».
+            time_end: nodeType === 'rec' || lesson.deliveryMode === 'recording' ? time : addMinutes(time, dur ?? 90),
+            lesson_title: lesson.title || dbLesson!.title,
+            // Must match lessons.lesson_number (0-based) so resolveScheduleLesson's
+            // byNumber lookup lands on the right lesson — NOT lessonIndex + 1.
+            lesson_number: lessonIndexById[lesson.id],
+            subject: c.subject,
+            node_type: nodeType,
+          }
+          for (const groupId of c.groupIds) rows.push({ ...base, group_id: groupId, student_id: null })
+          for (const studentId of c.studentIds) rows.push({ ...base, group_id: null, student_id: studentId })
+        }
+
+        const hasLesson = !!(lesson.scheduledDate && lesson.scheduledTime)
+        const hasRec = !!(lesson.recDate && lesson.recTime)
+        // Recording diverged from the lesson → two distinct calendar events.
+        const diverged = hasRec && (lesson.recDate !== lesson.scheduledDate || lesson.recTime !== lesson.scheduledTime)
+
+        if (hasLesson) pushEvent(lesson.scheduledDate!, lesson.scheduledTime!, lesson.scheduledDuration, 'lesson')
+        if (diverged || (hasRec && !hasLesson)) {
+          pushEvent(lesson.recDate!, lesson.recTime!, lesson.recDuration, 'rec')
+        }
+      }
+
+      // Update matching slots in place: teacher_lesson_sessions belongs to the
+      // schedule id and would be cascade-deleted by rebuilding the calendar.
+      const allLessonIds = dbLessons.map(l => l.id)
+      let existingSlots: Array<CourseSlot & { id: string }> = []
+      if (allLessonIds.length > 0) {
+        const { data: oldRows, error: readErr } = await supabase
+          .from('schedule_lessons').select('id,lesson_id,group_id,student_id,node_type,date,time_start,time_end,subject,lesson_title,lesson_number').in('lesson_id', allLessonIds)
+        if (readErr) { console.error('schedule_lessons read failed:', readErr); return await scheduleIssue(readErr) }
+        existingSlots = oldRows ?? []
+      }
+      const plan = planCourseSchedule(existingSlots, rows)
+      // One transaction validates final dates, including chains and swaps. Stable
+      // event IDs keep attendance and teacher notes attached to the same lesson.
+      if (plan.update.length || plan.insert.length || plan.removeBeforeWrite.length || plan.remove.length) {
+        const { error } = await supabase.rpc('save_course_schedule', {
+          p_course_id: courseRow.id,
+          p_update: plan.update,
+          p_insert: plan.insert,
+          p_remove: [...plan.removeBeforeWrite, ...plan.remove],
+        })
+        if (error) return await scheduleIssue(error, [...plan.update, ...plan.insert])
+      }
+      // Записали мы — значит теперь свежая версия наша. Штамп берём из ответов
+      // записи (primary), а не отдельным SELECT, который может уехать на реплику
+      // и вернуть устаревшее значение → ложный конфликт при следующем автосейве.
+      return await finishSave()
+    }
+
+    const atomicModules = courseAtomicModules(c)
+    if (atomicModules) {
+      // UUID identities were read with this existing course. Validate them again
+      // under the server lock, instead of paying for a separate modules read.
+      const ids = Object.fromEntries(atomicModules.map(m => [m.id, m.id]))
+      await flushCourseVisibility(shortId, ids)
+      const payload = courseAtomicRows(c, '', atomicModules, ids)
+      const { data: saved, error } = await supabase.rpc('save_course_content', {
+        p_short_id: shortId, p_baseline: baselineStamp.current,
+        p_course: {
+          title: c.title, subject: c.subject, level: c.level, description: c.description ?? '',
+          status: c.status !== latestCourse.current.status ? latestCourse.current.status : c.status,
+          color: c.color, bg: c.bg,
+          ...(c.seedStamp ? { seed_stamp: c.seedStamp } : {}),
+          ...(c.numberStart != null ? { number_start: c.numberStart } : {}),
+        },
+        p_modules: atomicModules.map((m, position) => ({ id: m.id, label: m.label, position })),
+        p_lessons: payload.lessonRows.map(({ course_id: _course, ...row }) => row),
+        p_changes: changes,
+      })
+      // A failed transaction writes nothing. Never retry through the old path,
+      // which could obscure a real version, permission or preservation error.
+      if (error || !saved) {
+        if (error?.code === '40001' && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
+          setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+        } else saveIssue.current = courseSaveReason('course', error, shortId)
+        return false
+      }
+      courseDbId = saved.course_id
+      writeStamp = saved.stamp
+      wrote = true
+      const shortIds = payload.shortIdByLessonId
+      if (c.lessons.some(l => shortIds[l.id] && shortIds[l.id] !== l.id)) {
+        setSelectedLessonId(id => id ? shortIds[id] ?? id : id)
+        reconcileCourse(prev => ({ ...prev,
+          lessons: prev.lessons.map(l => shortIds[l.id] ? { ...l, id: shortIds[l.id], persistedShortId: shortIds[l.id] } : l),
+          modules: prev.modules.map(m => ({ ...m, lessonIds: m.lessonIds.map(id => shortIds[id] ?? id) })),
+        }))
+      }
+      return completeContentSave(saved.access, payload.lessonRows.map(r => r.short_id), payload.ordered, saved.lessons)
+    }
+
+    // ── Защита от перезаписи устаревшей вкладкой ──────────────────────────────
+    //
+    // Сохранение пишет курс ЦЕЛИКОМ и удаляет уроки, которых нет в его копии в
+    // памяти. Вкладка, открытая до чужой правки, держит старый снимок — и
+    // «Сохранить» в ней молча стирает всё, что появилось с тех пор. Так уже
+    // потерялись два урока и два десятка заданий: вкладка провисела открытой,
+    // курс за это время обновили, и сохранение откатило его назад.
+    //
+    // Поэтому перед записью сверяем отпечаток. Свежее нашего — не пишем ничего
+    // и говорим человеку перезагрузить: слить две версии автоматически нельзя,
+    // а выбрать, чью работу потерять, может только он.
+    //
+    // Existing data must fail closed when version verification fails. An old
+    // draft without a source stamp is reviewed before the first write as well.
+    // Even a supposedly new seed can collide with a saved stable short_id.
+    // Check existence before upserting it; failed reads never mean "new".
+    let current: string | null
+    try { current = await readCourseStamp(shortId) } catch (error) {
+      saveIssue.current = courseSaveReason('course', error as { message?: string; code?: string }, shortId)
+      return false
+    }
+    if (current || c.dbCourseId || baselineStamp.current) {
+      const provenance = courseSaveProvenance(baselineStamp.current, current)
+      if (provenance === 'unverified') {
+        saveIssue.current = courseSaveReason('course', {
+          code: 'ISKRA_DATA_PRESERVATION', message: 'Could not verify the saved course version',
+        }, shortId)
+        return false
+      }
+      if (provenance === 'review') {
+        setConflict(await buildConflict(shortId, c, current!))
+        return false
+      }
+    }
+
+    // ── Любая запись ниже двигает updated_at в базе (триггеры set_updated_at на
+    // courses и lessons, миграция 0001). baselineStamp же раньше сдвигался ТОЛЬКО
+    // в самом конце успешного сохранения — и оборванный на полпути сейв (ошибка
+    // на уроках или расписании) оставлял базу впереди отпечатка. Следующий же
+    // автосейв через 900 мс читал current > baseline и принимал СВОЙ недописанный
+    // след за чужую правку: ложное «Курс изменили в другом месте» в одной вкладке.
+    // Поэтому после любого выхода, где мы успели что-то записать, отпечаток
+    // пересчитываем — даже если сохранение вернёт false. ──
+
+    // created_by is REQUIRED: courses RLS `write_own_courses` gates every write
+    // with `with_check (created_by = auth.uid())`. A new-course INSERT that omits
+    // it lands created_by=NULL → RLS rejects the row → upsert returns null → the
+    // course silently never persists (shows "Опубликован" locally, absent in DB).
+    const ownerId = await getOwnerId()
+
+    const { data: courseUpsert, error: courseErr } = await supabase
+      .from('courses')
+      .upsert(
+        {
+          short_id: shortId,
+          title: c.title, subject: c.subject, level: c.level,
+          description: c.description ?? '',
+          status: c.status !== latestCourse.current.status ? latestCourse.current.status : c.status, color: c.color, bg: c.bg,
+          created_by: ownerId,
+          // ОТПЕЧАТОК СИДА ПИШЕМ ОТСЮДА, иначе «Из сида» не закрывает вопрос:
+          // применение ставит штамп только в состояние редактора, а плитка в
+          // списке читает колонку — и точка «сид ушёл вперёд» горела бы вечно,
+          // сколько ни сверяйся. Ключ добавляем только когда штамп есть:
+          // `?? null` затирал бы колонку при сохранении курса, открытого из
+          // старого черновика, где поля ещё нет.
+          ...(c.seedStamp ? { seed_stamp: c.seedStamp } : {}),
+          // Ключ только когда поле известно: курс из старого черновика без него
+          // не должен сбросить «нумерацию с 63» обратно на 1.
+          ...(c.numberStart != null ? { number_start: c.numberStart } : {}),
+        },
+        { onConflict: 'short_id' }
+      )
+      .select('id, updated_at')
+      .single()
+
+    if (courseErr) console.error('[syncAccessToSupabase] course upsert failed', courseErr)
+    courseDbId = courseUpsert?.id
+    writeStamp = (courseUpsert as { updated_at?: string } | null)?.updated_at ?? null
+    if (!courseDbId) { saveIssue.current = courseSaveReason('course', courseErr, shortId); return false }
     // Курс записан — его updated_at уже ушёл вперёд: дальнейшие выходы обязаны
     // пересчитать отпечаток (см. writeFailed выше).
     wrote = true
@@ -7077,8 +7265,6 @@ export default function TeacherCourseEditorPage() {
     const editorModules = keptModules.length > 0
       ? keptModules
       : [{ id: 'm0', label: '', expanded: true, lessonIds: c.lessons.map(l => l.id) }]
-    const firstModuleLocalId = editorModules[0].id
-
     // Stable module identities keep visibility attached to the module, not
     // whichever row happens to occupy its former position.
     const { data: existingMods, error: modulesReadError } = await supabase
@@ -7105,92 +7291,8 @@ export default function TeacherCourseEditorPage() {
       }
     }
 
-    // 2. Order lessons (module order → lessonIds → ungrouped to first module).
-    const ordered: Array<{ lesson: CELesson; moduleLocalId: string }> = []
-    const seen = new Set<string>()
-    for (const m of editorModules) {
-      for (const lid of m.lessonIds) {
-        const lesson = c.lessons.find(l => l.id === lid)
-        if (lesson && !seen.has(lid)) { ordered.push({ lesson, moduleLocalId: m.id }); seen.add(lid) }
-      }
-    }
-    for (const lesson of c.lessons) {
-      if (!seen.has(lesson.id)) { ordered.push({ lesson, moduleLocalId: firstModuleLocalId }); seen.add(lesson.id) }
-    }
-
-    // 3. Upsert lessons with a stable per-lesson short_id (see lessonShortIdMap),
-    //    preserving lesson_progress across reorders (keyed by short_id, not FK).
-    const shortIdByLessonId = lessonShortIdMap(shortId, c.lessons)
-    const lessonRows = ordered.map(({ lesson, moduleLocalId }, i) => ({
-      short_id: shortIdByLessonId[lesson.id] ?? `${shortId}-${i}`,
-      course_id: courseDbId,
-      module_id: moduleDbIdByLocalId[moduleLocalId] ?? null,
-      // Номер урока рисует интерфейс — в названии его не храним.
-      title: plainTitle(lesson.title),
-      position: i,
-      lesson_number: i,
-      youtube_url: lesson.videoUrl ?? null,
-      // Главы записи. Пустые строки не пишем: пустая глава в плеере ученика —
-      // это безымянная засечка на шкале, которую он не может ни понять, ни снять.
-      timecodes: (lesson.timecodes ?? [])
-        .filter(tc => tc.label.trim())
-        .map(tc => ({ time: tc.time, label: tc.label.trim(), seconds: tc.seconds })),
-      ...(lesson.chapterVariants ? {chapter_variants:lesson.chapterVariants} : {}),
-      description: lesson.description ?? null,
-      // Конспект → lessons.content.paragraphs, откуда его читает вкладка
-      // «Конспект» у ученика. Пустой конспект пишем как {}, чтобы не затирать
-      // содержимое, заведённое другим путём, пустым массивом абзацев.
-      content: {
-        ...(lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript } : {}),
-        ...(lesson.theory?.trim() || lesson.recapParagraphs?.length
-        ? {
-            paragraphs: [
-              ...(lesson.theory?.trim() ? theoryToParagraphs(
-                lesson.theory,
-                lesson.theoryImages,
-                shortIdByLessonId[lesson.id] ?? lesson.id,
-              ) : []),
-              // «Итоги занятия» из записи — после конспекта, с таймкодами.
-              ...(lesson.recapParagraphs ?? []),
-            ],
-          }
-        : {}),
-        ...(lesson.selfCheck?.length ? { selfCheck: lesson.selfCheck } : {}),
-        ...(lesson.recapCardSetId ? { cardSetId: lesson.recapCardSetId } : {}),
-        ...(lesson.recapCardGroupId ? { cardGroupId: lesson.recapCardGroupId } : {}),
-      },
-      kind: lesson.kind ?? 'lesson',
-      test_tasks: lesson.testTasks ?? [],
-      // Файлы урока: сами объекты уже в бакете lesson-materials, здесь — их
-      // пути и метаданные. Отсюда их читает экран урока у ученика.
-      materials: lesson.files ?? {},
-      scheduled_date: lesson.scheduledDate ?? null,
-      scheduled_time: lesson.scheduledTime ?? null,
-      scheduled_duration: lesson.scheduledDuration ?? null,
-      rec_date: lesson.recDate ?? null,
-      rec_time: lesson.recTime ?? null,
-      rec_duration: lesson.recDuration ?? null,
-      lesson_sched_manual: lesson.lessonSchedManual ?? false,
-      delivery_mode: lesson.deliveryMode ?? 'live',
-      // Homework («Домашки» tab) lives only in editor state — persist it as a
-      // JSONB blob so it survives a re-entry. Hard tasks live inline in the
-      // task arrays via the isHard flag.
-      homework: {
-        hwTitle: lesson.hwTitle ?? null,
-        hwTarget: lesson.hwTarget ?? null,
-        hwDate: lesson.hwDate ?? null,
-        hwTime: lesson.hwTime ?? null,
-        hwDateManual: lesson.hwDateManual ?? false,
-        hwTasks: lesson.hwTasks ?? [],
-        recHwTitle: lesson.recHwTitle ?? null,
-        recHwTarget: lesson.recHwTarget ?? null,
-        recHwDate: lesson.recHwDate ?? null,
-        recHwTime: lesson.recHwTime ?? null,
-        recHwDateManual: lesson.recHwDateManual ?? false,
-        recHwTasks: lesson.recHwTasks ?? [],
-        extraHw: lesson.extraHw ?? [],
-      },
-    }))
+    // 2. Order lessons and serialize the same content for both save paths.
+    const { ordered, shortIdByLessonId, lessonRows } = courseAtomicRows(c, courseDbId, editorModules, moduleDbIdByLocalId)
     if (lessonRows.length > 0) {
       const { data: lessonResult, error: lessonsErr } = await supabase
         .from('lessons').upsert(lessonRows, { onConflict: 'short_id' }).select('updated_at')
@@ -7261,147 +7363,7 @@ export default function TeacherCourseEditorPage() {
       saveIssue.current = courseSaveReason('access', accessError, shortId)
       return await writeFailed()
     }
-    if (access.updated_at > (writeStamp ?? '')) writeStamp = access.updated_at
-    if ((latestCourse.current.dbCourseId ?? latestCourse.current.id) === shortId) {
-      reconcileCourse(before => acknowledgeCourseAccess(before, changes, access))
-      const pendingModes = acknowledgeCourseAccess(latestCourse.current, changes, access).accessChanges?.modes
-      setAccessModes({ ...access.access_modes, ...pendingModes })
-    }
-    // Scheduling and full-access seeding must use the merged audience too.
-    c = { ...c, studentIds: access.student_ids ?? [], groupIds: access.group_ids ?? [] }
-    const groupMemberIds = allStudents.filter(s => s.groupId && c.groupIds.includes(s.groupId)).map(s => s.id)
-    const audienceIds = [...new Set([...c.studentIds, ...groupMemberIds])]
-    const effMode = (id: string): AccessMode => access.access_modes[id] ?? 'by_date'
-
-    // 'full' students get every lesson opened now (seed 'current', never clobber
-    // 'done'). 'by_date' is computed at read time; 'custom' stays manual — so
-    // neither seeds here.
-    {
-      const fullIds = audienceIds.filter(id => effMode(id) === 'full')
-      const refs = keepShortIds
-      if (fullIds.length > 0 && refs.length > 0) {
-        await supabase
-          .from('lesson_progress')
-          .update({ status: 'current' })
-          .in('lesson_ref', refs)
-          .in('student_id', fullIds)
-          .eq('status', 'locked')
-        const { data: existing } = await supabase
-          .from('lesson_progress')
-          .select('student_id, lesson_ref')
-          .in('lesson_ref', refs)
-          .in('student_id', fullIds)
-        const have = new Set((existing ?? []).map((r: { student_id: string; lesson_ref: string }) => `${r.student_id}|${r.lesson_ref}`))
-        const newRows: object[] = []
-        for (const id of fullIds) for (const ref of refs) {
-          if (!have.has(`${id}|${ref}`)) newRows.push({ student_id: id, lesson_ref: ref, subject: shortId, status: 'current' })
-        }
-        if (newRows.length > 0) {
-          const { error } = await supabase.from('lesson_progress').insert(newRows)
-          if (error) console.error('full-access seed failed:', error)
-        }
-      }
-    }
-
-    // Map each editor lesson to its persisted global index for scheduling below.
-    const lessonIndexById: Record<string, number> = {}
-    ordered.forEach(({ lesson }, i) => { lessonIndexById[lesson.id] = i })
-
-    // Sync scheduled lessons to calendar. A lesson contributes a calendar event
-    // for its lesson schedule and/or its recording schedule.
-    const scheduledLessons = c.lessons.filter(l =>
-      (l.scheduledDate && l.scheduledTime) || (l.recDate && l.recTime))
-    if (c.groupIds.length === 0 && c.studentIds.length === 0) {
-      return await finishSave()
-    }
-
-    // Fetch course row + lessons from DB to get UUIDs
-    const { data: courseRow, error: courseRowErr } = await supabase
-      .from('courses')
-      .select('id, lessons(id, lesson_number, title)')
-      .eq('short_id', shortId)
-      .single()
-    if (!courseRow) { saveIssue.current = courseSaveReason('schedule', courseRowErr, shortId); return await writeFailed() }
-
-    const dbLessons = (courseRow.lessons ?? []) as Array<{ id: string; lesson_number: number; title: string }>
-
-    // Helper: DD.MM.YYYY → YYYY-MM-DD
-    function dotToIso(d: string) {
-      const [dd, mm, yyyy] = d.split('.')
-      return `${yyyy}-${mm}-${dd}`
-    }
-    // Helper: add minutes to HH:MM
-    function addMinutes(time: string, mins: number) {
-      const [h, m] = time.split(':').map(Number)
-      const total = h * 60 + m + mins
-      return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
-    }
-
-    const rows: CourseSlot[] = []
-    for (const lesson of scheduledLessons) {
-      const dbLesson = dbLessons.find(l => l.lesson_number === lessonIndexById[lesson.id])
-      if (!dbLesson) continue
-
-      // Emit one calendar event (group-scoped + student-scoped rows).
-      function pushEvent(date: string, time: string, dur: number | undefined, nodeType: 'lesson' | 'rec') {
-        const base = {
-          lesson_id: dbLesson!.id,
-          date: dotToIso(date),
-          time_start: time,
-          // Запись не идёт, а открывается: «Запись доступна с». Конца у неё
-          // нет — time_end = time_start (столбец NOT NULL), и нигде не
-          // покажется «до HH:MM» и «идёт сейчас». Живой урок — начало +
-          // выбранная длительность: по этому концу откроется ДЗ, если учитель
-          // не нажал «Завершить урок».
-          time_end: nodeType === 'rec' || lesson.deliveryMode === 'recording' ? time : addMinutes(time, dur ?? 90),
-          lesson_title: lesson.title || dbLesson!.title,
-          // Must match lessons.lesson_number (0-based) so resolveScheduleLesson's
-          // byNumber lookup lands on the right lesson — NOT lessonIndex + 1.
-          lesson_number: lessonIndexById[lesson.id],
-          subject: c.subject,
-          node_type: nodeType,
-        }
-        for (const groupId of c.groupIds) rows.push({ ...base, group_id: groupId, student_id: null })
-        for (const studentId of c.studentIds) rows.push({ ...base, group_id: null, student_id: studentId })
-      }
-
-      const hasLesson = !!(lesson.scheduledDate && lesson.scheduledTime)
-      const hasRec = !!(lesson.recDate && lesson.recTime)
-      // Recording diverged from the lesson → two distinct calendar events.
-      const diverged = hasRec && (lesson.recDate !== lesson.scheduledDate || lesson.recTime !== lesson.scheduledTime)
-
-      if (hasLesson) pushEvent(lesson.scheduledDate!, lesson.scheduledTime!, lesson.scheduledDuration, 'lesson')
-      if (diverged || (hasRec && !hasLesson)) {
-        pushEvent(lesson.recDate!, lesson.recTime!, lesson.recDuration, 'rec')
-      }
-    }
-
-    // Update matching slots in place: teacher_lesson_sessions belongs to the
-    // schedule id and would be cascade-deleted by rebuilding the calendar.
-    const allLessonIds = dbLessons.map(l => l.id)
-    let existingSlots: Array<CourseSlot & { id: string }> = []
-    if (allLessonIds.length > 0) {
-      const { data: oldRows, error: readErr } = await supabase
-        .from('schedule_lessons').select('id,lesson_id,group_id,student_id,node_type,date,time_start,time_end,subject,lesson_title,lesson_number').in('lesson_id', allLessonIds)
-      if (readErr) { console.error('schedule_lessons read failed:', readErr); return await scheduleIssue(readErr) }
-      existingSlots = oldRows ?? []
-    }
-    const plan = planCourseSchedule(existingSlots, rows)
-    // One transaction validates final dates, including chains and swaps. Stable
-    // event IDs keep attendance and teacher notes attached to the same lesson.
-    if (plan.update.length || plan.insert.length || plan.removeBeforeWrite.length || plan.remove.length) {
-      const { error } = await supabase.rpc('save_course_schedule', {
-        p_course_id: courseRow.id,
-        p_update: plan.update,
-        p_insert: plan.insert,
-        p_remove: [...plan.removeBeforeWrite, ...plan.remove],
-      })
-      if (error) return await scheduleIssue(error, [...plan.update, ...plan.insert])
-    }
-    // Записали мы — значит теперь свежая версия наша. Штамп берём из ответов
-    // записи (primary), а не отдельным SELECT, который может уехать на реплику
-    // и вернуть устаревшее значение → ложный конфликт при следующем автосейве.
-    return await finishSave()
+    return completeContentSave(access, keepShortIds, ordered)
   }
 
   // ── «Выдать новой группе» — clone this course as a fresh, independent stream

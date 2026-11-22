@@ -45,7 +45,7 @@ import { supabase } from './lib/supabase'
 import { getStudentSession } from './lib/studentSession'
 import { initAnalytics, trackPath } from './lib/analytics'
 import ConsentOverlay, { hasStudentConsent } from './components/ConsentOverlay'
-import StickerRevealGate from './components/StickerRevealGate'
+const StickerRevealGate = lazy(() => retryImport(() => import('./components/StickerRevealGate')))
 import InstallPrompt from './components/InstallPrompt'
 import ConfirmHost from './components/ConfirmHost'
 import type { Session } from '@supabase/supabase-js'
@@ -495,7 +495,7 @@ function AppRoutes() {
       {/* Install banner shows only once consent is given (student) */}
       {consented && <InstallPrompt />}
       {/* Новые стикеры за принятые задания — после согласия, поверх кабинета */}
-      {consented && <StickerRevealGate />}
+      {consented && <Suspense fallback={null}><StickerRevealGate /></Suspense>}
     </>
   )
 }

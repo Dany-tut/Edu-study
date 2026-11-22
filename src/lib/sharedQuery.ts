@@ -27,6 +27,8 @@ export type SharedQuery<T> = {
   /** Перечитать (после записи). Ждёт уже летящий запрос и делает свежий: иначе
    *  мутация получила бы ответ, отправленный ДО её записи. */
   reload: () => Promise<void>
+  /** Capture auth scope before a write; publish only its confirmed server ACK. */
+  beginMutation: () => (update: (value: T) => T) => boolean
   getSnapshot: () => Snapshot<T>
   subscribe: (cb: () => void) => () => void
 }
@@ -56,6 +58,7 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   // Номер поколения: ответ на запрос, отправленный до смены пользователя, не
   // должен попасть в состояние после неё.
   let gen = 0
+  let authGeneration = 0
   const subs = new Set<() => void>()
   const emit = () => { for (const f of subs) f() }
   let unwatch: (() => void) | null = null
@@ -66,7 +69,7 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   function refreshIfStale() {
     const staleAfter = opts.refreshOnFocusMs
     if (staleAfter == null || !subs.size || document.visibilityState !== 'visible') return
-    if (Date.now() - lastSuccessAt >= staleAfter) void q.reload()
+    if (Date.now() - lastSuccessAt >= staleAfter) void run()
   }
 
   function listenForFocus(enabled: boolean) {
@@ -131,6 +134,22 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
       if (inflight) await inflight.catch(() => { /**/ })
       return run()
     },
+    beginMutation: () => {
+      const scope = authGeneration
+      return update => {
+        if (scope !== authGeneration) return false
+        const value = update(state.value)
+        // A read started before this ACK must not restore the previous row.
+        gen++
+        inflight = null
+        started = true
+        needsRecovery = false
+        listenForRecovery(false)
+        state = { value, loading: false }
+        emit()
+        return true
+      }
+    },
     getSnapshot: () => state,
     subscribe: cb => {
       const first = subs.size === 0
@@ -159,6 +178,7 @@ export function createSharedQuery<T>(fetcher: () => Promise<T>, initial: T, opts
   registry.add({
     invalidate: () => {
       gen++
+      authGeneration++
       needsRecovery = false
       listenForRecovery(false)
       lastSuccessAt = 0

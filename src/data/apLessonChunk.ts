@@ -2,10 +2,9 @@
 // Авторские конспекты предметных курсов — отдельным чанком
 //
 // Сейчас их три: AP Chemistry, «Биология клетки» и «Биология: подготовка к
-// университету». Все грузятся одним заказом и ложатся в одну карту по short_id
-// урока — ключи не пересекаются (apchem-*, biocell-*, bioprep-*), поэтому
-// разводить их по разным чанкам незачем: урок всё равно открывается по одному
-// ключу.
+// университету». Заказываем только нужный предмет по short_id урока:
+// apchem-*, biocell-*, bioprep-*. Обычный урок не ждёт чужие конспекты.
+// Ключи не пересекаются; одновременно прибывающие чанки дополняют общую карту.
 //
 // ЗАЧЕМ. Это ЗАПАСНОЙ конспект для уроков, которым его не написали в
 // Конструкторе: девяносто три килобайта текста про моль и стехиометрию, нужные
@@ -23,26 +22,38 @@
 import type { ApLessonContent } from './apChemistryLessons'
 
 let CONTENT: Record<string, ApLessonContent> = {}
-let promise: Promise<unknown> | null = null
+type LessonChunk = 'apchem' | 'biocell' | 'bioprep'
+const requests = new Map<LessonChunk, Promise<void>>()
+const loaders: Record<LessonChunk, () => Promise<Record<string, ApLessonContent>>> = {
+  apchem: () => import('./apChemistryLessons').then(m => m.AP_LESSON_CONTENT),
+  biocell: () => import('./bioCellLessons').then(m => m.BIO_CELL_LESSON_CONTENT),
+  bioprep: () => import('./bioPreULessons').then(m => m.BIO_PREU_LESSON_CONTENT),
+}
 
 /** Запасной конспект урока. undefined — чанк ещё не доехал или урок не из
- *  курсов с авторским конспектом. */
+ * курсов с авторским конспектом. */
 export const apLessonContent = (id: string): ApLessonContent | undefined => CONTENT[id]
 
-/** Заказать чанк. Повторные вызовы бесплатны, ошибка не роняет урок. */
-export function loadApLessons(): Promise<unknown> {
-  promise ??= Promise.all([
-    import('./apChemistryLessons'), import('./bioCellLessons'), import('./bioPreULessons'),
-  ])
-    .then(([chem, cell, prep]) => {
-      CONTENT = {
-        ...chem.AP_LESSON_CONTENT,
-        ...cell.BIO_CELL_LESSON_CONTENT,
-        ...prep.BIO_PREU_LESSON_CONTENT,
-      }
-    })
-    // Без запасного конспекта урок покажет описание из БД, как любой другой:
-    // ронять из-за не доехавшего чанка нечего.
-    .catch(e => { console.error('[apLessonChunk]', e); promise = null })
-  return promise
+function loadChunk(chunk: LessonChunk): Promise<void> {
+  const running = requests.get(chunk)
+  if (running) return running
+  const request = loaders[chunk]()
+    .then(content => { CONTENT = { ...CONTENT, ...content } })
+    // Сбой одного предмета не сбрасывает успешно загруженные другие предметы.
+    // Повторное открытие урока может повторить только неудавшийся запрос.
+    .catch(error => { requests.delete(chunk); console.error('[apLessonChunk]', error) })
+  requests.set(chunk, request)
+  return request
+}
+
+/** Только конспекты перечисленных уроков; без аргумента — прежняя загрузка всех.
+ * Повторные и одновременные вызовы объединяются отдельно для каждого предмета. */
+export function loadApLessons(lessonIds?: readonly string[]): Promise<void> {
+  const chunks = lessonIds === undefined
+    ? Object.keys(loaders) as LessonChunk[]
+    : [...new Set(lessonIds.flatMap(id => {
+      const prefix = id.split('-', 1)[0]
+      return Object.prototype.hasOwnProperty.call(loaders, prefix) ? [prefix as LessonChunk] : []
+    }))]
+  return Promise.all(chunks.map(loadChunk)).then(() => undefined)
 }

@@ -124,10 +124,35 @@ export function ruFailoverFetch(base: typeof fetch, directUrl: string, proxyUrl:
     return (typeof input === 'string' || input instanceof URL) ? [newHref, init] : [new Request(newHref, input), init]
   }
 
-  return async (input, init) => {
+  return async function failover(input, init) {
     let ours = false
     try { ours = new URL(hrefOf(input)).origin === directOrigin } catch { /* относительный адрес — не наш */ }
     if (!ours) return base(input, init)
+
+    const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
+    const restWrite = new URL(hrefOf(input)).pathname.startsWith('/rest/v1/') && method !== 'GET' && method !== 'HEAD'
+    if (restWrite) {
+      // Probe a safe read before the FIRST write, never the mutation itself.
+      // Aborting a POST does not prove its transaction was rolled back: replay
+      // through another origin could apply the same action twice.
+      if (chosen === null) await failover(`${directOrigin}/rest/v1/`, {
+        method: 'HEAD', headers: init?.headers ?? (input instanceof Request ? input.headers : undefined),
+        signal: init?.signal ?? (input instanceof Request ? input.signal : undefined),
+      })
+      try {
+        if (chosen === 'proxy') {
+          fireProxyHook()
+          const [pi, pinit] = toProxy(input, init)
+          return await base(pi, pinit)
+        }
+        // Keep the caller's normal REST deadline; the 2.5s route probe is not
+        // a database transaction deadline. A failed write is NEVER replayed.
+        return await base(input, init)
+      } catch (error) {
+        clearCache(); chosen = null; proxyHookFired = false
+        throw error
+      }
+    }
 
     // Уже решили в этой сессии, что прямой недоступен — сразу на прокси.
     if (chosen === 'proxy') {

@@ -8104,8 +8104,10 @@ export default function TeacherConstructorPage() {
         // These catalogs don't gate the course shelf. Start them before the
         // shared-course lookup, then let the first visible cards render as soon
         // as their own query completes instead of waiting for every catalog.
-        const trainersRequest = supabase.from('trainers').select('*').order('created_at')
-        const widgetsRequest = supabase.from('widgets').select('*').order('created_at')
+        const trainersRequest = Promise.resolve(supabase.from('trainers').select('*').order('created_at'))
+          .catch(error => { console.error('[constructor] trainers load failed', error); return { data: null } })
+        const widgetsRequest = Promise.resolve(supabase.from('widgets').select('*').order('created_at'))
+          .catch(error => { console.error('[constructor] widgets load failed', error); return { data: null } })
         const sharedIds = await fetchSharedCourseIds(uid)
         const courseQuery = sharedIds.length
           ? supabase.from('courses').select(COURSE_CARD_SELECT).or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')

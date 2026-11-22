@@ -273,7 +273,7 @@ export function legacyHardToBlocks(row: {
   return { taskBlocks, reviewBlocks }
 }
 
-export type HwAssignment = HomeworkItem
+export type HwAssignment = HomeworkItem & { serverUpdatedAt?: string }
 
 export type HwSubmission = {
   id: string            // lesson_progress row id (used for the review write-back)
@@ -302,11 +302,21 @@ function statusToVerdict(status?: string | null): HwSubmission['verdict'] {
   return 'pending'
 }
 
+function canAcknowledgeHomework(before: HwAssignment | undefined, stamp: string | undefined): boolean {
+  if (!before?.serverUpdatedAt) return true
+  if (!stamp) return false
+  const previous = Date.parse(before.serverUpdatedAt), next = Date.parse(stamp)
+  // PostgREST uses the same timestamp format; retain microsecond ordering when
+  // two commits fall in the same millisecond.
+  return next > previous || (next === previous && stamp >= before.serverUpdatedAt)
+}
+
 function mapRow(h: any, counts?: { submitted: number; reviewed: number; oldest?: string; latest?: string }): HwAssignment {
   const submittedCount = counts?.submitted ?? 0
   const reviewedCount = counts?.reviewed ?? 0
   return {
     id: h.id,
+    serverUpdatedAt: h.updated_at ?? undefined,
     groupId: h.group_id,
     groupName: h.groups?.name ?? '',
     icon: h.groups?.icon ?? '📚',
@@ -391,6 +401,7 @@ export function useHomework() {
     hardTasks?: HardTaskDef[]
     basicTasks?: unknown[]
   }) {
+    const acknowledge = homeworkQuery.beginMutation()
     const { data, error } = await supabase.from('homework').insert({
       group_id: hw.groupId,
       title: hw.title,
@@ -405,9 +416,9 @@ export function useHomework() {
       hard_tasks: hw.hardTasks ?? [],
       basic_tasks: hw.basicTasks ?? [],
       created_by: await getOwnerId(),
-    }).select().single()
+    }).select('*, groups(name, icon, color, is_individual)').single()
     if (!mutationAcknowledged('create_homework', {data, error}, trackEvent)) return {data, error: error ?? missingMutationRow()}
-    await load()
+    if (acknowledge(rows => [mapRow(data), ...rows.filter(row => row.id !== data.id)])) void load()
     return { data, error }
   }
 
@@ -423,6 +434,7 @@ export function useHomework() {
     hardTasks?: HardTaskDef[]
     basicTasks?: unknown[]
   }) {
+    const acknowledge = homeworkQuery.beginMutation()
     const { data: saved, error } = await supabase.from('homework').update({
       group_id: hw.groupId,
       title: hw.title,
@@ -434,16 +446,24 @@ export function useHomework() {
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
       basic_tasks: hw.basicTasks ?? [],
-    }).eq('id', id).select('id')
+    }).eq('id', id).select('*, groups(name, icon, color, is_individual)').single()
     if (!mutationAcknowledged('update_homework', {data: saved, error}, trackEvent)) return {error: error ?? missingMutationRow()}
-    await load()
+    if (acknowledge(rows => {
+      const before = rows.find(row => row.id === id)
+      if (!canAcknowledgeHomework(before, saved.updated_at)) return rows
+      const row = mapRow(saved, before ? { submitted: before.submittedCount, reviewed: before.reviewedCount,
+        oldest: before.oldestSubmittedAt, latest: before.lastSubmittedAt } : undefined)
+      return before ? rows.map(item => item.id === id ? row : item) : [row, ...rows]
+    })) void load()
     return { error }
   }
 
   async function closeHomework(id: string) {
-    const result = await supabase.from('homework').update({ status: 'closed' }).eq('id', id).select('id')
+    const acknowledge = homeworkQuery.beginMutation()
+    const result = await supabase.from('homework').update({ status: 'closed' }).eq('id', id).select('id,status,updated_at').single()
     if (!mutationAcknowledged('close_homework', result, trackEvent)) return false
-    await load()
+    if (acknowledge(rows => rows.map(row => row.id === id && canAcknowledgeHomework(row, result.data.updated_at)
+      ? { ...row, status: result.data.status, serverUpdatedAt: result.data.updated_at } : row))) void load()
     return true
   }
 
