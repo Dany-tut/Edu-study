@@ -28,6 +28,7 @@ export interface WorkSlot {
   group?: string | null
   types: string[]
   required: boolean
+  hasHomework?: boolean
   topic?: { id: string; title: string }
   lesson?: JournalColumn
 }
@@ -90,6 +91,7 @@ export function buildStandIndex(data: CourseJournalData) {
       slots.set(column.id, {
         ...base,
         required: column.required,
+        hasHomework: !['test', 'trial'].includes(l.kind ?? '') && hasHomeworkTasks(column.recording ? l.recTask : l.hwTask),
         lesson: column,
         types: typesOf(column.recording ? l.recTask : l.hwTask),
       })
@@ -104,6 +106,7 @@ export function buildStandIndex(data: CourseJournalData) {
           due: journalDate(extra.date),
           types: typesOf(extra.tasks),
           required: !!extra.tasks?.length,
+          hasHomework: !!extra.tasks?.length,
         })
       }
     }
@@ -137,6 +140,7 @@ export function buildStandIndex(data: CourseJournalData) {
       date: journalDate(a.assignedAt) ?? journalDate(l?.scheduled_date),
       due: journalDate(a.due_date),
       types: typesOf(a.basicTasks ?? a.basicTask),
+      hasHomework: a.status !== 'archived' && hasHomeworkTasks(a.basicTasks ?? a.basicTask),
       required: a.status !== 'archived' && (!!a.basicTask || (Array.isArray(a.basicTasks) && a.basicTasks.length > 0) || !l),
     })
   }
@@ -374,4 +378,13 @@ export function hasCourseTests(works: StudentWork[]): boolean {
 /** Legacy diagnostic scores do not establish a trial in the selected course. */
 export function hasCourseTrials(works: StudentWork[]): boolean {
   return works.some(({ slot }) => slot.course !== OUTSIDE_COURSES && slot.lesson?.lesson?.kind === 'trial')
+}
+
+function hasHomeworkTasks(tasks: unknown): boolean {
+  return Array.isArray(tasks) ? tasks.length > 0 : !!tasks
+}
+
+/** Current lesson/extra/assigned tasks establish homework, never old submissions. */
+export function hasCourseHomework(works: StudentWork[]): boolean {
+  return works.some(({ slot }) => slot.course !== OUTSIDE_COURSES && slot.hasHomework === true)
 }
