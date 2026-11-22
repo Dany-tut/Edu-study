@@ -25,6 +25,7 @@ import{courseContentSnapshot,courseDeltaProbeEnabled}from'./src/lib/courseConten
 import{createAuthDataChangeGuard}from'./src/lib/authDataChange';
 let metadataResolve,heavyResolve,metadataCalls=0,heavyCalls=0,authHandler,calls=[];
 const getOwnerId=async()=>window.__fixture.owner;
+const getSessionUser=async()=>({id:window.__fixture.owner});
 const supabase={auth:{onAuthStateChange(cb){authHandler=cb;queueMicrotask(()=>cb('INITIAL_SESSION',{user:{id:window.__fixture.owner,role:'authenticated',app_metadata:{}}}));return{data:{subscription:{unsubscribe(){}}}}}},from(){return{select(){return this},eq(){return this},single(){heavyCalls++;return new Promise(r=>heavyResolve=r)}}}};
 const loadCourseEditorMetadata=()=>{metadataCalls++;return new Promise(r=>metadataResolve=r)};
 const readDraft=()=>window.__fixture.restored?{...window.__fixture.base,metadataPending:false,heavyPending:false,title:'LOCAL'}:null,uid=()=>'',t=x=>x;

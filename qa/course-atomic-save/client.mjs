@@ -8,6 +8,7 @@ import { lessonShortIdMap } from '../../src/lib/lessonReferences'
 import { prepareConfirmedSnapshot, advanceConfirmedContent } from '../../src/lib/courseContentAcknowledgement'
 import { baselineCanDriveDelta } from '../../src/lib/courseConfirmedBaseline'
 import { courseContentSnapshot, courseContentDelta, courseDeltaProbeEnabled } from '../../src/lib/courseContentDelta'
+import { ordinaryContentDelta, noCourseAccessIntents } from '../../src/lib/courseOrdinaryDelta'
 import { enqueueChapterSave } from '../../src/lib/chapterSaveQueue'
 import { plainTitle } from '../../src/lib/lessonKey'
 import { theoryToParagraphs } from '../../src/lib/theoryImages'
@@ -38,7 +39,7 @@ for(const count of [0,1,20]){
 assert.deepEqual(courseAtomicModules({...base,lessons:[],modules:[{...base.modules[0],label:'',lessonIds:[]}]}),[{...base.modules[0],label:'',lessonIds:[]}])
 assert.equal(courseAtomicModules({...base,dbCourseId:undefined}),null)
 assert.equal(courseAtomicModules({...base,modules:[{...base.modules[0],id:'legacy-local'}]}),null)
-function harness({response,error,delayed=false,telemetryThrows=false,typed=false,invalidAck=false,missingBase=false,chapterStamp=false,reviewed=false}={}){
+function harness({response,error,delayed=false,telemetryThrows=false,typed=false,invalidAck=false,missingBase=false,chapterStamp=false,reviewed=false,ordinary=false}={}){
  const calls=[],baselineStamp={current:'2026-01-01T00:00:00Z'},latestCourse={current:structuredClone(base)},saveIssue={current:null},savedDrafts=[]
  let resolve,conflict=null
  const rpcPromise=delayed?new Promise(r=>resolve=r):null
@@ -58,8 +59,8 @@ function harness({response,error,delayed=false,telemetryThrows=false,typed=false
   if(rpcName==='save_course_content_probe_20261122')return {...normal,course_id:courseId}
   return invalidAck?{course_id:courseId,stamp:now}:{course_id:courseId,stamp:now,full_snapshot_confirmed:true,module_witness:canonical.modules,lesson_witness:[{id:lessonId,short_id:'qa-0',module_id:uuid,updated_at:now}],...(req.p_course_patch?{applied_course_patch:req.p_course_patch,applied_lesson_patches:req.p_lesson_patches,applied_lesson_deletes:req.p_lesson_deletes,applied_module_ops:req.p_module_ops}:{})}
  }
- const env={courseDeltaProbeEnabled:()=>typed,courseContentSnapshot,courseContentDelta,prepareConfirmedSnapshot,advanceConfirmedContent,baselineCanDriveDelta,confirmedContent,reviewedContentOverwrite:{current:reviewed},readScope:{current:scope},trackEvent:()=>{if(telemetryThrows)throw Error('diagnostic delivery unavailable')},courseSaveProbeMetrics:()=>({}),courseAtomicModules,courseAtomicRows,accessChangesForSave,acknowledgeCourseAccess,baselineStamp,latestCourse,saveIssue,
- supabase:{rpc:async(name,args)=>{calls.push({name,args});rpcArgs=args;rpcName=name;return rpcPromise??{data:response??(typed?ack():normal),error:error??null}},from:()=>{throw Error('Unexpected legacy request')}},
+ const env={ordinaryContentDelta:(...args)=>ordinary?ordinaryContentDelta(...args):null,noCourseAccessIntents,eligibleCourseAtomicModules:courseAtomicModules,courseDeltaProbeEnabled:()=>typed,courseContentSnapshot,courseContentDelta,prepareConfirmedSnapshot,advanceConfirmedContent,baselineCanDriveDelta,confirmedContent,reviewedContentOverwrite:{current:reviewed},readScope:{current:scope},trackEvent:()=>{if(telemetryThrows)throw Error('diagnostic delivery unavailable')},courseSaveProbeMetrics:()=>({}),courseAtomicModules,courseAtomicRows,accessChangesForSave,acknowledgeCourseAccess,baselineStamp,latestCourse,saveIssue,
+ supabase:{rpc:async(name,args)=>{calls.push({name,args});rpcArgs=args;rpcName=name;return rpcPromise??{data:response??(typed||ordinary?ack():normal),error:error??null}},from:()=>{throw Error('Unexpected legacy request')}},
  flushCourseVisibility:async()=>{calls.push({name:'flush'})},
  courseSaveReason:(_stage,e)=>e?.message??'failed',readGroupScheduleConflict:()=>null,t:s=>s,groups:[],allStudents:[],
  reconcileCourse:fn=>{latestCourse.current=fn(latestCourse.current)},setAccessModes:()=>{},setSelectedLessonId:()=>{},
@@ -68,7 +69,7 @@ function harness({response,error,delayed=false,telemetryThrows=false,typed=false
  getOwnerId:async()=>null,courseSaveProvenance:()=> 'unverified',
  }
  const write=Function(...Object.keys(env),`${actual};return syncCourseNow`)(...Object.values(env))
- return {write,calls,baselineStamp,latestCourse,saveIssue,savedDrafts,confirmedContent,resolve:()=>resolve({data:typed?ack():normal,error:null}),getConflict:()=>conflict}
+ return {write,calls,baselineStamp,latestCourse,saveIssue,savedDrafts,confirmedContent,resolve:()=>resolve({data:typed||ordinary?ack():normal,error:null}),getConflict:()=>conflict}
 }
 let h=harness();assert.equal(await h.write(structuredClone(base)),true)
 assert.deepEqual(h.calls.map(c=>c.name),['flush','save_course_content_probe_20261122'],'one network RPC; visibility barrier precedes it')
@@ -112,3 +113,10 @@ for(const known of [true,false]){
  const pending=write('qa-0',{source:'video',items:[]});live.current={...live.current,description:'NEW INPUT DURING CHAPTER'};assert.equal(await pending,true);assert.equal(baseline.current,known?'2026-01-01T00:00:00Z':null,'one-row chapter ACK never certifies whole source');assert.equal(live.current.description,'NEW INPUT DURING CHAPTER');assert.equal(confirmed.size,1)
 }
 console.log('PASS actual controlled chapter ACK: known/unknown whole baseline never promoted; teacher input survives chapter completion; subsequent whole CAS must review')
+
+// Content-only completion must leave a newer publication intent to its barrier.
+h=harness({ordinary:true});assert.equal(await h.write({...structuredClone(base),description:'ORDINARY METADATA'}),true);assert.equal(h.calls[1].name,'save_course_content_delta');assert.equal(h.calls[1].args.p_expected_status,'draft');assert.equal('p_lessons' in h.calls[1].args,false);assert.equal(h.confirmedContent.current.serialized.course.description,'ORDINARY METADATA');
+h=harness({ordinary:true,delayed:true});const ordinaryPending=h.write({...structuredClone(base),description:'A ORDINARY'});await Promise.resolve();h.latestCourse.current={...h.latestCourse.current,status:'published',description:'B WITH PUBLISH INTENT'};h.resolve();assert.equal(await ordinaryPending,true);assert.equal(h.latestCourse.current.status,'published');assert.equal(h.savedDrafts[0].description,'B WITH PUBLISH INTENT');assert.equal(h.confirmedContent.current.serialized.course.status,'draft');assert.equal(h.confirmedContent.current.serialized.course.description,'A ORDINARY');assert.deepEqual(h.calls.map(c=>c.name),['flush','save_course_content_delta']);
+h=harness({ordinary:true,error:{code:'PT409',message:'ISKRA_COURSE_CONFLICT:2026-01-03T00:00:00Z'}});assert.equal(await h.write({...structuredClone(base),description:'CONFLICT'}),false);assert.equal(h.calls.length,2);assert.equal(h.savedDrafts.length,0);
+h=harness({ordinary:true,invalidAck:true});assert.equal(await h.write({...structuredClone(base),description:'BAD ACK'}),false);assert.equal(h.savedDrafts.length,0);assert.equal(h.baselineStamp.current,'2026-01-01T00:00:00Z');
+console.log('PASS actual ordinary content dispatch: no schedule/access/publication side effects, A ACK preserves B/publish intent, conflict/error no retry, malformed ACK retains draft')

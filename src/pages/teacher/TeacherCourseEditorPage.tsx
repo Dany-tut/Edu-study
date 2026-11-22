@@ -19,7 +19,8 @@ import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, 
 import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '../../lib/courseScheduleSync'
 import { trackEvent } from '../../lib/analytics'
 import { courseSaveProbeMetrics } from '../../lib/courseSaveProbeMetrics'
-import { courseAtomicModules, courseAtomicRows } from '../../lib/courseAtomicRows'
+import { courseAtomicModules, courseAtomicRows, eligibleCourseAtomicModules } from '../../lib/courseAtomicRows'
+import { ordinaryContentDelta, noCourseAccessIntents } from '../../lib/courseOrdinaryDelta'
 import { courseSaveProvenance } from '../../lib/courseSaveProvenance'
 import { courseSaveCause, courseSaveReason, courseSaveStageText } from '../../lib/courseSaveReason'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
@@ -81,7 +82,7 @@ import { useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import ScrollFade from '../../components/ScrollFade'
 import Checkbox from '../../components/Checkbox'
 import { useOverlayScroll, ScrollOverlays, OverlayScrollArea, fadeMask } from '../../components/teacher/OverlayScroll'
-import { getOwnerId } from '../../lib/owner'
+import { getOwnerId, getSessionUser } from '../../lib/owner'
 import { useFeature } from '../../lib/teacherFeatures'
 import TableEditor from '../../components/teacher/TableEditor'
 import GrowTextarea, { growMinHeight, TASK_TEXT_LH } from '../../components/GrowTextarea'
@@ -6243,7 +6244,7 @@ export default function TeacherCourseEditorPage() {
   const readScope = useRef<Scope>({ authEpoch: 0, ownerId: '' })
   const readSequence = useRef(0)
   useEffect(() => {
-    if (!courseDeltaProbeEnabled(course.dbCourseId ?? course.id)) return
+    if (!course.dbCourseId) return
     const changed = createAuthDataChangeGuard()
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (!changed(event, session)) return
@@ -6264,9 +6265,11 @@ export default function TeacherCourseEditorPage() {
     const controller = new AbortController()
     void (async () => {
       let token: ReadToken | null = null
-      if (courseDeltaProbeEnabled(courseKey) && !recoveredDraft) {
+      if (!recoveredDraft) {
         const epoch = readScope.current.authEpoch
-        const ownerId = await getOwnerId()
+        // Provenance belongs to the actual signed-in actor. Admin view-as and
+        // shared readers cannot certify another owner's write baseline.
+        const ownerId = (await getSessionUser())?.id ?? null
         if (controller.signal.aborted || epoch !== readScope.current.authEpoch) return
         readScope.current = { authEpoch: epoch, ownerId: ownerId ?? '' }
         token = { courseShortId: courseKey, scope: { ...readScope.current }, requestId: ++readSequence.current }
@@ -6311,7 +6314,7 @@ export default function TeacherCourseEditorPage() {
     if (course.metadataPending || !course.heavyPending || !course.dbCourseId) return
     const courseKey = course.dbCourseId
     const token = activeRead.current
-    const wantWitness = courseDeltaProbeEnabled(courseKey) && !!token && !recoveredDraft
+    const wantWitness = !!token && !recoveredDraft
     let alive = true
     ;(async () => {
       const { data, error } = await supabase
@@ -7007,9 +7010,9 @@ export default function TeacherCourseEditorPage() {
     let wrote = false
     const changes = accessChangesForSave(c)
     const writeFailed = async () => { if (wrote) baselineStamp.current = writeStamp ?? await readCourseStamp(shortId); return false }
-    async function finishSave() {
+    async function finishSave(contentOnly = false) {
       // Publication becomes visible only after lessons, access and schedule succeed.
-      if (c.status !== latestCourse.current.status) {
+      if (!contentOnly && c.status !== latestCourse.current.status) {
         const { data, error } = await supabase.from('courses').update({ status: c.status }).eq('id', courseDbId!).select('updated_at').single()
         if (error) { saveIssue.current = courseSaveReason('status', error, shortId); return await writeFailed() }
         writeStamp = data?.updated_at ?? writeStamp
@@ -7200,6 +7203,39 @@ export default function TeacherCourseEditorPage() {
       // записи (primary), а не отдельным SELECT, который может уехать на реплику
       // и вернуть устаревшее значение → ложный конфликт при следующем автосейве.
       return await finishSave()
+    }
+
+    // Ordinary content-only writes preserve CURRENT server access/calendar
+    // state. Their ACK must not reconcile audience or process a later publish
+    // click; publication, schedule and structural changes keep their own lane.
+    const contentBase = confirmedContent.current
+    if (!courseDeltaProbeEnabled(shortId) && contentBase && noCourseAccessIntents(changes)
+      && !reviewedContentOverwrite.current
+      && baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })) {
+      const canonical = courseContentSnapshot(c, contentBase.lessons)
+      const delta = canonical ? ordinaryContentDelta(contentBase.serialized, canonical, [...contentBase.modules]) : null
+      const modules = delta ? eligibleCourseAtomicModules(c) : null
+      if (delta && canonical && modules) {
+        await flushCourseVisibility(shortId, Object.fromEntries(modules.map(module => [module.id, module.id])))
+        const preserved = prepareConfirmedSnapshot(contentBase.serialized, canonical)
+        const { data: saved, error } = await supabase.rpc('save_course_content_delta', {
+          p_short_id: shortId, p_baseline: baselineStamp.current, ...delta,
+        })
+        if (error || !saved) {
+          if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
+            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+          } else saveIssue.current = courseSaveReason('course', error, shortId)
+          return false
+        }
+        const expected = { modules: [...contentBase.modules], lessons: contentBase.lessons.map(({ id, shortId, moduleId }) => ({ id, shortId, moduleId })) }
+        confirmedContent.current = advanceConfirmedContent(contentBase, canonical, preserved, saved, readScope.current, expected)
+        if (!confirmedContent.current) {
+          saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.')
+          return false
+        }
+        courseDbId = saved.course_id; writeStamp = saved.stamp; wrote = true
+        return finishSave(true)
+      }
     }
 
     const atomicModules = courseAtomicModules(c)
