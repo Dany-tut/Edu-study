@@ -30,6 +30,7 @@ import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
 import { createAuthDataChangeGuard } from '../../lib/authDataChange'
 import { captureConfirmedBaseline, baselineCanDriveDelta, type ConfirmedBaseline, type MetadataRead, type ReadToken, type Scope, type Witness } from '../../lib/courseConfirmedBaseline'
 import { prepareConfirmedSnapshot, advanceConfirmedContent } from '../../lib/courseContentAcknowledgement'
+import { createWideContentDelta, prepareWideConfirmedSnapshot, createWideContentAcknowledgement, WideContentPreservationError, type WideContentDelta } from '../../lib/courseWideDelta'
 import { courseContentSnapshot, courseContentDelta, courseDeltaProbeEnabled, type CourseContentSnapshot } from '../../lib/courseContentDelta'
 import CourseVisibilityButton from '../../components/teacher/CourseVisibilityButton'
 import { useCourseVisibility, flushCourseVisibility, loadCourseVisibility } from '../../lib/courseVisibility'
@@ -7253,16 +7254,31 @@ export default function TeacherCourseEditorPage() {
         ? structuredClone(courseContentSnapshot(c, typedBase.lessons)) : null
       const sameContentScope = typedBase?.ownerId === readScope.current.ownerId
         && typedBase?.token.scope.authEpoch === readScope.current.authEpoch
+      // Preflight BEFORE either full or delta route. Preservation errors cannot
+      // become null/fallback: the full serializer also replaces array leaves.
+      let wideCandidate: WideContentDelta | null = null
+      if (canonicalSource && typedBase && sameContentScope) {
+        try {
+          wideCandidate = createWideContentDelta(courseContentDelta)(typedBase.serialized, canonicalSource, [...typedBase.modules])
+        } catch (error) {
+          if (!(error instanceof WideContentPreservationError)) throw error
+          saveIssue.current = t('Изменение состава содержимого требует отдельной проверки. Черновик сохранён на устройстве; данные на сервере не изменены.')
+          return false
+        }
+      }
       const preservedSource = canonicalSource && typedBase && sameContentScope
-        ? prepareConfirmedSnapshot(typedBase.serialized, canonicalSource) : null
+        ? (wideCandidate ? prepareWideConfirmedSnapshot(typedBase.serialized, canonicalSource, wideCandidate, prepareConfirmedSnapshot) : prepareConfirmedSnapshot(typedBase.serialized, canonicalSource)) : null
       const typedReady = !reviewed && canonicalSource && canonicalSource.lessons.every(row => !!row.id)
         && baselineCanDriveDelta(typedBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })
       if (typedEnabled && typedReady && typedBase && canonicalSource && preservedSource) {
         // Freeze the dispatched version before awaiting HTTP. A later teacher
         // edit is queued separately and must never be certified by this ACK.
-        const base = typedBase, canonical = canonicalSource, preserved = preservedSource
+        const base = typedBase, canonical = canonicalSource
         const noAccessChanges = Object.values(changes).every(value => !value || Object.keys(value).length === 0)
-        const delta = noAccessChanges ? courseContentDelta(base.serialized, canonical, [...base.modules]) : null
+        const delta = noAccessChanges ? wideCandidate : null
+        const hasWide = !!delta?.p_lesson_patches.some(patch => patch.json_ops?.length
+          || Object.prototype.hasOwnProperty.call(patch.set, 'test_tasks') || Object.prototype.hasOwnProperty.call(patch.set, 'youtube_url'))
+        const preserved = delta ? prepareWideConfirmedSnapshot(base.serialized, canonical, delta, prepareConfirmedSnapshot) : preservedSource
         const fullArgs = {
           p_short_id: shortId, p_baseline: baselineStamp.current,
           p_course: preserved.course, p_modules: preserved.modules,
@@ -7281,7 +7297,7 @@ export default function TeacherCourseEditorPage() {
         const started = performance.now()
         // Select the engine before dispatch; an attempted write is never
         // retried through another path after conflict or preservation failure.
-        const { data: saved, error } = await supabase.rpc(delta ? 'save_course_delta_probe_20261122'
+        const { data: saved, error } = await supabase.rpc(delta ? (hasWide ? 'save_course_wide_delta_probe_20261122' : 'save_course_delta_probe_20261122')
           : 'save_course_full_witness_probe_20261122', request)
         try { trackEvent('course_save_probe_profile', courseSaveProbeMetrics(request, saved?._qa_profile, performance.now() - started)) } catch { /* Numeric diagnostics are non-fatal. */ }
         if (error || !saved) {
@@ -7290,7 +7306,9 @@ export default function TeacherCourseEditorPage() {
           } else saveIssue.current = courseSaveReason('course', error, shortId)
           return false
         }
-        confirmedContent.current = advanceConfirmedContent(base, canonical, preserved, saved, readScope.current, { modules: expectedModules, lessons: expectedLessons })
+        confirmedContent.current = hasWide && delta
+          ? createWideContentAcknowledgement(advanceConfirmedContent)(base, canonical, preserved, saved, readScope.current, { modules: expectedModules, lessons: expectedLessons }, delta)
+          : advanceConfirmedContent(base, canonical, preserved, saved, readScope.current, { modules: expectedModules, lessons: expectedLessons })
         if (!confirmedContent.current) {
           saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.')
           return false
