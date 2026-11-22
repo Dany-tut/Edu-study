@@ -1,6 +1,7 @@
+import { hasStudentPaymentTracking } from '../src/lib/rosterPayments'
 import assert from 'node:assert/strict'
 import { journalDemo } from '../src/data/courseJournalDemo'
-import { buildStandIndex, studentWorks, scopeSlots, hasCourseTests, hasCourseTrials, hasCourseHomework, hasCourseAttendance } from '../src/components/teacher/journalStand/studentWorks'
+import { buildStandIndex, studentWorks, scopeSlots, hasCourseTests, hasCourseTrials, hasCourseHomework, hasCourseAttendance, coursePaymentStudent } from '../src/components/teacher/journalStand/studentWorks'
 const data = journalDemo()
 const person = data.students[0]
 const lesson = { ...data.lessons[0], kind: 'lesson', hwTask: [{ type: 'single' }], recTask: [], extraHw: [] }
@@ -52,3 +53,24 @@ for (const mark of [true, false]) assert.equal(hasCourseAttendance(works({ ...re
 assert.equal(hasCourseAttendance([{ slot: { lesson: { recording: true, lesson: { kind: 'lesson', delivery_mode: 'online' } } }, present: null }]), false, 'The recording part of a split lesson is not a live lesson')
 assert.equal(hasCourseAttendance([]), false)
 console.log('PASS: recording-only attendance is hidden; live/mixed courses and actual present/absent marks remain visible; playback and old percentages are ignored')
+
+const unbilled = { ...person, paymentAmount: 0, paymentDue: '', lastPayment: '', debt: 0, lessonBalance: -4 }
+assert.equal(hasStudentPaymentTracking(unbilled), false, 'Lesson credits and zero debt alone do not establish payment tracking')
+for (const marker of [{ paymentAmount: 1000 }, { paymentDue: '2026-12-01' }, { lastPayment: '2026-11-20' }, { debt: 500 }]) assert.equal(hasStudentPaymentTracking({ ...unbilled, ...marker }), true)
+assert.equal(hasStudentPaymentTracking({ ...unbilled, paymentAmount: NaN, debt: Infinity }), false)
+assert.equal(hasStudentPaymentTracking({ ...unbilled, lastPayment: '2026-11-20', debt: 0 }), true, 'Paying off debt does not disable billing')
+const courseA = { ...base.courses[0], id: 'paid-a', group_ids: [], student_ids: ['card-a'] }
+const courseB = { ...courseA, id: 'paid-b', student_ids: ['card-b'] }
+const cardA = { ...unbilled, id: 'card-a', personId: 'same-person', paymentAmount: 1500 }
+const cardB = { ...unbilled, id: 'card-b', personId: 'same-person', lastPayment: '2026-11-21', debt: 7000 }
+const paidData = { ...base, courses: [courseA, courseB], students: [cardA, cardB] }
+const paidIndex = buildStandIndex(paidData)
+assert.equal(coursePaymentStudent(paidData, paidIndex, courseA.id, cardB)?.id, cardA.id, 'The selected course supplies the billing enrollment')
+assert.equal(coursePaymentStudent(paidData, paidIndex, courseA.id, cardB)?.lastPayment, '', 'Payment from another course must not leak')
+assert.equal(coursePaymentStudent(paidData, paidIndex, courseA.id, cardB)?.debt, 0, 'Another course debt must not leak into sorting or debtor filter')
+assert.equal(coursePaymentStudent(paidData, paidIndex, courseB.id, cardA)?.debt, 7000)
+assert.equal(coursePaymentStudent(paidData, paidIndex, '*', cardB)?.id, cardB.id, 'All-course roster retains its own card')
+const freeData = { ...paidData, students: [{ ...cardA, paymentAmount: 0 }, cardB] }
+assert.equal(coursePaymentStudent(freeData, buildStandIndex(freeData), courseA.id, cardB), null, 'Unbilled course is not enabled by a sibling enrollment')
+assert.equal(coursePaymentStudent(paidData, paidIndex, 'missing', cardA), null)
+console.log('PASS: payment tracking markers, paid-off debt, lesson-credit isolation and exact course enrollment/financial data')

@@ -12,6 +12,7 @@ import {
   type JournalColumn,
   type JournalWork,
 } from '../../../lib/courseJournal'
+import { hasStudentPaymentTracking } from '../../../lib/rosterPayments'
 import { baseLessonRef, splitHwRef } from '../../../lib/extraHomework'
 import { homeworkResult, isHomeworkSubmissionStatus } from '../../../lib/homeworkResult'
 
@@ -396,4 +397,12 @@ export function hasCourseAttendance(works: StudentWork[]): boolean {
     if (!column || ['test', 'trial'].includes(column.lesson?.kind ?? '')) return false
     return typeof present === 'boolean' || (!column.recording && column.lesson?.delivery_mode !== 'recording')
   })
+}
+
+/** Select an actual enrollment in this course; never import billing from another course. */
+export function coursePaymentStudent(data: CourseJournalData, index: StandIndex, courseId: string, student: Student): Student | null {
+  if (courseId === ALL_COURSES) return hasStudentPaymentTracking(student) ? student : null
+  const roster = index.roster.get(courseId)
+  const cards = data.students.filter(card => roster?.has(card.id) && sameLearner(card, student) && hasStudentPaymentTracking(card))
+  return cards.find(card => card.id === student.id) ?? cards[0] ?? null
 }

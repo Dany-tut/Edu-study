@@ -1,3 +1,4 @@
+import { hasStudentPaymentTracking, type RosterPaymentInfo } from '../../lib/rosterPayments'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import StudentDetailsEditor from '../../components/teacher/StudentDetailsEditor'
 import { profileReadLifetime } from '../../lib/profileReadLifetime'
@@ -1448,7 +1449,7 @@ const filterPredicate: Record<RosterFilter, (s: Student) => boolean> = {
   nohw: s => hasStudentActivity(s) && s.hwScore === 0,
 }
 
-function sortStudents(list: Student[], key: SortKey, dir: SortDir, homeworkScore?: (s: Student) => number | null) {
+function sortStudents(list: Student[], key: SortKey, dir: SortDir, homeworkScore?: (s: Student) => number | null, paymentInfo?: (s: Student) => RosterPaymentInfo | null) {
   if (key === 'attention') {
     // Always urgent-first regardless of dir toggle; tie-break by name.
     return [...list].sort((a, b) => {
@@ -1459,6 +1460,7 @@ function sortStudents(list: Student[], key: SortKey, dir: SortDir, homeworkScore
   return [...list].sort((a, b) => {
     let av: number | string = (a as Record<string, unknown>)[key] as number | string ?? -1
     let bv: number | string = (b as Record<string, unknown>)[key] as number | string ?? -1
+    if ((key === 'lastPayment' || key === 'debt') && paymentInfo) { av = paymentInfo(a)?.[key] ?? -1; bv = paymentInfo(b)?.[key] ?? -1 }
     if (key === 'hwScore' && homeworkScore) { av = homeworkScore(a) ?? -1; bv = homeworkScore(b) ?? -1 }
     if (typeof av === 'string' && typeof bv === 'string') {
       // dd.mm.yyyy → yyyymmdd for lastVisit; ISO dates sort lexically already
@@ -2431,6 +2433,7 @@ type GroupRosterProps = {
   availableGroupIds?: Set<string>
   onOpenStudent?: (student: Student) => void
   rosterTools?: React.ReactNode
+  rosterPaymentInfo?: (student: Student) => RosterPaymentInfo | null
   rosterHasAttendance?: (student: Student) => boolean
   rosterHasHomework?: (student: Student) => boolean
   rosterHasTrials?: (student: Student) => boolean
@@ -2444,7 +2447,7 @@ const rosterInset = 32
 const studentPanelWidth = 332
 const studentPanelGap = 12
 
-export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHasAttendance, rosterHasHomework, rosterHasTrials, rosterHasTests, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
+export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterPaymentInfo, rosterHasAttendance, rosterHasHomework, rosterHasTrials, rosterHasTests, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
   // The journal, group strip and report drawer own their inner scroll fades.
   // Observing every cell here duplicates their work and forces offscreen
@@ -2569,21 +2572,27 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   // Full roster of the active group (drives chip counts), then narrowed by the
   // search box + active quick-filter, then sorted for display.
   const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [onOpenStudent && !s.personId && !s.authUserId ? s.id : personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id).map(s => studentsById.get(s.id) ?? s) : []
+  const getPaymentInfo = (student: Student): RosterPaymentInfo | null => rosterPaymentInfo
+    ? rosterPaymentInfo(student) : hasStudentPaymentTracking(student) ? student : null
+  const showPaymentColumns = rosterAll.some(student => getPaymentInfo(student) !== null)
   const showAttendanceColumn = !rosterHasAttendance || rosterAll.some(rosterHasAttendance)
   const showHomeworkColumn = !rosterHasHomework || rosterAll.some(rosterHasHomework)
   const showTrialColumn = !rosterHasTrials || rosterAll.some(rosterHasTrials)
   const showTestColumn = !rosterHasTests || rosterAll.some(rosterHasTests)
   const q = searchQuery.trim().toLowerCase()
-  const rosterPredicates = hasUnsubmittedWork ? { ...filterPredicate, nohw: hasUnsubmittedWork } : filterPredicate
+  const rosterPredicates = { ...filterPredicate,
+    ...(hasUnsubmittedWork ? { nohw: hasUnsubmittedWork } : {}),
+    ...(rosterPaymentInfo ? { debtors: (student: Student) => (getPaymentInfo(student)?.debt ?? 0) > 0 } : {}),
+  }
   const groupStudents = sortStudents(
     rosterAll
       .filter(s => !q || s.name.toLowerCase().includes(q))
       .filter(rosterPredicates[rosterFilter]),
-    (!showAttendanceColumn && sortKey === 'attendance') || (!showHomeworkColumn && sortKey === 'hwScore') || (!showTestColumn && sortKey === 'testScore') || (!showTrialColumn && sortKey === 'trialScore') ? 'attention' : sortKey, sortDir, rosterHomeworkScore,
+    (!showPaymentColumns && (sortKey === 'lastPayment' || sortKey === 'debt')) || (!showAttendanceColumn && sortKey === 'attendance') || (!showHomeworkColumn && sortKey === 'hwScore') || (!showTestColumn && sortKey === 'testScore') || (!showTrialColumn && sortKey === 'trialScore') ? 'attention' : sortKey, sortDir, rosterHomeworkScore, getPaymentInfo,
   )
   const filterCounts: Record<RosterFilter, number> = {
     all: rosterAll.length,
-    debtors: rosterAll.filter(filterPredicate.debtors).length,
+    debtors: rosterAll.filter(rosterPredicates.debtors).length,
     fading: rosterAll.filter(filterPredicate.fading).length,
     nohw: rosterAll.filter(rosterPredicates.nohw).length,
   }
@@ -2892,14 +2901,14 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                 <ScrollFadeTable>
                   <table style={{ width: '100%', minWidth: 1000, tableLayout: 'fixed', borderCollapse: 'collapse' }}>
                     <colgroup>
-                      <col style={{ width: `${32 + (showAttendanceColumn ? 0 : 9) + (showHomeworkColumn ? 0 : 7) + (showTestColumn ? 0 : 7) + (showTrialColumn ? 0 : 10)}%` }} />
+                      <col style={{ width: `${32 + (showPaymentColumns ? 0 : 22) + (showAttendanceColumn ? 0 : 9) + (showHomeworkColumn ? 0 : 7) + (showTestColumn ? 0 : 7) + (showTrialColumn ? 0 : 10)}%` }} />
                       <col style={{ width: '13%' }} />
                       {showHomeworkColumn && <col style={{ width: '7%' }} />}
                       {showTestColumn && <col style={{ width: '7%' }} />}
                       {showTrialColumn && <col style={{ width: '10%' }} />}
                       {showAttendanceColumn && <col style={{ width: '9%' }} />}
-                      <col style={{ width: '12%' }} />
-                      <col style={{ width: '10%' }} />
+                      {showPaymentColumns && <col style={{ width: '12%' }} />}
+                      {showPaymentColumns && <col style={{ width: '10%' }} />}
                     </colgroup>
                     <thead>
                       <tr>
@@ -2909,17 +2918,18 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                         {showTestColumn && <Th label={t('Тест')} sortKey="testScore" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
                         {showTrialColumn && <Th label={t('Пробник')} sortKey="trialScore" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
                         {showAttendanceColumn && <Th label={t('Посещ.')} sortKey="attendance" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
-                        <Th label={t('Посл. оплата')}   sortKey="lastPayment"  currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
-                        <Th label={t('Долг')}           sortKey="debt"         currentKey={sortKey} dir={sortDir} onSort={handleSort} right last />
+                        {showPaymentColumns && <Th label={t('Посл. оплата')} sortKey="lastPayment" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
+                        {showPaymentColumns && <Th label={t('Долг')} sortKey="debt" currentKey={sortKey} dir={sortDir} onSort={handleSort} right last />}
                       </tr>
                     </thead>
                     <tbody>
-                      {groupStudents.length === 0 && <tr><td colSpan={4 + Number(showAttendanceColumn) + Number(showHomeworkColumn) + Number(showTestColumn) + Number(showTrialColumn)} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
+                      {groupStudents.length === 0 && <tr><td colSpan={2 + (showPaymentColumns ? 2 : 0) + Number(showAttendanceColumn) + Number(showHomeworkColumn) + Number(showTestColumn) + Number(showTrialColumn)} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
                         {rosterLoading ? <span role="status">{t('Загрузка…')}</span>
                           : searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено')
                           : t('Учеников пока нет. Добавьте первого — нужны имя и предмет.')}
                       </td></tr>}
                       {groupStudents.map(student => {
+                        const financial = getPaymentInfo(student)
                         const studentHasAttendance = !rosterHasAttendance || rosterHasAttendance(student)
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                         const phone = maskRosterPhone(student.phone ?? '')
@@ -2993,16 +3003,16 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                               </span>
                             </td>}
                             {/* Last payment */}
-                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('lastPayment') }}>
-                              <span style={{ fontSize: 12, color: student.lastPayment ? 'var(--color-muted)' : 'var(--color-text-4)' }}>
-                                {student.lastPayment
-                                  ? new Date(student.lastPayment).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                            {showPaymentColumns && <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('lastPayment') }}>
+                              <span style={{ fontSize: 12, color: financial?.lastPayment ? 'var(--color-muted)' : 'var(--color-text-4)' }}>
+                                {financial?.lastPayment
+                                  ? new Date(financial?.lastPayment).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
                                   : '—'}
                               </span>
-                            </td>
+                            </td>}
                             {/* Debt */}
-                            <td style={{ padding: '12px 24px 12px 12px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
-                              {student.debt != null && student.debt > 0 ? (
+                            {showPaymentColumns && <td style={{ padding: '12px 24px 12px 12px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('debt') }}>
+                              {financial?.debt != null && financial?.debt > 0 ? (
                                 <span style={{
                                   fontSize: 12, fontWeight: 700,
                                   color: 'var(--color-red-text)',
@@ -3012,12 +3022,12 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                   padding: '0 8px', minHeight: 22, lineHeight: 1,
                                   display: 'inline-grid', placeItems: 'center', boxSizing: 'border-box',
                                 }}>
-                                  <span style={{ transform: 'translateY(-.5px)' }}>{student.debt.toLocaleString('ru-RU')}{'\u00a0₽'}</span>
+                                  <span style={{ transform: 'translateY(-.5px)' }}>{financial?.debt.toLocaleString('ru-RU')}{'\u00a0₽'}</span>
                                 </span>
                               ) : (
                                 <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>—</span>
                               )}
-                            </td>
+                            </td>}
                           </tr>
                         )
                       })}
