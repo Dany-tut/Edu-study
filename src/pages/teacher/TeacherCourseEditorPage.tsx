@@ -6559,7 +6559,7 @@ export default function TeacherCourseEditorPage() {
     if (!course.dbCourseId && !course.title.trim()) return
     if (!autosaveArmed.current) {
       autosaveArmed.current = true
-      if (course.dbCourseId) { autosaveEditRevision.current = editRevision; return }
+      if (course.dbCourseId && editRevision === 0) { autosaveEditRevision.current = editRevision; return }
     }
     // Access acknowledgements reconcile course state without a teacher edit.
     // They previously scheduled another full save, which acknowledged again.

@@ -14,7 +14,7 @@ const code=`import React,{useState,useEffect,useRef} from 'react';import {create
 const calls=[],pending=[],drafts=new Map();let flashes=0,errors=0;
 const writeDraft=(k,v)=>drafts.set(k,v);const clearDrafts=()=>drafts.clear();const t=x=>x;const courseSaveReason=()=>"failed";
 function App(){
- const [{course,editRevision},setState]=useState({course:{id:'A',dbCourseId:'A',title:'Synthetic course',value:0},editRevision:0});
+ const [{course,editRevision},setState]=useState({course:{id:'A',dbCourseId:'A',title:'Synthetic course',value:0,metadataPending:!!window.__initialMetadata},editRevision:0});
  const [autosaving,setAutosaving]=useState(0);const [publishErr,setPublishErr]=useState(null);
  const publishedEditRevision=useRef(null),baselineStamp=useRef('stamp'),saveIssue=useRef(null);
  const publicationPending=false;const setCourseEdited=()=>{};const flash=()=>{flashes++};const noteSaveFailure=()=>{errors++};
@@ -58,5 +58,14 @@ try {
  s=await page.evaluate(()=>window.api.get());assert.deepEqual(s.draft,[]);assert.equal(s.unsaved,false);assert.equal(s.flashes,2)
  await page.waitForTimeout(1200);assert.equal((await page.evaluate(()=>window.api.get())).calls.length,4)
  assert.deepEqual(browserErrors,[])
+ const loading=await browser.newPage();await loading.setContent('<div id="root"></div>')
+ await loading.addScriptTag({content:'window.__initialMetadata=true'})
+ await loading.addScriptTag({content:out.outputFiles[0].text});await loading.waitForFunction(()=>!!window.api)
+ await loading.evaluate(()=>window.api.edit(9));await loading.waitForTimeout(1100)
+ assert.deepEqual(await loading.evaluate(()=>window.api.get().calls),[])
+ await loading.evaluate(()=>window.api.metadata(false));await loading.waitForFunction(()=>window.api.get().calls.length===1)
+ assert.deepEqual(await loading.evaluate(()=>window.api.get().calls),[9],'first edit made during initial loading must save when metadata arrives')
+ await loading.evaluate(()=>window.api.complete(0));await loading.waitForFunction(()=>window.api.get().autosaving===0)
+ assert.deepEqual((await loading.evaluate(()=>window.api.get())).draft,[]);await loading.close()
  console.log('PASS actual production effects: server ack does not enqueue; successful save stops; active+latest; no stale Saved; current draft survives late ack/failure; one failure notification; retry clears only confirmed draft')
 }finally{await browser.close()}
