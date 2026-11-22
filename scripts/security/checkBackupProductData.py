@@ -16,6 +16,8 @@ spec.loader.exec_module(backup)
 def fixture_query(cli, sql):
     if sql.startswith('select table_name'):
         return [{'table_name': 'public.lessons'}]
+    if 'from "storage"."objects"' in sql:
+        return [{'snapshot': {'table': 'storage.objects', 'row_count': 0, 'rows': []}}]
     return [{'snapshot': {'table': 'fixture', 'row_count': 1,
                            'rows': [{'id': 'fixture', 'description': 'never lose this'}]}}]
 
@@ -24,7 +26,7 @@ with tempfile.TemporaryDirectory() as temporary:
     with patch.object(backup, 'query', fixture_query):
         root, manifest = backup.backup('unused', Path(temporary) / 'ok')
     assert len(manifest['tables']) == 8
-    assert backup.verify(root)['format'] == 2
+    assert backup.verify(root)['format'] == 3
     assert (root.stat().st_mode & 0o077) == 0
     first = root / manifest['tables'][0]['file']
     first.write_bytes(b'corrupted')
