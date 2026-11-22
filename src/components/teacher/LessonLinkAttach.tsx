@@ -77,7 +77,7 @@ export function LessonLinkPanel({
           style={{
             flexShrink: 0, padding: '0 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
             fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600,
-            background: 'var(--color-green-text)', color: '#fff',
+            background: 'var(--color-green-fill)', color: '#fff',
           }}
         >
           {t('Добавить')}
@@ -158,7 +158,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
           style={{
             flexShrink: 0, padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer',
             fontFamily: 'inherit', fontSize: fs, fontWeight: 600,
-            background: 'var(--color-green-text)', color: '#fff',
+            background: 'var(--color-green-fill)', color: '#fff',
           }}
         >
           {t('Добавить')}
