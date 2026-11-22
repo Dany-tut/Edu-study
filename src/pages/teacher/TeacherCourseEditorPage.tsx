@@ -24,6 +24,9 @@ import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { Eye } from '../../components/icons/appIcons'
 import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
+import CourseVisibilityButton from '../../components/teacher/CourseVisibilityButton'
+import { useCourseVisibility, flushCourseVisibility, loadCourseVisibility } from '../../lib/courseVisibility'
+import { courseModuleIdentitiesFor } from '../../lib/courseModuleIdentity'
 import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, useSyncExternalStore } from 'react'
 import SaveStatusLine from '../../components/SaveStatusLine'
 import { getWriteActivity, subscribeWriteActivity } from '../../lib/sync/writeActivity'
@@ -5364,11 +5367,12 @@ function CenterLessonStudents({
 // ─── RIGHT panel: always lesson list ─────────────────────────────────────────
 
 function LessonRow({
-  lesson, selected, isOpen, checked, multiMode, displayIndex, onClick, onDelete,
+  lesson, selected, isOpen, checked, multiMode, displayIndex, onClick, onDelete, visibilityControl,
 }: {
   lesson: CELesson; selected: boolean; isOpen?: boolean
   checked?: boolean; multiMode?: boolean; displayIndex?: number
   onClick: (e: React.MouseEvent) => void; onDelete: () => void
+  visibilityControl?: React.ReactNode
 }) {
   const t = useT()
   const hasDots = lesson.kind === 'test'
@@ -5377,7 +5381,7 @@ function LessonRow({
       || (lesson.hwTasks?.length ?? 0) > 0 || !!lesson.extraHw?.some(x => x.tasks.length > 0)
       || ((lesson.extraStudentIds?.length ?? 0) + (lesson.extraGroupIds?.length ?? 0)) > 0
   return (
-    <motion.button
+    <div className="course-visibility-row"><motion.button
       className="lesson-row editor-delete-row"
       onClick={onClick}
       whileTap={{ scale: 0.98 }}
@@ -5457,11 +5461,11 @@ function LessonRow({
           </span>
         </span>
       )}
-    </motion.button>
+    </motion.button>{visibilityControl}</div>
   )
 }
 
-function RightPanelLessons({
+export function RightPanelLessons({
   course, setCourse, selectedLessonId, onSelectLesson, openLessonShortIds, lessonShortIdById,
 }: {
   course: CourseEdData
@@ -5472,6 +5476,15 @@ function RightPanelLessons({
   lessonShortIdById: Record<string, string>
 }) {
   const t = useT()
+  const visibilityCourse = course.dbCourseId ?? course.id
+  const visibility = useCourseVisibility(visibilityCourse)
+  const visibilityControl = (lesson: CELesson, moduleId?: string) => <CourseVisibilityButton
+    key={`${visibilityCourse}/lesson/${lesson.id}`}
+    course={visibilityCourse} kind="lesson" item={lessonShortIdById[lesson.id] ?? lesson.persistedShortId ?? lesson.id}
+    hidden={visibility.hidden('lesson', lessonShortIdById[lesson.id] ?? lesson.persistedShortId ?? lesson.id)}
+    inherited={moduleId ? visibility.hidden('module', moduleId) : false}
+    disabled={!visibility.loaded || !!visibility.error || !!course.metadataPending}
+    allowDraft={!course.dbCourseId} />
   const [moduleExpansion, setModuleExpansion] = useState<Record<string, boolean>>({})
   const [newTitle, setNewTitle] = useState('')
   const [addingModule, setAddingModule] = useState(false)
@@ -5496,7 +5509,7 @@ function RightPanelLessons({
       const active = activeModuleId ? c.modules.find(m => m.id === activeModuleId) : undefined
       const target = active ?? c.modules.find(isLooseModule)
       if (!target) {
-        return { ...c, lessons: updatedLessons, modules: [{ id: uid(), label: '', expanded: true, lessonIds: [lesson.id] }, ...c.modules] }
+        return { ...c, lessons: updatedLessons, modules: [{ id: crypto.randomUUID(), label: '', expanded: true, lessonIds: [lesson.id] }, ...c.modules] }
       }
       const mods = c.modules.map(m =>
         m.id === target.id ? { ...m, lessonIds: [...m.lessonIds, lesson.id] } : m
@@ -5523,7 +5536,7 @@ function RightPanelLessons({
   function addModule() {
     const label = newModuleLabel.trim()
     if (!label) return
-    const mod: CEModule = { id: uid(), label, expanded: true, lessonIds: [] }
+    const mod: CEModule = { id: crypto.randomUUID(), label, expanded: true, lessonIds: [] }
     setCourse(c => ({ ...c, modules: [...c.modules, mod] }))
     setNewModuleLabel('')
     setAddingModule(false)
@@ -5557,7 +5570,7 @@ function RightPanelLessons({
         modules: loose
           ? rest.map(m => m === loose ? { ...m, lessonIds: [...m.lessonIds, ...mod.lessonIds] } : m)
           : mod.lessonIds.length
-            ? [{ id: uid(), label: '', expanded: true, lessonIds: mod.lessonIds }, ...rest]
+            ? [{ id: crypto.randomUUID(), label: '', expanded: true, lessonIds: mod.lessonIds }, ...rest]
             : rest,
       }
     })
@@ -5676,6 +5689,11 @@ function RightPanelLessons({
         <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{course.lessons.length} {t('шт.')}</span>
       </div>
 
+      {visibility.error && <div role="alert" className="course-visibility-note">
+        {t(visibility.error)} <button type="button" data-hover="layer" onClick={() => void loadCourseVisibility(visibilityCourse)}>{t('Повторить')}</button>
+      </div>}
+      {Object.keys(visibility.pending).length > 0 && <p className="course-visibility-note" role="status">{t('Видимость сохранится вместе с новым курсом')}</p>}
+
       {/* Bulk-action bar — visible once one or more lessons are multi-selected */}
       <AnimatePresence>
         {multiMode && (
@@ -5792,7 +5810,7 @@ function RightPanelLessons({
             onDragStart={() => setDragging(l.id)}
             style={{ cursor: 'grab' }}
           >
-            <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
+            <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} visibilityControl={visibilityControl(l)} />
           </div>
         ))}
 
@@ -5806,7 +5824,7 @@ function RightPanelLessons({
           const loose = isLooseModule(mod)
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
-              {!loose && <button data-hover="layer"
+              {!loose && <div className="course-visibility-row"><button data-hover="layer"
                 onClick={e => {
                   // e.detail > 1 — это второй клик двойного, его глотаем:
                   // раскрытие/сворачивание должно реагировать только на одиночный.
@@ -5910,7 +5928,10 @@ function RightPanelLessons({
                   </span>
                 )}
                 <span style={{ fontSize: 10, color: isActive ? 'var(--color-green-text)' : 'var(--color-muted)', flexShrink: 0 }}>{modLessons.length}</span>
-              </button>}
+              </button><CourseVisibilityButton key={`${visibilityCourse}/module/${mod.id}`} course={visibilityCourse} kind="module" item={mod.id}
+                hidden={visibility.hidden('module', mod.id)} disabled={!visibility.loaded || !!visibility.error || !!course.metadataPending || (!!course.dbCourseId && !/^[0-9a-f-]{36}$/i.test(mod.id))}
+                disabledReason={course.dbCourseId && !/^[0-9a-f-]{36}$/i.test(mod.id) ? t('Сначала сохраните модуль') : undefined}
+                allowDraft={!course.dbCourseId} /></div>}
               {/* initial={false}: при входе в курс модули уже развёрнуты — без него
                   каждый вырастал с нуля, и правая колонка дёргалась на входе. */}
               <AnimatePresence initial={false}>
@@ -5951,7 +5972,7 @@ function RightPanelLessons({
                               }}
                               style={{ cursor: 'grab' }}
                             >
-                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} />
+                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} visibilityControl={visibilityControl(l, mod.id)} />
                             </div>
                           </div>
                         ))}
@@ -7057,31 +7078,30 @@ export default function TeacherCourseEditorPage() {
       : [{ id: 'm0', label: '', expanded: true, lessonIds: c.lessons.map(l => l.id) }]
     const firstModuleLocalId = editorModules[0].id
 
-    // 1. Reuse existing modules by position; create missing, drop extras.
-    const { data: existingMods } = await supabase
-      .from('course_modules')
-      .select('id, position')
-      .eq('course_id', courseDbId)
-      .order('position')
-    const existing = (existingMods ?? []) as Array<{ id: string; position: number }>
-    const moduleDbIdByLocalId: Record<string, string> = {}
-    for (let i = 0; i < editorModules.length; i++) {
-      const m = editorModules[i]
-      let dbId = existing[i]?.id
-      if (dbId) {
-        await supabase.from('course_modules').update({ label: m.label, position: i }).eq('id', dbId)
-      } else {
-        const { data: ins } = await supabase
-          .from('course_modules')
-          .insert({ course_id: courseDbId, label: m.label, position: i })
-          .select('id')
-          .single()
-        dbId = ins?.id
-      }
-      if (dbId) moduleDbIdByLocalId[m.id] = dbId
+    // Stable module identities keep visibility attached to the module, not
+    // whichever row happens to occupy its former position.
+    const { data: existingMods, error: modulesReadError } = await supabase
+      .from('course_modules').select('id, label, position')
+      .eq('course_id', courseDbId).order('position')
+    if (modulesReadError) {
+      saveIssue.current = courseSaveReason('lessons', modulesReadError, shortId)
+      return await writeFailed()
     }
-    for (let i = editorModules.length; i < existing.length; i++) {
-      await supabase.from('course_modules').delete().eq('id', existing[i].id)
+    const existing = (existingMods ?? []) as Array<{ id: string; label: string; position: number }>
+    const moduleDbIdByLocalId = courseModuleIdentitiesFor(shortId, editorModules, existing)
+    // New-course visibility is committed before any new content can be read.
+    // This writes no course/content/access fields and respects the save barrier.
+    await flushCourseVisibility(shortId, moduleDbIdByLocalId)
+    for (let i = 0; i < editorModules.length; i++) {
+      const m = editorModules[i], dbId = moduleDbIdByLocalId[m.id]
+      const values = { label: m.label, position: i }
+      const { error } = existing.some(row => row.id === dbId)
+        ? await supabase.from('course_modules').update(values).eq('id', dbId).eq('course_id', courseDbId)
+        : await supabase.from('course_modules').insert({ id: dbId, course_id: courseDbId, ...values })
+      if (error) {
+        saveIssue.current = courseSaveReason('lessons', error, shortId)
+        return await writeFailed()
+      }
     }
 
     // 2. Order lessons (module order → lessonIds → ungrouped to first module).
@@ -7199,6 +7219,22 @@ export default function TeacherCourseEditorPage() {
             lessonIds: m.lessonIds.map(id => shortIdByLessonId[id] ?? id),
           })),
         }))
+      }
+    }
+    // Acknowledgement, not an edit: do not arm another autosave or revision.
+    if (editorModules.some(m => moduleDbIdByLocalId[m.id] !== m.id)) {
+      reconcileCourse(prev => ({ ...prev, modules: prev.modules.map(m => ({
+        ...m, id: moduleDbIdByLocalId[m.id] ?? m.id,
+      })) }))
+    }
+    const retainedModules = new Set(Object.values(moduleDbIdByLocalId))
+    // Move lessons first, then remove obsolete module rows. In particular a
+    // dissolved module cannot null out a lesson's newly assigned module_id.
+    for (const old of existing.filter(m => !retainedModules.has(m.id))) {
+      const { error } = await supabase.from('course_modules').delete().eq('id', old.id).eq('course_id', courseDbId)
+      if (error) {
+        saveIssue.current = courseSaveReason('lessons', error, shortId)
+        return await writeFailed()
       }
     }
     // 4. Drop lessons removed in the editor (schedule_lessons.lesson_id → SET NULL).

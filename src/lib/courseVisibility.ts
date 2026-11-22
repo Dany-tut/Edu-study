@@ -48,7 +48,10 @@ export function loadCourseVisibility(course: string): Promise<void> {
     }
     const values = Object.fromEntries(((data ?? []) as CourseVisibilityRow[]).map(r => [keyOf(r.item_kind, r.item_key), r.hidden]))
     publish(course, { ...current, values: { ...values, ...current.pending }, loaded: true, error: null })
-  })().finally(() => flights.delete(course))
+  })().catch(() => {
+    const current = snapshot(course)
+    if (current.revision === revision) publish(course, { ...current, loaded: true, error: 'Не удалось загрузить видимость. Повторите загрузку.' })
+  }).finally(() => flights.delete(course))
   flights.set(course, request)
   return request
 }
@@ -67,7 +70,7 @@ export async function setCourseItemHidden(course: string, kind: CourseItemKind, 
     if (data) delete pending[key]
     else pending[key] = hidden
     publish(course, { ...old, values: { ...old.values, [key]: hidden }, pending, revision: old.revision + 1 })
-  })
+  }).catch(() => { throw new Error('Не удалось сохранить видимость. Попробуйте ещё раз.') })
   mutations.set(mutationKey, operation)
   try { await operation } finally { if (mutations.get(mutationKey) === operation) mutations.delete(mutationKey) }
 }
@@ -77,18 +80,29 @@ export async function setCourseItemHidden(course: string, kind: CourseItemKind, 
 export async function flushCourseVisibility(course: string, aliases: Record<string, string>) {
   await Promise.all([...mutations].filter(([key]) => key.startsWith(`${course}/`)).map(([, promise]) => promise))
   const state = snapshot(course)
-  const edits = { ...state.pending }
-  for (const [local, persisted] of Object.entries(aliases)) {
-    const value = state.values[keyOf('module', local)]
-    if (local !== persisted && value !== undefined) edits[keyOf('module', persisted)] = value
-  }
-  for (const [key, value] of Object.entries(edits)) {
-    const split = key.indexOf(':'), kind = key.slice(0, split) as CourseItemKind
-    const item = aliases[key.slice(split + 1)] && kind === 'module' ? aliases[key.slice(split + 1)] : key.slice(split + 1)
-    await setCourseItemHidden(course, kind, item, value, false)
+  const edits = new Map<string, { source: string; value: boolean }>()
+  const clearPending = (source: string, value: boolean) => {
     const current = snapshot(course), pending = { ...current.pending }
-    if (pending[key] === value) delete pending[key]
+    if (pending[source] === value) delete pending[source]
     publish(course, { ...current, pending })
   }
+  for (const [source, value] of Object.entries(state.pending)) {
+    const split = source.indexOf(':'), kind = source.slice(0, split) as CourseItemKind
+    const item = source.slice(split + 1), target = keyOf(kind, kind === 'module' ? aliases[item] ?? item : item)
+    // An explicit click on the acknowledged identity is newer than a local-ID
+    // draft. A queued content save must never restore that old visibility.
+    if (source !== target && state.values[target] !== undefined) clearPending(source, value)
+    else edits.set(target, { source, value })
+  }
+  for (const [local, persisted] of Object.entries(aliases)) {
+    const source = keyOf('module', local), target = keyOf('module', persisted)
+    const value = state.values[source]
+    if (source !== target && value !== undefined && state.values[target] === undefined && !edits.has(target)) edits.set(target, { source, value })
+  }
+  for (const [target, { source, value }] of edits) {
+    if (source !== target && snapshot(course).values[target] !== undefined) { clearPending(source, value); continue }
+    const split = target.indexOf(':')
+    await setCourseItemHidden(course, target.slice(0, split) as CourseItemKind, target.slice(split + 1), value, false)
+    clearPending(source, value)
+  }
 }
-

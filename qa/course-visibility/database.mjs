@@ -25,7 +25,7 @@ insert into courses values('${course}','course-a','${owner}'),('${foreign}','cou
 insert into course_modules values('${modA}','${course}','A',0),('${modB}','${course}','B',1);
 insert into lessons values('${modA}','${course}','${modA}','a-1','Lesson A'),('${modB}','${course}','${modB}','b-1','Lesson B');
 insert into lesson_progress values('${student}','a-1','completed');`)
-await db.exec(readFileSync(new URL('../../supabase/migrations/20261122054626_course_item_visibility.sql',import.meta.url),'utf8'))
+await db.exec(readFileSync(new URL('../../supabase/migrations/20261122061050_course_item_visibility.sql',import.meta.url),'utf8'))
 async function as(user){await db.exec(`reset role; set role authenticated; set request.uid='${user}';`)}
 const rows=async sql=>(await db.query(sql)).rows
 await as(owner)
@@ -55,6 +55,11 @@ await rows(`select set_course_item_visibility('course-a','module','${modA}',true
 await db.exec(`update course_modules set position=1-position;`)
 await as(student)
 assert.deepEqual((await rows('select short_id from lessons')).map(r=>r.short_id),['b-1'],'reordering does not move visibility')
+await as(owner)
+await rows(`select set_course_item_visibility('course-a','lesson','b-1',true)`)
+await db.exec(`delete from lessons where short_id='b-1'; insert into lessons values('${modB}','${course}','${modB}','b-1','New B');`)
+await as(student)
+assert.deepEqual((await rows('select short_id from lessons')).map(r=>r.short_id),['b-1'],'deleted item does not hide a future item reusing its reference')
 await db.exec('reset role; set role anon;')
 await assert.rejects(rows(`select set_course_item_visibility('course-a','lesson','b-1',true)`))
 await assert.rejects(rows('select * from course_item_visibility'))

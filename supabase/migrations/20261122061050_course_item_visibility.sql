@@ -9,7 +9,7 @@ create table public.course_item_visibility (
 );
 alter table public.course_item_visibility enable row level security;
 revoke all on public.course_item_visibility from anon;
-grant select,insert,update on public.course_item_visibility to authenticated;
+grant select,insert,update,delete on public.course_item_visibility to authenticated;
 create policy visibility_read on public.course_item_visibility for select to authenticated
 using ((select public.is_admin()) or course_id in (select unnest(public.my_course_ids())));
 create policy visibility_owner_write on public.course_item_visibility for all to authenticated
@@ -18,8 +18,13 @@ using ((select public.is_admin()) or exists (
 )) with check ((select public.is_admin()) or exists (
   select 1 from public.courses c where c.id=course_id and c.created_by=(select auth.uid())
 ));
-create policy mfa_required on public.course_item_visibility as restrictive for all to authenticated
-using ((select public.mfa_ok())) with check ((select public.mfa_ok()));
+-- Hosted projects may attach this policy automatically on CREATE TABLE.
+do $$ begin
+  if not exists(select 1 from pg_policy where polrelid='public.course_item_visibility'::regclass and polname='mfa_required') then
+    create policy mfa_required on public.course_item_visibility as restrictive for all to authenticated
+    using ((select public.mfa_ok())) with check ((select public.mfa_ok()));
+  end if;
+end $$;
 
 create function public.get_course_item_visibility(p_course text)
 returns table(item_kind text,item_key text,hidden boolean)
@@ -45,6 +50,27 @@ revoke all on function public.get_course_item_visibility(text) from public,anon;
 revoke all on function public.set_course_item_visibility(text,text,text,boolean) from public,anon;
 grant execute on function public.get_course_item_visibility(text) to authenticated;
 grant execute on function public.set_course_item_visibility(text,text,text,boolean) to authenticated;
+
+-- Removed content must not leave a flag behind for a future lesson reusing a
+-- short reference. This runs under the deleting teacher's existing RLS scope.
+create function public.cleanup_course_item_visibility() returns trigger
+language plpgsql security invoker set search_path='' as $$
+begin
+  if tg_table_name='lessons' then
+    delete from public.course_item_visibility where course_id=old.course_id
+      and item_kind='lesson' and item_key=old.short_id;
+  else
+    delete from public.course_item_visibility where course_id=old.course_id
+      and item_kind='module' and item_key=old.id::text;
+  end if;
+  return old;
+end;
+$$;
+revoke all on function public.cleanup_course_item_visibility() from public,anon,authenticated;
+create trigger lesson_visibility_cleanup after delete on public.lessons
+for each row execute function public.cleanup_course_item_visibility();
+create trigger module_visibility_cleanup after delete on public.course_modules
+for each row execute function public.cleanup_course_item_visibility();
 
 -- Restrictive policies also protect direct URLs/heavy lesson reads, including
 -- clients published before this feature. Existing audience/MFA policies remain.

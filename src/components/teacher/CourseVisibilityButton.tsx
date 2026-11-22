@@ -5,8 +5,8 @@ import { setCourseItemHidden, type CourseItemKind } from '../../lib/courseVisibi
 import './courseVisibility.css'
 import { useT } from '../../lib/i18n'
 
-export default function CourseVisibilityButton({ course, kind, item, hidden, inherited = false, disabled = false, allowDraft = false }: {
-  course: string; kind: CourseItemKind; item: string; hidden: boolean; inherited?: boolean; disabled?: boolean; allowDraft?: boolean
+export default function CourseVisibilityButton({ course, kind, item, hidden, inherited = false, disabled = false, allowDraft = false, disabledReason }: {
+  course: string; kind: CourseItemKind; item: string; hidden: boolean; inherited?: boolean; disabled?: boolean; allowDraft?: boolean; disabledReason?: string
 }) {
   const t = useT()
   const [busy, setBusy] = useState(false)
@@ -23,7 +23,7 @@ export default function CourseVisibilityButton({ course, kind, item, hidden, inh
     finally { lock.current = false; setBusy(false) }
   }
   return <span className="course-visibility-control">
-    <Tooltip label={error ? t(error) : (inherited ? t('Урок скрыт вместе с модулем. Его собственная видимость сохраняется.') : label)}>
+    <Tooltip label={error ? t(error) : disabledReason || (inherited ? t('Урок скрыт вместе с модулем. Его собственная видимость сохраняется.') : label)}>
       <button type="button" className="course-visibility-button" data-hover="layer" aria-label={label}
         aria-pressed={hidden} disabled={disabled || busy} aria-busy={busy}
         data-hidden={hidden || inherited || undefined}

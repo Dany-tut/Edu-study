@@ -7,6 +7,7 @@ assert.deepEqual(courseModuleIdentities([{id:b,label:'Renamed B'},{id:a,label:'A
 assert.deepEqual(courseModuleIdentities([{id:b,label:'B'}],saved),{[b]:b},'removing A never borrows A UUID for B')
 assert.deepEqual(courseModuleIdentities([{id:'old-b',label:'B'},{id:'new',label:'New'}],saved,()=> 'new-uuid'),{'old-b':b,new:'new-uuid'})
 assert.throws(()=>courseModuleIdentities([{id:'legacy',label:'Same'}],[{id:a,label:'Same',position:0},{id:b,label:'Same',position:1}]))
+assert.equal(courseModuleIdentities([{id:'legacy-a',label:'Renamed after acknowledgement'}],saved,()=> 'wrong-new-id',{'legacy-a':a})['legacy-a'],a,'queued legacy snapshot retains acknowledged UUID across renames')
 const modules=[{id:a,lessons:[{short_id:'a1',status:'completed'}]},{id:b,lessons:[{short_id:'b1',status:'locked'},{short_id:'b2',status:'current'}]}]
 const before=structuredClone(modules)
 const hidden=[{item_kind:'module',item_key:a,hidden:true},{item_kind:'lesson',item_key:'b1',hidden:true}]

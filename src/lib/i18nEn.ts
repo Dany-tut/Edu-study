@@ -11,6 +11,7 @@
 
 export const EN: Record<string, string> = {
   'Показать модуль ученикам': 'Show module to students',
+  'Сначала сохраните модуль': 'Save the module first',
   'Скрыть модуль от учеников': 'Hide module from students',
   'Показать урок ученикам': 'Show lesson to students',
   'Скрыть урок от учеников': 'Hide lesson from students',
