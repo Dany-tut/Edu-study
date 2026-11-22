@@ -71,4 +71,6 @@ function Fixture() {
     </section>
   </div>
 }
-createRoot(document.getElementById('root')!).render(<Fixture />)
+const root = createRoot(document.getElementById('root')!)
+root.render(<Fixture />)
+if (import.meta.hot) import.meta.hot.dispose(() => root.unmount())
