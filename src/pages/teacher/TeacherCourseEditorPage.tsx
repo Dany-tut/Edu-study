@@ -2845,13 +2845,13 @@ function CenterLesson({
         )}
 
         {descriptionVisible ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div>
+            <div style={{ position: 'relative' }}>
               <Label>{t('Описание урока')}</Label>
               <button data-hover="layer"
                 type="button"
                 onClick={() => { onUpdate({ ...lesson, description: '' }); setDescriptionVisible(false) }}
-                style={{ border: 0, background: 'transparent', color: 'var(--color-muted)', font: 'inherit', fontSize: 12, cursor: 'pointer' }}
+                style={{ position: 'absolute', top: 0, right: 0, border: 0, background: 'transparent', color: 'var(--color-muted)', font: 'inherit', fontSize: 12, cursor: 'pointer' }}
               >{t('Убрать')}</button>
             </div>
             <AutoTextarea
