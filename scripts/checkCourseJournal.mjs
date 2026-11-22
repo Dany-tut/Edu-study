@@ -1,3 +1,4 @@
+import './checkCourseTestColumn.mjs'
 import assert from 'node:assert/strict'
 import { buildJournalIndex, courseRoster, journalCell, journalColumns, journalSummary, journalCsv, journalDate, OUTSIDE_COURSES } from '../src/lib/courseJournal.ts'
 import { journalDemo } from '../src/data/courseJournalDemo.ts'

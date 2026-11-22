@@ -364,3 +364,9 @@ export function workStats(works: StudentWork[], today: string) {
     marked: works.filter((w) => w.present !== null).length,
   }
 }
+
+/** Test columns follow current course contents, including tests embedded in homework. */
+export function hasCourseTests(works: StudentWork[]): boolean {
+  return works.some(({ slot }) => slot.course !== OUTSIDE_COURSES &&
+    (slot.lesson?.lesson?.kind === 'test' || slot.types.includes('testly')))
+}

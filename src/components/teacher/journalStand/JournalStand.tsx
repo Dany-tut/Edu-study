@@ -47,6 +47,7 @@ import { parseBasicAnswers } from '../../../lib/basicAnswers'
 import {
   ALL_COURSES,
   buildStandIndex,
+  hasCourseTests,
   scopeSlots,
   sameLearner,
   studentWorks,
@@ -936,6 +937,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
       onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
       onOpenStudent={open}
       rosterTools={picker}
+      rosterHasTests={student => !error && entries.some(e => sameLearner(e.student, student) && hasCourseTests(e.works))}
       hasUnsubmittedWork={data && !error ? student => !!entries.find(e => e.student.id === student.id)
         ?.works.some(w => !w.submitted && ['Не сдано', 'В процессе', 'Просрочено'].includes(w.status)) : undefined}
       rosterHomeworkScore={data && !error ? student => entries.find(e => e.student.id === student.id)?.stats.average ?? null : undefined}
