@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useT } from '../lib/i18n'
 import { filterIcon, type FeedFilter } from '../data/feed'
@@ -94,7 +95,7 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
                 БЕЗ overflow/text-overflow: подпись здесь ровно по содержимому,
                 и многоточие тут не «страхует», а срабатывает на долях пикселя —
                 «Всё» превращалось в «В…» при полностью влезающем ряде. */}
-            <span style={{ display: 'block', paddingLeft: 6 }}>{text}</span>
+            <OpticalText style={{ display: 'block', paddingLeft: 6 }}>{text}</OpticalText>
           </motion.span>
         )}
       </AnimatePresence>

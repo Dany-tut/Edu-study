@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import type { CSSProperties, ReactNode } from 'react'
 import type { LucideIcon } from './icons/appIcons'
 import Tooltip from './Tooltip'
@@ -85,11 +86,15 @@ export default function Segmented<T extends string>({ variant, items, value, onC
           >
             {Icon && <Icon size={14} />}
             {variant === 'narrow'
-              ? <span style={NARROW_LABEL}>{it.label}</span>
+              ? (typeof it.label === 'string' || typeof it.label === 'number'
+                ? <OpticalText style={NARROW_LABEL}>{it.label}</OpticalText>
+                : <span style={NARROW_LABEL}>{it.label}</span>)
               // Выбранная подпись жирнее — ширина под жирную копию занята
               // заранее, иначе кнопка и соседи сдвигались на 1–2 px при клике.
               : <span style={BOLD_RESERVE}>
-                <span style={{ gridArea: '1 / 1' }}>{it.label}</span>
+                {typeof it.label === 'string' || typeof it.label === 'number'
+                  ? <OpticalText style={{ gridArea: '1 / 1' }}>{it.label}</OpticalText>
+                  : <span style={{ gridArea: '1 / 1' }}>{it.label}</span>}
                 <span aria-hidden style={{ gridArea: '1 / 1', fontWeight: 700, visibility: 'hidden' }}>{it.label}</span>
               </span>}
             {!!it.count && (

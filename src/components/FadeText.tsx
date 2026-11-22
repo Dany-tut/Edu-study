@@ -1,9 +1,12 @@
+import OpticalText from './OpticalText'
 import { useLayoutEffect, type CSSProperties, type ReactNode } from 'react'
 import { refreshTextFades, textFadeLines } from '../lib/textFades'
 
 /** The entire label remains readable to accessibility tools and in the native tooltip. */
-export default function FadeText({ children, style, className, lines = 1, fadeMode = 'block' }: {
+export default function FadeText({ children, style, className, lines = 1, fadeMode = 'block', optical = false }: {
   children: ReactNode
+  /** Align plain control text; keep icons and rich content outside. */
+  optical?: boolean
   style?: CSSProperties
   className?: string
   /** Kept for existing callers; text truncation always uses a fade on every breakpoint. */
@@ -13,8 +16,17 @@ export default function FadeText({ children, style, className, lines = 1, fadeMo
   fadeMode?: 'block' | 'last-line'
 }) {
   useLayoutEffect(() => { refreshTextFades() }, [children, lines, fadeMode])
-  return <span className={className} data-text-fade={lines} data-text-fade-mode={fadeMode === 'last-line' ? 'last-line' : undefined} title={typeof children === 'string' ? children : undefined} style={{
+  const appearance: CSSProperties = {
     display: 'block', minWidth: 0, maxWidth: '100%', ...style,
     ...(lines > 1 ? textFadeLines(lines) : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip' }),
-  }}>{children}</span>
+  }
+  const attributes = {
+    className, 'data-text-fade': lines,
+    'data-text-fade-mode': fadeMode === 'last-line' ? 'last-line' : undefined,
+    title: typeof children === 'string' ? children : undefined, style: appearance,
+  }
+  if (optical && (typeof children === 'string' || typeof children === 'number')) {
+    return <OpticalText {...attributes}>{children}</OpticalText>
+  }
+  return <span {...attributes}>{children}</span>
 }

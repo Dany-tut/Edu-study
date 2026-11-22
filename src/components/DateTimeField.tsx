@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -204,7 +205,7 @@ export default function DateTimeField({ value, onChange, label }: {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <button data-hover="layer" type="button" onClick={() => shift(-1)} aria-label={t('Предыдущий месяц')} style={navBtn}><ChevronLeft size={14} /></button>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t(MONTHS[view.m])} {view.y}</span>
+                  <OpticalText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{`${t(MONTHS[view.m])} ${view.y}`}</OpticalText>
                   <button data-hover="layer" type="button" onClick={() => shift(1)} aria-label={t('Следующий месяц')} style={navBtn}><ChevronRight size={14} /></button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
@@ -228,7 +229,7 @@ export default function DateTimeField({ value, onChange, label }: {
                           color: sel ? '#fff' : 'var(--color-text)',
                         }}
                       >
-                        {day}
+                        <OpticalText>{day}</OpticalText>
                       </button>
                     )
                   })}

@@ -238,7 +238,7 @@ export default function TeacherSelect({
             }}
           />
         ) : (
-          <FadeText enabled={mobile} style={{
+          <FadeText optical enabled={mobile} style={{
             flex: 1, minWidth: 0,
             color: isEmpty ? 'var(--color-text-3)' : undefined,
             fontWeight: 500,
@@ -354,7 +354,7 @@ export default function TeacherSelect({
                         onMouseLeave={e => { dropdownRowHover(selected).onMouseLeave(e); setHoverDel(p => p === o.value ? null : p) }}
                       >
                         {o.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}>{o.icon}</span>}
-                        <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere', marginRight: editable && onDeleteOption && !selected ? 28 : 0 }}>{tc(t(o.label))}</FadeText>
+                        <FadeText optical lines={2} style={{ flex: 1, overflowWrap: 'anywhere', marginRight: editable && onDeleteOption && !selected ? 28 : 0 }}>{tc(t(o.label))}</FadeText>
                         {selected && <Check size={small ? 12 : 14} strokeWidth={2.5} style={{ flexShrink: 0, marginRight: editable && onDeleteOption ? 28 : 0 }} />}
                         {editable && onDeleteOption && (
                           <>

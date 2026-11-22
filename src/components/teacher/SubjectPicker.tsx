@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
 import FadeText from '../FadeText'
 import { textFadeStyle } from '../../lib/textFades'
@@ -58,7 +59,7 @@ export default function SubjectPicker({
         borderRadius: 10, background: accentBg, color: activeColor, fontSize: fs, fontWeight: 700, alignSelf: 'flex-start', minWidth: 0, maxWidth: '100%',
       }}>
         {only.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={only.value} size={16} /></span>}
-        <FadeText style={{ flex: 1 }}>{only.label}</FadeText>
+        <FadeText optical style={{ flex: 1 }}>{only.label}</FadeText>
       </div>
     )
   }
@@ -77,7 +78,7 @@ export default function SubjectPicker({
                 gap: 6, minWidth: 0, background: on ? accentBg : idleBg, color: on ? activeColor : idleColor,
               }}>
               {o.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={o.value} size={16} /></span>}
-              <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</span>
+              <OpticalText style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</OpticalText>
             </button>
           )
         })}
@@ -147,7 +148,7 @@ function SubjectDropdown({
           background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
         }}>
         {current.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={current.value} size={16} /></span>}
-        <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{current.label}</span>
+        <OpticalText style={{ flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{current.label}</OpticalText>
         <ChevronDown size={14} style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
       </button>
       {open && rect && createPortal(
@@ -168,7 +169,7 @@ function SubjectDropdown({
                   fontSize: fs,
                 }}>
                 {o.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={o.value} size={16} /></span>}
-                <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{o.label}</FadeText>
+                <FadeText optical lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{o.label}</FadeText>
                 {on && <Check size={14} strokeWidth={2.5} style={{ color: activeColor, flexShrink: 0 }} />}
               </button>
             )

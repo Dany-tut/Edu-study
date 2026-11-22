@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { tactile } from '../lib/feedback'
@@ -67,7 +68,8 @@ export default function MobilePill({
       }}
     >
       {icon}
-      {children}
+      {typeof children === 'string' || typeof children === 'number'
+        ? <OpticalText>{children}</OpticalText> : children}
     </motion.button>
   )
 }

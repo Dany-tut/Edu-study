@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import type { CSSProperties, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, Loader2 } from '../icons/appIcons'
@@ -63,6 +64,8 @@ export default function TeacherSaveButton({
   const t = useT()
   const savedText = savedLabel ?? t('Сохранено!')
   const savingText = savingLabel ?? t('Сохраняю…')
+  const opticalLabel = (text: ReactNode) => typeof text === 'string' || typeof text === 'number'
+    ? <OpticalText>{text}</OpticalText> : text
   return (
     <motion.button
       whileHover={{ scale: disabled || saving ? 1 : 1.03 }}
@@ -118,19 +121,19 @@ export default function TeacherSaveButton({
             <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }} style={{ display: 'flex' }}>
               <Loader2 size={14} strokeWidth={2.5} />
             </motion.span>
-            {savingText}
+            {opticalLabel(savingText)}
           </motion.span>
         ) : saved ? (
           <motion.span key="saved"
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
             style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', position: 'relative' }}>
-            <Check size={16} strokeWidth={2.5} /> {savedText}
+            <Check size={16} strokeWidth={2.5} /> {opticalLabel(savedText)}
           </motion.span>
         ) : (
           <motion.span key="save"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{ gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', position: 'relative' }}>
-            {icon ?? <Check size={14} strokeWidth={2.5} />} {label}
+            {icon ?? <Check size={14} strokeWidth={2.5} />} {opticalLabel(label)}
           </motion.span>
         )}
       </AnimatePresence>

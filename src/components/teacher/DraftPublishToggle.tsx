@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Loader2, Pencil, Send } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -42,7 +43,7 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
       {[text, ...reserve].map(r => (
         <span key={r} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{r}</span>
       ))}
-      <span style={{ gridArea: '1 / 1' }}>{text}</span>
+      <OpticalText style={{ gridArea: '1 / 1' }}>{text}</OpticalText>
     </span>
   )
 

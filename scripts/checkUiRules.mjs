@@ -1,3 +1,4 @@
+import './checkOpticalText.mjs'
 import './checkOverlayFades.mjs'
 import './checkTextFades.mjs'
 import './checkTextFadeVisibility.mjs'

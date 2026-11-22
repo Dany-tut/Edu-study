@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { motion } from 'framer-motion'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData } from '../store/studentDataStore'
@@ -50,7 +51,7 @@ export default function SubjectTabs() {
               border: isActive ? '1px solid var(--color-border-glass)' : '1px solid transparent',
             }}
           >
-            {tab.label}
+            <OpticalText>{tab.label}</OpticalText>
           </motion.button>
         )
       })}

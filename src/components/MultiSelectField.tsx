@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import FadeText from './FadeText'
 import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
 import { textFadeStyle } from '../lib/textFades'
@@ -179,7 +180,7 @@ export default function MultiSelectField({
 
   const chip = (v: string) => (
     <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%', padding: field ? '4px 8px' : '2px 8px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
-      {optionIcon?.(v)}<span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(v)}</span>
+      {optionIcon?.(v)}<OpticalText style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(v)}</OpticalText>
       <button data-hover="layer" type="button" aria-label={`${t('Удалить')}: ${t(v)}`} onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', opacity: 0.7, padding: 0, background: 'none', border: 'none', color: 'inherit' }}><X size={12} strokeWidth={2.5} /></button>
     </span>
   )
@@ -239,7 +240,7 @@ export default function MultiSelectField({
             {!field && values.map(chip)}
           </div>
         ) : isEmpty ? (
-          <span style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label}</span>
+          <OpticalText style={{ flex: 1, minWidth: 0, fontSize, color: field ? 'var(--color-muted)' : 'var(--color-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label}</OpticalText>
         ) : field ? (
           // В форме выбранного немного и прятать его за «+N» незачем — всё видно.
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -250,7 +251,7 @@ export default function MultiSelectField({
           <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, alignItems: 'center', overflow: 'hidden' }}>
             {chip(values[0])}
             {values.length > 1 && (
-              <span style={{ padding: '2px 8px', borderRadius: 7, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: chipFont, fontWeight: 700, flexShrink: 0 }}>+{values.length - 1}</span>
+              <span style={{ padding: '2px 8px', borderRadius: 7, background: 'var(--color-bg-5)', color: 'var(--color-muted)', fontSize: chipFont, fontWeight: 700, flexShrink: 0 }}><OpticalText>{`+${values.length - 1}`}</OpticalText></span>
             )}
           </div>
         )}
@@ -293,7 +294,7 @@ export default function MultiSelectField({
                         style={{ ...dropdownRow(selected, { small, accent, accentBg }), fontSize, ...(optionIcon && field && field.fontSize >= 16 ? { minHeight: 48 } : {}) }}
                         {...dropdownRowHover(selected)}
                       >
-                        {optionIcon?.(o)}<FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(o)}</FadeText>
+                        {optionIcon?.(o)}<FadeText optical lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(o)}</FadeText>
                         {selected && <Check size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
                       </button>
                     )
@@ -304,7 +305,7 @@ export default function MultiSelectField({
                       {...dropdownRowHover(false)}
                     >
                       <Plus size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />
-                      <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(createLabel)} «{typed}»</FadeText>
+                      <FadeText optical lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{`${t(createLabel)} «${typed}»`}</FadeText>
                     </div>
                   )}
                 </div>
@@ -315,7 +316,7 @@ export default function MultiSelectField({
                   {...dropdownRowHover(false)}
                 >
                   <Plus size={14} strokeWidth={2.5} style={{ flexShrink: 0 }} />
-                  <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(createHint)}</FadeText>
+                  <FadeText optical lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(createHint)}</FadeText>
                 </div>
               )}
             </motion.div>

@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 // «или ссылкой» под плиткой файла урока: вместо загрузки в бакет — ссылка на
 // Google Диск / Яндекс Диск. Так прикрепляют то, что больше лимита бакета
 // (см. LessonFile.url в lib/lessonFiles).
@@ -80,7 +81,7 @@ export function LessonLinkPanel({
             background: 'var(--color-green-fill)', color: '#fff',
           }}
         >
-          {t('Добавить')}
+          <OpticalText>{t('Добавить')}</OpticalText>
         </button>
       </div>
 
@@ -161,7 +162,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
             background: 'var(--color-green-fill)', color: '#fff',
           }}
         >
-          {t('Добавить')}
+          <OpticalText>{t('Добавить')}</OpticalText>
         </button>
       </div>
       <p style={{ marginTop: 5, fontSize: compact ? 10 : 11, lineHeight: 1.3, color: err ? 'var(--color-red-text)' : 'var(--color-muted)' }}>

@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import './pillTabs.css'
 
 export default function ProfileChips<T extends string>({ label, value, items, onChange }: {
@@ -8,6 +9,6 @@ export default function ProfileChips<T extends string>({ label, value, items, on
 }) {
   return <nav className="cj-tabs profile-chips" aria-label={label}>
     {items.map(item => <button data-hover="layer" key={item.id} type="button" aria-pressed={item.id === value}
-      onClick={() => onChange(item.id)}>{item.label}</button>)}
+      onClick={() => onChange(item.id)}><OpticalText>{item.label}</OpticalText></button>)}
   </nav>
 }
