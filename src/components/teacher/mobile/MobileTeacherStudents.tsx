@@ -15,6 +15,7 @@ import { useHomework } from '../../../lib/useHomework'
 import { contactLabel } from '../../../lib/contactLink'
 import { useT, useTc } from '../../../lib/i18n'
 import TeacherSelect from '../TeacherSelect'
+import StudentSubjectsField from '../StudentSubjectsField'
 import { FIELD, FIELD_LABEL_INSET } from '../../../lib/fieldStyle'
 import { btn, GRAD } from '../../../lib/pillStyles'
 import { Alert } from '../../Alert'
@@ -25,7 +26,7 @@ import { GLASS, glassMenu, useGlassBar, type GlassBar } from '../../../lib/nativ
 import { PLATFORM } from '../../../lib/platform'
 import { useKeyboardInset } from '../../../lib/useKeyboardInset'
 import { tactile } from '../../../lib/feedback'
-import { studentSubjectOptions, defaultStudentSubject, isStudentSubjectValid } from '../../../lib/studentSubject'
+import { normalizeStudentSubjects, defaultStudentSubject } from '../../../lib/studentSubject'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
 import BackCircle from '../../../components/BackCircle'
@@ -337,37 +338,6 @@ function FloatingField({ label, required, floated, children }: { label: string; 
   )
 }
 
-// Поле «Предмет» новой карточки ученика (вариант Б, studentSubject.ts).
-// На iOS-приложении — системное меню (nativeGlass), в вебе и на Android —
-// TeacherSelect. Значение — название предмета из реестра. Плейсхолдер пустой:
-// подпись рисует FloatingField снаружи. При выборе значение прижато к низу,
-// чтобы не наехать на уехавшую вверх подпись.
-function SubjectPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const t = useT()
-  const subjects = useTeacherAccess(s => s.subjects)
-  const options = studentSubjectOptions(mySubjectNames(subjects), value)
-  const floated = !!value
-  if (GLASS) {
-    const index = options.indexOf(value)
-    return (
-      <button type="button" data-hover="layer" aria-label={t('Предмет')}
-        style={{ ...FLOAT_FIELD, display: 'flex', alignItems: floated ? 'flex-end' : 'center', justifyContent: 'space-between', gap: 8, paddingTop: floated ? 20 : 9, paddingBottom: floated ? 6 : 9, color: 'var(--color-text)' }}
-        onClick={async e => {
-          const sel = await glassMenu(e.currentTarget, options.map((label, i) => ({ label: t(label), checked: i === index })), t('Предмет'))
-          if (sel >= 0) onChange(options[sel])
-        }}>
-        <FadeText style={{ flex: 1, textAlign: 'left' }}>{value ? t(value) : ''}</FadeText>
-        <ChevronDown size={16} style={{ flexShrink: 0 }} />
-      </button>
-    )
-  }
-  return (
-    <TeacherSelect value={value} onChange={onChange} clearable={false} placeholder=""
-      triggerStyle={{ minHeight: 48, ...(floated ? { alignItems: 'flex-end', paddingTop: 20, paddingBottom: 6 } : {}) }}
-      options={options.map(s => ({ value: s, label: t(s) }))} />
-  )
-}
-
 export default function MobileTeacherStudents() {
   const t = useT()
   const { groups: realGroups, addUnassignedStudent } = useGroups()
@@ -444,15 +414,13 @@ export default function MobileTeacherStudents() {
   const [invite, setInvite] = useState('')
   const [copiedInvite, setCopiedInvite] = useState(false)
   const teacherSubjects = useTeacherAccess(s => s.subjects)
-  const [newSubject, setNewSubject] = useState('')
+  const [newSubjects, setNewSubjects] = useState<string[]>([])
   const [nameFocused, setNameFocused] = useState(false)
-  // Один предмет у учителя — подставляем сразу (предметы догружаются асинхронно).
-  useEffect(() => { if (addOpen && !newSubject) { const d = defaultStudentSubject(mySubjectNames(teacherSubjects)); if (d) setNewSubject(d) } }, [addOpen, newSubject, teacherSubjects])
   async function createStudent() {
-    if (!newName.trim() || !isStudentSubjectValid(newSubject) || savingNew) return
+    if (!newName.trim() || !newSubjects.length || savingNew) return
     setSavingNew(true); setCreateError('')
     try {
-      const result = await addUnassignedStudent({ name: newName.trim(), subject: newSubject })
+      const result = await addUnassignedStudent({ name: newName.trim(), subjects: newSubjects })
       if (result.error) throw result.error
       setNewName('')
       setInvite(result.inviteToken ? `${location.origin}${location.pathname}#/join?token=${result.inviteToken}` : '')
@@ -463,7 +431,7 @@ export default function MobileTeacherStudents() {
 
   const openAdd = () => {
     setInvite(''); setCreateError(''); setCopiedInvite(false); setNewName('')
-    setNewSubject(defaultStudentSubject(mySubjectNames(teacherSubjects))); setAddOpen(true)
+    setNewSubjects(normalizeStudentSubjects([defaultStudentSubject(mySubjectNames(teacherSubjects))])); setAddOpen(true)
   }
 
   // На iPhone поиск, фильтр и добавление находятся в одном ряду над вкладками.
@@ -531,7 +499,7 @@ export default function MobileTeacherStudents() {
                 <button data-hover="layer" style={btn('M', 'primary', { background: copiedInvite ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}<span style={{ position: 'relative', top: '-0.04em' }}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</span></button>
                 <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
               </> : <>
-                <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || !isStudentSubjectValid(newSubject) || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
+                <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || !newSubjects.length || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
               </>}
             </div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -542,10 +510,8 @@ export default function MobileTeacherStudents() {
                 <FloatingField label="Имя ученика" floated={nameFocused || !!newName}>
                   <input aria-label={t('Имя ученика')} value={newName} onFocus={() => setNameFocused(true)} onBlur={() => setNameFocused(false)} onChange={e => setNewName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void createStudent() }} style={{ ...FLOAT_FIELD, paddingTop: 20, paddingBottom: 4 }} />
                 </FloatingField>
-                <FloatingField label="Предмет" required floated={!!newSubject}>
-                  <SubjectPicker value={newSubject} onChange={setNewSubject} />
-                </FloatingField>
-                <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Предмет нужен, чтобы ученик сразу увидел свои курсы и виджеты. Группу и расписание можно назначить позже.')}</p>
+                <StudentSubjectsField value={newSubjects} onChange={setNewSubjects} disabled={savingNew} />
+                <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Курсы и занятия назначаются отдельно.')}</p>
                 {createError && <Alert tone="danger" text={createError} />}
 
               </>}
@@ -604,7 +570,7 @@ export default function MobileTeacherStudents() {
             <>
               {filter === 'all' && <SectionLabel>{t('Все ученики')}</SectionLabel>}
               {individuals.map(s => (
-                <PersonRow key={s.id} student={s} subject={s.subject} onClick={() => openStudent(s)} />
+                <PersonRow key={s.id} student={s} subject={s.subjects?.join(' · ') || s.subject} onClick={() => openStudent(s)} />
               ))}
             </>
           )}

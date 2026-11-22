@@ -47,10 +47,11 @@ export function useWidgetRelevance(subjectOverride?: string | null): (id: number
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
 
   const profileSubject = useStudentData(s => s.profileSubject)
+  const profileSubjects = useStudentData(s => s.profileSubjects)
 
   const scope = useMemo(() => widgetSubjectScope({
-    courses: subjects, activeCourseId: activeSubjectId, override: subjectOverride, profileSubject,
-  }), [subjects, activeSubjectId, subjectOverride, profileSubject])
+    courses: subjects, activeCourseId: activeSubjectId, override: subjectOverride, profileSubject, profileSubjects,
+  }), [subjects, activeSubjectId, subjectOverride, profileSubject, profileSubjects])
 
   return useCallback((id: number) => {
     const meta = WIDGET_META.find(w => w.id === id)

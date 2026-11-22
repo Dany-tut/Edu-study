@@ -16,7 +16,7 @@
 // через этот модуль, чтобы платформы не расходились.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { getSubject } from './subjects'
+import { getSubject, SUBJECT_NAMES, mySubjectNames } from './subjects'
 
 /** Название из реестра для известного предмета (по id или имени), иначе
  *  обрезанная строка; пусто → null. Формат совпадает с groups.subject. */
@@ -26,12 +26,40 @@ export function normalizeStudentSubject(value: string | null | undefined): strin
   return getSubject(trimmed)?.name ?? trimmed
 }
 
+/** Canonical names, stable order, case-insensitive duplicates (including custom subjects). */
+export function normalizeStudentSubjects(values: readonly unknown[] | null | undefined): string[] {
+  const seen = new Set<string>()
+  return (values ?? []).flatMap(value => {
+    const name = typeof value === 'string' ? normalizeStudentSubject(value) : null
+    if (!name || seen.has(name.toLocaleLowerCase())) return []
+    seen.add(name.toLocaleLowerCase())
+    return [name]
+  })
+}
+
+/** Preserve group context while keeping every explicitly selected subject. */
+export function resolveStudentSubjects(input: { groupSubject?: string | null; ownSubject?: string | null; ownSubjects?: readonly string[] | null }): string[] {
+  return normalizeStudentSubjects([input.groupSubject, ...(input.ownSubjects ?? []), input.ownSubject])
+}
+
+/** One row / one person. The scalar is retained for older clients only. */
+export function studentSubjectFields(input: { subject?: string; subjects?: string[] }) {
+  const subjects = normalizeStudentSubjects(input.subjects ?? [input.subject])
+  return { subject: subjects[0] ?? null, subjects }
+}
+
+/** Teacher's subjects first, then the full registry and preserved custom values. */
+export function studentSubjectsOptions(teacherSubjects: string[], selected: string[] = []): string[] {
+  return normalizeStudentSubjects([...mySubjectNames(teacherSubjects), ...SUBJECT_NAMES, ...selected])
+}
+
 /** Предмет ученика: группа или карточка 1:1 главнее собственной колонки. */
 export function resolveStudentSubject(input: {
   groupSubject?: string | null
   ownSubject?: string | null
+  ownSubjects?: readonly string[] | null
 }): string | null {
-  return normalizeStudentSubject(input.groupSubject) ?? normalizeStudentSubject(input.ownSubject)
+  return resolveStudentSubjects(input)[0] ?? null
 }
 
 /** Подпись предмета для интерфейса: имя из реестра или своя строка как есть. */
@@ -76,6 +104,7 @@ export function widgetSubjectScope(input: {
   activeCourseId?: string | null
   override?: string | null
   profileSubject?: string | null
+  profileSubjects?: readonly string[] | null
 }): Set<string> {
   const override = getSubject(input.override)?.id
   if (override) return new Set([override])
@@ -84,6 +113,8 @@ export function widgetSubjectScope(input: {
   if (one) return new Set([one])
   const all = input.courses.map(course => getSubject(course.subject)?.id).filter((id): id is string => !!id)
   if (all.length) return new Set(all)
-  const own = getSubject(input.profileSubject)?.id
-  return own ? new Set([own]) : new Set()
+  return new Set(normalizeStudentSubjects([...(input.profileSubjects ?? []), input.profileSubject]).flatMap(name => {
+    const id = getSubject(name)?.id
+    return id ? [id] : []
+  }))
 }

@@ -23,9 +23,10 @@ import {
   Search, Plus, Pencil,
 } from '../../components/icons/appIcons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
+import StudentSubjectsField from '../../components/teacher/StudentSubjectsField'
 import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
-import { defaultStudentSubject, isStudentSubjectValid, normalizeStudentSubject, studentSubjectOptions } from '../../lib/studentSubject'
+import { defaultStudentSubject, normalizeStudentSubject, normalizeStudentSubjects } from '../../lib/studentSubject'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import NewStudentConfig from '../../components/teacher/NewStudentConfig'
 import { useScrollEdges } from '../../components/teacher/journalStand/useScrollEdges'
@@ -42,7 +43,7 @@ import { assignedCourseTitles, type StudentCourseAssignment } from '../../lib/st
 import { ensureCardFillTask } from '../../lib/cardFillTask'
 import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
-import { usePersistentState, clearDrafts } from '../../lib/useDraft'
+import { usePersistentState, clearDrafts, readDraft } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
 import { OverlayScrollArea, useOverlayScroll } from '../../components/teacher/OverlayScroll'
 import { normalizeContact, contactHref, contactLabel } from '../../lib/contactLink'
@@ -333,9 +334,9 @@ function AddStudentTypePicker({ groups, hasPeople, onPickGroup, onPickIndividual
   )
 }
 
-function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
+export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   onClose: () => void
-  onSave: (groupId: string, s: { name: string; subject: string; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null; studentId: string | null; error: string | null }>
+  onSave: (groupId: string, s: { name: string; subject: string; subjects: string[]; phone: string; telegramLink: string; parentContact: string; desiredScore: number; paymentAmount: number }) => Promise<{ inviteToken: string | null; studentId: string | null; error: string | null }>
   groups: Group[]
   initialGroupId: string | null
 }) {
@@ -344,18 +345,20 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   // Draft-backed: survives a page reload; cleared on save or explicit close.
   const [selectedGroup, setSelectedGroup] = usePersistentState<string>('groups.addStudent.v2.group', initialGroupId ?? '')
   const [name, setName] = usePersistentState('groups.addStudent.name', '')
-  // Предмет обязателен (вариант Б): список — предметы учителя (profiles.subjects;
-  // пусто = ещё не выбрал = все из реестра), единственный подставлен сразу.
-  // Выбрана группа — предмет её; другие группы скрыты, чтобы не разошлись.
-  // Тот же список, что у «Предмет» в окнах 1:1 и групп: mySubjectNames.
   const teacherSubjects = useTeacherAccess(st => st.subjects)
-  const subjectPool = mySubjectNames(teacherSubjects)
-  const [subject, setSubject] = usePersistentState('groups.addStudent.subject', defaultStudentSubject(subjectPool))
   const pickedGroup = groups.find(g => g.id === selectedGroup)
-  const effectiveSubject = normalizeStudentSubject(pickedGroup?.subject) ?? normalizeStudentSubject(subject)
-  const subjectOptions = studentSubjectOptions(subjectPool, effectiveSubject)
-  const groupsForSubject = effectiveSubject ? groups.filter(g => normalizeStudentSubject(g.subject) === effectiveSubject) : groups
-  const canSave = !!name.trim() && isStudentSubjectValid(effectiveSubject)
+  const [subjects, setSubjects] = usePersistentState<string[]>('groups.addStudent.subjects', () =>
+    normalizeStudentSubjects([pickedGroup?.subject, readDraft<string>('groups.addStudent.subject') ?? defaultStudentSubject(mySubjectNames(teacherSubjects))]))
+  const canSave = !!name.trim() && subjects.length > 0
+  function changeSubjects(values: string[]) {
+    setSubjects(values)
+    if (pickedGroup && !values.includes(normalizeStudentSubject(pickedGroup.subject) ?? '')) setSelectedGroup('')
+  }
+  function changeGroup(id: string) {
+    setSelectedGroup(id)
+    const subject = groups.find(g => g.id === id)?.subject
+    if (subject) setSubjects(values => normalizeStudentSubjects([...values, subject]))
+  }
   const [phone, setPhone] = usePersistentState('groups.addStudent.phone', '')
   const [telegram, setTelegram] = usePersistentState('groups.addStudent.telegram', '')
   const [parent, setParent] = usePersistentState('groups.addStudent.parent', '')
@@ -376,8 +379,16 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
     if (!canSave || saving) return
     setSaving(true)
     setSaveErr(null)
-    const { inviteToken, studentId, error } = await onSave(selectedGroup, { name: name.trim(), subject: effectiveSubject ?? '', phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
-    setSaving(false)
+    let result: Awaited<ReturnType<typeof onSave>>
+    try {
+      result = await onSave(selectedGroup, { name: name.trim(), subject: subjects[0], subjects, phone, telegramLink: normalizeContact(telegram), parentContact: parent, desiredScore, paymentAmount })
+    } catch (error) {
+      setSaveErr(error instanceof Error ? error.message : t('Не удалось добавить ученика — попробуйте ещё раз.'))
+      return
+    } finally {
+      setSaving(false)
+    }
+    const { inviteToken, studentId, error } = result
     // Ученик не создан — форма остаётся, причина (например, лимит тарифа) — текстом.
     if (!studentId) { setSaveErr(error ?? t('Не удалось добавить ученика — попробуйте ещё раз.')); return }
     clearDrafts('groups.addStudent.')
@@ -476,32 +487,14 @@ function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); void handleSave() } }}
               style={inputStyle} />
           </label>
-          <label style={labelStyle}>
-            {t('Предмет')}
-            <TeacherSelect
-              value={effectiveSubject ?? ''}
-              placeholder={t('Выберите предмет')}
-              onChange={value => {
-                setSubject(value)
-                if (pickedGroup && normalizeStudentSubject(pickedGroup.subject) !== normalizeStudentSubject(value)) setSelectedGroup('')
-              }}
-              options={subjectOptions.map(value => ({ value, label: t(value), icon: <SubjectMark subject={value} size={16} /> }))}
-              clearable={false}
-              triggerStyle={selectTriggerStyle}
-            />
-          </label>
-          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)' }}>{t('Предмет нужен, чтобы ученик сразу увидел свои курсы и виджеты. Группу и расписание можно назначить позже.')}</p>
-          {groupsForSubject.length > 0 && (
+          <StudentSubjectsField value={subjects} onChange={changeSubjects} disabled={saving} />
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)' }}>{t('Курсы и занятия назначаются отдельно.')}</p>
+          {groups.length > 0 && (
             <label style={labelStyle}>
               {t('Группа (необязательно)')}
-              <TeacherSelect
-                value={selectedGroup}
-                placeholder={t('Пока без занятий')}
-                onChange={setSelectedGroup}
-                options={[{ value: '', label: t('Пока без занятий') }, ...groupsForSubject.map(g => ({ value: g.id, label: g.name, icon: <SubjectMark subject={g.subject} size={16} /> }))]}
-                clearable={false}
-                triggerStyle={selectTriggerStyle}
-              />
+              <TeacherSelect value={selectedGroup} placeholder={t('Пока без занятий')} onChange={changeGroup}
+                options={[{ value: '', label: t('Пока без занятий') }, ...groups.map(g => ({ value: g.id, label: g.name, icon: <SubjectMark subject={g.subject} size={16} /> }))]}
+                clearable={false} triggerStyle={selectTriggerStyle} />
             </label>
           )}
 
@@ -2711,7 +2704,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
         }
         map.set(key, e)
       }
-      if (s.subject) e.subjects.add(s.subject)
+      for (const subject of normalizeStudentSubjects(s.subjects ?? [s.subject])) e.subjects.add(subject)
       // Prefer identity from a registered row so the enrollment inherits the login.
       if (s.authUserId) {
         e.registered = true

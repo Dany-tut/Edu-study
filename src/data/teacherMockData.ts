@@ -36,6 +36,8 @@ export type Student = {
   /** Empty string represents an unassigned student (SQL group_id IS NULL). */
   groupId: string
   subject?: string
+  /** Selected subjects; independent of group enrolments and course access. */
+  subjects?: string[]
   isIndividual?: boolean
   name: string
   schoolClass?: string
