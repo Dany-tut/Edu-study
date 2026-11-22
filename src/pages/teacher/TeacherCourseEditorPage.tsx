@@ -27,6 +27,7 @@ import { loadCourseEditorMetadata } from '../../lib/courseEditorLoad'
 import CourseVisibilityButton from '../../components/teacher/CourseVisibilityButton'
 import { useCourseVisibility, flushCourseVisibility, loadCourseVisibility } from '../../lib/courseVisibility'
 import { courseModuleIdentitiesFor } from '../../lib/courseModuleIdentity'
+import { courseModuleWrites } from '../../lib/courseModuleWrites'
 import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, useSyncExternalStore } from 'react'
 import SaveStatusLine from '../../components/SaveStatusLine'
 import { getWriteActivity, subscribeWriteActivity } from '../../lib/sync/writeActivity'
@@ -7092,12 +7093,12 @@ export default function TeacherCourseEditorPage() {
     // New-course visibility is committed before any new content can be read.
     // This writes no course/content/access fields and respects the save barrier.
     await flushCourseVisibility(shortId, moduleDbIdByLocalId)
-    for (let i = 0; i < editorModules.length; i++) {
-      const m = editorModules[i], dbId = moduleDbIdByLocalId[m.id]
-      const values = { label: m.label, position: i }
-      const { error } = existing.some(row => row.id === dbId)
-        ? await supabase.from('course_modules').update(values).eq('id', dbId).eq('course_id', courseDbId)
-        : await supabase.from('course_modules').insert({ id: dbId, course_id: courseDbId, ...values })
+    // The authoritative read already includes label/position. Unchanged rows
+    // need no PATCH, while inserts and actual edits retain the same UUID scope.
+    for (const write of courseModuleWrites(editorModules, moduleDbIdByLocalId, existing)) {
+      const { error } = write.kind === 'update'
+        ? await supabase.from('course_modules').update(write.values).eq('id', write.id).eq('course_id', courseDbId)
+        : await supabase.from('course_modules').insert({ id: write.id, course_id: courseDbId, ...write.values })
       if (error) {
         saveIssue.current = courseSaveReason('lessons', error, shortId)
         return await writeFailed()
