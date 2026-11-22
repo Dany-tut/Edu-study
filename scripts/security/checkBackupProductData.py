@@ -50,6 +50,19 @@ with tempfile.TemporaryDirectory() as temporary:
     assert all('/' not in e['file'] for e in manifest['tables'])
     assert backup.verify(root)['format'] == 3
     assert (root.stat().st_mode & 0o077) == 0
+    artifact=root/'schema.sql'
+    artifact.write_bytes(b'CREATE SCHEMA fixture;')
+    import hashlib
+    manifest['artifacts']=[{'file':'schema.sql','bytes':artifact.stat().st_size,'sha256':hashlib.sha256(artifact.read_bytes()).hexdigest()}]
+    (root/'manifest.json').write_text(json.dumps(manifest))
+    backup.verify(root)
+    artifact.write_bytes(b'corrupted')
+    try:
+        backup.verify(root)
+        raise AssertionError('schema corruption passed')
+    except RuntimeError:
+        pass
+    artifact.write_bytes(b'CREATE SCHEMA fixture;')
     first = root / manifest['tables'][0]['file']
     first.write_bytes(b'corrupted')
     try:
