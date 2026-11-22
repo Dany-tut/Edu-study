@@ -184,7 +184,7 @@ function NativeJournalBar({ bar, onTap, onMenu }: {
 export default function CourseJournal({ mobile = false, nativeIphone = false }: { mobile?: boolean; nativeIphone?: boolean }) {
   const t = useT()
   const { tc, tn } = useTc()
-  const { data, error, loading, reload, setData } = useCourseJournal(false, true, nativeIphone)
+  const { data, error, loading, reload, setData, commitAttendance } = useCourseJournal(false, true, nativeIphone)
   const tz = useTeacherTz(s => s.tz)
   const [clock, setClock] = useState(() => new Date().toISOString())
   // Schedule wall dates and homework deadlines are stored in Moscow time.
@@ -396,7 +396,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     {onlyAttention && <div className="cj-active-filter"><CircleAlert size={14} /><span>{t('Показаны ученики, которым нужно внимание')}</span><button data-hover="layer" type="button" onClick={() => setOnlyAttention(false)}>{t('Сбросить')}</button></div>}
     {pendingEvents.length > 0 && !(mobile && transfer) && <div className="cj-pending-alert"><CircleAlert size={17} /><span>{t('Есть незаполненные занятия')}: {pendingEvents.length}</span><button data-hover="layer" type="button" onClick={() => openMark(pendingEvents[0].id)}>{t('Заполнить')}<ChevronRight size={13} /></button></div>}
     {mobile && transfer && index && !data.demo ? <MobileJournalTransfer key={courseId} data={data} index={index} students={filteredRoster} columns={allColumns}
-      today={today} time={now.time} nativeIphone={nativeIphone} onExit={() => setTransfer(false)} onSaved={reload}
+      today={today} time={now.time} nativeIphone={nativeIphone} onExit={() => setTransfer(false)} onCommitted={commitAttendance} onSaved={reload}
       onBar={bar => {
         transferActions.current = { save: bar.save, paste: bar.paste }
         if (bar.dirty !== transferBar.dirty || bar.busy !== transferBar.busy) setTransferBar({ dirty: bar.dirty, busy: bar.busy })
@@ -430,7 +430,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
       // Урок в записи отмечают в окне с пояснением: «Был» засчитывает урок и не списывает занятие.
       if (isRecordingColumn(cell.column) && !data.demo) { setSelected(null); setEditCells([cell]) } else openMark(cell.event!.id)
     }} mobile={mobile} onChange={update => { if (update) setData(old => old ? update(old) : old); else reload() }} />}</AnimatePresence>
-    {editCells && <AttendanceEditor mobile={mobile} cells={editCells} data={data} onSaved={reload} onClose={() => setEditCells(null)} />}
+    {editCells && <AttendanceEditor mobile={mobile} cells={editCells} data={data} onCommitted={commitAttendance} onSaved={reload} onClose={() => setEditCells(null)} />}
     {markId && !data.demo && <LessonGradeModal key={markId} groupId={markedEvent?.group_id ?? null} initialLessonId={markId} scheduleIds={scheduleIds} eventRecords={eventRecords} onClose={() => { setMarkId(null); reload() }} />}
     {markId && data.demo && <Modal title={t('Отметить занятие')} subtitle={`${markedEvent?.lesson_title} · ${dateLabel(markedEvent?.date ?? null)}`} onClose={() => setMarkId(null)} width={540} footer={<button className="cj-button cj-primary" type="button" onClick={saveDemoMarks}>{t('Сохранить отметки')}</button>}><div className="course-journal cj-demo-marks"><p className="cj-note">{t('Без отметки — не значит пропуск. Можно заполнить позже.')}</p><button type="button" className="cj-button" onClick={() => setDemoPresent(Object.fromEntries(markRoster.map(s => [s.id, true])))}>{t('Все присутствовали')}</button>{markRoster.map(student => <div key={student.id}><strong>{tn(student.name)}</strong><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === true} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === true ? null : true }))}>{t('Был')}</button><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === false} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === false ? null : false }))}>{t('Пропуск')}</button></div>)}</div></Modal>}
   </div>

@@ -11,6 +11,7 @@ import { attendanceSourceReady, isRecordingColumn } from '../../lib/journalTrans
 import AttendanceEditor, { type AttendancePreset } from './journalStand/AttendanceEditor'
 import { LessonDateDialog } from './journalStand/TransferTools'
 import JournalImport from './JournalImport'
+import type { ConfirmedAttendance } from '../../lib/confirmedAttendance'
 import './mobileJournalTransfer.css'
 
 const shortDate = (d: string | null) => d ? new Date(d + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : 'дата?'
@@ -22,9 +23,10 @@ const dateOf = (c: JournalColumn) => c.events.find(e => e.status !== 'cancelled'
  * сохраняются без списания с баланса. `onBar` отдаёт действия нижнему бару
  * экрана: на iPhone это нативное стекло, на Android — таблетки страницы.
  */
-export default function MobileJournalTransfer({ data, index, students, columns, today, time, nativeIphone, onExit, onSaved, onBar }: {
+export default function MobileJournalTransfer({ data, index, students, columns, today, time, nativeIphone, onExit, onSaved, onCommitted, onBar }: {
   data: CourseJournalData; index: ReturnType<typeof buildJournalIndex>; students: Student[]; columns: JournalColumn[]
   today: string; time: string; nativeIphone: boolean; onExit: () => void; onSaved: () => void
+  onCommitted?: (edits: ConfirmedAttendance[]) => void
   onBar?: (bar: { dirty: number; busy: boolean; save: () => void; paste: () => void }) => void
 }) {
   const past = useMemo(() => columns.filter(c => c.lesson && !c.assignment && c.lesson.kind !== 'test' && (!dateOf(c) || dateOf(c)! <= today)), [columns, today])
@@ -57,6 +59,9 @@ export default function MobileJournalTransfer({ data, index, students, columns, 
         const event = group[0].event!
         await saveLesson(event.group_id, event.date, group.map(c => ({ studentId: c.student.id, present: draft[c.student.id], grade: draft[c.student.id] ? c.grade : null })),
           event.lesson_title, event.id, signal, 'transfer')
+        signal.throwIfAborted()
+        onCommitted?.(group.map(c => ({ event, studentId: c.student.id, present: draft[c.student.id],
+          grade: draft[c.student.id] ? c.grade : null, source: 'transfer' })))
       }
     }, () => { setDraft({}); onSaved() }, cause => {
       onSaved()
@@ -103,7 +108,7 @@ export default function MobileJournalTransfer({ data, index, students, columns, 
       <button type="button" className="mjt-pill mjt-primary" disabled={action.busy || blocked} onClick={changes.length ? save : onExit}>
         {action.busy ? 'Сохранение…' : changes.length ? `Сохранить · ${changes.length}` : 'Готово'}</button>
     </div>}
-    {editor && <AttendanceEditor mobile transfer data={data} cells={editor.cells} preset={editor.preset} onSaved={onSaved} onClose={() => setEditor(null)} />}
+    {editor && <AttendanceEditor mobile transfer data={data} cells={editor.cells} preset={editor.preset} onCommitted={onCommitted} onSaved={onSaved} onClose={() => setEditor(null)} />}
     {dateOpen && <LessonDateDialog mobile data={data} column={column} students={missing} today={today} onSaved={onSaved} onClose={() => setDateOpen(false)} />}
     {importOpen && <JournalImport mobile data={data} columns={past} students={students}
       cellOf={(student, col) => journalCell(data, index, student, col, today, time)} onSaved={onSaved} onClose={() => setImportOpen(false)} />}

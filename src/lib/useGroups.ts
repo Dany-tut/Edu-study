@@ -893,6 +893,22 @@ export function useAttendance(groupId: string | null) {
     source?: 'transfer'
   ) {
     signal?.throwIfAborted()
+    // Scheduled journal edits commit attendance, grades, balance and the roster
+    // percentage in one transaction. Do not gate the editor on another history
+    // download plus N student writes. Older servers retain the legacy path.
+    if (scheduleId) {
+      const request = supabase.rpc('teacher_journal_save_fast', {
+        p_schedule: scheduleId, p_entries: entries, p_source: source ?? null,
+      })
+      const { error } = await (signal ? request.abortSignal(signal) : request)
+      signal?.throwIfAborted()
+      if (!error) {
+        void load()
+        bumpJournalPending()
+        return
+      }
+      if (error.code !== 'PGRST202') throw error
+    }
     // A personal lesson given to a group member (student-scoped schedule row,
     // groupId null) still belongs to that student's GROUP journal — just as a
     // single personal entry, not a whole-group one. So resolve each student's own

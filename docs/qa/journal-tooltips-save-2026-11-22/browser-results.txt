@@ -1,0 +1,5 @@
+PASS native + explicit hints, nested badge suppression, live title change, keyboard focus, Escape, scroll and click preservation
+PASS tooltip viewport bounds in 7 sizes × 2 themes (mouse emulation; touch separately)
+PASS double-click save confirms after one RPC, 796ms with 450ms mocked API; exact single-student payload, no history download/roster writes blocking save
+PASS failed write stays open with draft; no fallback on permission error; PGRST202 alone falls back and confirms via legacy path
+PASS iPhone/iPad/Android touch emulation: tap never opens hover hints

@@ -15,7 +15,7 @@ import type { User } from '@supabase/supabase-js'
 import { TeacherGuides, useTeacherGuides } from '../guides/TeacherGuides'
 import type { GuideId } from '../../../../design/contextual-onboarding/guides.mjs'
 import { getViewAs } from '../../../lib/teacherView'
-import { useT } from '../../../lib/i18n'
+import { t, useT } from '../../../lib/i18n'
 import { useTeacherAccess } from '../../../lib/teacherAccess'
 import TeacherDashboardPage from '../../../pages/teacher/TeacherDashboardPage'
 import TeacherGroupsPage from '../../../pages/teacher/TeacherGroupsPage'
@@ -204,7 +204,7 @@ function attendanceWords(work: StudentWork): string[] {
       ...(work.present && work.watched ? ['Пересматривал запись'] : [])]
   if (work.transferred) words.push('Перенесено, без списания')
   const hw = homeworkMark(work)
-  if (hw) words.push('ДЗ: ' + work.status.toLowerCase())
+  if (hw) words.push((hw === 'debt' ? t('Восклицательный знак — долг по ДЗ:') : t('Галочка — ДЗ:')) + ' ' + t(work.status).toLowerCase())
   return words
 }
 /** Цветная клетка посещаемости: заливка по оценке, «Н» — пропуск, штриховка — запись урока. */
@@ -224,14 +224,14 @@ function Attendance({ work, unavailable }: { work: StudentWork; unavailable: boo
   const replay = !recording && work.present && work.watched
   return (
     <span className="js-mark" data-tone={tone} data-recording={recording || undefined} data-transferred={work.transferred || undefined} aria-hidden>
-      {recording && work.present !== false && <i className="js-mark-play"><Play size={work.present ? 8 : 11} /></i>}
+      {recording && work.present !== false && <i className="js-mark-play" title={work.watched ? t('Урок в записи · просмотрено от') + ' ' + WATCH_PERCENT : t('Урок в записи · запись ещё не просмотрена')}><Play size={work.present ? 8 : 11} /></i>}
       {work.present === false ? 'Н'
         : work.present ? (work.grade ?? 'Был')
         : recording ? (work.watched ? WATCH_PERCENT : '—')
         : null}
       {(hw || replay) && <span className="js-mark-badges">
-        {hw && <span data-badge={hw}>{hw === 'done' ? <Check size={11} /> : '!'}</span>}
-        {replay && <span data-badge="replay"><Play size={9} /></span>}
+        {hw && <span data-badge={hw} title={(hw === 'debt' ? t('Долг по ДЗ:') : t('ДЗ:')) + ' ' + t(work.status).toLowerCase()}>{hw === 'done' ? <Check size={11} /> : '!'}</span>}
+        {replay && <span data-badge="replay" title={t('Ученик пересматривал запись урока')}><Play size={9} /></span>}
       </span>}
     </span>
   )
@@ -759,7 +759,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                   ].join(' · ')
                   return <td key={col.ref} aria-colindex={(columnPositions.get(col.ref) ?? 0) + 2} colSpan={span} className={!w ? 'js-unassigned-run' : undefined} data-upcoming={!!nearest && upcoming === nearest || undefined}>{w ? (
                     <button type="button" disabled={unavailable} data-selected-work={active || undefined} aria-pressed={active}
-                      className="js-cell" aria-label={label} title={withWork ? undefined : label.split(' · ').slice(1).join(' · ')}
+                      className="js-cell" aria-label={label} title={label}
                       onClick={() => {
                         set({ student: student.id, workRef: col.ref })
                         if (withWork) onOpenWork?.(student.id, col.ref)
@@ -813,7 +813,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
       return initial
     }
   })
-  const { data, loading, error, reload, setData } = useCourseJournal(selected.tab === 'Работы', journalActive)
+  const { data, loading, error, reload, setData, commitAttendance } = useCourseJournal(selected.tab === 'Работы', journalActive)
   const position = useRef({ top: 0, left: 0 })
   const set = (v: Partial<StandSelection>) => setSelected((prev) => ({ ...prev, ...v }))
   useEffect(() => {
@@ -1094,7 +1094,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
       }
     />{homework.dialog}
     {attendanceCells && <AttendanceEditor key={transfer ? 'transfer' : 'marks'} cells={attendanceCells.cells} preset={attendanceCells.preset}
-      transfer={transfer} data={data ?? undefined} onSaved={reload} onClose={() => setAttendanceCells(null)} />}
+      transfer={transfer} data={data ?? undefined} onCommitted={commitAttendance} onSaved={reload} onClose={() => setAttendanceCells(null)} />}
     {lessonDate && data && <LessonDateDialog data={data} column={lessonDate.column} students={lessonDate.students} today={today}
       onSaved={reload} onClose={() => setLessonDate(null)} />}
     {importScope && data && index && <JournalImport data={data} columns={importScope.columns} students={importScope.students}

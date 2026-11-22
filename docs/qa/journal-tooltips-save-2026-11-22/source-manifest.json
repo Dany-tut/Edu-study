@@ -1,0 +1,18 @@
+{
+  "testedBase": "823f91a499ae08a7e9f4b5945cd04d9158b69609",
+  "integratedBase": "411549f9",
+  "sha256": {
+    "src/components/Tooltip.tsx": "8ca23d29d878ad0040248cda6b819cb5c042ea5eb84b684bbf6c6d278dffc97c",
+    "src/components/NativeTitleTooltips.tsx": "b55a57fc061302700f69d5b09bfe4edd89459faa46e58d06e9e4b997615de4ea",
+    "src/components/teacher/CourseJournal.tsx": "b1fd2e81f46d088b4cd7813384763ac7ae38c3d2b44c124a6ba539924932fcdd",
+    "src/components/teacher/MobileJournalTransfer.tsx": "35dec8ea3abad0d715b1eb0ad826c3ad101d45fa366c918ad06637092cecd85b",
+    "src/components/teacher/journalStand/AttendanceEditor.tsx": "64b12b6d81c5dcbb87bbd8641a3d078af99eac8b29af4dd0bbce04d5d2e60d42",
+    "src/components/teacher/journalStand/JournalStand.tsx": "86bca05eeb02009f2e76d59d4fc76ced68a5f7a2f681e5a645124a223d281752",
+    "src/lib/confirmedAttendance.ts": "d58db2d91b0f5f19fb7bc5551e15662e5a2b3836757a037a37e6ad547d8ff212",
+    "src/lib/useCourseJournal.ts": "e389c6babf1fe8d4eb7ca4f37670e5686e8695f539d635dddd0b79e09e9d1a83",
+    "src/lib/useGroups.ts": "a439051bf8b00c510caffe7d2f05764d9bfeae937dca88bb3377086f6e5e6a46",
+    "src/lib/i18nEn.ts": "0a99287f237bf8b35166df55c23b4d5a0e858d4b50cbe8289684a16580eeb2cc",
+    "src/main.tsx": "c05c2b95a3406aa2c64e4498f524c54befaf7463f7ad4a9d9205dc030ada0d3d",
+    "supabase/migrations/20261122025858_journal_attendance_fast_save.sql": "afaf031bc6b8fb96db808f70fbdb5699bdb29c8b2193b583ebe43e693f9e6ea6"
+  }
+}
