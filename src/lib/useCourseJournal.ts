@@ -1,3 +1,4 @@
+import { applyConfirmedAttendance, reconcileAttendanceSnapshot, type AttendanceConfirmation, type ConfirmedAttendance } from './confirmedAttendance'
 import { attendanceSourceReady } from './journalTransfer'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from './supabase'
@@ -76,6 +77,8 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   const reloadSource = useRef('manual-refresh')
   const traceStart = useRef(0)
   const traceReady = useRef(0)
+  const confirmedRevision = useRef(0)
+  const confirmations = useRef<AttendanceConfirmation[]>([])
   const [data, updateData] = useState<CourseJournalData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -84,6 +87,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   dataRef.current = data
   const setData = useCallback((action: Parameters<typeof updateData>[0]) => {
     if (parallelRoster) invalidateRecentSnapshot()
+    if (action === null) { confirmations.current = []; confirmedRevision.current++ }
     updateData(action)
   }, [parallelRoster])
   const reloadFrom = useCallback((source: string) => {
@@ -92,7 +96,13 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     setTick(n => n + 1)
   }, [parallelRoster])
   const reload = useCallback(() => reloadFrom('manual-refresh'), [reloadFrom])
-  const prefetch = useRef<{ tick: number; owner: Promise<string | null>; read: Promise<CourseJournalData | null> } | null>(null)
+  const commitAttendance = useCallback((edits: ConfirmedAttendance[]) => {
+    if (!edits.length) return
+    confirmations.current.push({ revision: ++confirmedRevision.current, edits })
+    if (parallelRoster) invalidateRecentSnapshot()
+    updateData(current => current ? applyConfirmedAttendance(current, edits) : current)
+  }, [parallelRoster])
+  const prefetch = useRef<{ tick: number; confirmedRevision: number; owner: Promise<string | null>; read: Promise<CourseJournalData | null> } | null>(null)
   useEffect(() => {
     if (!enabled || (tick === 0 && dataRef.current && Date.now() - lastLoaded.current < 30_000)) return
     const controller = new AbortController()
@@ -107,7 +117,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
       : null).finally(() => clearTimeout(timeout))
     // Roster may still be loading when a failed request settles.
     void read.catch(() => {})
-    prefetch.current = { tick, owner, read }
+    prefetch.current = { tick, confirmedRevision: confirmedRevision.current, owner, read }
     return () => {
       prefetch.current = null
       clearTimeout(timeout)
@@ -131,6 +141,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
       }, 20_000)
       return () => clearTimeout(timeout)
     }
+    const readRevision = prefetch.current?.tick === tick ? prefetch.current.confirmedRevision : confirmedRevision.current
     let active = true
     const controller = new AbortController()
     const { signal } = controller
@@ -201,7 +212,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
         setLoading(false)
       }
     }, 20_000)
-    void load().then(next => { if (active) { loadedScope.current = loadKey; loadedCompleteWorkList.current = completeWorkList; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), completeWorkList, lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); updateData(next) } }).catch(e => {
+    void load().then(next => { if (active) { loadedScope.current = loadKey; loadedCompleteWorkList.current = completeWorkList; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), completeWorkList, lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); updateData(reconcileAttendanceSnapshot(next, confirmations.current, readRevision)); confirmations.current = confirmations.current.filter(c => c.revision > readRevision) } }).catch(e => {
       if (active) setError(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
     }).finally(() => { clearTimeout(timeout); controller.abort(); if (active) setLoading(false) })
     return () => { active = false; clearTimeout(timeout); controller.abort() }
@@ -247,5 +258,5 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     return () => { unsubscribe(); if (timer) clearTimeout(timer) }
   }, [enabled, reloadFrom])
   const resolved = useMemo(() => data && !data.demo ? { ...data, students, groups } : data, [data, students, groups])
-  return { data: resolved, loading, error, reload, setData }
+  return { data: resolved, loading, error, reload, setData, commitAttendance }
 }

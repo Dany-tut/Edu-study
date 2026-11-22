@@ -6668,4 +6668,13 @@ export const EN: Record<string, string> = {
   "Сбой на нашей стороне, мы уже получили отчёт. Если «Повторить» не поможет, напишите в поддержку.": "Something went wrong on our side — we've received a report. If “Retry” doesn't help, contact support.",
   "Правки целы в этой вкладке — повторю сам через 30 с.": "Your edits are safe in this tab — retrying automatically in 30 s.",
   "Правки целы в этой вкладке.": "Your edits are safe in this tab.",
+  "Восклицательный знак — долг по ДЗ:": "Exclamation mark \u2014 homework needs attention:",
+  "Галочка — ДЗ:": "Checkmark \u2014 homework:",
+  "Долг по ДЗ:": "Homework needs attention:",
+  "ДЗ:": "Homework:",
+  "Ученик пересматривал запись урока": "The student rewatched the lesson recording",
+  "Урок в записи · просмотрено от": "Recorded lesson \u00b7 watched at least",
+  "Урок в записи · запись ещё не просмотрена": "Recorded lesson \u00b7 not watched yet",
+  "Вставить из таблицы": "Paste from spreadsheet",
+  "Перенос прошлого": "Import past lessons",
 }

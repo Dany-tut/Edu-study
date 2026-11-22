@@ -11,6 +11,7 @@ import {
   attendanceSourceReady, columnSubject, GRADE_PERCENT, isRecordingColumn, isTransferWork,
   saveTransferHomework, transferHomeworkBlocked, type HomeworkMark,
 } from '../../../lib/journalTransfer'
+import type { ConfirmedAttendance } from '../../../lib/confirmedAttendance'
 import './attendanceEditor.css'
 
 type Hw = 'keep' | 'done' | 'not'
@@ -40,8 +41,9 @@ function applyPreset(mark: Mark, preset: AttendancePreset | undefined, blocked: 
  * сюда же добавлено ДЗ «сдано» без работы ученика. Отметки переноса и записи
  * не списывают занятие с баланса (lesson_attendance.source).
  */
-export default function AttendanceEditor({ cells, onClose, onSaved, transfer = false, preset, data, mobile = false }: {
+export default function AttendanceEditor({ cells, onClose, onSaved, onCommitted, transfer = false, preset, data, mobile = false }: {
   cells: JournalCell[]; onClose: () => void; onSaved: () => void
+  onCommitted?: (edits: ConfirmedAttendance[]) => void
   transfer?: boolean; preset?: AttendancePreset; data?: CourseJournalData
   /** Телефон и айпад в портрете: лист снизу вместо окна. */
   mobile?: boolean
@@ -103,6 +105,9 @@ export default function AttendanceEditor({ cells, onClose, onSaved, transfer = f
         await saveLesson(event.group_id, event.date, indices.map(i => ({ studentId: cells[i].student.id, present: draft[i].present, grade: draft[i].grade })),
           event.lesson_title, event.id, signal, transfer ? 'transfer' : undefined)
         signal.throwIfAborted()
+        onCommitted?.(indices.map(i => ({ event, studentId: cells[i].student.id,
+          present: draft[i].present, grade: draft[i].grade,
+          source: transfer ? 'transfer' : recordings[i] ? 'recording' : 'live' })))
         baseline.current = baseline.current.map((m, i) => indices.includes(i) ? { ...m, present: draft[i].present, grade: draft[i].grade } : m)
       }
       for (let i = 0; i < cells.length; i++) {

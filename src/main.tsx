@@ -25,6 +25,8 @@ import { initAppLock } from './lib/appLock'
 import './styles/android.css' // Android: таблетки с заливкой и Roboto — только под [data-platform="android"]
 import { initAndroidBack } from './lib/androidBack'
 
+const NativeTitleTooltips = lazy(() => import('./components/NativeTitleTooltips'))
+
 // В приложении (Capacitor) service worker не нужен: ассеты и так в бандле, а
 // автообновляемый SW только вредит — он держит предзагруженную оболочку и после
 // переустановки отдавал ДРЕВНИЙ app-shell (чанк, которого в новой сборке уже
@@ -170,6 +172,7 @@ if (!(window as Window & { __iskraUnsupported?: boolean }).__iskraUnsupported) c
         сразу: без неё бесконечные repeat: Infinity её не слушали. */}
     <MotionConfig reducedMotion="user">
       <OfflineBanner />
+      <Suspense fallback={null}><NativeTitleTooltips /></Suspense>
       {IS_IOS && <WindowSoftEdges />}
       <ErrorBoundary>
         {FeedbackTriageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><FeedbackTriageStand /></Suspense> : LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <MfaGate><App /></MfaGate>}
