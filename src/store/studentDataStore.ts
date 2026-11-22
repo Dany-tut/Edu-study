@@ -547,7 +547,7 @@ async function ensureLessonsHeavy(lessonIds: string[]) {
   try {
     // Заодно чанк запасных конспектов AP — см. loadApLessons(): он читается
     // синхронно из рендера, и приехать обязан не позже самих уроков.
-    const [heavy] = await Promise.all([fetchLessonsHeavy(want), loadApLessons()])
+    const [heavy] = await Promise.all([fetchLessonsHeavy(want), loadApLessons(want)])
     for (const [k, v] of heavy) heavyCache.set(k, v)
   } catch (e) {
     // Снимаем флаг всё равно — см. комментарий выше, — но помечаем на повтор.

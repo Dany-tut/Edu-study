@@ -55,3 +55,7 @@ Baseline:1.0.3539/940c8856, session a67ce2b3-3c63-4219-93f3-ffc042e9010f. Одн
 Непроверенные/отложенные направления не выдаём за готовые: student calendar/track aggregate, realtime full-load coalescing, homework-review transaction, lesson-publication transaction, task-bank auth/inflight, shell decomposition, полная матрица вкладок на физических устройствах. Аудиты выявили кандидатов, но безопасный выпуск включает только перечисленные правки.
 
 Backend migration `20261122091224_course_content_atomic_save` применена через Supabase MCP после локальной actualSQL проверки. Remote history соответствует. SECURITY INVOKER, empty search_path, anon EXECUTE=false/authenticated=true подтверждены read-only metadata. Новых security advisor, связанных с функцией, нет; старые unrelated advisors сохранены до/после, политики не изменены.
+
+## Следующий узкий шаг после освобождения studentDataStore
+
+Владелец multisubject освободил файл, его PR266/миграция не перенесены. Отдельный performance-коммит меняет только вызов `loadApLessons(want)`, helper из предыдущего выпуска совместим. Actual ensureLessonsHeavy test `chunks-caller.mjs` PASS: нормализованные IDs, ordinary lesson без постороннего ожидания, AP fallback завершён до снятия heavyPending, inflight dedup сохраняется. Вместе с `chunks.mjs` подтверждена активация per-subject загрузки. Физические устройства и ученический E2E остаются непроверенными.
