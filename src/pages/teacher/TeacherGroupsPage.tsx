@@ -2431,6 +2431,7 @@ type GroupRosterProps = {
   availableGroupIds?: Set<string>
   onOpenStudent?: (student: Student) => void
   rosterTools?: React.ReactNode
+  rosterHasTrials?: (student: Student) => boolean
   rosterHasTests?: (student: Student) => boolean
   rosterHomeworkScore?: (student: Student) => number | null
   hasUnsubmittedWork?: (student: Student) => boolean
@@ -2441,7 +2442,7 @@ const rosterInset = 32
 const studentPanelWidth = 332
 const studentPanelGap = 12
 
-export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHasTests, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
+export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHasTrials, rosterHasTests, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
   // The journal, group strip and report drawer own their inner scroll fades.
   // Observing every cell here duplicates their work and forces offscreen
@@ -2566,6 +2567,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   // Full roster of the active group (drives chip counts), then narrowed by the
   // search box + active quick-filter, then sorted for display.
   const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [onOpenStudent && !s.personId && !s.authUserId ? s.id : personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id).map(s => studentsById.get(s.id) ?? s) : []
+  const showTrialColumn = !rosterHasTrials || rosterAll.some(rosterHasTrials)
   const showTestColumn = !rosterHasTests || rosterAll.some(rosterHasTests)
   const q = searchQuery.trim().toLowerCase()
   const rosterPredicates = hasUnsubmittedWork ? { ...filterPredicate, nohw: hasUnsubmittedWork } : filterPredicate
@@ -2573,7 +2575,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
     rosterAll
       .filter(s => !q || s.name.toLowerCase().includes(q))
       .filter(rosterPredicates[rosterFilter]),
-    !showTestColumn && sortKey === 'testScore' ? 'attention' : sortKey, sortDir, rosterHomeworkScore,
+    (!showTestColumn && sortKey === 'testScore') || (!showTrialColumn && sortKey === 'trialScore') ? 'attention' : sortKey, sortDir, rosterHomeworkScore,
   )
   const filterCounts: Record<RosterFilter, number> = {
     all: rosterAll.length,
@@ -2886,11 +2888,11 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                 <ScrollFadeTable>
                   <table style={{ width: '100%', minWidth: 1000, tableLayout: 'fixed', borderCollapse: 'collapse' }}>
                     <colgroup>
-                      <col style={{ width: showTestColumn ? '32%' : '39%' }} />
+                      <col style={{ width: `${32 + (showTestColumn ? 0 : 7) + (showTrialColumn ? 0 : 10)}%` }} />
                       <col style={{ width: '13%' }} />
                       <col style={{ width: '7%' }} />
                       {showTestColumn && <col style={{ width: '7%' }} />}
-                      <col style={{ width: '10%' }} />
+                      {showTrialColumn && <col style={{ width: '10%' }} />}
                       <col style={{ width: '9%' }} />
                       <col style={{ width: '12%' }} />
                       <col style={{ width: '10%' }} />
@@ -2901,14 +2903,14 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                         <Th label={t('Посл. вход')}     sortKey="lastVisit"  currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                         <Th label={t('ДЗ')}             sortKey="hwScore"    currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
                         {showTestColumn && <Th label={t('Тест')} sortKey="testScore" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
-                        <Th label={t('Пробник')}        sortKey="trialScore"   currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
+                        {showTrialColumn && <Th label={t('Пробник')} sortKey="trialScore" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
                         <Th label={t('Посещ.')}         sortKey="attendance"   currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
                         <Th label={t('Посл. оплата')}   sortKey="lastPayment"  currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
                         <Th label={t('Долг')}           sortKey="debt"         currentKey={sortKey} dir={sortDir} onSort={handleSort} right last />
                       </tr>
                     </thead>
                     <tbody>
-                      {groupStudents.length === 0 && <tr><td colSpan={showTestColumn ? 8 : 7} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
+                      {groupStudents.length === 0 && <tr><td colSpan={6 + Number(showTestColumn) + Number(showTrialColumn)} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
                         {rosterLoading ? <span role="status">{t('Загрузка…')}</span>
                           : searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено')
                           : t('Учеников пока нет. Добавьте первого — нужны имя и предмет.')}
@@ -2973,9 +2975,9 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                             {showTestColumn && <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('testScore') }}>
                               <ScorePill value={(!rosterHasTests || rosterHasTests(student)) && hasStudentActivity(student) ? student.testScore : null} />
                             </td>}
-                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('trialScore') }}>
-                              <ScorePill value={student.trialScore} />
-                            </td>
+                            {showTrialColumn && <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('trialScore') }}>
+                              <ScorePill value={!rosterHasTrials || rosterHasTrials(student) ? student.trialScore : null} />
+                            </td>}
                             {/* Attendance */}
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('attendance') }}>
                               <span style={{

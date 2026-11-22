@@ -370,3 +370,8 @@ export function hasCourseTests(works: StudentWork[]): boolean {
   return works.some(({ slot }) => slot.course !== OUTSIDE_COURSES &&
     (slot.lesson?.lesson?.kind === 'test' || slot.types.includes('testly')))
 }
+
+/** Legacy diagnostic scores do not establish a trial in the selected course. */
+export function hasCourseTrials(works: StudentWork[]): boolean {
+  return works.some(({ slot }) => slot.course !== OUTSIDE_COURSES && slot.lesson?.lesson?.kind === 'trial')
+}
