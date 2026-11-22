@@ -19,8 +19,10 @@ for stdout in ['[{"table_name":"public.lessons"}]', '{"rows":[{"table_name":"pub
 
 
 def fixture_query(cli, sql):
-    if sql.startswith('select table_name'):
-        return [{'table_name': 'public.lessons'}]
+    if sql.startswith('select p.table_name'):
+        return [{'table_name': 'public.lessons', 'schema_name': 'public', 'relation_name': 'lessons'},
+                {'table_name': 'public.future_notes_v2', 'schema_name': 'public', 'relation_name': 'future_notes_v2'},
+                {'table_name': 'public."odd/quote\"name"', 'schema_name': 'public', 'relation_name': 'odd/quote"name'}]
     if 'from "storage"."objects"' in sql:
         return [{'snapshot': {'table': 'storage.objects', 'row_count': 0, 'rows': []}}]
     return [{'snapshot': {'table': 'fixture', 'row_count': 1,
@@ -30,7 +32,9 @@ def fixture_query(cli, sql):
 with tempfile.TemporaryDirectory() as temporary:
     with patch.object(backup, 'query', fixture_query):
         root, manifest = backup.backup('unused', Path(temporary) / 'ok')
-    assert len(manifest['tables']) == 8
+    assert len(manifest['tables']) == 10
+    assert any(e['file'].startswith('table-') for e in manifest['tables'])
+    assert all('/' not in e['file'] for e in manifest['tables'])
     assert backup.verify(root)['format'] == 3
     assert (root.stat().st_mode & 0o077) == 0
     first = root / manifest['tables'][0]['file']

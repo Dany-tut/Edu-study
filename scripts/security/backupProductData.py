@@ -55,25 +55,28 @@ def backup(cli, destination):
     os.umask(0o077)
     root = Path(destination) / datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
-    tables = [r['table_name'] for r in query(cli,
-        'select table_name from iskra_history.protected_tables order by table_name')]
-    tables += ['iskra_history.row_versions', 'iskra_history.protected_tables',
+    tables = [(r['table_name'], r['schema_name'], r['relation_name']) for r in query(cli,
+        "select p.table_name, n.nspname schema_name, c.relname relation_name from iskra_history.protected_tables p join pg_class c on c.oid=to_regclass(p.table_name) join pg_namespace n on n.oid=c.relnamespace where not c.relispartition order by p.table_name")]
+    extras = ['iskra_history.row_versions', 'iskra_history.protected_tables',
                'storage.buckets', 'storage.objects', 'auth.users', 'auth.identities',
                'supabase_migrations.schema_migrations']
+    tables += [(table, *table.split('.')) for table in extras]
 
-    def capture(table):
-        if not re.fullmatch(r'[a-z_]+\.[a-z_]+', table):
-            raise RuntimeError('Invalid backup table identifier')
-        schema, name = table.split('.')
-        sql = ("select jsonb_build_object('table', '" + table + "', 'captured_at', statement_timestamp(), "
+    def capture(descriptor):
+        table, schema, name = descriptor
+        # Identifiers come from pg_catalog; quote them as SQL identifiers, never paths.
+        identifier = lambda value: '"' + value.replace('"', '""') + '"'
+        literal = "'" + table.replace("'", "''") + "'"
+        sql = ("select jsonb_build_object('table', " + literal + ", 'captured_at', statement_timestamp(), "
                "'row_count', count(*), 'rows', coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb)) snapshot "
-               'from "' + schema + '"."' + name + '" t')
+               'from ' + identifier(schema) + '.' + identifier(name) + ' t')
         snapshot = query(cli, sql)[0]['snapshot']
         if snapshot['row_count'] != len(snapshot['rows']):
             raise RuntimeError('Incomplete table response: ' + table)
         raw = (json.dumps(snapshot, ensure_ascii=False, separators=(',', ':')) + '\n').encode()
         blob = gzip.compress(raw, mtime=0)
-        filename = table + '.json.gz'
+        filename = ((table if re.fullmatch(r'[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*', table)
+                     else 'table-' + hashlib.sha256(table.encode()).hexdigest()) + '.json.gz')
         (root / filename).write_bytes(blob)
         return {'table': table, 'file': filename, 'rows': snapshot['row_count'],
                 'sha256': hashlib.sha256(blob).hexdigest()}

@@ -29,3 +29,21 @@ for (const sql of ['drop table public.lessons','alter table public.lessons drop 
 }
 await ddlDb.exec('create table public.unrelated_test(id int);drop table public.unrelated_test');
 console.log('PASS: protected table/column/history/trigger DROP blocked, unrelated migration allowed');await ddlDb.close();
+const coverage=new PGlite();
+await coverage.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create function auth.uid() returns uuid language sql as 'select null::uuid';create table public.lessons(id uuid,content jsonb);create table public.confidence_log(id int,correct boolean);insert into public.confidence_log values(1,true);`);
+for (const name of ['20261122031218_data_preservation_history.sql','20261122031608_data_preservation_drop_guard.sql','20261122031649_data_preservation_trigger_drop_fix.sql',...fs.readdirSync(root+'/supabase/migrations').filter(n=>n.endsWith('_default_data_history_coverage.sql'))])await coverage.exec(fs.readFileSync(root+'/supabase/migrations/'+name,'utf8'));
+const requireBlocked=async sql=>{let ok=false;try{await coverage.exec(sql)}catch(e){if(!e.message.includes('ISKRA_DATA_PRESERVATION'))throw e;ok=true}if(!ok)throw Error('not blocked '+sql)};
+if((await coverage.query(`select count(*)::int n from iskra_history.row_versions where table_name='public.confidence_log' and operation='BASELINE'`)).rows[0].n!==1)throw Error('confidence baseline missing');
+await coverage.exec(`create table public.future_notes_v2(id int primary key,note text);insert into public.future_notes_v2 values(1,'original');update public.future_notes_v2 set note='edited';`);
+if((await coverage.query(`select old_row->>'note' note from iskra_history.row_versions where table_name='public.future_notes_v2' and operation='UPDATE'`)).rows[0].note!=='original')throw Error('new table not archived');
+await requireBlocked('truncate public.future_notes_v2');
+await requireBlocked('alter table public.future_notes_v2 disable trigger all');
+await requireBlocked('alter table public.future_notes_v2 enable replica trigger iskra_preserve_row');
+await requireBlocked('alter table iskra_history.row_versions disable trigger history_append_only');
+await requireBlocked('delete from iskra_history.protected_tables');
+await coverage.exec(`set session_replication_role=replica;update public.future_notes_v2 set note='replicated';set session_replication_role=origin;`);
+if((await coverage.query(`select count(*)::int n from iskra_history.row_versions where table_name='public.future_notes_v2' and operation='UPDATE'`)).rows[0].n!==2)throw Error('replica mode bypassed history');
+await coverage.exec(`create table public.future_part(id int,note text) partition by range(id);create table public.future_part_1 partition of public.future_part for values from(0)to(10);insert into public.future_part values(1,'partition original');update public.future_part set note='partition edit';`);
+if((await coverage.query(`select count(*)::int n from iskra_history.row_versions where table_name='public.future_part_1' and operation='UPDATE'`)).rows[0].n!==1)throw Error('partition not archived');
+await requireBlocked('truncate public.future_part_1');
+console.log('PASS: confidence baseline, automatic table/partition coverage, disable-trigger rejection, replica-mode preservation, protected registry');await coverage.close();
