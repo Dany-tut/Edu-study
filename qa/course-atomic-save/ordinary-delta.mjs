@@ -35,7 +35,7 @@ const forbidden = [
 ]
 for (const [index, mutate] of forbidden.entries()) test(`unsupported mixed edit ${index} dispatches no ordinary write`, () => {
   const after = change(c => { c.course.description = 'Supported edit alongside unsupported'; mutate(c) })
-  assert.equal(ordinaryContentDelta(before, after), null)
+  let planned; try { planned=ordinaryContentDelta(before,after) } catch(error) { assert.equal(error.code,'ISKRA_DATA_PRESERVATION'); planned=null } assert.equal(planned,null)
 })
 test('no-op and raw module position witness are retained', () => {
   const witness = [{ ...before.modules[0], position: 10 }]

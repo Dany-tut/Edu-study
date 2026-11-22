@@ -5,6 +5,9 @@ import { enqueueChapterSave } from '../../lib/chapterSaveQueue'
 import { createLatestSave } from '../../lib/latestSaveQueue'
 import Segmented from '../../components/Segmented'
 import { rebaseChapterLessons, sentenceTitle, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
+import { buildWholeWitnessChapterArgs } from '../../lib/courseChapterWriteArgs'
+import { prepareConfirmedChapterDispatch, advanceConfirmedChapter } from '../../lib/courseChapterConfirmed'
+import { buildWholeWitnessPublicationArgs, prepareConfirmedPublicationDispatch, advanceConfirmedPublication } from '../../lib/coursePublicationConfirmed'
 import { saveLessonChapters } from '../../lib/saveLessonChapters'
 import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
 import { importBankTask } from '../../lib/bankTaskImport'
@@ -21,7 +24,9 @@ import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '
 import { trackEvent } from '../../lib/analytics'
 import { courseSaveProbeMetrics } from '../../lib/courseSaveProbeMetrics'
 import { courseAtomicModules, courseAtomicRows, eligibleCourseAtomicModules } from '../../lib/courseAtomicRows'
-import { ordinaryContentDelta, noCourseAccessIntents } from '../../lib/courseOrdinaryDelta'
+import { prepareFullDispatch as prepareFullContentDispatch, advanceConfirmedFull as advanceFullContentDispatch } from '../../lib/courseFullAcknowledgement'
+import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
+import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
 import { courseSaveProvenance } from '../../lib/courseSaveProvenance'
 import { courseSaveCause, courseSaveReason, courseSaveStageText } from '../../lib/courseSaveReason'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
@@ -6964,17 +6969,33 @@ export default function TeacherCourseEditorPage() {
     const shortId = target.persistedShortId ?? lessonShortIdById[lessonId]
     if (!shortId || !latestCourse.current.dbCourseId) throw new Error('Сначала дождитесь сохранения урока.')
     return enqueueChapterSave(saveChain, async () => {
-      const currentStamp = await readCourseStamp(latestCourse.current.dbCourseId!, AbortSignal.timeout(8000), shortId)
-      if (!currentStamp) throw new Error('Не удалось проверить версию курса. Повторите сохранение.')
-      const foreignChanges = baselineStamp.current && currentStamp > baselineStamp.current
-      const stamp = await saveLessonChapters(shortId, value, target.timecodes ?? [], target.chapterVariants)
+      const base = confirmedContent.current
+      if (base && baselineCanDriveDelta(base, { courseShortId: latestCourse.current.dbCourseId!, baselineStamp: baselineStamp.current, scope: readScope.current })) {
+        const raw = base.serialized.rawLessons?.[shortId]
+        if (!raw) throw new Error('Не удалось проверить исходные главы. Черновик сохранён.')
+        const request = buildWholeWitnessChapterArgs({ courseShortId: base.courseShortId, baseline: base.stamp,
+          modules: base.modules, lessonShortId: shortId, variants: value,
+          expectedCodes: (raw.timecodes ?? []) as LessonTimecode[], expectedVariants: raw.chapter_variants as ChapterVariants | null })
+        const dispatch = prepareConfirmedChapterDispatch(base, request, readScope.current)
+        if (!dispatch) throw new Error('Не удалось безопасно сохранить главы. Черновик сохранён.')
+        const { data: saved, error } = await supabase.rpc('save_course_chapters_whole', request)
+        if (error || !saved) {
+          if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
+            setConflict(await buildConflict(base.courseShortId, latestCourse.current, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+          }
+          throw new Error(courseSaveReason('course', error, base.courseShortId))
+        }
+        const next = advanceConfirmedChapter(dispatch, saved, readScope.current, confirmedContent.current)
+        if (!next) throw new Error('Сервер не подтвердил состав курса. Черновик сохранён; откройте курс заново для проверки.')
+        confirmedContent.current = next
+        baselineStamp.current = next.stamp
+      } else {
+        // Legacy/unverified reads keep their target-only CAS. Its ACK cannot
+        // certify any other lesson or silently advance the whole-course source.
+        await saveLessonChapters(shortId, value, target.timecodes ?? [], target.chapterVariants)
+        confirmedContent.current = null
+      }
       confirmedChapters.current.set(lessonId, value)
-      // A single-row chapter ACK cannot certify unchanged whole-course
-      // content. The controlled delta lane keeps its original source stamp;
-      // a subsequent whole save must use CAS/conflict review, never silently
-      // adopt a target lesson's potentially newer theory/homework version.
-      if (!courseDeltaProbeEnabled(latestCourse.current.dbCourseId ?? latestCourse.current.id)
-        && !foreignChanges && (!baselineStamp.current || stamp > baselineStamp.current)) baselineStamp.current = stamp
       setCourse(c => {
         // Late responses belong to the original lesson and source, never the selected one.
         const next = rebaseChapters(c)
@@ -7008,10 +7029,33 @@ export default function TeacherCourseEditorPage() {
     const writeFailed = async () => { if (wrote) baselineStamp.current = writeStamp ?? await readCourseStamp(shortId); return false }
     async function finishSave(contentOnly = false) {
       // Publication becomes visible only after lessons, access and schedule succeed.
-      if (!contentOnly && c.status !== latestCourse.current.status) {
-        const { data, error } = await supabase.from('courses').update({ status: c.status }).eq('id', courseDbId!).select('updated_at').single()
-        if (error) { saveIssue.current = courseSaveReason('status', error, shortId); return await writeFailed() }
-        writeStamp = data?.updated_at ?? writeStamp
+      if (!contentOnly && c.status !== (confirmedContent.current?.serialized.course.status ?? latestCourse.current.status)) {
+        const base = confirmedContent.current
+        if (base) {
+          if (!baselineCanDriveDelta(base, { courseShortId: shortId, baselineStamp: writeStamp, scope: readScope.current })) {
+            saveIssue.current = t('Не удалось проверить версию курса перед публикацией. Черновик сохранён.')
+            return false
+          }
+          const request = buildWholeWitnessPublicationArgs(base, c.status)
+          const dispatch = prepareConfirmedPublicationDispatch(base, request, readScope.current)
+          if (!dispatch) { saveIssue.current = t('Не удалось проверить публикацию. Черновик сохранён.'); return false }
+          const { data: saved, error } = await supabase.rpc('save_course_publication_whole', request)
+          if (error || !saved) {
+            if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
+              setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+            } else saveIssue.current = courseSaveReason('status', error, shortId)
+            return false
+          }
+          const next = advanceConfirmedPublication(dispatch, saved, readScope.current, confirmedContent.current)
+          if (!next) { saveIssue.current = t('Сервер не подтвердил публикацию. Черновик сохранён.'); return false }
+          confirmedContent.current = next
+          writeStamp = next.stamp
+        } else {
+          // Old/new-course path has no complete matched witness to promote.
+          const { data, error } = await supabase.from('courses').update({ status: c.status }).eq('id', courseDbId!).select('updated_at').single()
+          if (error) { saveIssue.current = courseSaveReason('status', error, shortId); return await writeFailed() }
+          writeStamp = data?.updated_at ?? writeStamp
+        }
       }
       baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
       // Persist the acknowledgement without changing React course state (which
@@ -7205,17 +7249,39 @@ export default function TeacherCourseEditorPage() {
     // state. Their ACK must not reconcile audience or process a later publish
     // click; publication, schedule and structural changes keep their own lane.
     const contentBase = confirmedContent.current
-    if (!courseDeltaProbeEnabled(shortId) && contentBase && noCourseAccessIntents(changes)
+    const ordinaryScope = !courseDeltaProbeEnabled(shortId) && contentBase?.courseShortId === shortId
+      && contentBase.ownerId === readScope.current.ownerId && contentBase.token.scope.authEpoch === readScope.current.authEpoch
+    const ordinaryCanonical = ordinaryScope && contentBase ? courseContentSnapshot(c, contentBase.lessons) : null
+    // Publication has its own queued whole-course CAS barrier after content.
+    if (ordinaryCanonical && contentBase) ordinaryCanonical.course.status = contentBase.serialized.course.status
+    let ordinaryPlan: OrdinaryContentPlan | null = null
+    if (ordinaryCanonical && contentBase) {
+      try {
+        ordinaryPlan = ordinaryContentPlan(contentBase.serialized, ordinaryCanonical, [...contentBase.modules])
+      } catch (error) {
+        if (!(error instanceof WideContentPreservationError)) throw error
+        // A structural/body edit may use the raw-preserving DISTINCT full lane.
+        // No request has been dispatched yet; errors never trigger a retry.
+        ordinaryPlan = null
+      }
+    }
+    const ordinaryEligible = ordinaryScope && contentBase && noCourseAccessIntents(changes)
       && !reviewedContentOverwrite.current
-      && baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })) {
-      const canonical = courseContentSnapshot(c, contentBase.lessons)
-      const delta = canonical ? ordinaryContentDelta(contentBase.serialized, canonical, [...contentBase.modules]) : null
-      const modules = delta ? eligibleCourseAtomicModules(c) : null
-      if (delta && canonical && modules) {
+      && baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })
+    if (ordinaryEligible && contentBase && ordinaryPlan && ordinaryCanonical) {
+      const modules = eligibleCourseAtomicModules(c)
+      if (!modules && ordinaryPlan.hasWide) {
+        saveIssue.current = t('Не удалось безопасно сохранить изменение содержимого. Черновик сохранён на устройстве.')
+        return false
+      }
+      if (modules) {
+        const canonical = ordinaryCanonical, dispatched = ordinaryPlan
+        const preserved = dispatched.hasWide
+          ? prepareWideConfirmedSnapshot(contentBase.serialized, canonical, dispatched.delta, prepareConfirmedSnapshot)
+          : prepareConfirmedSnapshot(contentBase.serialized, canonical)
         await flushCourseVisibility(shortId, Object.fromEntries(modules.map(module => [module.id, module.id])))
-        const preserved = prepareConfirmedSnapshot(contentBase.serialized, canonical)
         const { data: saved, error } = await supabase.rpc('save_course_content_delta', {
-          p_short_id: shortId, p_baseline: baselineStamp.current, ...delta,
+          p_short_id: shortId, p_baseline: baselineStamp.current, ...dispatched.wire,
         })
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
@@ -7224,13 +7290,15 @@ export default function TeacherCourseEditorPage() {
           return false
         }
         const expected = { modules: [...contentBase.modules], lessons: contentBase.lessons.map(({ id, shortId, moduleId }) => ({ id, shortId, moduleId })) }
-        confirmedContent.current = advanceConfirmedContent(contentBase, canonical, preserved, saved, readScope.current, expected)
+        confirmedContent.current = dispatched.hasWide
+          ? createWideContentAcknowledgement(advanceConfirmedContent)(contentBase, canonical, preserved, saved, readScope.current, expected, dispatched.delta)
+          : advanceConfirmedContent(contentBase, canonical, preserved, saved, readScope.current, expected)
         if (!confirmedContent.current) {
           saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.')
           return false
         }
         courseDbId = saved.course_id; writeStamp = saved.stamp; wrote = true
-        return finishSave(true)
+        return finishSave(c.status === contentBase.serialized.course.status)
       }
     }
 
@@ -7241,6 +7309,49 @@ export default function TeacherCourseEditorPage() {
       const ids = Object.fromEntries(atomicModules.map(m => [m.id, m.id]))
       await flushCourseVisibility(shortId, ids)
       const payload = courseAtomicRows(c, '', atomicModules, ids)
+      // Unsupported leaf/roster changes use the same immutable network source.
+      // SQL writes only DISTINCT fields and applies explicit access intents in
+      // the same transaction; never regenerate JSON from a lossy UI projection.
+      if (ordinaryScope && contentBase && ordinaryCanonical && !reviewedContentOverwrite.current) {
+        if (!baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })) {
+          saveIssue.current = t('Версия курса изменилась. Черновик сохранён; проверьте изменения перед повторным сохранением.')
+          return false
+        }
+        const full = prepareFullPreservedSnapshot(contentBase, ordinaryCanonical, readScope.current)
+        if (!full) {
+          saveIssue.current = t('Не удалось безопасно сохранить изменение содержимого. Черновик сохранён на устройстве.')
+          return false
+        }
+        const fullDispatch = prepareFullContentDispatch(contentBase, ordinaryCanonical, readScope.current)
+        if (!fullDispatch) { saveIssue.current = t('Не удалось проверить состав курса. Черновик сохранён.'); return false }
+        const { data: saved, error } = await supabase.rpc('save_course_content_full', {
+          p_short_id: shortId, p_baseline: contentBase.stamp,
+          p_course: full.snapshot.course, p_modules: full.snapshot.modules,
+          p_lessons: full.snapshot.lessons.map(({ id: _id, ...row }) => row),
+          p_changes: changes, p_expected_modules: contentBase.modules,
+        })
+        if (error || !saved) {
+          if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
+            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+          } else saveIssue.current = courseSaveReason('course', error, shortId)
+          return false
+        }
+        confirmedContent.current = advanceFullContentDispatch(fullDispatch, saved, readScope.current, confirmedContent.current)
+        if (!confirmedContent.current) {
+          saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён; откройте курс заново для проверки.')
+          return false
+        }
+        courseDbId = saved.course_id; writeStamp = saved.stamp; wrote = true
+        const shortIds = payload.shortIdByLessonId
+        if (c.lessons.some(l => shortIds[l.id] && shortIds[l.id] !== l.id)) {
+          setSelectedLessonId(id => id ? shortIds[id] ?? id : id)
+          reconcileCourse(prev => ({ ...prev,
+            lessons: prev.lessons.map(l => shortIds[l.id] ? { ...l, id: shortIds[l.id], persistedShortId: shortIds[l.id] } : l),
+            modules: prev.modules.map(m => ({ ...m, lessonIds: m.lessonIds.map(id => shortIds[id] ?? id) })),
+          }))
+        }
+        return completeContentSave(saved.access, full.snapshot.lessons.map(row => row.short_id), payload.ordered, saved.lessons)
+      }
       const typedBase = confirmedContent.current
       const typedEnabled = courseDeltaProbeEnabled(shortId)
       const reviewed = typedEnabled && reviewedContentOverwrite.current
