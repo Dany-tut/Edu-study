@@ -2619,10 +2619,6 @@ function CenterLesson({
   subject?: string
 }) {
   const t = useT()
-  const [descriptionVisible, setDescriptionVisible] = useState(Boolean(lesson.description?.trim()))
-  useEffect(() => {
-    setDescriptionVisible(Boolean(lesson.description?.trim()))
-  }, [lesson.id])
   const refWorkbook = useRef<HTMLInputElement>(null)
   const refNotebook = useRef<HTMLInputElement>(null)
   const refMaterial = useRef<HTMLInputElement>(null)
@@ -2844,36 +2840,16 @@ function CenterLesson({
           />
         )}
 
-        {descriptionVisible ? (
-          <div>
-            <div style={{ position: 'relative' }}>
-              <Label>{t('Описание урока')}</Label>
-              <button data-hover="layer"
-                type="button"
-                onClick={() => { onUpdate({ ...lesson, description: '' }); setDescriptionVisible(false) }}
-                style={{ position: 'absolute', top: 0, right: 0, border: 0, background: 'transparent', color: 'var(--color-muted)', font: 'inherit', fontSize: 12, cursor: 'pointer' }}
-              >{t('Убрать')}</button>
-            </div>
-            <AutoTextarea
-              value={lesson.description ?? ''}
-              onChange={v => onUpdate({ ...lesson, description: v })}
-              minHeight={64}
-              style={{ lineHeight: 1.6 }}
-              placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты…')}
-            />
-          </div>
-        ) : (
-          <button data-hover="layer"
-            type="button"
-            onClick={() => setDescriptionVisible(true)}
-            style={{
-              alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '10px 14px', borderRadius: 12,
-              border: '1px dashed var(--color-border-medium)', background: 'var(--color-bg-2)',
-              color: 'var(--color-text-2)', font: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}
-          ><Plus size={15} /> {t('Добавить описание')}</button>
-        )}
+        <div>
+          <Label>{t('Описание урока')}</Label>
+          <AutoTextarea
+            value={lesson.description ?? ''}
+            onChange={v => onUpdate({ ...lesson, description: v })}
+            minHeight={64}
+            style={{ lineHeight: 1.6 }}
+            placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты…')}
+          />
+        </div>
 
         <div>
           <Label>{t('Конспект')}</Label>
