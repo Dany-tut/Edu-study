@@ -1,6 +1,7 @@
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LessonRecordingPreview } from '../../components/LessonRecordingView'
 import { enqueueChapterSave } from '../../lib/chapterSaveQueue'
+import { createLatestSave } from '../../lib/latestSaveQueue'
 import Segmented from '../../components/Segmented'
 import { rebaseChapterLessons, sentenceTitle, type ChapterControls, type ChapterVariants } from '../../lib/chapterVariants'
 import { saveLessonChapters } from '../../lib/saveLessonChapters'
@@ -6282,17 +6283,22 @@ export default function TeacherCourseEditorPage() {
   // Monotonic edit counter: a save only clears the draft if no NEWER edit
   // happened while the (async) sync was in flight — otherwise clearing would
   // throw away input entered during the network round-trip.
-  const draftSeq = useRef(0)
+  // Only teacher edits advance the sequence. Server acknowledgements update
+  // course state too, but must neither invalidate an ack nor create a new draft.
+  const draftSeq = useRef(editRevision)
+  draftSeq.current = editRevision
+  const persistedDraftRevision = useRef(editRevision)
   useEffect(() => {
-    draftSeq.current++
-    // Skip the initial render: merely opening a course must not create a draft
-    // that would later shadow fresh DB data.
-    if (draftSeq.current === 1) return
+    if (persistedDraftRevision.current === editRevision) return
     if (publishedEditRevision.current === editRevision) {
+      persistedDraftRevision.current = editRevision
       clearDrafts(draftNs)
       return
     }
-    if (!course.metadataPending) writeDraft(draftKey, { ...course, serverStamp: baselineStamp.current ?? course.serverStamp })
+    if (!course.metadataPending) {
+      writeDraft(draftKey, { ...course, serverStamp: baselineStamp.current ?? course.serverStamp })
+      persistedDraftRevision.current = editRevision
+    }
   }, [course, draftKey, draftNs, editRevision])
 
   function clearCourseDraftAfterSync(seqAtSave: number, synced: boolean) {
@@ -6529,11 +6535,13 @@ export default function TeacherCourseEditorPage() {
   const chapterProjection = useRef(new WeakSet<CourseEdData>())
   const linkSave = useRef<((ok: boolean) => void) | null>(null)
   const autosaveArmed = useRef(false)
+  const autosaveEditRevision = useRef<number | null>(null)
   useEffect(() => {
-    if (chapterProjection.current.has(course)) { chapterProjection.current.delete(course); return }
+    if (chapterProjection.current.has(course)) { chapterProjection.current.delete(course); autosaveEditRevision.current = editRevision; return }
     const finishLink = linkSave.current
     if (finishLink) {
       linkSave.current = null
+      autosaveEditRevision.current = editRevision
       autosaveArmed.current = true
       unsaved.current = true
       setCourseEdited(JSON.stringify(course))
@@ -6542,18 +6550,23 @@ export default function TeacherCourseEditorPage() {
     }
     // Курс ещё догружается — писать нечего: сохранение идёт целиком и затёрло
     // бы конспекты с домашками, которых пока нет в состоянии.
-    if (course.heavyPending || publicationPending) return
+    if (course.metadataPending || course.heavyPending || publicationPending) return
     if (publishedEditRevision.current === editRevision) {
+      autosaveEditRevision.current = editRevision
       unsaved.current = false
       return
     }
     if (!course.dbCourseId && !course.title.trim()) return
     if (!autosaveArmed.current) {
       autosaveArmed.current = true
-      if (course.dbCourseId) return
+      if (course.dbCourseId && editRevision === 0) { autosaveEditRevision.current = editRevision; return }
     }
+    // Access acknowledgements reconcile course state without a teacher edit.
+    // They previously scheduled another full save, which acknowledged again.
+    if (autosaveEditRevision.current === editRevision) return
     unsaved.current = true
     const t = setTimeout(() => {
+      autosaveEditRevision.current = editRevision
       setCourseEdited(JSON.stringify(course))
       runAutosave(course)
     }, 900)
@@ -6576,11 +6589,12 @@ export default function TeacherCourseEditorPage() {
     const seq = draftSeq.current
     // Исключение (оборванный запрос, сбой до ответа базы) — тоже сбой записи с
     // причиной, а не тишина: без catch карточка «Не сохранено» не появлялась вовсе.
-    return syncAccessToSupabase(c).catch((e: unknown) => {
+    return syncAccessToSupabase(c, true).catch((e: unknown) => {
       console.error('[syncAccessToSupabase] save threw', e)
       saveIssue.current = courseSaveReason('exception', e instanceof Error ? { message: e.message } : { message: String(e) }, c.dbCourseId ?? c.id)
       return false
     }).then(ok => {
+      if (draftSeq.current !== seq) return ok
       clearCourseDraftAfterSync(seq, ok)
       if (ok && draftSeq.current === seq) unsaved.current = false
       if (ok) { setPublishErr(null); flash() }
@@ -6831,6 +6845,7 @@ export default function TeacherCourseEditorPage() {
   // плюс красное «Не удалось сохранить», хотя вкладка одна. Поэтому очередь:
   // следующая запись ждёт, пока предыдущая не сдвинет отпечаток.
   const saveChain = useRef<Promise<unknown>>(Promise.resolve())
+  const enqueueCourseAutosave = useRef(createLatestSave<CourseEdData, boolean>(saveChain)).current
   const confirmedChapters = useRef(new Map<string, ChapterVariants>())
   function rebaseChapters(c: CourseEdData): CourseEdData {
     return {...c, lessons:rebaseChapterLessons(c.lessons, confirmedChapters.current)}
@@ -6856,8 +6871,11 @@ export default function TeacherCourseEditorPage() {
       return true
     })
   }
-  function syncAccessToSupabase(c: CourseEdData): Promise<boolean> {
-    const run = saveChain.current.then(() => syncCourseNow(rebaseChapters(c)), () => syncCourseNow(rebaseChapters(c)))
+  function syncAccessToSupabase(c: CourseEdData, autosave = false): Promise<boolean> {
+    const write = (snapshot: CourseEdData) => syncCourseNow(rebaseChapters(snapshot))
+    if (autosave) return enqueueCourseAutosave(c.dbCourseId ?? c.id, c, write)
+    // Explicit saves and publication are barriers; only autosaves may collapse.
+    const run = saveChain.current.then(() => write(c), () => write(c))
     saveChain.current = run
     return run
   }
