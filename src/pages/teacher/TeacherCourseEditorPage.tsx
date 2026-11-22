@@ -6984,6 +6984,11 @@ export default function TeacherCourseEditorPage() {
         writeStamp = data?.updated_at ?? writeStamp
       }
       baselineStamp.current = writeStamp ?? await readCourseStamp(shortId)
+      // Persist the acknowledgement without changing React course state (which
+      // would arm another autosave). Keep newer unsaved edits in the snapshot.
+      const acknowledged = { ...latestCourse.current, serverStamp: baselineStamp.current ?? undefined }
+      try { sessionStorage.setItem('ce-session', JSON.stringify(acknowledged)) } catch { /* Keep the in-memory baseline. */ }
+      if (readDraft(draftKey) !== null) writeDraft(draftKey, acknowledged)
       saveIssue.current = null
       window.dispatchEvent(new Event('iskra:journal-changed'))
       return true
