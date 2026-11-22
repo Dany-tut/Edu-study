@@ -1,7 +1,7 @@
 import FadeText from './FadeText'
 import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
 import { textFadeStyle } from '../lib/textFades'
-import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, X, Plus } from './icons/appIcons'
@@ -27,9 +27,12 @@ import { useScrollLock } from '../lib/useScrollLock'
 export default function MultiSelectField({
   label, options, values, onChange,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)', small = false,
-  lockScroll = false, creatable = false, createLabel = 'Добавить', createHint, createPlaceholder, field,
+  lockScroll = false, creatable = false, createLabel = 'Добавить', createHint, createPlaceholder, field, optionIcon, clearable = true,
 }: {
   label: string
+  clearable?: boolean
+  /** Optional subject mark, kept outside the text fade. */
+  optionIcon?: (value: string) => ReactNode
   options: string[]
   values: string[]
   onChange: (v: string[]) => void
@@ -145,7 +148,11 @@ export default function MultiSelectField({
       if (btnRef.current?.contains(e.target as Node)) return
       close()
     }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault(); e.stopPropagation(); close(); btnRef.current?.focus()
+      }
+    }
     // resize приходит с target === window, а window — не Node: contains() на нём
     // бросал «Failed to execute 'contains' on 'Node'». Меню на ресайзе и так
     // положено закрыть, поэтому не-Node просто считаем «клик мимо».
@@ -155,12 +162,12 @@ export default function MultiSelectField({
       close()
     }
     window.addEventListener('mousedown', onDown)
-    window.addEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
     window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', onScroll)
     return () => {
       window.removeEventListener('mousedown', onDown)
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', onKey, true)
       window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', onScroll)
     }
@@ -172,8 +179,8 @@ export default function MultiSelectField({
 
   const chip = (v: string) => (
     <span key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%', padding: field ? '4px 8px' : '2px 8px', borderRadius: field ? 8 : 7, background: accentBg, color: accent, fontSize: chipFont, fontWeight: 700 }}>
-      <span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(v)}</span>
-      <button data-hover="layer" type="button" aria-label={`${t('Удалить')}: ${t(v)}`} onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', opacity: 0.7, padding: 0, background: 'none', border: 'none', color: 'inherit' }}><X size={12} strokeWidth={2.5} /></button>
+      {optionIcon?.(v)}<span style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t(v)}</span>
+      <button data-hover="layer" type="button" aria-label={`${t('Удалить')}: ${t(v)}`} onClick={e => { e.stopPropagation(); toggle(v) }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', opacity: 0.7, padding: 0, background: 'none', border: 'none', color: 'inherit' }}><X size={12} strokeWidth={2.5} /></button>
     </span>
   )
 
@@ -181,7 +188,9 @@ export default function MultiSelectField({
     <>
       <motion.div
         ref={btnRef}
-        layout
+        layout={optionIcon ? false : true}
+        role="combobox" aria-label={label} aria-expanded={open} aria-haspopup="listbox" tabIndex={0}
+        onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDropdown() } }}
         transition={{ layout: { type: 'spring', stiffness: 600, damping: 42, mass: 0.7 } }}
         onClick={() => { if (!open) openDropdown(); else if (!query && isEmpty) close(); else inputRef.current?.focus() }}
         style={{
@@ -201,7 +210,7 @@ export default function MultiSelectField({
                 справа от длинной строки ввода плашки читались как чужие. */}
             {field && values.map(chip)}
             <input
-              ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
+              ref={inputRef} aria-label={label} value={query} onChange={e => setQuery(e.target.value)}
               className="mobile-input-16"
               placeholder={naming && createPlaceholder ? t(createPlaceholder) : isEmpty ? label : ''}
               onClick={e => { if (open && !query && isEmpty) { e.stopPropagation(); close() } }}
@@ -245,7 +254,7 @@ export default function MultiSelectField({
             )}
           </div>
         )}
-        {!isEmpty ? (
+        {!isEmpty && clearable ? (
           <button data-hover="layer" type="button" aria-label={t('Очистить выбор')} onMouseDown={e => { e.preventDefault(); e.stopPropagation(); onChange([]); if (open) inputRef.current?.focus() }}
             style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', padding: '0 2px', flexShrink: 0 }}>
             <X size={14} strokeWidth={2} />
@@ -274,19 +283,19 @@ export default function MultiSelectField({
               }}
             >
               <ScrollFade maxHeight={Math.min(224, Math.max(0, pos.maxHeight - (creatable && createHint && !typed ? 64 : 14)))} bg={DROPDOWN_GLASS} overlayScrollbar>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div role="listbox" aria-label={label} aria-multiselectable="true" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 && !canCreate ? (
                     <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
                   ) : shown.map(o => {
                     const selected = values.includes(o)
                     return (
-                      <div key={o} onClick={() => toggle(o)}
-                        style={{ ...dropdownRow(selected, { small, accent, accentBg }), fontSize }}
+                      <button data-hover="layer" type="button" role="option" aria-selected={selected} key={o} onClick={() => toggle(o)}
+                        style={{ ...dropdownRow(selected, { small, accent, accentBg }), fontSize, ...(optionIcon && field && field.fontSize >= 16 ? { minHeight: 48 } : {}) }}
                         {...dropdownRowHover(selected)}
                       >
-                        <FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(o)}</FadeText>
+                        {optionIcon?.(o)}<FadeText lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(o)}</FadeText>
                         {selected && <Check size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
-                      </div>
+                      </button>
                     )
                   })}
                   {canCreate && (

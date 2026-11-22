@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Group adds its subject",
+    "Removing group subject resets group",
+    "Selected subjects do not assign group",
+    "Student profile reader returns all four subjects"
+  ],
+  "profile": [
+    "Химия",
+    "Биология",
+    "Русский",
+    "Литература"
+  ]
+}

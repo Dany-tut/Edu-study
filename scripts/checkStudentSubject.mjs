@@ -42,4 +42,16 @@ eq(scope({ courses: [{ id: 'a', subject: 'Свой тег' }, { id: 'b', subject
 eq(scope({ courses: [{ id: 'a', subject: 'biology' }], override: 'english' }), ['english'], 'предмет экрана главнее')
 eq(scope({ courses: [], profileSubject: 'Шахматы' }), [], 'свой предмет вне реестра не включает предметные виджеты')
 
+// Multiselect: one canonical payload, all selected subjects, group context, full catalog.
+eq(m.normalizeStudentSubjects(['chemistry','Химия',' Биология ',null,3,'Шахматы','шахматы']), ['Химия','Биология','Шахматы'], 'canonical list without duplicate aliases/custom casing')
+eq(m.studentSubjectFields({subjects:['Химия','Биология','Русский','Литература']}), {subject:'Химия',subjects:['Химия','Биология','Русский','Литература']}, 'single-row save preserves all four subjects')
+eq(m.studentSubjectFields({subject:'biology'}), {subject:'Биология',subjects:['Биология']}, 'old caller remains supported')
+eq(m.studentSubjectFields({subjects:[],subject:'Химия'}), {subject:null,subjects:[]}, 'explicit empty list does not restore stale scalar')
+eq(m.resolveStudentSubjects({groupSubject:'Биология',ownSubject:'Химия',ownSubjects:['Химия','Русский']}), ['Биология','Химия','Русский'], 'group context preserves remaining subjects')
+eq(m.studentSubjectsOptions(['chemistry','biology']).includes('Литература'), true, 'full catalog despite teacher filter')
+eq(m.studentSubjectsOptions(['chemistry','biology']).slice(0,2), ['Химия','Биология'], 'teacher subjects first')
+eq(m.studentSubjectsOptions(['chemistry'],['Шахматы']).includes('Шахматы'), true, 'saved custom subject preserved')
+eq(scope({courses:[],profileSubjects:['Химия','Биология','Русский','Литература']}), ['biology','chemistry','literature','russian'], 'all selected subjects scope the empty-course dashboard')
+eq(scope({courses:[{id:'a',subject:'biology'}],profileSubjects:['Химия','Русский']}), ['biology'], 'active course still wins over selected profile subjects')
+
 console.log(`PASS: ${checks} student subject checks — источник предмета, поле формы и скоуп виджетов.`)

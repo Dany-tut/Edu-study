@@ -14,7 +14,7 @@ import {
   fetchScienceFacts,
   fetchScienceMemes,
   fetchCourseReactions,
-  fetchStudentOwnSubject,
+  fetchStudentOwnSubjects,
   type StudentStats,
   type ProgressMap,
 } from '../lib/db'
@@ -55,6 +55,7 @@ interface StudentDataState {
   courseReactions: CourseReaction[]
   /** Предмет ученика без курсов: группа/1:1 или students.subject (studentSubject.ts). */
   profileSubject: string | null
+  profileSubjects: string[]
   /** Чей это profileSubject — при смене аккаунта старый не должен протечь. */
   profileSubjectFor: string | null
   load: (options?: { afterTestlySync: true }) => Promise<void>
@@ -148,6 +149,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
   scienceMemes: [],
   courseReactions: [],
   profileSubject: null,
+  profileSubjects: [],
   profileSubjectFor: null,
 
   reorderSubjects: (dbIds) => set(state => {
@@ -179,7 +181,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       set(state => ({ subjects: state.subjects.filter(s => !isStandaloneSubjectId(s.id)) }))
     }
 
-    if (get().profileSubjectFor !== session.id) set({ profileSubject: null, profileSubjectFor: session.id })
+    if (get().profileSubjectFor !== session.id) set({ profileSubject: null, profileSubjects: [], profileSubjectFor: session.id })
 
     // First load after a (re)mount — used to seed the active subject/module from
     // the freshly-loaded data. Realtime re-syncs leave the user's current tab put.
@@ -220,7 +222,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     if (!options?.afterTestlySync) void fetchQuizQuestions().then(quizQuestions => { if (getStudentSession()?.id === session.id) set({ quizQuestions }) }).catch(e => console.error('[studentData.quiz]', e))
     if (!options?.afterTestlySync) void fetchScienceFacts().then(scienceFacts => { if (getStudentSession()?.id === session.id) set({ scienceFacts }) }).catch(e => console.error('[studentData.facts]', e))
     if (!options?.afterTestlySync) void fetchScienceMemes().then(scienceMemes => { if (getStudentSession()?.id === session.id) set({ scienceMemes }) }).catch(e => console.error('[studentData.memes]', e))
-    if (!options?.afterTestlySync) void fetchStudentOwnSubject(session.id).then(profileSubject => { if (getStudentSession()?.id === session.id) set({ profileSubject, profileSubjectFor: session.id }) }).catch(() => {})
+    if (!options?.afterTestlySync) void fetchStudentOwnSubjects(session.id).then(profileSubjects => { if (getStudentSession()?.id === session.id) set({ profileSubject: profileSubjects[0] ?? null, profileSubjects, profileSubjectFor: session.id }) }).catch(() => {})
     if (!options?.afterTestlySync) void fetchCourseReactions().then(courseReactions => { if (getStudentSession()?.id === session.id) set({ courseReactions }) }).catch(e => console.error('[studentData.reactions]', e))
     const hwP = fetchStandaloneSubject(session.groupId)
 

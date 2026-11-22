@@ -1,7 +1,7 @@
 import { lessonNumberShift } from './lessonNumber'
 import { visibleCourseModules, type CourseVisibilityRow } from './courseVisibilityModel'
 import { readTranscript } from './localTranscription'
-import { resolveStudentSubject } from './studentSubject'
+import { resolveStudentSubjects } from './studentSubject'
 /**
  * Typed Supabase query functions for the student dashboard.
  * All functions return typed data; errors are swallowed and return null/[].
@@ -1191,16 +1191,26 @@ export async function fetchScienceMemes(): Promise<ScienceMeme[]> {
  * не получит запасного предмета. Тихо, без reportDbError: это необязательный
  * слой поверх курсов.
  */
-export async function fetchStudentOwnSubject(studentId: string): Promise<string | null> {
-  if (!studentId) return null
-  const withGroup = await supabase.from('students').select('subject, groups(subject)').eq('id', studentId).maybeSingle()
-  if (!withGroup.error) {
-    const row = withGroup.data as { subject?: string | null; groups?: { subject?: string | null } | null } | null
-    return resolveStudentSubject({ groupSubject: row?.groups?.subject, ownSubject: row?.subject })
+export async function fetchStudentOwnSubjects(studentId: string): Promise<string[]> {
+  if (!studentId) return []
+  const read = (plural: boolean) => supabase.from('students')
+    .select(`subject, groups(subject)${plural ? ', subjects' : ''}`).eq('id', studentId).maybeSingle()
+  let result = await read(true)
+  if (result.error?.code === '42703') result = await read(false)
+  if (!result.error) {
+    const row = result.data as { subject?: string | null; subjects?: string[] | null; groups?: { subject?: string | null } | null } | null
+    return resolveStudentSubjects({ groupSubject: row?.groups?.subject, ownSubject: row?.subject, ownSubjects: row?.subjects })
   }
-  const own = await supabase.from('students').select('subject').eq('id', studentId).maybeSingle()
-  if (own.error) return null
-  return resolveStudentSubject({ ownSubject: (own.data as { subject?: string | null } | null)?.subject })
+  // Legacy RLS/relations may deny the group join; keep the existing scalar fallback.
+  let own = await supabase.from('students').select('subject, subjects').eq('id', studentId).maybeSingle()
+  if (own.error?.code === '42703') own = await supabase.from('students').select('subject').eq('id', studentId).maybeSingle()
+  if (own.error) return []
+  const row = own.data as { subject?: string | null; subjects?: string[] | null } | null
+  return resolveStudentSubjects({ ownSubject: row?.subject, ownSubjects: row?.subjects })
+}
+
+export async function fetchStudentOwnSubject(studentId: string): Promise<string | null> {
+  return (await fetchStudentOwnSubjects(studentId))[0] ?? null
 }
 
 export async function fetchCourseReactions(): Promise<CourseReaction[]> {

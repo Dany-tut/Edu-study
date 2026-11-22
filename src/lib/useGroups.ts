@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { normalizeStudentSubject, resolveStudentSubject } from './studentSubject'
+import { resolveStudentSubject, resolveStudentSubjects, studentSubjectFields } from './studentSubject'
 import { withLoadFixture, fixtureGroups, fixtureStudents, fixtureJournal } from './loadFixture'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
@@ -167,7 +167,7 @@ export function useGroups() {
     const { data, error } = await supabase.from('students').insert({
       name: s.name?.trim(), created_by: await getOwnerId(), group_id: null,
       // Вариант Б: у ученика без группы свой предмет (studentSubject.ts).
-      subject: normalizeStudentSubject(s.subject),
+      ...studentSubjectFields(s),
       phone: s.phone ?? '', telegram_link: s.telegramLink ?? '', parent_contact: s.parentContact ?? '',
       desired_score: s.desiredScore ?? 0, payment_amount: s.paymentAmount ?? 0,
     }).select('id, invite_token').single()
@@ -272,6 +272,7 @@ export function useGroups() {
   async function addStudentToGroup(targetGroupId: string, s: Partial<Student>) {
     const { data, error } = await supabase.from('students').insert({
       group_id: targetGroupId,
+      ...studentSubjectFields(s),
       name: s.name ?? '',
       phone: s.phone ?? '',
       telegram_link: s.telegramLink ?? '',
@@ -1151,13 +1152,14 @@ const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStu
   if (!uid) return []
   if (!navigator.onLine) throw new NetworkReadError('Список учеников недоступен без сети')
   const columns = 'id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by, groups(subject, is_individual)'
-  const read = (withSubject: boolean, withSchoolClass = false) => supabase
+  const read = (withSubject: boolean, withSchoolClass = false, withSubjects = false) => supabase
     .from('students')
-    .select(`${columns}${withSubject ? ', subject' : ''}${withSchoolClass ? ', school_class' : ''}`)
+    .select(`${columns}${withSubject ? ', subject' : ''}${withSchoolClass ? ', school_class' : ''}${withSubjects ? ', subjects' : ''}`)
     .eq('created_by', uid)
     .order('name')
-  let { data, error, status } = await read(true, true)
-  if (error?.code === '42703') ({ data, error, status } = await read(true, false))
+  let { data, error, status } = await read(true, true, true)
+  if (error?.code === '42703') ({ data, error, status } = await read(true, false, true))
+  if (error?.code === '42703') ({ data, error, status } = await read(true, false, false))
   // База без колонки students.subject (миграция 20261108130000 ещё не
   // применена) — 42703. Список учеников важнее предмета: читаем без неё.
   if (error?.code === '42703') ({ data, error, status } = await read(false))
@@ -1168,7 +1170,8 @@ const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStu
   return (data ?? []).map((s: any) => ({
     id: s.id,
     groupId: s.group_id ?? '',
-    subject: resolveStudentSubject({ groupSubject: s.groups?.subject, ownSubject: s.subject }) ?? '',
+    subject: resolveStudentSubject({ groupSubject: s.groups?.subject, ownSubject: s.subject, ownSubjects: s.subjects }) ?? '',
+    subjects: resolveStudentSubjects({ groupSubject: s.groups?.subject, ownSubject: s.subject, ownSubjects: s.subjects }),
     isIndividual: s.groups?.is_individual ?? false,
     authUserId: s.auth_user_id ?? undefined,
     personId: s.person_id ?? undefined,

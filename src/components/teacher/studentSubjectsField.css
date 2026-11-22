@@ -1,0 +1,8 @@
+.student-subjects-label { display: flex; justify-content: space-between; gap: 8px; padding: 0 13px 6px; color: var(--color-text-2); font-size: 12px; font-weight: 600; }
+.student-subjects-label > :last-child { color: var(--color-muted); font-size: 11px; font-weight: 500; }
+.student-subjects-field { min-width: 0; }
+[data-platform="iphone"] .student-subjects-field button,
+[data-platform="ipad"] .student-subjects-field button { min-width: 44px; min-height: 44px; justify-content: center; }
+[data-platform="android"] .student-subjects-field button { min-width: 48px; min-height: 48px; justify-content: center; }
+
+.student-subjects-field [role="combobox"]:focus-visible { outline: none; border-color: var(--color-purple-text) !important; }
