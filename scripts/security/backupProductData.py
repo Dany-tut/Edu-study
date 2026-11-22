@@ -41,17 +41,22 @@ def query(cli, sql):
 def verify(root):
     root = Path(root)
     manifest = json.loads((root / 'manifest.json').read_text())
-    for entry in manifest['tables']:
+    for entry in manifest['tables'] if manifest['format'] != 4 else []:
         blob = (root / entry['file']).read_bytes()
         if hashlib.sha256(blob).hexdigest() != entry['sha256']:
             raise RuntimeError('Backup checksum mismatch: ' + entry['table'])
         snapshot = json.loads(gzip.decompress(blob) if entry['file'].endswith('.gz') else blob)
         if len(snapshot['rows']) != snapshot['row_count'] or snapshot['row_count'] != entry['rows']:
             raise RuntimeError('Backup row count mismatch: ' + entry['table'])
-    for entry in manifest.get('storage', []):
+    for entry in manifest.get('storage', []) + manifest.get('artifacts', []):
         blob = (root / entry['file']).read_bytes()
         if len(blob) != entry['bytes'] or hashlib.sha256(blob).hexdigest() != entry['sha256']:
-            raise RuntimeError('Storage backup integrity mismatch')
+            raise RuntimeError('Storage/schema artifact integrity mismatch')
+    if manifest['format'] == 4:
+        from pgDumpRows import summarize
+        counts, _ = summarize([root/name for name in manifest['data_files']])
+        if counts != {e['table']:e['rows'] for e in manifest['tables']}:
+            raise RuntimeError('SQL COPY row counts differ from manifest')
     return manifest
 
 
@@ -112,7 +117,7 @@ def backup(cli, destination):
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         objects = list(executor.map(capture_object, storage_meta))
     manifest = {'project': PROJECT, 'format': 3, 'tables': entries, 'storage': objects,
-                'scope': 'Product rows, row history, auth users/identities, Storage metadata and binaries, migration history. No schema dump.',
+                'scope': 'Custom application, Auth and Storage table rows; row history, migration history and Storage binaries. Volatile telemetry/caches and provider-internal schemas excluded. Schema artifacts are attached separately.',
                 'consistency': 'One statement per table; cross-table writes retained in row history.'}
     (root / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     verify(root)

@@ -50,6 +50,7 @@ import {
   hasCourseTests,
   hasCourseHomework,
   hasCourseAttendance,
+  coursePaymentStudent,
   hasCourseTrials,
   scopeSlots,
   sameLearner,
@@ -889,6 +890,9 @@ export default function JournalStand({ owner, user, production = false }: { owne
           }),
     [data, index, slots, today]
   )
+  const paymentCards = useMemo(() => new Map(data && index
+    ? data.students.map(student => [student.id, coursePaymentStudent(data, index, course, student)] as const)
+    : []), [data, index, course])
   const roster = useMemo(
     () =>
       entries.filter(
@@ -940,6 +944,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
       onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
       onOpenStudent={open}
       rosterTools={picker}
+      rosterPaymentInfo={student => error ? null : paymentCards.get(student.id) ?? null}
       rosterHasAttendance={student => !error && entries.some(e => sameLearner(e.student, student) && hasCourseAttendance(e.works))}
       rosterHasHomework={student => !error && entries.some(e => sameLearner(e.student, student) && hasCourseHomework(e.works))}
       rosterHasTrials={student => !error && entries.some(e => sameLearner(e.student, student) && hasCourseTrials(e.works))}
