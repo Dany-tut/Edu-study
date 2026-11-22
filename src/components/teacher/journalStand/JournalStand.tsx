@@ -48,6 +48,7 @@ import {
   ALL_COURSES,
   buildStandIndex,
   hasCourseTests,
+  hasCourseHomework,
   hasCourseTrials,
   scopeSlots,
   sameLearner,
@@ -938,6 +939,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
       onStripChange={(strip) => set({ strip, search: '', student: '', workRef: '' })}
       onOpenStudent={open}
       rosterTools={picker}
+      rosterHasHomework={student => !error && entries.some(e => sameLearner(e.student, student) && hasCourseHomework(e.works))}
       rosterHasTrials={student => !error && entries.some(e => sameLearner(e.student, student) && hasCourseTrials(e.works))}
       rosterHasTests={student => !error && entries.some(e => sameLearner(e.student, student) && hasCourseTests(e.works))}
       hasUnsubmittedWork={data && !error ? student => !!entries.find(e => e.student.id === student.id)

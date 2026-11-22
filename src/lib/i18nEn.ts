@@ -6675,6 +6675,4 @@ export const EN: Record<string, string> = {
   "Ученик пересматривал запись урока": "The student rewatched the lesson recording",
   "Урок в записи · просмотрено от": "Recorded lesson \u00b7 watched at least",
   "Урок в записи · запись ещё не просмотрена": "Recorded lesson \u00b7 not watched yet",
-  "Вставить из таблицы": "Paste from spreadsheet",
-  "Перенос прошлого": "Import past lessons",
 }
