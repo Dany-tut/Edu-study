@@ -18,6 +18,19 @@ for stdout in ['[{"table_name":"public.lessons"}]', '{"rows":[{"table_name":"pub
         assert backup.query('unused', 'select fixture')[0]['table_name'] == 'public.lessons'
 
 
+with patch.object(backup.subprocess, 'run', side_effect=[
+        SimpleNamespace(returncode=1, stdout=''),
+        SimpleNamespace(returncode=0, stdout='[]')]) as command, patch.object(backup.time, 'sleep'):
+    assert backup.query('unused', 'select fixture') == []
+    assert command.call_count == 2
+with patch.object(backup.subprocess, 'run', return_value=SimpleNamespace(returncode=1, stdout='')) as command, patch.object(backup.time, 'sleep'):
+    try:
+        backup.query('unused', 'select fixture')
+        raise AssertionError('failed source accepted')
+    except RuntimeError:
+        assert command.call_count == 3
+
+
 def fixture_query(cli, sql):
     if sql.startswith('select p.table_name'):
         return [{'table_name': 'public.lessons', 'schema_name': 'public', 'relation_name': 'lessons'},

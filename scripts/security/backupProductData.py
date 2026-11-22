@@ -17,21 +17,25 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import subprocess
+import time
 
 PROJECT = 'igsdwvwiqnozgwczzycx'
 
 
 def query(cli, sql):
-    result = subprocess.run([cli, 'db', 'query', '--linked', '--project-ref', PROJECT,
-                             '--output', 'json', sql], capture_output=True, text=True,
-                            timeout=180)
-    if result.returncode:
-        # Do not print rows, SQL or credentials to a launchd log.
-        raise RuntimeError('Supabase backup query failed; no complete manifest published')
-    data = json.loads(result.stdout)
-    # CLI JSON is an array outside an agent session, and a rows/boundary
-    # envelope inside Codex. launchd must support both without credentials/env hacks.
-    return data if isinstance(data, list) else data['rows']
+    for attempt in range(3):
+        result = subprocess.run([cli, 'db', 'query', '--linked', '--project-ref', PROJECT,
+                                 '--output', 'json', sql], capture_output=True, text=True,
+                                timeout=180)
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            # CLI returns an array under launchd and an envelope inside Codex.
+            return data if isinstance(data, list) else data['rows']
+        if attempt < 2:
+            time.sleep(2 ** attempt)
+    # No SQL, rows or credentials in launchd logs. Retries are bounded.
+    raise RuntimeError('Supabase backup query failed; no complete manifest published')
+
 
 
 def verify(root):
