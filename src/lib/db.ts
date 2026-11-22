@@ -1,4 +1,5 @@
 import { lessonNumberShift } from './lessonNumber'
+import { visibleCourseModules, type CourseVisibilityRow } from './courseVisibilityModel'
 import { readTranscript } from './localTranscription'
 import { resolveStudentSubject } from './studentSubject'
 /**
@@ -803,6 +804,8 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
   // Per-student access mode (full / custom / by_date). Absent row → 'custom'
   // (only teacher-unlocked lessons open), preserving legacy behaviour.
   const courseIds = (data as unknown as DbCourse[]).map(c => c.id)
+  const visibilityRequest = supabase.from('course_item_visibility')
+    .select('course_id,item_kind,item_key,hidden').in('course_id', courseIds).then(result => result)
   const modeByCourse: Record<string, 'full' | 'custom' | 'by_date'> = {}
   const posByCourse: Record<string, number> = {}
   if (courseIds.length > 0 && studentIds.length > 0) {
@@ -829,6 +832,12 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
       ?? rows.find(r => gids.includes(r.groupId))?.id
   }
 
+  const { data: visibility, error: visibilityError } = await visibilityRequest
+  if (visibilityError) {
+    reportDbError('fetchCourseStructure.visibility', visibilityError)
+    throw visibilityError
+  }
+  const visibilityRows = (visibility ?? []) as (CourseVisibilityRow & { course_id: string })[]
   return orderCourses((data as unknown as DbCourse[]).map(course => ({
     id: course.short_id,
     dbId: course.id,
@@ -838,7 +847,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
     activeModuleId: 1,
     accessMode: modeByCourse[course.id] ?? 'custom',
     ownerStudentId: ownerFor(course),
-    modules: [...course.course_modules]
+    modules: visibleCourseModules(course.course_modules, visibilityRows.filter(row => row.course_id === course.id))
       .sort((a, b) => a.position - b.position)
       .map(mod => ({
         id: mod.position,

@@ -10,6 +10,15 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Показать модуль ученикам': 'Show module to students',
+  'Скрыть модуль от учеников': 'Hide module from students',
+  'Показать урок ученикам': 'Show lesson to students',
+  'Скрыть урок от учеников': 'Hide lesson from students',
+  'Урок скрыт вместе с модулем. Его собственная видимость сохраняется.': 'The lesson is hidden with its module. Its own visibility setting is preserved.',
+  'Не удалось сохранить видимость. Попробуйте ещё раз.': 'Could not save visibility. Please try again.',
+  'Скрыт от учеников': 'Hidden from students',
+  'Видимость сохранится вместе с новым курсом': 'Visibility will be saved with the new course',
+  'Не удалось загрузить видимость. Повторите загрузку.': 'Could not load visibility. Please reload.',
   'Вставить из таблицы': 'Paste from spreadsheet',
   'Перенос прошлого': 'Import past records',
   'Сохранение остановлено, чтобы защитить данные. Сохраните копию черновика и откройте курс заново в другой вкладке.': 'Saving was stopped to protect your data. Keep a copy of your draft and reopen the course in another tab.',

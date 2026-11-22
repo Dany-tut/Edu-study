@@ -1,0 +1,7 @@
+.course-visibility-control { display: inline-flex; position: relative; flex-shrink: 0; }
+.course-visibility-button { width: 32px; height: 32px; border: none; border-radius: 10px; background: transparent; color: var(--color-text-3); display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+.course-visibility-button[data-hidden] { color: var(--color-green-text); background: var(--color-green-soft); }
+.course-visibility-button:disabled { cursor: default; opacity: .55; }
+.course-visibility-error { position: absolute; z-index: 20; right: 0; top: 100%; width: 230px; padding: 10px; border-radius: 12px; background: var(--color-bg-2); color: var(--color-red-text); box-shadow: var(--shadow-sm); font-size: 12px; }
+.course-visibility-note { color: var(--color-text-3); font-size: 11px; padding-inline: 10px; }
+@media (pointer: coarse) { .course-visibility-button { width: 44px; height: 44px; } }

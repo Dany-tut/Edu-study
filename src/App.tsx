@@ -368,6 +368,9 @@ function AppRoutes() {
         event: '*', schema: 'public', table: 'lesson_progress', filter: `student_id=eq.${id}`,
       }, () => { void loadStudentData().catch(e => console.error('[studentData.realtime]', e)) })
     }
+    channel.on('postgres_changes', {
+      event: '*', schema: 'public', table: 'course_item_visibility',
+    }, () => { void loadStudentData().catch(e => console.error('[studentData.visibility]', e)) })
     channel.subscribe(status => {
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.error('[realtime] lesson_progress subscription:', status)
     })
