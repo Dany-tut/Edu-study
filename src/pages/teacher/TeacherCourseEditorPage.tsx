@@ -6786,11 +6786,12 @@ export default function TeacherCourseEditorPage() {
   async function readCourseStamp(shortId: string, signal?: AbortSignal, excludeLesson?: string): Promise<string | null> {
     const { data: row, error: courseStampError } = await supabase
       .from('courses').select('id, updated_at').eq('short_id', shortId).abortSignal(signal ?? AbortSignal.timeout(60000)).maybeSingle()
-    if (courseStampError || !row) return null
+    if (courseStampError) throw courseStampError
+    if (!row) return null
     let latest = supabase.from('lessons').select('updated_at').eq('course_id', (row as { id: string }).id)
     if (excludeLesson) latest = latest.neq('short_id', excludeLesson)
     const { data: last, error: stampError } = await latest.order('updated_at', { ascending: false }).limit(1).abortSignal(signal ?? AbortSignal.timeout(60000))
-    if (stampError) return null
+    if (stampError) throw stampError
     const lessonStamp = (last as Array<{ updated_at: string }> | null)?.[0]?.updated_at ?? ''
     const courseStamp = (row as { updated_at: string }).updated_at ?? ''
     return lessonStamp > courseStamp ? lessonStamp : courseStamp
@@ -6907,8 +6908,14 @@ export default function TeacherCourseEditorPage() {
     //
     // Existing data must fail closed when version verification fails. An old
     // draft without a source stamp is reviewed before the first write as well.
-    if (c.dbCourseId || baselineStamp.current) {
-      const current = await readCourseStamp(shortId)
+    // Even a supposedly new seed can collide with a saved stable short_id.
+    // Check existence before upserting it; failed reads never mean "new".
+    let current: string | null
+    try { current = await readCourseStamp(shortId) } catch (error) {
+      saveIssue.current = courseSaveReason('course', error as { message?: string; code?: string }, shortId)
+      return false
+    }
+    if (current || c.dbCourseId || baselineStamp.current) {
       const provenance = courseSaveProvenance(baselineStamp.current, current)
       if (provenance === 'unverified') {
         saveIssue.current = courseSaveReason('course', {
