@@ -1,5 +1,5 @@
 // Diagnostic context contains technical breadcrumbs, never form values or OAuth URLs.
-export const INCIDENT_EVENTS = new Set(['js_error', 'promise_rejection', 'react_crash', 'widget_crash',
+export const INCIDENT_EVENTS = new Set(['db_error', 'js_error', 'promise_rejection', 'react_crash', 'widget_crash',
   'native_crash', 'bootstrap_error', 'api_slow', 'api_stalled', 'ui_freeze', 'ui_loading_stalled', 'ui_blank', 'operation_failed', 'auth_failed', 'auth_stalled', 'resource_error',
   'video_buffering_start', 'video_buffering_end', 'video_unexpected_seek', 'video_playback_error', 'video_playback_retry', 'video_dropped_frames'])
 type Breadcrumb = { at: string; event: string; path: string | null; endpoint?: string; status?: number }

@@ -11,7 +11,7 @@ const storage=new Map()
 globalThis.sessionStorage={getItem:k=>storage.get(k)??null}
 Object.defineProperty(globalThis,'navigator',{value:{userAgent:'browser',webdriver:false,onLine:true},configurable:true})
 globalThis.location={hostname:'edu-study-app.vercel.app',hash:'#/teacher/profile?token=PRIVATE'}
-globalThis.document={visibilityState:'visible'}
+globalThis.document=Object.assign(new EventTarget(),{visibilityState:'visible'})
 globalThis.window=new EventTarget()
 assert.equal(telemetrySource().event_source,'browser_unclassified')
 navigator.webdriver=true;assert.equal(telemetrySource().event_source,'automation_suspected')

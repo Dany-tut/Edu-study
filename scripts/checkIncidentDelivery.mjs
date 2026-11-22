@@ -17,10 +17,11 @@ writeFileSync('node_modules/.cache/incidentDelivery.mjs',out.outputFiles[0].text
 const first=await import('../node_modules/.cache/incidentDelivery.mjs?first')
 session.set('iskra:telemetry-source','qa')
 first.trackPath('#/join-teacher?token=INVITE_SECRET')
+first.trackEvent('db_error',{ctx:'course_save:schedule',code:'23505',msg:'synthetic conflict'})
 first.trackEvent('react_crash',{msg:'broken',stack:'https://provider.test/callback?access_token=PRIVATE Person@example.com'})
 await first.trackNow('marker')
 const key=[...storage.keys()].find(k=>k.startsWith('iskra:incident-outbox:'))
-const pending=JSON.parse(storage.get(key));assert.equal(pending.length,1)
+const pending=JSON.parse(storage.get(key));assert.equal(pending.length,2)
 assert.equal(pending[0].meta.event_source,'qa')
 assert.equal(JSON.stringify(pending).includes('PRIVATE'),false);assert.equal(JSON.stringify(pending).includes('Person@example.com'),false)
 assert.equal(pending[0].meta.breadcrumbs[0].path, '#/join-teacher')
@@ -29,6 +30,7 @@ assert.ok(!JSON.stringify(batches).includes('INVITE_SECRET'))
 pending[0].path = '#/join?token=OLD_SECRET'
 pending[0].meta.breadcrumbs[0].path = '#/join-teacher?token=OLD_SECRET'
 storage.set(key, JSON.stringify(pending))
+assert.ok(pending.some(e=>e.event==='db_error'),'db_error persists offline with incident context')
 const incidentId=pending[0].meta.incident_id
 fail=false
 session.delete('iskra:telemetry-source')

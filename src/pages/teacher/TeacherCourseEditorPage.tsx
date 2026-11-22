@@ -6997,8 +6997,10 @@ export default function TeacherCourseEditorPage() {
       error: { code?: string; details?: string; message?: string },
       attempted: Array<CourseSlot & { id?: string }> = [],
     ) {
+      // Always collect the failure, including a readable schedule conflict.
+      const reason = courseSaveReason('schedule', error, shortId)
       const slot = readGroupScheduleConflict(error)
-      if (!slot) { saveIssue.current = courseSaveReason('schedule', error, shortId); return writeFailed() }
+      if (!slot) { saveIssue.current = reason; return writeFailed() }
 
       const candidates = attempted.filter(row => row.group_id === slot.groupId
         && row.date === slot.date && row.time_start === slot.time)
@@ -7354,32 +7356,16 @@ export default function TeacherCourseEditorPage() {
       existingSlots = oldRows ?? []
     }
     const plan = planCourseSchedule(existingSlots, rows)
-    // A removed event can still occupy the unique group slot that its replacement needs.
-    if (plan.removeBeforeWrite.length) {
-      const { data: journal, error: journalError } = await supabase.from('teacher_lesson_sessions')
-        .select('schedule_id').in('schedule_id', plan.removeBeforeWrite)
-      if (journalError) { console.error('schedule_lessons journal lookup failed:', journalError); saveIssue.current = courseSaveReason('schedule', journalError, shortId); return writeFailed() }
-      const withJournal = new Set((journal ?? []).map(row => row.schedule_id))
-      const obsolete = plan.removeBeforeWrite.filter(id => !withJournal.has(id))
-      if (obsolete.length > 0) {
-        const { error } = await supabase.from('schedule_lessons').delete().in('id', obsolete).eq('status', 'upcoming')
-        if (error) { console.error('schedule_lessons stale slot delete failed:', error); return await scheduleIssue(error) }
-      }
-    }
-    if (plan.update.length) {
-      const { error } = await supabase.from('schedule_lessons').upsert(plan.update, { onConflict: 'id' })
-      if (error) { console.error('schedule_lessons update failed:', error); return await scheduleIssue(error, plan.update) }
-    }
-    if (plan.insert.length > 0) {
-      const { error: insErr } = await supabase
-        .from('schedule_lessons')
-        .insert(plan.insert.map(row => ({ ...row, status: 'upcoming' })))
-      if (insErr) { console.error('schedule_lessons insert failed:', insErr); return await scheduleIssue(insErr, plan.insert) }
-    }
-    if (plan.remove.length > 0) {
-      const { error: delErr } = await supabase
-        .from('schedule_lessons').delete().in('id', plan.remove)
-      if (delErr) { console.error('schedule_lessons delete failed:', delErr); return await scheduleIssue(delErr) }
+    // One transaction validates final dates, including chains and swaps. Stable
+    // event IDs keep attendance and teacher notes attached to the same lesson.
+    if (plan.update.length || plan.insert.length || plan.removeBeforeWrite.length || plan.remove.length) {
+      const { error } = await supabase.rpc('save_course_schedule', {
+        p_course_id: courseRow.id,
+        p_update: plan.update,
+        p_insert: plan.insert,
+        p_remove: [...plan.removeBeforeWrite, ...plan.remove],
+      })
+      if (error) return await scheduleIssue(error, [...plan.update, ...plan.insert])
     }
     // Записали мы — значит теперь свежая версия наша. Штамп берём из ответов
     // записи (primary), а не отдельным SELECT, который может уехать на реплику

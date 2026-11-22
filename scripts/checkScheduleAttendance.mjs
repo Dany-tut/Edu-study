@@ -58,3 +58,6 @@ assert.deepEqual(readGroupScheduleConflict({
   details: `Key (group_id, date, time_start)=(${groupId}, 2026-11-26, 18:00) already exists.`,
 }), { groupId, date: '2026-11-26', time: '18:00' })
 assert.equal(readGroupScheduleConflict({ code: '23505', details: 'Key (id)=(123) already exists.' }), null)
+
+assert.deepEqual(readGroupScheduleConflict({code:'23505',message:'ISKRA_SCHEDULE_CONFLICT:{"groupId":"00000000-0000-0000-0000-000000000001","date":"2026-12-01","time":"18:00"}'}),{groupId:'00000000-0000-0000-0000-000000000001',date:'2026-12-01',time:'18:00'})
+assert.equal(readGroupScheduleConflict({code:'23505',message:'ISKRA_SCHEDULE_CONFLICT:invalid'}),null)

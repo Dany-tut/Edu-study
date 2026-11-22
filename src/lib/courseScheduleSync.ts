@@ -38,8 +38,15 @@ export function planCourseSchedule(existing: SavedSlot[], desired: CourseSlot[])
 }
 
 /** PostgreSQL reports the occupied group slot, including on an atomic batch failure. */
-export function readGroupScheduleConflict(error: { code?: string; details?: string }) {
+export function readGroupScheduleConflict(error: { code?: string; details?: string; message?: string }) {
   if (error.code !== '23505') return null
+  if (error.message?.startsWith('ISKRA_SCHEDULE_CONFLICT:')) {
+    try {
+      const slot = JSON.parse(error.message.slice('ISKRA_SCHEDULE_CONFLICT:'.length))
+      if (/^[a-f0-9-]{36}$/i.test(slot.groupId) && /^\d{4}-\d{2}-\d{2}$/.test(slot.date)
+        && /^\d{2}:\d{2}(?::\d{2})?$/.test(slot.time)) return slot as { groupId: string; date: string; time: string }
+    } catch { /* Fall back to the legacy PostgreSQL detail. */ }
+  }
   const match = error.details?.match(/Key \(group_id, date, time_start\)=\(([a-f0-9-]{36}), (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)\)/i)
   if (!match) return null
   const [, groupId, date, time] = match
