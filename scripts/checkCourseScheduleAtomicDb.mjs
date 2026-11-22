@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { planCourseSchedule } from '../src/lib/courseScheduleSync.ts'
 const { PGlite } = await import(process.env.ISKRA_PGLITE_MODULE || '@electric-sql/pglite')
 const db = new PGlite()
 const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`
@@ -60,6 +61,10 @@ try {
  await db.exec(`select set_config('request.jwt.claim.sub','${teacher}',false)`)
  await call([], [insert]);const afterInsert=await snapshot();const inserted=afterInsert.find(r=>r.lesson_id===insert.lesson_id)
  assert.ok(inserted);assert.equal(inserted.status,'upcoming')
+ const ownSlots=afterInsert.filter(r=>r.lesson_id!==outsider.lesson_id)
+ const retryPlan=planCourseSchedule(ownSlots,ownSlots.map(({id,status,...row})=>row))
+ assert.deepEqual(retryPlan,{insert:[],update:[],removeBeforeWrite:[],remove:[]},'retry after lost response reuses persisted IDs instead of inserting duplicates')
+ await call(retryPlan.update,retryPlan.insert,retryPlan.remove)
  const beforeDeleteConflict=await snapshot()
  await assert.rejects(call([{...a,date:outsider.date}],[],[inserted.id]),e=>e.code==='23505')
  assert.deepEqual(await snapshot(),beforeDeleteConflict,'failed transaction restores a deleted upcoming event')
