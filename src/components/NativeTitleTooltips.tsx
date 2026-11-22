@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { TooltipBubble, tooltipDelay, tooltipHidden } from './Tooltip'
+import { TooltipBubble, TOOLTIP_FOCUS_DELAY_MS, TOOLTIP_HOVER_DELAY_MS } from './Tooltip'
 
 /** Upgrade existing DOM title hints, including portals, without changing layouts.
  * Suppress native/inherited titles only while engaged; restore on exit. React
@@ -14,12 +14,9 @@ export default function NativeTitleTooltips() {
     let timer: ReturnType<typeof setTimeout> | undefined
     let titles: Array<{ el: HTMLElement; value: string }> = []
     let observer: MutationObserver | null = null
-    let visible = false
     let addedLabel: string | null = null
     const dismiss = () => {
       clearTimeout(timer); setHint(null)
-      if (visible) tooltipHidden()
-      visible = false
       if (active) {
         const described = (active.getAttribute('aria-describedby') || '').split(/\s+/).filter(v => v && v !== id)
         if (described.length) active.setAttribute('aria-describedby', described.join(' '))
@@ -34,7 +31,7 @@ export default function NativeTitleTooltips() {
       for (const { el, value } of titles) if (el.getAttribute('title') === '') el.setAttribute('title', value)
       titles = []; active = null
     }
-    const start = (target: EventTarget | null) => {
+    const start = (target: EventTarget | null, delay: number) => {
       if (!(target instanceof Element) || target.closest('[data-custom-tooltip]')) { stop(); return }
       const el = target.closest<HTMLElement>('[title]')
       if (el === active) return
@@ -53,7 +50,6 @@ export default function NativeTitleTooltips() {
         if (active !== el || !el.isConnected) return
         const described = new Set((el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean))
         described.add(id); el.setAttribute('aria-describedby', [...described].join(' '))
-        visible = true
         setHint({ anchor: el, label })
       }
       observer = new MutationObserver(records => {
@@ -72,11 +68,11 @@ export default function NativeTitleTooltips() {
       })
       observer.observe(el, { attributes: true, attributeFilter: ['title'], attributeOldValue: true })
       observer.observe(document.body, { childList: true, subtree: true })
-      timer = setTimeout(show, tooltipDelay())
+      timer = setTimeout(show, delay)
     }
-    const over = (e: PointerEvent) => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') start(e.target) }
+    const over = (e: PointerEvent) => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') start(e.target, TOOLTIP_HOVER_DELAY_MS) }
     const out = (e: PointerEvent) => { if (active && (!(e.relatedTarget instanceof Node) || !active.contains(e.relatedTarget))) stop() }
-    const focus = (e: FocusEvent) => { if (e.target instanceof HTMLElement && e.target.matches(':focus-visible')) start(e.target) }
+    const focus = (e: FocusEvent) => { if (e.target instanceof HTMLElement && e.target.matches(':focus-visible')) start(e.target, TOOLTIP_FOCUS_DELAY_MS) }
     const blur = () => stop()
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') dismiss() }
     const down = () => dismiss()

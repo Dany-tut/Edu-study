@@ -1,9 +1,8 @@
 import { cloneElement, useEffect, useId, useLayoutEffect, useRef, useState, type ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 
-let lastHiddenAt = -Infinity
-export const tooltipDelay = () => performance.now() - lastHiddenAt < 300 ? 0 : 400
-export const tooltipHidden = () => { lastHiddenAt = performance.now() }
+export const TOOLTIP_HOVER_DELAY_MS = 600
+export const TOOLTIP_FOCUS_DELAY_MS = 400
 
 /** Shared portal for explicit and legacy title hints; stays inside the viewport. */
 export function TooltipBubble({ anchor, label, keys, id }: { anchor: HTMLElement; label: string; keys?: string; id: string }) {
@@ -45,8 +44,7 @@ export default function Tooltip({ label, keys, children }: { label: string; keys
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const id = useId()
-  const visible = useRef(false)
-  const hide = () => { clearTimeout(timer.current); if (visible.current) tooltipHidden(); visible.current = false; setAnchor(null) }
+  const hide = () => { clearTimeout(timer.current); setAnchor(null) }
   useEffect(() => () => clearTimeout(timer.current), [])
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') hide() }
@@ -55,15 +53,18 @@ export default function Tooltip({ label, keys, children }: { label: string; keys
     window.addEventListener('resize', hide)
     return () => { document.removeEventListener('keydown', key); window.removeEventListener('scroll', hide, true); window.removeEventListener('resize', hide) }
   }, [])
-  const show = (el: HTMLElement) => { clearTimeout(timer.current); timer.current = setTimeout(() => { visible.current = true; setAnchor(el) }, tooltipDelay()) }
+  const show = (el: HTMLElement, delay: number) => {
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => setAnchor(el), delay)
+  }
   const p = children.props
   const child = cloneElement(children, {
     title: '', 'data-custom-tooltip': true,
     'aria-label': (p['aria-label'] as string | undefined) ?? label,
     'aria-describedby': [p['aria-describedby'], anchor ? id : null].filter(Boolean).join(' ') || undefined,
-    onPointerEnter: (e: React.PointerEvent<HTMLElement>) => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') show(e.currentTarget); (p.onPointerEnter as ((e: unknown) => void) | undefined)?.(e) },
+    onPointerEnter: (e: React.PointerEvent<HTMLElement>) => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') show(e.currentTarget, TOOLTIP_HOVER_DELAY_MS); (p.onPointerEnter as ((e: unknown) => void) | undefined)?.(e) },
     onPointerLeave: (e: React.PointerEvent<HTMLElement>) => { hide(); (p.onPointerLeave as ((e: unknown) => void) | undefined)?.(e) },
-    onFocus: (e: React.FocusEvent<HTMLElement>) => { if (e.currentTarget.matches(':focus-visible')) show(e.currentTarget); (p.onFocus as ((e: unknown) => void) | undefined)?.(e) },
+    onFocus: (e: React.FocusEvent<HTMLElement>) => { if (e.currentTarget.matches(':focus-visible')) show(e.currentTarget, TOOLTIP_FOCUS_DELAY_MS); (p.onFocus as ((e: unknown) => void) | undefined)?.(e) },
     onBlur: (e: React.FocusEvent<HTMLElement>) => { hide(); (p.onBlur as ((e: unknown) => void) | undefined)?.(e) },
     onPointerDown: (e: React.PointerEvent<HTMLElement>) => { hide(); (p.onPointerDown as ((e: unknown) => void) | undefined)?.(e) },
   })
