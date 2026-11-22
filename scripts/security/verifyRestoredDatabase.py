@@ -20,21 +20,8 @@ def validate(container, dumps):
     configuration = json.loads(subprocess.check_output(['docker','inspect',container]))[0]
     if not container.startswith('iskra-restore-') or configuration['HostConfig']['NetworkMode'] != 'none' or configuration['HostConfig'].get('PortBindings'):
         raise RuntimeError('Restore verification requires an isolated container without ports')
-    counts = {}
-    for dump in dumps:
-        current = None
-        for line in Path(dump).open():
-            if current:
-                if line.rstrip('\n') == r'\.':current=None
-                else:counts[current]+=1
-            else:
-                match=re.match(r'^COPY ("(?:[^"]|"")+"\."(?:[^"]|"")+") \(',line)
-                if match:
-                    current=match[1]
-                    if current in counts:raise RuntimeError('Duplicate table in restore dumps')
-                    counts[current]=0
-        if current:raise RuntimeError('Truncated COPY section')
-    if not counts:raise RuntimeError('No COPY data found')
+    from pgDumpRows import summarize
+    counts, _ = summarize(dumps)
     queries=["select json_build_object('table', '"+table.replace("'","''")+"', 'rows', count(*)) record from "+table for table in counts]
     restored=json.loads(psql(container,'select json_agg(record) from ('+' union all '.join(queries)+') q;'))
     mismatch=[e['table'] for e in restored if counts[e['table']]!=e['rows']]
