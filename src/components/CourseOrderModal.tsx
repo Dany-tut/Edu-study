@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeStyle } from '../lib/textFades'
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
 import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
@@ -94,7 +95,7 @@ function CourseOrderActions({ saving, onCancel, onApply, stretch }: {
           background: 'transparent', color: 'var(--color-text-2)', fontSize: stretch ? 15 : 14, fontWeight: 600,
         }}
       >
-        {t('Отмена')}
+        <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
       </motion.button>
       <motion.button data-hover="layer"
         whileTap={{ scale: 0.97 }}
@@ -106,7 +107,7 @@ function CourseOrderActions({ saving, onCancel, onApply, stretch }: {
           background: 'var(--grad-purple)', color: '#fff', fontSize: stretch ? 15 : 14, fontWeight: 600, opacity: saving ? 0.7 : 1,
         }}
       >
-        {saving ? t('Сохраняем…') : t('Готово')}
+        <OpticalText as="iskra-button-label">{saving ? t('Сохраняем…') : t('Готово')}</OpticalText>
       </motion.button>
     </div>
   )

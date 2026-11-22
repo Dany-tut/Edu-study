@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import { useEffect, useState } from 'react'
 import ScrollFade from '../components/ScrollFade'
 import Skeleton from '../components/Skeleton'
@@ -147,13 +148,13 @@ export default function JoinTeacherPage() {
                 onClick={() => { window.location.hash = '#/'; window.location.reload() }}
                 style={{ padding: '10px 22px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
               >
-                {t('На главную')}
+                <OpticalText as="iskra-button-label">{t('На главную')}</OpticalText>
               </button>
               <button data-hover="layer"
                 onClick={() => { window.location.hash = '#/login'; window.location.reload() }}
                 style={btn('M', 'secondary')}
               >
-                {t('Войти')}
+                <OpticalText as="iskra-button-label">{t('Войти')}</OpticalText>
               </button>
             </div>
 
@@ -223,7 +224,7 @@ export default function JoinTeacherPage() {
                 cursor: ready ? 'pointer' : 'not-allowed',
               }}
             >
-              {saving ? t('Создаём аккаунт...') : t('Войти в платформу')}
+              <OpticalText as="iskra-button-label">{saving ? t('Создаём аккаунт...') : t('Войти в платформу')}</OpticalText>
             </button>
           </>
         )}

@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { motion } from 'framer-motion'
 import { Share, X, Plus, Sparkles, WifiOff, Rocket } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -111,7 +112,7 @@ export default function InstallSheetLegacy({ open, onClose, support, onInstall }
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}
                 >
-                  <Plus size={18} strokeWidth={2.5} /> {t('Установить приложение')}
+                  <Plus size={18} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Установить приложение')}</OpticalText>
                 </button>
               </div>
             ) : (

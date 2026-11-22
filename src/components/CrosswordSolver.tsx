@@ -16,6 +16,7 @@
 // встаёт в клетку. Отдельной корейской клавиатуры ученику не нужно.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { buildCrossword, type CrosswordWord } from '../lib/crossword'
@@ -219,7 +220,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                       fontFamily: 'inherit', fontSize: 20, fontWeight: 700, cursor: 'pointer',
                     }}
                   >
-                    {kk}
+                    <OpticalText as="iskra-button-label">{kk}</OpticalText>
                   </motion.button>
                 ))}
               </div>
@@ -228,7 +229,7 @@ export default function CrosswordSolver({ clues, value, disabled, showVerdict, o
                 className="self-center cursor-pointer"
                 style={btn('S', 'secondary')}
               >
-                {t('Очистить клетку')}
+                <OpticalText as="iskra-button-label">{t('Очистить клетку')}</OpticalText>
               </button>
             </div>
           )

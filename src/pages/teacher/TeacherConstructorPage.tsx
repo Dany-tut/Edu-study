@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { PLATFORM } from '../../lib/platform'
 import HScrollFade from '../../components/HScrollFade'
 import { textFadeStyle } from '../../lib/textFades'
@@ -186,7 +187,7 @@ function GoogleFormBankCategoryModal({
             options={SOURCES.map(s => ({ value: s, label: s }))} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
-          <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}>{t('Отмена')}</button>
+          <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
           <button data-hover="layer" onClick={handleConfirm} disabled={saving}
             style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: saving ? 'default' : 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: saving ? 0.6 : 1 }}>
             {t('Импортировать')} {questions.length}
@@ -560,7 +561,7 @@ function SegBtn({ label, active, color, bg, onClick }: { label: string; active: 
       background: active ? bg : 'var(--color-bg-3)',
       color: active ? color : 'var(--color-text-2)',
       transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
-    }}>{label}</button>
+    }}><OpticalText as="iskra-button-label">{label}</OpticalText></button>
   )
 }
 
@@ -579,7 +580,7 @@ function PanelHeader({ title, accent, accentBg, Icon, onClose, onExpand }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         {onExpand && (
           <button data-hover="layer" onClick={onExpand} title={t("Раскрыть на всю")} style={{ height: 26, padding: '0 10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: accentBg, display: 'flex', alignItems: 'center', gap: 6, color: accent, fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>
-            <Maximize2 size={12} strokeWidth={2.5} /> {t('Раскрыть')}
+            <Maximize2 size={12} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Раскрыть')}</OpticalText>
           </button>
         )}
         <button data-hover="layer" onClick={onClose} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--color-bg-5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', flexShrink: 0 }}>
@@ -846,7 +847,7 @@ function TrainerEditor({
             </div>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={loadFromBank}
               style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <Database size={14} strokeWidth={2} /> {t('Загрузить из банка')}
+              <Database size={14} strokeWidth={2} /> <OpticalText as="iskra-button-label">{t('Загрузить из банка')}</OpticalText>
             </motion.button>
           </div>
         )}
@@ -858,7 +859,7 @@ function TrainerEditor({
             <input value={manA} onChange={e => setManA(e.target.value)} placeholder={t("Правильный ответ…")} style={inputSt} />
             <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addManual}
               style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: 'var(--color-peach-soft)', color: 'var(--color-peach-text)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <Plus size={14} /> {t('Добавить')}
+              <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить')}</OpticalText>
             </motion.button>
           </div>
         )}
@@ -1014,7 +1015,7 @@ function WidgetEditor({
                 fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
               <Sparkles size={14} strokeWidth={2} />
-              {t('Наполнить автоматически')}
+              <OpticalText as="iskra-button-label">{t('Наполнить автоматически')}</OpticalText>
             </motion.button>
           </div>
         )}
@@ -1057,7 +1058,7 @@ function WidgetEditor({
               <div style={{ fontSize: 10, color: 'var(--color-text-3)' }}>{t('● — правильный ответ')}</div>
               <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addQuiz}
                 style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG[type], color: WTYPE_COLOR[type], fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Plus size={14} /> {t('Добавить вопрос')}
+                <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить вопрос')}</OpticalText>
               </motion.button>
             </>
           )}
@@ -1069,7 +1070,7 @@ function WidgetEditor({
                 style={{ ...inputSt, resize: 'vertical' }} />
               <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addFlashcard}
                 style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.facts, color: WTYPE_COLOR.facts, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Plus size={14} /> {t('Добавить факт')}
+                <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить факт')}</OpticalText>
               </motion.button>
             </>
           )}
@@ -1085,7 +1086,7 @@ function WidgetEditor({
                 setFcTerm(''); setFcDef(''); setDLabel('')
               }}
                 style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.reactions, color: WTYPE_COLOR.reactions, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Plus size={14} /> {t('Добавить реакцию')}
+                <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить реакцию')}</OpticalText>
               </motion.button>
             </>
           )}
@@ -1121,7 +1122,7 @@ function WidgetEditor({
                 setFcTerm(''); setFcDef(''); setDLabel('')
               }}
                 style={{ padding: '8px 0', borderRadius: 11, border: 'none', cursor: 'pointer', background: WTYPE_BG.memes, color: WTYPE_COLOR.memes, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Plus size={14} /> {t('Добавить мем')}
+                <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить мем')}</OpticalText>
               </motion.button>
             </>
           )}
@@ -1634,9 +1635,9 @@ function WidgetFilterPanel({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Тип')}</span>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          <button data-hover="layer" onClick={() => onChange({ type: '' })} style={pill(filters.type === '')}>{t('Все')}</button>
+          <button data-hover="layer" onClick={() => onChange({ type: '' })} style={pill(filters.type === '')}><OpticalText as="iskra-button-label">{t('Все')}</OpticalText></button>
           {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
-            <button data-hover="layer" key={wt} onClick={() => onChange({ type: filters.type === wt ? '' : wt })} style={pill(filters.type === wt)}>{label}</button>
+            <button data-hover="layer" key={wt} onClick={() => onChange({ type: filters.type === wt ? '' : wt })} style={pill(filters.type === wt)}><OpticalText as="iskra-button-label">{label}</OpticalText></button>
           ))}
         </div>
       </div>
@@ -1646,7 +1647,7 @@ function WidgetFilterPanel({
         <div style={{ display: 'flex', gap: 6 }}>
           {([['', t('Все')], ['linked', t('Тренажёр')], ['unlinked', t('Вручную')]] as [WidgetFilters['linked'], string][]).map(([v, l]) => (
             <button data-hover="layer" key={v} onClick={() => onChange({ linked: v })}
-              style={{ ...pill(filters.linked === v), flex: 1, padding: '6px 0' }}>{l}</button>
+              style={{ ...pill(filters.linked === v), flex: 1, padding: '6px 0' }}><OpticalText as="iskra-button-label">{l}</OpticalText></button>
           ))}
         </div>
       </div>
@@ -1655,9 +1656,9 @@ function WidgetFilterPanel({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('Группа')}</span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            <button data-hover="layer" onClick={() => onChange({ activeGroup: '' })} style={pill(filters.activeGroup === '')}>{t('Все')}</button>
+            <button data-hover="layer" onClick={() => onChange({ activeGroup: '' })} style={pill(filters.activeGroup === '')}><OpticalText as="iskra-button-label">{t('Все')}</OpticalText></button>
             {(Object.entries(WTYPE_LABEL) as [WidgetType, string][]).map(([wt, label]) => (
-              <button data-hover="layer" key={wt} onClick={() => onChange({ activeGroup: filters.activeGroup === wt ? '' : wt })} style={pill(filters.activeGroup === wt)}>{label}</button>
+              <button data-hover="layer" key={wt} onClick={() => onChange({ activeGroup: filters.activeGroup === wt ? '' : wt })} style={pill(filters.activeGroup === wt)}><OpticalText as="iskra-button-label">{label}</OpticalText></button>
             ))}
           </div>
         </div>
@@ -1666,7 +1667,7 @@ function WidgetFilterPanel({
       {hasFilters && (
         <button data-hover="layer" onClick={() => onChange({ search: '', type: '', linked: '', activeGroup: '' })}
           style={btn('S', 'secondary')}>
-          <Trash2 size={12} /> {t('Сбросить фильтры')}
+          <Trash2 size={12} /> <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
         </button>
       )}
 
@@ -2078,7 +2079,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
         <button data-hover="layer" onClick={save} disabled={saving || loading}
           style={{ padding: '10px 18px', borderRadius: 999, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-          {saving ? t('Сохраняю…') : t('Сохранить в базу')}
+          <OpticalText as="iskra-button-label">{saving ? t('Сохраняю…') : t('Сохранить в базу')}</OpticalText>
         </button>
       </div>
 
@@ -2091,7 +2092,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
               <button data-hover="layer" key={k} onClick={() => setTab(k)}
                 style={{ padding: '10px 18px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                   background: tab === k ? 'var(--color-purple-soft)' : 'transparent', color: tab === k ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
-                {label}
+                <OpticalText as="iskra-button-label">{label}</OpticalText>
               </button>
             ))}
           </div>
@@ -2109,7 +2110,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                     <button data-hover="layer" onClick={() => setParas(prev => prev.filter(x => x.id !== p.id))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={14} /></button>
                   </div>
                 ))}
-                <button data-hover="layer" onClick={() => setParas(prev => [...prev, { id: uid(), text: '' }])} style={dashBtn}><Plus size={14} /> {t('Добавить абзац')}</button>
+                <button data-hover="layer" onClick={() => setParas(prev => [...prev, { id: uid(), text: '' }])} style={dashBtn}><Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить абзац')}</OpticalText></button>
 
                 <div style={{ ...sectionTitle, marginTop: 16 }}>{t('Домашка · базовый тест')}</div>
                 {quiz.map((q, qi) => (
@@ -2163,7 +2164,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                     <input value={q.explanation} onChange={e => setQ(qi, { explanation: e.target.value })} placeholder={t("Пояснение (после ответа)")} style={{ ...inputSt, fontSize: 12 }} />
                   </div>
                 ))}
-                <button data-hover="layer" onClick={addQuestion} style={dashBtn}><Plus size={14} /> {t('Добавить вопрос')}</button>
+                <button data-hover="layer" onClick={addQuestion} style={dashBtn}><Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить вопрос')}</OpticalText></button>
 
                 <div style={{ ...sectionTitle, marginTop: 16 }}>{t('Домашка · хард-задание (на проверку преподавателю)')}</div>
                 <input value={hardTask.topic} onChange={e => setHardTask(t => ({ ...t, topic: e.target.value }))} placeholder={t("Тема задания")} style={inputSt} />
@@ -2182,7 +2183,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
                     <button data-hover="layer" onClick={() => setTimecodes(prev => prev.filter((_, i) => i !== ti))} style={miniBtn('var(--color-red-soft)', 'var(--color-red-text)')}><Trash2 size={14} /></button>
                   </div>
                 ))}
-                <button data-hover="layer" onClick={() => setTimecodes(prev => [...prev, { time: '', label: '', seconds: 0 }])} style={dashBtn}><Plus size={14} /> {t('Добавить таймкод')}</button>
+                <button data-hover="layer" onClick={() => setTimecodes(prev => [...prev, { time: '', label: '', seconds: 0 }])} style={dashBtn}><Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить таймкод')}</OpticalText></button>
 
                 <div style={{ ...sectionTitle, marginTop: 16 }}>{t('Краткое описание урока')}</div>
                 <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} placeholder={t("Что разобрали, ключевые моменты…")} style={{ ...inputSt, resize: 'vertical', minHeight: 88 }} />
@@ -2815,7 +2816,7 @@ function CreatorView({
                 onClick={handleSave}
                 style={{ ...savePillStyle, pointerEvents: 'auto' }}
               >
-                <Check size={14} strokeWidth={2.5} /> {saveLabel}
+                <Check size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{saveLabel}</OpticalText>
               </motion.button>
             </div>
           </motion.div>
@@ -2850,7 +2851,7 @@ function CreatorView({
               onClick={handleSave}
               style={savePillStyle}
             >
-              <Check size={14} strokeWidth={2.5} /> {saveLabel}
+              <Check size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{saveLabel}</OpticalText>
             </motion.button>
           </div>
         </motion.div>
@@ -3001,7 +3002,7 @@ function CreatorView({
                   )}
                   <button data-hover="layer" onClick={enrollCourse} disabled={enrolling}
                     style={{ padding: '10px 14px', borderRadius: 11, border: 'none', cursor: enrolling ? 'default' : 'pointer', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', opacity: enrolling ? 0.6 : 1 }}>
-                    {enrolling ? t('Зачисляю…') : t('Зачислить')}
+                    <OpticalText as="iskra-button-label">{enrolling ? t('Зачисляю…') : t('Зачислить')}</OpticalText>
                   </button>
                   {enrollMsg && <div style={{ fontSize: 12, fontWeight: 600, color: enrollMsg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{enrollMsg}</div>}
                   {enrolledList.length > 0 && (
@@ -3135,7 +3136,7 @@ function CreatorView({
                         title={t("Поменять местами с другим блоком")}
                         style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
                       >
-                        <ArrowUpDown size={12} />{t('поменять')}
+                        <ArrowUpDown size={12} /><OpticalText as="iskra-button-label">{t('поменять')}</OpticalText>
                       </button>
                     )}
                     <button data-hover="layer"
@@ -3144,7 +3145,7 @@ function CreatorView({
                       style={{ width: 22, height: 22, borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >{collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}</button>
                     {!isImage && (
-                      <button data-hover="layer" onClick={() => setTkHasTable(false)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><X size={12} />{t('Убрать')}</button>
+                      <button data-hover="layer" onClick={() => setTkHasTable(false)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 7, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><X size={12} /><OpticalText as="iskra-button-label">{t('Убрать')}</OpticalText></button>
                     )}
                   </div>
                   {!collapsed && isImage && (
@@ -3158,7 +3159,7 @@ function CreatorView({
                           return (
                             <button data-hover="layer" key={sz} title={titles[sz]} onClick={() => setTkImageSize(sz)}
                               style={{ padding: '4px 10px', borderRadius: 8, border: `1px solid ${active ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: active ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                              {labels[sz]}
+                              <OpticalText as="iskra-button-label">{labels[sz]}</OpticalText>
                             </button>
                           )
                         })}
@@ -3247,7 +3248,7 @@ function CreatorView({
                     )
                   })}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
-                    <button data-hover="layer" onClick={addChoice} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Вариант')}</button>
+                    <button data-hover="layer" onClick={addChoice} style={{ padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> <OpticalText as="iskra-button-label">{t('Вариант')}</OpticalText></button>
                     <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{tkAnswerType === 'single' ? t('Отметьте один верный вариант') : t('Отметьте все верные варианты')}</span>
                   </div>
                 </div>
@@ -3292,7 +3293,7 @@ function CreatorView({
                       )}
                     </div>
                   ))}
-                  <button data-hover="layer" onClick={addMatchRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Пара')}</button>
+                  <button data-hover="layer" onClick={addMatchRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> <OpticalText as="iskra-button-label">{t('Пара')}</OpticalText></button>
                 </div>
               )}
 
@@ -3311,7 +3312,7 @@ function CreatorView({
                       )}
                     </div>
                   ))}
-                  <button data-hover="layer" onClick={addSeqRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> {t('Шаг')}</button>
+                  <button data-hover="layer" onClick={addSeqRow} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Plus size={14} /> <OpticalText as="iskra-button-label">{t('Шаг')}</OpticalText></button>
                 </div>
               )}
 
@@ -3344,7 +3345,7 @@ function CreatorView({
                     padding: '10px 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                     background: scoreMode === m ? cfg.bg : 'var(--color-bg-3)', color: scoreMode === m ? cfg.color : 'var(--color-muted)',
                     fontSize: 13, fontWeight: 600, boxShadow: scoreMode === m ? `0 0 0 1.5px ${cfg.color}44` : 'none', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
-                  }}>{label}</button>
+                  }}><OpticalText as="iskra-button-label">{label}</OpticalText></button>
                 ))}
               </div>
 
@@ -3605,14 +3606,14 @@ function CreatorView({
               {wType !== 'pomodoro' && (
                 <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={addWidgetItem}
                   style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG[wType], color: WTYPE_COLOR[wType], fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Plus size={14} /> {t('Добавить элемент')}
+                  <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить элемент')}</OpticalText>
                 </motion.button>
               )}
 
               {wType === 'pomodoro' && wItems.length === 0 && (
                 <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => setWItems([{ id: 'pomo', focusMin: wPomoFocus, breakMin: wPomoBreak }])}
                   style={{ padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: WTYPE_BG.pomodoro, color: WTYPE_COLOR.pomodoro, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <Check size={14} /> {t('Применить настройки')}
+                  <Check size={14} /> <OpticalText as="iskra-button-label">{t('Применить настройки')}</OpticalText>
                 </motion.button>
               )}
               {wType === 'pomodoro' && wItems.length > 0 && (
@@ -4401,7 +4402,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
           }}
         >
           {copied ? <Check size={14} /> : <ClipboardCopy size={14} />}
-          {copied ? t('Скопировано!') : t('Скопировать ссылку')}
+          <OpticalText as="iskra-button-label">{copied ? t('Скопировано!') : t('Скопировать ссылку')}</OpticalText>
         </button>
 
         {/* Expand/collapse */}
@@ -4466,12 +4467,12 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                   {editOpts.length < 6 && (
                     <button data-hover="layer" onClick={() => setEditOpts([...editOpts, ''])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      <Plus size={12} /> {t('Добавить вариант')}
+                      <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Добавить вариант')}</OpticalText>
                     </button>
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                    <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
-                    <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
+                    <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} /><OpticalText as="iskra-button-label">{t('Сохранить')}</OpticalText></button>
                   </div>
                 </div>
               ) : (
@@ -4488,7 +4489,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    <button data-hover="layer" onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{t('Ред.')}</button>
+                    <button data-hover="layer" onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><OpticalText as="iskra-button-label">{t('Ред.')}</OpticalText></button>
                     <button data-hover="layer" onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
                   </div>
                 </div>
@@ -4502,7 +4503,7 @@ function DiagnosticSubjectPanel({ subject }: { subject: DiagSubject }) {
               onClick={resetToDefault}
               style={{ ...btn('S', 'secondary'), flex: 1 }}
             >
-              {t('Сбросить к стандарту')}
+              <OpticalText as="iskra-button-label">{t('Сбросить к стандарту')}</OpticalText>
             </button>
             <div style={{ fontSize: 11, color: 'var(--color-muted)', display: 'flex', alignItems: 'center', paddingLeft: 4 }}>
               {t('Ссылка диагностики:')}<br /><code style={{ fontSize: 10 }}>/#/diagnostic?subject={subject}</code>
@@ -4799,14 +4800,14 @@ function DiagnosticStudentCard({
                     <div style={{ flex: 1, padding: '10px 12px', borderRadius: 10, background: 'var(--color-green-soft)', border: '1px solid #86efac44', fontSize: 12, fontWeight: 600, color: 'var(--color-green-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Check size={14} strokeWidth={2.5} /> {linkedStudent?.name ?? t('Привязан')}
                     </div>
-                    <button data-hover="layer" onClick={onUnlink} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Отвязать')}</button>
+                    <button data-hover="layer" onClick={onUnlink} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}><OpticalText as="iskra-button-label">{t('Отвязать')}</OpticalText></button>
                   </>
                 ) : (
                   <button data-hover="layer"
                     onClick={onLink}
                     style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${accent}`, background: accent, color: getContrastColor(accent), fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}
                   >
-                    <Key size={14} strokeWidth={2.5} /> {t('Выбрать ученика')}
+                    <Key size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Выбрать ученика')}</OpticalText>
                   </button>
                 )}
                 <button data-hover="layer"
@@ -4935,7 +4936,7 @@ function DiagnosticManagement({ onBack }: { onBack: () => void }) {
                 fontSize: 11, fontWeight: 600,
               }}
             >
-              {t('↻ Обновить')}
+              <OpticalText as="iskra-button-label">{t('↻ Обновить')}</OpticalText>
             </button>
           </div>
           {anonResults.length === 0 ? (
@@ -4998,7 +4999,7 @@ function ResumeLinkButton({ result, accent, wide }: { result: AnonDiagResult; ac
       ? { width: '100%', height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }
       : { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : `${accent}1f`, color: copied ? 'var(--color-green-text)' : accent, fontSize: 10, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
       {copied ? <Check size={wide ? 14 : 12} /> : <Link2 size={wide ? 14 : 12} />}
-      {copied ? t('Скопировано!') : wide ? t('Ссылка «Продолжить»') : t('Продолжить')}
+      <OpticalText as="iskra-button-label">{copied ? t('Скопировано!') : wide ? t('Ссылка «Продолжить»') : t('Продолжить')}</OpticalText>
     </button>
   )
 }
@@ -5040,10 +5041,10 @@ function DiagResultsTable({
         <button data-hover="layer" onClick={onRefresh} style={{ padding: '6px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-muted)', fontSize: 12, fontWeight: 600 }} aria-label={t('Обновить')}><LoopUiRefreshCw size={14}/></button>
         <button data-hover="layer" onClick={copyLink} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: copied ? 'var(--color-green-soft)' : fillUnderWhite(accent), color: copied ? 'var(--color-green-text)' : '#fff', fontSize: 12, fontWeight: 700 }}>
           {copied ? <Check size={14} /> : <Link2 size={14} />}
-          {copied ? t('Скопировано!') : t('Ссылка')}
+          <OpticalText as="iskra-button-label">{copied ? t('Скопировано!') : t('Ссылка')}</OpticalText>
         </button>
         <button data-hover="layer" onClick={onOpenEditor} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--color-bg-3)', color: 'var(--color-text-2)', fontSize: 12, fontWeight: 700 }}>
-          <Pencil size={14} /> {t('Редактор')}
+          <Pencil size={14} /> <OpticalText as="iskra-button-label">{t('Редактор')}</OpticalText>
         </button>
       </div>
 
@@ -5272,7 +5273,7 @@ function DiagResultStudentPanel({
                     onClick={() => setShowAll(v => !v)}
                     style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: accent, fontFamily: 'inherit' }}
                   >
-                    {showAll ? t('Только ошибки') : t('Все вопросы')}
+                    <OpticalText as="iskra-button-label">{showAll ? t('Только ошибки') : t('Все вопросы')}</OpticalText>
                   </button>
                 </div>
                 {!showAll && wrong.length === 0 ? (
@@ -5349,21 +5350,21 @@ function DiagResultStudentPanel({
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{tn(linkedStudent.name)}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-green-text)' }}>{t('Привязан к профилю')}</div>
                 </div>
-                <button data-hover="layer" onClick={handleUnlink} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}>{t('Отвязать')}</button>
+                <button data-hover="layer" onClick={handleUnlink} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.12)', color: 'var(--color-red-text)', fontSize: 11, fontWeight: 700 }}><OpticalText as="iskra-button-label">{t('Отвязать')}</OpticalText></button>
               </div>
             ) : (
               <button data-hover="layer"
                 onClick={() => setPickerOpen(true)}
                 style={{ width: '100%', height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: fillUnderWhite(accent), color: '#fff', fontSize: 13, fontWeight: 700 }}
               >
-                <GraduationCap size={16} /> {t('Назначить ученика')}
+                <GraduationCap size={16} /> <OpticalText as="iskra-button-label">{t('Назначить ученика')}</OpticalText>
               </button>
             )}
           </div>
 
           {/* Delete */}
           <button data-hover="layer" onClick={handleDelete} style={{ width: '100%', height: 46, minHeight: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 12px', borderRadius: 14, border: '1.5px solid transparent', cursor: 'pointer', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
-            <Trash2 size={14} /> {t('Удалить результат')}
+            <Trash2 size={14} /> <OpticalText as="iskra-button-label">{t('Удалить результат')}</OpticalText>
           </button>
         </ScrollFade>
       </motion.div>
@@ -5445,7 +5446,7 @@ function DiagCalendarPicker({ value, onChange, onClose, anchorRef, accent = 'var
           return (
             <button data-hover="layer" key={i} onClick={() => { onChange(formatDateISO(d)); onClose() }}
               style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? accent : 'transparent', boxShadow: !sel && tod ? `inset 0 0 0 1.5px ${accent}` : 'none', color: sel ? '#fff' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
-              {d.getDate()}
+              <OpticalText as="iskra-button-label">{d.getDate()}</OpticalText>
             </button>
           )
         })}
@@ -5514,7 +5515,7 @@ function DiagTimePicker({ value, onChange, onClose, anchorRef, accent = 'var(--c
             return (
               <button data-hover="layer" key={t} onClick={() => { onChange(t); onClose() }}
                 style={{ width: '100%', border: 'none', background: active ? accent : 'transparent', color: active ? '#fff' : 'var(--color-text)', padding: '8px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.15s, color 0.15s' }}>
-                {t}
+                <OpticalText as="iskra-button-label">{t}</OpticalText>
               </button>
             )
           })}
@@ -5879,7 +5880,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
         </div>
         <div style={{ marginLeft: 'auto' }}>
           <button data-hover="layer" onClick={resetToDefault} style={btn('S', 'secondary')}>
-            {t('Сбросить к стандарту')}
+            <OpticalText as="iskra-button-label">{t('Сбросить к стандарту')}</OpticalText>
           </button>
         </div>
       </motion.div>
@@ -6004,7 +6005,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                   {(['test', 'trial'] as const).map(ty => (
                     <button data-hover="layer" key={ty} onClick={() => setAssignType(ty)}
                       style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                      {ty === 'test' ? t('Контрольная') : t('Пробник')}
+                      <OpticalText as="iskra-button-label">{ty === 'test' ? t('Контрольная') : t('Пробник')}</OpticalText>
                     </button>
                   ))}
                 </div>
@@ -6021,7 +6022,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
                         color: assignRecipientMode === m ? accent : 'var(--color-muted)',
                         fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                      {m === 'group' ? t('Группе') : t('Студенту')}
+                      <OpticalText as="iskra-button-label">{m === 'group' ? t('Группе') : t('Студенту')}</OpticalText>
                     </button>
                   ))}
                 </div>
@@ -6062,7 +6063,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
 
                 <button data-hover="layer" onClick={handleAssign} disabled={saving || !canAssign}
                   style={{ padding: '10px', borderRadius: 11, border: 'none', background: canAssign ? accent : 'var(--color-bg-5)', color: canAssign ? '#fff' : 'var(--color-text-3)', fontSize: 13, fontWeight: 700, cursor: canAssign ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                  {saving ? t('Назначаем…') : t('Назначить тест')}
+                  <OpticalText as="iskra-button-label">{saving ? t('Назначаем…') : t('Назначить тест')}</OpticalText>
                 </button>
               </>
             )}
@@ -6076,7 +6077,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                 <button data-hover="layer" onClick={copyLink}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 14px', borderRadius: 11, cursor: 'pointer', border: 'none', outline: 'none', fontFamily: 'inherit', background: copied ? 'var(--color-green-soft)' : soft, color: copied ? 'var(--color-green-text)' : accent, fontSize: 13, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
                   {copied ? <Check size={14} /> : <Link2 size={14} />}
-                  {copied ? t('Ссылка скопирована!') : t('Копировать ссылку')}
+                  <OpticalText as="iskra-button-label">{copied ? t('Ссылка скопирована!') : t('Копировать ссылку')}</OpticalText>
                 </button>
                 <div style={{ fontSize: 11, color: 'var(--color-muted)', textAlign: 'center' }}>
                   {t('После прохождения результат появится в таблице ниже')}
@@ -6162,7 +6163,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
                       <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Редактирование вопроса')}</div>
                       <button data-hover="layer" onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <X size={14} /> {t('Удалить')}
+                        <X size={14} /> <OpticalText as="iskra-button-label">{t('Удалить')}</OpticalText>
                       </button>
                     </div>
                     <div>
@@ -6227,17 +6228,17 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
                         {editOpts.length < 6 && (
                           <button data-hover="layer" onClick={() => { setEditOpts([...editOpts, '']); setDirty(true) }}
                             style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
-                            <Plus size={14} /> {t('Добавить вариант')}
+                            <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить вариант')}</OpticalText>
                           </button>
                         )}
                       </div>
                     </div>
                     )}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
-                      <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
+                      <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
                         style={{ ...btn('M', 'primary'), background: accent, color: getContrastColor(accent), gap: 8 }}>
-                        <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
+                        <Check size={16} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Сохранить вопрос')}</OpticalText>
                       </motion.button>
                     </div>
                   </GlassCard>
@@ -6299,7 +6300,7 @@ const DiagnosticEditorFullPage = forwardRef<DiagEditorHandle, {
               {/* Always-visible add button */}
               <button data-hover="layer" onClick={addQuestion}
                 style={{ marginTop: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '8px', borderRadius: 10, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                <Plus size={14} /> {t('Добавить вопрос')}
+                <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить вопрос')}</OpticalText>
               </button>
             </GlassCard>
           </div>
@@ -6371,7 +6372,7 @@ function ScrPills<T extends string>({ label, all, active, labelMap, onChange }: 
           return (
             <button data-hover="layer" key={key} onClick={() => onChange(on ? active.filter(k => k !== key) : [...active, key])}
               style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: on ? SCR_SOFT : 'var(--color-bg-3)', color: on ? SCR_ACC : 'var(--color-text-3)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-              {t(labelMap[key])}
+              <OpticalText as="iskra-button-label">{t(labelMap[key])}</OpticalText>
             </button>
           )
         })}
@@ -6564,9 +6565,9 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button data-hover="layer" onClick={() => setEditId(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
-                <button data-hover="layer" onClick={() => onChange(items.filter(i => i.id !== it.id))} style={{ ...btn('S', 'primary'), background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontFamily: 'inherit' }}>{t('Удалить')}</button>
-                <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: SCR_ACC, color: '#fff', fontFamily: 'inherit' }}>{t('Сохранить')}</button>
+                <button data-hover="layer" onClick={() => setEditId(null)} style={btn('S', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
+                <button data-hover="layer" onClick={() => onChange(items.filter(i => i.id !== it.id))} style={{ ...btn('S', 'primary'), background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontFamily: 'inherit' }}><OpticalText as="iskra-button-label">{t('Удалить')}</OpticalText></button>
+                <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: SCR_ACC, color: '#fff', fontFamily: 'inherit' }}><OpticalText as="iskra-button-label">{t('Сохранить')}</OpticalText></button>
               </div>
             </div>
           ) : (
@@ -6581,7 +6582,7 @@ function ScreeningAnalogyEditor({ items, onChange }: { items: AnalogyItem[]; onC
         </div>
       ))}
       <button data-hover="layer" onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-        <Plus size={14} /> {t('Добавить аналогию')}
+        <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить аналогию')}</OpticalText>
       </button>
     </div>
   )
@@ -6612,7 +6613,7 @@ function ScreeningColorEditor({ colors, onChange }: { colors: { name: string; he
         ))}
         <button data-hover="layer" onClick={() => onChange([...colors, { name: '', hex: '#000000' }])}
           style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          <Plus size={14} /> {t('Добавить цвет')}
+          <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить цвет')}</OpticalText>
         </button>
       </div>
     </div>
@@ -6679,10 +6680,10 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
               ))}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
                 <button data-hover="layer" onClick={() => addPair(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  <Plus size={14} /> {t('Пара')}
+                  <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Пара')}</OpticalText>
                 </button>
                 <button data-hover="layer" onClick={() => removeTask(task.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  <Trash2 size={14} /> {t('Удалить задание')}
+                  <Trash2 size={14} /> <OpticalText as="iskra-button-label">{t('Удалить задание')}</OpticalText>
                 </button>
               </div>
             </div>
@@ -6690,7 +6691,7 @@ function ScreeningMatchEditor({ tasks, onChange }: { tasks: MatchTask[]; onChang
         </div>
       ))}
       <button data-hover="layer" onClick={addTask} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, border: `1.5px dashed ${SCR_ACC}66`, background: 'transparent', color: SCR_ACC, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-        <Plus size={14} /> {t('Добавить задание')}
+        <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить задание')}</OpticalText>
       </button>
     </div>
   )
@@ -6758,7 +6759,7 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
               <div style={{ flexGrow: 1 }} />
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSave}
                 style={{ ...savePillStyle, flexShrink: 0, pointerEvents: 'auto' }}>
-                <Check size={14} strokeWidth={2.5} /> {saving ? t('Сохраняю…') : t('Сохранить')}
+                <Check size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{saving ? t('Сохраняю…') : t('Сохранить')}</OpticalText>
               </motion.button>
             </motion.div>
           )}
@@ -6776,10 +6777,10 @@ function ScreeningEditorFullPage({ onClose }: { onClose: () => void }) {
           </div>
           <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
             <button data-hover="layer" onClick={resetToDefault} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid var(--color-border-soft)', background: 'rgba(var(--glass-rgb),0.96)', color: 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {t('Сбросить к стандарту')}
+              <OpticalText as="iskra-button-label">{t('Сбросить к стандарту')}</OpticalText>
             </button>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSave} style={savePillStyle}>
-              <Check size={14} strokeWidth={2.5} /> {saving ? t('Сохраняю…') : dirty ? t('Сохранить') : t('Сохранено')}
+              <Check size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{saving ? t('Сохраняю…') : dirty ? t('Сохранить') : t('Сохранено')}</OpticalText>
             </motion.button>
           </div>
         </motion.div>
@@ -7094,7 +7095,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               <div style={{ flexGrow: 1 }} />
               <motion.button whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }} onClick={handleSave}
                 style={{ ...savePillStyle, flexShrink: 0, pointerEvents: 'auto' }}>
-                <Check size={14} strokeWidth={2.5} /> {t('Создать тест')}
+                <Check size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Создать тест')}</OpticalText>
               </motion.button>
             </motion.div>
           )}
@@ -7110,7 +7111,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
             {title || t('Новый тест')}
           </div>
           <motion.button whileHover={{ scale: canSave ? 1.03 : 1 }} whileTap={{ scale: canSave ? 0.97 : 1 }} onClick={handleSave} style={savePillStyle}>
-            <Check size={14} strokeWidth={2.5} /> {saving ? t('Сохранение…') : t('Создать тест')}
+            <Check size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{saving ? t('Сохранение…') : t('Создать тест')}</OpticalText>
           </motion.button>
         </motion.div>
 
@@ -7174,7 +7175,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                     {(['test', 'trial'] as const).map(ty => (
                       <button data-hover="layer" key={ty} onClick={() => setAssignType(ty)}
                         style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', outline: 'none', background: assignType === ty ? `${accent}20` : 'var(--color-bg-3)', color: assignType === ty ? accent : 'var(--color-text-3)', fontSize: 12, fontWeight: assignType === ty ? 700 : 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                        {ty === 'test' ? t('Контрольная') : t('Пробник')}
+                        <OpticalText as="iskra-button-label">{ty === 'test' ? t('Контрольная') : t('Пробник')}</OpticalText>
                       </button>
                     ))}
                   </div>
@@ -7187,7 +7188,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                           background: assignRecipientMode === m ? `${accent}20` : 'var(--color-bg-3)',
                           color: assignRecipientMode === m ? accent : 'var(--color-muted)',
                           fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                        {m === 'group' ? t('Группе') : t('Студенту')}
+                        <OpticalText as="iskra-button-label">{m === 'group' ? t('Группе') : t('Студенту')}</OpticalText>
                       </button>
                     ))}
                   </div>
@@ -7259,7 +7260,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{editIdx + 1}</div>
                       <div style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{t('Вопрос')} {editIdx + 1}</div>
                       <button data-hover="layer" onClick={() => removeQuestion(editIdx)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                        <X size={14} /> {t('Удалить')}
+                        <X size={14} /> <OpticalText as="iskra-button-label">{t('Удалить')}</OpticalText>
                       </button>
                     </div>
                     {editType === 'screening' ? (
@@ -7322,7 +7323,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                             {editOpts.length < 6 && (
                               <button data-hover="layer" onClick={() => setEditOpts([...editOpts, ''])}
                                 style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
-                                <Plus size={14} /> {t('Добавить вариант')}
+                                <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить вариант')}</OpticalText>
                               </button>
                             )}
                           </div>
@@ -7330,10 +7331,10 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
                       </>
                     )}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 }}>
-                      <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}>{t('Отмена')}</button>
+                      <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
                       <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={commitEdit}
                         style={{ ...btn('M', 'primary'), background: accent, color: getContrastColor(accent), gap: 8 }}>
-                        <Check size={16} strokeWidth={2.5} /> {t('Сохранить вопрос')}
+                        <Check size={16} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Сохранить вопрос')}</OpticalText>
                       </motion.button>
                     </div>
                   </GlassCard>
@@ -7387,7 +7388,7 @@ function DiagnosticTestCreator({ onSave, onCancel, groups, allStudents, onAssign
               </div>
               <button data-hover="layer" onClick={() => addQuestion()}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '8px 8px', borderRadius: 8, border: `1.5px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                <Plus size={14} /> {t('Добавить вопрос')}
+                <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Добавить вопрос')}</OpticalText>
               </button>
               <div style={{ borderTop: '1px solid var(--color-border-soft)', marginTop: 2 }} />
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{t('Тип вопроса')}</div>
@@ -7479,7 +7480,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
               outlineOffset: -1,
               transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}
-          >{t(chip)}</button>
+          ><OpticalText as="iskra-button-label">{t(chip)}</OpticalText></button>
         )
       })}
       {adding ? (
@@ -7505,7 +7506,7 @@ function ChipPicker({ value, onChange, fallbackAccent }: { value: string; onChan
             fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 7, cursor: 'pointer',
             border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-muted)',
           }}
-        >{t('+ свой')}</button>
+        ><OpticalText as="iskra-button-label">{t('+ свой')}</OpticalText></button>
       )}
     </div>
   )
@@ -7763,7 +7764,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
               }}
             >
               {copied ? <Check size={14} /> : <Link2 size={14} />}
-              {copied ? t('Скопировано!') : t('Ссылка')}
+              <OpticalText as="iskra-button-label">{copied ? t('Скопировано!') : t('Ссылка')}</OpticalText>
             </button>
             <button data-hover="layer"
               onClick={onEditTest}
@@ -7775,7 +7776,7 @@ function DiagnosticSelectionPanel({ subject, onClose, onEditTest }: {
                 fontSize: 13, fontWeight: 700, transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
               }}
             >
-              <Pencil size={14} /> {t('Редактировать')}
+              <Pencil size={14} /> <OpticalText as="iskra-button-label">{t('Редактировать')}</OpticalText>
             </button>
           </div>
 
@@ -7917,12 +7918,12 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                   {editOpts.length < 6 && (
                     <button data-hover="layer" onClick={() => setEditOpts([...editOpts, ''])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 7, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      <Plus size={12} /> {t('Добавить вариант')}
+                      <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Добавить вариант')}</OpticalText>
                     </button>
                   )}
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                    <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}>{t('Отмена')}</button>
-                    <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} />{t('Сохранить')}</button>
+                    <button data-hover="layer" onClick={() => setEditIdx(null)} style={btn('S', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
+                    <button data-hover="layer" onClick={commitEdit} style={{ ...btn('S', 'primary'), background: accent, color: getContrastColor(accent), display: 'flex', alignItems: 'center', gap: 6 }}><Check size={12} /><OpticalText as="iskra-button-label">{t('Сохранить')}</OpticalText></button>
                   </div>
                 </div>
               ) : (
@@ -7933,7 +7934,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
                     <div style={{ fontSize: 11, color: 'var(--color-muted)' }}><LoopTextIcon icon={LoopMarkCheck}>{'✓ '}</LoopTextIcon>{q.options[q.correct]}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    <button data-hover="layer" onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>{t('Ред.')}</button>
+                    <button data-hover="layer" onClick={() => startEdit(idx)} style={{ padding: '4px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}><OpticalText as="iskra-button-label">{t('Ред.')}</OpticalText></button>
                     <button data-hover="layer" onClick={() => removeQuestion(idx)} style={{ width: 26, height: 26, borderRadius: 7, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>
                   </div>
                 </div>
@@ -7941,7 +7942,7 @@ function DiagnosticEditorPanel({ subject, onClose }: { subject: DiagSubject; onC
             </div>
           ))}
           <button data-hover="layer" onClick={resetToDefault} style={btn('S', 'secondary')}>
-            {t('Сбросить к стандарту')}
+            <OpticalText as="iskra-button-label">{t('Сбросить к стандарту')}</OpticalText>
           </button>
         </div>
       </div>
@@ -9448,7 +9449,7 @@ export default function TeacherConstructorPage() {
                     }}
                   >
                     <Link2 size={14} strokeWidth={2.5} />
-                    {t('Импорт из Google Forms')}
+                    <OpticalText as="iskra-button-label">{t('Импорт из Google Forms')}</OpticalText>
                   </button>
                 )}
 
@@ -10020,7 +10021,7 @@ function AssignTestModal({
               {(['test', 'trial'] as const).map(ty => (
                 <button data-hover="layer" key={ty} onClick={() => setAssignType(ty)}
                   style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${assignType === ty ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: assignType === ty ? 'var(--color-purple-soft)' : 'transparent', color: assignType === ty ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                  {ty === 'test' ? t('Контрольная') : t('Пробник (ЕГЭ)')}
+                  <OpticalText as="iskra-button-label">{ty === 'test' ? t('Контрольная') : t('Пробник (ЕГЭ)')}</OpticalText>
                 </button>
               ))}
             </div>
@@ -10035,7 +10036,7 @@ function AssignTestModal({
                     background: recipientMode === m ? 'var(--color-purple-soft)' : 'var(--color-bg-3)',
                     color: recipientMode === m ? 'var(--color-accent)' : 'var(--color-muted)',
                     fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                  {m === 'group' ? t('Группе') : t('Студенту')}
+                  <OpticalText as="iskra-button-label">{m === 'group' ? t('Группе') : t('Студенту')}</OpticalText>
                 </button>
               ))}
             </div>
@@ -10057,7 +10058,7 @@ function AssignTestModal({
 
           <button data-hover="layer" onClick={handleSave} disabled={!canSave || saving}
             style={{ padding: '12px', borderRadius: 12, border: 'none', background: canSave ? 'var(--color-purple-soft)' : 'var(--color-bg-5)', color: canSave ? 'var(--color-accent)' : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: canSave ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-            {saving ? t('Сохраняем…') : t('Назначить тест')}
+            <OpticalText as="iskra-button-label">{saving ? t('Сохраняем…') : t('Назначить тест')}</OpticalText>
           </button>
         </div>
       </motion.div>

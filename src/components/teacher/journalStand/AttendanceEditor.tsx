@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../../../lib/i18n'
 import { useAsyncTask } from '../../../lib/useAsyncTask'
@@ -126,7 +127,7 @@ export default function AttendanceEditor({ cells, onClose, onSaved, onCommitted,
   const watchPercent = Math.round(COMPLETE_RATIO * 100)
   const title = cells.length === 1 ? cells[0].student.name : transfer ? 'Перенос прошлых уроков' : 'Оценки за урок'
   const subtitle = [...new Set(cells.map(c => c.column.title))].slice(0, 3).join(' · ')
-  const footer = <><button type="button" className="cj-button ja-action" onClick={close}>Отмена</button><button type="button" className="cj-button cj-primary ja-action" disabled={busy || !dirty || blocked || invalidPercent} onClick={() => void save()}>{busy ? 'Сохранение…' : 'Сохранить'}</button></>
+  const footer = <><button type="button" className="cj-button ja-action" onClick={close}><OpticalText as="iskra-button-label">Отмена</OpticalText></button><button type="button" className="cj-button cj-primary ja-action" disabled={busy || !dirty || blocked || invalidPercent} onClick={() => void save()}><OpticalText as="iskra-button-label">{busy ? 'Сохранение…' : 'Сохранить'}</OpticalText></button></>
   const body = <div className={'course-journal ja-editor' + (mobile ? ' cj-mobile' : '')}>
       {mobile && subtitle && <p className="cj-note ja-subtitle">{subtitle}</p>}
       {transfer && <p className="ja-banner" data-tone="transfer">Перенос: отметки не меняют баланс и не уведомляют учеников. ДЗ можно отметить сданным без работы ученика.</p>}
@@ -134,8 +135,8 @@ export default function AttendanceEditor({ cells, onClose, onSaved, onCommitted,
       {!transfer && !anyRecording && <p className="cj-note">Оценка за урок — от 1 до 5. Сначала отметьте присутствие. «Без оценки» удаляет оценку.</p>}
       {blocked && <Alert tone="warning" text="Сервер ещё не обновлён: такая отметка списала бы занятие с баланса. Сохранение откроется после обновления базы." />}
       {cells.length > 1 && <div className="ja-options ja-bulk">
-        <button type="button" className="cj-button" disabled={busy} onClick={() => updateAll(m => ({ ...m, present: true }))}>{transfer ? 'Все были' : 'Все присутствовали'}</button>
-        {transfer && <button type="button" className="cj-button" disabled={busy} onClick={() => updateAll((m, i) => blockedBy[i] ? m : { ...m, hw: 'done' })}>Все сдали ДЗ</button>}
+        <button type="button" className="cj-button" disabled={busy} onClick={() => updateAll(m => ({ ...m, present: true }))}><OpticalText as="iskra-button-label">{transfer ? 'Все были' : 'Все присутствовали'}</OpticalText></button>
+        {transfer && <button type="button" className="cj-button" disabled={busy} onClick={() => updateAll((m, i) => blockedBy[i] ? m : { ...m, hw: 'done' })}><OpticalText as="iskra-button-label">Все сдали ДЗ</OpticalText></button>}
       </div>}
       {cells.map((cell, i) => {
         const recording = recordings[i]
@@ -146,20 +147,20 @@ export default function AttendanceEditor({ cells, onClose, onSaved, onCommitted,
           <div className="ja-options" role="group" aria-label={`Посещаемость · ${cell.student.name}`}>
             {([{ value: true, label: 'Был' }, { value: false, label: recording ? 'Не был' : 'Пропуск' }, { value: null, label: 'Нет отметки' }] as const).map(o =>
               <button type="button" key={o.label} className="cj-button" aria-pressed={m.present === o.value}
-                onClick={() => update(i, { ...m, present: o.value, grade: o.value ? m.grade : null })}>{o.label}</button>)}
+                onClick={() => update(i, { ...m, present: o.value, grade: o.value ? m.grade : null })}><OpticalText as="iskra-button-label">{o.label}</OpticalText></button>)}
           </div>
           <div className="ja-options" role="group" aria-label={`Оценка · ${cell.student.name}`}>
-            {[1, 2, 3, 4, 5, null].map(g => <button type="button" key={g ?? 'none'} disabled={m.present !== true} className="cj-button" aria-pressed={m.grade === g} onClick={() => update(i, { ...m, grade: g })}>{g ?? 'Без оценки'}</button>)}
+            {[1, 2, 3, 4, 5, null].map(g => <button type="button" key={g ?? 'none'} disabled={m.present !== true} className="cj-button" aria-pressed={m.grade === g} onClick={() => update(i, { ...m, grade: g })}><OpticalText as="iskra-button-label">{g ?? 'Без оценки'}</OpticalText></button>)}
           </div>
           {transfer && (blockedBy[i] ? <p className="cj-note">{blockedBy[i]}</p> : <>
             <div className="ja-options" role="group" aria-label={`Домашнее задание · ${cell.student.name}`}>
               {([['done', 'ДЗ сдано'], ['not', 'Не сдано'], ['keep', '—']] as const).map(([value, label]) =>
                 <button type="button" key={value} className="cj-button" aria-pressed={m.hw === value}
-                  onClick={() => update(i, { ...m, hw: value })}>{label}</button>)}
+                  onClick={() => update(i, { ...m, hw: value })}><OpticalText as="iskra-button-label">{label}</OpticalText></button>)}
             </div>
             {m.hw === 'done' && <div className="ja-options ja-hw-score" role="group" aria-label={`Оценка ДЗ · ${cell.student.name}`}>
               {[2, 3, 4, 5].map(g => <button type="button" key={g} className="cj-button" aria-pressed={m.hwGrade === g}
-                onClick={() => update(i, { ...m, hwGrade: m.hwGrade === g ? null : g, hwPercent: '' })}>{g}</button>)}
+                onClick={() => update(i, { ...m, hwGrade: m.hwGrade === g ? null : g, hwPercent: '' })}><OpticalText as="iskra-button-label">{g}</OpticalText></button>)}
               <span className="ja-or">или</span>
               <label className="ja-percent"><input inputMode="numeric" aria-label="Результат ДЗ, %" placeholder="—" value={m.hwPercent}
                 onChange={e => update(i, { ...m, hwPercent: e.target.value.replace(/[^\d]/g, '').slice(0, 3), hwGrade: null })} /><span>%</span></label>

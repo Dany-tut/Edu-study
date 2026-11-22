@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, Reorder } from 'framer-motion'
@@ -187,7 +188,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 background: 'rgba(var(--glass-rgb), 0.6)', fontSize: 14, fontWeight: 600, color: 'var(--color-text-2)', cursor: 'pointer',
               }}
             >
-              {t('Отмена')}
+              <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
             </button>
             <button data-hover="layer"
               onClick={onClose}
@@ -197,7 +198,7 @@ export default function WidgetsModal({ onClose }: { onClose: () => void }) {
                 fontSize: 14, fontWeight: 600, cursor: 'pointer',
               }}
             >
-              {t('Готово')}
+              <OpticalText as="iskra-button-label">{t('Готово')}</OpticalText>
             </button>
           </div>
         </motion.div>

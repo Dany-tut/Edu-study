@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { AnimatePresence } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../../lib/i18n'
@@ -91,8 +92,8 @@ export function MfaSetupFlow({ onDone, onStep }: { onDone: () => void; onStep?: 
         </div>
       </div>
       {error && <Alert tone="danger" text={t(error)} />}
-      {error && !enrollment ? <button data-hover="layer" type="button" onClick={begin} style={primaryButton}>{t('Попробовать ещё раз')}</button>
-        : <button data-hover="layer" type="button" disabled={!enrollment} onClick={() => { setError(''); setStep(1) }} style={{ ...primaryButton, opacity: enrollment ? 1 : 0.6 }}>{t('Дальше')}</button>}
+      {error && !enrollment ? <button data-hover="layer" type="button" onClick={begin} style={primaryButton}><OpticalText as="iskra-button-label">{t('Попробовать ещё раз')}</OpticalText></button>
+        : <button data-hover="layer" type="button" disabled={!enrollment} onClick={() => { setError(''); setStep(1) }} style={{ ...primaryButton, opacity: enrollment ? 1 : 0.6 }}><OpticalText as="iskra-button-label">{t('Дальше')}</OpticalText></button>}
     </>}
 
     {step === 1 && <form noValidate onSubmit={event => { event.preventDefault(); void submit() }} style={{ display: 'grid', gap: 16 }}>
@@ -100,7 +101,7 @@ export function MfaSetupFlow({ onDone, onStep }: { onDone: () => void; onStep?: 
       <CodeCells value={code} onChange={value => { setCode(value); setError('') }} onComplete={value => void submit(value)} disabled={busy} invalid={!!error} label={t('Код из приложения')} />
       {error && <Alert tone="danger" text={t(error)} />}
       <CodeSubmitButton code={code} busy={busy} onPaste={value => { setCode(value); setError(''); void submit(value) }} />
-      <button data-hover="layer" type="button" onClick={() => { setStep(0); setCode(''); setError('') }} style={linkButton}>{t('Назад')}</button>
+      <button data-hover="layer" type="button" onClick={() => { setStep(0); setCode(''); setError('') }} style={linkButton}><OpticalText as="iskra-button-label">{t('Назад')}</OpticalText></button>
     </form>}
 
     {step === 2 && <>
@@ -111,8 +112,8 @@ export function MfaSetupFlow({ onDone, onStep }: { onDone: () => void; onStep?: 
       {codes ? <BackupCodesList codes={codes} />
         : <div style={{ padding: 16, textAlign: 'center', fontSize: 13, color: 'var(--color-muted)' }}>{busy ? t('Готовим запасные коды…') : ''}</div>}
       {error && <Alert tone="danger" text={t(error)} />}
-      {error && !codes && <button data-hover="layer" type="button" onClick={issueCodes} style={linkButton}>{t('Выпустить коды ещё раз')}</button>}
-      <button data-hover="layer" type="button" disabled={!codes} onClick={onDone} style={{ ...primaryButton, opacity: codes ? 1 : 0.6 }}>{t('Я сохранил коды')}</button>
+      {error && !codes && <button data-hover="layer" type="button" onClick={issueCodes} style={linkButton}><OpticalText as="iskra-button-label">{t('Выпустить коды ещё раз')}</OpticalText></button>}
+      <button data-hover="layer" type="button" disabled={!codes} onClick={onDone} style={{ ...primaryButton, opacity: codes ? 1 : 0.6 }}><OpticalText as="iskra-button-label">{t('Я сохранил коды')}</OpticalText></button>
     </>}
 
   </div>
@@ -147,14 +148,14 @@ export function BackupCodesDialog({ open, onClose, left }: { open: boolean; onCl
         {codes ? <>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, color: 'var(--color-text-2)' }}>{t('Новые коды. Прежние больше не работают. Каждый код срабатывает один раз.')}</p>
           <BackupCodesList codes={codes} />
-          <button data-hover="layer" type="button" onClick={onClose} style={primaryButton}>{t('Я сохранил коды')}</button>
+          <button data-hover="layer" type="button" onClick={onClose} style={primaryButton}><OpticalText as="iskra-button-label">{t('Я сохранил коды')}</OpticalText></button>
         </> : <>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, color: 'var(--color-text-2)' }}>
             {t('Запасной код пригодится, если телефона с приложением нет под рукой: он снимет защиту, и её можно будет включить заново.')}
           </p>
           <div style={{ fontSize: 14, color: 'var(--color-text)' }}>{t('Осталось кодов')}: <strong>{left}</strong> {t('из')} 8</div>
           {error && <Alert tone="danger" text={t(error)} />}
-          <button data-hover="layer" type="button" disabled={busy} onClick={issue} style={{ ...primaryButton, opacity: busy ? 0.6 : 1 }}>{t(busy ? 'Готовим…' : 'Выпустить новые коды')}</button>
+          <button data-hover="layer" type="button" disabled={busy} onClick={issue} style={{ ...primaryButton, opacity: busy ? 0.6 : 1 }}><OpticalText as="iskra-button-label">{t(busy ? 'Готовим…' : 'Выпустить новые коды')}</OpticalText></button>
           <span style={{ fontSize: 12, color: 'var(--color-muted)', textAlign: 'center' }}>{t('Старые коды перестанут работать.')}</span>
         </>}
       </div>

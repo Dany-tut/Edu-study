@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -93,7 +94,7 @@ function NotifRow({ n, onAction, onRead }: {
             background: 'rgba(255,90,90,0.18)', color: '#FF5A5A',
             fontSize: 12, fontWeight: 700,
           }}>
-            {n.action.label} <ArrowRight size={12} />
+            <OpticalText as="iskra-button-label">{n.action.label}</OpticalText> <ArrowRight size={12} />
           </button>
         )}
       </div>
@@ -264,7 +265,7 @@ export default function NotificationToastContainer() {
                         border: `1px solid rgba(${rgb},0.2)`, background: 'none', cursor: 'pointer',
                         fontSize: 12, fontWeight: 600, color: 'var(--color-muted)',
                       }}>
-                        {t('Закрыть все')}
+                        <OpticalText as="iskra-button-label">{t('Закрыть все')}</OpticalText>
                       </button>
                     )}
                   </div>

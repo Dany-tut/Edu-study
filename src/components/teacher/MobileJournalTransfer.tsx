@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import FadeText from '../FadeText'
 import HScrollFade from '../HScrollFade'
@@ -69,7 +70,7 @@ export default function MobileJournalTransfer({ data, index, students, columns, 
     })
   }
   useEffect(() => { onBar?.({ dirty: changes.length, busy: action.busy, save, paste: () => setImportOpen(true) }) })
-  if (!column) return <div className="cj-empty"><p>В этом курсе нет прошедших уроков для переноса.</p><button type="button" className="cj-button" onClick={onExit}>Выйти из переноса</button></div>
+  if (!column) return <div className="cj-empty"><p>В этом курсе нет прошедших уроков для переноса.</p><button type="button" className="cj-button" onClick={onExit}><OpticalText as="iskra-button-label">Выйти из переноса</OpticalText></button></div>
   const recording = isRecordingColumn(column)
   return <div className="mjt">
     <div className="mjt-banner" role="status"><RotateCcw size={16} aria-hidden /><p><b>Перенос прошлого.</b> Без списания с баланса и без уведомлений.</p></div>
@@ -83,9 +84,9 @@ export default function MobileJournalTransfer({ data, index, students, columns, 
         <small>{shortDate(dateOf(column))} · {recording ? 'урок в записи' : 'живой урок'} · {cells.length} {cells.length === 1 ? 'ученик' : 'учеников'}</small></header>
       {missing.length > 0 && <button type="button" className="mjt-date" onClick={() => setDateOpen(true)}><CalendarCheck size={16} />Указать дату{marked.length ? ` · ${missing.length} без даты` : ''}</button>}
       {marked.length > 0 && <div className="mjt-bulk">
-        <button type="button" className="cj-button" onClick={() => setDraft(Object.fromEntries(marked.map(c => [c.student.id, true])))}><Check size={14} />Все были</button>
-        <button type="button" className="cj-button" onClick={() => setEditor({ cells: marked, preset: 'homework' })}>ДЗ сдали все</button>
-        <button type="button" className="cj-button" onClick={() => setDraft(Object.fromEntries(marked.map(c => [c.student.id, null])))}>Очистить</button>
+        <button type="button" className="cj-button" onClick={() => setDraft(Object.fromEntries(marked.map(c => [c.student.id, true])))}><Check size={14} /><OpticalText as="iskra-button-label">Все были</OpticalText></button>
+        <button type="button" className="cj-button" onClick={() => setEditor({ cells: marked, preset: 'homework' })}><OpticalText as="iskra-button-label">ДЗ сдали все</OpticalText></button>
+        <button type="button" className="cj-button" onClick={() => setDraft(Object.fromEntries(marked.map(c => [c.student.id, null])))}><OpticalText as="iskra-button-label">Очистить</OpticalText></button>
       </div>}
       {marked.map(c => {
         const v = value(c)
@@ -95,8 +96,8 @@ export default function MobileJournalTransfer({ data, index, students, columns, 
             <small>{v === true ? 'Был' : v === false ? (recording ? 'Не был' : 'Пропуск') : 'Нет отметки'}{c.grade ? ' · оценка ' + c.grade : ''} · ДЗ {c.state === 'passed' || c.state === 'submitted' || c.state === 'low' ? 'сдано' + (c.score !== null ? ' · ' + c.score + ' %' : '') : 'не отмечено'}{c.transferred ? ' · перенесено' : ''}</small>
           </button>
           <div className="mjt-toggle" role="group" aria-label={'Присутствие · ' + c.student.name}>
-            <button type="button" aria-pressed={v === true} data-v="p" onClick={() => setDraft(d => ({ ...d, [c.student.id]: v === true ? null : true }))}>Был</button>
-            <button type="button" aria-pressed={v === false} data-v="a" onClick={() => setDraft(d => ({ ...d, [c.student.id]: v === false ? null : false }))}>Н</button>
+            <button type="button" aria-pressed={v === true} data-v="p" onClick={() => setDraft(d => ({ ...d, [c.student.id]: v === true ? null : true }))}><OpticalText as="iskra-button-label">Был</OpticalText></button>
+            <button type="button" aria-pressed={v === false} data-v="a" onClick={() => setDraft(d => ({ ...d, [c.student.id]: v === false ? null : false }))}><OpticalText as="iskra-button-label">Н</OpticalText></button>
           </div>
         </div>
       })}
@@ -104,9 +105,9 @@ export default function MobileJournalTransfer({ data, index, students, columns, 
     {blocked && <Alert tone="warning" text="Сервер ещё не обновлён: присутствие при переносе списало бы занятие. Сохранение откроется после обновления базы." />}
     {error && <Alert tone="danger" text={error} />}
     {!nativeIphone && <div className="mjt-bar">
-      <button type="button" className="mjt-pill" onClick={() => setImportOpen(true)}><ClipboardPaste size={18} />Вставить</button>
+      <button type="button" className="mjt-pill" onClick={() => setImportOpen(true)}><ClipboardPaste size={18} /><OpticalText as="iskra-button-label">Вставить</OpticalText></button>
       <button type="button" className="mjt-pill mjt-primary" disabled={action.busy || blocked} onClick={changes.length ? save : onExit}>
-        {action.busy ? 'Сохранение…' : changes.length ? `Сохранить · ${changes.length}` : 'Готово'}</button>
+        <OpticalText as="iskra-button-label">{action.busy ? 'Сохранение…' : changes.length ? `Сохранить · ${changes.length}` : 'Готово'}</OpticalText></button>
     </div>}
     {editor && <AttendanceEditor mobile transfer data={data} cells={editor.cells} preset={editor.preset} onCommitted={onCommitted} onSaved={onSaved} onClose={() => setEditor(null)} />}
     {dateOpen && <LessonDateDialog mobile data={data} column={column} students={missing} today={today} onSaved={onSaved} onClose={() => setDateOpen(false)} />}

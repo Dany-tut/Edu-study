@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { startSocialLogin, startSocialLoginCustom, cancelSocialLogin, resetSocialLoginState, hasPendingSocialAuth, isCustomProvider, startPasskeyLogin, type LoginRole } from '../lib/socialAuth'
 import { usePasskeyAvailable, passkeyMaybeAvailable } from '../lib/passkey'
@@ -174,7 +175,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
             disabled={busy !== null}
             style={{ border: 0, background: 'transparent', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600, padding: 4, minHeight: 36, cursor: 'pointer', justifySelf: 'center' }}
           >
-            {t('Это не я · другой аккаунт')}
+            <OpticalText as="iskra-button-label">{t('Это не я · другой аккаунт')}</OpticalText>
           </button>
         </>
       )}

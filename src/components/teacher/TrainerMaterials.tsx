@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import TableScrollArea from '../TableScrollArea'
 import { textFadeStyle } from '../../lib/textFades'
 import { Check as LoopUiCheck } from '../icons/appIcons'
@@ -815,7 +816,7 @@ function FilterPanel({
       {dirty && (
         <button data-hover="layer" onClick={onReset}
           style={btn('S', 'secondary')}>
-          <Trash2 size={12} /> {t('Сбросить фильтры')}
+          <Trash2 size={12} /> <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
         </button>
       )}
 

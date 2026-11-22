@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
 import { isHomeworkSubmissionStatus, type HomeworkResult } from '../lib/homeworkResult'
@@ -132,7 +133,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
         <HomeworkAttemptHistorySection result={useSavedSubmission ? result.homework : progress?.result}
           studentId={ownerStudentIdFor(lesson.subject)} lessonRef={lesson.id} />
         <button data-hover="layer" onClick={onBack} style={{ height: 40, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-          {t('К курсу')}
+          <OpticalText as="iskra-button-label">{t('К курсу')}</OpticalText>
         </button>
       </div>
     )
@@ -532,7 +533,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                             background: selected ? 'var(--color-purple-soft)' : 'var(--color-bg-2)',
                             color: selected ? 'var(--color-accent)' : 'var(--color-text)',
                           }}>
-                            {label || side}
+                            <OpticalText as="iskra-button-label">{label || side}</OpticalText>
                           </button>
                         )
                       })}
@@ -599,7 +600,7 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
               cursor: submitting ? 'wait' : 'pointer', fontFamily: 'inherit',
               boxShadow: '0 8px 24px rgba(var(--accent-rgb), 0.35)', opacity: submitting ? 0.7 : 1,
             }}>
-            {submitting ? t('Отправляем…') : `${t('Отправить тест')} (${answeredCount}/${tasks.length})`}
+            <OpticalText as="iskra-button-label">{submitting ? t('Отправляем…') : `${t('Отправить тест')} (${answeredCount}/${tasks.length})`}</OpticalText>
           </motion.button>
         </div>
         </>

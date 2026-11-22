@@ -8,6 +8,7 @@
 // частей скрыты: иначе ответ виден. Проверка на клиенте, сравнением
 // идентификаторов, как у сопоставления.
 // ─────────────────────────────────────────────────────────────────────────────
+import OpticalText from './OpticalText'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { retryImport } from '../lib/chunkError'
 import { loadModelSpec } from '../lib/models3d/registry'
@@ -222,7 +223,7 @@ export default function Model3DQuiz({ src, mode, askedParts, distractors = 2, pr
                   onClick={() => !checked && setActive(prev => (prev === id ? null : id))}
                   aria-label={`Булавка ${i + 1}`}
                 >
-                  {i + 1}
+                  <OpticalText as="iskra-button-label">{i + 1}</OpticalText>
                 </button>
               )
             })}
@@ -231,10 +232,10 @@ export default function Model3DQuiz({ src, mode, askedParts, distractors = 2, pr
         <div className="m3q__tools">
           {spec?.canExplode && (
             <button type="button" className="m3d__btn" data-hover="own" aria-pressed={exploded} onClick={() => setExploded(v => !v)}>
-              {exploded ? 'Собрать' : 'Разобрать'}
+              <OpticalText as="iskra-button-label">{exploded ? 'Собрать' : 'Разобрать'}</OpticalText>
             </button>
           )}
-          <button type="button" className="m3d__btn" data-hover="own" onClick={() => { setExploded(false); viewerRef.current?.resetView() }}>Сброс</button>
+          <button type="button" className="m3d__btn" data-hover="own" onClick={() => { setExploded(false); viewerRef.current?.resetView() }}><OpticalText as="iskra-button-label">Сброс</OpticalText></button>
         </div>
         {!(mode === 'find' && picked) && <div className="m3q__note">подписи скрыты</div>}
         {status === 'loading' && <div className="m3d__state">Загружаем 3D-модель…</div>}
@@ -244,7 +245,7 @@ export default function Model3DQuiz({ src, mode, askedParts, distractors = 2, pr
       {mode === 'find' && !finished && (
         <div className="m3q__foot">
           {verdict === null ? (
-            <button type="button" className="m3d__btn m3q__primary" data-hover="own" disabled={!picked} onClick={answer}>Ответить</button>
+            <button type="button" className="m3d__btn m3q__primary" data-hover="own" disabled={!picked} onClick={answer}><OpticalText as="iskra-button-label">Ответить</OpticalText></button>
           ) : (
             <div className="m3q__feedback" data-verdict={verdict ? 'ok' : 'bad'} style={colorVar(partColor(target))}>
               <div className="m3q__feedback-title">
@@ -252,7 +253,7 @@ export default function Model3DQuiz({ src, mode, askedParts, distractors = 2, pr
               </div>
               <div className="m3q__feedback-text"><Prose text={partInfo(target)} /></div>
               <button type="button" className="m3d__btn m3q__primary" data-hover="own" onClick={next}>
-                {step + 1 >= askedParts.length ? 'Завершить' : 'Дальше'}
+                <OpticalText as="iskra-button-label">{step + 1 >= askedParts.length ? 'Завершить' : 'Дальше'}</OpticalText>
               </button>
             </div>
           )}
@@ -281,12 +282,12 @@ export default function Model3DQuiz({ src, mode, askedParts, distractors = 2, pr
           <div className="m3q__bank" aria-label="Названия">
             {bank.map(id => (
               <button key={id} type="button" className="m3d__part m3q__chip" data-hover="own" data-used={used.has(id)} disabled={checked} onClick={() => assign(id)}>
-                {partName(id)}
+                <OpticalText as="iskra-button-label">{partName(id)}</OpticalText>
               </button>
             ))}
           </div>
           {!checked ? (
-            <button type="button" className="m3d__btn m3q__primary" data-hover="own" disabled={Object.keys(assigned).length < askedParts.length} onClick={check}>Проверить</button>
+            <button type="button" className="m3d__btn m3q__primary" data-hover="own" disabled={Object.keys(assigned).length < askedParts.length} onClick={check}><OpticalText as="iskra-button-label">Проверить</OpticalText></button>
           ) : (
             <div className="m3q__result"><b>{labelScore} из {askedParts.length}</b> булавок подписаны верно.</div>
           )}

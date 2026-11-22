@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeLines } from '../lib/textFades'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, Headphones, Layers, Mic, Blocks, Compass, CheckCircle2, XCircle, HelpCircle, SlidersHorizontal, Eye, Volume2, ListChecks, Check, RotateCcw, Library, Quote, Ear, Languages, ArrowRight, AlignLeft, Rows3, BookMarked, Repeat, MessagesSquare, ExternalLink, Puzzle, Hash, AudioLines, ClipboardCheck } from './icons/appIcons'
@@ -1527,7 +1528,7 @@ export function Chips({ label, value, options, onChange, accent }: {
               background: on ? 'var(--color-bg-3)' : 'var(--color-bg-2)',
               color: on ? accent : 'var(--color-text-2)',
             }}>
-            {o}
+            <OpticalText as="iskra-button-label">{o}</OpticalText>
           </button>
         )
       })}
@@ -1807,9 +1808,9 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
               color: tookWords !== null ? 'var(--color-muted)' : accent,
             }}
           >
-            {tookWords !== null
+            <OpticalText as="iskra-button-label">{tookWords !== null
               ? (tookWords > 0 ? `${t('в колоде')} +${tookWords}` : t('уже в колоде'))
-              : (takingWords ? t('Добавляю…') : `${t('Все слова в колоду')} · ${text.glossary.length}`)}
+              : (takingWords ? t('Добавляю…') : `${t('Все слова в колоду')} · ${text.glossary.length}`)}</OpticalText>
           </button>
         </RailCard>
       )}
@@ -2008,7 +2009,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
             background: allAnswered ? accent : 'var(--color-border-medium)',
           }}
         >
-          {allAnswered ? t('Проверить') : t('Ответь на все вопросы')}
+          <OpticalText as="iskra-button-label">{allAnswered ? t('Проверить') : t('Ответь на все вопросы')}</OpticalText>
         </button>
       ) : (
         /* Титры сцены. Раньше здесь первым и самым крупным был счёт, а «чем
@@ -2058,7 +2059,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
                   color: showTranslation ? accent : 'var(--color-text-2)',
                 }}
               >
-                <Languages size={16} /> {t('Перевод')}
+                <Languages size={16} /> <OpticalText as="iskra-button-label">{t('Перевод')}</OpticalText>
               </button>
             )}
 
@@ -2076,9 +2077,9 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
                 }}
               >
                 <Layers size={16} />
-                {tookWords !== null
+                <OpticalText as="iskra-button-label">{tookWords !== null
                   ? (tookWords > 0 ? `${t('в колоде')} +${tookWords}` : t('уже в колоде'))
-                  : (takingWords ? t('Добавляю…') : `${text.glossary.length} ${t('слов в колоду')}`)}
+                  : (takingWords ? t('Добавляю…') : `${text.glossary.length} ${t('слов в колоду')}`)}</OpticalText>
               </button>
             )}
 
@@ -2089,7 +2090,7 @@ function Reader({ text, scene, work, feed, share, accent, palette, lang, owner, 
                 border: `1px solid ${accent}66`, color: accent, fontWeight: 600,
               }}
             >
-              {t('Дальше')} <ArrowRight size={16} />
+              <OpticalText as="iskra-button-label">{t('Дальше')}</OpticalText> <ArrowRight size={16} />
             </button>
           </div>
 
@@ -2308,7 +2309,7 @@ function Listener({ item, share, accent, palette, lang, onBack }: {
             background: allAnswered ? accent : 'var(--color-border-medium)',
           }}
         >
-          {allAnswered ? t('Проверить') : t('Ответь на все вопросы')}
+          <OpticalText as="iskra-button-label">{allAnswered ? t('Проверить') : t('Ответь на все вопросы')}</OpticalText>
         </button>
       ) : (
         <div style={{

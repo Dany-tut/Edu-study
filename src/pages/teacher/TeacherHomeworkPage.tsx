@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import TableScrollArea from '../../components/TableScrollArea'
 import { textFadeStyle } from '../../lib/textFades'
 import { ArrowRight as LoopUiArrowRight } from '../../components/icons/appIcons'
@@ -192,7 +193,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
                     transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                   }}
                 >
-                  {mode === 'group' ? t('Группе') : t('Студенту')}
+                  <OpticalText as="iskra-button-label">{mode === 'group' ? t('Группе') : t('Студенту')}</OpticalText>
                 </button>
               ))}
             </div>
@@ -264,7 +265,7 @@ function AssignForm({ onClose }: { onClose: () => void }) {
             }}
           >
             <Send size={16} strokeWidth={2} />
-            {t('Выдать задание')}
+            <OpticalText as="iskra-button-label">{t('Выдать задание')}</OpticalText>
           </motion.button>
         </form>
       )}
@@ -510,7 +511,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
           {hw.lessonId
             ? <BookOpen size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
             : <ClipboardList size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />}
-          {lessonBusy ? t('Открываю…') : hw.lessonId ? t('Открыть урок') : t('Открыть домашку')}
+          <OpticalText as="iskra-button-label">{lessonBusy ? t('Открываю…') : hw.lessonId ? t('Открыть урок') : t('Открыть домашку')}</OpticalText>
         </motion.button>
 
         {/* Continue / start review */}
@@ -530,7 +531,7 @@ function HwDetail({ hw, group, onClose }: { hw: HomeworkItem; group: Group; onCl
             }}
           >
             <ClipboardList size={16} strokeWidth={2} />
-            {pendingReview > 0 ? `${t('Проверить ДЗ')} · ${pendingReview}` : t('Пересмотреть работы')}
+            <OpticalText as="iskra-button-label">{pendingReview > 0 ? `${t('Проверить ДЗ')} · ${pendingReview}` : t('Пересмотреть работы')}</OpticalText>
           </motion.button>
         )}
 
@@ -788,7 +789,7 @@ export default function TeacherHomeworkPage() {
                         catch (error) { setTestlyReturnError(error instanceof Error ? error.message : t('Не удалось сохранить изменения')) }
                         finally { setReturningTestly(null) }
                       }}>
-                        {returningTestly === sub.id ? t('Сохраняем…') : t('На доработку')}
+                        <OpticalText as="iskra-button-label">{returningTestly === sub.id ? t('Сохраняем…') : t('На доработку')}</OpticalText>
                       </button>
                     </div>
                   )}
@@ -804,7 +805,7 @@ export default function TeacherHomeworkPage() {
                           await reloadCourseTestly()
                         } catch { setTestlyReturnError(t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.')) }
                         finally { setReturningTestly(null) }
-                      }}>{t('Завершить проверку')}</button>
+                      }}><OpticalText as="iskra-button-label">{t('Завершить проверку')}</OpticalText></button>
                   </div>
                   <HomeworkAttemptPanel readOnly result={homeworkResult(sub.payload,sub.score,sub.status,sub.attempts)} status={sub.status} studentId={sub.studentId} lessonRef={sub.lessonRef} />
                   <HomeworkAttemptHistorySection authorName={sub.studentName}
@@ -892,7 +893,7 @@ export default function TeacherHomeworkPage() {
                       background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                     }}
                   >
-                    {t('Проверить')}
+                    <OpticalText as="iskra-button-label">{t('Проверить')}</OpticalText>
                   </motion.button>
                 </div>
               ))}

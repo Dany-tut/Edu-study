@@ -1,5 +1,6 @@
 // «Ты получил стикер» — показываем новые стикеры за принятые задания.
 // Открывается один раз на стикер: после закрытия id уходит в «просмотрено».
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronRight } from './icons/appIcons'
@@ -86,7 +87,7 @@ export default function StickerRevealModal({ items, emblems, onClose }: { items:
               background: `linear-gradient(135deg, ${tier.ink}, ${tier.inkDark})`,
             }}
           >
-            {last ? t('В коллекцию') : t('Дальше')} <ChevronRight size={16} />
+            <OpticalText as="iskra-button-label">{last ? t('В коллекцию') : t('Дальше')}</OpticalText> <ChevronRight size={16} />
           </button>
         </motion.div>
       </motion.div>

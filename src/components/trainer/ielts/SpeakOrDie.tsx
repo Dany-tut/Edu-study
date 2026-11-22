@@ -15,6 +15,7 @@
 // localStorage.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../../OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { LogOut, Mic, RotateCcw, Trophy } from '../../icons/appIcons'
@@ -180,14 +181,14 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                   background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
                   display: 'inline-flex', alignItems: 'center', gap: 8, opacity: asr ? 1 : 0.5,
                 }}>
-                  <Mic size={16} /> {t('Начать')}
+                  <Mic size={16} /> <OpticalText as="iskra-button-label">{t('Начать')}</OpticalText>
                 </button>
                 <button data-hover="layer" type="button" onClick={again} style={{
                   height: 44, padding: '0 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                 }}>
-                  <RotateCcw size={16} /> {t('Другая тема')}
+                  <RotateCcw size={16} /> <OpticalText as="iskra-button-label">{t('Другая тема')}</OpticalText>
                 </button>
               </div>
               {!asr && (
@@ -245,11 +246,11 @@ export default function SpeakOrDie({ accent, soft, onClose }: { accent: string; 
                 <button data-hover="layer" type="button" onClick={start} style={{ height: 40,
                   padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                   background: 'var(--grad-purple)', color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
-                }}>{t('Ещё раз')}</button>
+                }}><OpticalText as="iskra-button-label">{t('Ещё раз')}</OpticalText></button>
                 <button data-hover="layer" type="button" onClick={again} style={{
                   height: 42, padding: '0 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   background: 'var(--color-bg-3)', color: 'var(--color-text)', fontWeight: 700, fontSize: 14, fontFamily: 'inherit',
-                }}>{t('Новая тема')}</button>
+                }}><OpticalText as="iskra-button-label">{t('Новая тема')}</OpticalText></button>
               </div>
             </>
           )}

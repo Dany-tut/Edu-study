@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, X, RotateCcw, Blocks } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -366,7 +367,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
                   color: 'var(--color-text)',
                 }}
               >
-                {q.kind === 'build' ? tailOf(verb, o.id) : verb.forms[o.id].ru}
+                <OpticalText as="iskra-button-label">{q.kind === 'build' ? tailOf(verb, o.id) : verb.forms[o.id].ru}</OpticalText>
               </button>
             )
           })}
@@ -391,7 +392,7 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
               <b style={{ color: TONE[q.ending.tone].fg }}>{q.ending.block}</b> — {q.ending.note}
             </div>
             <button data-hover="layer" onClick={next} style={primaryBtn(accent)}>
-              {idx + 1 >= run.length ? t('Итог') : t('Дальше')}
+              <OpticalText as="iskra-button-label">{idx + 1 >= run.length ? t('Итог') : t('Дальше')}</OpticalText>
             </button>
           </div>
         )}
@@ -432,9 +433,9 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <RotateCcw size={14} />
-            {t('Ещё прогон')}
+            <OpticalText as="iskra-button-label">{t('Ещё прогон')}</OpticalText>
           </button>
-          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
+          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}><OpticalText as="iskra-button-label">{t('К разбору')}</OpticalText></button>
         </div>
       </div>
     )
@@ -457,10 +458,10 @@ export function StemPage({ verb, lang, accent, soft, owner, subjectId, reading, 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
           <Blocks size={16} />
-          {t('Собрать формы')}
+          <OpticalText as="iskra-button-label">{t('Собрать формы')}</OpticalText>
         </button>
         <button data-hover="layer" onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
-          {saving ? t('Добавляю…') : t('Взять формы в колоду')}
+          <OpticalText as="iskra-button-label">{saving ? t('Добавляю…') : t('Взять формы в колоду')}</OpticalText>
         </button>
         {added !== null && (
           <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>

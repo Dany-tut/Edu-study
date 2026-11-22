@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
@@ -108,7 +109,7 @@ export default function TeacherRouteGate({ session, children }: { session: Sessi
           <button data-hover="layer" type="button" disabled={current?.status === 'loading'} aria-busy={current?.status === 'loading'}
             onClick={() => setRetry(value => value + 1)}
             style={{ width: '100%', minHeight: 48, padding: 12, border: 0, borderRadius: 14, background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 650, cursor: 'pointer' }}>
-            {t('Проверить доступ ещё раз')}
+            <OpticalText as="iskra-button-label">{t('Проверить доступ ещё раз')}</OpticalText>
           </button>
         </div></div>
       </ScrollFade>

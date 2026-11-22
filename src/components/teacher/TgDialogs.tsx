@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import BackCircle from '../BackCircle'
@@ -181,7 +182,7 @@ function Conversation({ thread, onBack, onStatus }: {
                 padding: '4px 10px', borderRadius: 8, border: '1px solid var(--color-border)', cursor: on ? 'default' : 'pointer',
                 fontSize: 12, fontWeight: 600,
                 background: on ? sm.bg : 'transparent', color: on ? sm.color : 'var(--color-text-3)',
-              }}>{t(sm.label)}</button>
+              }}><OpticalText as="iskra-button-label">{t(sm.label)}</OpticalText></button>
             )
           })}
         </div>

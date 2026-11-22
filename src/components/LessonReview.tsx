@@ -6,6 +6,7 @@
 // принадлежит домашке), вердикт по канону Р10, а не самооценка, и никакой своей
 // загрузки — карточки уже загружены занятием.
 
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { RotateCcw } from './icons/appIcons'
 import type { ReviewTask } from '../lib/lessonDebt'
@@ -143,7 +144,7 @@ export default function LessonReview({
             fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
           }}
         >
-          {t('Показать ответ')}
+          <OpticalText as="iskra-button-label">{t('Показать ответ')}</OpticalText>
         </button>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -168,7 +169,7 @@ export default function LessonReview({
                   color: 'var(--color-red-text)', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
                 }}
               >
-                {t('Не вспомнил')}
+                <OpticalText as="iskra-button-label">{t('Не вспомнил')}</OpticalText>
               </button>
               <button data-hover="layer"
                 onClick={() => report(true)}
@@ -179,7 +180,7 @@ export default function LessonReview({
                   color: 'var(--color-green-text)', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
                 }}
               >
-                {t('Вспомнил')}
+                <OpticalText as="iskra-button-label">{t('Вспомнил')}</OpticalText>
               </button>
             </div>
           )}

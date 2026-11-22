@@ -17,6 +17,7 @@
 // урока» не заводится, иначе одно и то же слово пришлось бы держать в двух местах.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Layers, Rows3 } from './icons/appIcons'
@@ -172,7 +173,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                   }}
                 >
                   {readingVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-                  {t('Чтение')}
+                  <OpticalText as="iskra-button-label">{t('Чтение')}</OpticalText>
                 </button>
               )}
 
@@ -191,7 +192,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                   }}
                 >
                   {walking ? <Rows3 size={14} /> : <ChevronRight size={14} />}
-                  {walking ? t('Показать все') : t('По одному')}
+                  <OpticalText as="iskra-button-label">{walking ? t('Показать все') : t('По одному')}</OpticalText>
                 </button>
               )}
 
@@ -355,7 +356,7 @@ export default function VocabIntro({ words, accent, soft, defaultOpen, started =
                       fontFamily: 'inherit', fontSize: 13, fontWeight: 700,
                     }}
                   >
-                    {(step ?? 0) + 1 >= words.length ? t('Готово') : t('Дальше')}
+                    <OpticalText as="iskra-button-label">{(step ?? 0) + 1 >= words.length ? t('Готово') : t('Дальше')}</OpticalText>
                     <ChevronRight size={16} />
                   </button>
                 </div>

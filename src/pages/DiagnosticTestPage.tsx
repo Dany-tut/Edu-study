@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import { textFadeStyle } from '../lib/textFades'
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import BackCircle from '../components/BackCircle'
@@ -356,7 +357,7 @@ function DiagDoneScreen({ accentColor, onBack, verdict, saveFailed, retrying, on
               border: 'none', cursor: retrying ? 'default' : 'pointer', fontFamily: 'inherit',
               fontSize: 14, fontWeight: 700, background: 'var(--btn-red-bg)', color: '#fff', opacity: retrying ? 0.6 : 1,
             }}>
-            {retrying ? t('Отправляю…') : t('Отправить ещё раз')}
+            <OpticalText as="iskra-button-label">{retrying ? t('Отправляю…') : t('Отправить ещё раз')}</OpticalText>
           </button>
         )}
 
@@ -832,7 +833,7 @@ export default function DiagnosticTestPage() {
           {t('Вопросы этого теста не удалось загрузить. Возможно, тест был создан на другом устройстве и не сохранился на сервер.')}
         </div>
         <button data-hover="layer" onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#786AD7', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          {t('На главную')}
+          <OpticalText as="iskra-button-label">{t('На главную')}</OpticalText>
         </button>
       </div>
     )
@@ -848,7 +849,7 @@ export default function DiagnosticTestPage() {
           {t('Все ответы сохранены у преподавателя.')}
         </div>
         <button data-hover="layer" onClick={goBack} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: theme.accent, color: getContrastColor(theme.accent), fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          {t('На главную')}
+          <OpticalText as="iskra-button-label">{t('На главную')}</OpticalText>
         </button>
       </div>
     )
@@ -900,13 +901,13 @@ export default function DiagnosticTestPage() {
                   style={{ width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer', background: theme.accent, color: '#fff', fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
                   {/* Имя уже стоит строкой выше: в кнопке «как Аня Смирнова» переносилось на две строки */}
-                  {t('Продолжить')} <ChevronRight size={16} />
+                  <OpticalText as="iskra-button-label">{t('Продолжить')}</OpticalText> <ChevronRight size={16} />
                 </motion.button>
                 <button data-hover="layer"
                   onClick={startOver}
                   style={{ ...btn('M', 'secondary'), width: '100%' }}
                 >
-                  {t('Начать заново')}
+                  <OpticalText as="iskra-button-label">{t('Начать заново')}</OpticalText>
                 </button>
               </>
             ) : (<>
@@ -1091,7 +1092,7 @@ export default function DiagnosticTestPage() {
                         border: `1.5px solid ${confident === val ? col : 'var(--color-border-medium)'}`,
                         background: confident === val ? `${col}1a` : 'var(--color-bg-2)',
                         color: confident === val ? col : 'var(--color-text-2)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s' }}>
-                      {label}
+                      <OpticalText as="iskra-button-label">{label}</OpticalText>
                     </button>
                   ))}
                 </div>
@@ -1286,7 +1287,7 @@ export default function DiagnosticTestPage() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   }}
                 >
-                  {t('Следующий вопрос')} <ChevronRight size={16} />
+                  <OpticalText as="iskra-button-label">{t('Следующий вопрос')}</OpticalText> <ChevronRight size={16} />
                 </motion.button>
               )}
             </AnimatePresence>

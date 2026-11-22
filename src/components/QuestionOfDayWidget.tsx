@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { Check, Sparkles } from './icons/appIcons'
@@ -83,7 +84,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                 color: '#fff', fontSize: 14 * scale, fontWeight: 600,
               }}
             >
-              {t('Показать ответ')}
+              <OpticalText as="iskra-button-label">{t('Показать ответ')}</OpticalText>
             </motion.button>
           ) : (
             <motion.div
@@ -112,7 +113,7 @@ export default function QuestionOfDayWidget({ columns = 1 }: Props) {
                   color: 'var(--color-muted)', fontSize: 13 * scale, fontWeight: 600,
                 }}
               >
-                {t('Скрыть')}
+                <OpticalText as="iskra-button-label">{t('Скрыть')}</OpticalText>
               </button>
             </motion.div>
           )}

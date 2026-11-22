@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
@@ -192,15 +193,15 @@ export function MfaChallengeScreen({ onPassed, client = supabase, onCancel }: { 
           autoCapitalize="characters" autoCorrect="off" spellCheck={false} autoComplete="off" aria-invalid={!!error}
           style={{ width: '100%', boxSizing: 'border-box', minHeight: 52, padding: '0 16px', borderRadius: 14, border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: 18, letterSpacing: '.08em', textAlign: 'center', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }} />
         {error && <Alert tone="danger" text={t(error)} />}
-        <button data-hover="layer" type="submit" disabled={busy} style={{ ...primaryButton, opacity: busy ? 0.6 : 1 }}>{t(busy ? 'Проверяем…' : 'Войти')}</button>
-        <button data-hover="layer" type="button" onClick={() => { setBackup(false); setError('') }} style={linkButton}>{t('Ввести код из приложения')}</button>
+        <button data-hover="layer" type="submit" disabled={busy} style={{ ...primaryButton, opacity: busy ? 0.6 : 1 }}><OpticalText as="iskra-button-label">{t(busy ? 'Проверяем…' : 'Войти')}</OpticalText></button>
+        <button data-hover="layer" type="button" onClick={() => { setBackup(false); setError('') }} style={linkButton}><OpticalText as="iskra-button-label">{t('Ввести код из приложения')}</OpticalText></button>
       </form>
       : <form noValidate onSubmit={event => { event.preventDefault(); void submit() }} style={{ display: 'grid', gap: 12, marginTop: 8 }}>
         <CodeCells value={code} onChange={value => { setCode(value); setError('') }} onComplete={value => void submit(value)} disabled={busy} invalid={!!error} label={t('Код из приложения')} />
         {error && <Alert tone="danger" text={t(error)} />}
         <CodeSubmitButton code={code} busy={busy} ready={!!factorId} onPaste={value => { setCode(value); setError(''); void submit(value) }} />
-        <button data-hover="layer" type="button" onClick={() => { setBackup(true); setError('') }} style={linkButton}>{t('Использовать запасной код')}</button>
+        <button data-hover="layer" type="button" onClick={() => { setBackup(true); setError('') }} style={linkButton}><OpticalText as="iskra-button-label">{t('Использовать запасной код')}</OpticalText></button>
       </form>}
-    <button data-hover="layer" type="button" onClick={() => { if (onCancel) onCancel(); else void signOut() }} style={{ ...linkButton, width: '100%', color: 'var(--color-muted)' }}>{t(onCancel ? 'Отмена' : 'Выйти')}</button>
+    <button data-hover="layer" type="button" onClick={() => { if (onCancel) onCancel(); else void signOut() }} style={{ ...linkButton, width: '100%', color: 'var(--color-muted)' }}><OpticalText as="iskra-button-label">{t(onCancel ? 'Отмена' : 'Выйти')}</OpticalText></button>
   </AuthShell>
 }

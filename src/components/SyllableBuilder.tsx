@@ -28,6 +28,7 @@
 // ㅠ не тренирует ничего, выбор между ㅁ и ㅂ — тренирует.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
@@ -171,12 +172,12 @@ export default function SyllableBuilder({ syllable, value, disabled, showVerdict
                   cursor: disabled || !filled ? 'default' : 'pointer',
                 }}
               >
-                {filled ?? (
+                <OpticalText as="iskra-button-label">{filled ?? (
                   <span style={{
                     fontSize: 11, fontWeight: 700, letterSpacing: 0.2, lineHeight: 1.2,
                     maxWidth: '100%', textAlign: 'center', overflowWrap: 'anywhere', hyphens: 'auto',
                   }}>{t(slot.label)}</span>
-                )}
+                )}</OpticalText>
               </motion.button>
             )
           })}

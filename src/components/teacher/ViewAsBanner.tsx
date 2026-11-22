@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { createPortal } from 'react-dom'
 import { Eye, X } from '../icons/appIcons'
@@ -55,7 +56,7 @@ export default function ViewAsBanner() {
         style={{ ...btn('S', 'secondary'), flexShrink: 0 }}
       >
         <X size={12} strokeWidth={2.5} />
-        {t('Вернуться в админку')}
+        <OpticalText as="iskra-button-label">{t('Вернуться в админку')}</OpticalText>
       </button>
     </div>,
     document.body,

@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { diagnosticFailure, diagnosticRetry } from '../lib/diagnosticJourney'
 import { Component, type ReactNode } from 'react'
 import { AlertIcon } from './Alert'
@@ -91,7 +92,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             onClick={() => { diagnosticRetry(this.failureId, 'reload'); if (isChunkError(String(this.state.error?.message ?? ''))) void hardReload({ full: true }); else window.location.reload() }}
             style={{ padding: '10px 28px', borderRadius: 12, border: 'none', background: 'var(--grad-purple, #786AD7)', color: '#fff', fontSize: 13, fontWeight: 600, lineHeight: 1.2, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
-            {t('Обновить')}
+            <OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
           </button>
           <button data-hover="layer"
             onClick={() => {
@@ -111,13 +112,13 @@ export default class ErrorBoundary extends Component<Props, State> {
             }}
             style={{ ...btn('M', 'secondary'), lineHeight: 1.2 }}
           >
-            {t('На главную')}
+            <OpticalText as="iskra-button-label">{t('На главную')}</OpticalText>
           </button>
           <button data-hover="layer"
             onClick={() => this.setState({ reporting: true })}
             style={{ ...btn('M', 'secondary'), lineHeight: 1.2 }}
           >
-            {this.state.reported ? t('Сообщение отправлено') : t('Сообщить об ошибке')}
+            <OpticalText as="iskra-button-label">{this.state.reported ? t('Сообщение отправлено') : t('Сообщить об ошибке')}</OpticalText>
           </button>
         </div>
         <div style={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', left: 0, right: 0, textAlign: 'center', fontSize: 11, fontWeight: 500, color: 'var(--color-text-3)', letterSpacing: 0.3 }}>

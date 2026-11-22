@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { WIDGET_REGISTRY, type WidgetDef } from '../widgets/registry'
 import { DESK_GAP, DESK_INSET, DESK_TOP, deskColumns, deskRowHeight } from '../../../lib/deskWidgetSizing'
@@ -61,10 +62,10 @@ export default function WidgetSizeReview({ hiddenWidgets = [] }: { hiddenWidgets
     <header className="size-review-top"><div><h1>Искра · сетка размеров</h1><p>{widgets.length} текущих виджетов · настоящие компоненты и данные вашей сессии</p></div><a data-hover="link" href="/#/teacher">Вернуться в приложение</a></header>
     <div className="size-review-layout">
       <nav className="size-review-nav size-review-scroll" aria-label="Выбор виджета">
-        {widgets.map(widget => <button data-hover="layer" key={widget.type} aria-pressed={def.type === widget.type} onClick={() => chooseWidget(widget.type)}>{widget.label}</button>)}
+        {widgets.map(widget => <button data-hover="layer" key={widget.type} aria-pressed={def.type === widget.type} onClick={() => chooseWidget(widget.type)}><OpticalText as="iskra-button-label">{widget.label}</OpticalText></button>)}
       </nav>
       <main ref={pane} className="size-review-main size-review-scroll">
-        <div className="size-review-controls"><label>Экран <select value={screen} onChange={event => { setScreen(Number(event.target.value)); setSelected(null) }}>{screens.map(([w, h], index) => <option key={index} value={index}>{w} × {h}</option>)}</select></label><button data-hover="layer" aria-pressed={all} onClick={() => setAll(!all)}>{all ? 'Показать выбранный' : `Показать все ${widgets.length} виджетов`}</button></div>
+        <div className="size-review-controls"><label>Экран <select value={screen} onChange={event => { setScreen(Number(event.target.value)); setSelected(null) }}>{screens.map(([w, h], index) => <option key={index} value={index}>{w} × {h}</option>)}</select></label><button data-hover="layer" aria-pressed={all} onClick={() => setAll(!all)}><OpticalText as="iskra-button-label">{all ? 'Показать выбранный' : `Показать все ${widgets.length} виджетов`}</OpticalText></button></div>
         <h2>{def.label}: все допустимые размеры</h2>
         <p>Ширина × высота в ячейках. Минимум: <b>{bounds.minW}×{bounds.minH}</b>. Сетка экрана: {grid.columns}×{grid.rows}. Нажмите размер — ниже появится виджет.</p>
         <div className="size-review-viewport"><div className="size-review-matrix" style={{ gridTemplateColumns: `44px repeat(${grid.columns}, minmax(38px, 1fr))` }}>

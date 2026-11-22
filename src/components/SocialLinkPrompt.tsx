@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import { confirmSocialLink, stashPendingLink, type LinkCandidate } from '../lib/socialAuth'
 import { IS_IOS } from '../lib/platform'
@@ -73,15 +74,15 @@ export default function SocialLinkPrompt({ candidate, onCancel }: { candidate: L
         {candidate.requiresCode ? (
           <>
             <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.45 }}>{t('Чтобы связать, войдите в этот аккаунт — так мы убедимся, что он ваш.')}</p>
-            <button data-hover="layer" type="button" onClick={loginToLink} style={primary}>{t('Войти и связать')}</button>
+            <button data-hover="layer" type="button" onClick={loginToLink} style={primary}><OpticalText as="iskra-button-label">{t('Войти и связать')}</OpticalText></button>
           </>
         ) : (
           <>
             <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.45 }}>{t('Связать этот способ входа с аккаунтом? Данные и кабинет сохранятся.')}</p>
-            <button data-hover="layer" type="button" onClick={() => void link()} disabled={busy} aria-busy={busy} style={primary}>{busy ? t('Связываем…') : t('Связать аккаунты')}</button>
+            <button data-hover="layer" type="button" onClick={() => void link()} disabled={busy} aria-busy={busy} style={primary}><OpticalText as="iskra-button-label">{busy ? t('Связываем…') : t('Связать аккаунты')}</OpticalText></button>
           </>
         )}
-        <button data-hover="layer" type="button" onClick={onCancel} disabled={busy} style={ghost}>{t('Это не я')}</button>
+        <button data-hover="layer" type="button" onClick={onCancel} disabled={busy} style={ghost}><OpticalText as="iskra-button-label">{t('Это не я')}</OpticalText></button>
       </div>
     </div>
   )

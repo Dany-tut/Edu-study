@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useId, useRef, useState } from 'react'
 import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
 import { useT } from '../../lib/i18n'
@@ -135,7 +136,7 @@ export default function TestlyLockedButton() {
                   panel.current?.hidePopover()
                   followNotifAction({ label: t('Подключить'), page: '#/teacher/profile', tab: 'integrations' })
                 }}>
-                {t('Подключить')}
+                <OpticalText as="iskra-button-label">{t('Подключить')}</OpticalText>
               </button>
             </div>
           </div>

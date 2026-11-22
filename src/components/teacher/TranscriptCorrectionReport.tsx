@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { btn } from '../../lib/pillStyles'
@@ -37,7 +38,7 @@ export default function TranscriptCorrectionReport() {
   return <section aria-label="Отчёт об исправлениях" style={{marginTop:24}}>
     <div style={{display:'flex',alignItems:'center',gap:12,paddingInline:16,marginBottom:12,flexWrap:'wrap'}}>
       <h3 style={{margin:0}}>Исправления преподавателей</h3>
-      <button type="button" style={{...btn('M','secondary'),minHeight:44}} disabled={loading||!!busy} onClick={()=>void load()}>Обновить отчёт</button>
+      <button type="button" style={{...btn('M','secondary'),minHeight:44}} disabled={loading||!!busy} onClick={()=>void load()}><OpticalText as="iskra-button-label">Обновить отчёт</OpticalText></button>
     </div>
     <p style={{paddingInline:16,color:'var(--color-text-3)',fontSize:13,marginBottom:12}}>По понедельникам в 09:00 (Бангкок) проверка отмечает спорные варианты и изменения чисел. Это поводы для проверки, а не доказанные ошибки. Подтверждение сохраняет личную правку; общей заменой она автоматически не становится.</p>
     {error&&<Alert tone="danger" text={error}/>}
@@ -50,8 +51,8 @@ export default function TranscriptCorrectionReport() {
       </details>
       <p style={{fontSize:12,color:'var(--color-text-3)',margin:0}}>{row.reviewed_at?(row.review_reasons.length?row.review_reasons.join(' · '):'Автоматические признаки риска не найдены; нужна проверка смысла.'):'Ожидает еженедельной проверки'}</p>
       <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-        <button type="button" style={{...btn('M','secondary'),minHeight:44}} disabled={loading||!!busy} onClick={()=>void decide(row.id,'approved')}>Подтвердить</button>
-        <button type="button" style={{...btn('M','quiet'),minHeight:44}} disabled={loading||!!busy} onClick={()=>void decide(row.id,'rejected')}>Не применять повторно</button>
+        <button type="button" style={{...btn('M','secondary'),minHeight:44}} disabled={loading||!!busy} onClick={()=>void decide(row.id,'approved')}><OpticalText as="iskra-button-label">Подтвердить</OpticalText></button>
+        <button type="button" style={{...btn('M','quiet'),minHeight:44}} disabled={loading||!!busy} onClick={()=>void decide(row.id,'rejected')}><OpticalText as="iskra-button-label">Не применять повторно</OpticalText></button>
       </div>
     </article>)}</div>
     {rows.length===200&&<p style={{paddingInline:16}}>Показаны последние 200 исправлений. После проверки обновите отчёт, чтобы увидеть остальные.</p>}

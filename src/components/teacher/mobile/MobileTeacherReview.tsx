@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import FadeText from '../../FadeText'
 import { LoopActionLabel } from '../../icons/LoopIcon'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
@@ -102,7 +103,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           className="cursor-pointer"
           style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.error.bg, color: PAIR.error.text, border: '1px solid transparent', fontSize: 14, fontWeight: 600 }}
         >
-          {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="returned" size={16} tone="returned" />} {t('Вернуть')}
+          {busy === 'returned' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="returned" size={16} tone="returned" />} <OpticalText as="iskra-button-label">{t('Вернуть')}</OpticalText>
         </motion.button>
         <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
@@ -111,7 +112,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           className="cursor-pointer"
           style={{ flex: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.success.bg, color: PAIR.success.text, border: '1px solid transparent', fontSize: 14, fontWeight: 700 }}
         >
-          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="done" size={18} tone="success" />} {t('Принять')}
+          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="done" size={18} tone="success" />} <OpticalText as="iskra-button-label">{t('Принять')}</OpticalText>
         </motion.button>
       </div>
 
@@ -146,7 +147,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           {/* Пара кнопок одного вида: «Фото» на btn('M','secondary') в карточке
               без рамки сливалась с фоном рядом с обведённой «Доской». */}
           <button data-hover="layer" onClick={() => fileRef.current?.click()} className="cursor-pointer" style={attachBtn(photos.length > 0)}>
-            <ImageIcon size={14} /> {photos.length > 0 ? `${t('Фото')} · ${photos.length}` : t('Фото')}
+            <ImageIcon size={14} /> <OpticalText as="iskra-button-label">{photos.length > 0 ? `${t('Фото')} · ${photos.length}` : t('Фото')}</OpticalText>
           </button>
           <button data-hover="layer" onClick={() => setShowBoard(v => !v)} className="cursor-pointer" style={attachBtn(showBoard || !!board)}>
             <PenLine size={14} /> {board ? <LoopActionLabel icon={Check} label={t('Доска ✓')} /> : t('Доска')}

@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { appLockSupported, useAppLock } from '../../lib/appLock'
@@ -67,7 +68,7 @@ function AppLockRowInner() {
         </div>
         : <button type="button" disabled={!state} onClick={() => void setup()}
           style={{ ...pill, padding: '0 10px', border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', cursor: 'pointer', opacity: state ? 1 : 0.55 }}>
-          {state ? t('Включить') : t('Загрузка...')}
+          <OpticalText as="iskra-button-label">{state ? t('Включить') : t('Загрузка...')}</OpticalText>
         </button>}
     </div>
   </div>

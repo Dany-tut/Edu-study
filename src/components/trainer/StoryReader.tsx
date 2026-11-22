@@ -18,6 +18,7 @@
 // главы (см. usePersistentState) и восстанавливается вместе с ней.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../OpticalText'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, BookOpen, Check } from '../icons/appIcons'
 import type { StoryChapter, LanguageStory } from '../../data/languageStory'
@@ -184,7 +185,7 @@ export function StoryChapterPage({ chapter, at: rawAt, onAt, accent, soft, onDon
           disabled={at === 0}
           style={{ ...btn('M', 'secondary'), opacity: at === 0 ? 0.4 : 1 }}
         >
-          <ArrowLeft size={16} /> {t('Назад')}
+          <ArrowLeft size={16} /> <OpticalText as="iskra-button-label">{t('Назад')}</OpticalText>
         </button>
         <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>
           {at + 1} {t('из')} {chapter.cards.length}

@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import { isCourseModuleLocked } from '../lib/moduleAccess'
 import { textFadeLines } from '../lib/textFades'
 import LessonWatchStatus from '../components/LessonWatchStatus'
@@ -766,7 +767,7 @@ export default function CoursesPage() {
                   fontSize: 15, fontWeight: active ? 600 : 500,
                 }}
               >
-                {t(o.label)}
+                <OpticalText as="iskra-button-label">{t(o.label)}</OpticalText>
                 {active && <Check size={18} />}
               </button>
             )

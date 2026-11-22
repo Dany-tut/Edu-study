@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { sanitizeHtml } from '../../lib/sanitizeHtml'
 import { useState, useEffect, useRef } from 'react'
 import Tooltip from '../Tooltip'
@@ -546,13 +547,13 @@ export default function RichConditionEditor({
                 onClick={() => { drawDataRef.current = ''; setDrawMode(false) }}
                 style={btn('S', 'secondary')}
               >
-                {t('Отменить')}
+                <OpticalText as="iskra-button-label">{t('Отменить')}</OpticalText>
               </button>
               <button data-hover="layer"
                 onClick={insertDrawing}
                 style={btn('S', 'primary', { background: 'var(--color-blue-pill-bg)', color: 'var(--color-blue-pill-text)' })}
               >
-                {t('Вставить рисунок')}
+                <OpticalText as="iskra-button-label">{t('Вставить рисунок')}</OpticalText>
               </button>
             </div>
           </motion.div>

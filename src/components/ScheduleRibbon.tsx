@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { LoopSvg } from './icons/LoopIcon'
 import { LoopArtworkMaximize, LoopArtworkMinimize, LoopArtworkCalendarDays, LoopArtworkChevronLeft, LoopArtworkChevronRight } from './icons/loopArtwork'
@@ -123,7 +124,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
       {loading ? <div className="ssr-controls ssr-skeleton-controls" aria-hidden="true">
         <Skeleton w={78} h={38} radius={12} /><Skeleton w={38} h={38} radius={12} /><Skeleton w={38} h={38} radius={12} /><Skeleton w={120} h={38} radius={12} />
       </div> : <div className="ssr-controls">
-        <button type="button" className="ssr-button" onClick={() => choose(today)}>{t('Сегодня')}</button>
+        <button type="button" className="ssr-button" onClick={() => choose(today)}><OpticalText as="iskra-button-label">{t('Сегодня')}</OpticalText></button>
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Предыдущий день')} onClick={() => choose(shift(selected, -1))}><Icon name="ChevronLeft" /></button>
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Следующий день')} onClick={() => choose(shift(selected, 1))}><Icon name="ChevronRight" /></button>
         <div className="ssr-picker" ref={picker}>
@@ -133,7 +134,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
       </div>}
     </header>
     {failed ? (
-      <div className="ssr-load-error" role="alert">{t('Не удалось загрузить расписание')} <button data-hover="layer" type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}>{t('Повторить загрузку')}</button></div>
+      <div className="ssr-load-error" role="alert">{t('Не удалось загрузить расписание')} <button data-hover="layer" type="button" className="ssr-retry" onClick={() => setRetry(value => value + 1)}><OpticalText as="iskra-button-label">{t('Повторить загрузку')}</OpticalText></button></div>
     ) : loading ? children([], 0, () => {}, false) : byDate.has(selected) ? children([-3, -2, -1, 0, 1, 2, 3].map(offset => {
       const date = shift(selected, offset)
       return { ...(byDate.get(date) ?? { date, label: label(date), lessons: [] }), isToday: date === today }

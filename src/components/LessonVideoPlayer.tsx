@@ -21,6 +21,7 @@
 // конец» просмотром не считается.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -1693,7 +1694,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     videoRef.current?.load()
                     void videoRef.current?.play().catch(() => setPaused(true))
                   }
-                }}>{t('Попробовать ещё раз')}</button>
+                }}><OpticalText as="iskra-button-label">{t('Попробовать ещё раз')}</OpticalText></button>
                 <a data-hover="link" href={originalSource.kind === 'gdrive'
                   ? `https://drive.google.com/file/d/${originalSource.id}/view`
                   : 'url' in originalSource ? originalSource.url : undefined}
@@ -1783,7 +1784,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     border: 'none', backdropFilter: 'blur(8px)',
                   }}
                 >
-                  {t('Сначала')}
+                  <OpticalText as="iskra-button-label">{t('Сначала')}</OpticalText>
                 </button>
               </div>
             )}

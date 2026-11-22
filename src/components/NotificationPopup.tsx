@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import FadeText from './FadeText'
 import ScrollFade from './ScrollFade'
 import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
@@ -216,7 +217,7 @@ export default function NotificationPopup({ requests = [], onRequests, open, anc
                 flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--color-accent)',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               }}>
-                {t('Прочитать все')}
+                <OpticalText as="iskra-button-label">{t('Прочитать все')}</OpticalText>
               </button>
             )}
           </div>

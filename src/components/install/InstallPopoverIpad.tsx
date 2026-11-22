@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Plus, X } from '../icons/appIcons'
@@ -78,7 +79,7 @@ export default function InstallPopoverIpad({ open, onClose, support, onInstall }
               background: 'var(--grad-purple)', color: '#fff', fontSize: 16, fontWeight: 700, fontFamily: 'inherit',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}>
-              <Plus size={18} strokeWidth={2.5} />{t('Установить приложение')}
+              <Plus size={18} strokeWidth={2.5} /><OpticalText as="iskra-button-label">{t('Установить приложение')}</OpticalText>
             </button>
           ) : support === 'manual' ? (
             <SafariSteps share="top-right" />

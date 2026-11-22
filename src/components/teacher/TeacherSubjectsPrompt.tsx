@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -77,7 +78,7 @@ export default function TeacherSubjectsPrompt() {
               onClick={postpone}
               style={{ padding: '10px 16px', borderRadius: 999, border: 'none', background: 'transparent', color: 'var(--color-text-3)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', width: isPhone ? '100%' : undefined }}
             >
-              {t('Позже')}
+              <OpticalText as="iskra-button-label">{t('Позже')}</OpticalText>
             </button>
             <TeacherSaveButton label={t('Сохранить')} savingLabel={t('Сохраняем…')} onClick={save} disabled={!picked.length} saving={saving} fullWidth={isPhone} />
           </div>

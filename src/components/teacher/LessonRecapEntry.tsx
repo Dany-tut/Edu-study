@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useState } from 'react'
 import { Alert } from '../Alert'
 import {
@@ -157,10 +158,10 @@ export function RecapEntryCard({ row, busy, loading, canBuild, onBuild, onOpen }
     </div>}
     <div className="rce-foot">
       {!row?.draft && <small>≈ 10 ₽ · около 40 секунд</small>}
-      <button type="button" style={btn('S', 'secondary')} disabled={!canBuild} onClick={onOpen}><Clapperboard size={14} />Открыть монтаж</button>
+      <button type="button" style={btn('S', 'secondary')} disabled={!canBuild} onClick={onOpen}><Clapperboard size={14} /><OpticalText as="iskra-button-label">Открыть монтаж</OpticalText></button>
       {row?.draft
-        ? <button type="button" style={btn('S', 'primary')} onClick={onOpen}><Sparkles size={14} />{row.status === 'published' ? 'Открыть итоги' : 'Проверить итоги'}</button>
-        : <button type="button" style={btn('S', 'primary')} disabled={!canBuild || busy || loading} onClick={onBuild}><Sparkles size={14} />{busy ? 'Собираем…' : 'Собрать итоги'}</button>}
+        ? <button type="button" style={btn('S', 'primary')} onClick={onOpen}><Sparkles size={14} /><OpticalText as="iskra-button-label">{row.status === 'published' ? 'Открыть итоги' : 'Проверить итоги'}</OpticalText></button>
+        : <button type="button" style={btn('S', 'primary')} disabled={!canBuild || busy || loading} onClick={onBuild}><Sparkles size={14} /><OpticalText as="iskra-button-label">{busy ? 'Собираем…' : 'Собрать итоги'}</OpticalText></button>}
     </div>
   </section>
 }
@@ -183,7 +184,7 @@ export function RecapAppliedToast({ published, published: p, skipped, hwAssigned
     {rows.map(([part, Icon, label]) => <div key={part} className="rce-toast-row">
       <Icon size={15} /><span>{label}</span>
       {/* Подпись не меняется на время отмены: «Отменяем…» шире и переносила строку. */}
-      <button type="button" disabled={!!busy} aria-busy={busy === part} onClick={async () => { setBusy(part); try { await onUndo(part) } finally { setBusy(null) } }}>Отменить</button>
+      <button type="button" disabled={!!busy} aria-busy={busy === part} onClick={async () => { setBusy(part); try { await onUndo(part) } finally { setBusy(null) } }}><OpticalText as="iskra-button-label">Отменить</OpticalText></button>
     </div>)}
     {skipped.map(s => <Alert key={s} tone="warning" text={s} style={{ boxShadow: 'none', padding: 0, background: 'transparent' }} />)}
     {rows.length > 0 && <small>{coursePublished ? 'Курс опубликован: ученики видят итоги после автосохранения урока.' : 'Ученики увидят всё после публикации курса.'}</small>}

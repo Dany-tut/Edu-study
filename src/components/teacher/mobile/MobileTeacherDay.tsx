@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import MobileScreen from '../../MobileScreen'
 import NativeSelectField from '../../NativeSelectField'
@@ -501,7 +502,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
             <p style={{ ...muted, textAlign: 'center' }}>{dateLabel(day)}</p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <button data-hover="layer" type="button" aria-label={t('Предыдущая неделя')} style={btn('M', 'quiet')} onClick={() => setDay(addDays(day, -7))}><ChevronLeft size={20} /></button>
-              <button data-hover="layer" type="button" style={btn('M', 'quiet')} onClick={() => setDay(todayMsk())}>{t('Сегодня')}</button>
+              <button data-hover="layer" type="button" style={btn('M', 'quiet')} onClick={() => setDay(todayMsk())}><OpticalText as="iskra-button-label">{t('Сегодня')}</OpticalText></button>
               <button data-hover="layer" type="button" aria-label={t('Следующая неделя')} style={btn('M', 'quiet')} onClick={() => setDay(addDays(day, 7))}><ChevronRight size={20} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 5 }}>
@@ -579,7 +580,7 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
           <p>{t('Календарь')}</p>
           <div className="teacher-view-segments">
             {calendarOptions.filter(option => option.value !== 'hidden').map(option => <button key={option.value} data-hover="own" type="button" aria-pressed={option.checked}
-              onClick={() => selectCalendarChoice(option.value)}>{option.title}</button>)}
+              onClick={() => selectCalendarChoice(option.value)}><OpticalText as="iskra-button-label">{option.title}</OpticalText></button>)}
           </div>
           <button type="button" data-hover="row" aria-pressed={preferences.calendarVisible} onClick={() => updatePreferences({ ...preferences, calendarVisible: !preferences.calendarVisible })} style={{ width: '100%', minHeight: 44, marginTop: 7, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', border: '1px solid var(--color-border-soft)', borderRadius: 14, background: 'var(--color-surface)', color: 'var(--color-text)', textAlign: 'left' }}>
             <span>{t('Показывать календарь')}</span>{preferences.calendarVisible && <TaskliIcon name="done" size={17} tone="accent" aria-hidden="true" />}
@@ -589,12 +590,12 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
           <p>{t('Лента занятий')}</p>
           <div className="teacher-view-segments">
             {layoutOptions.map(option => <button key={option.id} data-hover="own" type="button" aria-pressed={preferences.layout === option.id}
-              onClick={() => selectLayout(option.id)}>{option.title}</button>)}
+              onClick={() => selectLayout(option.id)}><OpticalText as="iskra-button-label">{option.title}</OpticalText></button>)}
           </div>
         </div>
         <div role="group" aria-label={t('Колонки виджетов')}>
           <p>{t('Колонки виджетов')}</p>
-          <div className="teacher-view-segments">{([1, 2] as const).map(columns => <button key={columns} data-hover="own" type="button" aria-pressed={preferences.columns === columns} onClick={() => selectColumns(columns)}>{t(columns === 1 ? 'Одна' : 'Две')}</button>)}</div>
+          <div className="teacher-view-segments">{([1, 2] as const).map(columns => <button key={columns} data-hover="own" type="button" aria-pressed={preferences.columns === columns} onClick={() => selectColumns(columns)}><OpticalText as="iskra-button-label">{t(columns === 1 ? 'Одна' : 'Две')}</OpticalText></button>)}</div>
         </div>
         <div role="group" aria-label={t('Виджеты')}>
           <p>{t('Каталог виджетов')}</p>
@@ -614,12 +615,12 @@ export default function MobileTeacherDay({ onNavigate, onDetailChange, onOpenNot
           <p>{t('Размер карточек')}</p>
           {preferences.widgetOrder.filter(widget => preferences.widgets.includes(widget)).map(widget => <div key={widget} style={{ display: 'grid', gap: 5, marginBottom: 10 }}>
             <span style={{ padding: '0 8px', fontSize: 13, fontWeight: 600, color: 'var(--color-muted)' }}>{t(WIDGET_TITLES[widget])}</span>
-            <div className="teacher-view-segments">{WIDGET_SIZES.map(size => <button key={size} data-hover="own" type="button" aria-pressed={(preferences.widgetSizes[widget] ?? defaultWidgetSize(widget)) === size} onClick={() => selectWidgetSize(widget, size)}>{t(WIDGET_SIZE_TITLES[size])}</button>)}</div>
+            <div className="teacher-view-segments">{WIDGET_SIZES.map(size => <button key={size} data-hover="own" type="button" aria-pressed={(preferences.widgetSizes[widget] ?? defaultWidgetSize(widget)) === size} onClick={() => selectWidgetSize(widget, size)}><OpticalText as="iskra-button-label">{t(WIDGET_SIZE_TITLES[size])}</OpticalText></button>)}</div>
           </div>)}
         </div>}
         <div className="teacher-view-actions">
-          <button data-hover="row" type="button" onClick={goToToday}>{t('К текущей дате')}</button>
-          <button data-hover="row" type="button" onClick={openScheduleSettings}>{t('Расписание и переносы')}<ChevronRight size={16} aria-hidden /></button>
+          <button data-hover="row" type="button" onClick={goToToday}><OpticalText as="iskra-button-label">{t('К текущей дате')}</OpticalText></button>
+          <button data-hover="row" type="button" onClick={openScheduleSettings}><OpticalText as="iskra-button-label">{t('Расписание и переносы')}</OpticalText><ChevronRight size={16} aria-hidden /></button>
         </div>
       </div>
     </MobileSheet>}

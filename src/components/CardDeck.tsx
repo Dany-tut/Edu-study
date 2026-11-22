@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from './icons/appIcons'
 // Карточный режим тренажёра — стопка карточек, которую разбирают свайпом.
 //
@@ -618,7 +619,7 @@ export default function CardDeck({ owner, accent, lang, subject, emptyExtra, sou
               flex: '1 1 auto', minHeight: ACT_H, maxHeight: 72,
             }}
           >
-            {t('Показать ответ')}
+            <OpticalText as="iskra-button-label">{t('Показать ответ')}</OpticalText>
           </button>
         ) : binary ? (
           // Прогон банка: интервалов у задания нет, поэтому и четырёх градаций
@@ -1239,7 +1240,7 @@ function UndoButton({ onClick, label, disabled, big }: {
         color: disabled ? 'var(--color-text-3)' : 'var(--color-text-2)',
       }}
     >
-      <Undo2 size={big ? DECK_CTA.icon : 14} /> {label}
+      <Undo2 size={big ? DECK_CTA.icon : 14} /> <OpticalText as="iskra-button-label">{label}</OpticalText>
     </button>
   )
 }

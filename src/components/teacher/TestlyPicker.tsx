@@ -2,6 +2,7 @@
 // вкладка «Из Тестли» в создании ДЗ (wide), кнопка «Из Тестли» под «Из
 // тренажёра» в уроке курса и «Другой тест» в карточке задания (compact).
 // Тесты живут в Тестли; сюда приходит только карточка (testly-bridge).
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import { Check, Clock, ExternalLink, ListChecks, Loader2, Plus, Search } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -141,7 +142,7 @@ export default function TestlyPicker({ onPick, addedIds, compact = false }: {
               color: added ? 'var(--color-green-text)' : 'var(--color-control-accent)',
             }}>
               {added ? <Check size={13} strokeWidth={2.4} /> : <Plus size={13} strokeWidth={2.4} />}
-              {added ? t('Добавлен') : t('Добавить')}
+              <OpticalText as="iskra-button-label">{added ? t('Добавлен') : t('Добавить')}</OpticalText>
             </button>
           </div>
         )

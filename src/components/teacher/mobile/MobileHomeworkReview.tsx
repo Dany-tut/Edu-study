@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { HomeworkItem } from '../../../data/teacherMockData'
 import { useHomeworkSubmissions, reviewHomework, type HwSubmission } from '../../../lib/useHomework'
@@ -127,11 +128,11 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
     {saveError && <Alert tone="danger" text={saveError} />}
     {done ? <button data-hover="layer" type="button" style={btn('L', 'primary')} onClick={() => {
       if (next) { setSelectedId(next.id); tactile() } else onBack()
-    }}>{next ? t('Следующая работа') : t('К списку ДЗ')}<ChevronRight size={18} /></button> : <>
+    }}><OpticalText as="iskra-button-label">{next ? t('Следующая работа') : t('К списку ДЗ')}</OpticalText><ChevronRight size={18} /></button> : <>
       <button data-hover="layer" type="button" disabled={busy || !!getViewAs()} style={btn('L', 'primary')} onClick={() => void publish('accepted')}>
-        {busy ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}{t(busy ? 'Сохраняем…' : 'Завершить проверку')}
+        {busy ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}<OpticalText as="iskra-button-label">{t(busy ? 'Сохраняем…' : 'Завершить проверку')}</OpticalText>
       </button>
-      <button data-hover="layer" type="button" disabled={busy || !!getViewAs()} style={btn('L', 'secondary')} onClick={() => void publish('returned')}><RotateCcw size={18} />{t('На доработку')}</button>
+      <button data-hover="layer" type="button" disabled={busy || !!getViewAs()} style={btn('L', 'secondary')} onClick={() => void publish('returned')}><RotateCcw size={18} /><OpticalText as="iskra-button-label">{t('На доработку')}</OpticalText></button>
     </>}
   </div> : undefined
   return <div className="mobile-homework-review"><MobileScreen
@@ -166,7 +167,7 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
             </fieldset>
           </section>
         </>}
-      </> : !loadError && <section className="mhr-card"><h2>{t('Все работы проверены')}</h2><button data-hover="layer" type="button" style={btn('L','secondary')} onClick={back}>{t('К списку ДЗ')}</button></section>}
+      </> : !loadError && <section className="mhr-card"><h2>{t('Все работы проверены')}</h2><button data-hover="layer" type="button" style={btn('L','secondary')} onClick={back}><OpticalText as="iskra-button-label">{t('К списку ДЗ')}</OpticalText></button></section>}
     </div>
   </MobileScreen></div>
 }

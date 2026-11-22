@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useState } from 'react'
 import Modal from '../../Modal'
 import PhotoGallery from '../../PhotoGallery'
@@ -62,13 +63,13 @@ export default function PaymentClaimModal({ claim, onClose }: { claim: TeacherCl
   const balance = claim.balance
   const footer = rejecting
     ? <div style={PAY_FOOTER}>
-        <button data-hover="layer" type="button" style={PAY_BUTTON} disabled={action.busy} onClick={() => { setRejecting(false); setError('') }}>{t('Назад')}</button>
+        <button data-hover="layer" type="button" style={PAY_BUTTON} disabled={action.busy} onClick={() => { setRejecting(false); setError('') }}><OpticalText as="iskra-button-label">{t('Назад')}</OpticalText></button>
         <button data-hover="layer" type="button" style={{ ...PAY_BUTTON_DANGER, opacity: action.busy || !reason.trim() ? 0.55 : 1 }} disabled={action.busy || !reason.trim()} onClick={reject}>
-          {action.busy ? t('Отправляем…') : t('Отклонить')}
+          <OpticalText as="iskra-button-label">{action.busy ? t('Отправляем…') : t('Отклонить')}</OpticalText>
         </button>
       </div>
     : <div style={PAY_FOOTER}>
-        <button data-hover="layer" type="button" style={PAY_BUTTON} disabled={action.busy} onClick={() => { setRejecting(true); setError('') }}>{t('Не пришло')}</button>
+        <button data-hover="layer" type="button" style={PAY_BUTTON} disabled={action.busy} onClick={() => { setRejecting(true); setError('') }}><OpticalText as="iskra-button-label">{t('Не пришло')}</OpticalText></button>
         <TeacherSaveButton label={t('Пришло — записать')} savingLabel={t('Записываем…')} saving={action.busy} onClick={confirm} style={PAY_PRIMARY} />
       </div>
 

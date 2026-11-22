@@ -41,6 +41,7 @@
 // каждое движение.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { RotateCcw } from './icons/appIcons'
@@ -464,7 +465,7 @@ export default function ChamoTrace({ chamo, value, disabled, onChange }: {
             style={btn('S', 'secondary')}
           >
             <RotateCcw size={14} />
-            {t('Заново')}
+            <OpticalText as="iskra-button-label">{t('Заново')}</OpticalText>
           </button>
         )}
       </div>

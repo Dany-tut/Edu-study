@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import StudentDetailsEditor from '../../components/teacher/StudentDetailsEditor'
 import { btn } from '../../lib/pillStyles'
 import { profileReadLifetime } from '../../lib/profileReadLifetime'
@@ -596,14 +597,14 @@ export function StudentDashboardReport({ student: initialStudent, group: assigne
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--color-text-3)' }}
           >
             <ArrowLeft size={14} />
-            {t(backLabel ?? 'Назад к группам')}
+            <OpticalText as="iskra-button-label">{t(backLabel ?? 'Назад к группам')}</OpticalText>
           </button>
           <button data-hover="layer"
             onClick={() => printStudentCard(tn(student.name))}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 18px 8px 14px', borderRadius: 999, border: `1px solid ${group.color}40`, background: 'rgba(var(--glass-rgb), 0.80)', cursor: 'pointer', color: group.color, fontSize: 13, fontWeight: 600, backdropFilter: 'var(--blur-glass)', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s', fontFamily: 'inherit' }}
           >
             <Download size={14} />
-            {t('Скачать PDF')}
+            <OpticalText as="iskra-button-label">{t('Скачать PDF')}</OpticalText>
           </button>
         </motion.div>}
 
@@ -617,7 +618,7 @@ export function StudentDashboardReport({ student: initialStudent, group: assigne
                   <h1>{tn(student.name)}</h1>
                   {!example && isDesktop && <button data-hover="layer" type="button"
                     style={btn('S', 'quiet')} onClick={() => setEditing(true)}>
-                    <Pencil size={14} aria-hidden /> {t('Редактировать')}
+                    <Pencil size={14} aria-hidden /> <OpticalText as="iskra-button-label">{t('Редактировать')}</OpticalText>
                   </button>}
                 </div>}
                 {!inDrawer && (profileGroupLabel || group.subject || student.schoolClass) && (

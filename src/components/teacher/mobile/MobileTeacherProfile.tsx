@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { openNativeMoreSetting } from '../../../lib/nativeMoreSettings'
 import Switch from '../../Switch'
 import MobileSheet from '../../MobileSheet'
@@ -355,7 +356,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           <AppVersionRow />
         </section>
         <button className="teacher-more-logout" type="button" data-hover="layer" onClick={logout}>
-          <LogOut size={20} />{t('Выйти из аккаунта')}
+          <LogOut size={20} /><OpticalText as="iskra-button-label">{t('Выйти из аккаунта')}</OpticalText>
         </button>
       </div> : <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
 
@@ -555,7 +556,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           className="flex items-center justify-center cursor-pointer"
           style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 24, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
         >
-          <BookOpen size={18} /> {studentCabinet.failed ? t('Не удалось открыть кабинет. Повторить') : t('В ученический кабинет')}
+          <BookOpen size={18} /> <OpticalText as="iskra-button-label">{studentCabinet.failed ? t('Не удалось открыть кабинет. Повторить') : t('В ученический кабинет')}</OpticalText>
         </motion.button>}
 
         {/* Logout — span 2 */}
@@ -565,7 +566,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           className="flex items-center justify-center cursor-pointer"
           style={{ gridColumn: 'span 2', gap: 8, padding: 12, borderRadius: 16, background: 'transparent', color: 'var(--color-red-text)', border: 'none', fontSize: 15, fontWeight: 600 }}
         >
-          <LogOut size={18} /> {t('Выйти из аккаунта')}
+          <LogOut size={18} /> <OpticalText as="iskra-button-label">{t('Выйти из аккаунта')}</OpticalText>
         </motion.button>
       </div>}
       <DesktopFriends model={friends} bottomSheet={isIPhone} />
@@ -578,14 +579,14 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           {[false, true].map(option => <button key={String(option)} type="button" className="teacher-more-row"
             aria-pressed={dark === option} data-hover="layer"
             onClick={() => { tactile(); if (dark !== option) toggleTheme(); setDetails(null) }}>
-            {t(option ? 'Тёмная' : 'Светлая')}
+            <OpticalText as="iskra-button-label">{t(option ? 'Тёмная' : 'Светлая')}</OpticalText>
           </button>)}
         </div>}
         {details === 'language' && <div className="teacher-more-card">
           {(['ru', 'en'] as const).map(option => <button key={option} type="button" className="teacher-more-row"
             aria-pressed={lang === option} data-hover="layer"
             onClick={() => { tactile(); setLang(option); setDetails(null) }}>
-            {option === 'ru' ? 'Русский' : 'English'}
+            <OpticalText as="iskra-button-label">{option === 'ru' ? 'Русский' : 'English'}</OpticalText>
           </button>)}
         </div>}
       </MobileSheet>

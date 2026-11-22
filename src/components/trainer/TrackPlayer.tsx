@@ -33,6 +33,7 @@
 // бегунком отнимали у него ширину, то есть точность промотки.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Pause } from '../icons/appIcons'
@@ -387,7 +388,7 @@ export default function TrackPlayer({
                         onClick={() => { setTtsRate(r.id); if (playing) say(line, r.id) }}
                         style={rateStyle(on, accent, soft)}
                       >
-                        {t(r.label)}
+                        <OpticalText as="iskra-button-label">{t(r.label)}</OpticalText>
                       </button>
                     )
                   })
@@ -402,7 +403,7 @@ export default function TrackPlayer({
                         }}
                         style={rateStyle(on, accent, soft)}
                       >
-                        {`${r}×`}
+                        <OpticalText as="iskra-button-label">{`${r}×`}</OpticalText>
                       </button>
                     )
                   })}

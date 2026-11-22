@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useIsPresent, useReducedMotion } from 'framer-motion'
@@ -224,7 +225,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
             ><Plus size={17} /></button>
           )}
           {(showGrid ? start !== weekStart(today) : visibleDates.first !== weekStart(today) || visibleDates.last !== addDays(weekStart(today), 6)) && (
-            <button data-hover="layer" onClick={returnToToday} style={btn('S', 'secondary')}>{t('Сегодня')}</button>
+            <button data-hover="layer" onClick={returnToToday} style={btn('S', 'secondary')}><OpticalText as="iskra-button-label">{t('Сегодня')}</OpticalText></button>
           )}
           {!mobile && (
             <>
@@ -373,7 +374,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
                 <button data-hover="layer" onClick={() => undo(toast.undo!)} style={{
                   border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 14, fontWeight: 700, color: 'var(--color-purple-soft)', padding: '4px 2px',
-                }}>{t('Отменить')}</button>
+                }}><OpticalText as="iskra-button-label">{t('Отменить')}</OpticalText></button>
               )}
             </motion.div>
           )}
@@ -980,7 +981,7 @@ function RescheduleSheet({ mobile, item, onClose, onDone }: {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {[[1, t('Завтра')], [2, t('Послезавтра')], [7, t('Через неделю')]].map(([n, label]) => (
-              <button data-hover="layer" key={String(n)} onClick={() => setWhen(toIso(addDays(it.date, Number(n)), target?.time ?? it.time))} style={btn('S', 'secondary')}>{label}</button>
+              <button data-hover="layer" key={String(n)} onClick={() => setWhen(toIso(addDays(it.date, Number(n)), target?.time ?? it.time))} style={btn('S', 'secondary')}><OpticalText as="iskra-button-label">{label}</OpticalText></button>
             ))}
           </div>
           {when && <DateTimeField key={when} label={t('Новая дата и время')} value={when} onChange={setWhen} />}
@@ -1009,7 +1010,7 @@ function RescheduleSheet({ mobile, item, onClose, onDone }: {
   }
   const cta = mode === 'move' ? t('Перенести') : mode === 'shift' ? t('Сдвинуть') : t('Отменить занятие')
   const footer = (
-    <button data-hover="layer" onClick={submit} style={btn('L', mode === 'cancel' ? 'danger' : 'primary')}>{cta}</button>
+    <button data-hover="layer" onClick={submit} style={btn('L', mode === 'cancel' ? 'danger' : 'primary')}><OpticalText as="iskra-button-label">{cta}</OpticalText></button>
   )
   const title = it ? `${it.who} · ${shortLabel(it.date)}, ${it.time}` : ''
 

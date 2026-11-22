@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import Modal from '../Modal'
 import Segmented from '../Segmented'
@@ -161,10 +162,10 @@ export default function AdminInactiveCleanup({ onClose, onDone }: { onClose: () 
       width={600}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}>{t('Закрыть')}</button>
+          <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Закрыть')}</OpticalText></button>
           <button data-hover="layer" onClick={() => { void run() }} disabled={busy || total === 0} style={btn('M', 'danger', { opacity: busy || total === 0 ? 0.45 : 1, cursor: busy || total === 0 ? 'default' : 'pointer' })}>
             <Eraser size={16} strokeWidth={2} />
-            {busy ? t('Удаляем…') : `${t('Удалить')} ${total}`}
+            <OpticalText as="iskra-button-label">{busy ? t('Удаляем…') : `${t('Удалить')} ${total}`}</OpticalText>
           </button>
         </div>
       }

@@ -125,7 +125,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
         }}
       >
         <Link2 size={12} />
-        {t('или ссылкой на Диск')}
+        <OpticalText as="iskra-button-label">{t('или ссылкой на Диск')}</OpticalText>
       </button>
     )
   }

@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { Play, Pause, Turtle } from './icons/appIcons'
 import { getMediaUrl } from '../lib/mediaStorage'
@@ -253,7 +254,7 @@ export default function AudioPlayer({
           {/* Черепаха — самый густой глиф в ряду (панцирь с насечками), поэтому
               линию ей дают тоньше, чем микрофону рядом: при одинаковом stroke
               она читается пятном, а не иконкой той же толщины. */}
-          <Turtle size={16} strokeWidth={1.5} /> {t('Медленно')}
+          <Turtle size={16} strokeWidth={1.5} /> <OpticalText as="iskra-button-label">{t('Медленно')}</OpticalText>
         </button>
       )}
 

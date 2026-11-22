@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { Check, X, Clock, Pause, ChevronLeft, ChevronRight, CircleHelp } from './icons/appIcons'
 import { OverlayScrollArea } from './teacher/OverlayScroll'
 import FadeText from './FadeText'
@@ -66,8 +67,8 @@ export default function QuizDialogContent({ state, question, answers, current, q
             {questions.map((item, index) => <button data-hover="layer" type="button" key={item.id} className="qd-dot" data-result={results[index] ?? 'pending'} data-current={index === current} disabled={!canOpen(index)} onClick={() => onNavigate(index)} aria-label={`${t('Вопрос')} ${index + 1}`} aria-current={index === current ? 'step' : undefined}/>)}
           </div> : <div className="qd-progress" aria-hidden="true"><span style={{ width: `${total ? (current + 1) / total * 100 : 0}%` }}/></div>}
         </div>
-        <button data-hover="layer" type="button" className="qd-next" disabled={!revealed} onClick={onNext}>{t('Дальше')}<ChevronRight size={19}/></button>
-      </> : <button data-hover="layer" type="button" className="qd-primary" disabled={!total} onClick={state === 'done' ? onRestart : onStart}>{state === 'done' ? t('Начать заново') : resumeIndex > 0 ? t('Продолжить') : t('Начать')}<ChevronRight size={19}/></button>}
+        <button data-hover="layer" type="button" className="qd-next" disabled={!revealed} onClick={onNext}><OpticalText as="iskra-button-label">{t('Дальше')}</OpticalText><ChevronRight size={19}/></button>
+      </> : <button data-hover="layer" type="button" className="qd-primary" disabled={!total} onClick={state === 'done' ? onRestart : onStart}><OpticalText as="iskra-button-label">{state === 'done' ? t('Начать заново') : resumeIndex > 0 ? t('Продолжить') : t('Начать')}</OpticalText><ChevronRight size={19}/></button>}
     </footer>
   </div>
 }

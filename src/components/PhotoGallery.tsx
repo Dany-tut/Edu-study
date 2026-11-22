@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { useT } from '../lib/i18n'
@@ -95,7 +96,7 @@ export default function PhotoGallery({ photos, initialIndex = 0, onClose, onAnno
         ...control, width: 'auto', gap: 8, padding: '0 16px', position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', right: 76,
         fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
       }}>
-        <PenLine size={16} /> {t('Разметить')}
+        <PenLine size={16} /> <OpticalText as="iskra-button-label">{t('Разметить')}</OpticalText>
       </button>
     )}
     <div style={{ position: 'absolute', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>

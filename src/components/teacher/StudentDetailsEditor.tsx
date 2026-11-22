@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useId, useState, type FormEvent } from 'react'
 import type { Student } from '../../data/teacherMockData'
 import { useT } from '../../lib/i18n'
@@ -56,8 +57,8 @@ export default function StudentDetailsEditor({ student, onClose }: {
   const close = () => { if (!saving) onClose() }
   return <Modal title={t('Редактировать ученика')} onClose={close} width={560}
     footer={<div className="student-details-actions">
-      <button data-hover="layer" type="button" disabled={saving} onClick={close} style={btn('M', 'quiet')}>{t('Отмена')}</button>
-      <button data-hover="layer" type="submit" form={formId} disabled={saving || !draft.name.trim()} style={btn('M', 'primary')}>{t(saving ? 'Сохранение…' : 'Сохранить')}</button>
+      <button data-hover="layer" type="button" disabled={saving} onClick={close} style={btn('M', 'quiet')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
+      <button data-hover="layer" type="submit" form={formId} disabled={saving || !draft.name.trim()} style={btn('M', 'primary')}><OpticalText as="iskra-button-label">{t(saving ? 'Сохранение…' : 'Сохранить')}</OpticalText></button>
     </div>}>
     <form id={formId} onSubmit={save} className="student-details-fields">
       {fields.map(({ key, label, maxLength }) => {

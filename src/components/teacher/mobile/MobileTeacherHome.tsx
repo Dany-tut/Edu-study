@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import FadeText from '../../FadeText'
 import { useState, useEffect, useMemo } from 'react'
 import TeacherSchedule from '../schedule/TeacherSchedule'
@@ -100,7 +101,7 @@ function SectionLabel({ children, action, onAction }: {
       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{children}</span>
       {action && (
         <button data-hover="layer" onClick={() => { tactile(); onAction?.() }} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)' }}>
-          {action} <TaskliIcon name="continue" size={13} style={{ display: 'inline-block', verticalAlign: '-0.12em' }} />
+          <OpticalText as="iskra-button-label">{action}</OpticalText> <TaskliIcon name="continue" size={13} style={{ display: 'inline-block', verticalAlign: '-0.12em' }} />
         </button>
       )}
     </div>
@@ -184,7 +185,7 @@ function Hero({ state, review, hard, oldestDays, onOpen }: {
         className="cursor-pointer"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', marginTop: 12, padding: '12px', borderRadius: 12, background: pair.text, color: '#fff', fontSize: 14, fontWeight: 700 }}
       >
-        <TaskliIcon name="continue" size={16} style={{ color: '#fff' }} /> {t('Проверить сейчас')}
+        <TaskliIcon name="continue" size={16} style={{ color: '#fff' }} /> <OpticalText as="iskra-button-label">{t('Проверить сейчас')}</OpticalText>
       </motion.button>
     </div>
   )
@@ -249,7 +250,7 @@ function NextLessonCard({ item, onOpen }: { item: ScheduleItem; onOpen: () => vo
           не делает. В мобильном кабинете экрана материалов нет; убрана. */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
         <motion.button data-hover="layer" whileTap={{ scale: 0.97 }} onClick={() => { tactile(); onOpen() }} className="cursor-pointer" style={{ height: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 16px', borderRadius: 12, background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700}}>
-          <TaskliIcon name="open" size={14} style={{ color: '#fff' }} /> {t('Открыть')}
+          <TaskliIcon name="open" size={14} style={{ color: '#fff' }} /> <OpticalText as="iskra-button-label">{t('Открыть')}</OpticalText>
         </motion.button>
       </div>
     </div>
@@ -415,7 +416,7 @@ export default function MobileTeacherHome({ onNavigate }: { onNavigate: (tab: MT
     <MobileScreen topZone={topZone} glassHeader={{ leading: model.name ? `${t('Привет')}, ${tn(model.name)}` : t('Кабинет учителя'), trailingText: String(model.studentTotal), trailingSymbol: 'person.2' }} topPad={72} scrollKey="t-home" bottomDockRaise={80} bottomDock={!linksOpen ? (model.totalReview > 0 ? <button data-hover="layer"
         onClick={() => { tactile(); onNavigate('review') }}
         style={{ width: '100%', minHeight: 48, borderRadius: 14, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 15, fontWeight: 700 }}
-      >{t('Проверить сейчас')}</button> : <button data-hover="layer"
+      ><OpticalText as="iskra-button-label">{t('Проверить сейчас')}</OpticalText></button> : <button data-hover="layer"
           onClick={() => { tactile(); setLinksOpen(true) }}
           className="flex items-center cursor-pointer text-left"
           style={{ gap: 12, width: '100%', padding: '12px 14px', borderRadius: 16, background: PAIR.success.bg }}

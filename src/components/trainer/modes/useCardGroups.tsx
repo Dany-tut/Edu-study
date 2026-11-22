@@ -17,6 +17,7 @@
 // Поэтому наружу отдаётся список `decks`, а сетку собирает тренажёр.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import { Layers } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
@@ -228,7 +229,7 @@ export function useCardGroups({
             fontSize: 13, fontWeight: 700, cursor: 'pointer',
           }}
         >
-          {t('Править подборку')}
+          <OpticalText as="iskra-button-label">{t('Править подборку')}</OpticalText>
         </button>
       )}
     </RailCard>

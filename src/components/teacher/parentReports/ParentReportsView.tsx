@@ -1,6 +1,7 @@
 // Экран «Отчёты родителям» — вариант «Итог» концепта «Связь».
 // Сначала исключения, потом одна кнопка: «Требуют внимания / Все», флаги по
 // правилам, «Утвердить N». На телефоне — список исключений, готовые и шторка.
+import OpticalText from '../../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import FadeText from '../../FadeText'
 import Segmented from '../../Segmented'
@@ -94,7 +95,7 @@ function SummaryBar({ ready, flagged, approved, busy, onApprove, onSend, mobile 
         </button>
       )}
       <button data-hover="layer" type="button" disabled={busy || !ready} onClick={onApprove} style={btn(mobile ? 'L' : 'M', 'primary', { opacity: busy || !ready ? .5 : 1 })}>
-        <Check size={16} />{`${t('Утвердить')} ${ready}`}
+        <Check size={16} /><OpticalText as="iskra-button-label">{`${t('Утвердить')} ${ready}`}</OpticalText>
       </button>
     </div>
   )
@@ -140,7 +141,7 @@ export default function ParentReportsView() {
         </HScrollFade>
         {s.week === s.current && s.reports.length > 0 && (
           <button data-hover="layer" type="button" disabled={batch.busy} onClick={() => void batch.build(s.week)} style={btn('S', 'quiet')} title={t('Пересчитать цифры недели. Ваши фразы не изменятся.')}>
-            <RefreshCw size={14} />{t('Обновить цифры')}
+            <RefreshCw size={14} /><OpticalText as="iskra-button-label">{t('Обновить цифры')}</OpticalText>
           </button>
         )}
         {s.reports.some(r => r.flags.includes('first_weeks')) && <span className="pr-chip info"><Info size={14} />{t('Первые 2 недели все отчёты — на проверку')}</span>}

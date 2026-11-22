@@ -14,6 +14,7 @@
 // что у таблицы и дрилла: хранилище домашки держит на задание одну строку.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { GAP_MARK, type GapRow } from '../data/taskTypes'
@@ -143,7 +144,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
                     cursor: disabled ? 'default' : 'pointer',
                   }}
                 >
-                  {word || ' '}
+                  <OpticalText as="iskra-button-label">{word || ' '}</OpticalText>
                 </motion.button>
                 {after}
               </div>
@@ -181,7 +182,7 @@ export default function WordDropSolver({ rows, distractors = [], value, disabled
                 cursor: disabled || spent ? 'default' : 'pointer',
               }}
             >
-              {word}
+              <OpticalText as="iskra-button-label">{word}</OpticalText>
             </motion.button>
           )
         })}

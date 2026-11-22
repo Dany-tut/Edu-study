@@ -11,6 +11,7 @@
 // формат sequence: проверка у типов общая, верно при [0,1,2,…].
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { playPop, vibrate } from '../lib/sound'
@@ -158,7 +159,7 @@ export default function BlockOrderSolver({ items, value, disabled, showVerdict, 
               disabled={disabled || spent || full}
               style={blockSt(spent ? 'spent' : 'bank')}
             >
-              {items[idx]}
+              <OpticalText as="iskra-button-label">{items[idx]}</OpticalText>
             </motion.button>
           )
         })}

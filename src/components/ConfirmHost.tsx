@@ -17,6 +17,7 @@
 //   void alertDialog('Не удалось сохранить — проверьте связь.')
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -170,7 +171,7 @@ export default function ConfirmHost() {
                   onClick={() => close(false)}
                   style={{ ...btn('M', 'secondary'), flex: 1 }}
                 >
-                  {top.cancelLabel ?? t('Отмена')}
+                  <OpticalText as="iskra-button-label">{top.cancelLabel ?? t('Отмена')}</OpticalText>
                 </button>
               )}
               <button data-hover="layer"
@@ -188,7 +189,7 @@ export default function ConfirmHost() {
                   color: '#fff', fontSize: 13, fontWeight: 700,
                 }}
               >
-                {top.confirmLabel ?? (top.kind === 'alert' ? t('Понятно') : t('Продолжить'))}
+                <OpticalText as="iskra-button-label">{top.confirmLabel ?? (top.kind === 'alert' ? t('Понятно') : t('Продолжить'))}</OpticalText>
               </button>
             </div>
           </motion.div>

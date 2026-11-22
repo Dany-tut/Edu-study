@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { createContext, useCallback, useContext, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AlertCircle, CheckCircle2, Info, Loader2 } from './icons/appIcons'
 import { authErrorRu } from '../lib/authErrors'
@@ -139,8 +140,8 @@ export function AuthFeedbackSlot({ idleText, idleSecondary, reserve, reserveHeig
             <strong>{t(message.title)}</strong>
             {message.text && <p>{t(message.text)}</p>}
           </div>
-          {message.busy && message.onCancel && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.onCancel}>{t('Отмена')}</button>}
-          {!message.busy && message.action && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.action.onClick}>{t(message.action.label)}</button>}
+          {message.busy && message.onCancel && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.onCancel}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>}
+          {!message.busy && message.action && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.action.onClick}><OpticalText as="iskra-button-label">{t(message.action.label)}</OpticalText></button>}
         </div>
       </div>}
     </div>
@@ -154,7 +155,7 @@ export function AuthFeedbackSlot({ idleText, idleSecondary, reserve, reserveHeig
         {message && <strong>{t(message.title)}</strong>}
         {(message?.text || !message) && <p>{t(message?.text ?? idleText)}</p>}
       </div>
-      {message?.busy && message.onCancel && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.onCancel}>{t('Отмена')}</button>}
+      {message?.busy && message.onCancel && <button data-hover="layer" type="button" className="auth-feedback-cancel" onClick={message.onCancel}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>}
     </div>
   </div>
 }

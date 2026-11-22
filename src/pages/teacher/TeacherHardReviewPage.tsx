@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -61,7 +62,7 @@ export default function TeacherHardReviewPage() {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
         <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>{t('Работа не найдена')}</div>
-        <button data-hover="layer" onClick={() => setActivePage('gradebook')} style={btn('M', 'secondary')}>{t('Назад')}</button>
+        <button data-hover="layer" onClick={() => setActivePage('gradebook')} style={btn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Назад')}</OpticalText></button>
       </div>
     )
   }
@@ -175,7 +176,7 @@ export default function TeacherHardReviewPage() {
               style={{ ...btn('M', 'secondary'), width: '100%', opacity: hwBusy ? 0.6 : 1 }}
             >
               <ClipboardList size={16} strokeWidth={2} style={{ color: 'var(--color-accent)' }} />
-              {hwBusy ? t('Открываю…') : t('Открыть домашку')}
+              <OpticalText as="iskra-button-label">{hwBusy ? t('Открываю…') : t('Открыть домашку')}</OpticalText>
             </motion.button>
             {hwMissing && (
               <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 8, lineHeight: 1.4 }}>

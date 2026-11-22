@@ -16,6 +16,7 @@
 // по банку и кроссворда).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useMemo } from 'react'
 import { answerMap, type TfStatement, type TfVerdict } from '../data/taskTypes'
 import { playPop, vibrate } from '../lib/sound'
@@ -104,7 +105,7 @@ export default function TrueFalseSolver({ rows, value, disabled, showVerdict, on
                       opacity: disabled && !on && !truth ? 0.6 : 1,
                     }}
                   >
-                    {t(CAPTION[v])}
+                    <OpticalText as="iskra-button-label">{t(CAPTION[v])}</OpticalText>
                   </button>
                 )
               })}

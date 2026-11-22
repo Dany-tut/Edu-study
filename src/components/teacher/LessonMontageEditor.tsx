@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import Modal from '../Modal'
 import Segmented from '../Segmented'
@@ -239,7 +240,7 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
   // Кнопка «Итоги урока»: на ПК — в шапке окна рядом с названием, на телефоне —
   // первой строкой окна (в шапке ей не хватает места рядом с крестиком).
   const recapToggle = recap ? <button type="button" className={'lm-recap-btn' + (desktop ? '' : ' is-block')} aria-pressed={showRecap} onClick={() => setRecapOn(v => !v)}>
-    <Sparkles size={15} />{showRecap && !desktop ? 'Вернуться к монтажу' : 'Итоги урока'}</button> : null
+    <Sparkles size={15} /><OpticalText as="iskra-button-label">{showRecap && !desktop ? 'Вернуться к монтажу' : 'Итоги урока'}</OpticalText></button> : null
   const titleNode = <span className="lm-title"><FadeText className="lm-title-name">{title}</FadeText>
     <span className="lm-title-meta">запись {clock(duration)}, после монтажа {clock(after)}</span></span>
   return <Modal width={1400} padding={desktop ? 20 : 24} onClose={onClose}
@@ -249,8 +250,8 @@ export default function LessonMontageEditor({ title, duration, voices, lines: so
     bodyStyle={desktop ? { overflowY: 'hidden', display: 'flex', flexDirection: 'column' } : undefined}
     footer={<div className="lm-footer">
       <span className="lm-footer-sum"><strong>−{clock(duration - after)}</strong><span className="lm-footer-detail">Вырезано {span(cutTotal)}, ускорено {span(speedTotal)}</span><span className="lm-footer-short">урок станет короче</span></span>
-      <button data-hover="layer" type="button" style={btn('M', 'secondary')} onClick={onClose}>Отмена</button>
-      <button data-hover="layer" type="button" style={btn('M', 'primary')} onClick={apply}>Применить монтаж</button>
+      <button data-hover="layer" type="button" style={btn('M', 'secondary')} onClick={onClose}><OpticalText as="iskra-button-label">Отмена</OpticalText></button>
+      <button data-hover="layer" type="button" style={btn('M', 'primary')} onClick={apply}><OpticalText as="iskra-button-label">Применить монтаж</OpticalText></button>
     </div>}>
     {desktop
       ? <div className={'lm-editor' + (showRecap ? ' is-recap' : '')}>
@@ -477,7 +478,7 @@ function Timeline({ duration, speakers, lines, pauses, t, selected, follow, onSe
     </div>
     <div className="lm-row lm-zoom-hint"><span /><div>{zoomed
       ? <><small>Масштаб ×{(duration / len >= 100 ? Math.round(duration / len) : (duration / len).toFixed(1).replace('.0', '').replace('.', ','))} · {clockFine(view.from, ruler.digits)}–{clockFine(view.to, ruler.digits)} · Shift + колёсико — сдвиг</small>
-        <button data-hover="layer" type="button" className="lm-zoom-reset" onClick={() => setView({ from: 0, to: duration })}>Весь урок</button></>
+        <button data-hover="layer" type="button" className="lm-zoom-reset" onClick={() => setView({ from: 0, to: duration })}><OpticalText as="iskra-button-label">Весь урок</OpticalText></button></>
       : <small>Cmd + колёсико — масштаб · Shift + колёсико — сдвиг</small>}</div></div>
     <div className="lm-row lm-playhead-row" aria-hidden><span /><div className="lm-track">
       {/* Столбец выбранной паузы: поднимается от её блока через все голоса. */}
@@ -685,17 +686,17 @@ function PauseDetailBody({ duration, t, follow, onSeek, pause, pauses, lines, sp
       ? <div className="lm-warn" role="alert">
         <AlertTriangle size={15} />
         <FadeText className="lm-warn-text">Край задевает реплику: {speakerOf(hit[0].speaker)?.label} — «{hit[0].text}»</FadeText>
-        <button data-hover="layer" type="button" style={btn('S', 'secondary', { height: 28, padding: '0 12px', borderRadius: 9, fontSize: 12 })} onClick={fit}>Отодвинуть края</button>
+        <button data-hover="layer" type="button" style={btn('S', 'secondary', { height: 28, padding: '0 12px', borderRadius: 9, fontSize: 12 })} onClick={fit}><OpticalText as="iskra-button-label">Отодвинуть края</OpticalText></button>
       </div>
       : <FadeText className="lm-detail-hint">Тяните края паузы · Cmd + колёсико — масштаб · Shift + колёсико — сдвиг</FadeText>}</div>
     <div className="lm-detail-actions">
       <Segmented variant="filter" value={pause.action} onChange={onAction} items={[
         { id: 'cut', label: 'Вырезать' }, { id: 'speed', label: <><span className="lm-long">Ускорить </span>×{speed}</>, title: `Ускорить ×${speed}` }, { id: 'keep', label: 'Оставить' },
       ]} />
-      <button data-hover="layer" type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'source')}><Headphones size={15} />Прослушать</button>
-      <button data-hover="layer" type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'edited')}><Play size={14} />Как будет</button>
+      <button data-hover="layer" type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'source')}><Headphones size={15} /><OpticalText as="iskra-button-label">Прослушать</OpticalText></button>
+      <button data-hover="layer" type="button" style={btn('S', 'secondary')} onClick={() => onListen(pause.start - 4, 'edited')}><Play size={14} /><OpticalText as="iskra-button-label">Как будет</OpticalText></button>
       {/* Место под кнопку занято всегда: иначе ряд перестраивался при первой правке края. */}
-      <button data-hover="layer" type="button" style={btn('S', 'quiet', pause.edited ? undefined : { visibility: 'hidden' })} tabIndex={pause.edited ? undefined : -1} aria-hidden={!pause.edited} onClick={onReset}><RotateCcw size={14} />Края как нашлись</button>
+      <button data-hover="layer" type="button" style={btn('S', 'quiet', pause.edited ? undefined : { visibility: 'hidden' })} tabIndex={pause.edited ? undefined : -1} aria-hidden={!pause.edited} onClick={onReset}><RotateCcw size={14} /><OpticalText as="iskra-button-label">Края как нашлись</OpticalText></button>
     </div>
   </section>
 }
@@ -709,7 +710,7 @@ function PauseHead({ count, speed, onAll, cutTotal, speedTotal }: {
     <p className="lm-lead">Найдено {count} пауз. Вырежем {span(cutTotal)}, ускорим {span(speedTotal)}. Тишина вырезается, тихая работа — ускоряется: в кадре может быть доска.</p>
     <div className="lm-bulk" role="group" aria-label="Для всех пауз">
       {(['cut', 'speed', 'keep'] as const).map(a => { const label = a === 'speed' ? `Ускорить ×${speed}` : ACTION_LABEL[a]
-        return <button data-hover="layer" key={a} type="button" title={label + ' — все паузы'} aria-label={label + ' все паузы'} style={btn('S', 'secondary', { minWidth: 0, padding: '0 8px' })} onClick={() => onAll(a)}>{label}</button> })}
+        return <button data-hover="layer" key={a} type="button" title={label + ' — все паузы'} aria-label={label + ' все паузы'} style={btn('S', 'secondary', { minWidth: 0, padding: '0 8px' })} onClick={() => onAll(a)}><OpticalText as="iskra-button-label">{label}</OpticalText></button> })}
     </div>
   </div>
 }
@@ -757,7 +758,7 @@ function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd, onFo
           <span className="lm-avatar">{initial(sp.label)}</span>
           <label className="lm-name"><span className="lm-visually-hidden">Имя</span>
             <input value={sp.label} aria-label={'Имя: ' + sp.label} onChange={e => patch(sp.id, { label: e.target.value })} /></label>
-          <button data-hover="layer" type="button" style={btn('S', 'secondary')} disabled={!own.length} onClick={() => own[0] && onListen(own[0].start)}><Headphones size={15} />Голос</button>
+          <button data-hover="layer" type="button" style={btn('S', 'secondary')} disabled={!own.length} onClick={() => own[0] && onListen(own[0].start)}><Headphones size={15} /><OpticalText as="iskra-button-label">Голос</OpticalText></button>
         </div>
         <div className="lm-share"><i style={{ width: share + '%' }} /></div>
         <small className="lm-speaker-meta">{share}% речи · {own.length} реплик</small>
@@ -768,10 +769,10 @@ function SpeakerList({ speakers, lines, onChange, onListen, onMerge, onAdd, onFo
         </div>
       </article>
     })}
-    <button data-hover="layer" type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onAdd}><Plus size={14} />Добавить голос</button>
+    <button data-hover="layer" type="button" style={btn('S', 'secondary', { justifySelf: 'start' })} onClick={onAdd}><Plus size={14} /><OpticalText as="iskra-button-label">Добавить голос</OpticalText></button>
     {onForget && <p className="lm-lead">Голоса с именами запоминаются только на этом Mac и в следующих уроках подписываются сами. {forgotten
       ? 'Запомненные голоса удалены.'
-      : <button data-hover="layer" type="button" className="lm-inline-link" onClick={() => { onForget(); setForgotten(true) }}>Забыть все голоса</button>}</p>}
+      : <button data-hover="layer" type="button" className="lm-inline-link" onClick={() => { onForget(); setForgotten(true) }}><OpticalText as="iskra-button-label">Забыть все голоса</OpticalText></button>}</p>}
   </div>
 }
 
@@ -790,7 +791,7 @@ function LineList({ lines, speakers, pauses, t, who, onChange, onListen }: {
       const now = t >= l.start && t < l.end
       return <div key={l.id} className={'lm-line' + (now ? ' is-now' : '') + (cut ? ' is-cut' : '')}>
         <div className="lm-line-head">
-          <button data-hover="layer" type="button" className="lm-time-btn" aria-label={'Слушать с ' + clock(l.start)} onClick={() => onListen(l.start)}><Play size={12} />{clock(l.start)}</button>
+          <button data-hover="layer" type="button" className="lm-time-btn" aria-label={'Слушать с ' + clock(l.start)} onClick={() => onListen(l.start)}><Play size={12} /><OpticalText as="iskra-button-label">{clock(l.start)}</OpticalText></button>
           <div className="lm-line-who"><TeacherSelect small clearable={false} search={false} value={l.speaker} options={speakers.map(s => ({ value: s.id, label: s.label }))}
             onChange={v => v && patch(l.id, { speaker: v })} accent={sp ? TONE[sp.tone].text : undefined} accentBg={sp ? TONE[sp.tone].bg : undefined}
             triggerStyle={sp ? { background: TONE[sp.tone].bg, color: TONE[sp.tone].text, fontWeight: 700 } : undefined} /></div>

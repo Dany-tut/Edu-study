@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
@@ -135,7 +136,7 @@ export default function TeacherLoginMethods({ student = false, sheet = false }: 
             : <button data-hover="layer" type="button" onClick={() => void connect(provider)} disabled={!ready || !user || busy !== null || !available?.[provider]}
               aria-label={`${t('Подключить')} ${label}`}
               style={{ minHeight: 44, width: '100%', boxSizing: 'border-box', padding: '0 10px', borderRadius: 14, border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650, whiteSpace: 'nowrap', opacity: !ready || !user || busy !== null || !available?.[provider] ? .55 : 1, cursor: 'pointer' }}>
-              {!available ? t('Загрузка...') : !available[provider] ? t('Пока недоступно') : busy === provider ? t('Открываем…') : t('Подключить')}
+              <OpticalText as="iskra-button-label">{!available ? t('Загрузка...') : !available[provider] ? t('Пока недоступно') : busy === provider ? t('Открываем…') : t('Подключить')}</OpticalText>
             </button>}
         </div>
       })}

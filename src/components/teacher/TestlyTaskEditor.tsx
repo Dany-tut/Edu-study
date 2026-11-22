@@ -1,6 +1,7 @@
 // Тело карточки «Тест из Тестли» у учителя — одно для создания ДЗ и урока курса.
 // Править тут нечего: вопросы живут в Тестли. Можно открыть тест там или
 // поменять на другой из своего списка.
+import OpticalText from '../OpticalText'
 import { useState } from 'react'
 import { ExternalLink } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -38,7 +39,7 @@ export default function TestlyTaskEditor({ value, onChange }: {
             <ExternalLink size={13} /> {t('Открыть в Тестли')}
           </a>
           <button data-hover="layer" onClick={() => setPicking(p => !p)} style={{ ...btn('S', 'secondary'), flexShrink: 0 }}>
-            {picking ? t('Скрыть') : t('Другой тест')}
+            <OpticalText as="iskra-button-label">{picking ? t('Скрыть') : t('Другой тест')}</OpticalText>
           </button>
         </div>
       )}

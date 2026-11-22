@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
 import { MODAL_BACKDROP, MODAL_RADIUS } from './Modal'
 import { useState, useEffect, useRef } from 'react'
@@ -254,21 +255,21 @@ export default function WidgetOrderModal({ open, onClose }: Props) {
                   style={{ ...btn('M', 'quiet'), marginRight: 'auto', cursor: isDefault ? 'default' : 'pointer', opacity: isDefault ? 0.4 : 1 }}
                 >
                   <RotateCcw size={16} />
-                  {t('Сбросить')}
+                  <OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText>
                 </motion.button>
                 <motion.button data-hover="layer"
                   whileTap={{ scale: 0.97 }}
                   onClick={onClose}
                   style={btn('M', 'secondary')}
                 >
-                  {t('Отмена')}
+                  <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
                 </motion.button>
                 <motion.button data-hover="layer"
                   whileTap={{ scale: 0.97 }}
                   onClick={apply}
                   style={btn('M', 'primary')}
                 >
-                  {t('Готово')}
+                  <OpticalText as="iskra-button-label">{t('Готово')}</OpticalText>
                 </motion.button>
               </div>
             </div>

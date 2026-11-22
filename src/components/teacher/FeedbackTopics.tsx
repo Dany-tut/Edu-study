@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useMemo, useState } from 'react'
 import Segmented from '../Segmented'
 import HScrollFade from '../HScrollFade'
@@ -142,7 +143,7 @@ export default function FeedbackTopics({
             {busy
               ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} />
               : <Sparkles size={14} />}
-            {busy ? t('Разбираем…') : `${t('Разобрать новые')} · ${pending}`}
+            <OpticalText as="iskra-button-label">{busy ? t('Разбираем…') : `${t('Разобрать новые')} · ${pending}`}</OpticalText>
           </button>
         )}
       </div>
@@ -245,7 +246,7 @@ function TopicEditor({ tp, topics, act, api }: {
       ) : (
         <button type="button" data-hover="link" onClick={() => { setDraft(tp.title); setEditing(true) }}
           style={{ ...ghost(mobile), border: 'none', padding: 0, minHeight: mobile ? 44 : 24, alignSelf: 'flex-start', color: 'var(--color-text-3)' }}>
-          <Pencil size={13} /> {t('Переименовать тему')}
+          <Pencil size={13} /> <OpticalText as="iskra-button-label">{t('Переименовать тему')}</OpticalText>
         </button>
       )}
       {tp.summary && <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.4 }}>{tp.summary}</div>}
@@ -267,7 +268,7 @@ function TopicEditor({ tp, topics, act, api }: {
         </Field>
         <button type="button" data-hover="layer" style={{ ...ghost(mobile), alignSelf: 'flex-end' }}
           onClick={() => void act(api.updateTopic(tp.id, { status: tp.status === 'open' ? 'closed' : 'open' }))}>
-          {tp.status === 'open' ? t('Закрыть тему') : t('Открыть снова')}
+          <OpticalText as="iskra-button-label">{tp.status === 'open' ? t('Закрыть тему') : t('Открыть снова')}</OpticalText>
         </button>
       </div>
     </div>
@@ -329,7 +330,7 @@ function ItemRow({ it, topics, enabled, act, api }: {
         </Field>
         {enabled && (it.triage_state !== 'pending') && (
           <button type="button" data-hover="layer" style={ghost(mobile)} onClick={() => void act(api.retriageItem(it.id))}>
-            <RefreshCw size={13} /> {t('Разобрать заново')}
+            <RefreshCw size={13} /> <OpticalText as="iskra-button-label">{t('Разобрать заново')}</OpticalText>
           </button>
         )}
       </div>

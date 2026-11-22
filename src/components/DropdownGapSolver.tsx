@@ -16,6 +16,7 @@
 // Ответ — строка-JSON «номер пропуска → индекс выбранного варианта».
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown } from './icons/appIcons'
 import { answerMap, gapTextParts, type GapChoice } from '../data/taskTypes'
@@ -174,7 +175,7 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
                           color: 'var(--color-text)',
                         }}
                       >
-                        {opt}
+                        <OpticalText as="iskra-button-label">{opt}</OpticalText>
                       </button>
                     ))}
                   </span>

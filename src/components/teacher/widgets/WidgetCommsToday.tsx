@@ -1,6 +1,7 @@
 // «Связь с учениками» (функция reminders, концепт «Связь» → «Итог»):
 // что бот отправит сегодня, что не дошло, сколько учеников подключили Telegram.
 // Данные — reminders_today() (миграция 20261108100000_tg_reminders.sql).
+import OpticalText from '../../OpticalText'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Send, Bell, AlertCircle, ChevronRight, RefreshCw } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
@@ -73,7 +74,7 @@ export default function WidgetCommsToday() {
           <div className="comms-empty" role="alert">
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
               <span style={{ whiteSpace: 'pre-line' }}>{t('Не удалось загрузить.\nПроверьте связь и обновите.')}</span>
-              <button type="button" onClick={() => { setState('loading'); void load() }} style={btn('S', 'secondary')}>{t('Обновить')}</button>
+              <button type="button" onClick={() => { setState('loading'); void load() }} style={btn('S', 'secondary')}><OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText></button>
             </div>
           </div>
         )}
@@ -94,7 +95,7 @@ export default function WidgetCommsToday() {
                 <strong style={ONE_LINE}>{t('Не дошло')}: {f.name}</strong>
                 <span style={ONE_LINE}>{t(failReason(f.error))} · {t(KIND_LABEL[f.kind] ?? f.title)}</span>
               </div>
-              <button type="button" data-hover="layer" onClick={() => openStudent(f.studentId, null)} style={btn('S', 'secondary', { background: 'var(--color-bg-card)' })}>{t('Карточка')}</button>
+              <button type="button" data-hover="layer" onClick={() => openStudent(f.studentId, null)} style={btn('S', 'secondary', { background: 'var(--color-bg-card)' })}><OpticalText as="iskra-button-label">{t('Карточка')}</OpticalText></button>
             </div>
           ))}
 
@@ -106,7 +107,7 @@ export default function WidgetCommsToday() {
                 ? (data.total > 0 ? t('Подключены все') : t('Учеников пока нет'))
                 : unlinkedLine(data.unlinked)}</span>
             </div>
-            {data.unlinked.length > 0 && <button type="button" onClick={() => setInviteOpen(true)} style={btn('S', 'primary')}>{t('Позвать')}</button>}
+            {data.unlinked.length > 0 && <button type="button" onClick={() => setInviteOpen(true)} style={btn('S', 'primary')}><OpticalText as="iskra-button-label">{t('Позвать')}</OpticalText></button>}
           </div>
 
           {data.upcoming.length > 0 && <>

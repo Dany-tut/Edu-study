@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import { MODAL_BACKDROP, MODAL_CARD } from './Modal'
 import Checkbox from './Checkbox'
@@ -72,7 +73,7 @@ export default function ConsentOverlay({ onAccept }: { onAccept: () => void }) {
               transition: 'opacity 0.15s, background 0.15s',
             }}
           >
-            {t('Принимаю и продолжаю')}
+            <OpticalText as="iskra-button-label">{t('Принимаю и продолжаю')}</OpticalText>
           </button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import MobileSheet from './MobileSheet'
 import EmptyState from './EmptyState'
 import { NotifRow, timeAgo, useNotificationActivate } from './NotificationPopup'
@@ -41,7 +42,7 @@ export default function NotificationSheet({ open, onClose, native = false }: { o
   const footer = unread > 0
     ? <button data-hover="layer" type="button" onClick={() => { tactile(); markAllRead() }}
         style={{ ...btn('L', 'secondary'), ...softBtn, width: '100%', minHeight: 48, borderRadius: 999 }}>
-        {t('Прочитать все')}
+        <OpticalText as="iskra-button-label">{t('Прочитать все')}</OpticalText>
       </button>
     : undefined
 

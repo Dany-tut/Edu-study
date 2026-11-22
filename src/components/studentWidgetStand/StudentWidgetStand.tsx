@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { LoopSelect } from '../icons/LoopSelect'
@@ -49,7 +50,7 @@ function Matrix(){
    <label>Состояние<LoopSelect aria-label="Состояние" value={state} onChange={e=>setState(e.target.value)}><option value="all">Все состояния</option>{statesFor(widget).map(([id,label])=><option key={id} value={id}>{label}</option>)}</LoopSelect></label>
    <label>Размер<LoopSelect aria-label="Размер" value={size} onChange={e=>setSize(e.target.value)}><option value="all">Все размеры</option>{sizes.map(s=><option key={s.key} value={s.key}>{s.label}</option>)}</LoopSelect></label>
    <label>Тема<LoopSelect aria-label="Тема" value={theme} onChange={e=>setTheme(e.target.value)}><option value="light">Светлая</option><option value="dark">Тёмная</option></LoopSelect></label>
-   <button data-hover="layer" type="button" disabled={scanning} onClick={()=>{setReports({});setDone([]);setScanning(true)}}>Проверить всю матрицу</button>
+   <button data-hover="layer" type="button" disabled={scanning} onClick={()=>{setReports({});setDone([]);setScanning(true)}}><OpticalText as="iskra-button-label">Проверить всю матрицу</OpticalText></button>
   </div>
   <div className="swm-summary" role="status"><strong>{scanning?'Проверка идёт':done.length===sizes.length*2?'Проверка завершена':'Готов к проверке'}</strong><span>Проверено {Object.keys(reports).length} / {expected} · с ошибками {failures.length}</span></div>
   <main className="swm-main" data-matrix-scroll>

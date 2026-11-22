@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import Segmented from '../Segmented'
 import HScrollFade from '../HScrollFade'
@@ -68,7 +69,7 @@ export function RecapPanel({ control, picked, onPick, onClose }: {
     <span className="rp-mark"><Sparkles size={18} /></span>
     <div className="rp-head-text"><strong>Итоги урока</strong>
       <small>{busy === 'all' ? `Читаем расшифровку · около ${SECONDS} секунд` : draft ? (row?.status === 'published' ? 'Применено к уроку · правки войдут после «Применить снова»' : 'Черновик · ученик не видит · правка прямо по тексту') : 'Из сохранённой расшифровки'}</small></div>
-    <button type="button" className="rp-close" onClick={onClose}>К монтажу</button>
+    <button type="button" className="rp-close" onClick={onClose}><OpticalText as="iskra-button-label">К монтажу</OpticalText></button>
   </header>
 
   if (busy === 'all') return <div className="rp" ref={rootRef}>{head}<Progress kinds={building} /></div>
@@ -166,7 +167,7 @@ export function RecapPanel({ control, picked, onPick, onClose }: {
       <span className="rp-foot-hint" />
       <button type="button" className="rp-apply" style={btn('M', 'primary')} disabled={applying || !!busy}
         onClick={async () => { setApplying(true); try { await control.apply(draft) } finally { setApplying(false) } }}>
-        <Check size={15} />{applying ? 'Раскладываем…' : row?.status === 'published' ? 'Применить снова' : 'Применить к уроку'}
+        <Check size={15} /><OpticalText as="iskra-button-label">{applying ? 'Раскладываем…' : row?.status === 'published' ? 'Применить снова' : 'Применить к уроку'}</OpticalText>
       </button>
     </div>
   </div>
@@ -184,7 +185,7 @@ function Intro({ control, initial, onBuild }: { control: RecapControl; initial: 
     </button>)}</div>
     <div className="rp-intro-foot">
       <small>{control.costNote}</small>
-      <button type="button" style={btn('M', 'primary')} disabled={!kinds.length || control.loading} onClick={() => onBuild(kinds)}><Sparkles size={15} />Собрать итоги</button>
+      <button type="button" style={btn('M', 'primary')} disabled={!kinds.length || control.loading} onClick={() => onBuild(kinds)}><Sparkles size={15} /><OpticalText as="iskra-button-label">Собрать итоги</OpticalText></button>
     </div>
   </div>
 }
@@ -224,7 +225,7 @@ export function RecapSources({ lines, speakers, at, onListen }: {
     <div className="rp-src-body no-scrollbar">{lines.map(l => {
       const sp = speakers.find(s => s.id === l.speaker)
       return <div key={l.id} className={'rp-line' + (hit(l) ? ' is-hit' : '')}>
-        <button type="button" className="lm-time-btn" aria-label={'Слушать с ' + clock(l.start)} onClick={() => onListen(l.start)}><Play size={12} />{clock(l.start)}</button>
+        <button type="button" className="lm-time-btn" aria-label={'Слушать с ' + clock(l.start)} onClick={() => onListen(l.start)}><Play size={12} /><OpticalText as="iskra-button-label">{clock(l.start)}</OpticalText></button>
         <div><FadeText className="rp-line-who" style={{ color: sp?.role === 'teacher' ? 'var(--color-purple-text)' : 'var(--color-teal-pill-text)' }}>{sp?.label ?? 'Реплика'}</FadeText>{l.text}</div>
       </div>
     })}</div>

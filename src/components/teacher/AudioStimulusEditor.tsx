@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useRef, useState } from 'react'
 import { Upload, X, Volume2, Loader2 } from '../icons/appIcons'
 import { uploadMedia, MediaTooLargeError } from '../../lib/mediaStorage'
@@ -78,7 +79,7 @@ export default function AudioStimulusEditor({
             <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>{t('или')}</span>
             <button data-hover="layer" onClick={() => fileRef.current?.click()} disabled={uploading} style={chip(false)}>
               {uploading ? <Loader2 size={14} className="spin" /> : <Upload size={14} />}
-              {uploading ? t('Загрузка…') : t('Загрузить аудио')}
+              <OpticalText as="iskra-button-label">{uploading ? t('Загрузка…') : t('Загрузить аудио')}</OpticalText>
             </button>
             {value.ttsText && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)' }}><Volume2 size={12} /> {t('будет синтез речи')}</span>}
           </div>

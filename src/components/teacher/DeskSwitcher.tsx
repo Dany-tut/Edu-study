@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Pencil, Plus, RotateCcw, Check } from '../icons/appIcons'
@@ -80,7 +81,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
                 outlineOffset: -1,
               }}
             >
-              {desk.name}
+              <OpticalText as="iskra-button-label">{desk.name}</OpticalText>
             </button>
           ))}
 
@@ -95,7 +96,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             }}
           >
             <Plus size={12} />
-            {t('Стол')}
+            <OpticalText as="iskra-button-label">{t('Стол')}</OpticalText>
           </button>
         </div>
 
@@ -113,7 +114,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
             }}
           >
             <Plus size={14} />
-            {t('Виджет')}
+            <OpticalText as="iskra-button-label">{t('Виджет')}</OpticalText>
           </button>
         )}
 
@@ -122,7 +123,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           style={{ ...btn('M', 'secondary'), flexShrink: 0 }}
         >
           <RotateCcw size={14} />
-          {t('Сбросить')}
+          <OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText>
         </button>
 
         <button data-hover="layer"
@@ -138,7 +139,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
           }}
         >
           <Check size={14} />
-          {t('Готово')}
+          <OpticalText as="iskra-button-label">{t('Готово')}</OpticalText>
         </button>
       </motion.div>
     )
@@ -203,7 +204,7 @@ export default function DeskSwitcher({ config, onSetActive, onAddDesk, onResetDe
                     }
                   }}
                 >
-                  {desk.name}
+                  <OpticalText as="iskra-button-label">{desk.name}</OpticalText>
                 </button>
               </div>
             ))}

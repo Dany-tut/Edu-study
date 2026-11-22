@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import { Check, ListChecks, Play, Sparkles, X } from './icons/appIcons'
 import type { LessonParagraph, SelfCheckQuestion } from '../data/lessonContent'
@@ -21,7 +22,7 @@ function TimeChip({ at, seek }: { at: number; seek?: (s: number) => void }) {
   const t = useT()
   const label = transcriptTime(at)
   return seek
-    ? <button type="button" className="recap-tc" onClick={() => seek(at)} aria-label={t('Смотреть с') + ' ' + label}><Play size={11} />{label}</button>
+    ? <button type="button" className="recap-tc" onClick={() => seek(at)} aria-label={t('Смотреть с') + ' ' + label}><Play size={11} /><OpticalText as="iskra-button-label">{label}</OpticalText></button>
     : <span className="recap-tc is-static">{label}</span>
 }
 
@@ -72,7 +73,7 @@ function SelfCheckItem({ n, q, seek }: { n: number; q: SelfCheckQuestion; seek?:
       })}</div>
       : shown
         ? <div className="recap-answer"><Check size={14} />{q.answer}</div>
-        : <button type="button" className="recap-reveal" onClick={() => setShown(true)}>{t('Показать ответ')}</button>}
+        : <button type="button" className="recap-reveal" onClick={() => setShown(true)}><OpticalText as="iskra-button-label">{t('Показать ответ')}</OpticalText></button>}
     {/* Строка результата держит место заранее: появляясь, она не сдвигает вопросы ниже. */}
     <div className="recap-q-foot">
       {picked != null && <span className={'recap-verdict' + (right ? ' is-right' : ' is-wrong')} role="status">{right ? t('Верно') : `${t('Верно:')} ${q.answer}`}</span>}

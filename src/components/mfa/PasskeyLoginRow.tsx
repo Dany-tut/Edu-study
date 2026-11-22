@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useState } from 'react'
 import { textFadeStyle } from '../../lib/textFades'
 import { useT } from '../../lib/i18n'
@@ -66,7 +67,7 @@ export default function PasskeyLoginRow() {
       </div>
       <button type="button" onClick={() => void create()} disabled={keys === null || busy}
         style={{ ...pill, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', cursor: 'pointer', opacity: keys === null || busy ? 0.55 : 1 }}>
-        {keys === null ? t('Загрузка...') : busy ? t('Создаём…') : t(has ? 'Ещё ключ' : 'Создать')}
+        <OpticalText as="iskra-button-label">{keys === null ? t('Загрузка...') : busy ? t('Создаём…') : t(has ? 'Ещё ключ' : 'Создать')}</OpticalText>
       </button>
     </div>
     {keys?.map(key => <div key={key.id} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr) 44px', alignItems: 'center', gap: 10, minHeight: 52, padding: '4px 0 8px' }}>

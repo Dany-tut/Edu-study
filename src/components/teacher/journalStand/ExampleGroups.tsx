@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { journalDemo } from '../../../data/courseJournalDemo'
 import GroupStrip from '../GroupStrip'
@@ -245,13 +246,13 @@ export default function ExampleGroups() {
         <a data-hover="link" href="#/student/diary" onClick={event => {event.preventDefault();navigate('diary')}}>Дневник</a>
         <a data-hover="link" href="/journal-stand/?example=live#/teacher/gradebook">Мой журнал</a>
       </div>
-      {page === 'widgets' || page === 'schedule' || page === 'diary' ? <div className="sw-backbar"><button type="button" className="cj-button" onClick={() => navigate('journal')}>← К журналу</button><span>{page === 'diary' ? 'Концепты дневника' : page === 'schedule' ? 'Концепты расписания' : 'Концепты ученика'}</span></div>
+      {page === 'widgets' || page === 'schedule' || page === 'diary' ? <div className="sw-backbar"><button type="button" className="cj-button" onClick={() => navigate('journal')}><OpticalText as="iskra-button-label">← К журналу</OpticalText></button><span>{page === 'diary' ? 'Концепты дневника' : page === 'schedule' ? 'Концепты расписания' : 'Концепты ученика'}</span></div>
         : page !== 'full-review' && <HomeworkNavigation page={page} onChange={navigate}/>}
       {(page === 'journal' || page === 'home') && <div className="course-journal" style={{margin:'0 28px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
         <button type="button" className="cj-button" onClick={() => {
           setGroup(data.groups[0].id);change({course:'demo-chem',module:'',strip:'groups',tab:'Работы',search:'',student:'',workRef:''});navigate('journal')
           homework.openAssignment('hw-' + FULL_REVIEW_EXAMPLE_ID, fullReview.submitters.map(s => s.id))
-        }}>Тестовая домашка · фото и доска</button><button type="button" className="cj-button" onClick={() => {setReviewStudent(fullReview.submitters[1].id);setReviewReturn(page === 'home' ? page : 'journal');navigate('full-review', fullReview.submitters[1].id)}}>✦ Концепт проверки ИИ</button><span style={{fontSize:11,color:'var(--color-text-3)'}}>3 сдачи · {FULL_REVIEW_EXAMPLE_TITLE}</span>
+        }}><OpticalText as="iskra-button-label">Тестовая домашка · фото и доска</OpticalText></button><button type="button" className="cj-button" onClick={() => {setReviewStudent(fullReview.submitters[1].id);setReviewReturn(page === 'home' ? page : 'journal');navigate('full-review', fullReview.submitters[1].id)}}><OpticalText as="iskra-button-label">✦ Концепт проверки ИИ</OpticalText></button><span style={{fontSize:11,color:'var(--color-text-3)'}}>3 сдачи · {FULL_REVIEW_EXAMPLE_TITLE}</span>
       </div>}
       {page==='full-review'&&<label className="aic-demo-state">Учебный пример состояния ИИ<select aria-label="Состояние проверки ИИ" value={aiDemoState} onChange={e=>setAiDemoState(e.target.value)}><option value="original">Разбор готов</option><option value="pending">В очереди</option><option value="working">Проверяет</option><option value="unavailable">Сервис недоступен</option><option value="timeout">Долгая проверка</option><option value="rate_limit">Лимит запросов</option><option value="configuration">Ключ не настроен</option><option value="credentials">Неверный ключ</option><option value="balance">Недостаточно средств</option><option value="invalid_result">Неполный разбор</option><option value="missing_evidence">Фото недоступно</option></select></label>}
       <div className={'js-journal-host js-example-area' + (page === 'diary' ? ' ds-example-host' : '')}>
@@ -347,7 +348,7 @@ export default function ExampleGroups() {
               {add === 'groups' ? 'Название группы' : 'Имя ученика'}
               <input required value={name} onChange={(e) => setName(e.target.value)} />
             </label>
-            <button className="cj-button cj-primary">Добавить</button>
+            <button className="cj-button cj-primary"><OpticalText as="iskra-button-label">Добавить</OpticalText></button>
           </form>
         </Modal>
       )}

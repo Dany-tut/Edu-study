@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { plainTitle } from '../../lib/lessonKey'
 import { SubjectMark } from '../../components/icons/SubjectMark'
@@ -132,7 +133,7 @@ function CalendarPickerLesson({ value, onChange, onClose }: { value: string; onC
               style={{ width: 30, height: 30, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: sel ? 700 : 500, background: sel ? 'var(--grad-purple)' : 'transparent', boxShadow: !sel && tod ? 'inset 0 0 0 1.5px var(--color-accent)' : 'none', color: sel ? '#fff' : 'var(--color-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
               onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >{d.getDate()}</button>
+            ><OpticalText as="iskra-button-label">{d.getDate()}</OpticalText></button>
           )
         })}
       </div>
@@ -179,7 +180,7 @@ function TimePickerLesson({ value, onChange, onClose }: { value: string; onChang
                 style={{ width: '100%', border: 'none', background: active ? 'var(--color-green-soft)' : 'transparent', color: active ? 'var(--color-green-text)' : 'var(--color-text)', padding: '8px 10px', textAlign: 'left', fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'block', borderRadius: 9, transition: 'background 0.15s, color 0.15s' }}
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-              >{t}</button>
+              ><OpticalText as="iskra-button-label">{t}</OpticalText></button>
             )
           })}
         </div>
@@ -459,7 +460,7 @@ function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: 
           fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', fontFamily: 'inherit',
         }}
       >
-        <Plus size={14} /> {t('Таймкод')}
+        <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Таймкод')}</OpticalText>
       </button>
     </div>
   )
@@ -498,7 +499,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
             color: '#fff', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
           }}
         >
-          <X size={14} /> {t('Удалить')}
+          <X size={14} /> <OpticalText as="iskra-button-label">{t('Удалить')}</OpticalText>
         </button>
       </div>
     )
@@ -539,7 +540,7 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
-            {t('ОК')}
+            <OpticalText as="iskra-button-label">{t('ОК')}</OpticalText>
           </button>
         </div>
       ) : (
@@ -553,13 +554,13 @@ function VideoZone({ url, onChange }: { url: string; onChange: (u: string) => vo
               boxShadow: '0 4px 14px rgba(74,222,128,0.3)',
             }}
           >
-            <Link2 size={16} /> {t('Вставить ссылку')}
+            <Link2 size={16} /> <OpticalText as="iskra-button-label">{t('Вставить ссылку')}</OpticalText>
           </button>
           <button data-hover="layer"
             onClick={() => onChange('https://rutube.ru/video/upload-' + Math.random().toString(36).slice(2, 8))}
             style={btn('M', 'secondary')}
           >
-            <Upload size={16} /> {t('Загрузить файл')}
+            <Upload size={16} /> <OpticalText as="iskra-button-label">{t('Загрузить файл')}</OpticalText>
           </button>
         </div>
       )}
@@ -711,7 +712,7 @@ function AudiencePicker({
           }}
         >
           <Plus size={14} strokeWidth={2.5} />
-          {recipients.length === 0 ? t('Группа или ученик') : t('Добавить ещё')}
+          <OpticalText as="iskra-button-label">{recipients.length === 0 ? t('Группа или ученик') : t('Добавить ещё')}</OpticalText>
         </button>
 
         <AnimatePresence>
@@ -821,7 +822,7 @@ function AudiencePicker({
                     background: 'var(--color-bg)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
                   }}
                 >
-                  {t('Готово')}
+                  <OpticalText as="iskra-button-label">{t('Готово')}</OpticalText>
                 </button>
               </div>
             </motion.div>
@@ -1429,7 +1430,7 @@ export default function TeacherLessonEditorPage() {
                     fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
                   }}
                 >
-                  {courseTarget?.lessonShortId ? t('Открыть урок в курсе') : courseTarget ? t('Открыть курс') : t('Открыть Конструктор')} <ChevronRight size={14} />
+                  <OpticalText as="iskra-button-label">{courseTarget?.lessonShortId ? t('Открыть урок в курсе') : courseTarget ? t('Открыть курс') : t('Открыть Конструктор')}</OpticalText> <ChevronRight size={14} />
                 </button>
               </section>
             )}

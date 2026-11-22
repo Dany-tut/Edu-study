@@ -5,6 +5,7 @@
 // 8 секунд на отмену: до конца отсчёта в базу ничего не уходит, ученики
 // ничего не получают. Ушли со страницы во время отсчёта — применяем сразу.
 
+import OpticalText from '../OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Alert } from '../Alert'
@@ -111,7 +112,7 @@ export default function AiBatchBar({ queueKey, onApplied, source = supabaseAiBat
         )}
         <button type="button" data-hover="link" onClick={() => setShowSummary(true)}
           style={{ marginLeft: 'auto', minHeight: tap, padding: '0 4px', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600, color: 'var(--color-purple-text)' }}>
-          {t('Где ИИ расходится с вами')}
+          <OpticalText as="iskra-button-label">{t('Где ИИ расходится с вами')}</OpticalText>
         </button>
       </div>
 

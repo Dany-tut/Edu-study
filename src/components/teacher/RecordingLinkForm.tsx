@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useId, useRef, useState, type CSSProperties } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
 import AuthFadeInput from '../AuthFadeInput'
@@ -48,7 +49,7 @@ export function RecordingFileButton({ onUploaded, onBusy, onError, disabled, lab
       onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; void pick(f) }} />
     <button data-hover="layer" type="button" disabled={disabled || busy} onClick={() => input.current?.click()}
       style={{ ...btn('M', 'secondary'), ...style, ...(busy ? { opacity: 1, cursor: 'progress' } : {}) }}>
-      <Upload size={14} /> {busy ? t('Загружаем…') : label ?? t('Файл')}
+      <Upload size={14} /> <OpticalText as="iskra-button-label">{busy ? t('Загружаем…') : label ?? t('Файл')}</OpticalText>
     </button>
   </>
 }
@@ -163,7 +164,7 @@ export default function RecordingLinkForm({ initialUrl, onSave, onClose, unavail
           style={{ flexShrink: 0, minHeight: 44 }} />
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button data-hover="layer" disabled={busy} onClick={onClose} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Отмена')}</button>
+        <button data-hover="layer" disabled={busy} onClick={onClose} style={{ ...btn('M', 'secondary'), minHeight: 44 }}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
         <TeacherSaveButton label={t('Сохранить')} savingLabel={t('Сохраняем…')} saving={saving} disabled={busy || !!unavailable}
           onClick={save} style={{ flex: 1, minHeight: 44, ...(saving ? { opacity: 1 } : {}) }} />
       </div>

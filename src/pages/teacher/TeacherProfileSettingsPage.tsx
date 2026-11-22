@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import './teacherProfileHeader.css'
 import FadeText from '../../components/FadeText'
 import ProfileChips from '../../components/ProfileChips'
@@ -344,7 +345,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
               else friends.setTab(null)
             }}/>
           </HScrollFade>
-          {teacherGuides && <button data-hover="layer" type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}>{t('Подсказки')}</button>}
+          {teacherGuides && <button data-hover="layer" type="button" className="teacher-guides-entry" onClick={teacherGuides.catalog}><OpticalText as="iskra-button-label">{t('Подсказки')}</OpticalText></button>}
         </header>
         <div className="profile-section-heading">
           <h2>{t(section === 'main' ? 'Личные данные' : section === 'friends' ? 'Друзья' : section === 'integrations' ? 'Интеграции' : 'Настройки')}</h2>
@@ -361,11 +362,11 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
             <p className="profile-social-caption">{t('Один ник, чтобы найти друг друга.')}</p>
             {friends.tab === 'profile' ? <>
               <FriendsContent model={friends} suggestedName={friends.account === profileOwner ? savedName : ''}/>
-              <button data-hover="layer" className="profile-social-edit" type="button" onClick={() => friends.setTab('contacts')}>{t('Готово')}</button>
+              <button data-hover="layer" className="profile-social-edit" type="button" onClick={() => friends.setTab('contacts')}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>
             </> : <>
               <div className="profile-social-handle"><FadeText>{handle ? '@' + handle : t('Ник ещё не выбран')}</FadeText></div>
               <p className="profile-social-visibility">{t(friends.snapshot?.searchable ? 'Вас можно найти по точному нику' : 'Поиск по нику выключен')}</p>
-              <button data-hover="layer" className="profile-social-edit" type="button" onClick={() => friends.setTab('profile')}>{t('Изменить ник и видимость')}</button>
+              <button data-hover="layer" className="profile-social-edit" type="button" onClick={() => friends.setTab('profile')}><OpticalText as="iskra-button-label">{t('Изменить ник и видимость')}</OpticalText></button>
             </>}
             <p className="profile-social-privacy">{t('Ваш email остаётся приватным.')}</p>
           </aside>
@@ -546,7 +547,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для просмотра расписания')}</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
               <button data-hover="layer" type="button" onClick={() => chooseDisplayZone('auto')} style={tzChoiceStyle(teacherTzMode === 'auto')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
-              <button data-hover="layer" type="button" onClick={() => chooseDisplayZone('manual')} style={tzChoiceStyle(teacherTzMode === 'manual')}>{t('Выбрать город')}</button>
+              <button data-hover="layer" type="button" onClick={() => chooseDisplayZone('manual')} style={tzChoiceStyle(teacherTzMode === 'manual')}><OpticalText as="iskra-button-label">{t('Выбрать город')}</OpticalText></button>
             </div>
             {teacherTzMode === 'manual' && <LoopSelect value={teacherTz} onChange={e => changeTz(e.target.value)} style={{ ...inputStyle, cursor: 'pointer', marginTop: 4 }}>
               {!TZ_OPTIONS.some(o => o.value === teacherTz) && <option value={teacherTz}>{tzShortLabel(teacherTz)}</option>}
@@ -557,7 +558,7 @@ export default function TeacherProfileSettingsPage({ friends, embedded, onNameSa
             <div style={{ fontSize: 12, fontWeight: 650, color: 'var(--color-text-3)', marginBottom: 7 }}>{t('Часовой пояс для ввода времени урока')}</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button data-hover="layer" type="button" onClick={() => chooseInputZone('local')} style={tzChoiceStyle(inputTz === 'local')}>{t('По устройству')} · {tzShortLabel(browserTz())}</button>
-              <button data-hover="layer" type="button" onClick={() => chooseInputZone('manual')} style={tzChoiceStyle(inputTz !== 'local')}>{t('Выбрать город')}</button>
+              <button data-hover="layer" type="button" onClick={() => chooseInputZone('manual')} style={tzChoiceStyle(inputTz !== 'local')}><OpticalText as="iskra-button-label">{t('Выбрать город')}</OpticalText></button>
             </div>
             {inputTz !== 'local' && <LoopSelect value={inputTz} onChange={e => { void setInputTz(e.target.value) }} style={{ ...inputStyle, cursor: 'pointer', marginTop: 8 }}>
               {!TZ_OPTIONS.some(o => o.value === inputTz) && <option value={inputTz}>{tzShortLabel(inputTz)}</option>}

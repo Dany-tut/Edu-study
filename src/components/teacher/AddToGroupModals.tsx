@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { OverlayScrollArea } from './OverlayScroll'
 import { useState, useMemo } from 'react'
@@ -340,7 +341,7 @@ export function AddExistingIndividualModal({
             <TeacherSelect value={level} onChange={setLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject)} triggerStyle={selectTrigger} />
             <button data-hover="layer" onClick={create} disabled={!subject.trim() || busy}
               style={{ height: 48, marginTop: 4, width: '100%', padding: '0 22px', background: 'var(--grad-purple)', opacity: subject.trim() ? 1 : 0.45, color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', borderRadius: 14, cursor: subject.trim() && !busy ? 'pointer' : 'not-allowed' }}>
-              {busy ? t('Создаём…') : t('Создать карточку 1:1')}
+              <OpticalText as="iskra-button-label">{busy ? t('Создаём…') : t('Создать карточку 1:1')}</OpticalText>
             </button>
           </div>
         )}
@@ -366,7 +367,7 @@ export function AddExistingIndividualModal({
                 </button>
               </>
             )}
-            <button data-hover="layer" onClick={onClose} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' }}>{t('Закрыть')}</button>
+            <button data-hover="layer" onClick={onClose} style={{ width: '100%', padding: '10px 0', background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer' }}><OpticalText as="iskra-button-label">{t('Закрыть')}</OpticalText></button>
           </div>
         )}
       </motion.div>

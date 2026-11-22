@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import FipiPicker, { FipiToggle } from '../../components/teacher/FipiPicker'
 import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
 import { importBankTask } from '../../lib/bankTaskImport'
@@ -415,7 +416,7 @@ function TaskCard({
                         onClick={() => onUpdate({ choices: [...(task.choices ?? []), ''] })}
                         style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
-                        <Plus size={12} /> {t('Добавить вариант')}
+                        <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Добавить вариант')}</OpticalText>
                       </button>
                     </div>
                   </div>
@@ -463,7 +464,7 @@ function TaskCard({
                         onClick={() => onUpdate({ pairs: [...(task.pairs ?? []), { left: '', right: '' }] })}
                         style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                       >
-                        <Plus size={12} /> {t('Добавить пару')}
+                        <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Добавить пару')}</OpticalText>
                       </button>
                     </div>
                   </div>
@@ -495,7 +496,7 @@ function TaskCard({
                           </div>
                         ))}
                         <button data-hover="layer" onClick={() => setItems([...items, ''])} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
-                          <Plus size={12} /> {t('Добавить шаг')}
+                          <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Добавить шаг')}</OpticalText>
                         </button>
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>
@@ -621,7 +622,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
         }}
       >
         <Link2 size={14} style={{ flexShrink: 0 }} />
-        {t('Импорт из Google Forms')}
+        <OpticalText as="iskra-button-label">{t('Импорт из Google Forms')}</OpticalText>
       </button>
       <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0 2px' }} />
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8 }}>
@@ -655,7 +656,7 @@ function ComposeTypePanel({ onAdd, onAddHard, onImport, onImportHard, onTestly, 
         }}
       >
         <Link2 size={12} style={{ flexShrink: 0 }} />
-        {t('Импорт из Google Forms')}
+        <OpticalText as="iskra-button-label">{t('Импорт из Google Forms')}</OpticalText>
       </button>
     </motion.div>
   )
@@ -976,7 +977,7 @@ function BankTaskCard({ task, index, added, onAdd }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid var(--color-border-soft)' }}>
         <span style={{ fontSize: 11, color: 'var(--color-text-5)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>
         <button data-hover="layer" onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-5)', cursor: 'pointer', fontFamily: 'inherit' }}>
-          <AlertCircle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
+          <AlertCircle size={12} /><OpticalText as="iskra-button-label">{reported ? t('Отправлено') : t('Ошибка')}</OpticalText>
         </button>
       </div>
     </div>
@@ -1123,7 +1124,7 @@ function PreviewTab({
                       onClick={() => onOpenTrainerDialog(task.id)}
                       style={cardChipTone('peach', { border: 'none', cursor: 'pointer', fontFamily: 'inherit' })}
                     >
-                      <AlertTriangle size={12} strokeWidth={2.5} style={{ marginRight: 4, verticalAlign: '-1px' }} />{t('изменено')}
+                      <AlertTriangle size={12} strokeWidth={2.5} style={{ marginRight: 4, verticalAlign: '-1px' }} /><OpticalText as="iskra-button-label">{t('изменено')}</OpticalText>
                     </button>
                   )}
                 </div>
@@ -1181,7 +1182,7 @@ function PreviewTab({
                     }}
                   >
                     <Eye size={12} />
-                    {showAnswer.has(task.id) ? task.answer || t('нет ответа') : t('Показать ответ')}
+                    <OpticalText as="iskra-button-label">{showAnswer.has(task.id) ? task.answer || t('нет ответа') : t('Показать ответ')}</OpticalText>
                   </button>
                 )}
               </div>
@@ -1294,7 +1295,7 @@ function TrainerFilterPanel({
                 style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                   background: active ? 'rgba(139,92,246,0.15)' : 'var(--color-bg-3)',
                   color: active ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>
-                {p}
+                <OpticalText as="iskra-button-label">{p}</OpticalText>
               </button>
             )
           })}
@@ -1310,7 +1311,7 @@ function TrainerFilterPanel({
           onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '' })}
           style={{ padding: '8px 0', borderRadius: 12, background: 'var(--color-red-soft)', border: 'none', fontSize: 12, color: 'var(--color-red-text)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
         >
-          {t('Сбросить фильтры')}
+          <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
         </button>
       )}
 
@@ -1422,7 +1423,7 @@ function HardTaskAccordion({
                         fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                       }}
                     >
-                      {t(opt.l)}
+                      <OpticalText as="iskra-button-label">{t(opt.l)}</OpticalText>
                     </button>
                   ))}
                 </div>
@@ -1483,7 +1484,7 @@ function HardTaskAccordion({
                         boxShadow: tab === opt.v ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                       }}
                     >
-                      {t(opt.l)}
+                      <OpticalText as="iskra-button-label">{t(opt.l)}</OpticalText>
                     </button>
                   ))}
                 </div>
@@ -1679,7 +1680,7 @@ function CalendarPicker({ value, onChange }: { value: string; onChange: (v: stri
                       transition: 'background 0.15s',
                     }}
                   >
-                    {day}
+                    <OpticalText as="iskra-button-label">{day}</OpticalText>
                   </button>
                 )
               })}
@@ -2045,7 +2046,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
                 fontFamily: 'inherit', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
               }}
             >
-              {mode === 'group' ? t('Группе') : t('Студенту')}
+              <OpticalText as="iskra-button-label">{mode === 'group' ? t('Группе') : t('Студенту')}</OpticalText>
             </button>
           ))}
         </div>
@@ -2071,7 +2072,7 @@ function LeftPanel({ meta, onChange }: { meta: Meta; onChange: (p: Partial<Meta>
                       color: subjectFilter === opt.v ? 'var(--color-accent)' : 'var(--color-muted)',
                     }}
                   >
-                    {t(opt.label)}
+                    <OpticalText as="iskra-button-label">{t(opt.label)}</OpticalText>
                   </button>
                 ))}
               </div>
@@ -2489,7 +2490,7 @@ export default function TeacherHomeworkCreatePage() {
                 fontFamily: 'inherit', pointerEvents: 'auto',
               }}
             >
-              {draftLabel}
+              <OpticalText as="iskra-button-label">{draftLabel}</OpticalText>
             </button>
             <TeacherSaveButton
               label={isEditing ? t('Сохранить') : t('Опубликовать')} savedLabel={isEditing ? t('Сохранено!') : t('Опубликовано!')}
@@ -2536,7 +2537,7 @@ export default function TeacherHomeworkCreatePage() {
                 fontSize: 14, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit',
               }}
             >
-              {draftLabel}
+              <OpticalText as="iskra-button-label">{draftLabel}</OpticalText>
             </button>
             <TeacherSaveButton
               label={isEditing ? t('Сохранить') : t('Опубликовать')} savedLabel={isEditing ? t('Сохранено!') : t('Опубликовано!')}
@@ -2774,14 +2775,14 @@ export default function TeacherHomeworkCreatePage() {
                     onClick={() => setShowPublishConfirm(false)}
                     style={{ ...btn('M', 'secondary'), flex: 1 }}
                   >
-                    {t('Отмена')}
+                    <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
                   </button>
                   <motion.button
                     whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                     onClick={doPublish}
                     style={{ height: 40, flex: 2, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', boxShadow: '0 4px 14px rgba(99,84,207,0.3)' }}
                   >
-                    <Send size={14} /> {t('Опубликовать')}
+                    <Send size={14} /> <OpticalText as="iskra-button-label">{t('Опубликовать')}</OpticalText>
                   </motion.button>
                 </div>
               </motion.div>

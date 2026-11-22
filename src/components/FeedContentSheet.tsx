@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useMemo } from 'react'
 import { Reorder, useDragControls, motion } from 'framer-motion'
 import { GripVertical } from './icons/appIcons'
@@ -251,7 +252,7 @@ export function FeedContentSettings({ items }: { items: FeedItem[] }) {
             fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)',
           }}
         >
-          {t('Сбросить')}
+          <OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText>
         </motion.button>
       </div>
     </div>

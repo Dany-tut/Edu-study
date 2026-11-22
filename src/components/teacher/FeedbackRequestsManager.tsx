@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useState } from 'react'
 import Segmented from '../Segmented'
 import PhotoGallery from '../PhotoGallery'
@@ -154,7 +155,7 @@ export default function FeedbackRequestsManager() {
         />
         <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          {t('Обновить')}
+          <OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
         </button>
       </div>
 
@@ -243,7 +244,7 @@ export default function FeedbackRequestsManager() {
                       color: r.status === s ? STATUS_META[s].color : 'var(--color-text-3)',
                       opacity: r.status === s ? 1 : 0.85,
                     }}>
-                    {t(STATUS_META[s].label)}
+                    <OpticalText as="iskra-button-label">{t(STATUS_META[s].label)}</OpticalText>
                   </button>
                 ))}
                 {/* Заявка от учителя или с лендинга от того, у кого уже есть аккаунт

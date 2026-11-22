@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { motion, useIsPresent } from 'framer-motion'
 import type { Lesson } from '../data/mockData'
@@ -57,7 +58,7 @@ export default function TrackHomeworkButton({ lesson, resume }: { lesson: Lesson
         background: 'var(--grad-purple)', cursor: busy ? 'wait' : 'pointer',
       }}
     >
-      {busy ? t('Открываем…') : t(label)}
+      <OpticalText as="iskra-button-label">{busy ? t('Открываем…') : t(label)}</OpticalText>
     </motion.button>
   </>
 }

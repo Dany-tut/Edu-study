@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { motion, AnimatePresence } from 'framer-motion'
 import { studentIdFromTeacherHash, teacherStudentHash } from '../../lib/teacherStudentRoute'
 import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
@@ -209,7 +210,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
           iPad (§1.1): топбара нет — разделы и действия живут в капсуле справа
           (TeacherIpadRail), которая висит fixed у правого края в обеих ориентациях. */}
       {isIpad || mobileAdmin ? null : mobileTool ? <div style={{ position: 'absolute', top: 'max(12px, env(safe-area-inset-top))', left: 16, zIndex: 90 }}>
-        <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}>{t('На главную')}</button>
+        <button className="cj-button" style={{ minHeight: 44 }} onClick={() => setActivePage('home')}><OpticalText as="iskra-button-label">{t('На главную')}</OpticalText></button>
       </div> : <div className="topbar-row" style={{ visibility: editMode ? 'hidden' : 'visible' }}>
         {/* Left spacer */}
         <div />
@@ -293,7 +294,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
     </div>}
 
     {/* Mobile teacher app — fully separate layout, mounted only below lg. */}
-    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}>{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</button>)}</nav>{standContent}</div> : <MobileTeacherApp widgetsReady={!desksLoading && accessLoaded} />)}</Suspense>
+    <Suspense fallback={<div role="status" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--color-text-3)' }}>{t('Загрузка…')}</div>}>{!isDesktop && !mobileTool && (activePage !== 'home' && standContent ? <div className="journal-stand-mobile"><nav aria-label={t('Кабинет преподавателя')}>{(['home', 'gradebook', 'groups'] as const).filter(p => canPage(p)).map(p => <button key={p} className="cj-button" aria-pressed={p === activePage} onClick={() => setActivePage(p)}><OpticalText as="iskra-button-label">{t(p === 'gradebook' ? 'Журнал' : p === 'home' ? 'Главная' : 'Группы')}</OpticalText></button>)}</nav>{standContent}</div> : <MobileTeacherApp widgetsReady={!desksLoading && accessLoaded} />)}</Suspense>
     </>
   )
 }

@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useState } from 'react'
 import FadeText from '../../FadeText'
 import { Check, CalendarCheck, ChevronRight } from '../../icons/appIcons'
@@ -103,7 +104,7 @@ export default function PaymentsInbox({ compact = false }: { compact?: boolean }
           <button data-hover="layer" type="button" onClick={() => void quickConfirm(c)} disabled={busy === c.id}
             aria-label={`${t('Пришло')}: ${rub(c.amount)}`}
             style={{ minHeight: 32, padding: '0 10px', borderRadius: 9, border: 'none', flexShrink: 0, background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'inherit', opacity: busy === c.id ? 0.6 : 1 }}>
-            <Check size={14} />{t('Пришло')}
+            <Check size={14} /><OpticalText as="iskra-button-label">{t('Пришло')}</OpticalText>
           </button>
         </div>
       ))}

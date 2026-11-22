@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { completeCustomOAuthFromUrl, type LinkCandidate } from '../lib/socialAuth'
 import { useT } from '../lib/i18n'
@@ -63,7 +64,7 @@ export default function SocialCallbackPage() {
               onClick={goToLogin}
               style={{ marginTop: status === 'error' && message ? 0 : 16, minHeight: 48, padding: '0 22px', borderRadius: 14, border: '1px solid var(--color-border-medium)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: 15, fontWeight: 650, cursor: 'pointer' }}
             >
-              {t('Войти ещё раз')}
+              <OpticalText as="iskra-button-label">{t('Войти ещё раз')}</OpticalText>
             </button>
           </>
         )}

@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import BackCircle from '../../components/BackCircle'
@@ -333,7 +334,7 @@ function ContentManager({ teachers }: { teachers: TeacherRow[] }) {
         )}
         <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          {t('Обновить')}
+          <OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
         </button>
       </div>
 
@@ -466,7 +467,7 @@ function TasksManager({ teachers }: { teachers: TeacherRow[] }) {
         </div>
         <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          {t('Обновить')}
+          <OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
         </button>
       </div>
 
@@ -659,7 +660,7 @@ export default function TeacherAdminPage({ onBack, sheetSection }: {
           <ShieldAlert size={32} strokeWidth={1.5} style={{ opacity: 0.6 }} />
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)', marginTop: 10 }}>{t('Раздел доступен только администратору')}</div>
           <button data-hover="layer" onClick={onBack ?? (() => setActivePage('home'))} style={{ ...btn('S', 'secondary'), marginTop: 16 }}>
-            {t(sheetSection ? 'Закрыть' : 'На главную')}
+            <OpticalText as="iskra-button-label">{t(sheetSection ? 'Закрыть' : 'На главную')}</OpticalText>
           </button>
         </div>
       </div>
@@ -686,7 +687,7 @@ export default function TeacherAdminPage({ onBack, sheetSection }: {
               style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
             >
               <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-              {t('Обновить')}
+              <OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
             </motion.button>
           )}
         </div>

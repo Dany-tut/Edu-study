@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useT } from '../../lib/i18n'
 import { Alert } from '../Alert'
@@ -88,10 +89,10 @@ export function CodeSubmitButton({ code, busy, ready = true, onPaste }: {
     {pasteMode
       ? <button data-hover="layer" type="button" onClick={() => void paste()}
         style={{ ...primaryButton, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <ClipboardPaste size={18} />{t('Вставить код')}
+        <ClipboardPaste size={18} /><OpticalText as="iskra-button-label">{t('Вставить код')}</OpticalText>
       </button>
       : <button data-hover="layer" type="submit" disabled={!canSubmit}
-        style={{ ...primaryButton, opacity: canSubmit ? 1 : 0.6 }}>{t(busy ? 'Проверяем…' : 'Подтвердить')}</button>}
+        style={{ ...primaryButton, opacity: canSubmit ? 1 : 0.6 }}><OpticalText as="iskra-button-label">{t(busy ? 'Проверяем…' : 'Подтвердить')}</OpticalText></button>}
   </>
 }
 

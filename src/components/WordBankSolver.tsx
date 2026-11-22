@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useMemo } from 'react'
 import { useOwnAnswer } from '../lib/useOwnAnswer'
 import { sameAnswer } from '../lib/answerForms'
@@ -124,7 +125,7 @@ export default function WordBankSolver({
           {answerNow.length === 0
             ? <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>{t('Нажимай на слова, чтобы собрать предложение')}</span>
             : answerNow.map((word, i) => (
-                <button data-hover="layer" key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true, verdictAt(word, i))}>{word}</button>
+                <button data-hover="layer" key={`ans-${i}`} onClick={() => removeAt(i)} style={tileStyle(true, verdictAt(word, i))}><OpticalText as="iskra-button-label">{word}</OpticalText></button>
               ))}
         </div>
       </div>
@@ -142,7 +143,7 @@ export default function WordBankSolver({
               cursor: disabled || tile.spent ? 'default' : 'pointer',
             }}
           >
-            {tile.word}
+            <OpticalText as="iskra-button-label">{tile.word}</OpticalText>
           </button>
         ))}
       </div>

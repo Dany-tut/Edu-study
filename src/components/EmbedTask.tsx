@@ -12,6 +12,7 @@
 // пускаем). Оба вида заканчиваются одной и той же отметкой.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { Check, ExternalLink } from './icons/appIcons'
 import { EMBED_DONE } from '../data/taskTypes'
 import { parseEmbed } from '../lib/embed'
@@ -102,7 +103,7 @@ export default function EmbedTask({ url, value, disabled, onChange }: {
           }}
         >
           {done ? <Check size={14} /> : null}
-          {done ? t('Отмечено выполненным') : t('Я закончил')}
+          <OpticalText as="iskra-button-label">{done ? t('Отмечено выполненным') : t('Я закончил')}</OpticalText>
         </button>
         <span style={{ fontSize: 12, color: 'var(--color-text-3)', lineHeight: 1.4 }}>
           {t('Результат с чужой площадки к нам не приходит — засчитывается прохождение.')}

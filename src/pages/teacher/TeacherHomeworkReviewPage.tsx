@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useFeature } from '../../lib/teacherFeatures'
 import { ChevronLeft, ChevronRight, Check, RotateCcw, CheckCircle2, ClipboardList, Search, Image as ImageIcon, PenLine, X } from '../../components/icons/appIcons'
@@ -134,8 +135,8 @@ function ReviewAttachEditor({photos, board, onPhotos, onBoard}: {
     <input aria-label={t('Добавить фото к проверке')} ref={fileRef} type="file" accept="image/*" multiple hidden
       onChange={e => {void addPhotos(e.target.files);e.target.value=''}}/>
     <div className="hr-attachment-tools">
-      <button type="button" className="hr-button" disabled={loading} onClick={() => fileRef.current?.click()}><ImageIcon size={15}/>{loading?t('Добавляем…'):t('Фото')}</button>
-      <button type="button" className="hr-button" aria-pressed={showBoard} onClick={() => setShowBoard(value=>!value)}><PenLine size={15}/>{board?t('Доска ✓'):t('Доска')}</button>
+      <button type="button" className="hr-button" disabled={loading} onClick={() => fileRef.current?.click()}><ImageIcon size={15}/><OpticalText as="iskra-button-label">{loading?t('Добавляем…'):t('Фото')}</OpticalText></button>
+      <button type="button" className="hr-button" aria-pressed={showBoard} onClick={() => setShowBoard(value=>!value)}><PenLine size={15}/><OpticalText as="iskra-button-label">{board?t('Доска ✓'):t('Доска')}</OpticalText></button>
       <span>{t('Вложения получит ученик')}</span>
     </div>
     {error&&<Alert tone="danger" text={error} onClose={()=>setError(null)}/>}
@@ -261,7 +262,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
           background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700,
           boxShadow: '0 4px 14px rgba(99,84,207,0.38)',
         }}>
-          {t(returnLabel)}
+          <OpticalText as="iskra-button-label">{t(returnLabel)}</OpticalText>
         </button>
       </div>
     )
@@ -414,7 +415,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const currentStatus = currentSubmission?.verdict==='accepted'?t('Проверено'):currentSubmission?.verdict==='returned'?t('На доработке'):t('На проверке')
   const nav = <div className="hr-student-nav"><button data-hover="layer" type="button" className="hr-icon-button" aria-label={t('Предыдущая работа')} disabled={busy||idx===0} onClick={()=>go(idx-1)}><ChevronLeft size={17}/></button><span>{idx+1} / {submitters.length}</span><button data-hover="layer" type="button" className="hr-icon-button" aria-label={t('Следующая работа')} disabled={busy||idx===submitters.length-1} onClick={()=>go(idx+1)}><ChevronRight size={17}/></button></div>
   return <section className={'hr-workspace'+(embedded?' hr-embedded':'')+(showAiReview?' hr-ai-concept':'')} aria-label={t('Полная проверка домашнего задания')}>
-    <header className="hr-workspace-top"><button type="button" className="hr-button hr-back" disabled={busy} onClick={onBack}><ChevronLeft size={16}/>{t(returnLabel)}</button>
+    <header className="hr-workspace-top"><button type="button" className="hr-button hr-back" disabled={busy} onClick={onBack}><ChevronLeft size={16}/><OpticalText as="iskra-button-label">{t(returnLabel)}</OpticalText></button>
       <div className="hr-workspace-title"><span>{t('Полная проверка')}</span><h1>{tc(hw.title)}</h1></div>{showAiConcept&&<span className="aic-preview-badge">✦ Концепт ИИ</span>}<span className="hr-group-label">{group.name}</span>
     </header>
     <div className="hr-workspace-body">
@@ -456,9 +457,9 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
           {hasTasks?<HomeworkReviewScroll key={'grades:'+student.id} label={t('Баллы за задания')} className="hr-task-grades"><TaskScoreGrid tasks={hw.tasks!} taskScores={draft.taskScores} onScoreChange={setTaskScore} groupColor="var(--color-accent)" groupColorSoft="var(--color-purple-soft)" total={taskTotal!} maxTotal={maxTaskTotal!}/></HomeworkReviewScroll>:<div className="hr-grade-block"><label>{t('Итоговый результат')}<div><input aria-label={t('Итог ДЗ в процентах')} type="number" min={0} max={100} step="any" value={draft.score} placeholder="—" disabled={busy} onChange={e=>setDraft({score:e.target.value})}/><span>%</span></div></label><div className="hr-score-context">{autoPercent!==null&&<span>{t('Автопроверка')}<b>{autoPercent}%</b></span>}<span>{t('Порог зачёта')}<b>{passingScore}%</b></span></div><div className="hr-quick-scores">{[60,75,85,100].map(value=><button data-hover="layer" key={value} type="button" disabled={busy} aria-label={t('Поставить')+' '+value+'%'} aria-pressed={Number(draft.score)===value} onClick={()=>setDraft({score:String(value)})}>{value}%</button>)}</div></div>}
           <div className="hr-review-comment"><h3>{t('Комментарий ученику')}</h3><RichConditionEditor key={'comment:'+student.id} value={draft.comment} onChange={comment=>setDraft({comment})} placeholder={t('Что получилось и что исправить')} minHeight={0} fixedHeight="var(--hr-comment-height, 112px)" fontSize={13} toolbarPlacement="below" ariaLabel={t('Комментарий ученику в полной проверке')} inputSt={{width:'100%',boxSizing:'border-box',border:'1px solid var(--color-border-soft)',borderRadius:12,background:'var(--color-bg-card)',color:'var(--color-text)',outline:'none',fontFamily:'inherit'}}/>{showAiReview&&aiGrade?.comment&&aiGrade.status!=='working'&&aiGrade.status!=='pending'&&!reviewed&&<AiCommentDraft key={'ai-draft:'+student.id} comment={aiGrade.comment} busy={busy||draft.comment.includes(aiGrade.comment)} onUse={()=>setDraft({comment:draft.comment.trim()?draft.comment+'<p>'+aiCommentHtml(aiGrade.comment)+'</p>':aiCommentHtml(aiGrade.comment)})}/>}</div>
         </HomeworkReviewScroll>
-        <div className="hr-review-actions">{saveError&&<p className="hr-save-error" role="alert">{saveError}</p>}<button type="button" className="hr-button hr-primary" disabled={busy} onClick={()=>void handleVerdict('accepted')}><Check size={16}/>{busy?t('Сохраняем…'):t('Завершить проверку')}</button><button type="button" className="hr-button" disabled={busy} onClick={()=>void handleVerdict('returned')}><RotateCcw size={15}/>{t('На доработку')}</button></div>
+        <div className="hr-review-actions">{saveError&&<p className="hr-save-error" role="alert">{saveError}</p>}<button type="button" className="hr-button hr-primary" disabled={busy} onClick={()=>void handleVerdict('accepted')}><Check size={16}/><OpticalText as="iskra-button-label">{busy?t('Сохраняем…'):t('Завершить проверку')}</OpticalText></button><button type="button" className="hr-button" disabled={busy} onClick={()=>void handleVerdict('returned')}><RotateCcw size={15}/><OpticalText as="iskra-button-label">{t('На доработку')}</OpticalText></button></div>
       </aside>
     </div>
-    <footer className="hr-workspace-footer"><span>{allDone?t('Все работы проверены'):t('Проверено')+' '+reviewedCount+' '+t('из')+' '+submitters.length}{embedded?' · '+t('Учебный пример'):''}</span>{!embedded&&cleanAi.length>0&&<button type="button" className={'hr-button hr-batch-accept'+(batchArmed?' hr-batch-armed':'')} disabled={busy} onClick={()=>void acceptCleanAi()}><Check size={14}/>{batchArmed?t('Принять')+' '+cleanAi.length+'? '+t('Нажмите ещё раз'):t('Принять без замечаний ИИ')+' · '+cleanAi.length}</button>}{nav}</footer>
+    <footer className="hr-workspace-footer"><span>{allDone?t('Все работы проверены'):t('Проверено')+' '+reviewedCount+' '+t('из')+' '+submitters.length}{embedded?' · '+t('Учебный пример'):''}</span>{!embedded&&cleanAi.length>0&&<button type="button" className={'hr-button hr-batch-accept'+(batchArmed?' hr-batch-armed':'')} disabled={busy} onClick={()=>void acceptCleanAi()}><Check size={14}/><OpticalText as="iskra-button-label">{batchArmed?t('Принять')+' '+cleanAi.length+'? '+t('Нажмите ещё раз'):t('Принять без замечаний ИИ')+' · '+cleanAi.length}</OpticalText></button>}{nav}</footer>
   </section>
 }

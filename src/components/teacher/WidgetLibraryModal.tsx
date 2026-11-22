@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import MobileSheet from '../MobileSheet'
 import { PLATFORM } from '../../lib/platform'
 import { clampDeskWidget, resolveDeskCollisions, deskColumns, deskRowHeight, legacyDeskRowHeight } from '../../lib/deskWidgetSizing'
@@ -173,7 +174,7 @@ export default function WidgetLibraryModal({ onClose, onEditDesk, onAdd, existin
           </div>
           {onEditDesk && (
             <button data-hover="layer" type="button" className="ww-gallery-edit" onClick={onEditDesk}>
-              <Pencil size={16} />{t('Настроить на экране')}
+              <Pencil size={16} /><OpticalText as="iskra-button-label">{t('Настроить на экране')}</OpticalText>
             </button>
           )}
         </motion.div>

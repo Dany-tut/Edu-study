@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { ArrowUp as LoopUiArrowUp, ArrowDown as LoopUiArrowDown } from '../icons/appIcons'
 import { SubjectMark } from '../icons/SubjectMark'
@@ -717,7 +718,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                   color: shelfName.trim() ? MAT_COLOR : 'var(--color-text-3)',
                 }}
               >
-                <Layers size={14} /> {t('Сгруппировать')}
+                <Layers size={14} /> <OpticalText as="iskra-button-label">{t('Сгруппировать')}</OpticalText>
               </button>
               {shelvesForPick.length > 0 && (
                 <div style={{ width: 220 }}>
@@ -742,7 +743,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
               disabled={busy}
               style={btn('M', 'secondary')}
             >
-              <FolderInput size={14} /> {t('Вынуть с полки')}
+              <FolderInput size={14} /> <OpticalText as="iskra-button-label">{t('Вынуть с полки')}</OpticalText>
             </button>
           )}
 
@@ -754,7 +755,7 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
               background: 'transparent', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600,
             }}
           >
-            <X size={14} /> {t('Снять отметки')}
+            <X size={14} /> <OpticalText as="iskra-button-label">{t('Снять отметки')}</OpticalText>
           </button>
         </div>
       )}
@@ -800,13 +801,13 @@ export default function CardGroupsManager({ createNonce = 0, lang, subject, face
                 onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) openEditor(g, null) }}
                 style={ghostWide}
               >
-                <Pencil size={14} /> {t('Настройки полки')}
+                <Pencil size={14} /> <OpticalText as="iskra-button-label">{t('Настройки полки')}</OpticalText>
               </button>
               <button data-hover="layer"
                 onClick={() => { const g = shelves.find(x => x.id === shelfPick); if (g) void removeShelf(g) }}
                 style={{ ...ghostWide, color: 'var(--color-red-text)' }}
               >
-                <Trash2 size={14} /> {t('Удалить полку')}
+                <Trash2 size={14} /> <OpticalText as="iskra-button-label">{t('Удалить полку')}</OpticalText>
               </button>
             </div>
           )}
@@ -1039,7 +1040,7 @@ export function ShelfPage({ group, onChange, onOpenSet, studentOptions }: {
             color: 'var(--color-text-2)', fontSize: 13, fontWeight: 700,
           }}
         >
-          <Plus size={16} /> {t('Добавить набор')}
+          <Plus size={16} /> <OpticalText as="iskra-button-label">{t('Добавить набор')}</OpticalText>
         </button>
       </div>
     </EditorColumns>
@@ -1267,10 +1268,10 @@ function SetStart({ lang, onAdd, onAddGrouped, onManual, onBulk }: {
       <CardImportPanel lang={lang} variant="tiles" onAdd={onAdd} onAddGrouped={onAddGrouped} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <button data-hover="layer" type="button" onClick={onManual} style={startBtn}>
-          <Pencil size={14} /> {t('Вписать руками')}
+          <Pencil size={14} /> <OpticalText as="iskra-button-label">{t('Вписать руками')}</OpticalText>
         </button>
         <button data-hover="layer" type="button" onClick={onBulk} style={startBtn}>
-          <Plus size={14} /> {t('Вставить списком')}
+          <Plus size={14} /> <OpticalText as="iskra-button-label">{t('Вставить списком')}</OpticalText>
         </button>
       </div>
       {/* Про вставку сразу в набор надо сказать словами: невидимая возможность
@@ -1723,7 +1724,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
       <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button data-hover="layer" type="button" onClick={() => setBulkOpen(v => !v)} style={{ ...ghostBtn, padding: 0 }}>
           <ChevronDown size={14} style={{ transform: bulkOpen ? 'rotate(180deg)' : 'none' }} />
-          {t('Вставить списком')}
+          <OpticalText as="iskra-button-label">{t('Вставить списком')}</OpticalText>
         </button>
         {bulkOpen && (
           <>
@@ -1745,7 +1746,7 @@ function CardsEditor({ cards, onCards, lang, aside, openBulk = false, onImportGr
                 fontSize: 13, fontWeight: 700,
               }}
             >
-              {t('Разобрать и добавить')}
+              <OpticalText as="iskra-button-label">{t('Разобрать и добавить')}</OpticalText>
             </button>
             <div style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.3 }}>
               {parseBulk(bulk).length > 0

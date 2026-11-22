@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useId, useState } from 'react'
 import { ChevronDown, Check, Clock, FileText, MessagesSquare, Loader2, MessageCircle, RotateCcw, Send } from './icons/appIcons'
 import { useLang, useT } from '../lib/i18n'
@@ -41,7 +42,7 @@ export default function HomeworkAttemptHistory({ authorName, attempts, attemptCo
       <p className="hw-history-note">{t('Для зачёта учитывается лучший проверенный результат.')}</p>
       {attempts.length < attemptCount && <button data-hover="layer" type="button" className="hw-history-older" disabled={loadingOlder} onClick={onLoadOlder}>
         {loadingOlder ? <Loader2 className="hw-history-spinner" size={15} aria-hidden="true" /> : <Clock size={15} aria-hidden="true" />}
-        {t('Показать более ранние попытки')}
+        <OpticalText as="iskra-button-label">{t('Показать более ранние попытки')}</OpticalText>
       </button>}
       <ol className="hw-history-list">
         {ordered.map(attempt => {
@@ -74,7 +75,7 @@ export default function HomeworkAttemptHistory({ authorName, attempts, attemptCo
                 </button>
                 {expanded[attempt.id] && <div id={expandedId} className="hw-history-answers" aria-busy={!!reading[attempt.id]}>
                   {reading[attempt.id] && <p className="hw-history-loading" role="status"><Loader2 className="hw-history-spinner" size={15} aria-hidden="true" />{t('Загружаем ответы…')}</p>}
-                  {readErrors[attempt.id] && <div className="hw-history-read-error" role="alert"><span>{readErrors[attempt.id]}</span><button data-hover="layer" type="button" onClick={() => onRead(attempt.id)}>{t('Попробовать ещё раз')}</button></div>}
+                  {readErrors[attempt.id] && <div className="hw-history-read-error" role="alert"><span>{readErrors[attempt.id]}</span><button data-hover="layer" type="button" onClick={() => onRead(attempt.id)}><OpticalText as="iskra-button-label">{t('Попробовать ещё раз')}</OpticalText></button></div>}
                   {payload && <>
                     <p className="hw-history-assessment">{assessment ? <>{assessment.emoji} {t(assessment.label)}</> : t('Самооценка не указана')}</p>
                     {payload.rows.map((row, i) => <div key={`${row.n}-${i}`} className="hw-history-answer">

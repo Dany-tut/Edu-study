@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, X, RotateCcw, Blocks } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -386,7 +387,7 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
             <WordRow word={q.item.word} root={root} lang={lang} accent={accent}
               tone={right ? 'good' : 'bad'} reading={reading} />
             <button data-hover="layer" onClick={next} style={primaryBtn(accent)}>
-              {idx + 1 >= run.length ? t('Итог') : t('Дальше')}
+              <OpticalText as="iskra-button-label">{idx + 1 >= run.length ? t('Итог') : t('Дальше')}</OpticalText>
             </button>
           </div>
         )}
@@ -425,9 +426,9 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <RotateCcw size={14} />
-            {t('Ещё прогон')}
+            <OpticalText as="iskra-button-label">{t('Ещё прогон')}</OpticalText>
           </button>
-          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
+          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}><OpticalText as="iskra-button-label">{t('К разбору')}</OpticalText></button>
         </div>
       </div>
     )
@@ -451,11 +452,11 @@ export function RootPage({ root, lang, accent, soft, owner, subjectId, reading, 
         {canRun && (
           <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <Blocks size={16} />
-            {t('Собрать слова')}
+            <OpticalText as="iskra-button-label">{t('Собрать слова')}</OpticalText>
           </button>
         )}
         <button data-hover="layer" onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
-          {saving ? t('Добавляю…') : t('Взять слова в колоду')}
+          <OpticalText as="iskra-button-label">{saving ? t('Добавляю…') : t('Взять слова в колоду')}</OpticalText>
         </button>
         {added !== null && (
           <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>

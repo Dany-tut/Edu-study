@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import Segmented from '../Segmented'
 import HScrollFade from '../HScrollFade'
 import DigestMarkdown from './DigestMarkdown'
@@ -41,7 +42,7 @@ export default function FeedbackDigestView({ digests, idx, setIdx, enabled, busy
           <button type="button" data-hover="layer" onClick={onRun} disabled={busy}
             style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: mobile ? 44 : 36, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text-2)', fontSize: 13, fontWeight: 600, cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit', opacity: busy ? 0.6 : 1, flexShrink: 0 }}>
             {busy ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
-            {busy ? t('Собираем…') : t('Собрать сводку')}
+            <OpticalText as="iskra-button-label">{busy ? t('Собираем…') : t('Собрать сводку')}</OpticalText>
           </button>
         )}
       </div>

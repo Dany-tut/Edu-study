@@ -15,6 +15,7 @@
 // ровно то, что сверяет gradeTask() этих типов.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { charUnits, scrambleUnits } from '../data/taskTypes'
@@ -156,7 +157,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
                 disabled={disabled}
                 style={{ ...pickedTile, cursor: disabled ? 'default' : 'pointer' }}
               >
-                {ch}
+                <OpticalText as="iskra-button-label">{ch}</OpticalText>
               </motion.button>
             ))}
         </div>
@@ -180,7 +181,7 @@ export default function CharTilesSolver({ mode, answer, distractors = [], value,
               cursor: disabled || tile.spent || full ? 'default' : 'pointer',
             }}
           >
-            {tile.ch}
+            <OpticalText as="iskra-button-label">{tile.ch}</OpticalText>
           </motion.button>
         ))}
       </div>

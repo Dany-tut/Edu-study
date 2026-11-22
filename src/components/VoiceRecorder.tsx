@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Trash2, Loader2, AlertCircle } from './icons/appIcons'
 import { uploadMedia, MediaTooLargeError } from '../lib/mediaStorage'
@@ -161,7 +162,7 @@ export default function VoiceRecorder({
         <span style={{ fontSize: 13, color: 'var(--color-green-text)', fontWeight: 600 }}>{t('Ответ записан')}</span>
         <button data-hover="layer" onClick={() => onChange(null)} title={t('Перезаписать')}
           style={{ marginLeft: 'auto', border: 'none', background: 'var(--color-bg-3)', borderRadius: 8, height: 30, padding: '0 12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'inherit' }}>
-          <Trash2 size={14} /> {t('Заново')}
+          <Trash2 size={14} /> <OpticalText as="iskra-button-label">{t('Заново')}</OpticalText>
         </button>
       </div>
     )
@@ -171,15 +172,15 @@ export default function VoiceRecorder({
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
       {phase === 'recording' ? (
         <button data-hover="layer" onClick={stop} style={recBtn('var(--color-red-text)')}>
-          <Square size={16} /> {t('Стоп')}
+          <Square size={16} /> <OpticalText as="iskra-button-label">{t('Стоп')}</OpticalText>
         </button>
       ) : phase === 'uploading' ? (
         <button data-hover="layer" disabled style={recBtn('var(--color-muted)')}>
-          <Loader2 size={16} className="spin" /> {t('Загрузка…')}
+          <Loader2 size={16} className="spin" /> <OpticalText as="iskra-button-label">{t('Загрузка…')}</OpticalText>
         </button>
       ) : (
         <button data-hover="layer" onClick={start} style={recBtn(accent ?? 'var(--color-accent)')}>
-          <Mic size={16} /> {t('Записать')}
+          <Mic size={16} /> <OpticalText as="iskra-button-label">{t('Записать')}</OpticalText>
         </button>
       )}
 

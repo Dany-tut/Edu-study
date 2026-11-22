@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useMemo, useState } from 'react'
 import ScrollFade from './ScrollFade'
 import HScrollFade from './HScrollFade'
@@ -36,7 +37,7 @@ export default function LessonTranscriptPanel({ transcript, time, seek, hidden }
     <ScrollFade maxHeight={350}>
       {shown.length ? shown.map((s, i) => <p key={s.start + ':' + i} style={{ padding: 6, borderRadius: 8,
         background: time >= s.start && time < s.end ? 'var(--color-purple-soft)' : undefined }}>
-        {seek ? <button data-hover="layer" style={btn('S', 'secondary')} onClick={() => seek(s.start)}>{transcriptTime(s.start)}</button> :
+        {seek ? <button data-hover="layer" style={btn('S', 'secondary')} onClick={() => seek(s.start)}><OpticalText as="iskra-button-label">{transcriptTime(s.start)}</OpticalText></button> :
           <strong>{transcriptTime(s.start)}</strong>} {name(s.speaker) && <strong style={{ color: 'var(--color-text-3)' }}>{name(s.speaker)}:</strong>} {s.text}
       </p>) : <p style={{ color: 'var(--color-text-3)' }}>{t('Ничего не нашлось')}</p>}
     </ScrollFade>

@@ -25,6 +25,7 @@
 // наберёт кану, а системная раскладка остаётся доступной (см. ScriptKeyboard).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Delete } from './icons/appIcons'
@@ -154,7 +155,7 @@ export default function KanaKeyboard({ value, onChange, disabled }: {
           cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
         }}
       >
-        {label}
+        <OpticalText as="iskra-button-label">{label}</OpticalText>
       </motion.button>
     )
   }

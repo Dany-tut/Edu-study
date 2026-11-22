@@ -4,6 +4,7 @@
 // В каждой карточке снизу выглядывает своё устройство с настоящим снимком
 // Искры (обрезается карточкой); при наведении на карточку приподнимается.
 
+import OpticalText from '../../OpticalText'
 import type { ReactNode } from 'react'
 import { useT } from '../../../lib/i18n'
 import { useTheme } from '../../../store/themeStore'
@@ -170,7 +171,7 @@ export default function PlatformsSection() {
                       : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
                   }`}
                 >
-                  {isDark ? t('Тёмная') : t('Светлая')}
+                  <OpticalText as="iskra-button-label">{isDark ? t('Тёмная') : t('Светлая')}</OpticalText>
                 </button>
               )
             })}

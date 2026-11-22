@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import { LoopActionLabel } from '../components/icons/LoopIcon'
 import { ArrowLeft as LoopBackArrow } from '../components/icons/appIcons'
 import { useEffect, useState } from 'react'
@@ -213,7 +214,7 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
             </button>
           </div>}
           <AuthFeedbackSlot idleText={mode === 'reset' ? 'Проверьте адрес почты перед отправкой.' : mode === 'newpassword' ? 'Не меньше 6 символов.' : switchingCabinet ? 'Войдите аккаунтом, к которому привязан профиль ученика.' : 'Данные для входа выдаёт учитель.'} />
-          {mode === 'login' && <button data-hover="layer" type="button" disabled={feedback.busy} onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}>{t('Забыли пароль?')}</button>}
+          {mode === 'login' && <button data-hover="layer" type="button" disabled={feedback.busy} onClick={() => switchMode('reset')} style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13, fontWeight: 650 }}><OpticalText as="iskra-button-label">{t('Забыли пароль?')}</OpticalText></button>}
           <button data-hover="layer"
             type="submit"
             disabled={feedback.busy || loading || (mode !== 'newpassword' && !email.trim()) || (mode === 'login' && !password) || (mode === 'newpassword' && !password)}
@@ -225,7 +226,7 @@ function StudentLoginForm({ recovery = false, linkExpired = false, onRecoveryCom
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
-            {loading ? t('Загрузка...') : mode === 'reset' ? (mailSent ? t('Вернуться ко входу') : t('Отправить письмо')) : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}
+            <OpticalText as="iskra-button-label">{loading ? t('Загрузка...') : mode === 'reset' ? (mailSent ? t('Вернуться ко входу') : t('Отправить письмо')) : mode === 'newpassword' ? t('Сохранить пароль') : t('Войти')}</OpticalText>
           </button>
           {mode === 'reset' && <button data-hover="layer" type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, border: 0, background: 'none', color: 'var(--color-purple)', fontSize: 13 }}><LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} /></button>}
         </form>

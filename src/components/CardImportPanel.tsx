@@ -29,6 +29,7 @@
 // вовсе, ручной ввод и «Вставить списком» работают как работали.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { Camera, Link2, Loader2, Sparkles, X } from './icons/appIcons'
 import { useT } from '../lib/i18n'
@@ -218,7 +219,7 @@ export default function CardImportPanel({
                 disabled={loading}
                 style={pill(accent, mode === 'link')}
               >
-                <Link2 size={14} /> {t('Ссылка')}
+                <Link2 size={14} /> <OpticalText as="iskra-button-label">{t('Ссылка')}</OpticalText>
               </button>
             </div>
           )}
@@ -344,7 +345,7 @@ export default function CardImportPanel({
                   {t('По стопкам')} · {groups.length}
                 </button>
                 <button data-hover="layer" onClick={() => setSplit(false)} style={pill(accent, !split)}>
-                  {t('Одной кучей')}
+                  <OpticalText as="iskra-button-label">{t('Одной кучей')}</OpticalText>
                 </button>
               </div>
               {split && (

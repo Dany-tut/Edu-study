@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { retryImport } from '../lib/chunkError'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -128,7 +129,7 @@ export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose
             <p style={{ fontSize: 14.5, color: 'var(--color-text-2)', margin: '0 0 24px', lineHeight: 1.5 }}>
               {t('Спасибо! Мы свяжемся с вами по указанному контакту.')}
             </p>
-            <button data-hover="layer" onClick={onClose} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '13px' }}>{t('Готово')}</button>
+            <button data-hover="layer" onClick={onClose} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '13px' }}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>
           </div>
         ) : (
           <>
@@ -162,7 +163,7 @@ export function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose
               <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder={t('Сообщение — коротко о задаче (необязательно)')} rows={3} style={{ ...field, resize: 'vertical', minHeight: 84 }} />
               {error && <Alert tone="danger" text={error} />}
               <button data-hover="layer" onClick={send} disabled={sending} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '14px', fontSize: 16, opacity: sending ? 0.7 : 1, cursor: sending ? 'default' : 'pointer' }}>
-                <Send size={17} /> {sending ? t('Отправляем…') : t('Отправить заявку')}
+                <Send size={17} /> <OpticalText as="iskra-button-label">{sending ? t('Отправляем…') : t('Отправить заявку')}</OpticalText>
               </button>
             </div>
           </>

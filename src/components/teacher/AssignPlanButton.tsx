@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -241,7 +242,7 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
                 cursor: 'pointer', background: 'transparent', color: 'var(--color-text-3)',
                 fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
               }}>
-                {t('Снять тариф (бета)')}
+                <OpticalText as="iskra-button-label">{t('Снять тариф (бета)')}</OpticalText>
               </button>
               </>
               )}

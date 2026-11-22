@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { LoopSelect } from '../icons/LoopSelect'
 import { PLATFORM } from '../../lib/platform'
 import './adminActivityIphone.css'
@@ -124,13 +125,13 @@ export default function AdminUserActivity() {
         {view === 'people' && (
           <button data-hover="layer" onClick={() => setCleanupOpen(true)} style={{ ...uiBtn('S', 'secondary'), marginLeft: 'auto' }}>
             <Eraser size={14} strokeWidth={2} />
-            {t('Удалить неактивных')}
+            <OpticalText as="iskra-button-label">{t('Удалить неактивных')}</OpticalText>
           </button>
         )}
         {view === 'teachers' && (
           <button data-hover="layer" onClick={() => setInviteOpen(true)} style={{ ...uiBtn('S', 'primary'), marginLeft: 'auto' }}>
             <UserPlus size={14} strokeWidth={2.5} />
-            {t('Пригласить учителя')}
+            <OpticalText as="iskra-button-label">{t('Пригласить учителя')}</OpticalText>
           </button>
         )}
         {view !== 'students' && (onPhone ? <LoopSelect aria-label={t('Период')} value={String(days)} style={mobileSelectStyle}
@@ -438,7 +439,7 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
                     style={uiBtn('S', 'secondary', expanded ? { background: 'var(--color-purple-soft)', color: 'var(--color-purple)' } : undefined)}
                   >
                     <SlidersHorizontal size={14} strokeWidth={2} />
-                    {t('Доступы')}
+                    <OpticalText as="iskra-button-label">{t('Доступы')}</OpticalText>
                   </button>
                 )}
                 {getViewAs()?.id === r.teacher_id ? (
@@ -450,7 +451,7 @@ function TeachersTable({ rows, access, onAccessSaved, onDeleted }: {
                     style={uiBtn('S', 'secondary')}
                   >
                     <Eye size={12} strokeWidth={2} />
-                    {t('Кабинет')}
+                    <OpticalText as="iskra-button-label">{t('Кабинет')}</OpticalText>
                   </button>
                 )}
                 <button data-hover="layer"
@@ -556,9 +557,9 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
         />
         {err && <Alert tone="danger" text={err} style={{ marginBottom: 12 }} />}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <button data-hover="layer" onClick={onClose} style={uiBtn('M', 'secondary')}>{t('Отмена')}</button>
-          <button data-hover="layer" disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}>{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</button>
-          <button data-hover="layer" disabled={!armed || !!busy} onClick={() => run(false)} style={btn(true)}>{busy === 'delete' ? t('Удаляем…') : t('Удалить аккаунт')}</button>
+          <button data-hover="layer" onClick={onClose} style={uiBtn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
+          <button data-hover="layer" disabled={!armed || !!busy} onClick={() => run(true)} style={btn(false)}><OpticalText as="iskra-button-label">{busy === 'wipe' ? t('Стираем…') : t('Стереть данные')}</OpticalText></button>
+          <button data-hover="layer" disabled={!armed || !!busy} onClick={() => run(false)} style={btn(true)}><OpticalText as="iskra-button-label">{busy === 'delete' ? t('Удаляем…') : t('Удалить аккаунт')}</OpticalText></button>
         </div>
       </div>
     </div>,

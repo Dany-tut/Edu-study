@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { LoopActionLabel } from '../../components/icons/LoopIcon'
 import { ArrowLeft as LoopBackArrow } from '../../components/icons/appIcons'
 import { clearStudentSession } from '../../lib/studentSession'
@@ -225,7 +226,7 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
               onClick={() => switchMode('reset')}
               style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 8px', border: 0, background: 'none', color: 'var(--color-purple)', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginTop: -4 }}
             >
-              {t('Забыли пароль?')}
+              <OpticalText as="iskra-button-label">{t('Забыли пароль?')}</OpticalText>
             </button>
           )}
 
@@ -244,12 +245,12 @@ function TeacherLoginForm({ onLogin, recovery = false, linkExpired = false, acce
               marginTop: 0,
             }}
           >
-            {loading ? t('Загрузка...') : buttonLabels[mode]}
+            <OpticalText as="iskra-button-label">{loading ? t('Загрузка...') : buttonLabels[mode]}</OpticalText>
           </button>
         </form>}
 
         {mode === 'login' && <SocialLoginButtons role="teacher" />}
-        {mode === 'login' && <button data-hover="layer" type="button" disabled={feedback.busy} onClick={() => switchMode('code')} style={{ minHeight: 44, width: '100%', marginTop: 4, padding: 0, border: 0, background: 'transparent', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650 }}>{t('Войти по коду из письма')}</button>}
+        {mode === 'login' && <button data-hover="layer" type="button" disabled={feedback.busy} onClick={() => switchMode('code')} style={{ minHeight: 44, width: '100%', marginTop: 4, padding: 0, border: 0, background: 'transparent', color: 'var(--color-purple-text)', fontSize: 13, fontWeight: 650 }}><OpticalText as="iskra-button-label">{t('Войти по коду из письма')}</OpticalText></button>}
 
         {mode === 'reset' && <button data-hover="layer" type="button" onClick={() => switchMode('login')} style={{ minHeight: 44, width: '100%', border: 0, background: 'none', color: 'var(--color-purple)', fontWeight: 600 }}>
           <LoopActionLabel icon={LoopBackArrow} position="start" label={t('← Назад ко входу')} />

@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import { LoopTextIcon } from '../components/icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from '../components/icons/appIcons'
 import { useState, useEffect, useRef } from 'react'
@@ -373,7 +374,7 @@ function SeriesSection({ cfg, step, labels, onComplete }: SectionProps<SeriesCon
           return (
             <motion.button key={i} onClick={() => pick(i)} whileHover={{ scale: reveal ? 1 : 1.03 }} whileTap={{ scale: reveal ? 1 : 0.97 }}
               style={{ padding: '16px 0', borderRadius: 14, border: `2px solid ${border}`, background: bg, cursor: reveal ? 'default' : 'pointer', fontFamily: 'inherit', fontSize: 20, fontWeight: 800, color: 'var(--color-text)' }}>
-              {opt}
+              <OpticalText as="iskra-button-label">{opt}</OpticalText>
             </motion.button>
           )
         })}
@@ -438,7 +439,7 @@ function AnalogiesSection({ cfg, step, labels, onComplete }: SectionProps<Analog
           return (
             <motion.button key={i} onClick={() => pick(i)} whileHover={{ scale: reveal ? 1 : 1.03 }} whileTap={{ scale: reveal ? 1 : 0.97 }}
               style={{ padding: '14px 12px', borderRadius: 14, border: `2px solid ${border}`, background: bg, cursor: reveal ? 'default' : 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.3 }}>
-              {opt}
+              <OpticalText as="iskra-button-label">{opt}</OpticalText>
             </motion.button>
           )
         })}

@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -646,7 +647,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
               transition: 'background 0.15s ease, color 0.15s ease',
             }}
           >
-            {slow ? '0.75×' : '1.0×'}
+            <OpticalText as="iskra-button-label">{slow ? '0.75×' : '1.0×'}</OpticalText>
           </button>
         </div>
         )}
@@ -917,7 +918,7 @@ export default function ScoreReader({ body, translation, lang, glossary, accent,
                     color: slow === v ? accent : 'var(--color-text-2)',
                   }}
                 >
-                  {v ? `${t('Медленно')} · 0.75×` : `${t('Обычно')} · 1.0×`}
+                  <OpticalText as="iskra-button-label">{v ? `${t('Медленно')} · 0.75×` : `${t('Обычно')} · 1.0×`}</OpticalText>
                 </button>
               ))}
             </div>
@@ -1079,7 +1080,7 @@ function StepCard({ unit, index, count, onGo, cell, ruStyle, lang, glossary, acc
             border: 'none', background: soft, color: accent,
           }}
         >
-          <Eye size={14} /> {t('Показать перевод')}
+          <Eye size={14} /> <OpticalText as="iskra-button-label">{t('Показать перевод')}</OpticalText>
         </button>
       )}
 

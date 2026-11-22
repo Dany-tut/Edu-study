@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { confirmWaveReady, markWaveSeen, preloadConfirmWave, WAVE_PALETTES, waveSeen } from '../lib/confirmWave'
 import { useConfirmWave } from '../lib/confirmWave/useConfirmWave'
@@ -64,7 +65,7 @@ export default function HomeworkAttemptPanel({ result, status, studentId, lesson
     {result.pending && <p>{t('Итоговый результат появится после проверки всей работы.')}</p>}
     <LessonSelfAssessment key={`${lessonRef}:${result.attemptId}`} readOnly={readOnly} lessonId={lessonRef} studentId={studentId} status={status} result={result} />
     {status !== 'returned' && !result.pending && !result.draft && score !== null && score < result.passingScore && <p>{t('Ниже проходного балла')} · {t('порог')} {result.passingScore}%</p>}
-    {onRetake && canRetakeHomework(result,status) && <button data-hover="layer" type="button" onClick={retry} disabled={busy} style={{padding:'12px 18px',borderRadius:14,border:0,background:'var(--grad-purple)',color:'#fff',fontWeight:700,cursor:'pointer'}}>{busy ? t('Открываем попытку…') : t('Пройти заново')}</button>}
+    {onRetake && canRetakeHomework(result,status) && <button data-hover="layer" type="button" onClick={retry} disabled={busy} style={{padding:'12px 18px',borderRadius:14,border:0,background:'var(--grad-purple)',color:'#fff',fontWeight:700,cursor:'pointer'}}><OpticalText as="iskra-button-label">{busy ? t('Открываем попытку…') : t('Пройти заново')}</OpticalText></button>}
     {error && <p role="alert" style={{color:'var(--color-red-text)'}}>{error}</p>}
     </div>
   </section>

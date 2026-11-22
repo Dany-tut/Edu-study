@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -107,7 +108,7 @@ export function PendingInvites({ invites, onRevoked }: { invites: PendingInvite[
               </div>
             </div>
             <button data-hover="layer" onClick={() => { void copyToClipboard(inviteLink(inv.token)) }} title={t('Скопировать ссылку')} style={{ ...btn('S', 'secondary'), flexShrink: 0 }}>
-              <Copy size={14} strokeWidth={2} />{t('Ссылка')}
+              <Copy size={14} strokeWidth={2} /><OpticalText as="iskra-button-label">{t('Ссылка')}</OpticalText>
             </button>
             <button data-hover="layer"
               onClick={() => { void revoke(inv.token) }}
@@ -210,9 +211,9 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
             <div style={{ display: 'flex', gap: 8 }}>
               <button data-hover="layer" onClick={copyLink} style={{ height: 40, flex: 1, padding: '0 16px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 {copied ? <Check size={16} strokeWidth={2.5} /> : <Copy size={16} />}
-                {copied ? t('Скопировано!') : t('Скопировать ссылку')}
+                <OpticalText as="iskra-button-label">{copied ? t('Скопировано!') : t('Скопировать ссылку')}</OpticalText>
               </button>
-              <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}>{t('Готово')}</button>
+              <button data-hover="layer" onClick={onClose} style={btn('M', 'secondary')}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>
             </div>
           </div>
         ) : (
@@ -256,7 +257,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
                 fontSize: 15, fontWeight: 700, cursor: creating ? 'wait' : 'pointer',
               }}
             >
-              {creating ? t('Создаём…') : t('Создать пригласительную ссылку')}
+              <OpticalText as="iskra-button-label">{creating ? t('Создаём…') : t('Создать пригласительную ссылку')}</OpticalText>
             </button>
           </>
         )}
@@ -404,7 +405,7 @@ export function AccessEditor({ teacher, onSaved }: { teacher: TeacherAccess; onS
             style={btn('S', 'secondary')}
           >
             <KeyRound size={14} strokeWidth={2} />
-            {pwLoading ? t('Сбрасываем…') : t('Сбросить пароль')}
+            <OpticalText as="iskra-button-label">{pwLoading ? t('Сбрасываем…') : t('Сбросить пароль')}</OpticalText>
           </button>
           {pwValue && (
             <div data-hover="layer"

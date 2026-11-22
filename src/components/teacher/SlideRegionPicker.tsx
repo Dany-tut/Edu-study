@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { BoxSelect, RotateCcw } from '../icons/appIcons'
 import { parseVideoSource } from '../../lib/videoSource'
@@ -134,7 +135,7 @@ export function SlideRegionPicker({ source, file, region, disabled, onChange, on
     </div>}
     <div className="slide-region-foot">
       <small className="transcription-hint"><BoxSelect size={14} aria-hidden /> {custom ? 'Своя область: читаем только внутри рамки.' : 'Обведите на кадре только название темы, без постоянной подписи курса.'}</small>
-      {custom && <button type="button" data-hover="layer" style={btn('S', 'secondary')} disabled={disabled} onClick={onReset}><RotateCcw size={14} /> Вернуть из списка</button>}
+      {custom && <button type="button" data-hover="layer" style={btn('S', 'secondary')} disabled={disabled} onClick={onReset}><RotateCcw size={14} /> <OpticalText as="iskra-button-label">Вернуть из списка</OpticalText></button>}
     </div>
   </div>
 }

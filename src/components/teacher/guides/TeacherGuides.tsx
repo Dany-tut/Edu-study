@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { User } from '@supabase/supabase-js'
@@ -134,16 +135,16 @@ function GuideSheet({ id, onClose }: {id: GuideId; onClose: () => void}) {
   const move = (n: number) => {setChoice(0); setIndex(n)}
   return <div className="teacher-guide-sheet">
     <div className="teacher-guide-row"><span>{sections[id][0]} · {index + 1} из {steps.length}</span>
-      {!history && <button data-hover="layer" onClick={() => setPlaying(p => !p)}>{playing ? 'Остановить' : 'Смотреть GIF'}</button>}
+      {!history && <button data-hover="layer" onClick={() => setPlaying(p => !p)}><OpticalText as="iskra-button-label">{playing ? 'Остановить' : 'Смотреть GIF'}</OpticalText></button>}
       <Close onClose={onClose}/></div>
     <h2 id="guide-heading">{title}</h2>
     <div className="teacher-guide-media"><img alt={history ? attempts[choice].status + '. ' + description : title}
       src={media(file + (history ? '.png' : playing ? '.gif' : '.webp'))}/></div>
     <ScrollFade maxHeight="100%"><div className="teacher-guide-description">
       {options.length > 0 && <div role="group" aria-label={history ? 'Попытка Миши' : 'Урок'}>{options.map((option, n) =>
-        <button data-hover="layer" key={option.file} aria-pressed={n === choice} onClick={() => setChoice(n)}>{option.label}</button>)}</div>}
+        <button data-hover="layer" key={option.file} aria-pressed={n === choice} onClick={() => setChoice(n)}><OpticalText as="iskra-button-label">{option.label}</OpticalText></button>)}</div>}
       <p>{description}</p></div></ScrollFade>
-    <footer><button data-hover="layer" onClick={() => index ? move(index-1) : onClose()}>{index ? 'Назад' : 'Закрыть'}</button>
-      <button data-hover="layer" onClick={() => index + 1 === steps.length ? onClose() : move(index+1)}>{index + 1 === steps.length ? 'Готово' : next}</button></footer>
+    <footer><button data-hover="layer" onClick={() => index ? move(index-1) : onClose()}><OpticalText as="iskra-button-label">{index ? 'Назад' : 'Закрыть'}</OpticalText></button>
+      <button data-hover="layer" onClick={() => index + 1 === steps.length ? onClose() : move(index+1)}><OpticalText as="iskra-button-label">{index + 1 === steps.length ? 'Готово' : next}</OpticalText></button></footer>
   </div>
 }

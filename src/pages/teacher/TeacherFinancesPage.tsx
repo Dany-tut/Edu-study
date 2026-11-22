@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import HScrollFade from '../../components/HScrollFade'
 import './teacherFinances.css'
@@ -85,7 +86,7 @@ export function AddPaymentModal({ student, students, onClose, onSaved }: {
   }
   const field = { ...FIELD, fontSize: 16, minHeight: 48 }
   return <Modal title={t('Отметить оплату')} width={420} onClose={close}
-    footer={<><button type="button" className="cj-button" style={{ minHeight: 44 }} onClick={close}>{t('Отмена')}</button><button type="button" className="cj-button cj-primary" style={{ minHeight: 44 }} disabled={action.busy || !studentId || !amount} onClick={save}>{action.busy ? t('Сохраняем...') : t('Сохранить платёж')}</button></>}>
+    footer={<><button type="button" className="cj-button" style={{ minHeight: 44 }} onClick={close}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button><button type="button" className="cj-button cj-primary" style={{ minHeight: 44 }} disabled={action.busy || !studentId || !amount} onClick={save}><OpticalText as="iskra-button-label">{action.busy ? t('Сохраняем...') : t('Сохранить платёж')}</OpticalText></button></>}>
     <div style={{ display: 'grid', gap: 14 }}>
       <label style={{ display: 'grid', gap: 6 }}>{t('Ученик')}
         <TeacherSelect disabled={action.busy} clearable={!action.busy} value={studentId} options={students.map(s => ({ value: s.id, label: tn(s.name) }))} onChange={setStudentId} placeholder={t('Выберите ученика')} triggerStyle={field} />
@@ -228,7 +229,7 @@ function StudentRow({
             cursor: 'pointer', flexShrink: 0,
           } as React.CSSProperties}
         >
-          {t('Оплачено')}
+          <OpticalText as="iskra-button-label">{t('Оплачено')}</OpticalText>
         </motion.button>
 
         {/* Expand toggle */}
@@ -362,7 +363,7 @@ export default function TeacherFinancesPage() {
             />
           </HScrollFade>
           <motion.button data-hover="layer" type="button" className="finance-add" whileTap={{ scale: 0.96 }} onClick={() => setPaying(null)}>
-            <Plus size={16} /> {t('Платёж')}
+            <Plus size={16} /> <OpticalText as="iskra-button-label">{t('Платёж')}</OpticalText>
           </motion.button>
         </header>
 

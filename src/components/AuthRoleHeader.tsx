@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { Capacitor } from '@capacitor/core'
 import { useT } from '../lib/i18n'
 import { ArrowLeft } from './icons/appIcons'
@@ -16,7 +17,7 @@ export default function AuthRoleHeader({ onLeave, logoTone = 'default' }: { onLe
         window.location.hash = Capacitor.isNativePlatform() ? '#/entry' : '#/landing?role=choose'
       }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44, padding: '0 4px', transform: 'translateY(-7px)', border: 0, background: 'transparent', color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 650, cursor: 'pointer' }}>
         <ArrowLeft size={16} style={{ flexShrink: 0 }} />
-        {t('Выбрать роль')}
+        <OpticalText as="iskra-button-label">{t('Выбрать роль')}</OpticalText>
       </button>
     </div>
   )

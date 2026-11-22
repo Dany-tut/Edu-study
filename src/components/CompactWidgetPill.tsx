@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeLines } from '../lib/textFades'
 import { SubjectMark } from './icons/SubjectMark'
 import { LoopTextIcon, LoopActionLabel } from './icons/LoopIcon'
@@ -354,7 +355,7 @@ function PomoControls() {
                 transition: 'color 0.18s, background 0.18s, box-shadow 0.18s',
               }}
             >
-              {label}
+              <OpticalText as="iskra-button-label">{label}</OpticalText>
             </button>
           )
         })}
@@ -378,7 +379,7 @@ function PomoControls() {
                   transition: 'all 0.18s ease',
                 }}
               >
-                {p}
+                <OpticalText as="iskra-button-label">{p}</OpticalText>
               </button>
             )
           })}
@@ -399,7 +400,7 @@ function PomoControls() {
           }}
         >
           {pomoRunning ? <Pause size={16} /> : <Play size={16} />}
-          {pomoRunning ? t('Пауза') : t('Старт')}
+          <OpticalText as="iskra-button-label">{pomoRunning ? t('Пауза') : t('Старт')}</OpticalText>
         </button>
         <button data-hover="layer"
           onClick={e => { stop(e); pomoReset() }}
@@ -1131,7 +1132,7 @@ function StudentNotifPreview({ latest, extra, onAction, onClose }: {
               padding: '6px 10px', borderRadius: 9, border: 'none', cursor: 'pointer',
               background: `${hexAccent}22`, color: accent, fontSize: 12, fontWeight: 700,
             }}>
-              {latest.action.label} <ArrowRight size={12} />
+              <OpticalText as="iskra-button-label">{latest.action.label}</OpticalText> <ArrowRight size={12} />
             </button>
           )}
         </div>

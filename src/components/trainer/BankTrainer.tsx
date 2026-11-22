@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
 import { LoopActionLabel } from '../icons/LoopIcon'
@@ -201,7 +202,7 @@ function FilterField({ label, options, value, onChange, accent }: {
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-5)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                   style={{ width: '100%', padding: '8px 8px', borderRadius: 9, textAlign: 'left', background: 'transparent', border: 'none', fontSize: 12, color: 'var(--color-text-3)', cursor: 'pointer', transition: 'background 0.15s ease' }}>
-                  {t('— Сбросить')}
+                  <OpticalText as="iskra-button-label">{t('— Сбросить')}</OpticalText>
                 </button>
               )}
               {shown.length === 0 ? (
@@ -213,7 +214,7 @@ function FilterField({ label, options, value, onChange, accent }: {
                     onMouseEnter={e => { e.currentTarget.style.background = `${accent}1f` }}
                     onMouseLeave={e => { e.currentTarget.style.background = rest }}
                     style={{ width: '100%', padding: '10px 8px', borderRadius: 9, textAlign: 'left', background: rest, border: 'none', fontSize: 13, cursor: 'pointer', color: 'var(--color-text)', fontWeight: opt === value ? 700 : 400, transition: 'background 0.15s ease' }}>
-                    {opt}
+                    <OpticalText as="iskra-button-label">{opt}</OpticalText>
                   </button>
                 )
               })}
@@ -604,7 +605,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                       boxShadow: `0 4px 14px ${palette.ring}`,
                     }}
                   >
-                    <CheckCircle2 size={14} />{t('Проверить')}
+                    <CheckCircle2 size={14} /><OpticalText as="iskra-button-label">{t('Проверить')}</OpticalText>
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -692,10 +693,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           ? <span style={{ flex: 1 }} />
           : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>}
         <button data-hover="layer" onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
-          <AlertTriangle size={12} />{reported ? t('Отправлено') : t('Ошибка')}
+          <AlertTriangle size={12} /><OpticalText as="iskra-button-label">{reported ? t('Отправлено') : t('Ошибка')}</OpticalText>
         </button>
         <button data-hover="layer" onClick={share} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: 'var(--color-text-3)', cursor: 'pointer' }}>
-          <Share2 size={12} />{copied ? t('Скопировано') : t('Поделиться')}
+          <Share2 size={12} /><OpticalText as="iskra-button-label">{copied ? t('Скопировано') : t('Поделиться')}</OpticalText>
         </button>
       </div>
     </div>
@@ -833,7 +834,7 @@ function MobileStatusTabs({ value, onChange, accent }: {
               transition: 'background 0.15s, color 0.15s',
             }}
           >
-            {t(label)}
+            <OpticalText as="iskra-button-label">{t(label)}</OpticalText>
           </button>
         )
       })}
@@ -1114,12 +1115,12 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                 {wrongCount > 0 && (
                   <button data-hover="layer" onClick={() => { onRetryWrong(); setActive(null) }}
                     style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <XCircle size={14} />{t('Повторить ошибки')}
+                    <XCircle size={14} /><OpticalText as="iskra-button-label">{t('Повторить ошибки')}</OpticalText>
                   </button>
                 )}
                 <button data-hover="layer" onClick={onOpenModal}
                   style={btn('S', 'secondary')}>
-                  {t('Полная статистика')}
+                  <OpticalText as="iskra-button-label">{t('Полная статистика')}</OpticalText>
                 </button>
               </>)}
 
@@ -1128,7 +1129,7 @@ function StatsBar({ doneCount, wrongCount, totalCount, favCount, todayCorrect, t
                 <button data-hover="layer" onClick={() => { onToggleFav(); setActive(null) }}
                   style={{ padding: '8px 14px', borderRadius: 10, border: `1px solid ${showFavOnly ? 'rgba(248,200,50,0.4)' : 'var(--color-border-medium)'}`, background: showFavOnly ? 'rgba(248,239,140,0.22)' : 'transparent', color: showFavOnly ? '#7A6B00' : 'var(--color-text-2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Star size={14} fill={showFavOnly ? 'currentColor' : 'none'} />
-                  {showFavOnly ? t('Показать все') : t('Только избранное')}
+                  <OpticalText as="iskra-button-label">{showFavOnly ? t('Показать все') : t('Только избранное')}</OpticalText>
                 </button>
               </>)}
             </div>
@@ -1303,12 +1304,12 @@ function ProgressModal({
           <div style={{ padding: '14px 24px 20px', flexShrink: 0, display: 'flex', gap: 8 }}>
             <button data-hover="layer" onClick={onRetryMistakes}
               style={{ flex: 1, padding: '12px 0', borderRadius: 14, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: `0 6px 18px ${palette.ring}` }}>
-              <XCircle size={14} />{t('Повторить ошибки')}
+              <XCircle size={14} /><OpticalText as="iskra-button-label">{t('Повторить ошибки')}</OpticalText>
             </button>
             {wrongLines.length > 0 && (
               <button data-hover="layer" onClick={() => onSimilarTasks(wrongLines)}
                 style={{ flex: 1, padding: '12px 0', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Target size={14} />{t('Похожие задания')}
+                <Target size={14} /><OpticalText as="iskra-button-label">{t('Похожие задания')}</OpticalText>
               </button>
             )}
           </div>
@@ -1406,7 +1407,7 @@ function MobileProgressSheet({ open, onClose, tasks, answered, favorites, palett
             {wrongLines.length > 0 && (
               <button data-hover="layer" onClick={() => onSimilarTasks(wrongLines)}
                 style={{ width: '100%', padding: '12px', borderRadius: 14, border: `1px solid ${palette.accent}44`, background: `${palette.accent}14`, fontSize: 14, fontWeight: 600, cursor: 'pointer', color: palette.text, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Target size={16} />{t('Похожие задания')}
+                <Target size={16} /><OpticalText as="iskra-button-label">{t('Похожие задания')}</OpticalText>
               </button>
             )}
           </div>
@@ -1882,7 +1883,7 @@ export default function BankTrainer({ subjectState }: {
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
               <button data-hover="layer" onClick={() => { tactile(); clearFilters() }}
                 style={btn('S', 'secondary')}>
-                {t('Сбросить фильтры')}
+                <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
               </button>
             </div>
           ) : (
@@ -2058,7 +2059,7 @@ export default function BankTrainer({ subjectState }: {
               aria-hidden={!hasFilters} tabIndex={hasFilters ? 0 : -1}
               style={{ marginTop: 2, padding: '12px', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: 'none', fontSize: 13, color: 'var(--color-red-text)', fontWeight: 600,
                 cursor: hasFilters ? 'pointer' : 'default', opacity: hasFilters ? 1 : 0, pointerEvents: hasFilters ? 'auto' : 'none', transition: 'opacity 0.15s ease' }}>
-              {t('Сбросить фильтры')}
+              <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
             </button>
           </div>
         </MobileSheet>
@@ -2069,7 +2070,7 @@ export default function BankTrainer({ subjectState }: {
             {SORT_OPTIONS.map(([mode, label]) => (
               <button data-hover="layer" key={mode} onClick={() => { tactile(); setSortMode(mode); setSheet(null) }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', background: sortMode === mode ? 'var(--color-purple-soft)' : 'transparent', color: sortMode === mode ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 15, fontWeight: 600 }}>
-                {t(label)}
+                <OpticalText as="iskra-button-label">{t(label)}</OpticalText>
                 {sortMode === mode && <CheckCircle2 size={18} />}
               </button>
             ))}
@@ -2167,7 +2168,7 @@ export default function BankTrainer({ subjectState }: {
             whileTap={{ scale: 0.95 }}
           >
             <ArrowUp size={16} strokeWidth={2.5} />
-            {t('Наверх')}
+            <OpticalText as="iskra-button-label">{t('Наверх')}</OpticalText>
           </motion.button>
         )}
       </AnimatePresence>
@@ -2247,7 +2248,7 @@ export default function BankTrainer({ subjectState }: {
           {hasFilters && (
             <button data-hover="layer" onClick={clearFilters}
               style={{ padding: '8px 0', borderRadius: 12, background: 'rgba(176,48,64,0.10)', border: '1px solid rgba(176,48,64,0.18)', fontSize: 12, color: 'rgba(176,48,64,0.75)', cursor: 'pointer', fontWeight: 600 }}>
-              {t('Сбросить фильтры')}
+              <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
             </button>
           )}
         </div>
@@ -2308,7 +2309,7 @@ export default function BankTrainer({ subjectState }: {
           <button data-hover="layer" onClick={() => setShowFavOnly(f => !f)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 999, ...PILL_GLASS, background: showFavOnly ? (dark ? 'rgba(248,239,140,0.18)' : 'rgba(248,239,140,0.28)') : 'rgba(var(--glass-rgb), 0.88)', border: `1px solid ${showFavOnly ? (dark ? 'rgba(248,239,140,0.45)' : 'rgba(248,239,140,0.55)') : 'var(--color-border-medium)'}`, fontSize: 12, cursor: 'pointer', color: showFavOnly ? (dark ? '#F4E97A' : '#8A7800') : 'var(--color-text-3)', fontWeight: showFavOnly ? 700 : 400 }}>
             <Star size={14} fill={showFavOnly ? 'currentColor' : 'none'} />
-            {showFavOnly ? `${t('Избранное')} (${favorites.size})` : t('Избранное')}
+            <OpticalText as="iskra-button-label">{showFavOnly ? `${t('Избранное')} (${favorites.size})` : t('Избранное')}</OpticalText>
           </button>
 
 
@@ -2336,7 +2337,7 @@ export default function BankTrainer({ subjectState }: {
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
           <button data-hover="layer" onClick={clearFilters}
             style={btn('S', 'secondary')}>
-            {t('Сбросить фильтры')}
+            <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
           </button>
         </div>
       ) : (

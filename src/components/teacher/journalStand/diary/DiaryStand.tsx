@@ -1,3 +1,4 @@
+import OpticalText from '../../../OpticalText'
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   ArrowRight,
@@ -344,7 +345,7 @@ export default function DiaryStand() {
             {work.score}% в ДЗ №{work.number}, порог — 70%. Начни с двух заданий с ошибками.
           </p>
           <button data-hover="layer" type="button" className="ds-text-action" onClick={() => open(work)}>
-            Разобрать ошибки <ArrowRight size={15} />
+            <OpticalText as="iskra-button-label">Разобрать ошибки</OpticalText> <ArrowRight size={15} />
           </button>
         </div>
       </section>
@@ -439,7 +440,7 @@ export default function DiaryStand() {
         </div>
         <div className="ds-priority-footer">
           <button type="button" className="ds-primary" onClick={() => open(first)}>
-            {first.status === 'returned' ? 'Исправить работу' : 'Открыть задание'}
+            <OpticalText as="iskra-button-label">{first.status === 'returned' ? 'Исправить работу' : 'Открыть задание'}</OpticalText>
             <ArrowRight size={17} />
           </button>
           <button
@@ -479,7 +480,7 @@ export default function DiaryStand() {
         <div className="ds-section-head ds-bottom-heading">
           <h2>Продолжить курс</h2>
           <button data-hover="layer" type="button" className="ds-text-action" onClick={() => setTab('courses')}>
-            Все курсы <ArrowRight size={15} />
+            <OpticalText as="iskra-button-label">Все курсы</OpticalText> <ArrowRight size={15} />
           </button>
         </div>
         <div className="ds-course-shelf">
@@ -605,7 +606,7 @@ export default function DiaryStand() {
               </span>
             </div>
             <button type="button" className="ds-secondary" onClick={() => open(first)}>
-              Открыть <ArrowRight size={15} />
+              <OpticalText as="iskra-button-label">Открыть</OpticalText> <ArrowRight size={15} />
             </button>
           </div>
         ) : null}
@@ -686,7 +687,7 @@ export default function DiaryStand() {
             onClick={() => setDescending(!descending)}
           >
             <ArrowUpDown size={16} />
-            {descending ? 'По убыванию' : 'По возрастанию'}
+            <OpticalText as="iskra-button-label">{descending ? 'По убыванию' : 'По возрастанию'}</OpticalText>
           </button>
         </div>
         <section className="ds-section ds-all-work">
@@ -869,14 +870,14 @@ export default function DiaryStand() {
             </div>
             <div className="ds-dialog-tabs">
               <button data-hover="layer" type="button" aria-pressed={detailTab === 'work'} onClick={() => setDetailTab('work')}>
-                Задание
+                <OpticalText as="iskra-button-label">Задание</OpticalText>
               </button>
               <button data-hover="layer"
                 type="button"
                 aria-pressed={detailTab === 'lesson'}
                 onClick={() => setDetailTab('lesson')}
               >
-                Урок и трек
+                <OpticalText as="iskra-button-label">Урок и трек</OpticalText>
               </button>
             </div>
             {detailTab === 'work' ? (
@@ -912,7 +913,7 @@ export default function DiaryStand() {
                   ) : null}
                 </section>
                 <button type="button" className="ds-secondary" onClick={() => setDetailTab('lesson')}>
-                  К материалам урока <ArrowRight size={16} />
+                  <OpticalText as="iskra-button-label">К материалам урока</OpticalText> <ArrowRight size={16} />
                 </button>
               </>
             ) : (
@@ -961,7 +962,7 @@ export default function DiaryStand() {
                 }}
               >
                 <Bell size={15} />
-                Напоминание
+                <OpticalText as="iskra-button-label">Напоминание</OpticalText>
               </button>
             </footer>
           </div>
@@ -991,7 +992,7 @@ export default function DiaryStand() {
                 В стенде напоминание демонстрационное, уведомление не отправляется.
               </p>
               <button className="ds-primary" type="submit">
-                Сохранить в примере <Check size={16} />
+                <OpticalText as="iskra-button-label">Сохранить в примере</OpticalText> <Check size={16} />
               </button>
             </form>
           </div>

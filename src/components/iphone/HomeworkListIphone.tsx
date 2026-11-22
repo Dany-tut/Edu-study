@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Lesson, Subject } from '../../data/mockData'
@@ -209,11 +210,11 @@ export default function HomeworkListIphone({
             <button
               onClick={() => { tactile(); setDraft({ ...DEFAULT_HOMEWORK_FILTERS, search: draft.search }) }}
               style={{ flex: 1, height: 48, borderRadius: 24, border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 16, fontWeight: 600, cursor: 'pointer' }}
-            >{t('Сбросить')}</button>
+            ><OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText></button>
             <button
               onClick={() => { tactile(); setFilters(draft); setSheetOpen(false) }}
               style={{ flex: 1, height: 48, borderRadius: 24, border: 0, background: 'var(--grad-purple)', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}
-            >{t('Готово')}</button>
+            ><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>
           </div>
         }
       >
@@ -227,7 +228,7 @@ export default function HomeworkListIphone({
                   <button key={o.id} role="radio" aria-checked={on}
                     onClick={() => { tactile(); setDraft(d => ({ ...d, show: o.id })) }}
                     style={{ flex: 1, height: 38, borderRadius: 19, border: 0, fontSize: 14, fontWeight: 600, cursor: 'pointer', background: on ? 'var(--color-bg-card)' : 'transparent', color: on ? 'var(--color-text)' : 'var(--color-muted)', boxShadow: on ? 'var(--shadow-pill)' : 'none' }}
-                  >{t(o.label)}</button>
+                  ><OpticalText as="iskra-button-label">{t(o.label)}</OpticalText></button>
                 )
               })}
             </div>
@@ -243,7 +244,7 @@ export default function HomeworkListIphone({
                     onClick={() => { tactile(); setDraft(d => ({ ...d, sort: o.id })) }}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 48, padding: '0 16px', border: 0, borderTop: i === 0 ? 'none' : '1px solid var(--color-border-soft)', background: 'transparent', fontSize: 15, color: 'var(--color-text)', cursor: 'pointer', textAlign: 'left' }}
                   >
-                    {t(o.label)}
+                    <OpticalText as="iskra-button-label">{t(o.label)}</OpticalText>
                     {on && <Check size={18} style={{ color: 'var(--color-accent)' }} />}
                   </button>
                 )

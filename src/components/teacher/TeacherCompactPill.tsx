@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Check as LoopUiCheck } from '../icons/appIcons'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
@@ -458,7 +459,7 @@ function NotifPreview({ latest, extra, onAction, onClose }: {
               background: `${typeof accent === 'string' && accent.startsWith('#') ? accent : 'var(--color-accent)'}22`,
               color: accent, fontSize: 12, fontWeight: 700,
             }}>
-              {latest.action.label} <ArrowRight size={12} />
+              <OpticalText as="iskra-button-label">{latest.action.label}</OpticalText> <ArrowRight size={12} />
             </button>
           )}
         </div>

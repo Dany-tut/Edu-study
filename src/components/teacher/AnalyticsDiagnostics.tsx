@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useState } from 'react'
 import { INCIDENT_EVENTS } from '../../lib/incidentTelemetry'
 import { supabase } from '../../lib/supabase'
@@ -75,8 +76,8 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
   return <section style={{ display: 'grid', gap: 16, color: 'var(--color-text)', overflowWrap: 'anywhere' }}>
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       <h3 style={{ margin: 0, flex: 1 }}>Диагностика Искры</h3>
-      <button data-hover="layer" style={button} disabled={busy} onClick={() => setRefresh(n => n+1)}>Обновить</button>
-      <button data-hover="layer" style={button} disabled={busy || !!error} onClick={download}>Скачать JSON</button>
+      <button data-hover="layer" style={button} disabled={busy} onClick={() => setRefresh(n => n+1)}><OpticalText as="iskra-button-label">Обновить</OpticalText></button>
+      <button data-hover="layer" style={button} disabled={busy || !!error} onClick={download}><OpticalText as="iskra-button-label">Скачать JSON</OpticalText></button>
     </div>
     <p style={{ margin: 0, color: 'var(--color-text-3)', fontSize: 13 }}>За {days} дней: последние 500 ошибок и отключений, 500 запросов. Показатели относятся только к этой выборке. Обновлено: {updated || '—'}. Клиентский журнал не подтверждает доступность сервера; при полном сбое доставки события могут отсутствовать. Тестли имеет отдельную базу и здесь не контролируется.</p>
     {error && <Alert tone="danger" title="Диагностика недоступна" text={error} />}

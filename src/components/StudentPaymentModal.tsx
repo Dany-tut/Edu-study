@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import Modal from './Modal'
 import PhotoGallery from './PhotoGallery'
@@ -140,7 +141,7 @@ export default function StudentPaymentModal({ studentId, onClose }: { studentId:
                   </div>
                 </div>
                 <button data-hover="layer" type="button" style={{ ...PAY_BUTTON, justifySelf: 'start' }}
-                  disabled={action.busy} onClick={() => cancelClaim(pending.id)}>{t('Отменить отметку')}</button>
+                  disabled={action.busy} onClick={() => cancelClaim(pending.id)}><OpticalText as="iskra-button-label">{t('Отменить отметку')}</OpticalText></button>
               </div>
             )}
 
@@ -169,12 +170,12 @@ export default function StudentPaymentModal({ studentId, onClose }: { studentId:
                         <img src={receipt} alt={t('Чек')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </button>
                       <button data-hover="layer" type="button" style={PAY_BUTTON} disabled={action.busy}
-                        onClick={() => setReceipt(null)}><X size={16} />{t('Убрать')}</button>
+                        onClick={() => setReceipt(null)}><X size={16} /><OpticalText as="iskra-button-label">{t('Убрать')}</OpticalText></button>
                     </div>
                   ) : (
                     <button data-hover="layer" type="button" disabled={action.busy || addingPhoto} onClick={() => fileRef.current?.click()}
                       style={{ minHeight: 56, borderRadius: 12, border: '1.5px dashed var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, fontWeight: 600 }}>
-                      <ImagePlus size={18} />{addingPhoto ? t('Обрабатываем фото…') : t('Добавить фото чека')}
+                      <ImagePlus size={18} /><OpticalText as="iskra-button-label">{addingPhoto ? t('Обрабатываем фото…') : t('Добавить фото чека')}</OpticalText>
                     </button>
                   )}
                   <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => { void addPhoto(e.target.files); e.target.value = '' }} />

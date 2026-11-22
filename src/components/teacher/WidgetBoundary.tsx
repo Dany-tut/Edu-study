@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { diagnosticFailure, diagnosticRetry, diagnosticRecovered } from '../../lib/diagnosticJourney'
 import { Component, Fragment, type ReactNode } from 'react'
 import { trackEvent } from '../../lib/analytics'
@@ -61,7 +62,7 @@ export default class WidgetBoundary extends Component<Props, State> {
           }}
           style={btn('S', 'secondary')}
         >
-          {chunk ? t('Обновить') : t('Повторить')}
+          <OpticalText as="iskra-button-label">{chunk ? t('Обновить') : t('Повторить')}</OpticalText>
         </button>
       </div>
     )

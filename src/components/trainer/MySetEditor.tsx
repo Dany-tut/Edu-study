@@ -17,6 +17,7 @@
 // а не поток операций (см. saveCardGroup).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../OpticalText'
 import { useState } from 'react'
 import { Plus, Trash2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -89,7 +90,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
             cursor: draft.title.trim() && !saving ? 'pointer' : 'default',
           }}
         >
-          {saving ? t('Сохраняю…') : t('Сохранить')}
+          <OpticalText as="iskra-button-label">{saving ? t('Сохраняю…') : t('Сохранить')}</OpticalText>
         </button>
       </div>
 
@@ -129,7 +130,7 @@ export default function MySetEditor({ group, studentId, accent, onClose, onSaved
           color: accent, fontSize: 13, fontWeight: 700,
         }}
       >
-        <Plus size={16} /> {t('Добавить набор')}
+        <Plus size={16} /> <OpticalText as="iskra-button-label">{t('Добавить набор')}</OpticalText>
       </button>
     </div>
   )
@@ -243,7 +244,7 @@ function MySet({ set, n, accent, lang, onChange, onRemove }: {
             cursor: row.term.trim() && row.ru.trim() ? 'pointer' : 'default',
           }}
         >
-          {t('Добавить')}
+          <OpticalText as="iskra-button-label">{t('Добавить')}</OpticalText>
         </button>
       </div>
 

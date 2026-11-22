@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { ArrowDownToLine, ArrowRight, AudioLines, ChevronDown, Loader2, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
@@ -139,19 +140,19 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
           {wake === 'missing'
             ? <a className="integration-action" href={MODULE_DOWNLOAD_URL} download>Скачать v{TRANSCRIPTION_PRODUCT_VERSION}</a>
             : <button type="button" className="integration-action" disabled={wake === 'waking'} onClick={() => void wakeModule()}>
-              {wake === 'waking' ? 'Проверяем…' : 'Проверить'}
+              <OpticalText as="iskra-button-label">{wake === 'waking' ? 'Проверяем…' : 'Проверить'}</OpticalText>
             </button>}
         </div>}
         <div className="transcription-connected-actions">
           <button type="button" className="integration-action" aria-expanded={showSetup}
             aria-controls={setupId} onClick={() => setShowSetup(value => !value)}>
-            Управление модулем
+            <OpticalText as="iskra-button-label">Управление модулем</OpticalText>
             <ChevronDown size={16} className="transcription-manage-chevron" aria-hidden />
           </button>
 
           <button className="integration-action integration-disconnect" disabled={busy || !owner} onClick={change}
             aria-label={busy ? 'Отключаем…' : 'Отключить компьютер'}>
-            {busy ? 'Отключаем…' : 'Отключить'}
+            <OpticalText as="iskra-button-label">{busy ? 'Отключаем…' : 'Отключить'}</OpticalText>
           </button>
         </div>
       </div>
@@ -212,15 +213,15 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
                   <strong>Искра · Расшифровка</strong>
                 </div>}
                 <div className="transcription-walkthrough-actions">
-                  {index > 0 && <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(index - 1)}>Назад</button>}
+                  {index > 0 && <button type="button" className="integration-action" disabled={busy} onClick={() => goToSetupStep(index - 1)}><OpticalText as="iskra-button-label">Назад</OpticalText></button>}
                   {nextLabel && <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(index + 1)}>
-                    {nextLabel} <ArrowRight size={14} aria-hidden />
+                    <OpticalText as="iskra-button-label">{nextLabel}</OpticalText> <ArrowRight size={14} aria-hidden />
                   </button>}
                   {index < 3 && <button type="button" className="integration-action" onClick={() => goToSetupStep(setupSteps.length - 1)}>
-                    Искра уже установлена
+                    <OpticalText as="iskra-button-label">Искра уже установлена</OpticalText>
                   </button>}
                   {index === 3 && <button type="button" className="integration-action" onClick={() => setShowPermission(true)}>
-                    Где включить разрешение
+                    <OpticalText as="iskra-button-label">Где включить разрешение</OpticalText>
                   </button>}
                 </div>
               </div>
@@ -237,8 +238,8 @@ export function TranscriptionModuleCard({ owner, onConnected }: { owner: string;
                 <strong>Искра · Расшифровка <ToggleRight size={20} aria-hidden /> <span className="sr-only">Включено</span></strong>
               </div>
               <div className="transcription-walkthrough-actions">
-                <button type="button" className="integration-action" onClick={() => setShowPermission(false)}>Назад</button>
-                <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(setupSteps.length - 1)}>Разрешение включено</button>
+                <button type="button" className="integration-action" onClick={() => setShowPermission(false)}><OpticalText as="iskra-button-label">Назад</OpticalText></button>
+                <button type="button" className="integration-action" data-primary="true" onClick={() => goToSetupStep(setupSteps.length - 1)}><OpticalText as="iskra-button-label">Разрешение включено</OpticalText></button>
               </div>
             </div>
           </div>
@@ -413,7 +414,7 @@ export function RecordingLines({rail, fill, at, onSeek}: {rail: TranscriptRail; 
             onBlur={e => { setEditing(null); const text = e.currentTarget.value; if (text !== original.current) rail.corrected?.(original.current, {...line, text}) }} onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }}
             onChange={e => change({...draft, transcript:{...draft.transcript, segments:segments.map((s,i) =>
               i === index ? {...s,text:e.target.value} : s)}})}/>
-        </span> : <button data-hover="layer" type="button" disabled={saving} aria-label={'Редактировать реплику ' + (index+1)} onClick={() => setEditing(index)}>{line.text || 'Введите текст'}</button>}
+        </span> : <button data-hover="layer" type="button" disabled={saving} aria-label={'Редактировать реплику ' + (index+1)} onClick={() => setEditing(index)}><OpticalText as="iskra-button-label">{line.text || 'Введите текст'}</OpticalText></button>}
       </div>)}</div>
     </ScrollFade>
   </section>
@@ -533,7 +534,7 @@ function TranscriptionActionState(props: ActionProps) {
     }}
       onReady={result => { change(draft?.transcript.forStudents ? {...result, transcript: {...result.transcript, forStudents: true}} : result); changeVariants({...variants, active:'text', text:result.timecodes}); setView('entry') }} /> :
       <section className="transcription-inline">
-        <button data-hover="layer" type="button" style={btn('S','secondary')} onClick={() => setView('entry')}>К записи урока</button>
+        <button data-hover="layer" type="button" style={btn('S','secondary')} onClick={() => setView('entry')}><OpticalText as="iskra-button-label">К записи урока</OpticalText></button>
         {view === 'setup' ? <TranscriptionModuleCard owner={props.owner} onConnected={() => setView('review')} /> :
           draft && <LessonTranscriptPanel transcript={draft.transcript} time={-1} />}
       </section>}
@@ -567,7 +568,7 @@ function TranscriptionActionState(props: ActionProps) {
     generate: () => { void openMode(variants.active) }, saving,
   }
   if (!draft && !variants.slides && !variants.text.length) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
-    <AudioLines size={17} />Расшифровать видео
+    <AudioLines size={17} /><OpticalText as="iskra-button-label">Расшифровать видео</OpticalText>
   </button>)}</>
   const badChapter = chapters.codes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
   const badLine = draft?.transcript.segments.some(line => !line.text.trim())
@@ -580,7 +581,7 @@ function TranscriptionActionState(props: ActionProps) {
   }
   const rail = draft ? {draft, change, saving, corrected} : undefined
   const actions = <>
-    {correctionNotice && <small role="status">{correctionNotice} {correctionNotice.includes('ещё не отправлены') && <button type="button" onClick={() => void syncCorrections()}>Повторить отправку</button>}</small>}
+    {correctionNotice && <small role="status">{correctionNotice} {correctionNotice.includes('ещё не отправлены') && <button type="button" onClick={() => void syncCorrections()}><OpticalText as="iskra-button-label">Повторить отправку</OpticalText></button>}</small>}
     {localSaveFailed && <small role="alert">Не удалось сохранить черновик в браузере. Не обновляйте страницу до сохранения в урок.</small>}
     {(failed || badChapter || badLine) && <small role="alert">{failed ? failed : badChapter ? 'Проверьте названия и время глав.' : 'Заполните пустую реплику.'}</small>}
     {/* Без отметки ученик видит только таймкоды, расшифровки у него нет. */}
@@ -591,7 +592,7 @@ function TranscriptionActionState(props: ActionProps) {
     </div>}
     <div className="transcript-tools">
       {working || chapterDirty ? <button className="transcription-rail-action" disabled={saving || badChapter || !!(working && badLine) || !chapters.available} onClick={apply}>
-        <Check size={15}/>{saving ? 'Сохраняем…' : 'Сохранить'}</button> :
+        <Check size={15}/><OpticalText as="iskra-button-label">{saving ? 'Сохраняем…' : 'Сохранить'}</OpticalText></button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
       <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={chapters.generate}><RotateCcw size={16}/></button>
       {draft && <MontageAction draft={draft} change={change} corrected={corrected} disabled={saving} file={props.file ?? props.localFile} token={connected ? localStorage.getItem(tokenKey(props.owner)) || undefined : undefined} trend={props.trend} recap={props.recap} recapSignal={props.recapSignal} />}
@@ -608,12 +609,12 @@ function TranscriptionActionState(props: ActionProps) {
       <p>{attemptFailure}</p>
       <p>Ниже показан ранее сохранённый результат. Эта попытка его не изменила.</p>
       <div className="transcription-recovery-actions">
-        <button type="button" style={btn('M','secondary')} onClick={() => void openMode(readPending(props.owner, jobKey, props.source, props.file)?.mode ?? requestedMode)}>Повторить или выбрать файл</button>
+        <button type="button" style={btn('M','secondary')} onClick={() => void openMode(readPending(props.owner, jobKey, props.source, props.file)?.mode ?? requestedMode)}><OpticalText as="iskra-button-label">Повторить или выбрать файл</OpticalText></button>
         <button type="button" style={btn('M','secondary')} onClick={() => {
           const job = readPending(props.owner, jobKey, props.source, props.file)
           if (job?.failure) localStorage.setItem(storageKey, JSON.stringify({...job, dismissed:true}))
           setAttemptFailure('')
-        }}>Скрыть сообщение</button>
+        }}><OpticalText as="iskra-button-label">Скрыть сообщение</OpticalText></button>
       </div>
     </section>}
     {props.children(actions,rail,chapters)}
@@ -867,24 +868,24 @@ function Review({ owner, lessonKey, source, file, localFile, subject, lessonTitl
     </>}
     {pending && !error && !cancelled && <div className="transcription-cancel">
       {canCancel ? <button type="button" style={btn('M','secondary')} disabled={cancelling} onClick={() => void cancel()}>
-        {cancelling ? 'Останавливаем обработку…' : 'Остановить расшифровку'}
+        <OpticalText as="iskra-button-label">{cancelling ? 'Останавливаем обработку…' : 'Остановить расшифровку'}</OpticalText>
       </button> : <small className="transcription-hint">Этот модуль не поддерживает отмену с сайта. Закрытие панели не останавливает обработку.</small>}
       {cancelError && <p role="alert" className="transcription-hint">{cancelError}</p>}
     </div>}
     {cancelled && <div className="transcription-recovery" role="status">
       <strong>Расшифровка отменена</strong><p>Вычисления остановлены. Можно начать заново.</p>
-      <button type="button" style={btn('M','secondary')} onClick={clearCancelled}>Начать заново</button>
+      <button type="button" style={btn('M','secondary')} onClick={clearCancelled}><OpticalText as="iskra-button-label">Начать заново</OpticalText></button>
     </div>}
     {error && <div role="alert" className="transcription-recovery">
       <strong>{unavailable ? 'Модуль недоступен' : 'Не удалось завершить расшифровку'}</strong>
       <p>{error}</p>
       {unavailable && pending && <p>Задание сохранено. Проверяем связь автоматически. Если модуль работает, обработка продолжается на Mac.</p>}
       {pending && (unavailable
-        ? <button data-hover="layer" type="button" style={btn('M','secondary')} onClick={() => { setError(''); setUnavailable(false); setRetry(value => value + 1) }}>Проверить связь</button>
-        : <button data-hover="layer" type="button" style={btn('M','secondary')} onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}>Начать заново</button>)}
+        ? <button data-hover="layer" type="button" style={btn('M','secondary')} onClick={() => { setError(''); setUnavailable(false); setRetry(value => value + 1) }}><OpticalText as="iskra-button-label">Проверить связь</OpticalText></button>
+        : <button data-hover="layer" type="button" style={btn('M','secondary')} onClick={() => { setPending(null); localStorage.removeItem(key); setError(''); setStage(''); setProgress(undefined) }}><OpticalText as="iskra-button-label">Начать заново</OpticalText></button>)}
     </div>}
     </div>
     {!pending ?
-      <button data-hover="layer" className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} />{busy ? preparation : mode === 'slides' ? 'Найти главы по слайдам' : 'Начать расшифровку'}</button> : undefined}
+      <button data-hover="layer" className="transcription-start" disabled={busy} style={btn('M','primary')} onClick={start}><AudioLines size={16} /><OpticalText as="iskra-button-label">{busy ? preparation : mode === 'slides' ? 'Найти главы по слайдам' : 'Начать расшифровку'}</OpticalText></button> : undefined}
   </section>
 }

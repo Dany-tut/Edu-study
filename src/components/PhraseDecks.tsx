@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeLines } from '../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Наборы фраз — витрина разговорника внутри вкладки «Карточки»
@@ -457,7 +458,7 @@ function DrillButton({ accent, onClick }: { accent: string; onClick: () => void 
         fontFamily: 'inherit', fontSize: DECK_CTA.fontSize, fontWeight: DECK_CTA.fontWeight, cursor: 'pointer',
       }}
     >
-      <RotateCcw size={DECK_CTA.icon} /> {t('Пройти заново')}
+      <RotateCcw size={DECK_CTA.icon} /> <OpticalText as="iskra-button-label">{t('Пройти заново')}</OpticalText>
     </button>
   )
 }

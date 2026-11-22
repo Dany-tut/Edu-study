@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import QuizDialogContent from './QuizDialogContent'
 import { textFadeLines } from '../lib/textFades'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
@@ -241,7 +242,7 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
             color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1,
           }}
         >
-          {t('Начать заново')}
+          <OpticalText as="iskra-button-label">{t('Начать заново')}</OpticalText>
         </motion.button>
       </div>
     )
@@ -324,7 +325,7 @@ export default function QuizWidget({ active = true, columns = 1, dialog = false 
               borderRadius: 16, color: '#fff', fontSize: 14 * scale, fontWeight: 600, lineHeight: 1, cursor: 'pointer',
             }}
           >
-            {quizResumeIndex > 0 ? t('Продолжить') : t('Начать')}
+            <OpticalText as="iskra-button-label">{quizResumeIndex > 0 ? t('Продолжить') : t('Начать')}</OpticalText>
           </motion.button>
           <span style={{ fontSize: 14, color: 'var(--color-muted)' }}>
             {quizResumeIndex > 0

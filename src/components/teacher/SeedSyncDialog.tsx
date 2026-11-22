@@ -12,6 +12,7 @@
 // страницы, и это честнее любого «вы уверены?».
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../OpticalText'
 import { useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -145,7 +146,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
             fontFamily: 'inherit', fontSize: 12, fontWeight: 700, color: 'var(--color-muted)',
           }}
         >
-          {list.every(c => picked.has(c.key)) ? t('снять все') : t('отметить все')}
+          <OpticalText as="iskra-button-label">{list.every(c => picked.has(c.key)) ? t('снять все') : t('отметить все')}</OpticalText>
         </button>
       </div>
       <p style={{ fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.5, marginBottom: 4 }}>{note}</p>
@@ -247,7 +248,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
           </span>
           <button data-hover="layer" onClick={onClose} className="cursor-pointer"
             style={{ ...btn('M', 'secondary'), marginLeft: 'auto' }}>
-            {t('Отмена')}
+            <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
           </button>
           <button data-hover="layer"
             onClick={() => onApply(picked)}
@@ -260,7 +261,7 @@ export default function SeedSyncDialog({ diff, onClose, onApply }: {
               fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
-            <Check size={14} /> {t('Применить')}
+            <Check size={14} /> <OpticalText as="iskra-button-label">{t('Применить')}</OpticalText>
           </button>
         </footer>
       </motion.div>

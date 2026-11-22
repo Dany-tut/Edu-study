@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Segmented from '../Segmented'
 import TeacherSelect from './TeacherSelect'
@@ -115,7 +116,7 @@ export default function TranscriptTermsManager() {
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('Найти в словаре')} aria-label={t('Найти в словаре')} style={{ border: 0, outline: 'none', background: 'transparent', color: 'inherit', font: 'inherit', minWidth: 0, flex: 1 }} />
       </label>
       <button data-hover="layer" type="button" onClick={() => void load()} title={t('Обновить')} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}>
-        <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />{t('Обновить')}
+        <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /><OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
       </button>
     </div>
 
@@ -123,7 +124,7 @@ export default function TranscriptTermsManager() {
       <input style={FIELD} value={draft.written} onChange={e => setDraft({ ...draft, written: e.target.value })} placeholder={t('Как пишется: HSO₄⁻')} aria-label={t('Как пишется')} maxLength={80} />
       <input style={FIELD} value={draft.heard} onChange={e => setDraft({ ...draft, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
       <input style={FIELD} value={draft.spoken} onChange={e => setDraft({ ...draft, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} onKeyDown={e => { if (e.key === 'Enter') void add() }} />
-      <button data-hover="layer" type="button" style={btn('M', 'primary')} disabled={!draft.written.trim() || busy} onClick={() => void add()}>{t('Добавить')}</button>
+      <button data-hover="layer" type="button" style={btn('M', 'primary')} disabled={!draft.written.trim() || busy} onClick={() => void add()}><OpticalText as="iskra-button-label">{t('Добавить')}</OpticalText></button>
     </div>
 
     {error && <Alert tone="danger" text={error} style={{ marginBottom: 12 }} />}
@@ -151,8 +152,8 @@ export default function TranscriptTermsManager() {
           <input style={FIELD} value={editing.heard} onChange={e => setEditing({ ...editing, heard: e.target.value })} placeholder={t('Как распознаётся (необязательно)')} aria-label={t('Как распознаётся')} maxLength={80} />
           <input style={FIELD} value={editing.spoken} onChange={e => setEditing({ ...editing, spoken: e.target.value })} placeholder={t('Как произносят (необязательно)')} aria-label={t('Как произносят')} maxLength={80} />
           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-            <button data-hover="layer" type="button" style={btn('S', 'quiet')} onClick={() => setEditing(null)}>{t('Отмена')}</button>
-            <button data-hover="layer" type="submit" style={btn('S', 'primary')} disabled={!editing.written.trim() || busy}>{t('Сохранить')}</button>
+            <button data-hover="layer" type="button" style={btn('S', 'quiet')} onClick={() => setEditing(null)}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
+            <button data-hover="layer" type="submit" style={btn('S', 'primary')} disabled={!editing.written.trim() || busy}><OpticalText as="iskra-button-label">{t('Сохранить')}</OpticalText></button>
           </div>
         </form>}
       </div>)}

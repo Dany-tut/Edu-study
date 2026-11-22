@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import NextWorkWidget from './NextWorkWidget'
 import './studentHomeWidget.css'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -138,12 +139,12 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     </main>
     {!desktop&&<MobileBottomNav/>}
     {canChooseAppearance&&appearance&&<Modal title={t('Оформление главной')} onClose={()=>setAppearance(false)}>
-      <div className="lh-appearance-options"><button data-hover="layer" type="button" aria-pressed={!season.variant} onClick={()=>{setPersonalHalloween('off');setAppearance(false)}}>{t('Без праздника')}</button>{VARIANTS.map(item=><button data-hover="layer" type="button" key={item.key} aria-pressed={season.variant===item.key} onClick={()=>{setPersonalHalloween(item.key);setAppearance(false)}}>{t(item.title)}</button>)}</div>
+      <div className="lh-appearance-options"><button data-hover="layer" type="button" aria-pressed={!season.variant} onClick={()=>{setPersonalHalloween('off');setAppearance(false)}}><OpticalText as="iskra-button-label">{t('Без праздника')}</OpticalText></button>{VARIANTS.map(item=><button data-hover="layer" type="button" key={item.key} aria-pressed={season.variant===item.key} onClick={()=>{setPersonalHalloween(item.key);setAppearance(false)}}><OpticalText as="iskra-button-label">{t(item.title)}</OpticalText></button>)}</div>
     </Modal>}
     {scope&&<Modal title={t(scope.module!=null?'Несданные работы':scope.filter==='review'?'На проверке':scope.filter==='overdue'?'Просроченные работы':'Мои работы')} onClose={()=>setScope(null)} width={740}>
-      <div className="lh-work-filters">{(['actions','upcoming','overdue','review'] as const).map(filter=><button data-hover="layer" type="button" key={filter} aria-pressed={scope.filter===filter} onClick={()=>setScope({...scope,filter})}>{t(filter==='actions'?'Нужно сдать':filter==='upcoming'?'Без просрочки':filter==='overdue'?'Просрочено':'На проверке')}</button>)}</div>
-      {status?<p>{status}{error&&<button data-hover="layer" type="button" onClick={reload}>{t('Повторить')}</button>}</p>:all.length?all.map(entry=><button data-hover="row" type="button" className="lh-work-row" key={entry.id+entry.course.id} onClick={()=>open(entry)}><span><strong>{tc(entry.lesson.title)}{entry.suffix?` · ${entry.suffix}`:''}</strong><small>{tc(entry.course.name)} · {t('Модуль')}{'\u00a0'}{entry.moduleOrder+1} · {t(diaryStatusText(entry))}</small></span><WorkDue entry={entry} today={today}/><ChevronRight size={16}/></button>):<p>{t('Работ нет')}</p>}
-      {scope.course&&<button data-hover="layer" type="button" onClick={()=>setScope({filter:scope.filter})}>{t('Все курсы')}</button>}
+      <div className="lh-work-filters">{(['actions','upcoming','overdue','review'] as const).map(filter=><button data-hover="layer" type="button" key={filter} aria-pressed={scope.filter===filter} onClick={()=>setScope({...scope,filter})}><OpticalText as="iskra-button-label">{t(filter==='actions'?'Нужно сдать':filter==='upcoming'?'Без просрочки':filter==='overdue'?'Просрочено':'На проверке')}</OpticalText></button>)}</div>
+      {status?<p>{status}{error&&<button data-hover="layer" type="button" onClick={reload}><OpticalText as="iskra-button-label">{t('Повторить')}</OpticalText></button>}</p>:all.length?all.map(entry=><button data-hover="row" type="button" className="lh-work-row" key={entry.id+entry.course.id} onClick={()=>open(entry)}><span><strong>{tc(entry.lesson.title)}{entry.suffix?` · ${entry.suffix}`:''}</strong><small>{tc(entry.course.name)} · {t('Модуль')}{'\u00a0'}{entry.moduleOrder+1} · {t(diaryStatusText(entry))}</small></span><WorkDue entry={entry} today={today}/><ChevronRight size={16}/></button>):<p>{t('Работ нет')}</p>}
+      {scope.course&&<button data-hover="layer" type="button" onClick={()=>setScope({filter:scope.filter})}><OpticalText as="iskra-button-label">{t('Все курсы')}</OpticalText></button>}
     </Modal>}
   </div>
 }

@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import TeacherPageScroll from '../../components/teacher/TeacherPageScroll'
 import { textFadeStyle } from '../../lib/textFades'
 import { useState, useEffect, useCallback } from 'react'
@@ -180,7 +181,7 @@ export default function TeacherStoragePage() {
           style={{ ...btn('S', 'secondary'), marginLeft: 'auto' }}
         >
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
-          {t('Обновить')}
+          <OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
         </motion.button>
       </div>
 

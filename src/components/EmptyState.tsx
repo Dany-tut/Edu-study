@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import type { CSSProperties, ReactNode } from 'react'
 import type { LucideIcon } from './icons/appIcons'
 
@@ -51,7 +52,7 @@ export default function EmptyState({ icon: Icon, title, text, action, compact, s
           type="button" onClick={action.onClick}
           style={{ marginTop: 4, height: 32, padding: '0 12px', borderRadius: 10, border: 'none', background: 'var(--grad-purple)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
         >
-          {action.label}
+          <OpticalText as="iskra-button-label">{action.label}</OpticalText>
         </button>
       )}
     </div>

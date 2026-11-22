@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { Eye, EyeOff } from '../icons/appIcons'
 import { WIDGET_META } from '../../data/widgets'
@@ -111,7 +112,7 @@ export default function NewStudentConfig({
             }}
           >
             {allHidden ? <Eye size={14} /> : <EyeOff size={14} />}
-            {allHidden ? t('Показать все') : t('Скрыть все')}
+            <OpticalText as="iskra-button-label">{allHidden ? t('Показать все') : t('Скрыть все')}</OpticalText>
           </button>
         </div>
         {WIDGET_META.map(w => {
@@ -178,7 +179,7 @@ export default function NewStudentConfig({
           border: 'none', borderRadius: 14, cursor: saving ? 'not-allowed' : 'pointer',
         }}
       >
-        {saving ? t('Сохранение...') : t('Продолжить')}
+        <OpticalText as="iskra-button-label">{saving ? t('Сохранение...') : t('Продолжить')}</OpticalText>
       </button>
     </div>
   )

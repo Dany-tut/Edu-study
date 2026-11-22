@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { textFadeLines } from '../../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Половина «Карточек» — журнал «Не смог сказать»
@@ -224,7 +225,7 @@ function Composer({ accent, onAdd }: { accent: string; onAdd: (ru: string) => Pr
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <button data-hover="layer" onClick={() => void submit()} disabled={!text.trim() || busy}
           style={{ ...primaryBtn(accent), ...smallBtn, opacity: !text.trim() || busy ? 0.5 : 1 }}>
-          {busy ? t('Записываю…') : t('Записать')}
+          <OpticalText as="iskra-button-label">{busy ? t('Записываю…') : t('Записать')}</OpticalText>
         </button>
         {error && <span style={{ fontSize: 13, color: 'var(--color-red-text)' }}>{t('Не сохранилось — попробуйте ещё раз')}</span>}
       </div>
@@ -345,12 +346,12 @@ function GapRow({ gap, lang, accent, helpOn, onPatch, onRemove, onCards }: {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {helpOn && (
           <button data-hover="layer" onClick={() => void ask()} disabled={asking} style={{ ...ghostBtn(accent), ...smallBtn, opacity: asking ? 0.6 : 1 }}>
-            <Sparkles size={14} /> {asking ? t('Думаю…') : variants ? t('Ещё варианты') : t('Как сказать?')}
+            <Sparkles size={14} /> <OpticalText as="iskra-button-label">{asking ? t('Думаю…') : variants ? t('Ещё варианты') : t('Как сказать?')}</OpticalText>
           </button>
         )}
         <button data-hover="layer" onClick={() => void cards()} disabled={!canCard}
           style={{ ...primaryBtn(accent), ...smallBtn, opacity: canCard ? 1 : 0.45, cursor: canCard ? 'pointer' : 'default' }}>
-          {carding ? t('Добавляю…') : t('В карточки')}
+          <OpticalText as="iskra-button-label">{carding ? t('Добавляю…') : t('В карточки')}</OpticalText>
         </button>
       </div>
     </div>

@@ -25,6 +25,7 @@
 // одна забота: показать язык и держать на виду выход — вход или заявку.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../components/OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import { LogIn, Sparkles } from '../components/icons/appIcons'
 import LanguageTrainer from '../components/LanguageTrainer'
@@ -154,7 +155,7 @@ function GuestBar({ onLead }: { onLead: () => void }) {
             onClick={() => { window.location.hash = '#/login' }}
             style={btn('M', 'secondary')}
           >
-            <LogIn size={14} /> {t('Войти')}
+            <LogIn size={14} /> <OpticalText as="iskra-button-label">{t('Войти')}</OpticalText>
           </button>
           <button data-hover="layer"
             onClick={onLead}
@@ -165,7 +166,7 @@ function GuestBar({ onLead }: { onLead: () => void }) {
               border: 'none', background: 'var(--grad-purple)', color: '#fff',
             }}
           >
-            <Sparkles size={14} /> {t('Хочу заниматься')}
+            <Sparkles size={14} /> <OpticalText as="iskra-button-label">{t('Хочу заниматься')}</OpticalText>
           </button>
         </div>
       </div>

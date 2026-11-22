@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import Modal from '../Modal'
@@ -107,7 +108,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
       <Modal onClose={handleClose} title={t('Импорт из Google Forms')} width={520} closeButtonStyle={{ width: 44, height: 44 }}
         icon={<Link2 size={24} style={{ color: 'var(--color-accent)' }} />}
         footer={form ? <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button data-hover="layer" disabled={importing} onClick={() => { setForm(null); setError(null) }} style={{ ...btn('M', 'secondary'), minHeight: 44 }}>{t('Назад')}</button>
+          <button data-hover="layer" disabled={importing} onClick={() => { setForm(null); setError(null) }} style={{ ...btn('M', 'secondary'), minHeight: 44 }}><OpticalText as="iskra-button-label">{t('Назад')}</OpticalText></button>
           <button data-hover="layer" onClick={handleImport} disabled={importing || !selectedCount} style={{ ...btn('M', 'primary'), background: 'var(--color-control-accent)', minHeight: 44 }}>{t('Импортировать')} {selectedCount || ''}</button>
         </div> : undefined}>
           {!form && (
@@ -139,7 +140,7 @@ export default function GoogleFormImportModal({ open, onClose, onImport }: Props
                   }}
                 >
                   {loading ? <Loader2 size={14} className="animate-spin" /> : null}
-                  {t('Разобрать')}
+                  <OpticalText as="iskra-button-label">{t('Разобрать')}</OpticalText>
                 </button>
               </div>
             </div>

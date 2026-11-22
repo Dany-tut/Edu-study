@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useState, useRef, useLayoutEffect } from 'react'
 import { Plus, Camera, X } from '../icons/appIcons'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
@@ -252,7 +253,7 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                             return (
                               <button data-hover="layer" key={s.value} onMouseDown={e => { e.stopPropagation(); setCellImageSize(key, s.value) }}
                                 style={{ padding: '1px 6px', borderRadius: 5, border: `1px solid ${active ? accent : 'var(--color-border-strong)'}`, background: active ? accentBg : 'var(--color-bg-3)', color: active ? accent : 'var(--color-text-2)', cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.4 }}>
-                                {s.label}
+                                <OpticalText as="iskra-button-label">{s.label}</OpticalText>
                               </button>
                             )
                           })}
@@ -301,22 +302,22 @@ export default function TableEditor({ value, onChange, accent, accentBg, allowEm
                           onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setActiveCell(key) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >{t('Текст')}</button>
+                        ><OpticalText as="iskra-button-label">{t('Текст')}</OpticalText></button>
                         <button data-hover="layer"
                           onMouseDown={e => { e.stopPropagation(); setEmpty(key, true) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >{t('Вписать')}</button>
+                        ><OpticalText as="iskra-button-label">{t('Вписать')}</OpticalText></button>
                         <button data-hover="layer"
                           onMouseDown={e => { e.stopPropagation(); setBlank(key, true) }}
                           onClick={e => e.stopPropagation()}
                           style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                        >{t('Пусто')}</button>
+                        ><OpticalText as="iskra-button-label">{t('Пусто')}</OpticalText></button>
                         {allowCellImages && (
                           <button data-hover="layer"
                             onClick={e => { e.stopPropagation(); pickCellImage(key) }}
                             style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-3)', color: 'var(--color-text-3)', cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1.2 }}
-                          ><Camera size={12} /> {t('Фото')}</button>
+                          ><Camera size={12} /> <OpticalText as="iskra-button-label">{t('Фото')}</OpticalText></button>
                         )}
                       </div>
                     ) : (

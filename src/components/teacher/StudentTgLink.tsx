@@ -1,6 +1,7 @@
 // Карточка ученика → «Напоминания в Telegram»: подключить бота одноразовой
 // ссылкой, увидеть, кем подключён, отвязать. Видно только с функцией
 // reminders (без неё блока нет вовсе).
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Send, Copy, Check } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -92,8 +93,8 @@ function StudentTgLinkInner({ studentId }: { studentId: string }) {
           <div style={{ fontSize: 12, lineHeight: 1.35, color: 'var(--color-text-3)', marginTop: 2 }}>{sub}</div>
         </div>
         {linked
-          ? <button type="button" data-hover="layer" disabled={busy} onClick={unlink} style={btn('S', 'secondary', { opacity: busy ? 0.6 : 1 })}>{t('Отключить')}</button>
-          : !url && <button type="button" disabled={busy} onClick={makeLink} style={btn('S', 'primary', { opacity: busy ? 0.6 : 1 })}>{status.blocked ? t('Новая ссылка') : t('Подключить')}</button>}
+          ? <button type="button" data-hover="layer" disabled={busy} onClick={unlink} style={btn('S', 'secondary', { opacity: busy ? 0.6 : 1 })}><OpticalText as="iskra-button-label">{t('Отключить')}</OpticalText></button>
+          : !url && <button type="button" disabled={busy} onClick={makeLink} style={btn('S', 'primary', { opacity: busy ? 0.6 : 1 })}><OpticalText as="iskra-button-label">{status.blocked ? t('Новая ссылка') : t('Подключить')}</OpticalText></button>}
       </div>
       {url && !linked && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -105,7 +106,7 @@ function StudentTgLinkInner({ studentId }: { studentId: string }) {
             <span style={{ ...textFadeLines(1), minWidth: 0 }}>{url}</span>
           </div>
           <button type="button" onClick={copy} style={btn('S', copied ? 'secondary' : 'primary', { flexShrink: 0 })}>
-            {copied ? <Check size={14} /> : <Copy size={14} />}{copied ? t('Скопировано') : t('Скопировать')}
+            {copied ? <Check size={14} /> : <Copy size={14} />}<OpticalText as="iskra-button-label">{copied ? t('Скопировано') : t('Скопировать')}</OpticalText>
           </button>
         </div>
       )}

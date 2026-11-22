@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { textFadeStyle } from '../../../lib/textFades'
 import { SubjectMark } from '../../icons/SubjectMark'
 import { useEffect, useMemo, useState } from 'react'
@@ -81,7 +82,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
   const cta = picked === 'custom' ? t('Добавить') : movesFromOtherDay ? t('Перенести сюда') : t('Поставить сюда')
 
   const footer = (
-    <button data-hover="layer" onClick={submit} style={btn('L', 'primary', canSubmit ? undefined : { opacity: 0.5, pointerEvents: 'none' })}>{cta}</button>
+    <button data-hover="layer" onClick={submit} style={btn('L', 'primary', canSubmit ? undefined : { opacity: 0.5, pointerEvents: 'none' })}><OpticalText as="iskra-button-label">{cta}</OpticalText></button>
   )
 
   return (
@@ -150,7 +151,7 @@ export default function QuickAddLesson({ day, onClose, onMove, onAdd }: {
                       color: 'var(--color-text-2)', fontSize: 14, fontWeight: 600,
                     }}
                   >
-                    <Pencil size={15} /> {t('Своё название…')}
+                    <Pencil size={15} /> <OpticalText as="iskra-button-label">{t('Своё название…')}</OpticalText>
                   </button>
                 </>
               )}

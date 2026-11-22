@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
@@ -246,15 +247,15 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           <button data-hover="layer" onClick={() => fileRef.current?.click()} style={btn('M', 'secondary')}>
-            <ImageIcon size={16} /> {t('Фото')}
+            <ImageIcon size={16} /> <OpticalText as="iskra-button-label">{t('Фото')}</OpticalText>
           </button>
           <button data-hover="layer" onClick={() => setShowBoard(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: `1px solid ${showBoard || board ? palette.accent : 'var(--color-border-medium)'}`, background: showBoard || board ? palette.soft : 'var(--color-bg-2)', color: showBoard || board ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <PenLine size={16} /> {board ? t('Доска ✓') : t('Доска')}
+            <PenLine size={16} /> <OpticalText as="iskra-button-label">{board ? t('Доска ✓') : t('Доска')}</OpticalText>
           </button>
         </div>
         <motion.button whileHover={{ y: has && !busy ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!has || busy} onClick={() => onSubmit({ answer: draft, photos, board, voice })}
           style={{ padding: '12px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <Send size={16} /> {busy ? t('Отправляю…') : t('Отправить решение')}
+          <Send size={16} /> <OpticalText as="iskra-button-label">{busy ? t('Отправляю…') : t('Отправить решение')}</OpticalText>
         </motion.button>
       </div>
     </div>
@@ -308,7 +309,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAn
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
             <Label>{t('Разметка поверх решения')}</Label>
             <button type="button" data-hover="layer" onClick={() => setAnnotating(true)} style={btn('S', 'secondary')}>
-              <PenLine size={14} /> {t('Разметить')}
+              <PenLine size={14} /> <OpticalText as="iskra-button-label">{t('Разметить')}</OpticalText>
             </button>
           </div>
           <div ref={solutionContent}>
@@ -319,7 +320,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAn
           {annotating && (
             <Modal title={t('Разметка поверх решения')} width={(solutionContent.current?.clientWidth ?? 720) + 34}
               padding={16} onClose={() => setAnnotating(false)}
-              footer={<button type="button" data-hover="layer" onClick={() => setAnnotating(false)} style={btn('M', 'primary')}><Check size={16} /> {t('Готово')}</button>}>
+              footer={<button type="button" data-hover="layer" onClick={() => setAnnotating(false)} style={btn('M', 'primary')}><Check size={16} /> <OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>}>
               <AnnotationLayer active value={annotation} onChange={setAnnotation}>
                 <AnswerBody comment={solution.answer} photos={solution.photos} board={solution.board} photosClickable={false} />
               </AnnotationLayer>
@@ -350,10 +351,10 @@ function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAn
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
         <div style={{ display: 'flex', gap: 8 }}>
           <button data-hover="layer" onClick={() => fileRef.current?.click()} style={{ ...btn('M', 'secondary'), flex: 1 }}>
-            <ImageIcon size={14} /> {t('Фото')}
+            <ImageIcon size={14} /> <OpticalText as="iskra-button-label">{t('Фото')}</OpticalText>
           </button>
           <button data-hover="layer" onClick={() => setShowBoard(v => !v)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', borderRadius: 12, border: `1px solid ${showBoard || board ? 'var(--color-accent)' : 'var(--color-border-medium)'}`, background: showBoard || board ? 'var(--color-purple-soft)' : 'var(--color-bg-2)', color: showBoard || board ? 'var(--color-accent)' : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <PenLine size={14} /> {board ? t('Доска ✓') : t('Доска')}
+            <PenLine size={14} /> <OpticalText as="iskra-button-label">{board ? t('Доска ✓') : t('Доска')}</OpticalText>
           </button>
         </div>
         {photoError && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-peach-text)', marginTop: 8 }}>{photoError}</div>}
@@ -374,7 +375,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAn
         <Label>{t('Оценка при принятии')}</Label>
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
           {[1, 2, 3, 4, 5].map(n => (
-            <button data-hover="layer" key={n} onClick={() => setScore(n)} style={{ width: 34, height: 34, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, border: `1px solid ${score === n ? 'transparent' : 'var(--color-border-medium)'}`, background: score === n ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: score === n ? 'var(--color-green-text)' : 'var(--color-text)' }}>{n}</button>
+            <button data-hover="layer" key={n} onClick={() => setScore(n)} style={{ width: 34, height: 34, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, border: `1px solid ${score === n ? 'transparent' : 'var(--color-border-medium)'}`, background: score === n ? 'var(--color-green-soft)' : 'var(--color-bg-2)', color: score === n ? 'var(--color-green-text)' : 'var(--color-text)' }}><OpticalText as="iskra-button-label">{n}</OpticalText></button>
           ))}
         </div>
       </div>
@@ -386,7 +387,7 @@ function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAn
         </motion.button>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('returned')} disabled={busy}
           style={{ ...btn('M', 'secondary'), opacity: busy ? 0.6 : 1 }}>
-          <RotateCcw size={14} /> {t('На доработку')}
+          <RotateCcw size={14} /> <OpticalText as="iskra-button-label">{t('На доработку')}</OpticalText>
         </motion.button>
       </div>
     </div>

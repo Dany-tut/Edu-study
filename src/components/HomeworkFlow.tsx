@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { HomeworkFacts } from './HomeworkFacts'
 import { textFadeStyle } from '../lib/textFades'
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
@@ -254,7 +255,7 @@ function EmojiSlider({ value, onChange }: { value: number | null; onChange: (v: 
             opacity: value != null && Math.abs(i - value) > 1 ? 0.3 : 1,
             padding: '2px 4px',
           }}>
-            {s.emoji}
+            <OpticalText as="iskra-button-label">{s.emoji}</OpticalText>
           </button>
         ))}
       </div>
@@ -645,7 +646,7 @@ function ResultModal({
                   cursor: 'pointer',
                 }}
               >
-                {t('Позже')}
+                <OpticalText as="iskra-button-label">{t('Позже')}</OpticalText>
               </motion.button>
               <motion.button
                 whileHover={{ y: -1 }}
@@ -684,7 +685,7 @@ function ResultModal({
                 boxShadow: '0 12px 32px rgba(var(--accent-rgb), 0.32)',
               }}
             >
-              {t('Продолжить')}
+              <OpticalText as="iskra-button-label">{t('Продолжить')}</OpticalText>
             </motion.button>
           )}
         </div>
@@ -1443,7 +1444,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
               color: 'var(--color-accent)',
             }}
           >
-            {t('Записать')}
+            <OpticalText as="iskra-button-label">{t('Записать')}</OpticalText>
           </button>
         )}
       </div>
@@ -1460,7 +1461,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
       style={btn('S', 'secondary')}
     >
       <Volume2 size={14} />
-      {t('Послушать эталон')}
+      <OpticalText as="iskra-button-label">{t('Послушать эталон')}</OpticalText>
     </button>
   )
 
@@ -1508,7 +1509,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
             }}
           >
             <Mic size={14} />
-            {t('Ещё раз')}
+            <OpticalText as="iskra-button-label">{t('Ещё раз')}</OpticalText>
           </button>
         )}
 
@@ -1523,7 +1524,7 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
             style={btn('S', 'secondary')}
           >
             <MicOff size={14} />
-            {t('Не могу записать сейчас')}
+            <OpticalText as="iskra-button-label">{t('Не могу записать сейчас')}</OpticalText>
           </button>
         )}
       </div>
@@ -3514,7 +3515,7 @@ export default function HomeworkFlow({
                       }}
                     >
                       <Send size={16} />
-                      {t('Сдать домашку')}
+                      <OpticalText as="iskra-button-label">{t('Сдать домашку')}</OpticalText>
                     </motion.button>
                   </div>
                 </div>
@@ -4248,7 +4249,7 @@ export default function HomeworkFlow({
                                   : active ? 'var(--color-purple-soft)' : 'var(--color-bg-input)',
                               }}
                             >
-                              {text}
+                              <OpticalText as="iskra-button-label">{text}</OpticalText>
                             </button>
                           )
                         })}
@@ -4532,7 +4533,7 @@ export default function HomeworkFlow({
                             }}
                           >
                             <CheckCircle2 size={16} />
-                            {t('Проверить')}
+                            <OpticalText as="iskra-button-label">{t('Проверить')}</OpticalText>
                           </motion.button>
                         )}
                         {canHint && (
@@ -4542,7 +4543,7 @@ export default function HomeworkFlow({
                             style={btn('M', 'secondary')}
                           >
                             <Eye size={14} />
-                            {t('Подсказка')}
+                            <OpticalText as="iskra-button-label">{t('Подсказка')}</OpticalText>
                           </button>
                         )}
                       </div>
@@ -5185,7 +5186,7 @@ function BottomProgressBar({
                         : '0 2px 10px rgba(var(--accent-rgb), 0.35)',
                   }}
                 >
-                  {active + 1}
+                  <OpticalText as="iskra-button-label">{active + 1}</OpticalText>
                 </button>
               )
             }

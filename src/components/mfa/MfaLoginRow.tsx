@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useT } from '../../lib/i18n'
@@ -94,7 +95,7 @@ export default function MfaLoginRow() {
         </div>
         : <button data-hover="layer" type="button" disabled={factorId === undefined} onClick={() => setSetupOpen(true)}
           style={{ ...pill, width: 124, padding: '0 10px', border: 0, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)', cursor: 'pointer', opacity: factorId === undefined ? 0.55 : 1 }}>
-          {factorId === undefined ? t('Загрузка...') : t('Включить')}
+          <OpticalText as="iskra-button-label">{factorId === undefined ? t('Загрузка...') : t('Включить')}</OpticalText>
         </button>}
     </div>
     {error && <div style={{ marginTop: 8 }}><Alert tone="danger" text={t(error)} /></div>}

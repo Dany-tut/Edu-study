@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { viewportDropdownPosition, watchDropdownViewport } from '../../lib/dropdownPosition'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -331,7 +332,7 @@ export default function TeacherSelect({
                       background: 'transparent', color: accent, transition: 'background 0.15s',
                     }}
                   >
-                    <Plus size={small ? 12 : 14} strokeWidth={2.5} /> {t('Добавить')}
+                    <Plus size={small ? 12 : 14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Добавить')}</OpticalText>
                   </button>
                 )
               )}

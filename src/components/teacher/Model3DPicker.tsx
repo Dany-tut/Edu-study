@@ -9,6 +9,7 @@
 // Предмет курса стоит первым и выбран по умолчанию; «Все» показывает
 // остальное — клетка нужна и в химии белка, атом — в физике.
 // ─────────────────────────────────────────────────────────────────────────────
+import OpticalText from '../OpticalText'
 import { useMemo, useState } from 'react'
 import Modal from '../Modal'
 import Model3DFigure from '../Model3DFigure'
@@ -61,7 +62,7 @@ export default function Model3DPicker({ courseSubject, current, onPick, onClose 
         color: filter === id ? '#786AD7' : 'var(--color-text)',
       }}
     >
-      {text}
+      <OpticalText as="iskra-button-label">{text}</OpticalText>
     </button>
   )
 
@@ -75,11 +76,11 @@ export default function Model3DPicker({ courseSubject, current, onPick, onClose 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button type="button" data-hover="layer" onClick={onClose}
             style={{ padding: '9px 16px', borderRadius: 12, border: '1px solid var(--color-border-medium)', background: 'transparent', color: 'var(--color-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            {t('Отмена')}
+            <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
           </button>
           <button type="button" data-hover="layer" onClick={() => onPick(selected)}
             style={{ padding: '9px 16px', borderRadius: 12, border: 'none', background: '#786AD7', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            {current ? t('Заменить') : t('Вставить')}
+            <OpticalText as="iskra-button-label">{current ? t('Заменить') : t('Вставить')}</OpticalText>
           </button>
         </div>
       )}

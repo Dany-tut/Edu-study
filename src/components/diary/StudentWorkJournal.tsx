@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChevronRight, RefreshCw } from '../icons/appIcons'
 import Modal from '../Modal'
@@ -61,7 +62,7 @@ function JournalDetails({ work, historyError, historyPending, onClose, onOpen }:
     subtitle={`${diaryWorkLabel(work.entry)}${work.hard ? ` · ${t('Развёрнутые задания')}` : ''}`}
     width={720} onClose={onClose}
     footer={<button data-hover="layer" type="button" className="swj-open-work" onClick={onOpen}>
-      {t('Открыть работу')}<ChevronRight size={16} />
+      <OpticalText as="iskra-button-label">{t('Открыть работу')}</OpticalText><ChevronRight size={16} />
     </button>}>
     <div ref={content} className="swj-details">
       <div className="swj-detail-summary">
@@ -162,7 +163,7 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
     </section>)}</div>
     {history.error ? <div className="swj-history-warning" role="status">
       <span>{t('Не удалось обновить историю попыток. Текущие результаты доступны.')}</span>
-      <button type="button" className="ds-secondary" onClick={history.reload}><RefreshCw size={15} />{t('Повторить')}</button>
+      <button type="button" className="ds-secondary" onClick={history.reload}><RefreshCw size={15} /><OpticalText as="iskra-button-label">{t('Повторить')}</OpticalText></button>
     </div> : null}
     <div ref={filtersRef} className="swj-filters no-scrollbar" role="group" aria-label={t('Фильтр журнала работ')}>
       {([

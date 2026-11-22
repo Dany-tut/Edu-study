@@ -10,6 +10,7 @@
 // Окно ничего не пишет само — только зовёт onOverwrite / onReload у редактора.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../OpticalText'
 import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -169,7 +170,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
 
         <footer className="flex items-center flex-shrink-0" style={{ gap: 10, padding: '14px 22px', borderTop: '1px solid var(--color-border-soft)' }}>
           <button data-hover="layer" onClick={onReload} className="cursor-pointer flex items-center" style={{ ...btn('M', 'secondary'), gap: 8 }}>
-            <RotateCcw size={14} /> {t('Взять из базы')}
+            <RotateCcw size={14} /> <OpticalText as="iskra-button-label">{t('Взять из базы')}</OpticalText>
           </button>
           <button data-hover="layer"
             onClick={onOverwrite}
@@ -179,7 +180,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
               background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
-            <Save size={14} /> {t('Оставить моё')}
+            <Save size={14} /> <OpticalText as="iskra-button-label">{t('Оставить моё')}</OpticalText>
           </button>
         </footer>
       </motion.div>

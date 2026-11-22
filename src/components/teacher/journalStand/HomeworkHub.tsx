@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Modal from '../../Modal'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -85,10 +86,10 @@ export function HomeworkTasks({ queue, groups, onQueue }: {
       {queue.length ? <>
         <div className="jh-task"><span className="jh-count">{queue.length}</span><div><h3>Проверить домашки</h3>
           <p>{queue.length} {countLabel(queue.length)} на проверке · все группы</p></div>
-          <button type="button" className="cj-button jh-review-button" onClick={() => onQueue()}>Проверить</button></div>
+          <button type="button" className="cj-button jh-review-button" onClick={() => onQueue()}><OpticalText as="iskra-button-label">Проверить</OpticalText></button></div>
         {byGroup.map(id => <div className="jh-task" key={id || 'direct'}><div><h3>{groups.find(g => g.id === id)?.name ?? 'Индивидуальные ученики'}</h3>
           <p>На проверке: {queue.filter(e => e.student.groupId === id).length}</p></div>
-          <button type="button" className="js-work-link" onClick={() => onQueue(id)}>Открыть журнал <ChevronRight size={14} /></button></div>)}
+          <button type="button" className="js-work-link" onClick={() => onQueue(id)}><OpticalText as="iskra-button-label">Открыть журнал</OpticalText> <ChevronRight size={14} /></button></div>)}
       </> : <div className="jh-empty"><Check size={22} /><h3>Домашки проверены</h3><p>Новые сдачи появятся здесь.</p></div>}
     </div>
   </section>
@@ -235,7 +236,7 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
               </div>{ai.grade?.comment && <div className="jh-ai-comment"><AiCommentDraft key={draftKey} comment={ai.grade.comment}
                 busy={busy || draft.comment.includes(ai.grade.comment)}
                 onUse={() => updateDraft({comment: draft.comment.trim() ? draft.comment + '\n\n' + ai.grade!.comment : ai.grade!.comment})}/></div>}
-              {history}</div><div className="jh-inspector-actions">{error&&<p className="jh-error" role="alert">{error}</p>}<button ref={submitRef} type="submit" className="cj-button cj-primary" disabled={busy}>{busy?'Сохраняем…':'Завершить проверку'}</button><button type="button" className="cj-button" disabled={busy} onClick={()=>void save('returned')}>На доработку</button></div>
+              {history}</div><div className="jh-inspector-actions">{error&&<p className="jh-error" role="alert">{error}</p>}<button ref={submitRef} type="submit" className="cj-button cj-primary" disabled={busy}><OpticalText as="iskra-button-label">{busy?'Сохраняем…':'Завершить проверку'}</OpticalText></button><button type="button" className="cj-button" disabled={busy} onClick={()=>void save('returned')}><OpticalText as="iskra-button-label">На доработку</OpticalText></button></div>
             </form> : <>
               <div className="jh-inspector-heading"><h3>{(entry.work.attempts?.length??0)>1?'Лучший итог':'Результат работы'}</h3><p>{entry.work.source}</p></div><div className="jh-inspector-scroll" key={draftKey}>{aiSummary}<div className="jh-inspector-result"><div className={'jh-final-result '+(entry.work.status==='Зачтено'?'jh-result-passed':entry.work.status==='Ниже порога'?'jh-result-low':'')}><strong>{entry.work.score===null||['На доработке','Пересдача'].includes(entry.work.status)?'—':entry.work.score}<small>{entry.work.score!==null&&!['На доработке','Пересдача'].includes(entry.work.status)?'%':''}</small></strong><span>{entry.work.status}</span></div>
                 {payload && <div className="jh-score-context">{entry.work.source!=='Тестли'&&autoPercent!==null&&<span>Автопроверка <b>{autoPercent}%</b></span>}<span>Порог зачёта <b>{entry.work.threshold}%</b></span></div>}
@@ -246,7 +247,7 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
           </aside>
         </> : <p className="jh-empty">Работа больше не доступна. Закройте окно и обновите журнал.</p>}
       </div>
-      <footer className="jh-review-footer"><div>{target.keys.length===1&&allAssignment.length>1?<button data-hover="layer" type="button" className="jh-footer-link" disabled={busy} onClick={showAll}>Все работы по этой домашке <ChevronRight size={14}/></button>:<span>{group?.name??'Все группы'} · {stack.length} {'учеников'}</span>}</div>
+      <footer className="jh-review-footer"><div>{target.keys.length===1&&allAssignment.length>1?<button data-hover="layer" type="button" className="jh-footer-link" disabled={busy} onClick={showAll}><OpticalText as="iskra-button-label">Все работы по этой домашке</OpticalText> <ChevronRight size={14}/></button>:<span>{group?.name??'Все группы'} · {stack.length} {'учеников'}</span>}</div>
         {stack.length>1&&<div className="jh-review-pager"><button data-hover="layer" type="button" aria-label="Предыдущая работа" disabled={busy||at<=0} onClick={()=>setTarget({...target,selected:stack[at-1].key})}><ArrowLeft size={15}/></button><span>{at+1} / {stack.length}</span><button data-hover="layer" type="button" aria-label="Следующая работа" disabled={busy||at>=stack.length-1} onClick={()=>setTarget({...target,selected:stack[at+1].key})}><ArrowRight size={15}/></button></div>}
       </footer>
     </div>

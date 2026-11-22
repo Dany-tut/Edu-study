@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -207,7 +208,7 @@ function CalendarPicker({ value, onChange, onClose }: { value: string; onChange:
               onMouseEnter={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
               onMouseLeave={e => { if (!sel) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
-              {d.getDate()}
+              <OpticalText as="iskra-button-label">{d.getDate()}</OpticalText>
             </button>
           )
         })}
@@ -277,7 +278,7 @@ function TimePicker({ value, onChange, onClose }: { value: string; onChange: (v:
                   onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-3)' }}
                   onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                 >
-                  {t}
+                  <OpticalText as="iskra-button-label">{t}</OpticalText>
                 </button>
               )
             })}
@@ -666,7 +667,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                       transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
                     }}
                   >
-                    {t(tt.label)}
+                    <OpticalText as="iskra-button-label">{t(tt.label)}</OpticalText>
                   </button>
                 )
               })}
@@ -692,7 +693,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                   }}
                 >
-                  {date}
+                  <OpticalText as="iskra-button-label">{date}</OpticalText>
                 </button>
                 <AnimatePresence>
                   {showCalendar && (
@@ -720,7 +721,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                     cursor: 'pointer', textAlign: 'left', width: '100%',
                   }}
                 >
-                  {time}
+                  <OpticalText as="iskra-button-label">{time}</OpticalText>
                 </button>
                 <AnimatePresence>
                   {showTimePicker && (
@@ -763,7 +764,7 @@ export default function CreateTaskModal({ onClose, onSave, initialTask }: Create
                 onClick={handleClose}
                 style={{ ...btn('M', 'secondary'), flex: 1 }}
               >
-                {t('Отмена')}
+                <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
               </button>
               <TeacherSaveButton
                 label={t('Сохранить')} savedLabel={t('Сохранено')}

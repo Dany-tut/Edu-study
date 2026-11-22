@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { ChevronDown } from '../icons/appIcons'
@@ -373,7 +374,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
                     color: i === tier ? accent : 'var(--color-muted)',
                   }}
                 >
-                  {l.level}
+                  <OpticalText as="iskra-button-label">{l.level}</OpticalText>
                 </button>
               ))}
             </div>
@@ -407,7 +408,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
                 display: 'inline-flex', alignItems: 'center', gap: 4,
               }}
             >
-              {t('Ещё')}<ChevronDown size={14} />
+              <OpticalText as="iskra-button-label">{t('Ещё')}</OpticalText><ChevronDown size={14} />
             </button>
           )}
 
@@ -424,7 +425,7 @@ export function FeedPost({ item, lang, accent, subjectId, variant = 'card', when
                 cursor: 'pointer', fontSize: 13, fontWeight: 600, color: accent,
               }}
             >
-              {ru ? t('Показать оригинал') : t('Показать перевод')}
+              <OpticalText as="iskra-button-label">{ru ? t('Показать оригинал') : t('Показать перевод')}</OpticalText>
             </button>
           )}
         </div>

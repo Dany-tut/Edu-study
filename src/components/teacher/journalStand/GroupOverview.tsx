@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Student } from '../../../data/teacherMockData'
@@ -349,7 +350,7 @@ export function StudentOverviewCard({
       }}
     >
       <Camera size={15} />
-      Вид для скрина
+      <OpticalText as="iskra-button-label">Вид для скрина</OpticalText>
     </button>
   )
   return (
@@ -369,7 +370,7 @@ export function StudentOverviewCard({
                 <div>
                   {onWork ? (
                     <button className="js-work-link" onClick={() => onWork(w)}>
-                      {w.slot.title}
+                      <OpticalText as="iskra-button-label">{w.slot.title}</OpticalText>
                       <ChevronRight size={13} />
                     </button>
                   ) : (
@@ -389,7 +390,7 @@ export function StudentOverviewCard({
         </details>
         {onProfile && (
           <button className="js-work-link jo-profile-link" onClick={onProfile}>
-            Профиль из групп <ArrowRight size={14} />
+            <OpticalText as="iskra-button-label">Профиль из групп</OpticalText> <ArrowRight size={14} />
           </button>
         )}
       </div>
@@ -404,7 +405,7 @@ export function StudentOverviewCard({
             <div className="jo-share-tools">
               <button autoFocus className="cj-button" onClick={() => dialog.current?.close()}>
                 <ArrowLeft size={15} />
-                Вернуться
+                <OpticalText as="iskra-button-label">Вернуться</OpticalText>
               </button>
             </div>
             <OverlayScrollArea className="jo-share-scroll" style={{flex:1}} showScrollbar={false}>
@@ -483,7 +484,7 @@ export default function GroupOverview({
       {chosen ? (
         <div className="jo-contents">
           <button className="cj-button jo-back" onClick={back}>
-            <ArrowLeft size={14} />К сводке
+            <ArrowLeft size={14} /><OpticalText as="iskra-button-label">К сводке</OpticalText>
           </button>
           <StudentOverviewCard
             {...chosen}

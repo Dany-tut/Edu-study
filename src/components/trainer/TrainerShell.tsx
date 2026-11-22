@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Скелет тренажёра: рейл слева, строка управления сверху, содержимое справа
@@ -850,7 +851,7 @@ export function RailCard({ icon, title, accent, children, action }: {
               fontFamily: 'inherit', fontSize: 12, fontWeight: 600, color: accent, padding: 0,
             }}
           >
-            {t(action.label)}
+            <OpticalText as="iskra-button-label">{t(action.label)}</OpticalText>
           </button>
         )}
       </div>
@@ -1259,7 +1260,7 @@ export function Toolbar({ children, count }: {
                   cursor: active === 0 ? 'default' : 'pointer', opacity: active === 0 ? 0.4 : 1,
                 }}
               >
-                {t('Сбросить')}
+                <OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText>
               </button>
               <button data-hover="layer"
                 onClick={close}
@@ -1271,7 +1272,7 @@ export function Toolbar({ children, count }: {
                   cursor: 'pointer',
                 }}
               >
-                {count == null ? t('Готово') : `${t('Показать')} ${count}`}
+                <OpticalText as="iskra-button-label">{count == null ? t('Готово') : `${t('Показать')} ${count}`}</OpticalText>
               </button>
             </div>
           }
@@ -2049,7 +2050,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
                     transition: 'background 0.15s',
                   }}
                 >
-                  {t('Сбросить')}
+                  <OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText>
                 </button>
               )}
             </motion.div>

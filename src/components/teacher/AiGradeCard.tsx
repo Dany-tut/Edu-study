@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { Minus as LoopUiMinus, X as LoopUiX } from '../icons/appIcons'
 /**
  * «ИИ предложил N баллов» на экране проверки ДЗ.
@@ -122,7 +123,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit, onRet
           color: 'var(--color-purple-text)', fontSize: 12, fontWeight: 700,
         }}
       >
-        {open ? t('Скрыть разбор по критериям') : t('Разбор по критериям')}
+        <OpticalText as="iskra-button-label">{open ? t('Скрыть разбор по критериям') : t('Разбор по критериям')}</OpticalText>
         <ChevronDown size={14} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
 
@@ -171,7 +172,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit, onRet
             }}
           >
             <Check size={16} strokeWidth={2.5} />
-            {t('Ок, отправить')}
+            <OpticalText as="iskra-button-label">{t('Ок, отправить')}</OpticalText>
           </motion.button>}
           <motion.button
             whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
@@ -184,7 +185,7 @@ export default function AiGradeCard({ grade, task, done, onAccept, onEdit, onRet
             }}
           >
             <PenLine size={15} />
-            {t('Править')}
+            <OpticalText as="iskra-button-label">{t('Править')}</OpticalText>
           </motion.button>
         </div>
       )}

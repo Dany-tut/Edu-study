@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type ReactNode } from 'react'
 import Modal from '../Modal'
 import MobileSheet from '../MobileSheet'
@@ -172,7 +173,7 @@ export default function JournalImport({ mobile = false, data, columns, students,
     <textarea className="ji-area" aria-label="Таблица из Excel или Google Таблиц" placeholder={mobile ? 'Нажмите и вставьте скопированную таблицу' : 'Нажмите здесь и вставьте ⌘V / Ctrl+V'}
       value={text} onPaste={onPaste} onChange={e => load(e.target.value)} rows={mobile ? 6 : 8} />
     <div className="ji-paste-actions">
-      <button type="button" className="cj-button" onClick={() => file.current?.click()}><Upload size={15} />Файл CSV</button>
+      <button type="button" className="cj-button" onClick={() => file.current?.click()}><Upload size={15} /><OpticalText as="iskra-button-label">Файл CSV</OpticalText></button>
       <input ref={file} type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" hidden onChange={e => void pickFile(e.target.files?.[0])} />
       {rows.length > 0 && <span className="cj-note">Строк: {body.length} · столбцов: {header.length - 1}</span>}
     </div>
@@ -236,12 +237,12 @@ export default function JournalImport({ mobile = false, data, columns, students,
 
   const busy = action.busy
   const footer = <div className="ji-footer">
-    {step !== 'paste' && !done && <button type="button" className="cj-button" disabled={busy} onClick={() => setStep(step === 'check' ? 'map' : 'paste')}>Назад</button>}
-    {step === 'paste' && <button type="button" className="cj-button cj-primary" disabled={!rows.length} onClick={() => setStep('map')}>Дальше · сопоставление</button>}
-    {step === 'map' && <button type="button" className="cj-button cj-primary" disabled={!studentMap.some(Boolean) || !columnMap.some(c => c.id)} onClick={() => setStep('check')}>Дальше · проверка</button>}
+    {step !== 'paste' && !done && <button type="button" className="cj-button" disabled={busy} onClick={() => setStep(step === 'check' ? 'map' : 'paste')}><OpticalText as="iskra-button-label">Назад</OpticalText></button>}
+    {step === 'paste' && <button type="button" className="cj-button cj-primary" disabled={!rows.length} onClick={() => setStep('map')}><OpticalText as="iskra-button-label">Дальше · сопоставление</OpticalText></button>}
+    {step === 'map' && <button type="button" className="cj-button cj-primary" disabled={!studentMap.some(Boolean) || !columnMap.some(c => c.id)} onClick={() => setStep('check')}><OpticalText as="iskra-button-label">Дальше · проверка</OpticalText></button>}
     {step === 'check' && (done
-      ? <button type="button" className="cj-button cj-primary" onClick={onClose}>Готово</button>
-      : <button type="button" className="cj-button cj-primary" disabled={busy || total === 0} onClick={apply}>{busy ? 'Переносим…' : `Перенести · ${total}`}</button>)}
+      ? <button type="button" className="cj-button cj-primary" onClick={onClose}><OpticalText as="iskra-button-label">Готово</OpticalText></button>
+      : <button type="button" className="cj-button cj-primary" disabled={busy || total === 0} onClick={apply}><OpticalText as="iskra-button-label">{busy ? 'Переносим…' : `Перенести · ${total}`}</OpticalText></button>)}
   </div>
   const content = <div className="course-journal ji">{!mobile && steps}{step === 'paste' ? pasteStep : step === 'map' ? mapStep : checkStep}</div>
   return mobile

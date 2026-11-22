@@ -9,6 +9,7 @@
 // её ссылкой #lead или событием:
 //   window.dispatchEvent(new CustomEvent('iskra:lead', { detail: { plan: 'Про · 990 ₽' } }))
 
+import OpticalText from '../../OpticalText'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLang, useT } from '../../../lib/i18n'
@@ -64,7 +65,7 @@ export default function FinalCtaSection() {
               onClick={() => setChooser(true)}
               className="inline-flex items-center justify-center whitespace-nowrap rounded-[14px] border border-[rgba(255,255,255,0.4)] px-7 py-4 text-[16px] font-semibold text-white transition-colors hover:bg-[rgba(255,255,255,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              {t('Войти в кабинет')}
+              <OpticalText as="iskra-button-label">{t('Войти в кабинет')}</OpticalText>
             </button>
           </div>
         </div>
@@ -230,7 +231,7 @@ function LeadModal({ presetPlan, onClose }: { presetPlan: string; onClose: () =>
             className="mt-1 inline-flex w-full items-center justify-center rounded-[14px] bg-gradient-to-r from-[#786bd6] to-[#6f3fbf] px-7 py-4 text-[16px] font-semibold text-white transition-[transform,opacity] hover:-translate-y-px active:translate-y-0 disabled:cursor-default disabled:opacity-70 disabled:hover:translate-y-0"
             style={{ filter: 'drop-shadow(0px 12px 15px rgba(120,107,214,0.45))' }}
           >
-            {sending ? t('Отправляем…') : t('Отправить заявку')}
+            <OpticalText as="iskra-button-label">{sending ? t('Отправляем…') : t('Отправить заявку')}</OpticalText>
           </button>
         </form>
       )}

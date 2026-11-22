@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Square, Play, Volume2, Repeat, Trash2, ChevronRight } from '../icons/appIcons'
@@ -271,7 +272,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           повторил — сравнил. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <button data-hover="layer" onClick={() => playModel()} style={btn(accent, phase === 'model')}>
-          <Volume2 size={16} /> {t('Образец')}
+          <Volume2 size={16} /> <OpticalText as="iskra-button-label">{t('Образец')}</OpticalText>
         </button>
 
         {phase === 'recording' ? (
@@ -280,7 +281,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           </button>
         ) : (
           <button data-hover="layer" onClick={() => void startRec()} style={btn('var(--color-red-text)', false)}>
-            <Mic size={16} /> {mine ? t('Ещё раз') : t('Повторить вслух')}
+            <Mic size={16} /> <OpticalText as="iskra-button-label">{mine ? t('Ещё раз') : t('Повторить вслух')}</OpticalText>
           </button>
         )}
 
@@ -289,7 +290,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
           disabled={!mine}
           style={{ ...btn('var(--color-text-2)', phase === 'mine'), opacity: mine ? 1 : 0.4, cursor: mine ? 'pointer' : 'default' }}
         >
-          <Play size={16} /> {t('Я')}
+          <Play size={16} /> <OpticalText as="iskra-button-label">{t('Я')}</OpticalText>
         </button>
 
         <button data-hover="layer"
@@ -303,7 +304,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
             cursor: mine ? 'pointer' : 'default',
           }}
         >
-          <Repeat size={16} /> {t('Сравнить')}
+          <Repeat size={16} /> <OpticalText as="iskra-button-label">{t('Сравнить')}</OpticalText>
         </button>
 
         <button data-hover="layer"
@@ -313,7 +314,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
             background: slow ? soft : 'var(--color-bg-2)',
           }}
         >
-          {t('Медленно')}
+          <OpticalText as="iskra-button-label">{t('Медленно')}</OpticalText>
         </button>
 
         {mine && (
@@ -345,7 +346,7 @@ export default function Shadowing({ lines, lang, accent, soft }: {
             opacity: at >= lines.length - 1 ? 0.4 : 1,
             cursor: at >= lines.length - 1 ? 'default' : 'pointer',
           }}>
-          {t('Дальше')} <ChevronRight size={16} />
+          <OpticalText as="iskra-button-label">{t('Дальше')}</OpticalText> <ChevronRight size={16} />
         </button>
       </div>
 

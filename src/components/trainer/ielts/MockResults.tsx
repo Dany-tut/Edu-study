@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { ArrowRight as LoopUiArrowRight } from '../../icons/appIcons'
 // ─────────────────────────────────────────────────────────────────────────────
 // Результат пробника IELTS: баллы по секциям, итог и разбор
@@ -264,7 +265,7 @@ function GradeBlock({ title, grade, error, pending, onRetry, answer, accent }: {
             {error ? t(error) : t('Оценки ещё нет')}
           </span>
           <button data-hover="layer" type="button" onClick={onRetry} style={outlineBtn(accent)}>
-            <RotateCcw size={14} /> {t('Оценить')}
+            <RotateCcw size={14} /> <OpticalText as="iskra-button-label">{t('Оценить')}</OpticalText>
           </button>
         </div>
       )}
@@ -392,7 +393,7 @@ function LexisList({ lexis, accent }: { lexis: NonNullable<Grade['lexis']>; acce
         <button data-hover="layer" type="button" onClick={save} disabled={state === 'saving' || state === 'done'} style={{
           ...outlineBtn(accent), opacity: state === 'saving' || state === 'done' ? 0.6 : 1,
         }}>
-          <Layers size={14} /> {t('В карточки')}
+          <Layers size={14} /> <OpticalText as="iskra-button-label">{t('В карточки')}</OpticalText>
         </button>
         <span style={{ fontSize: 13, color: state === 'fail' ? 'var(--color-red-text)' : 'var(--color-text-2)' }}>
           {state === 'done' ? t('Добавлено — слова придут в повторение')
@@ -421,7 +422,7 @@ function Transcript({ lines }: { lines: string[] }) {
         border: 'none', background: 'transparent', padding: 0, color: 'var(--color-text-2)', fontWeight: 700,
         fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline',
       }}>
-        {open ? t('Скрыть текст записи') : t('Текст записи')}
+        <OpticalText as="iskra-button-label">{open ? t('Скрыть текст записи') : t('Текст записи')}</OpticalText>
       </button>
       {open && (
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-2)' }}>

@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../../lib/supabase'
@@ -116,16 +117,16 @@ export default function ClaudeAccessCard() {
     <p>{t('Скопируйте адрес Искры и вставьте его в поле MCP server URL в Claude. Форма также доступна в Customize → Connectors → Add custom connector.')}</p>
     <code>{endpoint}</code>
     <div className="claude-access-actions">
-      <button type="button" className="integration-action" disabled={acting} onClick={copy}><Copy size={15}/>{t('Скопировать адрес')}</button>
+      <button type="button" className="integration-action" disabled={acting} onClick={copy}><Copy size={15}/><OpticalText as="iskra-button-label">{t('Скопировать адрес')}</OpticalText></button>
       <a href="https://claude.ai/customize/connectors/yours?modal=add-custom-connector" target="_blank" rel="noopener noreferrer"
         className="integration-action"><ExternalLink size={15}/>{t('Открыть Claude')}</a>
-      <button type="button" className="integration-action" disabled={acting || status === 'loading'} onClick={() => { setNotice(''); void refresh() }}>{t('Обновить статус')}</button>
+      <button type="button" className="integration-action" disabled={acting || status === 'loading'} onClick={() => { setNotice(''); void refresh() }}><OpticalText as="iskra-button-label">{t('Обновить статус')}</OpticalText></button>
     </div>
     <div><strong>{t('Подключённые приложения')}</strong>
       <p role="status">{status === 'loading' ? t('Проверяем подключение…') : status === 'error' ? t('Не удалось проверить разрешения приложений.') : grants.length ? t('Приложения с доступом к вашему аккаунту') : t('Доступ не выдан')}</p>
     </div>
     {status === 'ready' && grants.map(grant => <div className="claude-access-grant" key={grant.client.id}>
-      <span>{grant.client.name}<br/><code>{grant.client.id}</code></span><button type="button" disabled={acting} onClick={() => void revoke(grant)} className="integration-action integration-disconnect">{t('Отозвать доступ')}</button>
+      <span>{grant.client.name}<br/><code>{grant.client.id}</code></span><button type="button" disabled={acting} onClick={() => void revoke(grant)} className="integration-action integration-disconnect"><OpticalText as="iskra-button-label">{t('Отозвать доступ')}</OpticalText></button>
     </div>)}
     {notice && <div role="status"><Alert tone={notice.startsWith('Не удалось')?'danger':'info'} text={t(notice)}/></div>}
   </section>

@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { ArrowRight } from './icons/appIcons'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
@@ -420,7 +421,7 @@ export function FeedGesturesSettings() {
             fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)',
           }}
         >
-          {t('Сбросить')}
+          <OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText>
         </motion.button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
 import { RecapSummary, SelfCheck } from '../components/LessonRecapBlocks'
 import MarqueeText from '../components/MarqueeText'
@@ -857,7 +858,7 @@ export default function LessonPage() {
           onClick={closeLesson}
           style={{ marginTop: 12, padding: '8px 18px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--color-text)', color: '#fff', fontSize: 13, fontWeight: 600 }}
         >
-          {t('Назад')}
+          <OpticalText as="iskra-button-label">{t('Назад')}</OpticalText>
         </button>
       </div>
     )
@@ -1114,7 +1115,7 @@ export default function LessonPage() {
                 </span>
                 <button data-hover="layer" type="button" onClick={() => persistWatch(watch)}
                   style={{ flex: '0 0 auto', minHeight: 44, whiteSpace: 'nowrap' }}>
-                  {t('Повторить')}
+                  <OpticalText as="iskra-button-label">{t('Повторить')}</OpticalText>
                 </button>
               </div>
             )}
@@ -1175,7 +1176,7 @@ export default function LessonPage() {
               }}
             >
               <ALargeSmall size={16} />
-              {t('Крупный текст')}
+              <OpticalText as="iskra-button-label">{t('Крупный текст')}</OpticalText>
             </button>
           </div>
           {notes.map(p => p.image ? (

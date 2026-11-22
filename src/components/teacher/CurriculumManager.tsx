@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { confirmDialog } from '../ConfirmHost'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -105,7 +106,7 @@ function AddInline({ onAdd, placeholder, accent }: { onAdd: (v: string) => void;
     return (
       <button data-hover="layer" onClick={() => { setOpen(true); setTimeout(() => ref.current?.focus(), 20) }}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-        <Plus size={14} strokeWidth={2.5} /> {placeholder}
+        <Plus size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{placeholder}</OpticalText>
       </button>
     )
   }
@@ -278,7 +279,7 @@ function SectionCard({ subject, section, accent, accentBg, partFilter }: {
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                   <button data-hover="layer" onClick={() => addLine(subject, section, partFilter === 2 ? 2 : 1)}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: `1px dashed ${accent}66`, background: 'transparent', color: accent, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    <Plus size={14} strokeWidth={2.5} /> {t('Добавить линию')}
+                    <Plus size={14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Добавить линию')}</OpticalText>
                   </button>
                 </div>
               </div>
@@ -362,7 +363,7 @@ export default function CurriculumManager() {
           <button data-hover="layer" onClick={() => { void confirmDialog({ title: t('Вернуть стандартную структуру ЕГЭ?'), message: t('Ваши правки структуры этого предмета будут потеряны.'), confirmLabel: t('Вернуть'), tone: 'danger' }).then(ok => { if (ok) resetSubject(subject) }) }}
             title={t('Сбросить к стандарту ЕГЭ')}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--color-border-medium)', cursor: 'pointer', background: 'rgba(var(--glass-rgb),0.9)', color: 'var(--color-muted)', fontSize: 13, fontWeight: 600, fontFamily: 'inherit' }}>
-            <RotateCcw size={14} /> {t('Сбросить')}
+            <RotateCcw size={14} /> <OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText>
           </button>
         </div>
       </div>
@@ -378,7 +379,7 @@ export default function CurriculumManager() {
               style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                 background: partFilter === p ? 'var(--color-surface)' : 'transparent', color: partFilter === p ? 'var(--color-text)' : 'var(--color-muted)',
                 boxShadow: partFilter === p ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>
-              {l}
+              <OpticalText as="iskra-button-label">{l}</OpticalText>
             </button>
           ))}
         </div>

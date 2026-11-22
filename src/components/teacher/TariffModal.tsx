@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import MobileSheet from '../MobileSheet'
 import { useState } from 'react'
 import Modal from '../Modal'
@@ -103,7 +104,7 @@ export default function TariffModal({ currentName, currentMaxStudents, onClose, 
                           opacity: requesting !== null && requesting.code !== p.code ? 0.5 : 1,
                         }}
                       >
-                        {requesting?.code === p.code ? t('Отправляю…') : t('Выбрать')}
+                        <OpticalText as="iskra-button-label">{requesting?.code === p.code ? t('Отправляю…') : t('Выбрать')}</OpticalText>
                       </button>
                     )}
                   </div>

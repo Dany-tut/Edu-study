@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { SubjectMark } from './icons/SubjectMark'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -229,7 +230,7 @@ export default function SubjectColorPicker({
                   className="subject-color-pop__reset"
                 >
                   <RotateCcw size={14} strokeWidth={2} />
-                  {resetLabel}
+                  <OpticalText as="iskra-button-label">{resetLabel}</OpticalText>
                 </motion.button>
               )}
             </motion.div>

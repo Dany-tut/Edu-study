@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Clock, ExternalLink, ListChecks, Loader2, Play, RotateCcw } from './icons/appIcons'
 import { TESTLY_DONE_PREFIX, testlyAnswer, testlyDoneAt, testlyScoreOf, type TestlyRef, type TestlyScore } from '../data/taskTypes'
@@ -204,7 +205,7 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
             {doneAt === null && !disabled && !embedUrl && !sessionError && (
               <button data-hover="layer" type="button" onClick={() => void start()} disabled={opening} style={btn('var(--color-purple-soft)', 'var(--color-purple-text)')}>
                 {opening ? <Loader2 size={14} /> : <Play size={14} />}
-                {opening ? t('Открываем тест…') : started || opened ? t('Продолжить тест') : t('Начать тест')}
+                <OpticalText as="iskra-button-label">{opening ? t('Открываем тест…') : started || opened ? t('Продолжить тест') : t('Начать тест')}</OpticalText>
               </button>
             )}
             {doneAt !== null && score?.review && !pending && (
@@ -212,11 +213,11 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
                 ...btn('var(--color-purple-soft)', 'var(--color-purple-text)'), textDecoration: 'none', cursor: 'pointer',
               }}>{t('Открыть разбор')} <ExternalLink size={14} /></a>
             )}
-            {offline && <button data-hover="layer" type="button" onClick={() => void refresh()} style={{ ...btn('var(--color-bg-3)', 'var(--color-text)'), cursor: 'pointer' }}><RotateCcw size={14} />{t('Обновить статус')}</button>}
+            {offline && <button data-hover="layer" type="button" onClick={() => void refresh()} style={{ ...btn('var(--color-bg-3)', 'var(--color-text)'), cursor: 'pointer' }}><RotateCcw size={14} /><OpticalText as="iskra-button-label">{t('Обновить статус')}</OpticalText></button>}
             {started && attempt?.startedAt && side(`${t('Начат в')} ${fmt(attempt.startedAt, false)}`)}
             {doneAt && side(`${t('Сдан')} ${fmt(doneAt)}`)}
             {offline && opened && !embedUrl && doneAt === null && (
-              <button data-hover="layer" type="button" onClick={mark} disabled={disabled} style={btn('var(--btn-green-bg)', '#fff')}><Check size={14} /> {t('Я сдал тест')}</button>
+              <button data-hover="layer" type="button" onClick={mark} disabled={disabled} style={btn('var(--btn-green-bg)', '#fff')}><Check size={14} /> <OpticalText as="iskra-button-label">{t('Я сдал тест')}</OpticalText></button>
             )}
           </div>
         </div>

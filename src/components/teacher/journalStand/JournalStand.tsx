@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react'
 import ScrollFade from '../../ScrollFade'
 import { textFadeLines } from '../../../lib/textFades'
@@ -311,7 +312,7 @@ export function ProfileWorks({
                 <div>
                   {onWork ? (
                     <button className="js-work-link" onClick={() => onWork(w)}>
-                      {w.slot.title} <ChevronRight size={12} />
+                      <OpticalText as="iskra-button-label">{w.slot.title}</OpticalText> <ChevronRight size={12} />
                     </button>
                   ) : (
                     <strong>{w.slot.title}</strong>
@@ -515,13 +516,13 @@ export function Matrix(props: MatrixProps) {
         onClick={() => { const next = !props.transfer; props.onTransfer!(next); if (next) set({ tab: 'Посещаемость', workRef: '' }) }}>
         <RotateCcw size={15} /><span>Перенос прошлого</span></button>}
       workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
-        <button data-hover="layer" type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}>По ученикам</button>
-        <button data-hover="layer" type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}>По домашкам</button>
+        <button data-hover="layer" type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}><OpticalText as="iskra-button-label">По ученикам</OpticalText></button>
+        <button data-hover="layer" type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}><OpticalText as="iskra-button-label">По домашкам</OpticalText></button>
       </div>} /></div>
     {props.transfer && selected.tab === 'Посещаемость' && <TransferBanner actions={<>
       {props.onImport && <button type="button" className="cj-button" onClick={() => props.onImport!(
-        entries.map(e => e.student), props.slots.flatMap(s => s.lesson?.lesson ? [s.lesson] : []))}><ClipboardPaste size={15} />Вставить из таблицы</button>}
-      <button type="button" className="cj-button cj-primary" onClick={() => props.onTransfer?.(false)}>Готово</button>
+        entries.map(e => e.student), props.slots.flatMap(s => s.lesson?.lesson ? [s.lesson] : []))}><ClipboardPaste size={15} /><OpticalText as="iskra-button-label">Вставить из таблицы</OpticalText></button>}
+      <button type="button" className="cj-button cj-primary" onClick={() => props.onTransfer?.(false)}><OpticalText as="iskra-button-label">Готово</OpticalText></button>
     </>} />}
     {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && !props.transfer && <details className="js-pending-lessons">
       <summary><ChevronRight size={16} aria-hidden="true" />Незаполненная посещаемость · {props.pendingAttendance.length}</summary>
@@ -698,7 +699,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
             </colgroup>
             <thead><tr>
               <th scope="col" aria-colindex={1}><div className="js-head-slots"><span className="js-col-student">Ученик <small>{visible.length}</small></span>
-                {nearest && <button className="js-next-link" type="button" onClick={jumpToNearest}>К ближайшей работе <ChevronRight size={11}/></button>}
+                {nearest && <button className="js-next-link" type="button" onClick={jumpToNearest}><OpticalText as="iskra-button-label">К ближайшей работе</OpticalText> <ChevronRight size={11}/></button>}
               </div></th>
               {before.map((span, i) => <th key={"before-" + i} aria-hidden="true" className="js-grid-gutter" colSpan={span} />)}
               {mountedColumns.map(({ col, displayDate, source, hasHomework, upcoming }, i) => (
@@ -711,10 +712,10 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                   {withWork ? (onOpenAssignment
                     ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}><span className="js-work-title-text" style={WORK_TITLE_FADE}>{col.title}</span></button>
                     : <span className="js-col-title js-work-title-text" style={WORK_TITLE_FADE} title={col.title}>{col.title}</span>)
-                    : !withWork && onOpenAttendance && attendanceColumns.has(col.ref) ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(attendanceColumns.get(col.ref)!)}>{col.title}</button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
+                    : !withWork && onOpenAttendance && attendanceColumns.has(col.ref) ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(attendanceColumns.get(col.ref)!)}><OpticalText as="iskra-button-label">{col.title}</OpticalText></button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
                   {transfer && !withWork && (attendanceColumns.has(col.ref) || missingDate.has(col.ref)) && <div className="jt-head-actions">
                     {missingDate.has(col.ref) && onSetDate && <button type="button" className="jt-date-chip" data-hover="layer"
-                      onClick={() => onSetDate(col.lesson!, missingDate.get(col.ref)!)}><CalendarCheck size={13} />Указать дату</button>}
+                      onClick={() => onSetDate(col.lesson!, missingDate.get(col.ref)!)}><CalendarCheck size={13} /><OpticalText as="iskra-button-label">Указать дату</OpticalText></button>}
                     {attendanceColumns.has(col.ref) && onOpenAttendance && <TransferMenu label={'Столбец · ' + col.title}
                       caption={[col.title, shortDate(displayDate)].join(' · ')} items={[
                         { label: 'Все были на уроке', onSelect: () => onOpenAttendance(attendanceColumns.get(col.ref)!, 'present') },
@@ -932,7 +933,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
         }}/>
       : <div className="cj-empty" role={error ? 'alert' : 'status'}>
           {error ?? (loading ? 'Загрузка…' : 'Войдите в аккаунт преподавателя')}
-          {error && <button type="button" className="cj-button" onClick={reload}>Повторить загрузку</button>}
+          {error && <button type="button" className="cj-button" onClick={reload}><OpticalText as="iskra-button-label">Повторить загрузку</OpticalText></button>}
         </div>
   }
   // Roster forms use their own group/student queries. A slow or failed journal
@@ -962,7 +963,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
         <div className="cj-empty" role="status">
           {error ?? 'Войдите в аккаунт преподавателя'}{' '}
           <button className="cj-button" onClick={reload}>
-            Обновить
+            <OpticalText as="iskra-button-label">Обновить</OpticalText>
           </button>
         </div>
       )
@@ -1017,7 +1018,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
           {loading ? 'Загрузка…' : 'Ученик не найден'}{' '}
           <button className="cj-button" onClick={back}>
             <ArrowLeft size={14} />
-            Назад
+            <OpticalText as="iskra-button-label">Назад</OpticalText>
           </button>
         </div>
       )

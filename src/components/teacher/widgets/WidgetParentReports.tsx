@@ -1,5 +1,6 @@
 // Виджет «Отчёты родителям» (функция parent_report): сколько готово, какие
 // требуют решения, «Утвердить N». Нажатие на ученика — экран отчётов на нём.
+import OpticalText from '../../OpticalText'
 import { useEffect, useState } from 'react'
 import FadeText from '../../FadeText'
 import { OverlayScrollArea } from '../OverlayScroll'
@@ -88,7 +89,7 @@ export default function WidgetParentReports() {
         {failed && <span role="alert" style={{ fontSize: 12, color: 'var(--color-red-text)' }}>{t('Не удалось утвердить. Попробуйте ещё раз.')}</span>}
         {s.ready > 0 && (
           <button type="button" data-hover="layer" disabled={busy} onClick={() => void approve()} style={btn('M', 'primary', { width: '100%', flexShrink: 0, opacity: busy ? .5 : 1 })}>
-            <Check size={16} />{`${t('Утвердить')} ${s.ready}`}
+            <Check size={16} /><OpticalText as="iskra-button-label">{`${t('Утвердить')} ${s.ready}`}</OpticalText>
           </button>
         )}
       </>}

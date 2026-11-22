@@ -1,6 +1,7 @@
 // Фото профиля в интерфейсе: заливка кружка аватара и окно кадрирования.
 // Хранилище и ссылки — src/lib/avatarPhoto.ts.
 
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
@@ -240,7 +241,7 @@ export function AvatarCropModal({
             disabled={busy}
             style={{ ...btn('M', 'secondary'), flex: 1 }}
           >
-            {t('Отмена')}
+            <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
           </button>
           <button data-hover="layer"
             type="button"
@@ -253,7 +254,7 @@ export function AvatarCropModal({
               boxShadow: '0 3px 12px rgba(106,90,230,0.35)',
             }}
           >
-            {busy ? t('Загружаем…') : t('Готово')}
+            <OpticalText as="iskra-button-label">{busy ? t('Загружаем…') : t('Готово')}</OpticalText>
           </button>
         </div>
       </motion.div>

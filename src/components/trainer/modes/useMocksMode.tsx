@@ -11,6 +11,7 @@
 // экзамена, уровень по последним попыткам, план на сегодня, динамика.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import {
   ClipboardCheck, Headphones, BookOpen, PenLine, Mic, Play, Trash2, Shuffle, Target, CalendarDays,
@@ -158,7 +159,7 @@ export function useMocksMode({ lang, accent, soft, active }: {
         {/* Случайный — сначала непройденный: повтор уже решённого пробника
             измеряет память на ответы, а не уровень. */}
         <button data-hover="layer" type="button" onClick={() => start(freshMock(history, 'full'), 'full')} style={pillBtn(accent)}>
-          <Shuffle size={14} /> {t('Случайный непройденный')}
+          <Shuffle size={14} /> <OpticalText as="iskra-button-label">{t('Случайный непройденный')}</OpticalText>
         </button>
       </div>
 
@@ -354,9 +355,9 @@ function GoalCard({ goal, onGoal, level, accent, soft }: {
           cursor: 'pointer', fontFamily: 'inherit',
         }}>
           <CalendarDays size={14} />
-          {goal?.date
+          <OpticalText as="iskra-button-label">{goal?.date
             ? new Date(`${goal.date}T00:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
-            : t('Дата экзамена')}
+            : t('Дата экзамена')}</OpticalText>
         </button>
         {cal && (
           <MiniCalendar
@@ -426,7 +427,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
               height: 30, borderRadius: 8, border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: on ? 800 : 600,
               cursor: past ? 'default' : 'pointer', opacity: past ? 0.35 : 1,
               background: on ? accent : 'transparent', color: on ? '#fff' : 'var(--color-text)',
-            }}>{d}</button>
+            }}><OpticalText as="iskra-button-label">{d}</OpticalText></button>
           )
         })}
       </div>
@@ -434,7 +435,7 @@ function MiniCalendar({ value, accent, soft, onPick, onClear }: {
         <button data-hover="layer" type="button" onClick={onClear} style={{
           marginTop: 8, border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontSize: 12,
           fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-        }}>{t('Убрать дату')}</button>
+        }}><OpticalText as="iskra-button-label">{t('Убрать дату')}</OpticalText></button>
       )}
     </div>
   )

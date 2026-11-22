@@ -3,6 +3,7 @@
 // (see lib/reviewScheduler). Reusable: embed it on the student home, inside a homework step,
 // or a lesson "Повторение" block.
 
+import OpticalText from './OpticalText'
 import { AlertIcon } from './Alert'
 import { useEffect, useState } from 'react'
 import Skeleton from './Skeleton'
@@ -42,7 +43,7 @@ export default function ReviewSession({ owner, onDone }: {
         <AlertIcon tone="success" style={{ margin: '0 auto 10px' }} />
         <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', ...balancedWrap }}>{bindShortWords(t('На сегодня всё повторено'))}</div>
         {done > 0 && <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 4 }}>{t('Повторено карточек:')} {done}</div>}
-        {onDone && <button data-hover="layer" onClick={onDone} style={{ marginTop: 16, padding: '10px 20px', borderRadius: 12, border: 'none', background: ACC_FILL, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>{t('Готово')}</button>}
+        {onDone && <button data-hover="layer" onClick={onDone} style={{ marginTop: 16, padding: '10px 20px', borderRadius: 12, border: 'none', background: ACC_FILL, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>}
       </div>
     </Shell>
   )
@@ -101,7 +102,7 @@ export default function ReviewSession({ owner, onDone }: {
       <div style={{ marginTop: 16 }}>
         {!revealed ? (
           <button data-hover="layer" onClick={() => setRevealed(true)} style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: ACC_FILL, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <Check size={16} /> {t('Показать ответ')}
+            <Check size={16} /> <OpticalText as="iskra-button-label">{t('Показать ответ')}</OpticalText>
           </button>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
@@ -102,7 +103,7 @@ export default function MobileTeacherCalendar() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 40 }}>
         <GlassPill><CalendarDays size={16} /> {t('Календарь')}</GlassPill>
-        <button type="button" onClick={goToday} style={{ ...softPill, opacity: anchor === today && view !== 'month' ? .5 : 1 }}>{t('Сегодня')}</button>
+        <button type="button" onClick={goToday} style={{ ...softPill, opacity: anchor === today && view !== 'month' ? .5 : 1 }}><OpticalText as="iskra-button-label">{t('Сегодня')}</OpticalText></button>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <button type="button" aria-label={t('Назад')} onClick={() => shift(-1)} style={navBtn}><ChevronLeft size={20} /></button>
@@ -115,7 +116,7 @@ export default function MobileTeacherCalendar() {
           return <button key={s.id} type="button" onClick={() => { tactile(); setView(s.id) }} aria-pressed={on}
             style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
               background: on ? 'var(--color-purple)' : 'transparent', color: on ? '#fff' : 'var(--color-muted)',
-              boxShadow: on ? '0 2px 8px rgba(120,106,215,.3)' : 'none' }}>{t(s.label)}</button>
+              boxShadow: on ? '0 2px 8px rgba(120,106,215,.3)' : 'none' }}><OpticalText as="iskra-button-label">{t(s.label)}</OpticalText></button>
         })}
       </div>
     </div>
@@ -320,7 +321,7 @@ function MonthGrid({ anchor, today, locale, onPick }: { anchor: string; today: s
                 background: isToday ? 'var(--color-purple)' : 'var(--color-surface)', opacity: inMonth ? 1 : .4,
                 color: isToday ? '#fff' : 'var(--color-text)', fontSize: 15, fontWeight: isToday ? 700 : 500,
                 boxShadow: isToday ? 'none' : 'inset 0 0 0 1px var(--color-border-soft)' }}>
-              {Number(d.slice(-2))}
+              <OpticalText as="iskra-button-label">{Number(d.slice(-2))}</OpticalText>
             </button>
           )
         })}

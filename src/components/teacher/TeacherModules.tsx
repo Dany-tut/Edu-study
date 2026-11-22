@@ -1,6 +1,7 @@
 // Профиль → «Модули»: подключаемые продукты. Пока один — Тестли.
 // Подключение — кодом из Тестли (меню профиля → «Подключить к Искре»):
 // код меняет на ключ сервер (testly-bridge), в браузер ключ не попадает.
+import OpticalText from '../OpticalText'
 import { useEffect, useState } from 'react'
 import { Check, ClipboardPaste, ExternalLink, Loader2 } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -110,7 +111,7 @@ export default function TeacherModules({ showHeading = true, sheet = false }: { 
             </div>
             <div className="integration-actions">
               <a className="integration-action" href={`${TESTLY_SITE}/app`} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> {t('Открыть Тестли')}</a>
-              <button onClick={() => void disconnect()} disabled={busy} className="integration-action integration-disconnect">{t('Отключить')}</button>
+              <button onClick={() => void disconnect()} disabled={busy} className="integration-action integration-disconnect"><OpticalText as="iskra-button-label">{t('Отключить')}</OpticalText></button>
             </div>
           </>
         ) : (
@@ -140,7 +141,7 @@ export default function TeacherModules({ showHeading = true, sheet = false }: { 
                   border: 'none', background: 'var(--color-bg-3)', color: 'var(--color-text-2)',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  <ClipboardPaste size={13} /> {t('Вставить')}
+                  <ClipboardPaste size={13} /> <OpticalText as="iskra-button-label">{t('Вставить')}</OpticalText>
                 </button>
               </div>
               <button data-hover="layer" onClick={() => void connect()} disabled={busy || code.length < 6} style={{
@@ -149,7 +150,7 @@ export default function TeacherModules({ showHeading = true, sheet = false }: { 
                 display: 'flex', alignItems: 'center', gap: 6, opacity: busy || code.length < 6 ? 0.6 : 1,
               }}>
                 {busy && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                {t('Подключить')}
+                <OpticalText as="iskra-button-label">{t('Подключить')}</OpticalText>
               </button>
             </div>
             <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>

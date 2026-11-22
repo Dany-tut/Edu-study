@@ -10,6 +10,7 @@
 // диалоге и есть диктант, только с контекстом вокруг.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Play, Square, Volume2 } from './icons/appIcons'
 import { GAP_MARK, type DialogLine } from '../data/taskTypes'
@@ -136,7 +137,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
         }}
       >
         {playing ? <Square size={14} /> : <Play size={14} />}
-        {playing ? t('Остановить') : t('Прослушать диалог')}
+        <OpticalText as="iskra-button-label">{playing ? t('Остановить') : t('Прослушать диалог')}</OpticalText>
       </button>
 
       {/* Чат: реплики первого спикера слева, второго — справа. */}
@@ -205,7 +206,7 @@ export default function DialogGapSolver({ dialog, answer, distractors = [], lang
                     color: active ? 'var(--color-accent)' : 'var(--color-text)',
                   }}
                 >
-                  {opt}
+                  <OpticalText as="iskra-button-label">{opt}</OpticalText>
                 </button>
               )
             })}

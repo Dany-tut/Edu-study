@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import MobileSheet from './MobileSheet'
 import { useEffect, useRef, useState } from 'react'
 import { Bird, Bug, Cat, Check, ChevronRight, Fish, Flower2, Rabbit, Rocket, Star, Users } from './icons/appIcons'
@@ -101,12 +102,12 @@ export function PersonProfile({person,model,onClose,bottomSheet=false}:{person:P
     <div ref={body} className="pc-person-profile">
       <div className="pc-profile-cover"><span className="pc-cover-label">{t('Искра · вместе')}</span></div>
       <div className="pc-profile-identity"><PersonAvatar person={visible} large/><PersonRole person={visible}/><h2>{visible.name??visible.handle}</h2><button data-hover="layer" className="pc-copy" onClick={async()=>{try{await navigator.clipboard.writeText('@'+visible.handle);if(alive.current)setCopied(true)}catch{if(alive.current)setError(t('Не удалось скопировать'))}}}>@{visible.handle}</button><span className="pc-copy-status" role="status">{copied?t('Скопировано'):''}</span></div>
-      {error&&<div className="pc-profile-error" role="alert"><p>{t(error)}</p>{!detail&&<button data-hover="layer" className="pc-secondary" onClick={()=>setRetry(value=>value+1)}>{t('Повторить')}</button>}</div>}
+      {error&&<div className="pc-profile-error" role="alert"><p>{t(error)}</p>{!detail&&<button data-hover="layer" className="pc-secondary" onClick={()=>setRetry(value=>value+1)}><OpticalText as="iskra-button-label">{t('Повторить')}</OpticalText></button>}</div>}
       {!detail&&!error&&<p role="status">{t('Загружаем профиль…')}</p>}
       {detail?.status==='missing'&&<p role="status">{t('Профиль больше недоступен.')}</p>}
       {detail?.status==='found'&&<>
         <div className="pc-relationship"><Users size={19}/><div><strong>{t(detail.state==='friend'?'Вы друзья':detail.state==='incoming'?'Входящая заявка':detail.state==='outgoing'?'Заявка отправлена':'Пока не в друзьях')}</strong><p>{t(detail.relationship==='my_teacher'?'Ваш преподаватель':detail.relationship==='my_student'?'Ваш ученик':detail.role==='teacher'?'Преподаватель в Искре':detail.role==='student'?'Ученик в Искре':'Участник Искры')}</p></div>{detail.state==='friend'&&<Check size={18}/>}</div>
-        {confirm?<div className="pc-confirm" role="group" aria-label={t('Подтверждение удаления')}><h3>{t('Удалить из друзей?')}</h3><p>{t('Человек исчезнет из списка у вас обоих. Занятия и доступ к курсам сохранятся.')}</p><div><button data-hover="layer" className="pc-secondary" disabled={busy} onClick={()=>setConfirm(false)}>{t('Отмена')}</button><button data-hover="layer" className="pc-danger" disabled={busy} onClick={remove}>{t(busy?'Удаляем…':'Удалить')}</button></div></div>:detail.state==='friend'&&<button className="pc-remove" onClick={()=>setConfirm(true)}>{t('Удалить из друзей')}</button>}
+        {confirm?<div className="pc-confirm" role="group" aria-label={t('Подтверждение удаления')}><h3>{t('Удалить из друзей?')}</h3><p>{t('Человек исчезнет из списка у вас обоих. Занятия и доступ к курсам сохранятся.')}</p><div><button data-hover="layer" className="pc-secondary" disabled={busy} onClick={()=>setConfirm(false)}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button><button data-hover="layer" className="pc-danger" disabled={busy} onClick={remove}><OpticalText as="iskra-button-label">{t(busy?'Удаляем…':'Удалить')}</OpticalText></button></div></div>:detail.state==='friend'&&<button className="pc-remove" onClick={()=>setConfirm(true)}><OpticalText as="iskra-button-label">{t('Удалить из друзей')}</OpticalText></button>}
       </>}
       <p className="pc-profile-note">{t('Здесь только публичная информация профиля.')}</p>
     </div>

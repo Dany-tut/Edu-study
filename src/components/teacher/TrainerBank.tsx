@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import TableScrollArea from '../TableScrollArea'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { ChevronRight as LoopUiChevronRight } from '../icons/appIcons'
@@ -331,7 +332,7 @@ export function BankQuestionCard({
             <button data-hover="layer" onClick={() => openEdit(task.id)} style={{
               display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, cursor: 'pointer',
               background: 'var(--color-bg-3)', color: 'var(--color-muted)', border: 'none', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-            }}>{t('Изменить')}</button>
+            }}><OpticalText as="iskra-button-label">{t('Изменить')}</OpticalText></button>
             {onDelete && (
               <button data-hover="layer" onClick={onDelete} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 8, cursor: 'pointer',
@@ -855,7 +856,7 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
               style={{ flex: 1, padding: '8px 0', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
                 background: active ? (accentBg ?? 'var(--color-peach-soft)') : 'var(--color-bg-3)',
                 color: active ? accent : 'var(--color-muted)' }}>
-              {p === '1' ? t('I часть') : t('II часть')}
+              <OpticalText as="iskra-button-label">{p === '1' ? t('I часть') : t('II часть')}</OpticalText>
             </button>
           )
         })}
@@ -875,7 +876,7 @@ function ResetFilters({ filters, onChange }: { filters: TrainerFilters; onChange
   return (
     <button data-hover="layer" onClick={() => onChange({ sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [] })}
       style={btn('S', 'secondary')}>
-      <Trash2 size={12} /> {t('Сбросить фильтры')}
+      <Trash2 size={12} /> <OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText>
     </button>
   )
 }

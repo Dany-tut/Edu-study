@@ -1,3 +1,4 @@
+import OpticalText from '../components/OpticalText'
 import { FilterMenu, SortMenu, StatusTabs, ToolButton, ToolCount, Toolbar } from '../components/trainer/TrainerShell'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import {
@@ -357,7 +358,7 @@ export default function StudentDiaryPage({
       ) : null}
       {tab === 'lessons' ? (
         <button type="button" className="ds-secondary" onClick={() => setTab('journal')}>
-          {t('Дневник')}<ChevronRight size={15} />
+          <OpticalText as="iskra-button-label">{t('Дневник')}</OpticalText><ChevronRight size={15} />
         </button>
       ) : null}
       {tab !== 'lessons' ? (
@@ -400,7 +401,7 @@ export default function StudentDiaryPage({
           <span>{t('Не удалось загрузить все задания. Уже загруженные работы доступны.')}</span>
           <button type="button" className="ds-secondary" onClick={reload}>
             <RefreshCw size={15} />
-            {t('Повторить')}
+            <OpticalText as="iskra-button-label">{t('Повторить')}</OpticalText>
           </button>
         </div>
       ) : null}
@@ -414,7 +415,7 @@ export default function StudentDiaryPage({
             <aside className="ds-feed-aside">
               <section className="ds-feed-planner" aria-label={t('План на неделю')}>
                 <div className="ds-section-head"><h2>{t('План на неделю')}</h2></div>
-                <button data-hover="layer" type="button" className="ds-feed-all" aria-pressed={feedDay === null} onClick={() => setFeedDay(null)}>{t('Все сроки')}</button>
+                <button data-hover="layer" type="button" className="ds-feed-all" aria-pressed={feedDay === null} onClick={() => setFeedDay(null)}><OpticalText as="iskra-button-label">{t('Все сроки')}</OpticalText></button>
                 <div className="ds-day-picker" role="group" aria-label={t('Дни недели')}>
                   {feedDays.map(day => <button data-hover="layer" key={day} type="button" aria-label={feedDate(day)} aria-pressed={feedDay === day}
                     onClick={() => setFeedDay(feedDay === day ? null : day)}>

@@ -18,6 +18,7 @@
 // из полусотни слов не должно стоить этих слов.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../../components/OpticalText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft } from '../../components/icons/appIcons'
@@ -157,7 +158,7 @@ export default function TeacherCardSetEditorPage() {
               whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} onClick={() => setFocus(null)}
               style={{ ...headBtn, boxShadow: 'none', color: 'var(--color-text-2)' }}
             >
-              <ChevronLeft size={16} strokeWidth={2} /> {t('Полка')}
+              <ChevronLeft size={16} strokeWidth={2} /> <OpticalText as="iskra-button-label">{t('Полка')}</OpticalText>
             </motion.button>
           )}
         </div>

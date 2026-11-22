@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeStyle } from '../lib/textFades'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
@@ -331,7 +332,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
               onClick={() => onOpenDebts ? onOpenDebts(mod.id) : onSelect(mod.id)}
               style={{ position: 'absolute', top: -4, left: 20, zIndex: 1, border: 0, borderRadius: 999,
                 minWidth: 20, height: 20, padding: '0 5px', background: 'var(--color-red-soft)', color: 'var(--color-red-text)',
-                fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>{debts}</motion.button>}
+                fontSize: 10, fontWeight: 700, cursor: 'pointer' }}><OpticalText as="iskra-button-label">{debts}</OpticalText></motion.button>}
           </div>
         )
       })}

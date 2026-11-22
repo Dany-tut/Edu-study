@@ -14,6 +14,7 @@
 // всех сборках: отдельной кнопки-подтирки в продукте нет.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { CHAMO, composeKeys, confusableWith, keysOf } from '../data/hangul'
@@ -105,7 +106,7 @@ export default function JamoTypeSolver({ answer, value, disabled, showVerdict, o
                 cursor: disabled ? 'default' : 'pointer', letterSpacing: 2,
               }}
             >
-              {typed}
+              <OpticalText as="iskra-button-label">{typed}</OpticalText>
             </motion.button>
           )
           : (

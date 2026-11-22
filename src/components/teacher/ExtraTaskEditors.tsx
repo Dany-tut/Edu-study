@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 // ─── Редакторы новых типов заданий ───────────────────────────────────────────
 //
@@ -141,7 +142,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                                     color: row.verdict === c.v ? accent.color : 'var(--color-text-3)',
                                   }}
                                 >
-                                  {t(c.label)}
+                                  <OpticalText as="iskra-button-label">{t(c.label)}</OpticalText>
                                 </button>
                               ))}
                             </div>
@@ -161,7 +162,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                       onClick={() => setRows([...rows, { text: '', verdict: 'T' }])}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
-                      <Plus size={12} /> {t('Добавить утверждение')}
+                      <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Добавить утверждение')}</OpticalText>
                     </button>
                     <div style={{ fontSize: 11, color: (task.passage ?? '').trim() ? 'var(--color-text-3)' : 'var(--color-red-text)' }}>
                       {(task.passage ?? '').trim()
@@ -240,7 +241,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                             onClick={() => patch({ options: [...gap.options, ''] })}
                             style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                           >
-                            <Plus size={12} /> {t('Вариант')}
+                            <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Вариант')}</OpticalText>
                           </button>
                         </div>
                       )
@@ -296,7 +297,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                           onClick={() => onUpdate({ ...task, columns: [...cols, ''] })}
                           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                         >
-                          <Plus size={12} /> {t('Столбец')}
+                          <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Столбец')}</OpticalText>
                         </button>
                       )}
                     </div>
@@ -342,7 +343,7 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
                       onClick={() => onUpdate({ ...task, sortItems: [...items, { text: '', column: 0 }] })}
                       style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--color-bg-3)', cursor: 'pointer', fontSize: 12, color: 'var(--color-muted)', fontFamily: 'inherit' }}
                     >
-                      <Plus size={12} /> {t('Добавить предмет')}
+                      <Plus size={12} /> <OpticalText as="iskra-button-label">{t('Добавить предмет')}</OpticalText>
                     </button>
                     <div style={{ fontSize: 11, color: named.length >= 2 ? 'var(--color-text-3)' : 'var(--color-red-text)' }}>
                       {named.length >= 2

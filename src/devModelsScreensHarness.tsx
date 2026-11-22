@@ -2,6 +2,7 @@
 // компоненты на вьюере: задания «Найди» и «Подпиши», библиотека в
 // материалах, вставка в конспект, карточка проверки преподом.
 // Навигация по хешу: #find, #label, #library, #editor, #review. ?dark — тема.
+import OpticalText from './components/OpticalText'
 import { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import Model3DQuiz from './components/Model3DQuiz'
@@ -110,8 +111,8 @@ function LibraryScreen() {
           </div>
           <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
             <div className="ms__row">
-              <button type="button" className="ms__chip" aria-pressed={!topic} onClick={() => setTopic(null)}>Все темы</button>
-              {topics.map(t => <button key={t} type="button" className="ms__chip" aria-pressed={topic === t} onClick={() => setTopic(t)}>{t}</button>)}
+              <button type="button" className="ms__chip" aria-pressed={!topic} onClick={() => setTopic(null)}><OpticalText as="iskra-button-label">Все темы</OpticalText></button>
+              {topics.map(t => <button key={t} type="button" className="ms__chip" aria-pressed={topic === t} onClick={() => setTopic(t)}><OpticalText as="iskra-button-label">{t}</OpticalText></button>)}
             </div>
             <div className="ms__cards">
               {items.map(m => (
@@ -123,8 +124,8 @@ function LibraryScreen() {
                     <div><span className="ms__status" data-s={m.status}>● {STATUS_LABEL[m.status]}</span></div>
                     <div className="ms__row">
                       {m.status === 'ok'
-                        ? <><button type="button" className="ms__btn">В конспект</button><button type="button" className="ms__btn" style={{ borderColor: 'transparent', color: '#786AD7' }}>В домашку</button></>
-                        : <button type="button" className="ms__btn">Открыть для проверки</button>}
+                        ? <><button type="button" className="ms__btn"><OpticalText as="iskra-button-label">В конспект</OpticalText></button><button type="button" className="ms__btn" style={{ borderColor: 'transparent', color: '#786AD7' }}><OpticalText as="iskra-button-label">В домашку</OpticalText></button></>
+                        : <button type="button" className="ms__btn"><OpticalText as="iskra-button-label">Открыть для проверки</OpticalText></button>}
                     </div>
                   </div>
                 </div>
@@ -153,7 +154,7 @@ function EditorScreen() {
               <div style={{ fontWeight: 600, fontSize: 13.5 }}>{modelRefLabel(ref)}</div>
               <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>У ученика здесь интерактивная сцена. Подпись: «Нажмите на органеллу — откроется справка».</div>
               <div className="ms__row" style={{ marginTop: 2 }}>
-                <button type="button" className="ms__chip" onClick={() => setOpen(v => !v)}>Заменить</button>
+                <button type="button" className="ms__chip" onClick={() => setOpen(v => !v)}><OpticalText as="iskra-button-label">Заменить</OpticalText></button>
                 <span className="ms__chip">↑</span><span className="ms__chip">↓</span><span className="ms__chip">Убрать</span>
               </div>
             </div>
@@ -170,9 +171,9 @@ function EditorScreen() {
           )}
           <p className="ms__para">Путей входа три, и они принципиально различны. В ЭПР белок входит ещё во время синтеза: сигнальный пептид узнаёт SRP…</p>
           <div className="ms__row">
-            <button type="button" className="ms__btn">＋ Картинка</button>
-            <button type="button" className="ms__btn ms__btn--primary" onClick={() => setOpen(v => !v)}>＋ 3D-модель</button>
-            <button type="button" className="ms__btn">＋ Схема</button>
+            <button type="button" className="ms__btn"><OpticalText as="iskra-button-label">＋ Картинка</OpticalText></button>
+            <button type="button" className="ms__btn ms__btn--primary" onClick={() => setOpen(v => !v)}><OpticalText as="iskra-button-label">＋ 3D-модель</OpticalText></button>
+            <button type="button" className="ms__btn"><OpticalText as="iskra-button-label">＋ Схема</OpticalText></button>
           </div>
         </div>
       </Window>
@@ -262,9 +263,9 @@ function ReviewScreen() {
                         {commenting === p.id ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <textarea autoFocus rows={3} value={commentDraft} onChange={e => setCommentDraft(e.target.value)} style={{ width: '100%', font: 'inherit', fontSize: 12.5, color: 'var(--color-text)', background: 'transparent', border: 'none', borderBottom: '1px solid #786AD7', outline: 'none', resize: 'none' }} placeholder="Что не так с частью" />
-                            <div className="ms__row"><button type="button" className="ms__btn ms__btn--primary" onClick={() => { if (commentDraft.trim()) propose(p, null, commentDraft.trim()); setCommenting(null); setCommentDraft('') }}>Отправить</button><button type="button" className="ms__btn" onClick={() => setCommenting(null)}>Отмена</button></div>
+                            <div className="ms__row"><button type="button" className="ms__btn ms__btn--primary" onClick={() => { if (commentDraft.trim()) propose(p, null, commentDraft.trim()); setCommenting(null); setCommentDraft('') }}><OpticalText as="iskra-button-label">Отправить</OpticalText></button><button type="button" className="ms__btn" onClick={() => setCommenting(null)}><OpticalText as="iskra-button-label">Отмена</OpticalText></button></div>
                           </div>
-                        ) : <button type="button" className="ms__btn" onClick={() => { setCommenting(p.id); setCommentDraft('') }}>Замечание</button>}
+                        ) : <button type="button" className="ms__btn" onClick={() => { setCommenting(p.id); setCommentDraft('') }}><OpticalText as="iskra-button-label">Замечание</OpticalText></button>}
                       </td>
                     </tr>
                   )
@@ -298,8 +299,8 @@ function AdminScreen() {
             </div>
             <div className="ms__row">
               <span className="ms__note">Глазное яблоко по МРТ:</span>
-              <button type="button" className="ms__chip" aria-pressed={status === 'review'} onClick={() => setStatus('review')}>На согласовании</button>
-              <button type="button" className="ms__chip" aria-pressed={status === 'ok'} onClick={() => setStatus('ok')} disabled={pending > 0} style={{ opacity: pending > 0 ? 0.45 : 1 }}>Утверждена</button>
+              <button type="button" className="ms__chip" aria-pressed={status === 'review'} onClick={() => setStatus('review')}><OpticalText as="iskra-button-label">На согласовании</OpticalText></button>
+              <button type="button" className="ms__chip" aria-pressed={status === 'ok'} onClick={() => setStatus('ok')} disabled={pending > 0} style={{ opacity: pending > 0 ? 0.45 : 1 }}><OpticalText as="iskra-button-label">Утверждена</OpticalText></button>
               {pending > 0 && <span className="ms__note">утвердить можно, когда очередь пуста</span>}
             </div>
           </div>
@@ -323,8 +324,8 @@ function AdminScreen() {
               </div>
               {p.status === 'pending' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <button type="button" className="ms__btn ms__btn--primary" onClick={() => decide(p.id, 'accepted')}>{p.after ? 'Принять' : 'Учтено'}</button>
-                  <button type="button" className="ms__btn" onClick={() => decide(p.id, 'rejected')}>Отклонить</button>
+                  <button type="button" className="ms__btn ms__btn--primary" onClick={() => decide(p.id, 'accepted')}><OpticalText as="iskra-button-label">{p.after ? 'Принять' : 'Учтено'}</OpticalText></button>
+                  <button type="button" className="ms__btn" onClick={() => decide(p.id, 'rejected')}><OpticalText as="iskra-button-label">Отклонить</OpticalText></button>
                 </div>
               )}
             </div>
@@ -344,7 +345,7 @@ function App() {
       <nav className="ms__nav">
         <h1>3D-модуль · экраны</h1>
         {SCREENS.map(([id, label]) => <a key={id} href={`#${id}`} aria-current={screen === id} onClick={e => { e.preventDefault(); go(id) }}>{label}</a>)}
-        <button type="button" className="ms__btn ms__theme" onClick={() => setDark(v => !v)}>{dark ? 'Светлая тема' : 'Тёмная тема'}</button>
+        <button type="button" className="ms__btn ms__theme" onClick={() => setDark(v => !v)}><OpticalText as="iskra-button-label">{dark ? 'Светлая тема' : 'Тёмная тема'}</OpticalText></button>
       </nav>
       <main className="ms__main">
         {screen === 'find' && <FindScreen />}

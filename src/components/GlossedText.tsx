@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Plus, Volume2 } from './icons/appIcons'
@@ -722,7 +723,7 @@ export default function GlossedText({ text, lang, extra = [], accent, highlight,
               }}
             >
               {inDeck ? <Check size={14} /> : <Plus size={14} />}
-              {collectLabel}
+              <OpticalText as="iskra-button-label">{collectLabel}</OpticalText>
             </button>
           )}
         </div>,

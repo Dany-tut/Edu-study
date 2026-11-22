@@ -26,6 +26,7 @@
 // задание остаётся неотвеченным и попадёт в список пропущенных при сдаче.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { motion } from 'framer-motion'
 import { ArrowRight } from './icons/appIcons'
 import { useT } from '../lib/i18n'
@@ -127,7 +128,7 @@ export default function HomeworkFlowBar({
                 flexShrink: 0, pointerEvents: 'auto',
               }}
             >
-              {t('Пропустить')}
+              <OpticalText as="iskra-button-label">{t('Пропустить')}</OpticalText>
             </button>
           )}
           <motion.button data-hover="layer"
@@ -148,7 +149,7 @@ export default function HomeworkFlowBar({
               transition: 'background 0.15s ease, color 0.15s ease',
             }}
           >
-            {label}
+            <OpticalText as="iskra-button-label">{label}</OpticalText>
             {!disabled && <ArrowRight size={16} />}
           </motion.button>
         </div>

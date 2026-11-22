@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import FadeText from '../../FadeText'
 import { useState, useMemo, useEffect, useRef, type ReactNode, type CSSProperties } from 'react'
 import EmptyState from '../../EmptyState'
@@ -264,13 +265,13 @@ function StudentAssignments({ student }: { student: Student }) {
   }
   return <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
     <div style={{ display: 'flex', gap: 8 }}>
-      <button data-hover="layer" style={{ ...btn('S', mode === 'group' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'group'} onClick={() => setMode('group')}>{t('В группу')}</button>
-      <button data-hover="layer" style={{ ...btn('S', mode === 'individual' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'individual'} onClick={() => setMode('individual')}>{t('Занятия 1:1')}</button>
+      <button data-hover="layer" style={{ ...btn('S', mode === 'group' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'group'} onClick={() => setMode('group')}><OpticalText as="iskra-button-label">{t('В группу')}</OpticalText></button>
+      <button data-hover="layer" style={{ ...btn('S', mode === 'individual' ? 'primary' : 'secondary'), flex: 1 }} aria-pressed={mode === 'individual'} onClick={() => setMode('individual')}><OpticalText as="iskra-button-label">{t('Занятия 1:1')}</OpticalText></button>
     </div>
     {mode === 'group'
       ? <TeacherSelect value={groupId} onChange={setGroupId} placeholder={t('Выберите группу')} triggerStyle={{ minHeight: 48 }} options={groups.filter(g => !g.isIndividual && !memberships.some(s => s.groupId === g.id)).map(g => ({value:g.id,label:g.name}))} />
       : <TeacherSelect value={subject} onChange={setSubject} placeholder={t('Предмет для занятий 1:1')} triggerStyle={{ minHeight: 48 }} options={mySubjectNames(useTeacherAccess.getState().subjects).map(s => ({value:s,label:t(s)}))} />}
-    <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }} disabled={busy || !(mode === 'group' ? groupId : subject)} onClick={() => void assign(mode === 'individual')}>{busy ? t('Сохранение...') : mode === 'group' ? t('Добавить в группу') : t('Назначить занятия 1:1')}</button>
+    <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }} disabled={busy || !(mode === 'group' ? groupId : subject)} onClick={() => void assign(mode === 'individual')}><OpticalText as="iskra-button-label">{busy ? t('Сохранение...') : mode === 'group' ? t('Добавить в группу') : t('Назначить занятия 1:1')}</OpticalText></button>
     {error && <Alert tone="danger" text={error} />}
   </section>
 }
@@ -486,7 +487,7 @@ export default function MobileTeacherStudents() {
       bottomDock={!nativeBar && !openGroup && !addOpen && !sheetOpen ? (
         <button data-hover="layer" style={{ ...btn('M', 'primary'), width: '100%', minHeight: 48 }}
           onClick={openAdd}>
-          {t('Добавить ученика')}
+          <OpticalText as="iskra-button-label">{t('Добавить ученика')}</OpticalText>
         </button>
       ) : undefined}>
 
@@ -497,9 +498,9 @@ export default function MobileTeacherStudents() {
           <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')} footer={<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {invite ? <>
                 <button data-hover="layer" style={btn('M', 'primary', { background: copiedInvite ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}<span style={{ position: 'relative', top: '-0.04em' }}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</span></button>
-                <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}>{t('Готово')}</button>
+                <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>
               </> : <>
-                <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || !newSubjects.length || savingNew} onClick={createStudent}>{savingNew ? t('Сохранение...') : t('Добавить ученика')}</button>
+                <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || !newSubjects.length || savingNew} onClick={createStudent}><OpticalText as="iskra-button-label">{savingNew ? t('Сохранение...') : t('Добавить ученика')}</OpticalText></button>
               </>}
             </div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -539,7 +540,7 @@ export default function MobileTeacherStudents() {
                     transition: 'background 0.15s, color 0.15s',
                   }}
                 >
-                  {t(f.label)}
+                  <OpticalText as="iskra-button-label">{t(f.label)}</OpticalText>
                 </button>
               )
             })}

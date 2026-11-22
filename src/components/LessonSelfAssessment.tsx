@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useState } from 'react'
 import { EMOJI_STEPS } from './homeworkSteps'
 import { useDashboard } from '../store/dashboardStore'
@@ -56,7 +57,7 @@ export default function LessonSelfAssessment({ lessonId, studentId, status, resu
           onClick={() => { void save(i) }}
           style={{ flex: 1, minWidth: 0, minHeight: 44, fontSize: 24, borderRadius: 12, cursor: busy ? 'wait' : 'pointer',
             border: `1px solid ${i === value ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
-            background: i === value ? 'var(--color-accent-soft)' : 'var(--color-bg-3)' }}>{choice.emoji}</button>)}
+            background: i === value ? 'var(--color-accent-soft)' : 'var(--color-bg-3)' }}><OpticalText as="iskra-button-label">{choice.emoji}</OpticalText></button>)}
       </div>}
       {error && <span role="alert" style={{ fontSize: 12, color: 'var(--color-red-text)' }}>
         {t('Не удалось сохранить самооценку. Попробуй ещё раз.')}

@@ -27,6 +27,7 @@
 // поле сейчас.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from './OpticalText'
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Delete } from './icons/appIcons'
@@ -132,7 +133,7 @@ export default function HangulKeyboard({ value, onChange, disabled }: {
         cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
       }}
     >
-      {label}
+      <OpticalText as="iskra-button-label">{label}</OpticalText>
     </motion.button>
   )
 

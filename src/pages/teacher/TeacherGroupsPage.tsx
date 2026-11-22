@@ -1,3 +1,4 @@
+import OpticalText from '../../components/OpticalText'
 import { hasStudentPaymentTracking, type RosterPaymentInfo } from '../../lib/rosterPayments'
 import { useIsDesktop } from '../../lib/useIsDesktop'
 import StudentDetailsEditor from '../../components/teacher/StudentDetailsEditor'
@@ -228,7 +229,7 @@ function AddGroupModal({ onClose, onSave }: {
             border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
           }}
         >
-          {saving ? t('Сохранение...') : t('Создать группу')}
+          <OpticalText as="iskra-button-label">{saving ? t('Сохранение...') : t('Создать группу')}</OpticalText>
         </button>
       </motion.div>
     </div>
@@ -474,7 +475,7 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 border: 'none', cursor: 'pointer',
               }}
             >
-              {t('Закрыть')}
+              <OpticalText as="iskra-button-label">{t('Закрыть')}</OpticalText>
             </button>
           </div>
         ) : (
@@ -653,7 +654,7 @@ function TrackFields({
           color: 'var(--color-accent)', fontSize: 13, fontWeight: 600,
         }}
       >
-        <Plus size={16} /> {t('Ещё направление')}
+        <Plus size={16} /> <OpticalText as="iskra-button-label">{t('Ещё направление')}</OpticalText>
       </button>
     </div>
   )
@@ -782,7 +783,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
               width: '100%', padding: '10px 0',
               background: 'transparent', color: 'var(--color-muted)', fontWeight: 600, fontSize: 14,
               border: 'none', cursor: 'pointer',
-            }}>{t('Закрыть')}</button>
+            }}><OpticalText as="iskra-button-label">{t('Закрыть')}</OpticalText></button>
           </div>
         ) : (
           <>
@@ -791,7 +792,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
                 type="button" onClick={onPickExisting}
                 style={{ width: '100%', marginBottom: 14, padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)', borderRadius: 12, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', fontFamily: 'inherit' }}
               >
-                <UserPlus size={16} /> {t('Выбрать из существующих')}
+                <UserPlus size={16} /> <OpticalText as="iskra-button-label">{t('Выбрать из существующих')}</OpticalText>
               </button>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -848,7 +849,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
                 border: 'none', borderRadius: 14, cursor: name.trim() ? 'pointer' : 'not-allowed',
               }}
             >
-              {saving ? t('Сохранение...') : t('Добавить ученика')}
+              <OpticalText as="iskra-button-label">{saving ? t('Сохранение...') : t('Добавить ученика')}</OpticalText>
             </button>
           </>
         )}
@@ -915,7 +916,7 @@ function DeleteStudentAction({ student, groupName, remove, startEditing = false,
   const valid = !!name.trim() && name.trim() === student.name.trim()
   const cancel = () => { setEditing(false); setName(''); setFailed(false); onCancel?.() }
   if (!editing) return <button data-hover="layer" style={btn('M', 'secondary', compact ? { height: 34, minHeight: 34, borderRadius: 10, fontSize: 13 } : undefined)} onClick={() => setEditing(true)}>
-    {t('Удалить ученика')}
+    <OpticalText as="iskra-button-label">{t('Удалить ученика')}</OpticalText>
   </button>
   return <form style={{ display: 'grid', gap: 8 }} onKeyDown={e => {
     if (e.key === 'Escape' && !busy) { e.stopPropagation(); cancel() }
@@ -933,9 +934,9 @@ function DeleteStudentAction({ student, groupName, remove, startEditing = false,
     </label>
     {failed && <Alert tone="danger" text={t('Не удалось удалить карточку. Обновите список и попробуйте снова.')} />}
     <div style={{ display: 'flex', gap: 8 }}>
-      <button data-hover="layer" type="button" style={btn('M', 'secondary')} disabled={busy} onClick={cancel}>{t('Отмена')}</button>
+      <button data-hover="layer" type="button" style={btn('M', 'secondary')} disabled={busy} onClick={cancel}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
       <button data-hover="layer" type="submit" disabled={!valid || busy} style={{ ...btn('M', 'secondary'), background: 'var(--btn-red-bg)', color: '#fff', opacity: !valid || busy ? 0.5 : 1 }}>
-        {busy ? t('Удаление...') : t('Удалить')}
+        <OpticalText as="iskra-button-label">{busy ? t('Удаление...') : t('Удалить')}</OpticalText>
       </button>
     </div>
   </form>
@@ -1171,11 +1172,11 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
                 style={{ height: 40, padding: '0 16px', borderRadius: 12, cursor: issuing ? 'default' : 'pointer',
                   border: 'none', opacity: issuing ? 0.7 : 1, flexShrink: 0,
                   background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700 }}>
-                {issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${issuableCount}`}
+                <OpticalText as="iskra-button-label">{issuing ? t('Завожу…') : `${t('Завести доступ всем')} · ${issuableCount}`}</OpticalText>
               </button>
               {pending.length > 0 && <>
                 <button data-hover="layer" onClick={copyAll} style={btn('M', 'secondary')}>
-                  {copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}
+                  <OpticalText as="iskra-button-label">{copiedAll ? t('Скопировано — осталось разослать') : t('Или разослать ссылки, чтобы завели сами')}</OpticalText>
                 </button>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {pending.map(s => (
@@ -1207,7 +1208,7 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
                   ))}
                 </div>
                 <button data-hover="layer" onClick={copyIssued} style={btn('S', 'secondary')}>
-                  {copiedIssued ? t('Скопировано') : t('Скопировать логины и пароли')}
+                  <OpticalText as="iskra-button-label">{copiedIssued ? t('Скопировано') : t('Скопировать логины и пароли')}</OpticalText>
                 </button>
               </div>
             )}
@@ -1238,9 +1239,9 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
             больше нечего; иначе чип можно свернуть до значка. */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '10px 14px 14px', borderTop: '1px solid var(--color-border-soft)', flexShrink: 0 }}>
           {done
-            ? <button data-hover="layer" style={btn('S', 'secondary')} onClick={() => { setOpen(false); setIssued(null) }}>{t('Готово')}</button>
+            ? <button data-hover="layer" style={btn('S', 'secondary')} onClick={() => { setOpen(false); setIssued(null) }}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>
             : <button data-hover="layer" style={btn('S', 'secondary')} onClick={() => setHidden(!hidden)}>
-                {hidden ? t('Показывать подпись') : t('Свернуть в значок')}
+                <OpticalText as="iskra-button-label">{hidden ? t('Показывать подпись') : t('Свернуть в значок')}</OpticalText>
               </button>}
         </div>
       </motion.div>
@@ -2026,13 +2027,13 @@ function TracksSection({
                 // буквы на них тонут. Неактивность — прозрачностью, не бледнотой.
                 style={{ height: 32, flex: 1, padding: '0 12px', borderRadius: 10, cursor: (!subject.trim() || busy) ? 'default' : 'pointer', border: 'none', background: 'var(--grad-purple)', opacity: (!subject.trim() || busy) ? 0.45 : 1, color: '#fff', fontSize: 12, fontWeight: 700}}
               >
-                {busy ? t('Сохраняем…') : t('Назначить занятия')}
+                <OpticalText as="iskra-button-label">{busy ? t('Сохраняем…') : t('Назначить занятия')}</OpticalText>
               </button>
               <button data-hover="layer"
                 type="button" onClick={() => { setAdding(false); setSubject(''); setLevel('') }}
                 style={btn('S', 'secondary')}
               >
-                {t('Отмена')}
+                <OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText>
               </button>
             </div>
           </div>
@@ -2041,7 +2042,7 @@ function TracksSection({
             type="button" onClick={() => setAdding(true)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 9, cursor: 'pointer', border: '1.5px dashed var(--color-border-medium)', background: 'transparent', color: 'var(--color-accent)', fontSize: 12, fontWeight: 600 }}
           >
-            <Plus size={14} /> {individual ? t('Ещё предмет 1:1') : t('Назначить занятия 1:1')}
+            <Plus size={14} /> <OpticalText as="iskra-button-label">{individual ? t('Ещё предмет 1:1') : t('Назначить занятия 1:1')}</OpticalText>
           </button>
         )}
       </div>
@@ -2143,7 +2144,7 @@ function StudentPanel({
       <OverlayScrollArea style={{ flex: 1 }} padding="16px 20px 0" scrollStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         <button type="button" className="student-panel-full-card" onClick={onOpenFullCard}>
-          <BarChart2 size={16} aria-hidden /> {t('Расширенная карточка')}
+          <BarChart2 size={16} aria-hidden /> <OpticalText as="iskra-button-label">{t('Расширенная карточка')}</OpticalText>
         </button>
 
         {/* Credentials */}
@@ -2164,7 +2165,7 @@ function StudentPanel({
               disabled={resetting}
               style={{ ...btn('S', 'secondary'), marginTop: 8, width: '100%' }}
             >
-              {resetting ? t('Сбрасываем…') : t('Сбросить пароль')}
+              <OpticalText as="iskra-button-label">{resetting ? t('Сбрасываем…') : t('Сбросить пароль')}</OpticalText>
             </button>
             {resetErr && (
               <Alert tone="danger" text={resetErr} style={{ marginTop: 8 }} />
@@ -2322,7 +2323,7 @@ function StudentPanel({
           onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)' }}
           onMouseLeave={e => { e.currentTarget.style.filter = 'none' }}
         >
-          <Plus size={16} strokeWidth={2.5} /> {t('Выдать ДЗ допом')}
+          <Plus size={16} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Выдать ДЗ допом')}</OpticalText>
         </button>
         {onAddToGroup && (
           <button
@@ -2338,7 +2339,7 @@ function StudentPanel({
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-purple-soft)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-bg-3)' }}
           >
-            <Users size={16} strokeWidth={2} /> {t('Добавить в группу')}
+            <Users size={16} strokeWidth={2} /> <OpticalText as="iskra-button-label">{t('Добавить в группу')}</OpticalText>
           </button>
         )}
         <DeleteStudentAction key={student.id} student={student} groupName={group.name} remove={onDelete} compact />

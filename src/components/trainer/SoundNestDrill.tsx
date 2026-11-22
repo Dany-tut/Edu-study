@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Volume2, Check, X, RotateCcw, Ear, Sparkle } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
@@ -321,7 +322,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
               fontSize: 12, fontWeight: 700, color: 'var(--color-muted)',
             }}
           >
-            {t('Помедленнее')}
+            <OpticalText as="iskra-button-label">{t('Помедленнее')}</OpticalText>
           </button>
         </div>
 
@@ -348,7 +349,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
                   color: 'var(--color-text)',
                 }}
               >
-                {o.term}
+                <OpticalText as="iskra-button-label">{o.term}</OpticalText>
               </button>
             )
           })}
@@ -367,7 +368,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
                 читается как ответ на «а почему», а не как справка. */}
             <WordRow word={q.word} lang={lang} accent={accent} tone={right ? 'good' : 'bad'} />
             <button data-hover="layer" onClick={next} style={primaryBtn(accent)}>
-              {idx + 1 >= run.length ? t('Итог') : t('Дальше')}
+              <OpticalText as="iskra-button-label">{idx + 1 >= run.length ? t('Итог') : t('Дальше')}</OpticalText>
             </button>
           </div>
         )}
@@ -406,9 +407,9 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <RotateCcw size={14} />
-            {t('Ещё прогон')}
+            <OpticalText as="iskra-button-label">{t('Ещё прогон')}</OpticalText>
           </button>
-          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}>{t('К разбору')}</button>
+          <button data-hover="layer" onClick={() => setRun(null)} style={ghostBtn(accent)}><OpticalText as="iskra-button-label">{t('К разбору')}</OpticalText></button>
         </div>
       </div>
     )
@@ -430,7 +431,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
         {audible ? (
           <button data-hover="layer" onClick={start} style={primaryBtn(accent)}>
             <Ear size={16} />
-            {t('Проверить на слух')}
+            <OpticalText as="iskra-button-label">{t('Проверить на слух')}</OpticalText>
           </button>
         ) : (
           <div style={{
@@ -445,7 +446,7 @@ export function NestPage({ nest, lang, accent, soft, owner, subjectId, onFinishe
           </div>
         )}
         <button data-hover="layer" onClick={takeAll} disabled={saving} style={ghostBtn(accent)}>
-          {saving ? t('Добавляю…') : t('Взять слова в колоду')}
+          <OpticalText as="iskra-button-label">{saving ? t('Добавляю…') : t('Взять слова в колоду')}</OpticalText>
         </button>
         {added !== null && (
           <span style={{ fontSize: 13, color: 'var(--color-muted)' }}>

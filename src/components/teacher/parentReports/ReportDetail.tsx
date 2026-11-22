@@ -1,5 +1,6 @@
 // Один отчёт: почему отмечен, цифры недели, две фразы, решение и связь с родителем.
 // Общий для ПК (правая панель) и телефона (шторка).
+import OpticalText from '../../OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import FadeText from '../../FadeText'
 import GrowTextarea from '../../GrowTextarea'
@@ -132,17 +133,17 @@ export default function ReportDetail({ report, mobile = false, onDecided }: {
 
       <div className="pr-actions">
         {state === 'ready' || state === 'flagged' || state === 'failed' ? <>
-          <button data-hover="layer" type="button" disabled={busy} onClick={() => void decide('skip')} style={btn(mobile ? 'L' : 'M', 'secondary', { width: '100%', minHeight: mobile ? 48 : 40 })}>{t('Пропустить неделю')}</button>
-          <button data-hover="layer" type="button" disabled={busy} onClick={() => void decide('approve')} style={btn(mobile ? 'L' : 'M', 'primary', { width: '100%', minHeight: mobile ? 48 : 40, opacity: busy ? .5 : 1 })}><Check size={16} />{t('Утвердить')}</button>
+          <button data-hover="layer" type="button" disabled={busy} onClick={() => void decide('skip')} style={btn(mobile ? 'L' : 'M', 'secondary', { width: '100%', minHeight: mobile ? 48 : 40 })}><OpticalText as="iskra-button-label">{t('Пропустить неделю')}</OpticalText></button>
+          <button data-hover="layer" type="button" disabled={busy} onClick={() => void decide('approve')} style={btn(mobile ? 'L' : 'M', 'primary', { width: '100%', minHeight: mobile ? 48 : 40, opacity: busy ? .5 : 1 })}><Check size={16} /><OpticalText as="iskra-button-label">{t('Утвердить')}</OpticalText></button>
         </> : state === 'sent' ? (
           <span className="pr-sub" style={{ gridColumn: 'span 2' }}>{t('Отправлен')} {report.sentAt ? new Date(report.sentAt).toLocaleString('ru-RU', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span>
         ) : (
-          <button data-hover="layer" type="button" disabled={busy} onClick={() => void decide('reopen')} style={{ ...btn(mobile ? 'L' : 'M', 'secondary', { width: '100%', minHeight: mobile ? 48 : 40 }), gridColumn: 'span 2' }}>{state === 'approved' ? t('Отозвать до отправки') : t('Вернуть в черновики')}</button>
+          <button data-hover="layer" type="button" disabled={busy} onClick={() => void decide('reopen')} style={{ ...btn(mobile ? 'L' : 'M', 'secondary', { width: '100%', minHeight: mobile ? 48 : 40 }), gridColumn: 'span 2' }}><OpticalText as="iskra-button-label">{state === 'approved' ? t('Отозвать до отправки') : t('Вернуть в черновики')}</OpticalText></button>
         )}
       </div>
 
       <button data-hover="layer" type="button" onClick={() => setPreview(v => !v)} style={btn('S', 'quiet', { alignSelf: 'flex-start', minHeight: mobile ? 44 : 32 })}>
-        {preview ? t('Скрыть') : t('Так увидит родитель')}
+        <OpticalText as="iskra-button-label">{preview ? t('Скрыть') : t('Так увидит родитель')}</OpticalText>
       </button>
       {preview && <div className="pr-preview">{previewText({ ...report, strengths, focus })}</div>}
 
@@ -209,19 +210,19 @@ function ParentChannels({ report, mobile }: { report: ParentReport; mobile: bool
             <input style={field} value={relation} onChange={e => setRelation(e.target.value)} placeholder={t('мама')} maxLength={40} aria-label={t('Кем приходится')} />
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button data-hover="layer" type="button" style={small({ flex: 1 })} onClick={() => setAdding(false)}>{t('Отмена')}</button>
-            <button data-hover="layer" type="button" disabled={busy} style={btn('S', 'primary', { flex: 1, minHeight: mobile ? 44 : 32, opacity: busy ? .5 : 1 })} onClick={() => void invite()}><Send size={14} />{t('Приглашение в Telegram')}</button>
+            <button data-hover="layer" type="button" style={small({ flex: 1 })} onClick={() => setAdding(false)}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
+            <button data-hover="layer" type="button" disabled={busy} style={btn('S', 'primary', { flex: 1, minHeight: mobile ? 44 : 32, opacity: busy ? .5 : 1 })} onClick={() => void invite()}><Send size={14} /><OpticalText as="iskra-button-label">{t('Приглашение в Telegram')}</OpticalText></button>
           </div>
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button data-hover="layer" type="button" style={small({ background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' })} onClick={() => { setAdding(true); setError('') }}><UserPlus size={14} />{t('Подключить в Telegram')}</button>
-          <button data-hover="layer" type="button" style={small()} onClick={async () => { setError(''); show(await createReportLink(report.studentId), 'page', t('Ссылка не создалась.\nПопробуйте ещё раз.')) }}><Link2 size={14} />{report.hasLink ? t('Ещё ссылка') : t('Ссылка на страницу')}</button>
+          <button data-hover="layer" type="button" style={small({ background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' })} onClick={() => { setAdding(true); setError('') }}><UserPlus size={14} /><OpticalText as="iskra-button-label">{t('Подключить в Telegram')}</OpticalText></button>
+          <button data-hover="layer" type="button" style={small()} onClick={async () => { setError(''); show(await createReportLink(report.studentId), 'page', t('Ссылка не создалась.\nПопробуйте ещё раз.')) }}><Link2 size={14} /><OpticalText as="iskra-button-label">{report.hasLink ? t('Ещё ссылка') : t('Ссылка на страницу')}</OpticalText></button>
           {report.hasLink && (
             <button data-hover="layer" type="button" style={btn('S', 'quiet', { minHeight: mobile ? 44 : 32 })} onClick={async () => {
               if (!(await confirmDialog({ title: t('Отозвать все ссылки?'), message: t('Старые ссылки перестанут открываться. Новую можно создать сразу.'), confirmLabel: t('Отозвать'), tone: 'danger' }))) return
               if (!(await revokeReportLinks(report.studentId))) setError(t('Ссылки не отозвались.\nПопробуйте ещё раз.'))
-            }}>{t('Отозвать ссылки')}</button>
+            }}><OpticalText as="iskra-button-label">{t('Отозвать ссылки')}</OpticalText></button>
           )}
         </div>
       )}

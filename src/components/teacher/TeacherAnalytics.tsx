@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { LoopSelect } from '../icons/LoopSelect'
 import { PLATFORM } from '../../lib/platform'
 import HScrollFade from '../HScrollFade'
@@ -872,7 +873,7 @@ export default function TeacherAnalytics() {
               transition:'background 0.15s, color 0.15s',
             }}>
               {copied ? <Check size={14}/> : <Copy size={14}/>}
-              {copied ? t('Скопировано') : t('Скопировать все проблемы')}
+              <OpticalText as="iskra-button-label">{copied ? t('Скопировано') : t('Скопировать все проблемы')}</OpticalText>
             </button>
           </div>
 
@@ -950,12 +951,12 @@ export default function TeacherAnalytics() {
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   {closedBounce > 0 && (
                     <button data-hover="layer" onClick={() => setShowClosedBounce(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
-                      {showClosedBounce ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedBounce}`}
+                      <OpticalText as="iskra-button-label">{showClosedBounce ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedBounce}`}</OpticalText>
                     </button>
                   )}
                   {openBounce.length > 0 && (
                     <button data-hover="layer" onClick={() => void resolveAllBounce()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
-                      <CheckCircle2 size={14}/>{t('Всё разобрано')}
+                      <CheckCircle2 size={14}/><OpticalText as="iskra-button-label">{t('Всё разобрано')}</OpticalText>
                     </button>
                   )}
                 </div>
@@ -994,12 +995,12 @@ export default function TeacherAnalytics() {
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   {closedRage > 0 && (
                     <button data-hover="layer" onClick={() => setShowClosedRage(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
-                      {showClosedRage ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedRage}`}
+                      <OpticalText as="iskra-button-label">{showClosedRage ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedRage}`}</OpticalText>
                     </button>
                   )}
                   {openRage.length > 0 && (
                     <button data-hover="layer" onClick={() => void resolveAllRage()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
-                      <CheckCircle2 size={14}/>{t('Всё разобрано')}
+                      <CheckCircle2 size={14}/><OpticalText as="iskra-button-label">{t('Всё разобрано')}</OpticalText>
                     </button>
                   )}
                 </div>
@@ -1038,17 +1039,17 @@ export default function TeacherAnalytics() {
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               {closedErrors > 0 && (
                 <button data-hover="layer" onClick={() => setShowClosed(v=>!v)} style={{ fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
-                  {showClosed ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedErrors}`}
+                  <OpticalText as="iskra-button-label">{showClosed ? t('Скрыть закрытые') : `${t('Закрытые')} · ${closedErrors}`}</OpticalText>
                 </button>
               )}
               {openGroups.length > 0 && (
                 <button data-hover="layer" onClick={() => void resolveAllOpen()} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-green-text)', background:'none', border:'none', cursor:'pointer' }}>
-                  <CheckCircle2 size={14}/>{t('Всё разобрано')}
+                  <CheckCircle2 size={14}/><OpticalText as="iskra-button-label">{t('Всё разобрано')}</OpticalText>
                 </button>
               )}
               <button data-hover="layer" onClick={() => setErrExpanded(e=>!e)} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'var(--color-text-3)', background:'none', border:'none', cursor:'pointer' }}>
                 {errExpanded ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
-                {errExpanded ? t('Свернуть') : t('Все ошибки')}
+                <OpticalText as="iskra-button-label">{errExpanded ? t('Свернуть') : t('Все ошибки')}</OpticalText>
               </button>
             </div>
           }>
@@ -1152,7 +1153,7 @@ export default function TeacherAnalytics() {
                       background:'transparent', color:'var(--color-text-3)',
                       fontSize:12, fontWeight:600, cursor:'pointer',
                     }}>
-                      {pathsOpen ? t('Свернуть') : `+${pathsHidden}`}
+                      <OpticalText as="iskra-button-label">{pathsOpen ? t('Свернуть') : `+${pathsHidden}`}</OpticalText>
                     </button>
                   )}
                 </div>
@@ -1222,7 +1223,7 @@ export default function TeacherAnalytics() {
                     border:'1px solid', borderColor: i === reportIdx ? ACCENT : 'var(--color-border)',
                     background: i === reportIdx ? withAlpha(ACCENT, 0.12) : 'var(--color-bg-2)',
                     color: i === reportIdx ? 'var(--color-text)' : 'var(--color-text-3)',
-                  }}>{new Date(r.created_at).toLocaleDateString()}</button>
+                  }}><OpticalText as="iskra-button-label">{new Date(r.created_at).toLocaleDateString()}</OpticalText></button>
                 ))}
               </div>
             )}

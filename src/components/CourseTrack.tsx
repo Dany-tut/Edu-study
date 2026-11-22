@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { textFadeLines } from '../lib/textFades'
 import { LoopActionLabel } from './icons/LoopIcon'
 import { ArrowRight as LoopUiArrowRight, ArrowLeft as LoopUiArrowLeft } from './icons/appIcons'
@@ -568,7 +569,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                           cursor: 'pointer',
                         }}
                       >
-                        {selectedLesson.kind === 'test' ? t('Пройти тест') : t('Открыть урок')}
+                        <OpticalText as="iskra-button-label">{selectedLesson.kind === 'test' ? t('Пройти тест') : t('Открыть урок')}</OpticalText>
                       </motion.button>
                     </div>
                   )}
@@ -689,7 +690,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                         boxShadow: '0 4px 14px rgba(var(--accent-rgb), 0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
                       }}
                     >
-                      {t('Открыть урок')}
+                      <OpticalText as="iskra-button-label">{t('Открыть урок')}</OpticalText>
                     </motion.button>
                     )}
                   </div>

@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from './icons/appIcons'
@@ -289,7 +290,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
                 fontSize: 13, fontWeight: 600,
               }}
             >
-              {t('Пропустить')}
+              <OpticalText as="iskra-button-label">{t('Пропустить')}</OpticalText>
             </button>
           )}
           <button data-hover="layer"
@@ -300,7 +301,7 @@ export default function Coachmarks({ steps, open, onClose, accent, onStepChange 
               color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
             }}
           >
-            {last ? t('Понятно') : t('Дальше')}
+            <OpticalText as="iskra-button-label">{last ? t('Понятно') : t('Дальше')}</OpticalText>
           </button>
         </div>
       </div>

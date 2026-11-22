@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, AlertTriangle, CheckCircle2, ChevronDown, Info, X } from './icons/appIcons'
@@ -177,7 +178,7 @@ export function AlertStack({ items, style }: { items: Array<AlertItem | false | 
                 fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
               }}
             >
-              {open ? t('Свернуть') : `${t('Ещё')} ${hidden}`}
+              <OpticalText as="iskra-button-label">{open ? t('Свернуть') : `${t('Ещё')} ${hidden}`}</OpticalText>
               <ChevronDown size={14} style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s' }} />
             </button>
           )}

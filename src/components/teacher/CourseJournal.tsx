@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, RotateCcw, Search, Users, X, Filter, BarChart2 } from '../icons/appIcons'
@@ -143,8 +144,8 @@ function Detail({ cell, data, courseId, onClose, onMark, onChange, mobile }: {
     </div>
     {cell.present === false && cell.watched && <p className="cj-note">{t('Пропуск сохранён. Материал зачтён по просмотру записи.')}</p>}
     <div className="cj-detail-actions">
-      {cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && <button className="cj-button" type="button" disabled={busy} onClick={() => onMark(cell)}>{t('Отметить занятие')}</button>}
-      <button className="cj-button" type="button" disabled={busy || existingTask || demoTask} onClick={() => void createTask()}><Plus size={14} />{t(existingTask || demoTask ? 'Задача уже создана' : 'Создать задачу')}</button>
+      {cell.event && !cell.cancelled && cell.column.lesson?.kind !== 'test' && <button className="cj-button" type="button" disabled={busy} onClick={() => onMark(cell)}><OpticalText as="iskra-button-label">{t('Отметить занятие')}</OpticalText></button>}
+      <button className="cj-button" type="button" disabled={busy || existingTask || demoTask} onClick={() => void createTask()}><Plus size={14} /><OpticalText as="iskra-button-label">{t(existingTask || demoTask ? 'Задача уже создана' : 'Создать задачу')}</OpticalText></button>
     </div>
     {(cell.score !== null || cell.latestScore !== null) && <p className="cj-note">{t('Лучший результат')}: {cell.score ?? '—'}% · {t('Последний результат')}: {cell.latestScore ?? '—'}%</p>}
     {cell.attempts.length > 0 && <section><h3>{t('История попыток')}</h3><div className="cj-attempts">{cell.attempts.map(a => <div key={a.id}><strong>{t('Попытка')} {a.number}</strong><span>{a.score === null ? t('Без результата') : `${a.score}%`}</span><small>{t(a.status === 'returned' ? 'На доработке' : a.status === 'submitted' ? 'На проверке' : 'Проверено')}</small></div>)}</div></section>}
@@ -153,7 +154,7 @@ function Detail({ cell, data, courseId, onClose, onMark, onChange, mobile }: {
     {['pending', 'returned'].includes(cell.state) && cell.work && <section className="cj-review"><h3>{t('Проверка работы')}</h3>
       <label>{t('Итоговый результат, %')}<input type="number" min="0" max="100" step="1" value={score} onChange={e => setScore(e.target.value)} /></label>
       <label>{t('Комментарий')}<textarea rows={3} value={comment} onChange={e => setComment(e.target.value)} placeholder={t('Что получилось и что нужно исправить')} /></label>
-      <div className="cj-detail-actions"><button type="button" className="cj-button" disabled={busy} onClick={() => void review('returned')}>{t('Вернуть на доработку')}</button><button type="button" className="cj-button cj-primary" disabled={busy} onClick={() => void review('accepted')}>{t('Принять работу')}</button></div>
+      <div className="cj-detail-actions"><button type="button" className="cj-button" disabled={busy} onClick={() => void review('returned')}><OpticalText as="iskra-button-label">{t('Вернуть на доработку')}</OpticalText></button><button type="button" className="cj-button cj-primary" disabled={busy} onClick={() => void review('accepted')}><OpticalText as="iskra-button-label">{t('Принять работу')}</OpticalText></button></div>
     </section>}
     {cell.related.filter(row => row.lesson_ref.endsWith('-hard')).length > 0 && <section><h3>{t('Сложная часть · необязательно')}</h3>
       {cell.related.filter(row => row.lesson_ref.endsWith('-hard')).map(row => <p className="cj-note" key={row.id}>{t(row.status === 'completed' ? 'Принято' : row.status === 'returned' ? 'На доработке' : 'На проверке')}{row.status === 'completed' && row.score !== null ? ` · ${row.score} ${t('баллов')}` : ''}</p>)}
@@ -293,7 +294,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
   if (!data && loading) return <JournalSkeleton table embedded />
-  if (error || !data) return <div className="course-journal cj-empty" role="alert"><CircleAlert size={28} /><p>{t('Не удалось загрузить журнал')}</p><p className="cj-note">{error}</p><button className="cj-button" type="button" onClick={reload}>{t('Повторить')}</button></div>
+  if (error || !data) return <div className="course-journal cj-empty" role="alert"><CircleAlert size={28} /><p>{t('Не удалось загрузить журнал')}</p><p className="cj-note">{error}</p><button className="cj-button" type="button" onClick={reload}><OpticalText as="iskra-button-label">{t('Повторить')}</OpticalText></button></div>
   const modules = data.modules.filter(m => m.course_id === courseId).sort((a, b) => a.position - b.position)
   const pendingEvents = allColumns.flatMap(c => c.events).filter((event, i, all) => event.status !== 'cancelled'
     && all.findIndex(e => e.id === event.id) === i && visibleCells.some(cell => cell.event?.id === event.id && cell.needsAttendance))
@@ -315,7 +316,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
   const activeMobileFilters = Number(groupId !== 'all') + Number(moduleId !== 'all')
   return <div className={`course-journal ${mobile ? 'cj-mobile' : ''}`}>
     {!mobile && <header className="cj-heading"><div><div className="cj-eyebrow">{t('Кабинет преподавателя')}</div><h1>{t('Журнал')}</h1><p>{t('Занятия, работы и прогресс — в контексте курса.')}</p></div>
-      <div className="cj-heading-actions"><button className="cj-icon-button" type="button" aria-label={t('Обновить журнал')} disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /></button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} />{mobile ? 'CSV' : t('Экспорт CSV')}</button></div>
+      <div className="cj-heading-actions"><button className="cj-icon-button" type="button" aria-label={t('Обновить журнал')} disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /></button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} /><OpticalText as="iskra-button-label">{mobile ? 'CSV' : t('Экспорт CSV')}</OpticalText></button></div>
     </header>}
     {data.demo && (mobile ? <div className="cj-mobile-demo-note"><span>{t('Демопросмотр')}</span><a data-hover="link" href="#/teacher/login">{t('Войти в аккаунт')}</a></div> : <div className="cj-demo"><span>{t('Демопросмотр')}</span>{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}<a data-hover="link" href="#/teacher/login">{t('Войти в аккаунт')}</a></div>)}
     {data.warnings.map(warning => <Alert key={warning} tone="warning" text={t(warning)} />)}
@@ -357,7 +358,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
           }
         }} />}
         <MobileSheet open={mobileSearchOpen} onClose={() => setMobileSearchOpen(false)} title={t('Поиск ученика')}
-          footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileSearchOpen(false)}>{t('Готово')}</button>}>
+          footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileSearchOpen(false)}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>}>
           <div className="course-journal cj-mobile">{studentSearch}</div>
         </MobileSheet>
       </> : <>
@@ -369,17 +370,17 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
         </section>
         <div className="cj-mobile-search-row">{studentSearch}{!data.demo && <button className="cj-icon-button" type="button" aria-label={t('Перенос прошлого')} aria-pressed={transfer} onClick={() => setTransfer(v => !v)}><RotateCcw size={18} /></button>}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
       </>}
-      <MobileSheet open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} title={t('Фильтры')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileFiltersOpen(false)}>{t('Готово')}</button>}>
+      <MobileSheet open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} title={t('Фильтры')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileFiltersOpen(false)}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>}>
         <div className="course-journal cj-mobile cj-mobile-filter-panel">
           <div className="cj-filters">{secondaryFilters}</div>
-          <button className="cj-button" type="button" disabled={activeMobileFilters === 0} onClick={() => { setGroupId('all'); setModuleId('all') }}>{t('Сбросить фильтры')}</button>
-          <div className="cj-mobile-panel-actions"><button className="cj-button" type="button" disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} />{t('Обновить журнал')}</button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} />CSV</button></div>
-          {nativeIphone && <button className="cj-button" type="button" onClick={() => { setMobileFiltersOpen(false); setMobileSummaryOpen(true) }}><BarChart2 size={17} />{t('Результаты')}</button>}
-          {!data.demo && <button className="cj-button" type="button" aria-pressed={transfer} onClick={() => { setMobileFiltersOpen(false); setTransfer(v => !v) }}><RotateCcw size={17} />{t(transfer ? 'Выйти из переноса' : 'Перенос прошлого')}</button>}
+          <button className="cj-button" type="button" disabled={activeMobileFilters === 0} onClick={() => { setGroupId('all'); setModuleId('all') }}><OpticalText as="iskra-button-label">{t('Сбросить фильтры')}</OpticalText></button>
+          <div className="cj-mobile-panel-actions"><button className="cj-button" type="button" disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /><OpticalText as="iskra-button-label">{t('Обновить журнал')}</OpticalText></button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} /><OpticalText as="iskra-button-label">CSV</OpticalText></button></div>
+          {nativeIphone && <button className="cj-button" type="button" onClick={() => { setMobileFiltersOpen(false); setMobileSummaryOpen(true) }}><BarChart2 size={17} /><OpticalText as="iskra-button-label">{t('Результаты')}</OpticalText></button>}
+          {!data.demo && <button className="cj-button" type="button" aria-pressed={transfer} onClick={() => { setMobileFiltersOpen(false); setTransfer(v => !v) }}><RotateCcw size={17} /><OpticalText as="iskra-button-label">{t(transfer ? 'Выйти из переноса' : 'Перенос прошлого')}</OpticalText></button>}
           {data.demo && <p className="cj-note">{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}</p>}
         </div>
       </MobileSheet>
-      <MobileSheet open={mobileSummaryOpen} onClose={() => setMobileSummaryOpen(false)} title={t('Результаты')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileSummaryOpen(false)}>{t('Готово')}</button>}>
+      <MobileSheet open={mobileSummaryOpen} onClose={() => setMobileSummaryOpen(false)} title={t('Результаты')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileSummaryOpen(false)}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>}>
         <div className="course-journal cj-mobile">{summaryCards}</div>
       </MobileSheet>
     </> : <>
@@ -390,11 +391,11 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
       </section>
       {summaryCards}
     </>}
-    {!nativeIphone && <div className="cj-toolbar"><JournalTabScroll mobile={mobile}><div className="cj-tabs" role="group" aria-label={t('Вид журнала')}>{([['overview', 'Обзор'], ['attendance', 'Посещаемость'], ['work', 'Работы'], ['stats', 'Статистика']] as const).map(([id, label]) => <button data-hover="layer" key={id} type="button" aria-pressed={mode === id} onClick={() => setMode(id)}>{t(label)}</button>)}</div></JournalTabScroll>
-      {!mobile && <button className="cj-button cj-primary" type="button" disabled={!scheduleIds.length} onClick={() => openMark(pendingEvents[0]?.id ?? scheduleIds[0])}><Plus size={15} />{t('Отметить занятие')}</button>}
+    {!nativeIphone && <div className="cj-toolbar"><JournalTabScroll mobile={mobile}><div className="cj-tabs" role="group" aria-label={t('Вид журнала')}>{([['overview', 'Обзор'], ['attendance', 'Посещаемость'], ['work', 'Работы'], ['stats', 'Статистика']] as const).map(([id, label]) => <button data-hover="layer" key={id} type="button" aria-pressed={mode === id} onClick={() => setMode(id)}><OpticalText as="iskra-button-label">{t(label)}</OpticalText></button>)}</div></JournalTabScroll>
+      {!mobile && <button className="cj-button cj-primary" type="button" disabled={!scheduleIds.length} onClick={() => openMark(pendingEvents[0]?.id ?? scheduleIds[0])}><Plus size={15} /><OpticalText as="iskra-button-label">{t('Отметить занятие')}</OpticalText></button>}
     </div>}
-    {onlyAttention && <div className="cj-active-filter"><CircleAlert size={14} /><span>{t('Показаны ученики, которым нужно внимание')}</span><button data-hover="layer" type="button" onClick={() => setOnlyAttention(false)}>{t('Сбросить')}</button></div>}
-    {pendingEvents.length > 0 && !(mobile && transfer) && <div className="cj-pending-alert"><CircleAlert size={17} /><span>{t('Есть незаполненные занятия')}: {pendingEvents.length}</span><button data-hover="layer" type="button" onClick={() => openMark(pendingEvents[0].id)}>{t('Заполнить')}<ChevronRight size={13} /></button></div>}
+    {onlyAttention && <div className="cj-active-filter"><CircleAlert size={14} /><span>{t('Показаны ученики, которым нужно внимание')}</span><button data-hover="layer" type="button" onClick={() => setOnlyAttention(false)}><OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText></button></div>}
+    {pendingEvents.length > 0 && !(mobile && transfer) && <div className="cj-pending-alert"><CircleAlert size={17} /><span>{t('Есть незаполненные занятия')}: {pendingEvents.length}</span><button data-hover="layer" type="button" onClick={() => openMark(pendingEvents[0].id)}><OpticalText as="iskra-button-label">{t('Заполнить')}</OpticalText><ChevronRight size={13} /></button></div>}
     {mobile && transfer && index && !data.demo ? <MobileJournalTransfer key={courseId} data={data} index={index} students={filteredRoster} columns={allColumns}
       today={today} time={now.time} nativeIphone={nativeIphone} onExit={() => setTransfer(false)} onCommitted={commitAttendance} onSaved={reload}
       onBar={bar => {
@@ -414,7 +415,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
       })}</div>
       : mode === 'stats' ? <JournalTable mobile={mobile}><table className="cj-table cj-stats"><thead><tr>{['Ученик', 'Изучено', 'Зачтено работ', 'Результат', 'Посещение', 'Требуют внимания'].map(label => <th key={label} scope="col">{t(label)}</th>)}</tr></thead><tbody>{students.map(student => {
         const row = cells.get(student.id) ?? []; const stats = journalSummary(row, today)
-        return <tr key={student.id}><th scope="row">{tn(student.name)}</th><td>{stats.studied}/{stats.studyTotal}</td><td>{stats.passed}/{stats.required}</td><td>{stats.score === null ? '—' : `${stats.score}%`}</td><td>{stats.marked ? `${Math.round(stats.present / stats.marked * 100)}%` : '—'}</td><td><button data-hover="layer" type="button" className="cj-text-button" disabled={!stats.attention} onClick={() => { const cell = row.find(c => c.attention)!; setSelected({ studentId: student.id, columnId: cell.column.id }) }}>{stats.attention || '—'}</button></td></tr>
+        return <tr key={student.id}><th scope="row">{tn(student.name)}</th><td>{stats.studied}/{stats.studyTotal}</td><td>{stats.passed}/{stats.required}</td><td>{stats.score === null ? '—' : `${stats.score}%`}</td><td>{stats.marked ? `${Math.round(stats.present / stats.marked * 100)}%` : '—'}</td><td><button data-hover="layer" type="button" className="cj-text-button" disabled={!stats.attention} onClick={() => { const cell = row.find(c => c.attention)!; setSelected({ studentId: student.id, columnId: cell.column.id }) }}><OpticalText as="iskra-button-label">{stats.attention || '—'}</OpticalText></button></td></tr>
       })}</tbody></table></JournalTable>
       : <JournalTable mobile={mobile}><table className="cj-table"><caption className="sr-only">{tc(activeCourse?.title ?? t('Вне курсов'))} · {t('Прогресс учеников по урокам')}</caption><thead><tr><th scope="col" className="cj-student-heading">{t('Ученик')}<small>{students.length} {t('в этом списке')}</small></th>{columns.map((column, i) => <th scope="col" key={column.id}><small>{tc(modules.find(m => m.id === column.moduleId)?.label ?? (column.lesson?.kind === 'test' ? t('Тест') : t('Занятие')))}</small><strong>{column.lesson ? `${i + 1}. ` : ''}{tc(column.title)}{column.recording ? ` · ${t('Запись')}` : ''}</strong><span>{slotLabel(column.date, column.time, tz)}</span></th>)}<th scope="col" className="cj-total">{t('Зачтено')}<small>{t('работ')}</small></th></tr></thead><tbody>{students.map(student => {
         const row = cells.get(student.id) ?? []; const stats = journalSummary(row, today)
@@ -432,6 +433,6 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     }} mobile={mobile} onChange={update => { if (update) setData(old => old ? update(old) : old); else reload() }} />}</AnimatePresence>
     {editCells && <AttendanceEditor mobile={mobile} cells={editCells} data={data} onCommitted={commitAttendance} onSaved={reload} onClose={() => setEditCells(null)} />}
     {markId && !data.demo && <LessonGradeModal key={markId} groupId={markedEvent?.group_id ?? null} initialLessonId={markId} scheduleIds={scheduleIds} eventRecords={eventRecords} onClose={() => { setMarkId(null); reload() }} />}
-    {markId && data.demo && <Modal title={t('Отметить занятие')} subtitle={`${markedEvent?.lesson_title} · ${dateLabel(markedEvent?.date ?? null)}`} onClose={() => setMarkId(null)} width={540} footer={<button className="cj-button cj-primary" type="button" onClick={saveDemoMarks}>{t('Сохранить отметки')}</button>}><div className="course-journal cj-demo-marks"><p className="cj-note">{t('Без отметки — не значит пропуск. Можно заполнить позже.')}</p><button type="button" className="cj-button" onClick={() => setDemoPresent(Object.fromEntries(markRoster.map(s => [s.id, true])))}>{t('Все присутствовали')}</button>{markRoster.map(student => <div key={student.id}><strong>{tn(student.name)}</strong><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === true} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === true ? null : true }))}>{t('Был')}</button><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === false} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === false ? null : false }))}>{t('Пропуск')}</button></div>)}</div></Modal>}
+    {markId && data.demo && <Modal title={t('Отметить занятие')} subtitle={`${markedEvent?.lesson_title} · ${dateLabel(markedEvent?.date ?? null)}`} onClose={() => setMarkId(null)} width={540} footer={<button className="cj-button cj-primary" type="button" onClick={saveDemoMarks}><OpticalText as="iskra-button-label">{t('Сохранить отметки')}</OpticalText></button>}><div className="course-journal cj-demo-marks"><p className="cj-note">{t('Без отметки — не значит пропуск. Можно заполнить позже.')}</p><button type="button" className="cj-button" onClick={() => setDemoPresent(Object.fromEntries(markRoster.map(s => [s.id, true])))}><OpticalText as="iskra-button-label">{t('Все присутствовали')}</OpticalText></button>{markRoster.map(student => <div key={student.id}><strong>{tn(student.name)}</strong><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === true} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === true ? null : true }))}><OpticalText as="iskra-button-label">{t('Был')}</OpticalText></button><button type="button" className="cj-button" aria-pressed={demoPresent[student.id] === false} onClick={() => setDemoPresent(v => ({ ...v, [student.id]: v[student.id] === false ? null : false }))}><OpticalText as="iskra-button-label">{t('Пропуск')}</OpticalText></button></div>)}</div></Modal>}
   </div>
 }

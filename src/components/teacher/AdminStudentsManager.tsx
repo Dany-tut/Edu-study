@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { useEffect, useMemo, useState } from 'react'
 import { confirmDialog } from '../ConfirmHost'
@@ -253,7 +254,7 @@ export default function AdminStudentsManager() {
         )}
         <button data-hover="layer" onClick={load} title={t('Обновить')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
           <RefreshCw size={14} strokeWidth={2} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          {t('Обновить')}
+          <OpticalText as="iskra-button-label">{t('Обновить')}</OpticalText>
         </button>
       </div>
 
@@ -484,7 +485,7 @@ function EditStudentModal({ row, groups, onClose, onSave }: {
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-        <button data-hover="layer" onClick={onClose} style={btn('S', 'secondary')}>{t('Отмена')}</button>
+        <button data-hover="layer" onClick={onClose} style={btn('S', 'secondary')}><OpticalText as="iskra-button-label">{t('Отмена')}</OpticalText></button>
         <TeacherSaveButton
           label={t('Сохранить')}
           onClick={() => onSave({

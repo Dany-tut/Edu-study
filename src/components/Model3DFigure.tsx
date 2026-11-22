@@ -7,6 +7,7 @@
 // канвы, их положение сцена отдаёт каждый второй кадр, и мы двигаем их
 // напрямую через transform, минуя React: иначе 30 рендеров в секунду.
 // ─────────────────────────────────────────────────────────────────────────────
+import OpticalText from './OpticalText'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { retryImport } from '../lib/chunkError'
 import { loadModelSpec } from '../lib/models3d/registry'
@@ -171,23 +172,23 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           <div className="m3d__tools">
             {spec?.canExplode && (
               <button type="button" className="m3d__btn" data-hover="own" aria-pressed={exploded} onClick={() => setExploded(v => !v)}>
-                {exploded ? 'Собрать' : 'Разобрать'}
+                <OpticalText as="iskra-button-label">{exploded ? 'Собрать' : 'Разобрать'}</OpticalText>
               </button>
             )}
             {spec?.animate && (
               <button type="button" className="m3d__btn" data-hover="own" aria-pressed={!moving} onClick={() => setMoving(v => !v)}>
-                {moving ? 'Пауза' : 'Движение'}
+                <OpticalText as="iskra-button-label">{moving ? 'Пауза' : 'Движение'}</OpticalText>
               </button>
             )}
             <button type="button" className="m3d__btn" data-hover="own" aria-pressed={spinning} onClick={() => setSpinning(v => !v)} aria-label="Автовращение">
-              Вращение
+              <OpticalText as="iskra-button-label">Вращение</OpticalText>
             </button>
             <button type="button" className="m3d__btn" data-hover="own" aria-pressed={labelsOn} onClick={() => setLabelsOn(v => !v)}>
-              Подписи
+              <OpticalText as="iskra-button-label">Подписи</OpticalText>
             </button>
-            <button type="button" className="m3d__btn" data-hover="own" onClick={reset}>Сброс</button>
+            <button type="button" className="m3d__btn" data-hover="own" onClick={reset}><OpticalText as="iskra-button-label">Сброс</OpticalText></button>
             <button type="button" className="m3d__btn" data-hover="own" onClick={() => setFull(v => !v)}>
-              {full ? 'Закрыть' : 'Во весь экран'}
+              <OpticalText as="iskra-button-label">{full ? 'Закрыть' : 'Во весь экран'}</OpticalText>
             </button>
           </div>
         </div>}
@@ -221,9 +222,9 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
               <div className="m3d__pop-text"><Prose text={part.info} /></div>
               <div className="m3d__card-actions">
                 <button type="button" className="m3d__btn" data-hover="own" aria-pressed={isolated} onClick={() => setIsolated(v => !v)}>
-                  {isolated ? 'Показать всё' : 'Отдельно'}
+                  <OpticalText as="iskra-button-label">{isolated ? 'Показать всё' : 'Отдельно'}</OpticalText>
                 </button>
-                <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}>Закрыть</button>
+                <button type="button" className="m3d__btn" data-hover="own" onClick={() => setSelected(null)}><OpticalText as="iskra-button-label">Закрыть</OpticalText></button>
               </div>
             </div>
           )}
@@ -240,7 +241,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
           <div className="m3d__stages">
             <div className="m3d__stages-row">
               <button type="button" className="m3d__btn" data-hover="own" aria-pressed={playing} onClick={() => setPlaying(v => !v)}>
-                {playing ? 'Стоп' : 'Плёнка'}
+                <OpticalText as="iskra-button-label">{playing ? 'Стоп' : 'Плёнка'}</OpticalText>
               </button>
               {spec.timeline.stages.map((st, i) => (
                 <button
@@ -251,7 +252,7 @@ export default function Model3DFigure({ src, caption, scale = 1, maxWidth, selec
                   aria-pressed={progress === i}
                   onClick={() => { setPlaying(false); viewerRef.current?.setProgress(i / (spec.timeline!.stages.length - 1)) }}
                 >
-                  {st.name}
+                  <OpticalText as="iskra-button-label">{st.name}</OpticalText>
                 </button>
               ))}
             </div>

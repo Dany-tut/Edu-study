@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { textFadeStyle } from '../../../lib/textFades'
 // ─────────────────────────────────────────────────────────────────────────────
 // Режим экзамена: пробник IELTS на весь экран
@@ -259,7 +260,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
 
         {canSubmit && (
           <button data-hover="layer" type="button" onClick={finishSection} style={solidBtn}>
-            {wide ? t('Сдать секцию') : t('Сдать')}
+            <OpticalText as="iskra-button-label">{wide ? t('Сдать секцию') : t('Сдать')}</OpticalText>
           </button>
         )}
 
@@ -278,8 +279,8 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
           <span style={{ flex: 1, minWidth: 220, fontSize: 13, lineHeight: 1.45, color: 'var(--color-text)' }}>
             {t('Ответы сохранятся, пробник можно продолжить позже. Таймер секции не останавливается — как на настоящем экзамене.')}
           </span>
-          <button data-hover="layer" type="button" onClick={() => { stopSpeech(); onClose() }} style={solidBtn}>{t('Выйти')}</button>
-          <button data-hover="layer" type="button" onClick={() => setConfirmExit(false)} style={ghostBtn}>{t('Остаться')}</button>
+          <button data-hover="layer" type="button" onClick={() => { stopSpeech(); onClose() }} style={solidBtn}><OpticalText as="iskra-button-label">{t('Выйти')}</OpticalText></button>
+          <button data-hover="layer" type="button" onClick={() => setConfirmExit(false)} style={ghostBtn}><OpticalText as="iskra-button-label">{t('Остаться')}</OpticalText></button>
         </div>
       )}
 
@@ -304,7 +305,7 @@ export default function MockRunner({ mock, draft: initial, accent, soft, onClose
           }}>
             <Pause size={32} style={{ color: accent }} />
             <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>{t('Пауза')} · {mmss(d.paused)}</div>
-            <button data-hover="layer" type="button" onClick={togglePause} style={solidBtn}><Play size={14} /> {t('Продолжить')}</button>
+            <button data-hover="layer" type="button" onClick={togglePause} style={solidBtn}><Play size={14} /> <OpticalText as="iskra-button-label">{t('Продолжить')}</OpticalText></button>
           </div>
         )}
       </div>
@@ -395,7 +396,7 @@ function SectionIntro({ section, index, total, onStart, accent }: {
       )}
       <div>
         <button data-hover="layer" type="button" onClick={onStart} style={{ ...solidBtn, height: 44, padding: '0 26px', fontSize: 15 }}>
-          {t('Начать')}
+          <OpticalText as="iskra-button-label">{t('Начать')}</OpticalText>
         </button>
       </div>
     </div>
@@ -425,7 +426,7 @@ function QuestionStrip({ numbers, answers, onPick, accent, soft }: {
             width: 28, height: 28, borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
             fontSize: 12, fontWeight: 800, border: `1.5px solid ${on ? accent : 'var(--color-border-soft)'}`,
             background: on ? soft : 'var(--color-bg-2)', color: on ? accent : 'var(--color-text-2)',
-          }}>{n}</button>
+          }}><OpticalText as="iskra-button-label">{n}</OpticalText></button>
         )
       })}
     </div>
@@ -537,13 +538,13 @@ function ListeningRun({ mock, d, update, patch, finish, now, accent, soft }: Run
           <>
             <Clock size={16} style={{ color: accent }} />
             <span style={{ flex: 1 }}>{t('Запись закончилась. Время проверить ответы — потом секция сдастся сама.')}</span>
-            <button data-hover="layer" type="button" onClick={finish} style={solidBtn}>{t('Сдать')}</button>
+            <button data-hover="layer" type="button" onClick={finish} style={solidBtn}><OpticalText as="iskra-button-label">{t('Сдать')}</OpticalText></button>
           </>
         ) : phase === 'preview' ? (
           <>
             <Clock size={16} style={{ color: accent }} />
             <span style={{ flex: 1 }}>{part.title} · {t('прочитайте вопросы, запись начнётся через')} {mmss(previewEnd - now)}</span>
-            <button data-hover="layer" type="button" onClick={play} style={ghostBtn}>{t('Начать сейчас')}</button>
+            <button data-hover="layer" type="button" onClick={play} style={ghostBtn}><OpticalText as="iskra-button-label">{t('Начать сейчас')}</OpticalText></button>
           </>
         ) : (
           <>
@@ -651,7 +652,7 @@ function ReadingRun({ mock, d, update, patch, accent, soft }: RunProps & { accen
           position: 'fixed', left: pick.x, top: Math.max(8, pick.y - 42), transform: 'translateX(-50%)', zIndex: 5,
           ...solidBtn, height: 32, boxShadow: 'var(--shadow-3)',
         }}>
-          <Highlighter size={14} /> {t('Выделить')}
+          <Highlighter size={14} /> <OpticalText as="iskra-button-label">{t('Выделить')}</OpticalText>
         </button>
       )}
     </div>
@@ -931,7 +932,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--color-text-2)' }}>
           <Volume2 size={16} style={{ color: accent }} /> {t('Экзаменатор задаёт вопрос…')}
           <button data-hover="layer" type="button" onClick={() => { stopSpeech(); proceedRef.current() }} style={{ ...ghostBtn, marginLeft: 'auto' }}>
-            {t('Отвечать')}
+            <OpticalText as="iskra-button-label">{t('Отвечать')}</OpticalText>
           </button>
         </div>
       )}
@@ -940,7 +941,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
             <Clock size={16} style={{ color: accent }} /> {t('Подготовка')}: {mmss(until - now)}
-            <button data-hover="layer" type="button" onClick={startAnswer} style={{ ...ghostBtn, marginLeft: 'auto' }}>{t('Готов говорить')}</button>
+            <button data-hover="layer" type="button" onClick={startAnswer} style={{ ...ghostBtn, marginLeft: 'auto' }}><OpticalText as="iskra-button-label">{t('Готов говорить')}</OpticalText></button>
           </div>
           <GrowTextarea value={notes} onChange={setNotes} minHeight={growMinHeight(4, 14, 12)}
             placeholder={t('Заметки — как на листке на экзамене. Они никуда не уходят.')}
@@ -958,7 +959,7 @@ function SpeakingRun({ mock, d, update, patch, finish, accent }: RunProps & { fi
             {t('Говорите')} · {mmss(until - now)}
           </span>
           <button data-hover="layer" type="button" onClick={() => void save()} style={{ ...solidBtn, marginLeft: 'auto' }}>
-            <Square size={14} /> {t('Закончить ответ')}
+            <Square size={14} /> <OpticalText as="iskra-button-label">{t('Закончить ответ')}</OpticalText>
           </button>
         </div>
       )}

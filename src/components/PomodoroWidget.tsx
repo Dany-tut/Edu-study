@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { motion } from 'framer-motion'
 import { Play, Pause, RotateCcw } from './icons/appIcons'
 import { useDashboard, POMO_DURATIONS, type PomoMode } from '../store/dashboardStore'
@@ -88,7 +89,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
                   transition: 'color 0.22s, background 0.22s',
                 }}
               >
-                {t(MODE_LABEL[m])}
+                <OpticalText as="iskra-button-label">{t(MODE_LABEL[m])}</OpticalText>
               </button>
             ))}
           </div>
@@ -120,7 +121,7 @@ export default function PomodoroWidget({ columns = 1 }: Props) {
             }}
           >
             {pomoRunning ? <Pause size={16 * sz.scale} /> : <Play size={16 * sz.scale} />}
-            {pomoRunning ? t('Пауза') : t('Начать')}
+            <OpticalText as="iskra-button-label">{pomoRunning ? t('Пауза') : t('Начать')}</OpticalText>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.06 }}

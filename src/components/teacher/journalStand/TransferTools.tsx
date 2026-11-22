@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import Modal from '../../Modal'
@@ -56,7 +57,7 @@ export function TransferMenu({ label, caption, items }: { label: string; caption
       style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999 }}>
       {caption && <div className="jt-menu-caption">{caption}</div>}
       {items.map(item => <button key={item.label} type="button" role="menuitem" data-hover="row" disabled={item.disabled}
-        onClick={() => { setOpen(false); item.onSelect() }}>{item.label}</button>)}
+        onClick={() => { setOpen(false); item.onSelect() }}><OpticalText as="iskra-button-label">{item.label}</OpticalText></button>)}
     </div>, document.body)}
   </>
 }
@@ -98,8 +99,8 @@ export function LessonDateDialog({ data, column, students, today, onClose, onSav
     void action.run(() => createPastEvents(data, column, students, iso), () => { onSaved(); onClose() },
       cause => setError('Не удалось сохранить дату. ' + (cause instanceof Error ? cause.message : '')))
   }
-  const footer = <><button type="button" className="cj-button ja-action" onClick={onClose}>Отмена</button>
-      <button type="button" className="cj-button cj-primary ja-action" disabled={!iso || future || action.busy} onClick={save}>{action.busy ? 'Сохранение…' : 'Сохранить дату'}</button></>
+  const footer = <><button type="button" className="cj-button ja-action" onClick={onClose}><OpticalText as="iskra-button-label">Отмена</OpticalText></button>
+      <button type="button" className="cj-button cj-primary ja-action" disabled={!iso || future || action.busy} onClick={save}><OpticalText as="iskra-button-label">{action.busy ? 'Сохранение…' : 'Сохранить дату'}</OpticalText></button></>
   const body = <div className="course-journal jt-date">
       {mobile && <p className="cj-note ja-subtitle">{column.title}</p>}
       <p className="cj-note">Урок прошёл до Искры, поэтому его нет в расписании. Укажите, когда он был, — после этого можно отметить присутствие и ДЗ. Ученикам ничего не придёт.</p>

@@ -1,3 +1,4 @@
+import OpticalText from '../../OpticalText'
 import { useState } from 'react'
 import { ChevronRight } from '../../icons/appIcons'
 import type { RosterEntry } from './overviewStats'
@@ -26,7 +27,7 @@ export default function HomeworkList({ entries, slots, search, attention, onStud
         {rows.some(e => e.work.status === 'На проверке') && <button type="button" className="cj-button jh-review-button" onClick={() => onAssignment(slot.ref)}>Проверить · {rows.filter(e => e.work.status === 'На проверке').length}</button>}
       </header>
       {open.has(slot.ref) && <div><div className="jh-homework-row jh-homework-labels"><span>Ученик</span><span>Источник</span><span>Результат</span><span/></div>
-        {rows.map(e => <div key={e.key} className="jh-homework-row"><button type="button" className="jh-work-student" onClick={() => onStudent(e.student.id, slot.ref)}>{e.student.name}</button><span className="jh-work-source">{e.work.source}</span><HomeworkStatus entry={e}/><button type="button" className={'cj-button ' + (e.work.status === 'На проверке' ? 'jh-review-button' : '')} onClick={() => onStudent(e.student.id, slot.ref)}>{e.work.status === 'На проверке' ? 'Проверить' : 'Открыть'}</button></div>)}
+        {rows.map(e => <div key={e.key} className="jh-homework-row"><button type="button" className="jh-work-student" onClick={() => onStudent(e.student.id, slot.ref)}><OpticalText as="iskra-button-label">{e.student.name}</OpticalText></button><span className="jh-work-source">{e.work.source}</span><HomeworkStatus entry={e}/><button type="button" className={'cj-button ' + (e.work.status === 'На проверке' ? 'jh-review-button' : '')} onClick={() => onStudent(e.student.id, slot.ref)}><OpticalText as="iskra-button-label">{e.work.status === 'На проверке' ? 'Проверить' : 'Открыть'}</OpticalText></button></div>)}
       </div>}
     </section>)}
     {!groups.length && <p className="jh-empty">Домашние задания по этим фильтрам не найдены.</p>}

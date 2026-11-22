@@ -17,6 +17,7 @@
 // прочитанных текстов — «начать с текста», и она уводит в «Чтение».
 // ─────────────────────────────────────────────────────────────────────────────
 
+import OpticalText from '../../OpticalText'
 import { useEffect, useMemo, useState } from 'react'
 import { Layers } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
@@ -121,13 +122,13 @@ export function useReviewDeck({
         emptyExtra={
           glossary.length > 0 ? (
             <button data-hover="layer" onClick={seedFromTexts} disabled={seeding} style={{ ...cta, cursor: seeding ? 'default' : 'pointer' }}>
-              {seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossary.length}`}
+              <OpticalText as="iskra-button-label">{seeding ? t('Добавляю…') : `${t('Взять слова из текстов')} · ${glossary.length}`}</OpticalText>
             </button>
           ) : texts.length > 0 ? (
             // Кнопка ведёт ровно в то единственное место, где колода начинает
             // набираться, — см. шапку файла.
             <button data-hover="layer" onClick={onGoToTexts} style={{ ...cta, cursor: 'pointer' }}>
-              {`${t('Начать с текста')} · ${texts.length}`}
+              <OpticalText as="iskra-button-label">{`${t('Начать с текста')} · ${texts.length}`}</OpticalText>
             </button>
           ) : null
         }

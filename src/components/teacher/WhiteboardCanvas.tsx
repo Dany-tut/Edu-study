@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useRef, useState, useEffect } from 'react'
 import Tooltip from '../Tooltip'
 import { createPortal } from 'react-dom'
@@ -434,11 +435,11 @@ export default function WhiteboardCanvas({
             <>
               {divider}
               <button data-hover="layer" title={t('Выделить всё')} onClick={selectAll} style={{ height: 32, padding: '0 8px', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', color: 'var(--color-muted)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                <BoxSelect size={12} /> {t('Всё')}
+                <BoxSelect size={12} /> <OpticalText as="iskra-button-label">{t('Всё')}</OpticalText>
               </button>
               {sel && (
                 <button data-hover="layer" title={t('Готово')} onClick={commitSelection} style={{ height: 32, padding: '0 10px', borderRadius: 8, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', background: 'var(--color-green-soft)', color: 'var(--color-green-text)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                  {t('Готово')}
+                  <OpticalText as="iskra-button-label">{t('Готово')}</OpticalText>
                 </button>
               )}
             </>
