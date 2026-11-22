@@ -44,6 +44,9 @@ function classify(error: CourseSaveError): Kind {
 
 /** Что делать учителю — без кодов и терминов. */
 export function courseSaveCause(error: CourseSaveError): string {
+  if (error?.code === 'ISKRA_DATA_PRESERVATION' || error?.message?.includes('ISKRA_DATA_PRESERVATION')) {
+    return t('Сохранение остановлено, чтобы защитить данные. Сохраните копию черновика и откройте курс заново в другой вкладке.')
+  }
   switch (classify(error)) {
     case 'auth': return t('Похоже, вход в аккаунт истёк. Войдите в Искру заново в новой вкладке, вернитесь сюда и нажмите «Повторить».')
     case 'network': return t('Не получилось связаться с Искрой. Проверьте интернет и нажмите «Повторить».')

@@ -10,6 +10,9 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Вставить из таблицы': 'Paste from spreadsheet',
+  'Перенос прошлого': 'Import past records',
+  'Сохранение остановлено, чтобы защитить данные. Сохраните копию черновика и откройте курс заново в другой вкладке.': 'Saving was stopped to protect your data. Keep a copy of your draft and reopen the course in another tab.',
   // Виджет очереди расшифровки в нав-баре учителя (TranscriptionQueueWidget).
   // «Расшифровка» и «идёт» уже есть ключами ниже — не дублируем.
   'в очереди': 'queued',

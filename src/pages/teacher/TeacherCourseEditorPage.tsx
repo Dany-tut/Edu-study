@@ -17,6 +17,7 @@ import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '../../lib/courseScheduleSync'
+import { courseSaveProvenance } from '../../lib/courseSaveProvenance'
 import { courseSaveCause, courseSaveReason, courseSaveStageText } from '../../lib/courseSaveReason'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
@@ -254,6 +255,8 @@ export interface CourseEdData {
   description?: string
   dbCourseId?: string
   lastEdited?: string
+  /** Server version that produced this snapshot; retained with recovered drafts. */
+  serverStamp?: string
   /**
    * Отпечаток сида на момент последней синхронизации — см. Course.seedStamp
    * в TeacherConstructorPage. Ставится при сборке курса из сида и при
@@ -6313,7 +6316,7 @@ export default function TeacherCourseEditorPage() {
       clearDrafts(draftNs)
       return
     }
-    if (!course.metadataPending) writeDraft(draftKey, course)
+    if (!course.metadataPending) writeDraft(draftKey, { ...course, serverStamp: baselineStamp.current ?? course.serverStamp })
   }, [course, draftKey, draftNs, editRevision])
 
   function clearCourseDraftAfterSync(seqAtSave: number, synced: boolean) {
@@ -6383,17 +6386,13 @@ export default function TeacherCourseEditorPage() {
   }, [course])
   const [seedSyncOpen, setSeedSyncOpen] = useState(false)
 
-  // Отпечаток серверной версии снимается ОДИН раз, при открытии курса: это та
-  // версия, от которой пляшут правки в этой вкладке. Дальше он двигается только
-  // после нашей же записи — иначе сторож принимал бы чужую правку за свою.
+  // A draft must retain the version it actually read. Looking up a fresh stamp
+  // on mount used to certify an OLD recovered draft as the newest server data.
+  // Legacy drafts without provenance require the existing conflict review.
   useEffect(() => {
-    const shortId = course.dbCourseId ?? course.id
-    if (!shortId) return
-    let alive = true
-    readCourseStamp(shortId).then(s => { if (alive && baselineStamp.current === null) baselineStamp.current = s })
-    return () => { alive = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (course.metadataPending || course.heavyPending || !course.serverStamp) return
+    if (baselineStamp.current === null) baselineStamp.current = course.serverStamp
+  }, [course.metadataPending, course.heavyPending, course.serverStamp])
 
   // Remember which lesson + tab the teacher was on, so a page refresh lands them
   // back where they were (per-tab, keyed by course).
@@ -6431,7 +6430,7 @@ export default function TeacherCourseEditorPage() {
   // Keep the editor session JSON in sync with live edits, so a refresh restores
   // the latest course state (not just the snapshot from when the editor opened).
   useEffect(() => {
-    try { sessionStorage.setItem('ce-session', JSON.stringify(course)) } catch { /* non-fatal */ }
+    try { sessionStorage.setItem('ce-session', JSON.stringify({ ...course, serverStamp: baselineStamp.current ?? course.serverStamp })) } catch { /* non-fatal */ }
   }, [course])
   const [openingLesson, setOpeningLesson] = useState(false)
   // Lessons open to students, keyed by persisted short_id (not by `number` —
@@ -6532,7 +6531,7 @@ export default function TeacherCourseEditorPage() {
   const saveIssue = useRef<string | null>(null)
   // Отпечаток серверной версии, с которой открыли курс. Сравнивается перед
   // каждой записью — см. syncAccessToSupabase.
-  const baselineStamp = useRef<string | null>(null)
+  const baselineStamp = useRef<string | null>(!course.metadataPending && !course.heavyPending ? course.serverStamp ?? null : null)
   // Конфликт версий: не булев флаг, а что именно разошлось — окно показывает
   // список и даёт выбрать, чью версию оставить (см. ConflictDialog).
   const [conflict, setConflict] = useState<CourseConflict | null>(null)
@@ -6785,9 +6784,9 @@ export default function TeacherCourseEditorPage() {
    * редактора, может тронуть только уроки.
    */
   async function readCourseStamp(shortId: string, signal?: AbortSignal, excludeLesson?: string): Promise<string | null> {
-    const { data: row } = await supabase
+    const { data: row, error: courseStampError } = await supabase
       .from('courses').select('id, updated_at').eq('short_id', shortId).abortSignal(signal ?? AbortSignal.timeout(60000)).maybeSingle()
-    if (!row) return null
+    if (courseStampError || !row) return null
     let latest = supabase.from('lessons').select('updated_at').eq('course_id', (row as { id: string }).id)
     if (excludeLesson) latest = latest.neq('short_id', excludeLesson)
     const { data: last, error: stampError } = await latest.order('updated_at', { ascending: false }).limit(1).abortSignal(signal ?? AbortSignal.timeout(60000))
@@ -6906,13 +6905,19 @@ export default function TeacherCourseEditorPage() {
     // и говорим человеку перезагрузить: слить две версии автоматически нельзя,
     // а выбрать, чью работу потерять, может только он.
     //
-    // Отпечатка нет (новый курс, первая запись, недоступная сеть) — пишем как
-    // раньше: сторож, который блокирует сохранение при своей же поломке, хуже
-    // отсутствующего.
-    if (baselineStamp.current) {
+    // Existing data must fail closed when version verification fails. An old
+    // draft without a source stamp is reviewed before the first write as well.
+    if (c.dbCourseId || baselineStamp.current) {
       const current = await readCourseStamp(shortId)
-      if (current && current > baselineStamp.current) {
-        setConflict(await buildConflict(shortId, c, current))
+      const provenance = courseSaveProvenance(baselineStamp.current, current)
+      if (provenance === 'unverified') {
+        saveIssue.current = courseSaveReason('course', {
+          code: 'ISKRA_DATA_PRESERVATION', message: 'Could not verify the saved course version',
+        }, shortId)
+        return false
+      }
+      if (provenance === 'review') {
+        setConflict(await buildConflict(shortId, c, current!))
         return false
       }
     }
