@@ -40,6 +40,7 @@ await db.exec(readFileSync(new URL('../../supabase/migrations/20261101091040_cou
 const preservation=readFileSync(new URL('../../supabase/migrations/20261122031218_data_preservation_history.sql',import.meta.url),'utf8')
 await db.exec(preservation.slice(preservation.indexOf('create function iskra_history.reject_empty_lesson_overwrite()'),preservation.indexOf('-- Product tables only:')))
 await db.exec(readFileSync(new URL('../../supabase/migrations/20261122091224_course_content_atomic_save.sql',import.meta.url),'utf8'))
+await db.exec(readFileSync(new URL('../../supabase/migrations/20261122092745_course_content_set_based_save.sql',import.meta.url),'utf8'))
 async function as(user,mfa='on'){ await db.exec(`reset role;set role authenticated;set request.uid='${user}';set request.mfa='${mfa}';`)}
 const rows=async(sql,args=[])=>(await db.query(sql,args)).rows
 const lesson=(ref,mod=modA)=>({short_id:ref,module_id:mod,title:ref,position:0,lesson_number:0,youtube_url:'https://example.invalid/lesson',timecodes:[{time:'00:01',label:'Start',seconds:1}],chapter_variants:{source:'video',items:['chapter']},description:'Description',content:{paragraphs:[{text:'Preserved content'}]},kind:'lesson',test_tasks:[],materials:{files:[]},scheduled_date:null,scheduled_time:null,scheduled_duration:null,rec_date:null,rec_time:null,rec_duration:null,lesson_sched_manual:false,delivery_mode:'live',homework:{hwTasks:[{id:'task',text:'Question',answer:'Answer'}]}})
@@ -82,18 +83,25 @@ assert.equal((await rows('select hidden from course_item_visibility'))[0].hidden
 // without rebuilding surviving lesson IDs or touching progress/visibility.
 const modC='aaaaaaaa-0000-4000-8000-000000000003'
 modules=[...modules,{id:modC,label:'Module C',position:2}]
-lessons=Array.from({length:20},(_,i)=>({...lesson(`qa-${i}`,i%2?modB:modC),position:i,lesson_number:i,description:'Rich lesson '+i,content:{paragraphs:[{text:'Independent QA text '.repeat(600)}]},homework:{hwTasks:Array.from({length:5},(_,j)=>({id:`q-${i}-${j}`,text:'Question '+j,answer:'Answer '+j}))}}))
+lessons=Array.from({length:80},(_,i)=>({...lesson(`qa-${i}`,i%2?modB:modC),position:i,lesson_number:i,description:'Rich lesson '+i,content:{paragraphs:[{text:'Independent QA text '.repeat(600)}]},homework:{hwTasks:Array.from({length:5},(_,j)=>({id:`q-${i}-${j}`,text:'Question '+j,answer:'Answer '+j}))}}))
 result=await save();stamp=result.stamp
-assert.equal(result.lessons.length,20)
+assert.equal(result.lessons.length,80)
 assert.equal(result.lessons[0].id,ids['qa-0'],'content edit retains lesson UUID')
 assert.equal(result.lessons[1].id,ids['qa-1'])
 assert.equal((await rows(`select count(*)::int n from changes`))[0].n,2,'only changed existing lessons fire history')
 const unchanged=await rows(`select id,updated_at from lessons order by short_id`)
 result=await save();stamp=result.stamp
-assert.deepEqual(await rows(`select id,updated_at from lessons order by short_id`),unchanged,'20 unchanged populated lessons retain stamps')
+assert.deepEqual(await rows(`select id,updated_at from lessons order by short_id`),unchanged,'80 unchanged populated lessons retain stamps')
+const beforeDenseIds=Object.fromEntries(result.lessons.map(l=>[l.lesson_number,l.id]))
+lessons=lessons.map(l=>({...l,description:l.description+' edited',content:{paragraphs:[{text:'Revised nonempty QA content '+l.short_id}]}}))
+result=await save();stamp=result.stamp
+assert.deepEqual(Object.fromEntries(result.lessons.map(l=>[l.lesson_number,l.id])),beforeDenseIds,'bulk edit retains all80lesson UUIDs')
+assert.equal((await rows(`select count(*)::int n from changes`))[0].n,82,'all80 changed rows are archived,2previous changes retained')
+await fails({data:lessons.map((l,i)=>({...l,description:'Must roll back '+i,...(i===79?{content:{}}:{})}))},/ISKRA_DATA_PRESERVATION/)
+assert.equal((await rows(`select count(*)::int n from changes`))[0].n,82,'failed bulk update rolls back history too')
 lessons=lessons.filter(l=>l.short_id!=='qa-19')
 result=await save();stamp=result.stamp
-assert.equal(result.lessons.length,19,'intentional lesson removal is version-bound')
+assert.equal(result.lessons.length,79,'intentional lesson removal is version-bound')
 assert.equal((await rows('select status from lesson_progress'))[0].status,'completed')
 assert.equal((await rows('select hidden from course_item_visibility'))[0].hidden,true)
 // Legacy direct writes continue to work; their updated_at must invalidate CAS.

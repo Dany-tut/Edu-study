@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { transform } from 'esbuild'
-import { courseAtomicModules, courseAtomicRows } from '../../src/lib/courseAtomicRows'
+import { courseAtomicModules as productionCourseAtomicModules, eligibleCourseAtomicModules as courseAtomicModules, courseAtomicRows } from '../../src/lib/courseAtomicRows'
 import { accessChangesForSave, acknowledgeCourseAccess } from '../../src/lib/courseAccessChanges'
 import { lessonShortIdMap } from '../../src/lib/lessonReferences'
 import { plainTitle } from '../../src/lib/lessonKey'
@@ -10,6 +10,7 @@ import { theoryToParagraphs } from '../../src/lib/theoryImages'
 const source=readFileSync('src/pages/teacher/TeacherCourseEditorPage.tsx','utf8')
 const start=source.indexOf('  async function syncCourseNow('),end=source.indexOf('  // ── «Выдать новой группе»',start)
 const actual=(await transform(source.slice(start,end),{loader:'ts',target:'es2020'})).code
+assert.equal(productionCourseAtomicModules({}),null,'unaccepted production optimization stays disabled')
 const uuid='aaaaaaaa-0000-4000-8000-000000000001'
 const base={id:'qa',dbCourseId:'qa',title:'QA',subject:'QA',level:'Test',description:'marker',status:'draft',color:'#abcdef',bg:'#eeeeee',groupIds:[],studentIds:[],modules:[{id:uuid,label:'Module',expanded:true,lessonIds:['qa-0']}],lessons:[{id:'qa-0',persistedShortId:'qa-0',title:'Lesson',number:1,videoUrl:'https://example.invalid/video',theory:'Preserved theory',timecodes:[{time:'00:10',seconds:10,label:' Chapter '}],chapterVariants:{source:'video',items:['one']},hwTasks:[{id:'q',text:'Question',answer:'Answer'}]}]}
 // Independent parity check: run the serializer from baseline main on the same

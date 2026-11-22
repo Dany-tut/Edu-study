@@ -98,7 +98,13 @@ export function courseAtomicRows(c: CourseEdData, courseDbId: string, editorModu
     return { ordered, shortIdByLessonId, lessonRows }
 }
 
-export function courseAtomicModules(c: CourseEdData) {
+export function courseAtomicModules(c: CourseEdData): CourseEdData['modules'] | null {
+  // Production acceptance exposed a statement timeout with the full RLS stack.
+  // Keep the proven save path until the server replacement passes real QA.
+  return null
+}
+
+export function eligibleCourseAtomicModules(c: CourseEdData) {
   const kept = c.modules.filter(m => m.label.trim() || m.lessonIds.length > 0)
   // A saved empty course still has its single stable unnamed module. Reuse
   // that identity instead of forcing six round trips through a legacy local ID.
