@@ -461,9 +461,10 @@ export function useHomework() {
   async function closeHomework(id: string) {
     const acknowledge = homeworkQuery.beginMutation()
     const result = await supabase.from('homework').update({ status: 'closed' }).eq('id', id).select('id,status,updated_at').single()
-    if (!mutationAcknowledged('close_homework', result, trackEvent)) return false
-    if (acknowledge(rows => rows.map(row => row.id === id && canAcknowledgeHomework(row, result.data.updated_at)
-      ? { ...row, status: result.data.status, serverUpdatedAt: result.data.updated_at } : row))) void load()
+    const saved = result.data
+    if (!mutationAcknowledged('close_homework', result, trackEvent) || !saved) return false
+    if (acknowledge(rows => rows.map(row => row.id === id && canAcknowledgeHomework(row, saved.updated_at)
+      ? { ...row, status: saved.status, serverUpdatedAt: saved.updated_at } : row))) void load()
     return true
   }
 
