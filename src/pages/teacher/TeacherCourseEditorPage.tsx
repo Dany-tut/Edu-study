@@ -25,6 +25,7 @@ import { trackEvent } from '../../lib/analytics'
 import { courseSaveProbeMetrics } from '../../lib/courseSaveProbeMetrics'
 import { courseAtomicModules, courseAtomicRows, eligibleCourseAtomicModules } from '../../lib/courseAtomicRows'
 import { prepareFullDispatch as prepareFullContentDispatch, advanceConfirmedFull as advanceFullContentDispatch } from '../../lib/courseFullAcknowledgement'
+import { compactFullLessons } from '../../lib/courseFullCompact'
 import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
 import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
 import { courseSaveProvenance } from '../../lib/courseSaveProvenance'
@@ -7325,12 +7326,26 @@ export default function TeacherCourseEditorPage() {
         }
         const fullDispatch = prepareFullContentDispatch(contentBase, ordinaryCanonical, readScope.current)
         if (!fullDispatch) { saveIssue.current = t('Не удалось проверить состав курса. Черновик сохранён.'); return false }
-        const { data: saved, error } = await supabase.rpc('save_course_content_full', {
+        const compactLessons = compactFullLessons(fullDispatch, readScope.current, confirmedContent.current)
+        if (!compactLessons) { saveIssue.current = t('Не удалось проверить исходные данные курса. Черновик сохранён.'); return false }
+        const fullRequest = {
           p_short_id: shortId, p_baseline: contentBase.stamp,
           p_course: full.snapshot.course, p_modules: full.snapshot.modules,
-          p_lessons: full.snapshot.lessons.map(({ id: _id, ...row }) => row),
+          p_lessons: compactLessons,
           p_changes: changes, p_expected_modules: contentBase.modules,
-        })
+        }
+        const fullStarted = performance.now()
+        const { data: saved, error } = await supabase.rpc('save_course_content_full', fullRequest)
+        try {
+          trackEvent('course_save_full_transport', {
+            ...courseSaveProbeMetrics(fullRequest, null, performance.now() - fullStarted),
+            unchanged_row_refs: compactLessons.filter(row => Object.prototype.hasOwnProperty.call(row, 'unchanged_id')).length,
+            full_lesson_rows: compactLessons.filter(row => !Object.prototype.hasOwnProperty.call(row, 'unchanged_id')).length,
+            equivalent_full_body_utf8_bytes: new TextEncoder().encode(JSON.stringify({ ...fullRequest,
+              p_lessons: fullDispatch.preserved.lessons.map(({ id: _id, ...row }) => row),
+            })).length,
+          })
+        } catch { /* Numeric diagnostics cannot change a committed acknowledgement. */ }
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
             setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
