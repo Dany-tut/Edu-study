@@ -99,9 +99,11 @@ export function courseAtomicRows(c: CourseEdData, courseDbId: string, editorModu
 }
 
 export function courseAtomicModules(c: CourseEdData): CourseEdData['modules'] | null {
-  // Production acceptance exposed a statement timeout with the full RLS stack.
-  // Keep the proven save path until the server replacement passes real QA.
-  return null
+  // URL is only a QA switch. The RPC independently restricts owner, course,
+  // draft, authoritative empty audience/enrollments and access intents.
+  if (typeof window === 'undefined' || c.dbCourseId !== '00e3a0efbf'
+    || new URLSearchParams(window.location.search).get('qa_course_save') !== '20261122') return null
+  return eligibleCourseAtomicModules(c)
 }
 
 export function eligibleCourseAtomicModules(c: CourseEdData) {

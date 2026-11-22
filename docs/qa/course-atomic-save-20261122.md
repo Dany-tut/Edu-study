@@ -41,3 +41,15 @@ npm run check:chapter-variants
 `database.mjs` принимает `PGLITE_MODULE`; по умолчанию использует отдельную QA установку `/tmp/iskra-visibility-test-deps/node_modules/@electric-sql/pglite/dist/index.js`. Зависимость не добавляется в продукт.
 
 Пределы: SQL стенд односессионный, не доказывает нагрузочную конкуренцию реального сервера. RLS матрица моделируется локально, существующие политики production не меняются. Потеря ответа после commit оставляет черновик: повтор с прежним stamp безопасно выдаёт конфликт вместо безусловной перезаписи. Достижение ~1 секунды не заявляется до реального замера наполненного QA курса на опубликованном SHA. Этот документ фиксирует выполненную logic/SQL приёмку; production acceptance остаётся PENDING у владельца выпуска.
+
+## Отказ первой реализации и ограниченный HTTP probe
+
+Первые реальные80lesson вызовы11139/9758ms завершились57014, это FAIL, не скорость сохранения. На3543/e7bd1cbb восстановлен стабильныйlegacyпуть; realQA80одиночныйsave11.837с, overlapA/B, reload/reopen, fullhistoryreadback сохранностиPASS.3544/8964891fсодержитегоиотдельныйsubjectsrelease.
+
+Snapshot-прототип сравнивает поля с авторитетным locked server snapshot и полностью пропускает SQL мутации без изменений. Локальный actualSQL80matrixPASS, включаяonechanged/foreignUUID/refs/access/legacyNULLrefs. ActualRLS в новом pg_temp INvoker функциональномклоне подauthenticated/темжеowner/MFA: coldno-op438.291ms;metadata403.763ms;one-lesson630.200ms;warmконтроль350.622/340.410ms. Запреточистки23514за614.020ms,всеоперацииROLLBACK. Полныеhashescourse/lessons/modulesсupdated_atиhistory485послепрогоновнеизменны,временныхфункцийосталось0. SQLtimeнеявляетсяHTTPtime.
+
+Ограниченнаямиграция20261122100928создаёттолькоsave_course_content_probe_20261122. ДоANYwritesпроверяетowner/course/draft/authoritativeaudience/enrollments/intents. INVOKER/emptysearch_path,anonEXECUTEfalse/authtrue. Другиекурсыиаккаунтызапрещены;ширеисходнойRPCправнет. OldRPCнеизменена. КлиентскийURLflagqa_course_save=20261122включаеттолькоQA00e3a0efbf,defaultOFFдлявсехостальных;flagнеавторизация.
+
+`node qa/course-atomic-save/probe-authority.mjs`PASS:actualrestrictedSQLна80fixture,foreign/nullcourse,foreign/noowner,anon,MFAoff,publication,serveraudience/enrollments,grants/modes/unknownintentsвсеотклоненыдозаписей,снимки/historyравны. Самоядродополнительнопровереновреальномpg_tempснастоящейQA/owner:allowedmetadata409.738ms,wrongcourse/owner42501≈2ms,publish/access42501≈10ms;ROLLBACKнелишаетзащиту. ScopeконстантылокальногоauthorityfixtureадаптированыкsyntheticfixtureIDs,логикаguardнеизменна.
+
+HTTPприёмкаprobePENDING:тотже80курс,metadata/одинурок/lateACK/ошибка/retry/reopen/readback;1секнезаявляетсядозамера. Общийfastpathзапрещёндоэтойквитанции. Студенты/группы/опубликованныекурсывэтотperformanceclaimневходят.

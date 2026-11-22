@@ -12,6 +12,13 @@ const start=source.indexOf('  async function syncCourseNow('),end=source.indexOf
 const actual=(await transform(source.slice(start,end),{loader:'ts',target:'es2020'})).code
 assert.equal(productionCourseAtomicModules({}),null,'unaccepted production optimization stays disabled')
 const uuid='aaaaaaaa-0000-4000-8000-000000000001'
+globalThis.window={location:{search:'?qa_course_save=20261122'}}
+assert.equal(productionCourseAtomicModules({dbCourseId:'other-course'}),null,'URL switch cannot enable another course')
+assert.equal(productionCourseAtomicModules({dbCourseId:'00e3a0efbf',modules:[{id:uuid,label:'QA',lessonIds:[]}],lessons:[]})?.[0].id,uuid)
+globalThis.window.location.search=''
+assert.equal(productionCourseAtomicModules({dbCourseId:'00e3a0efbf'}),null,'default QA path stays off without explicit flag')
+delete globalThis.window
+
 const base={id:'qa',dbCourseId:'qa',title:'QA',subject:'QA',level:'Test',description:'marker',status:'draft',color:'#abcdef',bg:'#eeeeee',groupIds:[],studentIds:[],modules:[{id:uuid,label:'Module',expanded:true,lessonIds:['qa-0']}],lessons:[{id:'qa-0',persistedShortId:'qa-0',title:'Lesson',number:1,videoUrl:'https://example.invalid/video',theory:'Preserved theory',timecodes:[{time:'00:10',seconds:10,label:' Chapter '}],chapterVariants:{source:'video',items:['one']},hwTasks:[{id:'q',text:'Question',answer:'Answer'}]}]}
 // Independent parity check: run the serializer from baseline main on the same
 // rich payload, so extracting it cannot silently change content representation.
@@ -45,7 +52,7 @@ function harness({response,error,delayed=false}={}){
  return {write,calls,baselineStamp,latestCourse,saveIssue,savedDrafts,resolve:()=>resolve({data:normal,error:null}),getConflict:()=>conflict}
 }
 let h=harness();assert.equal(await h.write(structuredClone(base)),true)
-assert.deepEqual(h.calls.map(c=>c.name),['flush','save_course_content'],'one network RPC; visibility barrier precedes it')
+assert.deepEqual(h.calls.map(c=>c.name),['flush','save_course_content_probe_20261122'],'one network RPC; visibility barrier precedes it')
 assert.equal(h.calls[1].args.p_baseline,'2026-01-01T00:00:00Z')
 assert.equal(h.calls[1].args.p_lessons[0].homework.hwTasks[0].answer,'Answer')
 assert.equal('course_id' in h.calls[1].args.p_lessons[0],false)

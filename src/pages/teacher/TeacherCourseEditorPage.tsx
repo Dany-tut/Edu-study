@@ -7117,7 +7117,7 @@ export default function TeacherCourseEditorPage() {
       const ids = Object.fromEntries(atomicModules.map(m => [m.id, m.id]))
       await flushCourseVisibility(shortId, ids)
       const payload = courseAtomicRows(c, '', atomicModules, ids)
-      const { data: saved, error } = await supabase.rpc('save_course_content', {
+      const { data: saved, error } = await supabase.rpc('save_course_content_probe_20261122', {
         p_short_id: shortId, p_baseline: baselineStamp.current,
         p_course: {
           title: c.title, subject: c.subject, level: c.level, description: c.description ?? '',

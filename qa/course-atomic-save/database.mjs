@@ -41,6 +41,9 @@ const preservation=readFileSync(new URL('../../supabase/migrations/2026112203121
 await db.exec(preservation.slice(preservation.indexOf('create function iskra_history.reject_empty_lesson_overwrite()'),preservation.indexOf('-- Product tables only:')))
 await db.exec(readFileSync(new URL('../../supabase/migrations/20261122091224_course_content_atomic_save.sql',import.meta.url),'utf8'))
 await db.exec(readFileSync(new URL('../../supabase/migrations/20261122092745_course_content_set_based_save.sql',import.meta.url),'utf8'))
+if (process.env.ATOMIC_LOCAL_PROPOSAL === 'snapshot') {
+  await db.exec(readFileSync(new URL('./proposed-snapshot-save.sql',import.meta.url),'utf8'))
+}
 async function as(user,mfa='on'){ await db.exec(`reset role;set role authenticated;set request.uid='${user}';set request.mfa='${mfa}';`)}
 const rows=async(sql,args=[])=>(await db.query(sql,args)).rows
 const lesson=(ref,mod=modA)=>({short_id:ref,module_id:mod,title:ref,position:0,lesson_number:0,youtube_url:'https://example.invalid/lesson',timecodes:[{time:'00:01',label:'Start',seconds:1}],chapter_variants:{source:'video',items:['chapter']},description:'Description',content:{paragraphs:[{text:'Preserved content'}]},kind:'lesson',test_tasks:[],materials:{files:[]},scheduled_date:null,scheduled_time:null,scheduled_duration:null,rec_date:null,rec_time:null,rec_duration:null,lesson_sched_manual:false,delivery_mode:'live',homework:{hwTasks:[{id:'task',text:'Question',answer:'Answer'}]}})
@@ -64,9 +67,9 @@ const fails=async(opts,pattern)=>{const before=await snapshot();await assert.rej
 await fails({baseline:null},/ISKRA_DATA_PRESERVATION/)
 await fails({baseline:'2026-01-01Z'},/ISKRA_COURSE_CONFLICT/)
 await fails({mods:[...modules,modules[0]]},/Invalid course module identities/)
-await fails({data:[...lessons,lessons[0]]},/Invalid course lesson identities/)
+await fails({data:[...lessons,lessons[0]]},/Invalid course lesson identities|duplicate key value violates unique constraint/)
 await fails({mods:[{id:modF,label:'Stolen',position:0}]},/Invalid course module identities|Invalid course lesson identities|row-level security/)
-await fails({data:[{...lessons[0],module_id:modF}]},/Invalid course lesson identities/)
+await fails({data:[{...lessons[0],module_id:modF}]},/Invalid course lesson identities|duplicate key value violates unique constraint/)
 await fails({courseFields:{...fields,created_by:other}},/Invalid course fields/)
 // Access validation happens after content writes, so rejection proves rollback of earlier writes.
 await fails({courseFields:{...fields,title:'Must roll back'},changes:{students:{[other]:true}}},/Audience is not owned/)
@@ -119,6 +122,59 @@ await rows(`insert into lessons(course_id,module_id,short_id,title) values('${fo
 await rows(`update courses set created_by='${owner}' where id='${foreign}'`)
 await as(owner)
 stamp=(await rows(`select greatest(c.updated_at,(select max(updated_at) from lessons where course_id=c.id)) stamp from courses c where short_id='qa-course'`))[0].stamp
-await fails({data:[{...lessons[0],short_id:'foreign-ref'}]},/Invalid course lesson identities/)
+await fails({data:[{...lessons[0],short_id:'foreign-ref'}]},/Invalid course lesson identities|duplicate key value violates unique constraint/)
+if (process.env.ATOMIC_LOCAL_PROPOSAL === 'snapshot') {
+  // Normalize the deliberate old-client title change from the preceding test.
+  result=await save();stamp=result.stamp
+  // Authoritative snapshot shortcuts: no-op and one changed lesson among79.
+  let prior=await rows(`select short_id,updated_at from lessons where course_id='${course}' order by short_id`)
+  let beforeStamp=stamp
+  result=await save();stamp=result.stamp
+  assert.equal(stamp,beforeStamp,'true no-op does not mutate course stamp')
+  assert.deepEqual(await rows(`select short_id,updated_at from lessons where course_id='${course}' order by short_id`),prior)
+  const targetRef=lessons[0].short_id
+  lessons=lessons.map(l=>l.short_id===targetRef?{...l,title:l.title+' one changed lesson'}:l)
+  const oldHistory=(await rows('select count(*)::int n from changes'))[0].n
+  result=await save();stamp=result.stamp
+  assert.equal((await rows('select count(*)::int n from changes'))[0].n,oldHistory+1,'exactly one lesson update/history among79')
+  assert.deepEqual((await rows(`select short_id,updated_at from lessons where course_id='${course}' order by short_id`)).filter(l=>l.short_id!==targetRef),prior.filter(l=>l.short_id!==targetRef))
+  // Missing required whitelist fields cannot turn a partially loaded payload
+  // into a destructive full snapshot.
+  const incomplete=lessons.map((l,i)=>{if(i)return l;const {homework,...rest}=l;return rest})
+  await fails({data:incomplete},/Invalid course lesson identities/)
+  // A full duplicate UUID written in a different case remains one UUID.
+  await fails({mods:[...modules,{...modules[0],id:modules[0].id.toUpperCase()}]},/Invalid course module identities/)
+  // Bind all payload lessons to a foreign UUID to prove strictINSERT collision
+  // fails closed even when the UUID/ref is absent from the owned snapshot.
+  await fails({mods:[{id:modF,label:'Foreign',position:0}],data:lessons.map(l=>({...l,module_id:modF}))},/duplicate key value violates unique constraint|row-level security/)
+  // Empty audience with a stale enrollment is NOT a no-op. The original
+  // access merge must execute and remove that stale enrollment.
+  await rows(`insert into course_enrollments(course_id,student_id,access_mode,created_by) values('${course}','${other}','custom','${owner}')`)
+  result=await save();stamp=result.stamp
+  assert.equal((await rows(`select count(*)::int n from course_enrollments where course_id='${course}'`))[0].n,0)
+  // An explicit membership intent always reaches the unchanged access function.
+  await rows(`insert into students(id,created_by) values('${other}','${owner}')`)
+  result=await save({changes:{students:{[other]:true},modes:{[other]:'custom'}}});stamp=result.stamp
+  assert.deepEqual(result.access.student_ids,[other])
+  assert.equal(result.access.access_modes[other],'custom')
+  result=await save({changes:{students:{[other]:false}}});stamp=result.stamp
+  assert.deepEqual(result.access.student_ids,[])
+  // Legacy NULL refs survive as in the old NOT-IN path. Removing their module
+  // invokes ON DELETE SET NULL and touch; ACK must still equal actual DB stamp.
+  const legacyMod='aaaaaaaa-0000-4000-8000-000000000099'
+  await rows(`insert into course_modules(id,course_id,label,position) values('${legacyMod}','${course}','Legacy',99)`)
+  await rows(`insert into lessons(course_id,module_id,short_id,title,position,lesson_number) values('${course}','${legacyMod}',null,'Legacy null ref',99,99)`)
+  stamp=(await rows(`select jsonb_build_object('stamp',greatest(c.updated_at,(select max(updated_at) from lessons where course_id=c.id))) data from courses c where c.id='${course}'`))[0].data.stamp
+  modules=[...modules,{id:legacyMod,label:'Legacy',position:99}]
+  result=await save();stamp=result.stamp
+  assert.equal(result.lessons.length,lessons.length+1)
+  modules=modules.filter(m=>m.id!==legacyMod)
+  result=await save();stamp=result.stamp
+  const legacy=(await rows(`select module_id from lessons where course_id='${course}' and short_id is null`))[0]
+  assert.equal(legacy.module_id,null)
+  const actualStamp=(await rows(`select jsonb_build_object('stamp',greatest(c.updated_at,(select max(updated_at) from lessons where course_id=c.id))) data from courses c where c.id='${course}'`))[0].data.stamp
+  assert.equal(stamp,actualStamp,'snapshot+RETURNING ACK includes legacy FK-trigger timestamp')
+  console.log('PASS snapshot-only no-op, onechangedlesson, required whitelist, foreign collision, enrollment fallback/intents, NULL legacy roster and exact ACK stamp')
+}
 console.log('PASS actual atomic SQL + actual access/preservation guards: CAS, missing provenance, owner/foreign/anon/MFA, rollback, field whitelist, stable UUIDs, unchanged rows, chapter omission, progress, visibility, legacy writes, foreign identities')
 await db.close()
