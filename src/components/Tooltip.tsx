@@ -15,26 +15,27 @@ export function TooltipBubble({ anchor, label, keys, id }: { anchor: HTMLElement
     const r = anchor.getBoundingClientRect()
     const b = bubble.getBoundingClientRect()
     const left = Math.max(8, Math.min(r.left + r.width / 2 - b.width / 2, window.innerWidth - b.width - 8))
-    const below = r.bottom + 10 + b.height <= window.innerHeight - 8
-    const top = Math.max(8, Math.min(below ? r.bottom + 10 : r.top - b.height - 10, window.innerHeight - b.height - 8))
-    const arrowLeft = Math.max(12, Math.min(r.left + r.width / 2 - left, b.width - 12)) - 12
+    const below = r.bottom + 12 + b.height <= window.innerHeight - 8
+    const top = Math.max(8, Math.min(below ? r.bottom + 12 : r.top - b.height - 12, window.innerHeight - b.height - 8))
+    const arrowInset = Math.min(16, b.width / 2)
+    const arrowLeft = Math.max(arrowInset, Math.min(r.left + r.width / 2 - left, b.width - arrowInset)) - 14
     setPosition({ left, top, below, arrowLeft })
   }, [anchor, label, keys])
   return createPortal(<div ref={ref} id={id} role="tooltip" style={{
     position: 'fixed', left: position?.left ?? 8, top: position?.top ?? 8, visibility: position ? 'visible' : 'hidden', zIndex: 4000,
-    display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8,
+    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 14,
     background: 'var(--color-bg-2)', color: 'var(--color-text)',
     fontSize: 12, fontWeight: 600, lineHeight: 1.4,
     width: 'max-content', whiteSpace: 'pre-line', overflowWrap: 'anywhere', maxWidth: 'min(360px, calc(100vw - 16px))', boxSizing: 'border-box', pointerEvents: 'none',
     filter: 'drop-shadow(0 5px 12px rgba(0,0,0,0.28)) drop-shadow(0 1px 3px rgba(0,0,0,0.14))',
   }}>
-    <svg aria-hidden="true" focusable="false" width="24" height="10" viewBox="0 0 24 10"
+    <svg aria-hidden="true" focusable="false" width="28" height="12" viewBox="0 0 28 12"
       data-tooltip-pointer={position?.below ? 'top' : 'bottom'}
       style={{ position: 'absolute', left: position?.arrowLeft ?? 0,
-        ...(position?.below ? { top: -9 } : { bottom: -9, transform: 'rotate(180deg)' }),
+        ...(position?.below ? { top: -11 } : { bottom: -11, transform: 'rotate(180deg)' }),
         fill: 'var(--color-bg-2)', overflow: 'visible',
       }}>
-      <path d="M0 10 C5 10 7 8 10 3 Q12 -1 14 3 C17 8 19 10 24 10 Z" />
+      <path d="M0 12 C6 12 9 9 11 5 C12 2 12.5 1 14 1 C15.5 1 16 2 17 5 C19 9 22 12 28 12 Z" />
     </svg>
     <span style={{ minWidth: 0 }}>{label}</span>{keys && <span style={{ opacity: 0.55, fontWeight: 500, flexShrink: 0 }}>{keys}</span>}</div>, document.body)
 }
