@@ -7302,7 +7302,8 @@ export default function TeacherCourseEditorPage() {
       }
     }
 
-    const atomicModules = courseAtomicModules(c)
+    // The ordinary FULL fallback must not depend on the controlled QA URL.
+    const atomicModules = ordinaryScope ? eligibleCourseAtomicModules(c) : courseAtomicModules(c)
     if (atomicModules) {
       // UUID identities were read with this existing course. Validate them again
       // under the server lock, instead of paying for a separate modules read.
