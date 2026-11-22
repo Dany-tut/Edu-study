@@ -388,3 +388,12 @@ function hasHomeworkTasks(tasks: unknown): boolean {
 export function hasCourseHomework(works: StudentWork[]): boolean {
   return works.some(({ slot }) => slot.course !== OUTSIDE_COURSES && slot.hasHomework === true)
 }
+
+/** Recording playback and a learner's old percentage do not establish attendance. */
+export function hasCourseAttendance(works: StudentWork[]): boolean {
+  return works.some(({ slot, present }) => {
+    const column = slot.lesson
+    if (!column || ['test', 'trial'].includes(column.lesson?.kind ?? '')) return false
+    return typeof present === 'boolean' || (!column.recording && column.lesson?.delivery_mode !== 'recording')
+  })
+}

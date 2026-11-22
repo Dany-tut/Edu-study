@@ -2431,6 +2431,7 @@ type GroupRosterProps = {
   availableGroupIds?: Set<string>
   onOpenStudent?: (student: Student) => void
   rosterTools?: React.ReactNode
+  rosterHasAttendance?: (student: Student) => boolean
   rosterHasHomework?: (student: Student) => boolean
   rosterHasTrials?: (student: Student) => boolean
   rosterHasTests?: (student: Student) => boolean
@@ -2443,7 +2444,7 @@ const rosterInset = 32
 const studentPanelWidth = 332
 const studentPanelGap = 12
 
-export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHasHomework, rosterHasTrials, rosterHasTests, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
+export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onOpenStudent, rosterHasAttendance, rosterHasHomework, rosterHasTrials, rosterHasTests, rosterHomeworkScore, hasUnsubmittedWork, rosterTools, initialStripTab = 'students', onStripChange }: GroupRosterProps = {}) {
   const scrollRoot = useRef<HTMLDivElement>(null)
   // The journal, group strip and report drawer own their inner scroll fades.
   // Observing every cell here duplicates their work and forces offscreen
@@ -2568,6 +2569,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   // Full roster of the active group (drives chip counts), then narrowed by the
   // search box + active quick-filter, then sorted for display.
   const rosterAll = allRosterView ? [...new Map(allStudents.map(s => [onOpenStudent && !s.personId && !s.authUserId ? s.id : personKey(s), s])).values()] : activeGroup ? students.filter(s => s.groupId === activeGroup.id).map(s => studentsById.get(s.id) ?? s) : []
+  const showAttendanceColumn = !rosterHasAttendance || rosterAll.some(rosterHasAttendance)
   const showHomeworkColumn = !rosterHasHomework || rosterAll.some(rosterHasHomework)
   const showTrialColumn = !rosterHasTrials || rosterAll.some(rosterHasTrials)
   const showTestColumn = !rosterHasTests || rosterAll.some(rosterHasTests)
@@ -2577,7 +2579,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
     rosterAll
       .filter(s => !q || s.name.toLowerCase().includes(q))
       .filter(rosterPredicates[rosterFilter]),
-    (!showHomeworkColumn && sortKey === 'hwScore') || (!showTestColumn && sortKey === 'testScore') || (!showTrialColumn && sortKey === 'trialScore') ? 'attention' : sortKey, sortDir, rosterHomeworkScore,
+    (!showAttendanceColumn && sortKey === 'attendance') || (!showHomeworkColumn && sortKey === 'hwScore') || (!showTestColumn && sortKey === 'testScore') || (!showTrialColumn && sortKey === 'trialScore') ? 'attention' : sortKey, sortDir, rosterHomeworkScore,
   )
   const filterCounts: Record<RosterFilter, number> = {
     all: rosterAll.length,
@@ -2890,12 +2892,12 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                 <ScrollFadeTable>
                   <table style={{ width: '100%', minWidth: 1000, tableLayout: 'fixed', borderCollapse: 'collapse' }}>
                     <colgroup>
-                      <col style={{ width: `${32 + (showHomeworkColumn ? 0 : 7) + (showTestColumn ? 0 : 7) + (showTrialColumn ? 0 : 10)}%` }} />
+                      <col style={{ width: `${32 + (showAttendanceColumn ? 0 : 9) + (showHomeworkColumn ? 0 : 7) + (showTestColumn ? 0 : 7) + (showTrialColumn ? 0 : 10)}%` }} />
                       <col style={{ width: '13%' }} />
                       {showHomeworkColumn && <col style={{ width: '7%' }} />}
                       {showTestColumn && <col style={{ width: '7%' }} />}
                       {showTrialColumn && <col style={{ width: '10%' }} />}
-                      <col style={{ width: '9%' }} />
+                      {showAttendanceColumn && <col style={{ width: '9%' }} />}
                       <col style={{ width: '12%' }} />
                       <col style={{ width: '10%' }} />
                     </colgroup>
@@ -2906,18 +2908,19 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                         {showHomeworkColumn && <Th label={t('ДЗ')} sortKey="hwScore" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
                         {showTestColumn && <Th label={t('Тест')} sortKey="testScore" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
                         {showTrialColumn && <Th label={t('Пробник')} sortKey="trialScore" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
-                        <Th label={t('Посещ.')}         sortKey="attendance"   currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
+                        {showAttendanceColumn && <Th label={t('Посещ.')} sortKey="attendance" currentKey={sortKey} dir={sortDir} onSort={handleSort} right />}
                         <Th label={t('Посл. оплата')}   sortKey="lastPayment"  currentKey={sortKey} dir={sortDir} onSort={handleSort} right />
                         <Th label={t('Долг')}           sortKey="debt"         currentKey={sortKey} dir={sortDir} onSort={handleSort} right last />
                       </tr>
                     </thead>
                     <tbody>
-                      {groupStudents.length === 0 && <tr><td colSpan={5 + Number(showHomeworkColumn) + Number(showTestColumn) + Number(showTrialColumn)} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
+                      {groupStudents.length === 0 && <tr><td colSpan={4 + Number(showAttendanceColumn) + Number(showHomeworkColumn) + Number(showTestColumn) + Number(showTrialColumn)} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
                         {rosterLoading ? <span role="status">{t('Загрузка…')}</span>
                           : searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено')
                           : t('Учеников пока нет. Добавьте первого — нужны имя и предмет.')}
                       </td></tr>}
                       {groupStudents.map(student => {
+                        const studentHasAttendance = !rosterHasAttendance || rosterHasAttendance(student)
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
                         const phone = maskRosterPhone(student.phone ?? '')
                         const details = [phone, student.schoolClass].filter(Boolean)
@@ -2981,14 +2984,14 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                               <ScorePill value={!rosterHasTrials || rosterHasTrials(student) ? student.trialScore : null} />
                             </td>}
                             {/* Attendance */}
-                            <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('attendance') }}>
+                            {showAttendanceColumn && <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('attendance') }}>
                               <span style={{
                                 fontSize: 12, fontWeight: 700,
-                                color: !hasStudentActivity(student) ? 'var(--color-text-3)' : student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-text-2)' : 'var(--color-red-text)',
+                                color: !studentHasAttendance || !hasStudentActivity(student) ? 'var(--color-text-3)' : student.attendance >= 90 ? 'var(--color-green-text)' : student.attendance >= 70 ? 'var(--color-text-2)' : 'var(--color-red-text)',
                               }}>
-                                {hasStudentActivity(student) ? `${student.attendance}%` : '—'}
+                                {studentHasAttendance && hasStudentActivity(student) ? `${student.attendance}%` : '—'}
                               </span>
-                            </td>
+                            </td>}
                             {/* Last payment */}
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', textAlign: 'center', ...colBg('lastPayment') }}>
                               <span style={{ fontSize: 12, color: student.lastPayment ? 'var(--color-muted)' : 'var(--color-text-4)' }}>

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { journalDemo } from '../src/data/courseJournalDemo'
-import { buildStandIndex, studentWorks, scopeSlots, hasCourseTests, hasCourseTrials, hasCourseHomework } from '../src/components/teacher/journalStand/studentWorks'
+import { buildStandIndex, studentWorks, scopeSlots, hasCourseTests, hasCourseTrials, hasCourseHomework, hasCourseAttendance } from '../src/components/teacher/journalStand/studentWorks'
 const data = journalDemo()
 const person = data.students[0]
 const lesson = { ...data.lessons[0], kind: 'lesson', hwTask: [{ type: 'single' }], recTask: [], extraHw: [] }
@@ -39,3 +39,16 @@ const recording = { ...emptyHomework.lessons[0], lesson_sched_manual: true, rec_
 assert.equal(hasCourseHomework(works({ ...emptyHomework, lessons: [recording] })), true, 'Recording homework counts')
 assert.equal(hasCourseHomework([]), false)
 console.log('PASS: homework column follows current lesson, recording, extra and bound tasks; old results, tests and standalone/archived assignments stay isolated')
+
+const recordedOnly = { ...base, lessons: [{ ...lesson, delivery_mode: 'recording' }], work: [], events: [], marks: [], legacy: [] }
+assert.equal(hasCourseAttendance(works(recordedOnly)), false, 'Recording-only course without marks hides attendance')
+assert.equal(hasCourseAttendance(works({ ...recordedOnly, work: [{ id: 'watched', student_id: person.id, lesson_ref: 'video-' + lesson.short_id, status: 'completed', score: 100, attachments: { video: { completed: true } }, updated_at: '' }] })), false, 'Watching recordings does not create attendance')
+const liveLesson = { ...lesson, delivery_mode: 'online' }
+assert.equal(hasCourseAttendance(works({ ...recordedOnly, lessons: [liveLesson] })), true, 'A live lesson keeps attendance before scheduling or marking')
+assert.equal(hasCourseAttendance(works({ ...recordedOnly, lessons: [recordedOnly.lessons[0], { ...liveLesson, id: 'live-other', short_id: 'live-other' }] })), true, 'Mixed live/recorded course keeps attendance')
+assert.equal(hasCourseAttendance(works({ ...recordedOnly, lessons: [{ ...liveLesson, kind: 'test' }] })), false, 'Tests do not create attendance')
+const markedEvent = { id: 'marked-recording', lesson_id: lesson.id, node_type: 'lesson', group_id: person.groupId, student_id: null, date: '2026-10-01', time_start: '10:00', time_end: '11:00', lesson_title: lesson.title, subject: '', status: 'completed' }
+for (const mark of [true, false]) assert.equal(hasCourseAttendance(works({ ...recordedOnly, events: [markedEvent], marks: [{ schedule_id: markedEvent.id, attendance: { [person.id]: mark } }] })), true, 'Explicit present/absent mark keeps attendance for a recording')
+assert.equal(hasCourseAttendance([{ slot: { lesson: { recording: true, lesson: { kind: 'lesson', delivery_mode: 'online' } } }, present: null }]), false, 'The recording part of a split lesson is not a live lesson')
+assert.equal(hasCourseAttendance([]), false)
+console.log('PASS: recording-only attendance is hidden; live/mixed courses and actual present/absent marks remain visible; playback and old percentages are ignored')
