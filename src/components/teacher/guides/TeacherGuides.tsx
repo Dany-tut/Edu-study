@@ -9,7 +9,7 @@ import { X } from '../../icons/appIcons'
 import './teacherGuides.css'
 import { openDialog } from '../../../lib/polyfills'
 
-const assets = import.meta.glob<string>('../../../../design/contextual-onboarding/media/{access-mode,unlock-lesson,pupil-open,pupil-locked,teacher-feedback,learner-feedback,revised-answer,compare-answers,publish-grade,misha-result,move-queue,desk-switch,roster-invite,roster-register,roster-joined,schedule-move,journal-first,journal-second,finance-payment,learner-card,learner-score,misha-first,misha-second}.{gif,webp,png}', { eager: true, query: '?url', import: 'default' })
+const assets = import.meta.glob<string>('../../../../design/contextual-onboarding/media/{access-mode,unlock-lesson,pupil-open,pupil-locked,teacher-feedback,learner-feedback,revised-answer,compare-answers,publish-grade,misha-result,move-queue,desk-switch,roster-invite,roster-register,roster-joined,schedule-move,journal-first,journal-second,finance-payment,learner-card,learner-score,misha-first,misha-second}.{mp4,webp,png}', { eager: true, query: '?url', import: 'default' })
 const media = (file: string) => assets['../../../../design/contextual-onboarding/media/' + file]
 const ids = Object.keys(sections) as GuideId[]
 const flag = (id: GuideId) => 'iskra_guide_seen_' + id
@@ -138,8 +138,9 @@ function GuideSheet({ id, onClose }: {id: GuideId; onClose: () => void}) {
       {!history && <button data-hover="layer" onClick={() => setPlaying(p => !p)}><OpticalText as="iskra-button-label">{playing ? 'Остановить' : 'Смотреть GIF'}</OpticalText></button>}
       <Close onClose={onClose}/></div>
     <h2 id="guide-heading">{title}</h2>
-    <div className="teacher-guide-media"><img alt={history ? attempts[choice].status + '. ' + description : title}
-      src={media(file + (history ? '.png' : playing ? '.gif' : '.webp'))}/></div>
+    <div className="teacher-guide-media">{!history && playing
+      ? <video key={file} aria-label={title} src={media(file + '.mp4')} poster={media(file + '.webp')} muted playsInline autoPlay loop preload="auto"/>
+      : <img alt={history ? attempts[choice].status + '. ' + description : title} src={media(file + (history ? '.png' : '.webp'))}/>}</div>
     <ScrollFade maxHeight="100%"><div className="teacher-guide-description">
       {options.length > 0 && <div role="group" aria-label={history ? 'Попытка Миши' : 'Урок'}>{options.map((option, n) =>
         <button data-hover="layer" key={option.file} aria-pressed={n === choice} onClick={() => setChoice(n)}><OpticalText as="iskra-button-label">{option.label}</OpticalText></button>)}</div>}

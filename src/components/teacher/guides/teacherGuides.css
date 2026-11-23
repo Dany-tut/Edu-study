@@ -14,7 +14,7 @@ dialog.teacher-guide {
 .teacher-guide h2,.teacher-guide p {margin-block:0}
 .teacher-guide button,.teacher-guides-entry {font:inherit;color:var(--color-text);background:var(--color-bg-3);border:0;border-radius:12px;padding:8px 14px;cursor:pointer}
 .teacher-guide-media {display:grid;place-items:center;min-height:0;container-type:size}
-.teacher-guide-media img {display:block;width:auto;height:auto;max-height:100cqh;max-width:100cqw;border-radius:16px}
+.teacher-guide-media img,.teacher-guide-media video {display:block;width:auto;height:auto;max-height:100cqh;max-width:100cqw;border-radius:16px}
 .teacher-guide-description {display:grid;gap:6px}
 .teacher-guide-description button {margin-right:4px}
 .teacher-guide button[aria-pressed=true],.teacher-guide footer button:last-child {background:var(--color-accent);color:var(--color-on-accent,#fff)}
