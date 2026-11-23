@@ -42,7 +42,7 @@ import { createAuthDataChangeGuard } from '../../lib/authDataChange'
 import { captureConfirmedBaseline, baselineCanDriveDelta, stampKey, type ConfirmedBaseline, type MetadataRead, type ReadToken, type Scope, type Witness } from '../../lib/courseConfirmedBaseline'
 import { prepareConfirmedSnapshot, advanceConfirmedContent } from '../../lib/courseContentAcknowledgement'
 import { createWideContentDelta, prepareWideConfirmedSnapshot, createWideContentAcknowledgement, WideContentPreservationError, type WideContentDelta } from '../../lib/courseWideDelta'
-import { applyCourseDraftIntent, courseDraftIntent, isAmbiguousLegacyRecovery, openCourseRecovery, type CourseDraft } from '../../lib/courseDraftRecovery'
+import { applyCourseDraftIntent, courseDraftIntent, isAmbiguousLegacyRecovery, normalizeLegacyDraftFiles, openCourseRecovery, type CourseDraft } from '../../lib/courseDraftRecovery'
 import { courseContentSnapshot, courseContentDelta, courseDeltaProbeEnabled, type CourseContentSnapshot } from '../../lib/courseContentDelta'
 import CourseVisibilityButton from '../../components/teacher/CourseVisibilityButton'
 import { isUuid } from '../../lib/db'
@@ -6343,7 +6343,9 @@ export default function TeacherCourseEditorPage() {
       let restored: CourseEdData | null = null
       if (recoveredDraft) {
         const local = needsHeavyFill ? mergeCourseHeavy(course, rows) : { ...course, heavyPending: false }
-        restored = fresh && recoveryIntent ? applyCourseDraftIntent(fresh, local, recoveryIntent) : local
+        if (fresh && recoveryIntent) restored = applyCourseDraftIntent(fresh, local, recoveryIntent)
+        else if (fresh) restored = normalizeLegacyDraftFiles(local, confirmedContent.current?.serialized.rawLessons)
+        else restored = local
         recoveryBlocked.current = !fresh || !restored
         restored ??= local
       }

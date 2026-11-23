@@ -125,3 +125,36 @@ export function isAmbiguousLegacyRecovery(base: ConfirmedBaseline<CourseContentS
     return (!original || !stamp || stamp > original) && !!difference(before.get(row.shortId), after.get(row.shortId))
   })
 }
+
+/** Older browsers assigned a random display ID when reading an external link
+ * with no stored ID. Reconcile only that generated ID against a matched raw
+ * server row. A renamed file, a new URL, and every other local edit survive. */
+export function normalizeLegacyDraftFiles(course: CourseEdData, rawLessons: CourseContentSnapshot['rawLessons']): CourseEdData | null {
+  if (!rawLessons) return null
+  const uuid4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  let blocked = false
+  let changed = false
+  const lessons = course.lessons.map(lesson => {
+    const files = lesson.files
+    const raw = rawLessons[lesson.persistedShortId ?? lesson.id]?.materials
+    if (!files || !record(raw)) return lesson
+    type File = NonNullable<typeof files.workbook>
+    function normalize(file: File, candidates: unknown[], localCopies: number): File {
+      if (file.r2 || !file.url || file.url !== file.path || !uuid4.test(file.id)) return file
+      const matching = candidates.filter(record).filter(v => v.url === file.url)
+      // An explicit stored identity or a different URL describes another
+      // attachment. Only legacy external links used the generated UUID.
+      if (!matching.some(v => v.r2 !== true && typeof v.id !== 'string' && typeof v.path === 'string' && v.path)) return file
+      if (matching.length !== 1 || localCopies !== 1) { blocked = true; return file }
+      return { ...file, id: matching[0].path as string }
+    }
+    const workbook = files.workbook && normalize(files.workbook, [raw.workbook], 1)
+    const notebook = files.notebook && normalize(files.notebook, [raw.notebook], 1)
+    const links = Array.isArray(raw.materials) ? raw.materials : []
+    const materials = files.materials?.map(file => normalize(file, links, files.materials!.filter(f => f.url === file.url).length))
+    if (workbook === files.workbook && notebook === files.notebook && !materials?.some((f, i) => f !== files.materials?.[i])) return lesson
+    changed = true
+    return { ...lesson, files: { ...files, workbook, notebook, materials } }
+  })
+  return blocked ? null : changed ? { ...course, lessons } : course
+}

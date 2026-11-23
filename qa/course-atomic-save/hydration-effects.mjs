@@ -25,7 +25,7 @@ const code=`import React,{useState,useEffect,useRef,useCallback} from 'react';im
 import{captureConfirmedBaseline,baselineCanDriveDelta,stampKey}from'./src/lib/courseConfirmedBaseline';
 import{courseContentSnapshot,courseDeltaProbeEnabled}from'./src/lib/courseContentDelta';
 import{createAuthDataChangeGuard}from'./src/lib/authDataChange';
-import{openCourseRecovery,courseDraftIntent,applyCourseDraftIntent,isAmbiguousLegacyRecovery}from'./src/lib/courseDraftRecovery';
+import{openCourseRecovery,courseDraftIntent,applyCourseDraftIntent,isAmbiguousLegacyRecovery,normalizeLegacyDraftFiles}from'./src/lib/courseDraftRecovery';
 import{ordinaryContentPlan}from'./src/lib/courseOrdinaryDelta';
 let metadataResolve,heavyResolve,metadataCalls=0,heavyCalls=0,authHandler,calls=[];
 const getOwnerId=async()=>window.__fixture.owner;

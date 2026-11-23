@@ -5,7 +5,7 @@ const { outputFiles } = await build({
   entryPoints: ['src/lib/courseDraftRecovery.ts'], bundle: true, platform: 'node',
   format: 'esm', write: false, logLevel: 'silent',
 })
-const { openCourseRecovery, courseDraftIntent, applyCourseDraftIntent, isAmbiguousLegacyRecovery } =
+const { openCourseRecovery, normalizeLegacyDraftFiles, courseDraftIntent, applyCourseDraftIntent, isAmbiguousLegacyRecovery } =
   await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`)
 
 const oldStamp = '2026-11-20T01:00:01.123456Z'
@@ -73,3 +73,22 @@ legacy.lessons[42].description = 'Could undo newer content'
 assert.equal(isAmbiguousLegacyRecovery(witness, oldStamp, legacy), true)
 assert.equal(isAmbiguousLegacyRecovery(witness, oldStamp, { ...snapshot, lessons: snapshot.lessons.slice(1) }), true)
 console.log('PASS F5 draft intent: fresh clean load, dirty mirror, nested edit only, remote roster/timecodes/files retained, ambiguous legacy and deleted targets protected')
+
+const generated = '4e6a6e5e-ab21-4c83-b973-36e7a402be3e'
+const external = 'https://example.org/file.pdf'
+const oldFile = { id: generated, path: external, url: external, name: 'Edited title', size: 0, mime: 'text/uri-list' }
+const oldLesson = { id: 'row', files: { workbook: oldFile, materials: [oldFile] } }
+const dbFile = { url: external, path: external, name: 'Original', hidden: 42 }
+const rawLinks = { row: { materials: { workbook: dbFile, materials: [dbFile] } } }
+const oldCourse = { ...before, lessons: [oldLesson] }
+const normalized = normalizeLegacyDraftFiles(oldCourse, rawLinks)
+assert.deepEqual(normalized.lessons[0].files.workbook, { ...oldFile, id: external })
+assert.deepEqual(normalized.lessons[0].files.materials, [{ ...oldFile, id: external }])
+assert.equal(oldLesson.files.workbook.id, generated)
+assert.equal(rawLinks.row.materials.workbook.hidden, 42)
+for (const file of [{ ...dbFile, id: 'stored' }, { ...dbFile, url: 'https://example.org/new' }, { ...dbFile, r2: true }]) {
+  assert.equal(normalizeLegacyDraftFiles(oldCourse, { row: { materials: { workbook: file, materials: [file] } } }), oldCourse)
+}
+assert.equal(normalizeLegacyDraftFiles(oldCourse, {row:{materials:{materials:[dbFile, dbFile]}}}), null)
+assert.equal(normalizeLegacyDraftFiles({ ...oldCourse, lessons: [{ ...oldLesson, files: { materials: [oldFile, oldFile] } }] }, rawLinks), null)
+console.log('PASS pre-fix random material IDs: raw no-ID URL match only, renamed fields preserved, ambiguous duplicates blocked')
