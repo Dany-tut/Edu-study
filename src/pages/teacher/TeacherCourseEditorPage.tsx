@@ -6869,10 +6869,14 @@ export default function TeacherCourseEditorPage() {
   // здесь не в счёт.
   async function buildConflict(shortId: string, c: CourseEdData, stamp: string): Promise<CourseConflict> {
     const nameless = t('Без названия')
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('courses')
       .select('title, status, group_ids, student_ids, lessons(short_id, title, lesson_number)')
       .eq('short_id', shortId).maybeSingle()
+
+    if (error || !data || !Array.isArray(data.lessons)) {
+      throw new Error(t('Не удалось загрузить версию курса из базы. Черновик сохранён. Повторите сравнение.'))
+    }
 
     const srvLessons = ((data?.lessons ?? []) as Array<{ short_id: string; title: string | null; lesson_number: number | null }>)
       .slice().sort((a, b) => (a.lesson_number ?? 0) - (b.lesson_number ?? 0))

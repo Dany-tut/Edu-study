@@ -45,7 +45,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
   const groups = [
     {
       id: 'added',
-      title: t('Появились в базе'),
+      title: t('Есть только в базе'),
       note: t('Этих уроков нет в вашей вкладке — «Оставить моё» их удалит вместе с ответами учеников.'),
       Icon: AlertTriangle,
       tone: 'var(--color-red-text)',
@@ -53,15 +53,15 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
     },
     {
       id: 'renamed',
-      title: t('Переименованы в базе'),
-      note: t('«Оставить моё» вернёт прежние названия.'),
+      title: t('Разные названия уроков'),
+      note: t('Слева название в базе, справа — в вашей вкладке.'),
       Icon: Pencil,
       tone: 'var(--color-yellow-text)',
       lines: info.renamed.map(r => `«${r.from}» → «${r.to}»`),
     },
     {
       id: 'localNew',
-      title: t('Ваши новые (ещё не в базе)'),
+      title: t('Есть только в этой вкладке'),
       note: t('Останутся при «Оставить моё», пропадут при «Взять из базы».'),
       Icon: PlusCircle,
       tone: 'var(--color-green-text)',
@@ -75,7 +75,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
   if (info.statusChange)
     fieldLines.push({ Icon: AlertTriangle, text: `${t('Статус')}: ${statusWord(info.statusChange.from)} → ${statusWord(info.statusChange.to)}` })
   if (info.audienceChanged)
-    fieldLines.push({ Icon: Users, text: t('Аудитория курса (группа/ученики) изменилась со стороны.') })
+    fieldLines.push({ Icon: Users, text: t('Группы или ученики в базе и во вкладке различаются.') })
 
   const nothing = groups.length === 0 && fieldLines.length === 0
 
@@ -106,7 +106,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
               {t('Курс изменили в другом месте')}
             </span>
             <span style={{ display: 'block', fontSize: 12, color: 'var(--color-muted)' }}>
-              {t('Выберите, чью версию оставить — слить автоматически нельзя')}
+              {t('Сравните версию в базе с черновиком этой вкладки.')}
             </span>
           </span>
           <button data-hover="layer" onClick={onClose} aria-label={t('Закрыть')} className="cursor-pointer flex items-center justify-center flex-shrink-0"
@@ -120,7 +120,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
             style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '16px 22px' }}>
             {nothing ? (
               <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5, padding: '12px 0' }}>
-                {t('Состав уроков совпадает — расхождение в содержимом урока (конспект, задания, домашка). Открыть его построчно нельзя, поэтому выберите версию целиком.')}
+                {t('Список уроков и показанные поля совпадают. Содержимое уроков в этом окне не сравнивается.')}
               </p>
             ) : (
               <>
@@ -141,7 +141,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
                 {fieldLines.length > 0 && (
                   <section style={{ marginBottom: 4 }}>
                     <span style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)', marginBottom: 6 }}>
-                      {t('Поля курса')}
+                      {t('Поля курса · база → ваша вкладка')}
                     </span>
                     <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {fieldLines.map(({ Icon, text }, i) => (
