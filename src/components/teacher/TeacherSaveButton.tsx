@@ -65,7 +65,7 @@ export default function TeacherSaveButton({
   const savedText = savedLabel ?? t('Сохранено!')
   const savingText = savingLabel ?? t('Сохраняю…')
   const opticalLabel = (text: ReactNode) => typeof text === 'string' || typeof text === 'number'
-    ? <OpticalText>{text}</OpticalText> : text
+    ? <OpticalText alignment="ink">{text}</OpticalText> : text
   return (
     <motion.button
       whileHover={{ scale: disabled || saving ? 1 : 1.03 }}

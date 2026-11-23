@@ -51,7 +51,7 @@ export default function SubjectTabs() {
               border: isActive ? '1px solid var(--color-border-glass)' : '1px solid transparent',
             }}
           >
-            <OpticalText>{tab.label}</OpticalText>
+            <OpticalText alignment="ink">{tab.label}</OpticalText>
           </motion.button>
         )
       })}

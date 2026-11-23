@@ -81,7 +81,7 @@ export function LessonLinkPanel({
             background: 'var(--color-green-fill)', color: '#fff',
           }}
         >
-          <OpticalText>{t('Добавить')}</OpticalText>
+          <OpticalText alignment="ink">{t('Добавить')}</OpticalText>
         </button>
       </div>
 
@@ -162,7 +162,7 @@ export function LessonLinkAttach({ onAdd, compact }: { onAdd: (file: LessonFile)
             background: 'var(--color-green-fill)', color: '#fff',
           }}
         >
-          <OpticalText>{t('Добавить')}</OpticalText>
+          <OpticalText alignment="ink">{t('Добавить')}</OpticalText>
         </button>
       </div>
       <p style={{ marginTop: 5, fontSize: compact ? 10 : 11, lineHeight: 1.3, color: err ? 'var(--color-red-text)' : 'var(--color-muted)' }}>

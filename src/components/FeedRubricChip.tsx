@@ -95,7 +95,7 @@ export function RubricChip({ rubric, on, label, grow, accent, onClick }: {
                 БЕЗ overflow/text-overflow: подпись здесь ровно по содержимому,
                 и многоточие тут не «страхует», а срабатывает на долях пикселя —
                 «Всё» превращалось в «В…» при полностью влезающем ряде. */}
-            <OpticalText style={{ display: 'block', paddingLeft: 6 }}>{text}</OpticalText>
+            <OpticalText alignment="ink" style={{ display: 'block', paddingLeft: 6 }}>{text}</OpticalText>
           </motion.span>
         )}
       </AnimatePresence>

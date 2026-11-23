@@ -466,7 +466,7 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             <button data-hover="layer" onClick={copyLink} style={btn('L', 'primary', { background: copied ? 'var(--btn-green-bg)' : 'var(--grad-purple)', transition: 'background 0.22s' })}>
               {/* Шкала btn L (48): иконка и подпись в одном flex-ряду, подпись на оптическом центре. */}
               {copied && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}
-              <span style={{ position: 'relative', top: '-0.04em' }}>{copied ? t('Скопировано') : t('Скопировать ссылку')}</span>
+              <OpticalText as="iskra-button-label">{copied ? t('Скопировано') : t('Скопировать ссылку')}</OpticalText>
             </button>
             <button data-hover="layer"
               onClick={onClose}
@@ -504,7 +504,7 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
             <button data-hover="layer" type="button" aria-expanded={showDetails} onClick={() => setShowDetails(v => !v)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px', minHeight: studentFormFieldHeight, border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
               <Phone size={15} strokeWidth={1.8} aria-hidden="true" />
-              <OpticalText style={{ flex: 1 }}>{t('Дополнительно')}</OpticalText>
+              <OpticalText alignment="ink" style={{ flex: 1 }}>{t('Дополнительно')}</OpticalText>
               <Plus size={14} strokeWidth={2} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--color-text-3)', transform: showDetails ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform 160ms ease' }} />
             </button>
             {showDetails && <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 12px 12px' }}>
@@ -545,7 +545,7 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           disabled={!canSave || saving}
           style={btn('L', 'primary', { opacity: canSave ? 1 : 0.45, cursor: canSave && !saving ? 'pointer' : 'not-allowed' })}
         >
-          <span style={{ position: 'relative', top: '-0.04em' }}>{saving ? t('Сохранение...') : t('Добавить ученика')}</span>
+          <OpticalText as="iskra-button-label">{saving ? t('Сохранение...') : t('Добавить ученика')}</OpticalText>
         </button>
         </div>
           </>
@@ -782,7 +782,7 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
             <button data-hover="layer" onClick={copyLink} style={btn('L', 'primary', { background: copied ? 'var(--btn-green-bg)' : 'var(--grad-purple)', transition: 'background 0.22s' })}>
               {/* Шкала btn L (48): иконка и подпись в одном flex-ряду, подпись на оптическом центре. */}
               {copied && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}
-              <span style={{ position: 'relative', top: '-0.04em' }}>{copied ? t('Скопировано') : t('Скопировать ссылку')}</span>
+              <OpticalText as="iskra-button-label">{copied ? t('Скопировано') : t('Скопировать ссылку')}</OpticalText>
             </button>
             <button data-hover="layer" onClick={onClose} style={{
               width: '100%', padding: '10px 0',

@@ -51,10 +51,6 @@ const ACTIVE_PILL: CSSProperties = {
   boxShadow: 'var(--shadow-xs)',
 }
 
-// Подпись в таблетке — к оптическому центру. Полный подъём −0.12em перебирал:
-// замер (центр заглавных против центра таблетки) давал 1,1–1,25 px выше
-// середины, как у кнопки в алерте. −0.04em ставит их в центр с точностью 0,2 px.
-const TEXT_LIFT: CSSProperties = { position: 'relative', top: '-0.04em' }
 
 export function coursePct(s: Subject): number {
   const lessons = s.modules.flatMap(m => m.lessons)
@@ -166,8 +162,8 @@ export function CourseSelect({ subjects, activeId, onSelect }: {
           cursor: many ? 'pointer' : 'default', transition: 'border-color 0.15s',
         }}
       >
-        <span style={{ ...TEXT_LIFT, minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{tc(active.name)}</span>
-        <span style={{ ...TEXT_LIFT, fontSize: 12, fontWeight: 500, color: 'var(--color-purple)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{coursePct(active)}%</span>
+        <span style={{ minWidth: 0, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}><OpticalText as="iskra-button-label">{tc(active.name)}</OpticalText></span>
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-purple)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}><OpticalText as="iskra-button-label">{coursePct(active)}%</OpticalText></span>
         {many && (
           <ChevronDown size={14} strokeWidth={2.4} style={{ flexShrink: 0, color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
         )}
@@ -314,14 +310,14 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
                   <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--color-accent)' : 'transparent',
                     color: isActive && !isDone ? '#fff' : 'inherit', fontSize: 12, fontWeight: 700 }}>
-                    {isLocked ? <Lock size={14} /> : isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ ...TEXT_LIFT, fontVariantNumeric: 'tabular-nums' }}>{num}</span>}
+                    {isLocked ? <Lock size={14} /> : isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ fontVariantNumeric: 'tabular-nums' }}><OpticalText as="iskra-button-label">{num}</OpticalText></span>}
                   </span>
                 </motion.span>
                 <motion.span initial={false} animate={{ width: isActive || isLocked ? (labelWidths[mod.id] ?? 'auto') : 0, opacity: isActive || isLocked ? 1 : 0 }} transition={transition}
                   style={{ display: 'inline-flex', overflow: 'hidden', minWidth: 0 }} aria-hidden={!isActive && !isLocked}>
                   <span ref={el => { if (el) labelRefs.current.set(mod.id, el); else labelRefs.current.delete(mod.id) }} style={{ display: 'inline-flex', flexShrink: 0, alignItems: 'center', gap: 8, paddingLeft: debts ? 18 : 8, paddingRight: 14 }}>
-                    <span style={{ ...TEXT_LIFT, fontSize: 13, fontWeight: 600, color: isLocked ? 'var(--color-muted)' : isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}>{name}</span>
-                    {pct > 0 && <span style={{ ...TEXT_LIFT, fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>}
+                    <span style={{ fontSize: 13, fontWeight: 600, color: isLocked ? 'var(--color-muted)' : isDone ? 'var(--color-green-text)' : 'var(--color-text)' }}><OpticalText as="iskra-button-label">{name}</OpticalText></span>
+                    {pct > 0 && <span style={{ fontSize: 11, fontWeight: 500, color: isDone ? 'var(--color-green-text)' : 'var(--color-purple-text)', fontVariantNumeric: 'tabular-nums' }}><OpticalText as="iskra-button-label">{pct}%</OpticalText></span>}
                   </span>
                 </motion.span>
               </motion.button>

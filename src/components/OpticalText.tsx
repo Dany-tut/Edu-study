@@ -8,12 +8,12 @@ type OpticalTextProps = Omit<HTMLAttributes<HTMLElement>, 'children'> & { alignm
 )
 
 /** Plain control text only: adjacent icons, badges and actions stay outside. */
-export default function OpticalText({ children, style, as = 'span', alignment = 'baseline', ...props }: OpticalTextProps) {
+export default function OpticalText({ children, style, as = 'span', alignment, ...props }: OpticalTextProps) {
   const ref = useRef<HTMLElement>(null)
   useOpticalText(ref)
   // Some existing buttons reserve direct spans for counters or hide them at mobile breakpoints.
   return createElement(as, {
-    ...props, ref, 'data-optical-text': true, 'data-optical-align': alignment === 'ink' ? 'ink' : undefined,
+    ...props, ref, 'data-optical-text': true, 'data-optical-align': (alignment ?? (as === 'iskra-button-label' ? 'ink' : 'baseline')) === 'ink' ? 'ink' : undefined,
     style: {
       ...style,
       position: 'relative',

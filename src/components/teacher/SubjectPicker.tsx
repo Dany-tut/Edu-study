@@ -78,7 +78,7 @@ export default function SubjectPicker({
                 gap: 6, minWidth: 0, background: on ? accentBg : idleBg, color: on ? activeColor : idleColor,
               }}>
               {o.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={o.value} size={16} /></span>}
-              <OpticalText style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</OpticalText>
+              <OpticalText alignment="ink" style={{ overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{o.label}</OpticalText>
             </button>
           )
         })}
@@ -148,7 +148,7 @@ function SubjectDropdown({
           background: 'var(--color-bg-input)', color: 'var(--color-text)', fontSize: fs, fontWeight: 700, fontFamily: 'inherit',
         }}>
         {current.icon && <span aria-hidden style={{ display: 'flex', flexShrink: 0 }}><SubjectMark subject={current.value} size={16} /></span>}
-        <OpticalText style={{ flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{current.label}</OpticalText>
+        <OpticalText alignment="ink" style={{ flex: 1, textAlign: 'left', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{current.label}</OpticalText>
         <ChevronDown size={14} style={{ color: 'var(--color-text-3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
       </button>
       {open && rect && createPortal(

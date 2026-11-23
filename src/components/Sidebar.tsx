@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import StudentProfile, { type StudentProfileTab } from './StudentProfile'
 import { useDesktopFriends } from './../lib/desktopFriends'
 import { UserCircle, Users } from './icons/appIcons'
@@ -528,7 +529,7 @@ export default function Sidebar() {
                         style={photoBtnStyle}
                       >
                         <Camera size={14} strokeWidth={2} style={{ flexShrink: 0 }} />
-                        <span style={{ position: 'relative', top: '-0.12em' }}>{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</span>
+                        <OpticalText as="iskra-button-label">{avatarPath ? t('Сменить фото') : t('Загрузить фото')}</OpticalText>
                       </motion.button>
                       {avatarPath && (
                         <motion.button data-hover="layer"

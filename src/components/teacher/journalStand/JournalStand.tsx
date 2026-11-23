@@ -405,7 +405,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
           return (
             <button data-hover="layer" type="button" key={tab} aria-label={label} title={label}
               aria-pressed={selected.tab === tab} onClick={() => set(tab === 'Обзор' ? { tab, student: '', workRef: '' } : { tab })}>
-              <Icon size={15} /><span>{tab}</span>{count > 0 && <CountBadge count={count} tone="danger" className="js-pending-count" />}
+              <Icon size={15} /><span><OpticalText as="iskra-button-label">{tab}</OpticalText></span>{count > 0 && <CountBadge count={count} tone="danger" className="js-pending-count" />}
             </button>
           )
         })}
@@ -417,8 +417,8 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
         <button type="button" className="cj-button js-attention" aria-pressed={attention} onClick={toggle}
           aria-label={attentionCount ? `Требуют внимания · ${attentionCount}` : 'Требуют внимания'}>
           <CircleAlert size={16} aria-hidden />
-          <span className="js-attention-label">Требуют внимания
-            {attentionCount > 0 && <CountBadge count={attentionCount} tone={attention ? 'accent' : 'danger'} className="js-attention-count" />}
+          <span className="js-attention-label"><OpticalText as="iskra-button-label">Требуют внимания
+            </OpticalText>{attentionCount > 0 && <CountBadge count={attentionCount} tone={attention ? 'accent' : 'danger'} className="js-attention-count" />}
           </span>
         </button>
       </span>}
@@ -432,7 +432,7 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
       }}>
         <button type="button" className="cj-button js-filter-trigger" aria-label="Фильтры журнала" title="Фильтры журнала"
           ref={trigger} aria-controls={id} aria-expanded={filters} data-filtered={!!selected.module || undefined}
-          onClick={() => setFilters(v => !v)}><SlidersHorizontal size={15}/><span>Фильтры</span></button>
+          onClick={() => setFilters(v => !v)}><SlidersHorizontal size={15}/><span><OpticalText as="iskra-button-label">Фильтры</OpticalText></span></button>
         <div id={id} className="js-filter-items" data-open={filters || undefined}>
           {picker}
         </div>
@@ -468,7 +468,7 @@ function StudentPill({ entry, work, open, close }: {
           {summary.map(([label, value, hint]) => <div key={label} title={hint}><dt>{label}</dt><dd>{value}</dd></div>)}
         </dl>
         <button type="button" className="cj-button cj-primary js-pill-open" aria-label="Обзор ученика" title="Обзор ученика" onClick={open}>
-          <span>Обзор ученика</span><ChevronRight size={15} />
+          <span><OpticalText as="iskra-button-label">Обзор ученика</OpticalText></span><ChevronRight size={15} />
         </button>
         <button type="button" className="cj-icon-button js-pill-close" aria-label="Закрыть панель" onClick={close}><X size={14}/></button>
       </div>
@@ -514,7 +514,7 @@ export function Matrix(props: MatrixProps) {
       transferButton={props.onTransfer && selected.tab !== 'Обзор' && <button type="button" className="cj-button js-transfer-toggle" aria-pressed={!!props.transfer}
         title="Перенос прошлых уроков: отметки без списания с баланса"
         onClick={() => { const next = !props.transfer; props.onTransfer!(next); if (next) set({ tab: 'Посещаемость', workRef: '' }) }}>
-        <RotateCcw size={15} /><span>Перенос прошлого</span></button>}
+        <RotateCcw size={15} /><span><OpticalText as="iskra-button-label">Перенос прошлого</OpticalText></span></button>}
       workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
         <button data-hover="layer" type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}><OpticalText as="iskra-button-label">По ученикам</OpticalText></button>
         <button data-hover="layer" type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}><OpticalText as="iskra-button-label">По домашкам</OpticalText></button>
@@ -710,7 +710,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                     {nearest && upcoming === nearest && <span className="js-next-label" title={'Ближайшая работа · ' + shortDate(nearest)}>Ближайшая</span>}
                   </div>
                   {withWork ? (onOpenAssignment
-                    ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}><span className="js-work-title-text" style={WORK_TITLE_FADE}>{col.title}</span></button>
+                    ? <button type="button" className="js-col-title jh-header-link" title={'Все работы · ' + col.title} aria-label={'Все работы · ' + col.title} onClick={() => onOpenAssignment(col.ref)}><span className="js-work-title-text" style={WORK_TITLE_FADE}><OpticalText as="iskra-button-label">{col.title}</OpticalText></span></button>
                     : <span className="js-col-title js-work-title-text" style={WORK_TITLE_FADE} title={col.title}>{col.title}</span>)
                     : !withWork && onOpenAttendance && attendanceColumns.has(col.ref) ? <button type="button" className="js-col-title jh-header-link" aria-label={'Оценки за урок · ' + col.title} onClick={() => onOpenAttendance(attendanceColumns.get(col.ref)!)}><OpticalText as="iskra-button-label">{col.title}</OpticalText></button> : <span className="js-col-title" title={col.title}>{col.title}</span>}
                   {transfer && !withWork && (attendanceColumns.has(col.ref) || missingDate.has(col.ref)) && <div className="jt-head-actions">
@@ -739,7 +739,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                   <div className="js-name-row">
                   <button type="button" className="js-name" title={student.name} aria-label={student.name}
                     aria-pressed={entry?.student.id === student.id} onClick={() => set({ student: student.id, workRef: '' })}>
-                    <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span><span>{student.name}</span>
+                    <span className="cj-avatar" aria-hidden>{monogram(student.name)}</span><span><OpticalText as="iskra-button-label">{student.name}</OpticalText></span>
                   </button>
                   {transfer && !withWork && onOpenAttendance && rowCells(student.id).length > 0 && <TransferMenu label={'Строка · ' + student.name}
                     caption={student.name} items={[
@@ -768,7 +768,7 @@ function LessonMatrix({ entries, slots, selected, set, today, position, attentio
                         if (withWork) onOpenWork?.(student.id, col.ref)
                         else if (w.attendanceCell) onOpenAttendance?.([w.attendanceCell])
                       }}>
-                      {withWork && (w.status === 'На проверке' && onOpenWork ? <span className="jh-pending-action">Проверить</span> : <Badge work={w} />)}
+                      {withWork && (w.status === 'На проверке' && onOpenWork ? <span className="jh-pending-action"><OpticalText as="iskra-button-label">Проверить</OpticalText></span> : <Badge work={w} />)}
                       {selected.tab !== 'Работы' && <Attendance work={w} unavailable={unavailable} />}
                       {transfer && !withWork && w.attendanceCell && <TransferHomework work={w} />}
                       {withWork && !source && <Source value={w.source}/>}

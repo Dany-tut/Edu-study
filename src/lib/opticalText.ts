@@ -1,5 +1,5 @@
 /** Text-only alignment. No DOM rewriting, value writes, control movement or input hooks. */
-type Entry = { element: HTMLElement; visible: boolean }
+type Entry = { element: HTMLElement; visible: boolean; ink?: { font: string; text: string; epoch: number; offset: number } }
 const entries = new Map<HTMLElement, Entry>()
 const pending = new Set<HTMLElement>()
 const cache = new Map<string, number>()
@@ -9,6 +9,7 @@ let intersection: IntersectionObserver | undefined
 let microtask = false
 let frame = 0
 let started = false
+let fontEpoch = 0
 
 /** A shared baseline for captions, rather than a different baseline for every word.
  * Center between capitals/digits and descender-bearing words using the actual font. */
@@ -19,13 +20,24 @@ export function opticalTextOffset(fontAscent: number, fontDescent: number, capAs
 }
 
 function measure(element: HTMLElement): number {
-  if (!element.textContent?.trim()) return 0
+  const text = element.textContent ?? ''
+  if (!text.trim()) return 0
   const css = getComputedStyle(element)
   const font = `${css.fontStyle} ${css.fontWeight} ${css.fontSize} ${css.fontFamily}`
-  const ink = element.dataset.opticalAlign === 'ink'
-  const key = ink ? `${font}\0${element.textContent}` : font
-  const cached = cache.get(key)
-  if (cached !== undefined) return cached
+  // Multi-line/card compositions keep their shared baseline rather than centering
+  // the tallest letter from a middle line as if the entire block were one word.
+  const lineHeight = parseFloat(css.lineHeight) || parseFloat(css.fontSize) * 1.2
+  const multipleLines = element.dataset.opticalAlign === 'ink' &&
+    (element.getClientRects().length > 1 || element.getBoundingClientRect().height > lineHeight * 1.5)
+  const ink = element.dataset.opticalAlign === 'ink' && !multipleLines
+  const entry = entries.get(element)
+  if (ink) {
+    const memo = entry?.ink
+    if (memo?.font === font && memo.text === text && memo.epoch === fontEpoch) return memo.offset
+  } else {
+    const cached = cache.get(font)
+    if (cached !== undefined) return cached
+  }
   let result = 0
   try {
     context ??= document.createElement('canvas').getContext('2d')
@@ -34,13 +46,19 @@ function measure(element: HTMLElement): number {
     const metrics = context.measureText('HНgpру0123456789')
     const capitals = context.measureText('HН'), descenders = context.measureText('gpру')
     // Baseline captions reserve half a descender; pill ink alignment reserves the full visible glyph bounds.
-    const visible = ink ? context.measureText(element.textContent ?? '') : null
+    const visible = ink ? context.measureText(text) : null
     result = opticalTextOffset(metrics.fontBoundingBoxAscent, metrics.fontBoundingBoxDescent,
       visible?.actualBoundingBoxAscent ?? capitals.actualBoundingBoxAscent,
       visible ? visible.actualBoundingBoxDescent * 2 : descenders.actualBoundingBoxDescent, parseFloat(css.fontSize))
   } catch { return 0 }
-  if (cache.size >= 256) cache.delete(cache.keys().next().value!)
-  cache.set(key, result)
+  if (ink && entry) {
+    // Caption memo belongs to this mounted element; no user text is retained in
+    // the cross-screen font cache after unmount.
+    entry.ink = { font, text, epoch: fontEpoch, offset: result }
+  } else {
+    if (cache.size >= 256) cache.delete(cache.keys().next().value!)
+    cache.set(font, result)
+  }
   return result
 }
 
@@ -82,7 +100,7 @@ function start() {
   }, { rootMargin: '200px' })
   const refresh = () => { for (const entry of entries.values()) if (entry.visible) queue(entry.element) }
   window.addEventListener('resize', refresh, { passive: true })
-  document.fonts?.addEventListener('loadingdone', () => { cache.clear(); refresh() })
+  document.fonts?.addEventListener('loadingdone', () => { ++fontEpoch; cache.clear(); refresh() })
 }
 
 export function trackOpticalText(element: HTMLElement) {

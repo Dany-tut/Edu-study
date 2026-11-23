@@ -239,7 +239,7 @@ export default function TeacherSelect({
             }}
           />
         ) : (
-          <FadeText optical enabled={mobile} style={{
+          <FadeText optical opticalAlignment="ink" enabled={mobile} style={{
             flex: 1, minWidth: 0,
             color: isEmpty ? 'var(--color-text-3)' : undefined,
             fontWeight: 500,

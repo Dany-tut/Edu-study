@@ -205,7 +205,7 @@ export default function DateTimeField({ value, onChange, label }: {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <button data-hover="layer" type="button" onClick={() => shift(-1)} aria-label={t('Предыдущий месяц')} style={navBtn}><ChevronLeft size={14} /></button>
-                  <OpticalText style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{`${t(MONTHS[view.m])} ${view.y}`}</OpticalText>
+                  <OpticalText alignment="ink" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{`${t(MONTHS[view.m])} ${view.y}`}</OpticalText>
                   <button data-hover="layer" type="button" onClick={() => shift(1)} aria-label={t('Следующий месяц')} style={navBtn}><ChevronRight size={14} /></button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
@@ -229,7 +229,7 @@ export default function DateTimeField({ value, onChange, label }: {
                           color: sel ? '#fff' : 'var(--color-text)',
                         }}
                       >
-                        <OpticalText>{day}</OpticalText>
+                        <OpticalText alignment="ink">{day}</OpticalText>
                       </button>
                     )
                   })}

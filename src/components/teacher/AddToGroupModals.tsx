@@ -363,7 +363,7 @@ export function AddExistingIndividualModal({
                     подпись приподнята до оптического центра (−0.04em у таблеток с иконкой). */}
                 <button data-hover="layer" onClick={copy} style={btn('L', 'primary', { background: copied ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })}>
                   {copied && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}
-                  <span style={{ position: 'relative', top: '-0.04em' }}>{copied ? t('Скопировано') : t('Скопировать ссылку')}</span>
+                  <OpticalText as="iskra-button-label">{copied ? t('Скопировано') : t('Скопировать ссылку')}</OpticalText>
                 </button>
               </>
             )}

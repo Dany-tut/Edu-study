@@ -69,7 +69,7 @@ export default function MobilePill({
     >
       {icon}
       {typeof children === 'string' || typeof children === 'number'
-        ? <OpticalText>{children}</OpticalText> : children}
+        ? <OpticalText alignment="ink">{children}</OpticalText> : children}
     </motion.button>
   )
 }

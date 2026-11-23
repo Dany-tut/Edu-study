@@ -497,7 +497,7 @@ export default function MobileTeacherStudents() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <MobileSheet open={addOpen} onClose={() => setAddOpen(false)} title={invite ? t('Ученик добавлен') : t('Новый ученик')} footer={<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {invite ? <>
-                <button data-hover="layer" style={btn('M', 'primary', { background: copiedInvite ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}<span style={{ position: 'relative', top: '-0.04em' }}>{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</span></button>
+                <button data-hover="layer" style={btn('M', 'primary', { background: copiedInvite ? GRAD.green : GRAD.purple, transition: 'background 0.22s' })} onClick={async () => setCopiedInvite(await copyToClipboard(invite))}>{copiedInvite && <Check size={16} strokeWidth={2.5} aria-hidden style={{ flexShrink: 0 }} />}<OpticalText as="iskra-button-label">{copiedInvite ? t('Скопировано') : t('Скопировать приглашение')}</OpticalText></button>
                 <button data-hover="layer" style={btn('M', 'secondary')} onClick={() => setAddOpen(false)}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>
               </> : <>
                 <button data-hover="layer" style={btn('M', 'primary')} disabled={!newName.trim() || !newSubjects.length || savingNew} onClick={createStudent}><OpticalText as="iskra-button-label">{savingNew ? t('Сохранение...') : t('Добавить ученика')}</OpticalText></button>

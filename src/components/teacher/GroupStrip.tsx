@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
 import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
@@ -61,8 +62,8 @@ function TabPanel({ config, compact = false }: { config: TabConfig; compact?: bo
               style={{ flex: 1, alignSelf: 'stretch', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer', borderRadius: 16 }}>
               {compact ? <>
                 <span className="js-roster-tab-icon" aria-hidden="true">{tab.id === 'groups' ? <Layers size={21} /> : <Users size={21} />}</span>
-                <span className="js-roster-tab-label">{tab.label}</span>
-              </> : tab.label}
+                <span className="js-roster-tab-label"><OpticalText as="iskra-button-label">{tab.label}</OpticalText></span>
+              </> : <OpticalText as="iskra-button-label">{tab.label}</OpticalText>}
             </button>
             {config.onTabPlusClick && <button type="button" data-hover="layer"
               className={compact ? 'js-roster-tab-add' : undefined} disabled={collapsed} tabIndex={collapsed ? -1 : undefined} aria-hidden={collapsed || undefined}
@@ -448,7 +449,7 @@ function CompactRosterStrip({ tabs, groups, selected, select, add, trailing }: {
               <div key={g.id} className="js-group-pill" data-current={selected === g.id || undefined}>
                 <button type="button" className="js-group-select" aria-pressed={selected === g.id}
                   title={g.name} onClick={() => select(selected === g.id ? null : g.id)}>
-                  <span>{g.name}</span><small><Users size={13} />{g.studentCount}</small>
+                  <span><OpticalText as="iskra-button-label">{g.name}</OpticalText></span><small><Users size={13} />{g.studentCount}</small>
                 </button>
                 {add && <button type="button" className="js-group-add" title={'Добавить ученика в группу: ' + g.name}
                   aria-label={'Добавить ученика в группу: ' + g.name} onClick={() => add(g.id)}><Plus size={15} /></button>}

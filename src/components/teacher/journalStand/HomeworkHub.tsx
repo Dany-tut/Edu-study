@@ -34,7 +34,7 @@ function HomeworkHistory({ attempts }: { attempts: JournalAttempt[] }) {
   const id = useId()
   return <section className={'jh-review-history' + (open ? ' jh-history-open' : '')}>
     <button type="button" className="jh-history-toggle" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>
-      <span>История попыток</span><span className="jh-history-count">{attempts.length}</span><ChevronRight className="jh-history-chevron" size={14} aria-hidden="true"/>
+      <span><OpticalText as="iskra-button-label">История попыток</OpticalText></span><span className="jh-history-count">{attempts.length}</span><ChevronRight className="jh-history-chevron" size={14} aria-hidden="true"/>
     </button>
     <div id={id} className="jh-history-list" hidden={!open} role="region" aria-label="Попытки сдачи" tabIndex={open ? 0 : -1}>
       {attempts.map(a => <div className="jh-history-attempt" key={a.id}>
@@ -210,9 +210,9 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
               <span className={'jh-document-status '+(pending?'jh-status-pending':entry.work.status==='Зачтено'?'jh-status-passed':'')}>{entry.work.status}</span>
             </div>
             {target.keys.length>1 && <label className="jh-mobile-student">Ученик<select aria-label="Выбрать ученика в стопке" disabled={busy} value={entry.key} onChange={e=>setTarget({...target,selected:e.target.value})}>{stack.map(e=><option key={e.key} value={e.key}>{e.student.name} · {e.work.status}</option>)}</select></label>}
-            <div className="jh-document-tools" role="group" aria-label="Фильтр ответов"><button data-hover="layer" type="button" aria-pressed={answerFilter==='all'} onClick={()=>setAnswerFilter('all')}>Все задания <span>{payload?.rows.length??0}</span></button>
-              {pending && <button data-hover="layer" type="button" aria-pressed={answerFilter==='manual'} disabled={!manual.length} onClick={()=>setAnswerFilter('manual')}>На проверку <span>{manual.length}</span></button>}
-              <button data-hover="layer" type="button" aria-pressed={answerFilter==='errors'} disabled={!errors.length} onClick={()=>setAnswerFilter('errors')}>Ошибки <span>{errors.length}</span></button></div>
+            <div className="jh-document-tools" role="group" aria-label="Фильтр ответов"><button data-hover="layer" type="button" aria-pressed={answerFilter==='all'} onClick={()=>setAnswerFilter('all')}><OpticalText as="iskra-button-label">Все задания </OpticalText><span>{payload?.rows.length??0}</span></button>
+              {pending && <button data-hover="layer" type="button" aria-pressed={answerFilter==='manual'} disabled={!manual.length} onClick={()=>setAnswerFilter('manual')}><OpticalText as="iskra-button-label">На проверку </OpticalText><span>{manual.length}</span></button>}
+              <button data-hover="layer" type="button" aria-pressed={answerFilter==='errors'} disabled={!errors.length} onClick={()=>setAnswerFilter('errors')}><OpticalText as="iskra-button-label">Ошибки </OpticalText><span>{errors.length}</span></button></div>
             <div className="jh-document-scroll" ref={documentArea}>
               {entry.work.submitted ? shownPayload?.rows.length ? shownPayload.rows.map(answer => {
                 const feedback = ai.grade?.tasks.find(task => task.n === answer.n)

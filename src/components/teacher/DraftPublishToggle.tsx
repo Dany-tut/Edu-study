@@ -43,7 +43,7 @@ export default function DraftPublishToggle({ published, onPublish, onDraft, savi
       {[text, ...reserve].map(r => (
         <span key={r} aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{r}</span>
       ))}
-      <OpticalText style={{ gridArea: '1 / 1' }}>{text}</OpticalText>
+      <OpticalText alignment="ink" style={{ gridArea: '1 / 1' }}>{text}</OpticalText>
     </span>
   )
 

@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { useOpenStudentCabinet } from '../../lib/useOpenStudentCabinet'
 import type { FriendsModel, FriendsTab } from '../../lib/desktopFriends'
 import { useTeacherGuides } from './guides/TeacherGuides'
@@ -505,7 +506,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                 maxWidth: collapsed ? 0 : 200, opacity: collapsed ? 0 : 1,
                 transition: 'max-width 0.38s cubic-bezier(0.42,0,0.58,1), opacity 0.22s ease-in-out',
               }}>
-                {t(item.label)}
+                <OpticalText as="iskra-button-label">{t(item.label)}</OpticalText>
               </span>
               {/* Развёрнутая вкладка — число внутри после слова (отступ справа = зазору
                   сверху/снизу), свёрнутая до иконки — в углу. */}

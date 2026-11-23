@@ -96,9 +96,7 @@ function AlertRow({ item }: { item: AlertItem }) {
             fontSize: 13, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
         >
-          {/* Подъём −0.12em из общего правила здесь перебирал: в таблетке без
-              иконки подпись вставала выше центра. −0.04em — на глаз ровно. */}
-          <span style={{ position: 'relative', top: '-0.04em' }}>{item.action.label}</span>
+          <OpticalText as="iskra-button-label">{item.action.label}</OpticalText>
         </button>
       )}
       {item.onClose && (

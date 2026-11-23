@@ -163,7 +163,7 @@ export function RecapPanel({ control, picked, onPick, onClose }: {
       </div>}
     </div>
     <div className="rp-foot">
-      <button type="button" className="rp-rebuild" style={btn('S', 'secondary')} disabled={!!busy} onClick={rebuild} title="Собрать этот раздел заново" aria-label="Пересобрать раздел"><RefreshCw size={14} /><span className="rp-rebuild-label">Пересобрать</span></button>
+      <button type="button" className="rp-rebuild" style={btn('S', 'secondary')} disabled={!!busy} onClick={rebuild} title="Собрать этот раздел заново" aria-label="Пересобрать раздел"><RefreshCw size={14} /><span className="rp-rebuild-label"><OpticalText as="iskra-button-label">Пересобрать</OpticalText></span></button>
       <span className="rp-foot-hint" />
       <button type="button" className="rp-apply" style={btn('M', 'primary')} disabled={applying || !!busy}
         onClick={async () => { setApplying(true); try { await control.apply(draft) } finally { setApplying(false) } }}>
