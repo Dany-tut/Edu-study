@@ -2572,6 +2572,7 @@ export const EN: Record<string, string> = {
   "Отправить ещё раз": "Send again",
   "Обсуждение открыто ученикам со своим входом — попросите учителя прислать ссылку для входа.": "Discussion is open to students with their own login — ask your teacher for a sign-in link.",
   "Эту домашку изменили в другом месте. Ваши правки в черновике — откройте домашку заново и перенесите их.": "This homework was changed elsewhere. Your edits are in the draft — reopen the homework and carry them over.",
+  "Не удалось открыть урок ученикам — проверьте интернет и попробуйте ещё раз.": "Could not open the lesson for students — check your connection and try again.",
   "Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.": "Could not save the review — check your connection and try again.",
   "Ученик прислал новое решение, пока вы проверяли. Работа обновлена — посмотрите её и проверьте снова.": "The student sent a new solution while you were reviewing. The work has been refreshed — look at it and review again.",
   "Ответы не отправлены — проверьте связь и повторите.": "Answers were not sent — check your connection and try again.",

@@ -13,6 +13,7 @@ import Modal from '../Modal'
 import { confirmDialog } from '../ConfirmHost'
 import { btn } from '../../lib/pillStyles'
 import { useT } from '../../lib/i18n'
+import { trackEvent } from '../../lib/analytics'
 import { doubtSummary, DOUBT_LABEL, supabaseAiBatchSource, useAiBatchPreview, type AiBatchSource } from '../../lib/aiBatch'
 import AiAgreementPanel from './AiAgreementPanel'
 import { useIsDesktop } from '../../lib/useIsDesktop'
@@ -67,7 +68,15 @@ export default function AiBatchBar({ queueKey, onApplied, source = supabaseAiBat
   }, [phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ушли со страницы во время отсчёта — решение учителя всё равно в силе.
-  useEffect(() => () => { const ids = pendingIds.current; if (ids?.length) void source.apply(ids).catch(() => {}) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // Nobody is left to see an error: retry once, then record the loss.
+  useEffect(() => () => {
+    const ids = pendingIds.current
+    if (!ids?.length) return
+    void source.apply(ids).catch(() => source.apply(ids)).catch((e: unknown) => {
+      console.error('[ai batch] apply after leave failed', e)
+      trackEvent('operation_failed', { operation: 'ai_batch_apply_on_leave', count: ids.length })
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function start() {
     if (!sure || phase.kind === 'countdown' || phase.kind === 'applying') return

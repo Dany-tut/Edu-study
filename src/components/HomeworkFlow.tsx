@@ -1957,10 +1957,16 @@ export default function HomeworkFlow({
   const savedOnce = useRef(false)
   useEffect(() => {
     if (!savedOnce.current) { savedOnce.current = true; return }
-    window.localStorage.setItem(
-      homeworkStorageKey(lessonId),
-      JSON.stringify({ ...state, touchedAt: new Date().toISOString() }),
-    )
+    // A full quota (board/photos in state) or blocked storage must not crash
+    // the lesson; the server copy and the in-memory state stay intact.
+    try {
+      window.localStorage.setItem(
+        homeworkStorageKey(lessonId),
+        JSON.stringify({ ...state, touchedAt: new Date().toISOString() }),
+      )
+    } catch (e) {
+      console.error('[homework draft] local save failed', e)
+    }
   }, [lessonId, state])
 
   // Cap the docked title so its right edge stays 10px clear of the centred top

@@ -1,4 +1,5 @@
 import OpticalText from '../../OpticalText'
+import { trackEvent } from '../../../lib/analytics'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Modal from '../../Modal'
 import { useScrollFades } from '../../../lib/useScrollFades'
@@ -156,7 +157,10 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
       ring?.play(); ring = null
       if (verdict === 'accepted' && ai.grade && ['graded', 'dismissed'].includes(ai.grade.status)) {
         // Final teacher review has already succeeded; an AI bookkeeping error must not undo it.
-        void confirmAiGrade(ai.grade.id, score).catch(() => {})
+        void confirmAiGrade(ai.grade.id, score).catch((e: unknown) => {
+          console.error('[ai grade] confirm failed', e)
+          trackEvent('operation_failed', { operation: 'confirm_ai_grade' })
+        })
       }
     } catch(e) {setError(e instanceof Error ? e.message : 'Не удалось сохранить проверку. Попробуйте ещё раз.')}
     finally {ring?.cancel();setBusy(false)}

@@ -6849,30 +6849,37 @@ export default function TeacherCourseEditorPage() {
     // existing progress like 'done'). Course assignment alone creates no
     // lesson_progress rows, so we seed 'current' for anyone without a row yet.
     async function openRef(ref: string) {
-      await supabase
+      const { error: unlockError } = await supabase
         .from('lesson_progress')
         .update({ status: 'current' })
         .eq('lesson_ref', ref)
         .eq('status', 'locked')
+      if (unlockError) throw unlockError
       if (targetStudentIds.length === 0) return
-      const { data: existing } = await supabase
+      const { data: existing, error: readError } = await supabase
         .from('lesson_progress')
         .select('student_id')
         .eq('lesson_ref', ref)
         .in('student_id', targetStudentIds)
+      if (readError) throw readError
       const have = new Set((existing ?? []).map((r: { student_id: string }) => r.student_id))
       const newRows = targetStudentIds
         .filter(id => !have.has(id))
         .map(id => ({ student_id: id, lesson_ref: ref, subject: course.dbCourseId, status: 'current' }))
       if (newRows.length > 0) {
-        const { error } = await supabase.from('lesson_progress').insert(newRows)
-        if (error) console.error('lesson_progress seed failed:', error)
+        // A row created meanwhile (student opened it) is kept as is, never reset.
+        const { error } = await supabase.from('lesson_progress')
+          .upsert(newRows, { onConflict: 'student_id,lesson_ref', ignoreDuplicates: true })
+        if (error) throw error
       }
     }
 
     try {
       for (const ref of refs) await openRef(ref)
       setOpenLessonShortIds(prev => new Set(prev).add(lessonShortId))
+    } catch (error) {
+      console.error('[openLessonForStudents] failed', error)
+      setPublishErr(t('Не удалось открыть урок ученикам — проверьте интернет и попробуйте ещё раз.'))
     } finally {
       setOpeningLesson(false)
     }
