@@ -1,4 +1,5 @@
 import OpticalText from '../OpticalText'
+import { Download, RefreshCw } from '../icons/appIcons'
 import { useEffect, useState } from 'react'
 import { INCIDENT_EVENTS } from '../../lib/incidentTelemetry'
 import { supabase } from '../../lib/supabase'
@@ -10,7 +11,9 @@ const columns = 'id,created_at,event,path,role,session_id,meta,ua,user_id,studen
 const failures = [...INCIDENT_EVENTS, 'network_offline']
 const videoEvents = new Set(['video_buffering_start', 'video_buffering_end', 'video_unexpected_seek', 'video_playback_error', 'video_playback_retry', 'video_dropped_frames'])
 const box = { padding: 16, borderRadius: 16, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)' }
-const button = { minHeight: 44, padding: '8px 12px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)', color: 'var(--color-text)', cursor: 'pointer' }
+const button = { padding: '8px 12px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-bg-2)', color: 'var(--color-text)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }
+// Шапка и кнопки — как у «Разбора» (SectionTitle + «Собрать разбор» в TeacherAnalytics)
+const action = { ...button, display: 'flex', alignItems: 'center', gap: 8 } as const
 export default function AnalyticsDiagnostics({ days }: { days: number }) {
   const [rows, setRows] = useState<Row[]>([])
   const [requests, setRequests] = useState<Row[]>([])
@@ -75,9 +78,9 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
   }
   return <section style={{ display: 'grid', gap: 16, color: 'var(--color-text)', overflowWrap: 'anywhere' }}>
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-      <h3 style={{ margin: 0, flex: 1 }}>Диагностика Искры</h3>
-      <button data-hover="layer" style={button} disabled={busy} onClick={() => setRefresh(n => n+1)}><OpticalText as="iskra-button-label">Обновить</OpticalText></button>
-      <button data-hover="layer" style={button} disabled={busy || !!error} onClick={download}><OpticalText as="iskra-button-label">Скачать JSON</OpticalText></button>
+      <h3 style={{ margin: 0, flex: 1, fontSize: 13, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Диагностика Искры</h3>
+      <button data-hover="layer" style={{ ...action, color: busy ? 'var(--color-text-3)' : 'var(--color-text)', cursor: busy ? 'default' : 'pointer' }} disabled={busy} onClick={() => setRefresh(n => n+1)}><RefreshCw size={14} style={busy ? { animation: 'spin 1s linear infinite' } : undefined} /><OpticalText as="iskra-button-label">Обновить</OpticalText></button>
+      <button data-hover="layer" style={{ ...action, color: busy || error ? 'var(--color-text-3)' : 'var(--color-text)', cursor: busy || error ? 'default' : 'pointer' }} disabled={busy || !!error} onClick={download}><Download size={14} /><OpticalText as="iskra-button-label">Скачать JSON</OpticalText></button>
     </div>
     <p style={{ margin: 0, color: 'var(--color-text-3)', fontSize: 13 }}>За {days} дней: последние 500 ошибок и отключений, 500 запросов. Показатели относятся только к этой выборке. Обновлено: {updated || '—'}. Клиентский журнал не подтверждает доступность сервера; при полном сбое доставки события могут отсутствовать. Тестли имеет отдельную базу и здесь не контролируется.</p>
     {error && <Alert tone="danger" title="Диагностика недоступна" text={error} />}
@@ -110,7 +113,7 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
         <h4 style={{ marginTop: 0 }}>Сбои · выберите сессию для разбора</h4>
         {!incidents.length && <p>В выборке сбоев нет. Это не гарантия отсутствия проблем.</p>}
         <ScrollFade maxHeight={420}>
-          {incidents.map(r => <button data-hover="layer" key={r.id} style={{ ...button, display: 'block', width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={() => setSession(r.session_id)}>
+          {incidents.map(r => <button data-hover="layer" key={r.id} style={{ ...button, fontSize: 13, fontWeight: 400, minHeight: 44, display: 'block', width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={() => setSession(r.session_id)}>
             <strong>{String(r.meta.msg ?? r.meta.endpoint ?? r.event)}</strong><br />
             {new Date(r.created_at).toLocaleString('ru-RU')} · {r.role} · {r.path} · {String(r.meta.app_version ?? 'Версия неизвестна')}
             {videoEvents.has(r.event) && <> · устройство {String(r.meta.client_platform ?? 'неизвестно')} · время устройства {String(r.meta.client_local_time ?? 'неизвестно')} ({String(r.meta.client_timezone ?? 'часовой пояс неизвестен')})</>}
