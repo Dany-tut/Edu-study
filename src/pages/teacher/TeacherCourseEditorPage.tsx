@@ -19,7 +19,7 @@ import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
 import Model3DPicker from '../../components/teacher/Model3DPicker'
 import FipiPicker, { FipiToggle } from '../../components/teacher/FipiPicker'
-import { lessonShortIdMap } from '../../lib/lessonReferences'
+import { lessonShortIdMap, newEditorLessonId } from '../../lib/lessonReferences'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
@@ -5535,14 +5535,14 @@ export function RightPanelLessons({
   function addLesson() {
     const title = newTitle.trim()
     if (!title) return
-    const lessonId = uid()
+    const lessonId = newEditorLessonId()
     appendLesson({ id: lessonId, title, number: course.lessons.length + 1 })
     setNewTitle('')
     onSelectLesson(lessonId)
   }
 
   function addTest() {
-    const lessonId = uid()
+    const lessonId = newEditorLessonId()
     appendLesson({ id: lessonId, title: t('Финальный тест'), number: course.lessons.length + 1, kind: 'test', testTasks: [] })
     onSelectLesson(lessonId)
   }
