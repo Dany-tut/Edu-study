@@ -27,11 +27,12 @@ import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '
 import { trackEvent } from '../../lib/analytics'
 import { courseSaveProbeMetrics } from '../../lib/courseSaveProbeMetrics'
 import { courseAtomicModules, courseAtomicRows, eligibleCourseAtomicModules } from '../../lib/courseAtomicRows'
+import { planLegacyLessonWrites, type StoredLessonMetadata } from '../../lib/courseLegacyLessonPreservation'
 import { prepareFullDispatch as prepareFullContentDispatch, advanceConfirmedFull as advanceFullContentDispatch } from '../../lib/courseFullAcknowledgement'
 import { compactFullLessons } from '../../lib/courseFullCompact'
 import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
 import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
-import { courseSaveProvenance } from '../../lib/courseSaveProvenance'
+import { courseSaveProvenance, courseSnapshotStamp } from '../../lib/courseSaveProvenance'
 import { courseSaveCause, courseSaveReason, courseSaveStageText } from '../../lib/courseSaveReason'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
@@ -6366,30 +6367,20 @@ export default function TeacherCourseEditorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [course.metadataPending, course.heavyPending, course.dbCourseId])
 
-  // Конспект, потерянный при сохранении, добираем из сида — иначе редактор
-  // показывает пустое поле и следующее «Сохранить» закрепляет пустоту в БД
-  // (разбор храповика — в data/seedTheory.ts). Накрывает и залипший черновик,
-  // потому что чинится уже после того, как состояние собрано.
-  //
-  // Эффектом, а не в инициализаторе: контент сида приезжает отдельным чанком и
-  // добирается асинхронно. Пока он едет, редактор показывает то, что пришло из
-  // БД, — то есть ровно то же, что показывал бы и раньше; починка досыпается
-  // следом. Правки учителя при этом не затираются: setCourse сверяет, что за
-  // это время состояние не ушло вперёд.
+  // Complete an unsaved template locally. An existing course can import seed
+  // content through the explicit comparison action.
   const theoryRestored = useRef(false)
   useEffect(() => {
-    // Не раньше тяжёлой половины: пока конспекты не приехали, «потерян» каждый
-    // урок, и починка подставила бы сидовый текст туда, где в БД лежит свой.
-    if (course.heavyPending) return
+    if (course.dbCourseId || recoveredDraft || course.metadataPending || course.heavyPending) return
     if (theoryRestored.current) return
     theoryRestored.current = true
     let alive = true
     ;(async () => {
       const fixed = await restoreSeedTheory(course)
-      if (alive && fixed !== course) setCourse(c => (c === course ? fixed : c))
+      if (alive && fixed !== course) reconcileCourse(c => (c === course ? fixed : c))
     })()
     return () => { alive = false }
-  }, [course])
+  }, [course, recoveredDraft, reconcileCourse])
 
   // ── Draft persistence ───────────────────────────────────────────────────────
   // Mirror every edit of the main course object into sessionStorage so no input
@@ -6434,53 +6425,19 @@ export default function TeacherCourseEditorPage() {
   // список изменений пуст — кнопка «Подтянуть из сида» просто не показывается,
   // а не мигает неверным числом.
   const [seedDiff, setSeedDiff] = useState<SeedDiff>({ seedKey: null, changes: [] })
-  // Отпечаток пишем в колонку один раз за заход: сверка считается на каждое
-  // изменение курса, а UPDATE на каждую букву в названии — это лишний трафик.
-  const stampWritten = useRef(false)
   useEffect(() => {
     // Пока уроки без конспектов и домашек, расхождение с сидом — это весь курс
     // целиком: кнопка «Из сида · 215» врала бы и предлагала перезалить всё.
-    if (course.heavyPending) return
+    if (course.metadataPending || course.heavyPending) return
     let alive = true
     diffAgainstSeed(course).then(d => {
       if (!alive) return
       setSeedDiff(d)
-      // РАСХОЖДЕНИЙ НЕТ — ОТПЕЧАТОК СТАВИМ САМИ. Курс, сохранённый до появления
-      // отпечатков, показывает на витрине точку «сид ушёл вперёд»: пусто значит
-      // «неизвестно», а неизвестное показывается. Погасить её было нечем —
-      // кнопка «Из сида» появляется только при расхождениях, а их нет. Сверка
-      // только что доказала, что курс совпадает с сидом; это и записываем.
-      // Один раз на курс: дальше отпечатки равны и ветка молчит.
-      //
-      // И В СОСТОЯНИЕ, И СРАЗУ В БАЗУ. Раньше штамп жил только в состоянии
-      // редактора и доезжал до колонки следующим «Сохранить» — а сохранять,
-      // просто заглянув в курс, незачем и нечего. Учитель уходил назад, точка
-      // горела снова, и подсказка опять посылала его к кнопке «Из сида»,
-      // которой при нулевом расхождении не бывает. Пишем одну колонку одним
-      // UPDATE — ни уроков, ни статуса это не касается, поэтому сторож
-      // устаревшей вкладки (baselineStamp) здесь не нужен: затирать нечего.
+      // The comparison is read-only. Persist the stamp with the next real save
+      // so this derived value cannot advance the server version by itself.
       const stamp = d.seedKey ? SEED_CARDS[d.seedKey]?.stamp : undefined
       if (stamp && d.changes.length === 0 && course.seedStamp !== stamp) {
-        setCourse(c => (c.seedStamp === stamp ? c : { ...c, seedStamp: stamp }))
-        // ТОЛЬКО ПО dbCourseId, А НЕ ПО `?? id`. Он есть у курса, приехавшего
-        // из базы, — то есть у того, чьи уроки мы и сверили. У курса, собранного
-        // из сида, его нет, а id при этом равен short_id сохранённой строки:
-        // писали бы по нему — заштамповали бы «совпадает с сидом» ту запись,
-        // которую в глаза не видели (сверяли-то свежую сборку). Отпечаток
-        // такому курсу поставит первое же «Сохранить», вместе с содержимым.
-        const shortId = course.dbCourseId
-        if (shortId && !stampWritten.current) {
-          stampWritten.current = true
-          // Билдер PostgREST ленивый: без .then запрос не уходит вовсе.
-          void (async () => {
-            const { error } = await supabase
-              .from('courses').update({ seed_stamp: stamp }).eq('short_id', shortId)
-            if (error) {
-              stampWritten.current = false
-              console.error('[seed stamp] не записался', error)
-            }
-          })()
-        }
+        reconcileCourse(c => c === course ? { ...c, seedStamp: stamp } : c)
       }
     })
     return () => { alive = false }
@@ -7504,11 +7461,15 @@ export default function TeacherCourseEditorPage() {
     // draft without a source stamp is reviewed before the first write as well.
     // Even a supposedly new seed can collide with a saved stable short_id.
     // Check existence before upserting it; failed reads never mean "new".
-    let current: string | null
-    try { current = await readCourseStamp(shortId) } catch (error) {
-      saveIssue.current = courseSaveReason('course', error as { message?: string; code?: string }, shortId)
+    const { data: storedCourse, error: preflightError } = await supabase.from('courses')
+      .select('updated_at, lessons(short_id, updated_at, timecodes, chapter_variants, description)')
+      .eq('short_id', shortId).maybeSingle()
+    if (preflightError) {
+      saveIssue.current = courseSaveReason('course', preflightError, shortId)
       return false
     }
+    const storedLessons = (storedCourse?.lessons ?? []) as StoredLessonMetadata[]
+    const current = storedCourse ? courseSnapshotStamp(storedCourse.updated_at, storedLessons.map(row => row.updated_at)) : null
     if (current || c.dbCourseId || baselineStamp.current) {
       const provenance = courseSaveProvenance(baselineStamp.current, current)
       if (provenance === 'unverified') {
@@ -7629,9 +7590,11 @@ export default function TeacherCourseEditorPage() {
 
     // 2. Order lessons and serialize the same content for both save paths.
     const { ordered, shortIdByLessonId, lessonRows } = courseAtomicRows(c, courseDbId, editorModules, moduleDbIdByLocalId)
+    const lessonWrites = planLegacyLessonWrites(lessonRows, confirmedContent.current ? [] : storedLessons)
     if (lessonRows.length > 0) {
-      const { data: lessonResult, error: lessonsErr } = await supabase
-        .from('lessons').upsert(lessonRows, { onConflict: 'short_id' }).select('updated_at')
+      const { data: lessonResult, error: lessonsErr } = lessonWrites.upserts.length
+        ? await supabase.from('lessons').upsert(lessonWrites.upserts, { onConflict: 'short_id' }).select('updated_at')
+        : { data: [], error: null }
       if (lessonsErr) {
         // Курс сохранён, а уроки — нет: на экране «Сохранено», в базе пустой
         // курс. Возвращаем неудачу, чтобы вызывающий показал ошибку и не гасил
@@ -7642,6 +7605,38 @@ export default function TeacherCourseEditorPage() {
       }
       for (const r of (lessonResult ?? []) as Array<{ updated_at: string }>) {
         if (r.updated_at > (writeStamp ?? '')) writeStamp = r.updated_at
+      }
+      for (const repair of lessonWrites.updates) {
+        const { data: saved, error } = await supabase.from('lessons').update(repair.values)
+          .eq('course_id', courseDbId).eq('short_id', repair.stored.short_id).eq('updated_at', repair.stored.updated_at)
+          .select('updated_at').maybeSingle()
+        if (error || !saved) {
+          // Partial legacy writes must not certify a row that changed after the read.
+          baselineStamp.current = null
+          saveIssue.current = courseSaveReason('lessons', error ?? {
+            code: 'ISKRA_DATA_PRESERVATION', message: 'Stored lesson changed during save',
+          }, shortId)
+          return false
+        }
+        if (saved.updated_at > (writeStamp ?? '')) writeStamp = saved.updated_at
+      }
+      if (lessonWrites.updates.length) {
+        const repairs = new Map(lessonWrites.updates.map(repair => [repair.stored.short_id, repair]))
+        const sent = new Map(c.lessons.map(lesson => [lesson.id, lesson]))
+        reconcileCourse(prev => ({
+          ...prev, lessons: prev.lessons.map(lesson => {
+            const repair = repairs.get(shortIdByLessonId[lesson.id])
+            const original = sent.get(lesson.id)
+            if (!repair || !original) return lesson
+            return {
+              ...lesson,
+              ...(repair.keepTimecodes && lesson.timecodes === original.timecodes ? { timecodes: repair.stored.timecodes } : {}),
+              ...(repair.keepChapterVariants && lesson.chapterVariants === original.chapterVariants
+                ? { chapterVariants: repair.stored.chapter_variants ?? undefined } : {}),
+              ...(repair.keepDescription && lesson.description === original.description ? { description: repair.stored.description ?? undefined } : {}),
+            }
+          }),
+        }))
       }
       // Adopt the persisted short_id as each lesson's editor id, so a freshly
       // created lesson (uuid id) doesn't get a NEW suffix allocated on the next
@@ -7737,7 +7732,7 @@ export default function TeacherCourseEditorPage() {
     const lessons = course.lessons.map(l => {
       const nid = uid(); idMap[l.id] = nid
       return {
-        ...l, id: nid,
+        ...l, id: nid, persistedShortId: undefined,
         extraStudentIds: undefined, extraGroupIds: undefined,
         scheduledDate: shiftDot(l.scheduledDate, deltaDays),
         recDate: shiftDot(l.recDate, deltaDays),
@@ -7751,6 +7746,7 @@ export default function TeacherCourseEditorPage() {
       ...course,
       id: uid(),
       dbCourseId: undefined,
+      serverStamp: undefined,
       title: title.trim() || course.title,
       groupIds: [groupId],
       studentIds: [],

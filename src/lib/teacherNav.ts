@@ -49,46 +49,23 @@ export async function findScheduleCourseTarget(row: {
 export async function openCourseInEditor(courseId: string, lessonShortId: string | null, openCourseEditor: (json: string) => void): Promise<boolean> {
   const { data: course } = await supabase
     .from('courses')
-    .select('id, short_id, title, subject, level, status, color, bg, description, group_ids, student_ids, course_modules(id, label, position), lessons(short_id, title, lesson_number, position, module_id, youtube_url, timecodes, description, kind, test_tasks)')
+    .select('short_id, title, subject, level, status, color, bg, description, group_ids, student_ids, lessons(short_id, title)')
     .eq('id', courseId)
     .single()
-  if (!course) return false
-  const c = course as any
-  const dbModules = [...(c.course_modules ?? [])].sort((a, b) => a.position - b.position)
-  const dbLessons = [...(c.lessons ?? [])].sort((a, b) => (a.lesson_number ?? a.position ?? 0) - (b.lesson_number ?? b.position ?? 0))
-  const lessons = dbLessons.map((l: any, i: number) => ({
-    id: l.short_id, title: l.title, number: (l.lesson_number ?? i) + 1,
-    kind: l.kind === 'test' ? 'test' : 'lesson',
-    testTasks: Array.isArray(l.test_tasks) ? l.test_tasks : [],
-    videoUrl: l.youtube_url ?? undefined, description: l.description ?? undefined,
-    timecodes: Array.isArray(l.timecodes) ? l.timecodes : [],
+  if (!course?.short_id) return false
+  const lessons = (course.lessons ?? []).map(lesson => ({
+    id: lesson.short_id, title: lesson.title,
   }))
-  let modules = dbModules.map((m: any) => ({
-    id: m.id, label: m.label, expanded: true,
-    lessonIds: dbLessons.filter((l: any) => l.module_id === m.id).map((l: any) => l.short_id),
-  }))
-  if (modules.length === 0) {
-    modules = [{ id: 'm1', label: '', expanded: true, lessonIds: lessons.map((l: any) => l.id) }]
-  } else {
-    const grouped = new Set(modules.flatMap((m: any) => m.lessonIds))
-    const ungrouped = dbLessons.filter((l: any) => !grouped.has(l.short_id)).map((l: any) => l.short_id)
-    if (ungrouped.length) modules[0].lessonIds.push(...ungrouped)
-  }
-  // Редактор курса поднимает выбранный урок из ce-pos:<dbCourseId> (так он
-  // переживает F5) — кладём туда нужный урок, и курс открывается сразу на нём.
-  if (lessonShortId && lessons.some((l: any) => l.id === lessonShortId)) {
-    try { sessionStorage.setItem(`ce-pos:${c.short_id ?? c.id}`, JSON.stringify({ lessonId: lessonShortId, mode: 'lesson' })) } catch { /* non-fatal */ }
+  // Keep the intended selection while the editor reads the authoritative course.
+  if (lessonShortId && lessons.some(lesson => lesson.id === lessonShortId)) {
+    try { sessionStorage.setItem(`ce-pos:${course.short_id}`, JSON.stringify({ lessonId: lessonShortId, mode: 'lesson' })) } catch { /* non-fatal */ }
   }
   openCourseEditor(JSON.stringify({
-    id: c.id, title: c.title, subject: c.subject, level: c.level,
-    status: c.status, color: c.color, bg: c.bg, description: c.description ?? '',
-    dbCourseId: c.short_id, groupIds: c.group_ids ?? [], studentIds: c.student_ids ?? [],
-    modules, lessons,
-    // Этот путь и раньше открывал курс без конспектов, домашек и файлов — но
-    // молча, и первое же «Сохранить» затирало их в БД пустотой. Теперь курс
-    // помечен недогруженным: редактор досыпает тяжёлую половину и до неё не даёт
-    // сохранять.
-    heavyPending: true,
+    id: course.short_id, dbCourseId: course.short_id,
+    title: course.title, subject: course.subject, level: course.level,
+    status: course.status, color: course.color, bg: course.bg, description: course.description ?? '',
+    groupIds: course.group_ids ?? [], studentIds: course.student_ids ?? [],
+    modules: [], lessons, metadataPending: true, heavyPending: true,
   }))
   return true
 }

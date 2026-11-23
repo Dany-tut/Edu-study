@@ -8712,14 +8712,16 @@ export default function TeacherConstructorPage() {
         seedStamp: ed.seedStamp,
       }
       setCourses(prev => {
-        const old = prev.find(c => c.id === updated.id)
+        const matches = (c: Course) => c.id === updated.id || (!!updated.dbCourseId && c.dbCourseId === updated.dbCourseId)
+        const old = prev.find(matches)
         // Пустой dbCourseId из редактора НЕ стирает уже известный. Плитка,
         // забывшая, что курс лежит в базе, открывается «лёгким» путём: без
         // конспектов и домашек, без автосейва и без сверки с сидом. Ищем в
         // ПРЕДЫДУЩЕМ состоянии, а не в замыкании: эффект висит на одном
         // courseEditedJson и держал бы список на кадр устаревшим.
-        const next = withSortTimes({ ...updated, dbCourseId: updated.dbCourseId ?? old?.dbCourseId }, old)
-        return old ? prev.map(c => c.id === updated.id ? next : c) : [next, ...prev]
+        const next = withSortTimes({ ...updated, id: old?.id ?? updated.id, dbCourseId: updated.dbCourseId ?? old?.dbCourseId }, old)
+        if (!old) return [next, ...prev]
+        return prev.filter(c => c === old || !matches(c)).map(c => c === old ? next : c)
       })
     } catch {}
     setCourseEdited(null)
