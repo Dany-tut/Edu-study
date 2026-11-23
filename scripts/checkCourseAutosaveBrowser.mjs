@@ -19,7 +19,8 @@ const diffAgainstSeed=async()=>({seedKey:'fixture',changes:[]});
 function App(){
  const [{course,editRevision},setState]=useState({course:{id:'A',dbCourseId:'A',title:'Synthetic course',value:0,metadataPending:!!window.__initialMetadata},editRevision:0});
  const reconcileCourse=apply=>setState(previous=>{const course=apply(previous.course);return course===previous.course?previous:{...previous,course}});
- const recoveredDraft=false;
+ const recoveredDraft=false, recovering=useRef(false), draftSource=useRef(null), recoveryIntent=undefined;
+ const latestCourse=useRef(course);latestCourse.current=course;
  const [autosaving,setAutosaving]=useState(0);const [publishErr,setPublishErr]=useState(null);
  const publishedEditRevision=useRef(null),baselineStamp=useRef('stamp'),saveIssue=useRef(null);
  const publicationPending=false;const setCourseEdited=()=>{};const flash=()=>{flashes++};const noteSaveFailure=()=>{errors++};

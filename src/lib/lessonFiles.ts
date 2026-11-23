@@ -85,7 +85,8 @@ export function parseLessonFiles(raw: unknown): LessonFiles {
       } : undefined
     }
     if (typeof f.url === 'string') {
-      return isHttpUrl(f.url) ? linkFile(f.url, typeof f.name === 'string' ? f.name : '', typeof f.id === 'string' ? f.id : undefined) : undefined
+      // Separate hydration reads must agree on the identity of an existing link.
+      return isHttpUrl(f.url) ? linkFile(f.url, typeof f.name === 'string' ? f.name : '', typeof f.id === 'string' ? f.id : f.path) : undefined
     }
     return {
       id: typeof f.id === 'string' ? f.id : f.path,

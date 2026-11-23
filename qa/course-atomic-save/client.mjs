@@ -6,6 +6,7 @@ import { courseAtomicModules as productionCourseAtomicModules, eligibleCourseAto
 import { accessChangesForSave, acknowledgeCourseAccess } from '../../src/lib/courseAccessChanges'
 import { lessonShortIdMap } from '../../src/lib/lessonReferences'
 import { prepareConfirmedSnapshot, advanceConfirmedContent } from '../../src/lib/courseContentAcknowledgement'
+import { isAmbiguousLegacyRecovery } from '../../src/lib/courseDraftRecovery'
 import { baselineCanDriveDelta } from '../../src/lib/courseConfirmedBaseline'
 import { courseContentSnapshot, courseContentDelta, courseDeltaProbeEnabled } from '../../src/lib/courseContentDelta'
 import { createWideContentDelta, prepareWideConfirmedSnapshot, createWideContentAcknowledgement, WideContentPreservationError } from '../../src/lib/courseWideDelta'
@@ -44,7 +45,7 @@ for(const count of [0,1,20]){
 assert.deepEqual(courseAtomicModules({...base,lessons:[],modules:[{...base.modules[0],label:'',lessonIds:[]}]}),[{...base.modules[0],label:'',lessonIds:[]}])
 assert.equal(courseAtomicModules({...base,dbCourseId:undefined}),null)
 assert.equal(courseAtomicModules({...base,modules:[{...base.modules[0],id:'legacy-local'}]}),null)
-function harness({response,error,delayed=false,telemetryThrows=false,typed=false,invalidAck=false,missingBase=false,chapterStamp=false,reviewed=false,ordinary=false}={}){
+function harness({response,error,delayed=false,telemetryThrows=false,typed=false,invalidAck=false,missingBase=false,chapterStamp=false,reviewed=false,ordinary=false,recovered=false}={}){
  const calls=[],baselineStamp={current:'2026-01-01T00:00:00Z'},latestCourse={current:structuredClone(base)},saveIssue={current:null},savedDrafts=[]
  let resolve,conflict=null
  const rpcPromise=delayed?new Promise(r=>resolve=r):null
@@ -67,7 +68,8 @@ function harness({response,error,delayed=false,telemetryThrows=false,typed=false
   if(rpcName==='save_course_publication_whole')return {course_id:courseId,stamp:'2026-01-03T00:00:00Z',course_updated_at:'2026-01-03T00:00:00Z',full_snapshot_confirmed:true,module_witness:req.p_expected_modules,lesson_witness:confirmedContent.current.lessons.map(r=>({id:r.id,short_id:r.shortId,module_id:r.moduleId,updated_at:r.updatedAt})),applied_course_patch:{status:req.p_status}}
   return invalidAck?{course_id:courseId,stamp:now}:{course_id:courseId,stamp:now,full_snapshot_confirmed:true,module_witness:canonical.modules,lesson_witness:[{id:lessonId,short_id:'qa-0',module_id:uuid,updated_at:now}],...(req.p_course_patch?{applied_course_patch:req.p_course_patch,applied_lesson_patches:req.p_lesson_patches,applied_lesson_deletes:req.p_lesson_deletes,applied_module_ops:req.p_module_ops}:{})}
  }
- const env={compactFullLessons,prepareFullPreservedSnapshot,prepareFullContentDispatch,advanceFullContentDispatch,buildWholeWitnessPublicationArgs,prepareConfirmedPublicationDispatch,advanceConfirmedPublication,ordinaryContentPlan:(...args)=>ordinary?ordinaryContentPlan(...args):null,createWideContentDelta,prepareWideConfirmedSnapshot,createWideContentAcknowledgement,WideContentPreservationError,ordinaryContentDelta:(...args)=>ordinary?ordinaryContentDelta(...args):null,noCourseAccessIntents,eligibleCourseAtomicModules:courseAtomicModules,courseDeltaProbeEnabled:()=>typed,courseContentSnapshot,courseContentDelta,prepareConfirmedSnapshot,advanceConfirmedContent,baselineCanDriveDelta,confirmedContent,reviewedContentOverwrite:{current:reviewed},readScope:{current:scope},trackEvent:()=>{if(telemetryThrows)throw Error('diagnostic delivery unavailable')},courseSaveProbeMetrics:()=>({}),courseAtomicModules:c=>{const previous=globalThis.window;globalThis.window={location:{search:typed?'?qa_course_save=20261122':''}};try{return ordinary?productionCourseAtomicModules(c):courseAtomicModules(c)}finally{globalThis.window=previous}},courseAtomicRows,accessChangesForSave,acknowledgeCourseAccess,baselineStamp,latestCourse,saveIssue,
+ const env={isAmbiguousLegacyRecovery,recovering:{current:recovered},recoveryBlocked:{current:false},draftSource:{current:null},freshEditor:{current:structuredClone(base)},
+ persistedSnapshot:c=>({...c,serverStamp:baselineStamp.current}),compactFullLessons,prepareFullPreservedSnapshot,prepareFullContentDispatch,advanceFullContentDispatch,buildWholeWitnessPublicationArgs,prepareConfirmedPublicationDispatch,advanceConfirmedPublication,ordinaryContentPlan:(...args)=>ordinary?ordinaryContentPlan(...args):null,createWideContentDelta,prepareWideConfirmedSnapshot,createWideContentAcknowledgement,WideContentPreservationError,ordinaryContentDelta:(...args)=>ordinary?ordinaryContentDelta(...args):null,noCourseAccessIntents,eligibleCourseAtomicModules:courseAtomicModules,courseDeltaProbeEnabled:()=>typed,courseContentSnapshot,courseContentDelta,prepareConfirmedSnapshot,advanceConfirmedContent,baselineCanDriveDelta,confirmedContent,reviewedContentOverwrite:{current:reviewed},readScope:{current:scope},trackEvent:()=>{if(telemetryThrows)throw Error('diagnostic delivery unavailable')},courseSaveProbeMetrics:()=>({}),courseAtomicModules:c=>{const previous=globalThis.window;globalThis.window={location:{search:typed?'?qa_course_save=20261122':''}};try{return ordinary?productionCourseAtomicModules(c):courseAtomicModules(c)}finally{globalThis.window=previous}},courseAtomicRows,accessChangesForSave,acknowledgeCourseAccess,baselineStamp,latestCourse,saveIssue,
  supabase:{rpc:async(name,args)=>{calls.push({name,args});rpcArgs=args;rpcName=name;return rpcPromise??{data:response??(typed||ordinary?ack():normal),error:error??null}},from:()=>{throw Error('Unexpected legacy request')}},
  flushCourseVisibility:async()=>{calls.push({name:'flush'})},
  courseSaveReason:(_stage,e)=>e?.message??'failed',readGroupScheduleConflict:()=>null,t:s=>s,groups:[],allStudents:[],
@@ -151,3 +153,29 @@ h=harness({ordinary:true,telemetryThrows:true});const fullDespiteTelemetry=struc
 
 h=harness({ordinary:true,delayed:true});const compactA=structuredClone(base);compactA.lessons[0].hwTasks.push({id:'compact-new-A',text:'A'});const compactPending=h.write(compactA);await Promise.resolve();h.latestCourse.current.lessons[0].theory='B while compact A is in flight';h.resolve();assert.equal(await compactPending,true);assert.equal(h.confirmedContent.current.serialized.lessons[0].homework.hwTasks.at(-1).id,'compact-new-A');assert.notEqual(h.confirmedContent.current.serialized.lessons[0].content.paragraphs[0].text,'B while compact A is in flight');assert.equal(h.savedDrafts[0].lessons[0].theory,'B while compact A is in flight');
 for(const options of[{error:{code:'PT409',message:'ISKRA_COURSE_CONFLICT:2026-01-03T00:00:00Z'}},{invalidAck:true}]){h=harness({ordinary:true,...options});const c=structuredClone(base);c.lessons[0].hwTasks.push({id:'rejected-full',text:'A'});assert.equal(await h.write(c),false);assert.deepEqual(h.calls.map(c=>c.name),['flush','save_course_content_full']);assert.equal(h.savedDrafts.length,0)}console.log('PASS actual compact FULL lateACK/conflict/malformed ACK: B draft retained, no retry through legacy engine');
+
+// Drive the real recovered-draft branch through the ordinary (non-QA) route.
+const recovery = options => harness({ ordinary: true, recovered: true, ...options })
+const recoveredCourse = { ...structuredClone(base), description: 'Recovered local course edit' }
+h = recovery()
+assert.equal(await h.write(recoveredCourse), true)
+let rpc = h.calls.find(call => call.name === 'save_course_content_delta')
+assert.deepEqual(rpc.args.p_course_patch, { description: recoveredCourse.description })
+assert.deepEqual(rpc.args.p_lesson_patches, [])
+h = recovery({ missingBase: true })
+assert.equal(await h.write(recoveredCourse), false)
+assert.ok(h.calls.every(call => call.name === 'flush'), 'unverified recovery cannot enter legacy writes')
+h = recovery({ chapterStamp: true })
+assert.equal(await h.write(recoveredCourse), false)
+assert.ok(h.getConflict(), 'real stale draft is offered for review')
+assert.ok(h.calls.every(call => call.name === 'flush'))
+h = recovery({ chapterStamp: true })
+assert.equal(await h.write(structuredClone(base)), true)
+assert.equal(h.getConflict(), null, 'already committed draft may reopen after a missing ACK')
+assert.ok(h.calls.every(call => call.name === 'flush'), 'lost ACK requires no duplicate save')
+h = recovery()
+const ambiguousLesson = structuredClone(base)
+ambiguousLesson.lessons[0].description = 'Older local copy of a changed lesson'
+assert.equal(await h.write(ambiguousLesson), false)
+assert.ok(h.calls.every(call => call.name === 'flush'))
+console.log('PASS actual F5 dispatch: 0 lesson patches for recovered metadata; unverified/ambiguous block writes, true conflict review and lost-ACK clean reopen')

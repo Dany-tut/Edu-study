@@ -8,28 +8,33 @@ const repo=process.cwd(),require=createRequire(resolve(repo,'package.json'))
 const {build}=require('esbuild'),{chromium}=require('playwright')
 const source=readFileSync(resolve(repo,'src/pages/teacher/TeacherCourseEditorPage.tsx'),'utf8')
 const part=(a,b)=>{const i=source.indexOf(a),j=source.indexOf(b,i);assert.ok(i>=0&&j>i,a);return source.slice(i,j)}
-const init=part('  const [{ course, editRevision, recoveredDraft }','  const metadataRead =')
-const hydration=part('  const metadataRead =','  // Конспект, потерянный при сохранении,')
+const init=part('  const [{ course, editRevision, recoveredDraft','  const metadataRead =')
+const hydration=part('  const metadataRead =','  // Complete an unsaved template locally.')
+const fileSource=readFileSync(resolve(repo,'src/lib/lessonFiles.ts'),'utf8')
+const fileParser=fileSource.slice(fileSource.indexOf('export function parseLessonFiles'),fileSource.indexOf('export function makeLinkFile')).replace('export function','function')
 const heavy=part('function mergeCourseHeavy','// ─── Main page')
 const autosave=part('  const chapterProjection =','  // «Сохранено!»')
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`
 const owner=id(1),cid=id(2),module=id(3),stamp='2026-11-22T01:00:01.123456Z'
-const rows=Array.from({length:80},(_,i)=>({id:id(100+i),short_id:`qa-${i}`,module_id:module,updated_at:stamp,content:{paragraphs:[]},homework:{recHwTime:'19:37',hwTasks:[]},materials:{}}))
-const lessons=rows.map((r,i)=>({id:r.short_id,persistedShortId:r.short_id,title:`Lesson ${i}`,number:i+1,kind:'lesson'}))
+const rows=Array.from({length:80},(_,i)=>({id:id(100+i),short_id:`qa-${i}`,module_id:module,updated_at:stamp,content:{paragraphs:[]},homework:{recHwTime:'19:37',hwTasks:[]},materials:i===0?{qaHiddenRoot:{protected:true},workbook:{path:'fixture.pdf',id:'file-1',name:'File',size:42,mime:'application/pdf',qaHidden:'nested'}}:{}}))
+const lessons=rows.map((r,i)=>({id:r.short_id,persistedShortId:r.short_id,title:`Lesson ${i}`,number:i+1,kind:'lesson',description:'Original lesson',timecodes:[{seconds:15,time:'00:15',label:'Chapter'}]}))
 const metadata={serverStamp:stamp,title:'SERVER',subject:'qa',level:'a',status:'draft',description:'SERVER DESCRIPTION',color:'blue',bg:'white',numberStart:1,groupIds:[],studentIds:[],modules:[{id:module,label:'M',expanded:true,lessonIds:lessons.map(l=>l.id)}],lessons}
 const witness={courseId:cid,courseShortId:'00e3a0efbf',ownerId:owner,courseUpdatedAt:stamp,modules:[{id:module,label:'M',position:0}],lessons:rows.map(r=>({id:r.id,shortId:r.short_id,moduleId:r.module_id,updatedAt:r.updated_at}))}
 const base={id:'00e3a0efbf',dbCourseId:'00e3a0efbf',title:'SHELF',subject:'qa',level:'a',status:'draft',description:'SHELF',color:'blue',bg:'white',groupIds:[],studentIds:[],lessons:[],modules:[],metadataPending:true,heavyPending:true}
 const code=`import React,{useState,useEffect,useRef,useCallback} from 'react';import{createRoot}from'react-dom/client';
-import{captureConfirmedBaseline,baselineCanDriveDelta}from'./src/lib/courseConfirmedBaseline';
+import{captureConfirmedBaseline,baselineCanDriveDelta,stampKey}from'./src/lib/courseConfirmedBaseline';
 import{courseContentSnapshot,courseDeltaProbeEnabled}from'./src/lib/courseContentDelta';
 import{createAuthDataChangeGuard}from'./src/lib/authDataChange';
+import{openCourseRecovery,courseDraftIntent,applyCourseDraftIntent,isAmbiguousLegacyRecovery}from'./src/lib/courseDraftRecovery';
+import{ordinaryContentPlan}from'./src/lib/courseOrdinaryDelta';
 let metadataResolve,heavyResolve,metadataCalls=0,heavyCalls=0,authHandler,calls=[];
 const getOwnerId=async()=>window.__fixture.owner;
 const getSessionUser=async()=>({id:window.__fixture.owner});
 const supabase={auth:{onAuthStateChange(cb){authHandler=cb;queueMicrotask(()=>cb('INITIAL_SESSION',{user:{id:window.__fixture.owner,role:'authenticated',app_metadata:{}}}));return{data:{subscription:{unsubscribe(){}}}}}},from(){return{select(){return this},eq(){return this},single(){heavyCalls++;return new Promise(r=>heavyResolve=r)}}}};
 const loadCourseEditorMetadata=()=>{metadataCalls++;return new Promise(r=>metadataResolve=r)};
-const readDraft=()=>window.__fixture.restored?{...window.__fixture.base,metadataPending:false,heavyPending:false,title:'LOCAL'}:null,uid=()=>'',t=x=>x;
-const paragraphsToTheory=()=>({theory:'',images:[]}),authoredLesson=()=>null,readTranscript=x=>x,parseLessonFiles=x=>x;
+const readDraft=()=>window.__fixture.draft,uid=()=>'',t=x=>x;
+const paragraphsToTheory=()=>({theory:'',images:[]}),authoredLesson=()=>null,readTranscript=x=>x;
+${fileParser}
 ${heavy}
 function App(){const editingCourseJson=JSON.stringify(window.__fixture.base);
 ${init}
@@ -38,19 +43,57 @@ const publicationPending=false,unsaved=useRef(false),setCourseEdited=()=>{};
 function runAutosave(c){calls.push(structuredClone(c));return Promise.resolve(true)}
 ${autosave}
 window.api={get(){return{course,editRevision,baseline:confirmedContent.current,scope:readScope.current,calls,metadataCalls,heavyCalls}},edit(title){setCourse(c=>({...c,title}))},
+ wire(){const baseline=confirmedContent.current;return ordinaryContentPlan(baseline.serialized,courseContentSnapshot(course,baseline.lessons),baseline.modules)?.wire},
  metadata(){metadataResolve(window.__fixture.envelope)},heavy(mixed=false){const f=window.__fixture;heavyResolve({data:{id:f.witness.courseId,created_by:f.owner,updated_at:mixed?'2026-11-22T01:00:02Z':f.witness.courseUpdatedAt,course_modules:f.witness.modules,lessons:f.rows},error:null})},signout(){authHandler('SIGNED_OUT',null)}};
 return null;}createRoot(document.getElementById('root')).render(<App/>);`
 const out=await build({stdin:{contents:code,resolveDir:repo,loader:'tsx'},bundle:true,format:'iife',write:false,define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'})
 const browser=await chromium.launch({headless:true,channel:process.env.PLAYWRIGHT_CHANNEL||'chrome'})
 const errors=[]
 const server=createServer((req,res)=>{res.setHeader('Content-Type','text/html');res.end('<div id="root"></div>')});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${server.address().port}/?qa_course_save=20261122&qa_course_delta=20261122`
-async function fixture(restored=false){const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(url);await page.evaluate(f=>{window.__fixture=f},{owner,base,rows,witness,restored,envelope:{metadata,witness,numberStart:{included:true,readCourseUpdatedAt:stamp},rawCourse:{...metadata},rawLessons:rows}});await page.addScriptTag({content:out.outputFiles[0].text});await page.waitForFunction(()=>!!window.api);return page}
+async function fixture(options={}){const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(url);await page.evaluate(f=>{window.__fixture=f},{owner,base,rows,witness,draft:null,...options,envelope:{metadata,witness,numberStart:{included:true,readCourseUpdatedAt:stamp},rawCourse:{...metadata},rawLessons:rows}});await page.addScriptTag({content:out.outputFiles[0].text});await page.waitForFunction(()=>!!window.api);return page}
 const get=p=>p.evaluate(()=>window.api.get())
+async function finishHydration(page){
+ await page.waitForFunction(()=>window.api.get().metadataCalls===1,null,{timeout:5000});
+ await page.evaluate(()=>window.api.metadata());
+ await page.waitForFunction(()=>window.api.get().heavyCalls===1,null,{timeout:5000});
+ await page.evaluate(()=>window.api.heavy());
+ await page.waitForFunction(()=>!window.api.get().course.heavyPending,null,{timeout:5000});
+}
 try{
- let p=await fixture();await p.waitForFunction(()=>window.api.get().metadataCalls===1);await p.evaluate(()=>window.api.metadata());await p.waitForFunction(()=>window.api.get().heavyCalls===1);await p.evaluate(()=>window.api.heavy());await p.waitForFunction(()=>!window.api.get().course.heavyPending);await p.waitForTimeout(1100);let s=await get(p);assert.equal(s.editRevision,0);assert.equal(s.calls.length,0);assert.equal(s.baseline.serialized.course.title,'SERVER');assert.equal(s.baseline.lessons.length,80);await p.close();
+ let p=await fixture();await p.waitForFunction(()=>window.api.get().metadataCalls===1);await p.evaluate(()=>window.api.metadata());await p.waitForFunction(()=>window.api.get().heavyCalls===1);await p.evaluate(()=>window.api.heavy());await p.waitForFunction(()=>!window.api.get().course.heavyPending);await p.waitForTimeout(1100);let s=await get(p);assert.equal(s.editRevision,0);assert.equal(s.calls.length,0);assert.equal(s.baseline.serialized.course.title,'SERVER');assert.equal(s.baseline.lessons.length,80);const loaded=structuredClone(s.course);await p.close();
  p=await fixture();await p.waitForFunction(()=>window.api.get().metadataCalls===1);await p.evaluate(()=>window.api.metadata());await p.waitForFunction(()=>window.api.get().heavyCalls===1);await p.evaluate(()=>window.api.edit('TEACHER WHILE HEAVY'));await p.waitForTimeout(1000);assert.equal((await get(p)).calls.length,0);await p.evaluate(()=>window.api.heavy());await p.waitForFunction(()=>window.api.get().calls.length===1);s=await get(p);assert.equal(s.calls[0].title,'TEACHER WHILE HEAVY');assert.equal(s.calls[0].lessons.length,80);assert.equal(s.baseline.serialized.course.title,'SERVER');assert.equal(s.editRevision,1);await p.waitForTimeout(1100);assert.equal((await get(p)).calls.length,1);await p.close();
  p=await fixture();await p.waitForFunction(()=>window.api.get().metadataCalls===1);await p.evaluate(()=>window.api.edit('TEACHER WHILE METADATA'));await p.evaluate(()=>window.api.metadata());await p.waitForFunction(()=>window.api.get().heavyCalls===1);await p.evaluate(()=>window.api.heavy());await p.waitForFunction(()=>window.api.get().calls.length===1);s=await get(p);assert.equal(s.course.title,'TEACHER WHILE METADATA');assert.equal(s.baseline.serialized.course.title,'SERVER');await p.close();
  for(const mode of ['mixed','signout']){p=await fixture();await p.waitForFunction(()=>window.api.get().metadataCalls===1);await p.evaluate(()=>window.api.metadata());await p.waitForFunction(()=>window.api.get().heavyCalls===1);if(mode==='signout')await p.evaluate(()=>window.api.signout());await p.evaluate(m=>window.api.heavy(m==='mixed'),mode);await p.waitForFunction(()=>!window.api.get().course.heavyPending);assert.equal((await get(p)).baseline,null);await p.close()}
- p=await fixture(true);await p.waitForTimeout(1100);s=await get(p);assert.equal(s.baseline,null);assert.equal(s.metadataCalls,0);await p.close();assert.deepEqual(errors,[]);
- console.log('PASS actual hydration effects: passive load no save, edit during metadata/heavy retained, pristine80 baseline separate from teacher revision, exactly one queued save, mixed/auth/restored source rejected')
+
+ // Production ce-session may already contain a completely loaded, older
+ // projection. A clean refresh must fetch both halves without writing.
+ const staleSession={...loaded,title:'OLD SESSION',description:'OLD',serverStamp:'2026-11-21T00:00:00Z'};
+ p=await fixture({base:staleSession});
+ await finishHydration(p);
+ await p.waitForTimeout(1100);
+ s=await get(p);assert.equal(s.course.title,'SERVER');assert.equal(s.course.description,'SERVER DESCRIPTION');
+ assert.equal(s.course.serverStamp,stamp);assert.equal(s.calls.length,0);await p.close();
+
+ // A legacy draft has only the editor projection. Hidden properties exist
+ // exclusively in the network row. Recover the projection, compare it against
+ // the separately certified server snapshot, and inspect the actual wire plan.
+ for(const edit of ['course','lesson']){
+   const draft=structuredClone(loaded);
+   if(edit==='course')draft.description='RECOVERED COURSE';
+   else draft.lessons[0].description='RECOVERED LESSON';
+   p=await fixture({base:staleSession,draft});
+   await finishHydration(p);await p.waitForFunction(()=>window.api.get().calls.length===1);
+   s=await get(p);assert.equal(s.baseline.lessons.length,80);
+   assert.equal(s.baseline.serialized.rawLessons['qa-0'].materials.qaHiddenRoot.protected,true);
+   assert.equal(s.baseline.serialized.rawLessons['qa-0'].materials.workbook.qaHidden,'nested');
+   assert.equal(s.course.lessons[0].files.workbook.qaHidden,undefined);
+   assert.deepEqual(s.course.lessons[0].timecodes,lessons[0].timecodes);
+   const wire=await p.evaluate(()=>window.api.wire());
+   assert.deepEqual(wire.p_course_patch,edit==='course'?{description:'RECOVERED COURSE'}:{});
+   assert.deepEqual(wire.p_lesson_patches,edit==='course'?[]:[{id:rows[0].id,short_id:'qa-0',set:{description:'RECOVERED LESSON'}}]);
+   await p.close();
+ }
+ assert.deepEqual(errors,[]);
+ console.log('PASS actual F5/hydration effects: clean fully loaded session refreshes without saving; course and lesson drafts use independent raw80 baseline; 0/1 lesson patches, hidden materials and timecodes preserved')
+
 }finally{await browser.close();await new Promise(r=>server.close(r))}

@@ -9,7 +9,7 @@ const { build } = require('esbuild')
 const { chromium } = require('playwright')
 const source = readFileSync(resolve(repo,'src/pages/teacher/TeacherCourseEditorPage.tsx'),'utf8')
 const part=(a,b)=>{const start=source.indexOf(a),end=source.indexOf(b,start);assert.ok(start>=0&&end>start,`${a} ... ${b}`);return source.slice(start,end)}
-const init=part('  const [{ course, editRevision, recoveredDraft }','  const metadataRead =')
+const init=part('  const [{ course, editRevision, recoveredDraft','  const metadataRead =')
 const draft=part('  const draftNs =','  // ── Сверка с сидом')
 const autosave=part('  const chapterProjection =','  // «Сохранено!»')
 const runAutosave=part('  function runAutosave(c:','  // Сбой записи:')
@@ -23,6 +23,7 @@ const statusSource=readFileSync(resolve(repo,'src/components/SaveStatusLine.tsx'
 const statusView=statusSource.slice(statusSource.indexOf('  const displayInput ='),statusSource.indexOf('\n\n  // Строка меняется'))
 const statusTimer=statusSource.slice(statusSource.indexOf('  const [, setTick]'),statusSource.indexOf('\n  let content ='))
 const code=`import React,{useState,useEffect,useRef,useCallback,useSyncExternalStore} from 'react';import {createRoot} from 'react-dom/client';
+import {openCourseRecovery,courseDraftIntent} from './src/lib/courseDraftRecovery';
 import {createLatestSave} from './src/lib/latestSaveQueue';
 import {courseSaveProvenance} from './src/lib/courseSaveProvenance';
 import {saveStatusView,nextStatusChangeIn} from './src/lib/sync/saveStatus';
@@ -36,6 +37,9 @@ const courseSaveReason=()=> 'request failed';
 function App(){
  const editingCourseJson=JSON.stringify(window.__initial.base);
  ${init}
+ // This fixture isolates queue/ACK and status after both reads are ready.
+ // hydration-effects.mjs exercises the two actual editor reads themselves.
+ useEffect(()=>{if(course.metadataPending||course.heavyPending)reconcileCourse(c=>({...c,metadataPending:false,heavyPending:false}))},[]);
  const [autosaving,setAutosaving]=useState(0),[publishErr,setPublishErr]=useState(null),[lastSavedAt,setLastSavedAt]=useState(null),[saveFailures,setSaveFailures]=useState(0),[conflict,setConflict]=useState(null);
  const baselineStamp=useRef(course.serverStamp??null),saveIssue=useRef(null);
  const publicationPending=false,saving=autosaving>0;const setCourseEdited=()=>{};

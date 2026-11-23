@@ -35,7 +35,7 @@ export type ConfirmedBaseline<Serialized> = Readonly<{
 
 // Do not use Date.parse/Date.toISOString: they discard Postgres microseconds.
 // PostgREST UTC spelling variants are allowed; unexpected zones fail closed.
-function stampKey(stamp: string | null | undefined): string | null {
+export function stampKey(stamp: string | null | undefined): string | null {
   const m = stamp?.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?(?:Z|\+00:00)$/)
   return m ? `${m[1]}.${(m[2] ?? '').padEnd(6, '0')}Z` : null
 }

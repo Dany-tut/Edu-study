@@ -29,6 +29,7 @@ const { outputFiles } = await build({
       return goToSeedCourseEditor(env.seed)
     }
     import { parseLessonFiles } from './src/lib/lessonFiles'
+    export { parseLessonFiles }
     import { supabase } from './src/lib/supabase'
     export function runPublish(env) {
       const {${dependencies.join(',')}, setTimeout, window} = env
@@ -62,6 +63,11 @@ globalThis.fixtureDB = { auth: { onAuthStateChange() {} }, from(table) {
   }
 } }
 const src = await import('data:text/javascript;base64,' + Buffer.from(outputFiles[0].contents).toString('base64'))
+const legacyLink = { path: 'https://example.org/lesson.pdf', url: 'https://example.org/lesson.pdf', name: 'Тетрадь' }
+const rawFiles = { workbook: legacyLink, materials: [{ ...legacyLink, id: 'existing-id' }] }
+const loadedFiles = src.parseLessonFiles(rawFiles)
+assert.deepEqual(loadedFiles, src.parseLessonFiles(structuredClone(rawFiles)), 'rehydration must not create new IDs for existing links')
+assert.equal(loadedFiles.materials[0].id, 'existing-id')
 const store = new Map()
 globalThis.sessionStorage = { setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) }
 const requests = []
