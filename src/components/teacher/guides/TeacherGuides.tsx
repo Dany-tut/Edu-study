@@ -135,7 +135,7 @@ function GuideSheet({ id, onClose }: {id: GuideId; onClose: () => void}) {
   const move = (n: number) => {setChoice(0); setIndex(n)}
   return <div className="teacher-guide-sheet">
     <div className="teacher-guide-row"><span>{sections[id][0]} · {index + 1} из {steps.length}</span>
-      {!history && <button data-hover="layer" onClick={() => setPlaying(p => !p)}><OpticalText as="iskra-button-label">{playing ? 'Остановить' : 'Смотреть GIF'}</OpticalText></button>}
+      {!history && <button data-hover="layer" onClick={() => setPlaying(p => !p)}><OpticalText as="iskra-button-label">{playing ? 'Остановить' : 'Смотреть'}</OpticalText></button>}
       <Close onClose={onClose}/></div>
     <h2 id="guide-heading">{title}</h2>
     <div className="teacher-guide-media">{!history && playing
