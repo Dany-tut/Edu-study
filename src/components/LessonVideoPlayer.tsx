@@ -78,6 +78,34 @@ const snapRangeToStop = (input: HTMLInputElement, value: number, stop: number, e
   const distancePx = Math.abs(value - stop) / (max - min) * width
   return distancePx <= 7 ? stop : value
 }
+/** Пальцем штатный range на iOS берётся только за бегунок, а он у нас нулевой
+ *  ширины (видна одна заливка) — ползунок не двигался вовсе. Для касания и пера
+ *  ведём значение сами, как ползунки пункта управления iOS: относительно, от
+ *  места касания — касание без движения значение не меняет, палец двигает его
+ *  на столько, на сколько проехал по видимой полосе. Мышь остаётся на штатном. */
+const touchRange = (apply: (value: number, input: HTMLInputElement) => void) => {
+  let drag: { id: number; x: number; from: number; width: number; span: number; input: HTMLInputElement } | null = null
+  return {
+    onPointerDown(e: React.PointerEvent<HTMLInputElement>) {
+      if (e.pointerType === 'mouse') return
+      const input = e.currentTarget
+      const track = input.parentElement?.querySelector('.lesson-player-volume-level')?.getBoundingClientRect()
+      const width = track?.width || input.getBoundingClientRect().width
+      drag = { id: e.pointerId, x: e.clientX, from: Number(input.value), width, span: Number(input.max) - Number(input.min), input }
+      input.setPointerCapture?.(e.pointerId)
+      e.preventDefault()
+    },
+    onPointerMove(e: React.PointerEvent<HTMLInputElement>) {
+      if (!drag || e.pointerId !== drag.id || drag.width <= 0) return
+      const { input } = drag
+      const v = Math.min(Number(input.max), Math.max(Number(input.min), drag.from + (e.clientX - drag.x) / drag.width * drag.span))
+      apply(v, input)
+    },
+    end(e: React.PointerEvent<HTMLInputElement>) {
+      if (drag && e.pointerId === drag.id) drag = null
+    },
+  }
+}
 const fmtRate = (r: number) => `${Math.round(r * 100) / 100}×`
 /** Через столько без движения мыши панель управления уезжает. */
 const IDLE_MS = 2600
@@ -1193,6 +1221,23 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
 
   // Пока ускорение играет движком (а с защёлкой оно живёт и без пальца), внизу
   // должна стоять реальная скорость, а не та, что выбрана в меню.
+  const setVolumeFromSlider = (input: HTMLInputElement, raw: number, snap: boolean) => {
+    const v = snapRangeToStop(input, raw, 1, snap)
+    setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
+  }
+  const setRateFromSlider = (input: HTMLInputElement, raw: number, snap: boolean) => {
+    if (lockedRef.current) endBoost()
+    const p = snapRangeToStop(input, raw, posOfRate(rates, 1), snap)
+    setRateKnob(p)
+    const r = rateAtPos(rates, p)
+    if (r !== rateRef.current) applyRate(r, false)
+  }
+  // Пальцем: тот же путь, что и у штатного ползунка, с лёгким магнитом к 100% и 1×.
+  const sliderApply = useRef({ volume: setVolumeFromSlider, rate: setRateFromSlider })
+  sliderApply.current = { volume: setVolumeFromSlider, rate: setRateFromSlider }
+  const volumeTouch = useMemo(() => touchRange((v, input) => sliderApply.current.volume(input, v, true)), [])
+  const rateTouch = useMemo(() => touchRange((v, input) => sliderApply.current.rate(input, v, true)), [])
+
   const rateIndex = rateKnob ?? posOfRate(rates, rate)
   const volumeFill = (muted ? 0 : volume) / maxVolume
   const rateFill = rateIndex / (rates.length - 1)
@@ -1600,14 +1645,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                       <input
                         type="range" min={0} max={maxVolume} step="any"
                         value={muted ? 0 : volume}
-                        onPointerDown={e => { mouseSliderDrag.current = !touch && e.pointerType === 'mouse' }}
-                        onPointerUp={() => { mouseSliderDrag.current = false }}
-                        onPointerCancel={() => { mouseSliderDrag.current = false }}
+                        onPointerDown={e => { mouseSliderDrag.current = !touch && e.pointerType === 'mouse'; volumeTouch.onPointerDown(e) }}
+                        onPointerMove={volumeTouch.onPointerMove}
+                        onPointerUp={e => { mouseSliderDrag.current = false; volumeTouch.end(e) }}
+                        onPointerCancel={e => { mouseSliderDrag.current = false; volumeTouch.end(e) }}
                         onBlur={() => { mouseSliderDrag.current = false }}
-                        onChange={e => {
-                          const v = snapRangeToStop(e.currentTarget, Number(e.currentTarget.value), 1, mouseSliderDrag.current)
-                          setVolume(v); setMuted(v === 0); applyVolume(v, v === 0)
-                        }}
+                        onChange={e => setVolumeFromSlider(e.currentTarget, Number(e.currentTarget.value), mouseSliderDrag.current)}
                         aria-label={t('Уровень громкости')}
                         aria-valuetext={`${Math.round((muted ? 0 : volume) * 100)}%`}
                         className="video-volume lesson-player-volume-slider"
@@ -1674,16 +1717,11 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         </div>
                         <input type="range" min={0} max={rates.length - 1} step="any"
                           value={rateIndex}
-                          onPointerDown={e => { mouseSliderDrag.current = !touch && e.pointerType === 'mouse' }}
-                          onPointerUp={() => { mouseSliderDrag.current = false; setRateKnob(null) }}
-                          onPointerCancel={() => { mouseSliderDrag.current = false; setRateKnob(null) }}
-                          onChange={e => {
-                            if (lockedRef.current) endBoost()
-                            const p = snapRangeToStop(e.currentTarget, Number(e.currentTarget.value), posOfRate(rates, 1), mouseSliderDrag.current)
-                            setRateKnob(p)
-                            const r = rateAtPos(rates, p)
-                            if (r !== rateRef.current) applyRate(r, false)
-                          }}
+                          onPointerDown={e => { mouseSliderDrag.current = !touch && e.pointerType === 'mouse'; rateTouch.onPointerDown(e) }}
+                          onPointerMove={rateTouch.onPointerMove}
+                          onPointerUp={e => { mouseSliderDrag.current = false; setRateKnob(null); rateTouch.end(e) }}
+                          onPointerCancel={e => { mouseSliderDrag.current = false; setRateKnob(null); rateTouch.end(e) }}
+                          onChange={e => setRateFromSlider(e.currentTarget, Number(e.currentTarget.value), mouseSliderDrag.current)}
                           onBlur={() => { mouseSliderDrag.current = false; setRateKnob(null) }}
                           aria-label={t('Скорость воспроизведения')}
                           aria-valuetext={fmtRate(rate)}
