@@ -6278,8 +6278,16 @@ export default function TeacherCourseEditorPage() {
   useEffect(() => {
     if (!course.dbCourseId) return
     const changed = createAuthDataChangeGuard()
+    let rights = ''
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      const user = session?.user
+      const nextRights = user ? JSON.stringify([user.id, user.role, user.app_metadata]) : ''
+      const sameRights = nextRights === rights
+      rights = nextRights
       if (!changed(event, session)) return
+      // Profile metadata (e.g. the auto-saved timezone) does not change what this
+      // editor may read; dropping the baseline here forced the legacy save path.
+      if (event === 'USER_UPDATED' && sameRights && user?.id === readScope.current.ownerId) return
       const ownerId = session?.user.id ?? ''
       if (event === 'INITIAL_SESSION' && (!readScope.current.ownerId || readScope.current.ownerId === ownerId)) {
         readScope.current = { ...readScope.current, ownerId }
@@ -7814,16 +7822,20 @@ export default function TeacherCourseEditorPage() {
       }
     }
     // 4. Drop lessons removed in the editor (schedule_lessons.lesson_id → SET NULL).
+    // Only rows seen by the version preflight, each unchanged since that read:
+    // a lesson created or edited elsewhere during this save must survive it.
     const keepShortIds = lessonRows.map(r => r.short_id)
-    let delQuery = supabase.from('lessons').delete().eq('course_id', courseDbId)
-    if (keepShortIds.length > 0) delQuery = delQuery.not('short_id', 'in', `(${keepShortIds.join(',')})`)
-    // Ошибку удаления нельзя глотать: иначе «Сохранено», а удалённый урок
-    // остаётся у учеников.
-    const { error: deleteError } = await delQuery
-    if (deleteError) {
-      console.error('[syncAccessToSupabase] lessons delete failed', deleteError)
-      saveIssue.current = courseSaveReason('lessonsDelete', deleteError, shortId)
-      return await writeFailed()
+    const keep = new Set(keepShortIds)
+    for (const stale of storedLessons.filter(row => !keep.has(row.short_id))) {
+      // Ошибку удаления нельзя глотать: иначе «Сохранено», а удалённый урок
+      // остаётся у учеников.
+      const { error: deleteError } = await supabase.from('lessons').delete()
+        .eq('course_id', courseDbId).eq('short_id', stale.short_id).eq('updated_at', stale.updated_at)
+      if (deleteError) {
+        console.error('[syncAccessToSupabase] lessons delete failed', deleteError)
+        saveIssue.current = courseSaveReason('lessonsDelete', deleteError, shortId)
+        return await writeFailed()
+      }
     }
 
     // Content saves carry no audience arrays. Apply only explicit UI actions,
