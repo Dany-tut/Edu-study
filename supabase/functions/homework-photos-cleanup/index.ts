@@ -28,12 +28,21 @@ function json(body: unknown, status = 200) {
   })
 }
 
+// Constant-time secret check: the length leaks, the content does not.
+function sameSecret(a: string | null, b: string): boolean {
+  if (a === null) return false
+  const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b)
+  let diff = x.length ^ y.length
+  for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0)
+  return diff === 0
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'method' }, 405)
 
   const cronSecret = Deno.env.get('HW_PHOTOS_CLEANUP_SECRET')
   const secret = req.headers.get('x-cleanup-secret')
-  if (!cronSecret || secret !== cronSecret) return json({ error: 'forbidden' }, 403)
+  if (!cronSecret || !sameSecret(secret, cronSecret)) return json({ error: 'forbidden' }, 403)
 
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,

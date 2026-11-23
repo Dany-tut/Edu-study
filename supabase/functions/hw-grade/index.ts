@@ -48,10 +48,19 @@ async function flagsOn(): Promise<boolean> {
   return FLAGS.every(k => data?.some(f => f.key === k && f.enabled))
 }
 
+// Constant-time secret check: the length leaks, the content does not.
+function sameSecret(a: string | null, b: string): boolean {
+  if (a === null) return false
+  const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b)
+  let diff = x.length ^ y.length
+  for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0)
+  return diff === 0
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
   const secret = Deno.env.get('HW_GRADE_SECRET')
-  if (!secret || req.headers.get('x-hw-grade-secret') !== secret) return json({ error: 'forbidden' }, 403)
+  if (!secret || !sameSecret(req.headers.get('x-hw-grade-secret'), secret)) return json({ error: 'forbidden' }, 403)
 
   const body = await req.json().catch(() => ({})) as Record<string, unknown>
   const id = typeof body.id === 'string' && /^[0-9a-f-]{36}$/i.test(body.id) ? body.id : ''

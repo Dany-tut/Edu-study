@@ -4,8 +4,18 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const esc = (s: string) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const clip = (s: unknown, n: number) => String(s ?? "").slice(0, n).trim();
+// Telegram spam guard per warm instance; the lead itself is already stored by the client.
+const recent = new Map<string, number[]>();
+const limited = (ip: string) => {
+  const now = Date.now(), hits = (recent.get(ip) ?? []).filter(t => now - t < 600_000);
+  hits.push(now); recent.set(ip, hits);
+  if (recent.size > 5000) recent.clear();
+  return hits.length > 5;
+};
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
+  if (ip && limited(ip)) return new Response(JSON.stringify({ ok:false, reason:"rate_limited" }), { status:429, headers:{...CORS,"Content-Type":"application/json"} });
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN"); const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
   if (!token || !chatId) return new Response(JSON.stringify({ ok:false, reason:"not_configured" }), { status:200, headers:{...CORS,"Content-Type":"application/json"} });
   let body: Record<string, unknown> = {}; try { body = await req.json(); } catch {}

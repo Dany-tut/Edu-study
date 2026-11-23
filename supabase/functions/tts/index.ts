@@ -71,6 +71,7 @@ const KIE_TIMEOUT = 40000
 const MAX_TEXT = 300
 
 const DAILY_CHARS = Number(Deno.env.get('TTS_DAILY_CHARS') ?? 100000)
+const IP_DAILY_CHARS = Number(Deno.env.get('TTS_IP_DAILY_CHARS') ?? 5000)
 
 async function sha256(s: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))
@@ -235,7 +236,18 @@ async function handle(req: Request): Promise<Response> {
   }
 
   // Платный провайдер — если есть ключ и шлюз недавно не отказывал.
-  if (googleKey || (kieKey && Date.now() > kieDownUntil)) {
+  // One caller must not burn the shared daily budget: past its own share it
+  // gets the free voice. Only a salted hash of the address is stored.
+  const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim()
+  let withinShare = true
+  if (ip) {
+    const { data: mine, error: ipErr } = await admin.rpc('tts_ip_spend_add', {
+      p_ip: await sha256(`${serviceKey.slice(-16)}|${ip}`), n: text.length,
+    })
+    if (ipErr) console.error('tts счёт по адресу:', ipErr.message)
+    else withinShare = Number(mine) <= IP_DAILY_CHARS
+  }
+  if (withinShare && (googleKey || (kieKey && Date.now() > kieDownUntil))) {
     const { data: spent, error: spendErr } = await admin.rpc('tts_spend_add', { n: text.length })
     if (spendErr) throw new Error(`счёт знаков: ${spendErr.message}`)
     if (Number(spent) <= DAILY_CHARS) {

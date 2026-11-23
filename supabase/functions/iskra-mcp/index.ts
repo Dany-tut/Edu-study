@@ -275,7 +275,7 @@ Deno.serve(
             .eq('id', course_id).eq('created_by', auth.user.id).maybeSingle()
           if (!course) return fail('Курс не найден в вашем кабинете Искры.')
           if (course.status !== 'draft') return fail('ИИ-приложение может прикреплять файлы только в черновые курсы. Сначала переведите курс в черновики в Искре.')
-          const { data: lesson } = await supabase.from('lessons').select('id, title, materials')
+          const { data: lesson } = await supabase.from('lessons').select('id, title, materials, updated_at')
             .eq('id', lesson_id).eq('course_id', course.id).maybeSingle()
           if (!lesson) return fail('Урок не найден в этом курсе.')
 
@@ -309,10 +309,11 @@ Deno.serve(
           list.push(entry)
           const { data: saved, error: saveError } = await supabase.from('lessons')
             .update({ materials: { ...raw, materials: list } })
-            .eq('id', lesson.id).eq('course_id', course.id).select('id').maybeSingle()
+            // Unchanged since the read: an editor save in between must not be overwritten.
+            .eq('id', lesson.id).eq('course_id', course.id).eq('updated_at', lesson.updated_at).select('id').maybeSingle()
           if (saveError || !saved) {
             if (!url) await supabase.storage.from(LESSON_BUCKET).remove([entry.path])
-            return fail('Не удалось прикрепить файл к уроку. Изменения отменены.')
+            return fail(saveError ? 'Не удалось прикрепить файл к уроку. Изменения отменены.' : 'Урок изменили, пока прикреплялся файл. Изменения отменены — повторите.')
           }
           return text({ lesson: lesson.title, file: { name: entry.name, size: entry.size, mime: entry.mime, external: !!entry.url }, note: 'Файл прикреплён к уроку как черновое изменение. Проверьте его в Искре перед публикацией.' })
         })
