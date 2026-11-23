@@ -1,5 +1,5 @@
 import OpticalText from '../OpticalText'
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { ArrowDownToLine, ArrowRight, AudioLines, ChevronDown, Loader2, Check, Eye, FileText, FolderOpen, Settings, ToggleRight, RotateCcw, Upload, X } from '../icons/appIcons'
 import ScrollFade from '../ScrollFade'
 import Checkbox from '../Checkbox'
@@ -11,6 +11,7 @@ import TeacherSelect from './TeacherSelect'
 import { taxonCase } from '../../lib/taxonCase'
 import { SlideRegionPicker, PRESET_BOXES, rememberRegion, rememberedRegion } from './SlideRegionPicker'
 import { hasChapterVariant, prepareSlideChapters, sentenceTitle, type ChapterVariants, type ChapterControls, type ChapterMode } from '../../lib/chapterVariants'
+import { sameChapterProjection, transcriptionChapterState, type ChapterDraft } from '../../lib/transcriptionChapterDraft'
 import type { LessonTimecode } from '../../data/lessonContent'
 import { MODULE_DOWNLOAD_URL, appNeedsManualUpdate, useModuleState, readModule, updateModule } from '../../lib/transcriptionModuleUpdate'
 import { TranscriptionEta } from '../../lib/transcriptionEta'
@@ -436,7 +437,9 @@ function TranscriptionActionState(props: ActionProps) {
   const alive = useRef(true)
   useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
   const [requestedMode, setRequestedMode] = useState<TranscriptionMode>('text')
-  const variantsKey = storageKey + '.chapter-variants'
+  const signature = props.file ? fileSignature(props.file) : undefined
+  const oldVariantsKey = storageKey + '.chapter-variants'
+  const variantsKey = storageKey + '.' + JSON.stringify([props.source.trim(), signature ?? null]) + '.chapter-variants'
   const [correctionNotice, setCorrectionNotice] = useState('')
   async function syncCorrections() {
     try { const pending = pendingCorrections(props.owner).length; await flushCorrections(props.owner); setCorrectionNotice(pending ? 'Исправления сохранены' : '') }
@@ -458,30 +461,37 @@ function TranscriptionActionState(props: ActionProps) {
     } catch { setCorrectionNotice('Не удалось запомнить исправление в браузере. Сохраните изменения в уроке.') }
   }
 
-  const [variants, setVariants] = useState<ChapterVariants>(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(variantsKey) || 'null')
-      if (saved?.source === props.source.trim() && Array.isArray(saved.text) && saved.revision >= (props.chapterVariants?.revision ?? 0) && (!props.file || saved.fileSignature === fileSignature(props.file))) return saved
-    } catch { /* use server or the old draft */ }
-    if (props.chapterVariants?.source === props.source.trim()) return props.chapterVariants
-    let slides: LessonTimecode[] | undefined
-    let text = props.existing?.timecodes ?? props.existingChapters ?? []
-    try {
-      const textDraft = JSON.parse(localStorage.getItem(storageKey + '.draft') || 'null')
-      if (textDraft?.transcript?.source === props.source.trim() && Array.isArray(textDraft.timecodes)) text = textDraft.timecodes
-      const old = JSON.parse(localStorage.getItem(storageKey + '.slides-draft') || 'null')
-      if (old?.source === props.source.trim() && Array.isArray(old.chapters)) slides = prepareSlideChapters(old.chapters)
-    } catch { /* no old draft */ }
-    return {source:props.source.trim(),active:slides ? 'slides' : 'text',revision:0,text,slides}
+  const [restored] = useState(() => {
+    const read = (key: string) => {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') } catch { return null }
+    }
+    return { saved: (read(variantsKey) ?? read(oldVariantsKey)) as ChapterDraft | null, oldTranscript: read(storageKey + '.draft'), oldSlides: read(storageKey + '.slides-draft') }
   })
-  const [chapterDirty, setChapterDirty] = useState(() => !!localStorage.getItem(variantsKey) || !!localStorage.getItem(storageKey + '.slides-draft'))
+  const [edited, setEdited] = useState<ChapterDraft | null>(restored.saved)
+  const [ack, setAck] = useState<{ value: ChapterVariants; previous: LessonTimecode[]; revision: number } | null>(null)
+  const [previewMode, setPreviewMode] = useState<ChapterMode | null>(null)
+  const editRevision = useRef(0)
+  const { variants, dirty: chapterDirty, cleared } = useMemo(() => {
+    // Pristine state follows late course hydration. An ACK also remains visible
+    // while its parent is propagating the committed chapter revision.
+    const remote = props.chapterVariants?.source === props.source.trim() ? props.chapterVariants : undefined
+    const acknowledged = ack && ack.revision === (remote?.revision ?? 0) &&
+      sameChapterProjection(ack.previous, props.existingChapters ?? props.existing?.timecodes ?? []) ? ack.value : undefined
+    return transcriptionChapterState({
+      source: props.source.trim(), signature, remote: acknowledged ?? remote,
+      published: acknowledged ? acknowledged[acknowledged.active] : props.existingChapters,
+      transcriptCodes: props.existing?.timecodes, saved: edited,
+      oldTranscript: ack ? null : restored.oldTranscript, oldSlides: ack ? null : restored.oldSlides,
+    })
+  }, [props.source, signature, props.chapterVariants, props.existingChapters, props.existing?.timecodes, edited, ack, restored])
   const [view, setView] = useState<'entry' | 'setup' | 'review' | 'preview'>(() => {
     const job = readPending(props.owner, jobKey, props.source, props.file)
     return connected && job && !job.dismissed && !(job.failure && (props.existing || props.existingChapters?.length)) && (job.mode === 'slides' ? !localStorage.getItem(storageKey + '.slides-draft') : !localStorage.getItem(storageKey + '.draft')) ? 'review' : 'entry'
   })
-  function changeVariants(value: ChapterVariants) {
-    const next = {...value, fileSignature:props.file ? fileSignature(props.file) : undefined, revision:Math.max(Date.now(), variants.revision + 1)}
-    setVariants(next); setChapterDirty(true); setFailed('')
+  function changeVariants(value: ChapterVariants, clearedFrom?: ChapterDraft['clearedFrom']) {
+    const next: ChapterDraft = { ...value, fileSignature: signature, clearedFrom, revision: Math.max(Date.now(), variants.revision + 1) }
+    editRevision.current++
+    setEdited(next); setPreviewMode(null); setFailed('')
     try { localStorage.setItem(variantsKey, JSON.stringify(next)); setLocalSaveFailed(false) }
     catch { setLocalSaveFailed(true) }
   }
@@ -489,7 +499,7 @@ function TranscriptionActionState(props: ActionProps) {
   const [working, setWorking] = useState<LocalDraft | null>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(draftKey) || 'null')
-      return saved?.transcript?.source === props.source.trim() && (!props.file || saved.fileSignature === fileSignature(props.file)) && readTranscript(saved.transcript) && Array.isArray(saved.timecodes) ? { ...saved, transcript: readTranscript(saved.transcript) } : null
+      return saved?.transcript?.source === props.source.trim() && saved.fileSignature === signature && readTranscript(saved.transcript) && Array.isArray(saved.timecodes) ? { ...saved, transcript: readTranscript(saved.transcript) } : null
     } catch { return null }
   })
   const [localSaveFailed, setLocalSaveFailed] = useState(false)
@@ -497,23 +507,35 @@ function TranscriptionActionState(props: ActionProps) {
   const [failed, setFailed] = useState('')
   const draft = working ?? props.existing
   function change(value: LocalDraft) {
+    editRevision.current++
     setFailed(''); setWorking(value)
     try { localStorage.setItem(draftKey, JSON.stringify({...value, fileSignature: props.file ? fileSignature(props.file) : undefined})); setLocalSaveFailed(false) }
     catch { setLocalSaveFailed(true) }
   }
   const apply = async () => {
     if ((!working && !chapterDirty) || saving) return
+    const dispatched = editRevision.current
+    const storedAtDispatch = [variantsKey, oldVariantsKey, storageKey + '.slides-draft', storageKey, draftKey].map(key => {
+      const raw = localStorage.getItem(key)
+      try {
+        const item = raw && JSON.parse(raw)
+        const source = item?.source ?? item?.transcript?.source
+        return [key, source === props.source.trim() && item.fileSignature === signature ? raw : null] as const
+      } catch { return [key, null] as const }
+    })
     setSaving(true)
     try {
       const ok = working
         ? await props.onApply({...working, timecodes:variants[variants.active] ?? []}, variants)
         : await props.onApplyChapters?.(variants)
       if (!ok) throw new Error('Сохранение не подтверждено. Черновик сохранён — повторите попытку.')
-      localStorage.removeItem(variantsKey)
-      localStorage.removeItem(storageKey + '.slides-draft')
-      setChapterDirty(false)
-      localStorage.removeItem(storageKey)
-      localStorage.removeItem(draftKey)
+      if (!alive.current || editRevision.current !== dispatched) return
+      const remoteRevision = props.chapterVariants?.source === props.source.trim() ? props.chapterVariants.revision : 0
+      setAck({ value: variants, previous: props.existingChapters ?? props.existing?.timecodes ?? [], revision: remoteRevision })
+      setEdited(null)
+      for (const [key, value] of storedAtDispatch) {
+        if (value !== null && localStorage.getItem(key) === value) localStorage.removeItem(key)
+      }
       setWorking(null)
       setFailed('')
     } catch (error) { setFailed(error instanceof Error && error.message ? error.message : 'Сохранение не подтверждено. Черновик сохранён — повторите попытку.') }
@@ -560,14 +582,25 @@ function TranscriptionActionState(props: ActionProps) {
     setView(connected ? 'review' : 'setup')
   }
   const open = () => { void openMode('text') }
+  const mode = previewMode ?? variants.active
+  const chapterCodes = variants[mode] ?? []
   const chapters: ChapterControls = {
-    mode: variants.active, codes: variants[variants.active] ?? [], available: hasChapterVariant(variants[variants.active]),
-    select: (active: ChapterMode) => { if (active !== variants.active && !saving) changeVariants({...variants, active}) },
-    change: codes => changeVariants({...variants, [variants.active]:codes}),
-    corrected: (before, after) => remember(variants.active === 'slides' ? 'slide-title' : 'text-title', before, after),
-    generate: () => { void openMode(variants.active) }, saving,
+    mode, codes: chapterCodes, available: hasChapterVariant(chapterCodes),
+    select: active => {
+      if (active === mode || saving) return
+      if (variants[active]?.length && active !== variants.active) changeVariants({ ...variants, active })
+      else setPreviewMode(active)
+    },
+    change: codes => {
+      const explicitClear = !codes.length && chapterCodes.length
+        ? { mode, published: props.existingChapters ?? props.existing?.timecodes ?? [], revision: props.chapterVariants?.source === props.source.trim() ? props.chapterVariants.revision : 0 }
+        : undefined
+      changeVariants({ ...variants, active: mode, [mode]: codes }, explicitClear)
+    },
+    corrected: (before, after) => remember(mode === 'slides' ? 'slide-title' : 'text-title', before, after),
+    generate: () => { void openMode(mode) }, saving,
   }
-  if (!draft && !variants.slides && !variants.text.length) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
+  if (!draft && !chapterDirty && !variants.slides && !variants.text.length) return <>{props.children(<button type="button" className="transcription-rail-action" onClick={open}>
     <AudioLines size={17} /><OpticalText as="iskra-button-label">Расшифровать видео</OpticalText>
   </button>)}</>
   const badChapter = chapters.codes.some((c,i,all) => !c.label.trim() || !/^\d+(?::[0-5]\d){1,2}$/.test(c.time) || (i > 0 && c.seconds <= all[i-1].seconds))
@@ -591,7 +624,7 @@ function TranscriptionActionState(props: ActionProps) {
         labelStyle={{fontSize: 13, color: 'var(--color-text-2)'}}>Показывать ученику</Checkbox>
     </div>}
     <div className="transcript-tools">
-      {working || chapterDirty ? <button className="transcription-rail-action" disabled={saving || badChapter || !!(working && badLine) || !chapters.available} onClick={apply}>
+      {working || chapterDirty ? <button className="transcription-rail-action" disabled={saving || badChapter || !!(working && badLine) || (!chapters.available && !cleared)} onClick={apply}>
         <Check size={15}/><OpticalText as="iskra-button-label">{saving ? 'Сохраняем…' : 'Сохранить'}</OpticalText></button> :
         <span className="transcript-saved" role="status"><Check size={15}/>Добавлено</span>}
       <button data-hover="layer" aria-label="Повторить обработку" title="Повторить обработку" disabled={saving} onClick={chapters.generate}><RotateCcw size={16}/></button>
