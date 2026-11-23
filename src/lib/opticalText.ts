@@ -1,5 +1,5 @@
 /** Text-only alignment. No control rewriting, value writes, control movement or input hooks. */
-type Entry = { element: HTMLElement; visible: boolean; ink?: { font: string; text: string; epoch: number; offset: number } }
+type Entry = { element: HTMLElement; visible: boolean }
 const entries = new Map<HTMLElement, Entry>()
 const pending = new Set<HTMLElement>()
 const cache = new Map<string, number>()
@@ -10,7 +10,6 @@ let intersection: IntersectionObserver | undefined
 let microtask = false
 let frame = 0
 let started = false
-let fontEpoch = 0
 
 /** A shared baseline for captions, rather than a different baseline for every word.
  * Center between capitals/digits and descender-bearing words using the actual font. */
@@ -57,14 +56,12 @@ function measure(element: HTMLElement): number {
   const multipleLines = element.dataset.opticalAlign === 'ink' &&
     (element.getClientRects().length > 1 || element.getBoundingClientRect().height > lineHeight * 1.5)
   const ink = element.dataset.opticalAlign === 'ink' && !multipleLines
-  const entry = entries.get(element)
-  if (ink) {
-    const memo = entry?.ink
-    if (memo?.font === `${font}\0${css.lineHeight}` && memo.text === text && memo.epoch === fontEpoch) return memo.offset
-  } else {
-    const cached = cache.get(font)
-    if (cached !== undefined) return cached
-  }
+  // Один сдвиг на шрифт, а не на слово: соседние вкладки и сегменты
+  // («Группы» / «Главная», «По учителям» / «Ученики») стоят на одной базовой
+  // линии. Центр по словам поднимал слова с «у/р» и опускал слова без них.
+  const key = ink ? `ink\0${font}\0${css.lineHeight}` : font
+  const cached = cache.get(key)
+  if (cached !== undefined) return cached
   let result = 0
   try {
     context ??= document.createElement('canvas').getContext('2d')
@@ -72,26 +69,20 @@ function measure(element: HTMLElement): number {
     context.font = font
     const metrics = context.measureText('HНgpру0123456789')
     const capitals = context.measureText('HН'), descenders = context.measureText('gpру')
-    // Baseline captions reserve half a descender; pill ink alignment reserves the full visible glyph bounds.
-    const visible = ink ? context.measureText(text) : null
+    const size = parseFloat(css.fontSize)
     result = opticalTextOffset(metrics.fontBoundingBoxAscent, metrics.fontBoundingBoxDescent,
-      visible?.actualBoundingBoxAscent ?? capitals.actualBoundingBoxAscent,
-      visible ? visible.actualBoundingBoxDescent * 2 : descenders.actualBoundingBoxDescent, parseFloat(css.fontSize))
-    if (ink && visible) {
+      capitals.actualBoundingBoxAscent, descenders.actualBoundingBoxDescent, size)
+    if (ink) {
+      // Таблетка: середина между центром заглавных и центром строчных
+      // (docs: «мерить обе середины — Н и х») ставится в центр строки.
       const baseline = lineBaseline(font, css.lineHeight)
-      const size = parseFloat(css.fontSize)
+      const lower = context.measureText('хнаox').actualBoundingBoxAscent
       if (baseline !== undefined) result = Math.max(-size * .15, Math.min(size * .15,
-        (visible.actualBoundingBoxAscent - visible.actualBoundingBoxDescent) / 2 - baseline))
+        (capitals.actualBoundingBoxAscent + lower) / 4 - baseline))
     }
   } catch { return 0 }
-  if (ink && entry) {
-    // Caption memo belongs to this mounted element; no user text is retained in
-    // the cross-screen font cache after unmount.
-    entry.ink = { font: `${font}\0${css.lineHeight}`, text, epoch: fontEpoch, offset: result }
-  } else {
-    if (cache.size >= 256) cache.delete(cache.keys().next().value!)
-    cache.set(font, result)
-  }
+  if (cache.size >= 256) cache.delete(cache.keys().next().value!)
+  cache.set(key, result)
   return result
 }
 
@@ -133,7 +124,7 @@ function start() {
   }, { rootMargin: '200px' })
   const refresh = () => { for (const entry of entries.values()) if (entry.visible) queue(entry.element) }
   window.addEventListener('resize', refresh, { passive: true })
-  document.fonts?.addEventListener('loadingdone', () => { ++fontEpoch; cache.clear(); baselines.clear(); refresh() })
+  document.fonts?.addEventListener('loadingdone', () => { cache.clear(); baselines.clear(); refresh() })
 }
 
 export function trackOpticalText(element: HTMLElement) {
