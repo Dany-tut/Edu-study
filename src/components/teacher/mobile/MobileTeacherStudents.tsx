@@ -512,7 +512,7 @@ export default function MobileTeacherStudents() {
                   <input aria-label={t('Имя ученика')} value={newName} onFocus={() => setNameFocused(true)} onBlur={() => setNameFocused(false)} onChange={e => setNewName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void createStudent() }} style={{ ...FLOAT_FIELD, paddingTop: 20, paddingBottom: 4 }} />
                 </FloatingField>
                 <StudentSubjectsField value={newSubjects} onChange={setNewSubjects} disabled={savingNew} />
-                <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13 }}>{t('Курсы и занятия назначаются отдельно.')}</p>
+                <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: 13, paddingInline: FIELD_LABEL_INSET }}>{t('Курсы и занятия назначаются отдельно.')}</p>
                 {createError && <Alert tone="danger" text={createError} />}
 
               </>}

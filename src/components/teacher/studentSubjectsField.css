@@ -1,5 +1,5 @@
-.student-subjects-label { display: flex; justify-content: space-between; gap: 8px; padding: 0 13px 6px; color: var(--color-text-2); font-size: 12px; font-weight: 600; }
-.student-subjects-label > :last-child { color: var(--color-muted); font-size: 11px; font-weight: 500; }
+.student-subjects-label { display: flex; justify-content: space-between; gap: 8px; padding-bottom: 6px; color: var(--color-text-2); font-size: 12px; font-weight: 600; }
+.student-subjects-label > :last-child { min-width: 14px; text-align: center; font-variant-numeric: tabular-nums; color: var(--color-muted); font-size: 11px; font-weight: 500; }
 .student-subjects-field { min-width: 0; }
 [data-platform="iphone"] .student-subjects-field button,
 [data-platform="ipad"] .student-subjects-field button { min-width: 44px; min-height: 44px; justify-content: center; }

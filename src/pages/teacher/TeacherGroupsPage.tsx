@@ -10,7 +10,8 @@ import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
 import FadeText from '../../components/FadeText'
-import { FIELD } from '../../lib/fieldStyle'
+import { FIELD, FIELD_LABEL_INSET } from '../../lib/fieldStyle'
+import { PLATFORM } from '../../lib/platform'
 import { ModalClose } from '../../components/Modal'
 import { createPortal } from 'react-dom'
 import Skeleton from '../../components/Skeleton'
@@ -444,7 +445,7 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{step === 'config' ? t('Настройка ученика') : step === 'link' ? t('Ученик добавлен') : t('Новый ученик')}</span>
-          <ModalClose onClose={onClose} />
+          <ModalClose onClose={onClose} style={step === 'form' ? { marginInlineEnd: 2 } : undefined} />
         </div>
 
         {step === 'config' && newStudentId ? (
@@ -483,53 +484,53 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
         <div ref={formScroll} onScroll={onFormScroll} className="no-scrollbar" style={{ minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', paddingBottom: 12, ...formMask }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={labelStyle}>
-            {t('Имя ученика')}
+            <span style={studentFormLabelInset}>{t('Имя ученика')}</span>
             <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder={t('Как зовут ученика?')}
               onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); void handleSave() } }}
-              style={inputStyle} />
+              style={studentFormInputStyle} />
           </label>
           <StudentSubjectsField value={subjects} onChange={changeSubjects} disabled={saving} />
-          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)' }}>{t('Курсы и занятия назначаются отдельно.')}</p>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)', ...studentFormLabelInset }}>{t('Курсы и занятия назначаются отдельно.')}</p>
           {groups.length > 0 && (
             <label style={labelStyle}>
-              {t('Группа (необязательно)')}
+              <span style={studentFormLabelInset}>{t('Группа (необязательно)')}</span>
               <TeacherSelect value={selectedGroup} placeholder={t('Пока без занятий')} onChange={changeGroup}
                 options={[{ value: '', label: t('Пока без занятий') }, ...groups.map(g => ({ value: g.id, label: g.name, icon: <SubjectMark subject={g.subject} size={16} /> }))]}
-                clearable={false} triggerStyle={selectTriggerStyle} />
+                clearable={false} triggerStyle={{ ...selectTriggerStyle, padding: '8px 12px', minHeight: studentFormFieldHeight }} />
             </label>
           )}
 
           <div style={{ border: '1px solid var(--color-border-soft)', borderRadius: 14, background: 'var(--color-bg-4)', overflow: 'hidden' }}>
             <button data-hover="layer" type="button" aria-expanded={showDetails} onClick={() => setShowDetails(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px', minHeight: studentFormFieldHeight, border: 'none', background: 'transparent', color: 'var(--color-text-2)', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
               <Phone size={15} strokeWidth={1.8} aria-hidden="true" />
-              <span style={{ flex: 1 }}>{t('Дополнительно')}</span>
-              <Plus size={16} strokeWidth={1.8} aria-hidden="true" style={{ transform: showDetails ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform 160ms ease' }} />
+              <OpticalText style={{ flex: 1 }}>{t('Дополнительно')}</OpticalText>
+              <Plus size={14} strokeWidth={2} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--color-text-3)', transform: showDetails ? 'rotate(45deg)' : 'rotate(0)', transition: 'transform 160ms ease' }} />
             </button>
-            {showDetails && <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 14px 14px' }}>
-              <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600 }}>{t('Контакты')}</div>
-          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={inputStyle} />
-          <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={inputStyle} />
-          <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={inputStyle} />
-          <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, paddingTop: 4 }}>{t('Цель и оплата')}</div>
-          <input
-            type="number"
-            value={desiredScore === 0 ? '' : desiredScore}
-            onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
-            onFocus={() => setDesiredScore(0)}
-            placeholder={t('Целевой балл')}
-            min={0}
-            max={100}
-            style={inputStyle}
-          />
-          <input
-            type="number"
-            value={paymentAmount === 0 ? '' : paymentAmount}
-            onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
-            placeholder={t('Стоимость занятия (₽)')}
-            min={0}
-            style={inputStyle}
-          />
+            {showDetails && <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 12px 12px' }}>
+              <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, ...studentFormLabelInset }}>{t('Контакты')}</div>
+              <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={studentFormInputStyle} />
+              <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={studentFormInputStyle} />
+              <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={studentFormInputStyle} />
+              <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, paddingTop: 4, ...studentFormLabelInset }}>{t('Цель и оплата')}</div>
+              <input
+                type="number"
+                value={desiredScore === 0 ? '' : desiredScore}
+                onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
+                onFocus={() => setDesiredScore(0)}
+                placeholder={t('Целевой балл')}
+                min={0}
+                max={100}
+                style={studentFormInputStyle}
+              />
+              <input
+                type="number"
+                value={paymentAmount === 0 ? '' : paymentAmount}
+                onChange={e => setPaymentAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+                placeholder={t('Стоимость занятия (₽)')}
+                min={0}
+                style={studentFormInputStyle}
+              />
             </div>}
           </div>
         </div>
@@ -554,6 +555,10 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
     </div>
   )
 }
+
+const studentFormFieldHeight = PLATFORM === 'pc' ? 40 : 48
+const studentFormInputStyle: React.CSSProperties = { ...FIELD, minHeight: studentFormFieldHeight }
+const studentFormLabelInset: React.CSSProperties = { paddingInline: FIELD_LABEL_INSET }
 
 const labelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: 6,
