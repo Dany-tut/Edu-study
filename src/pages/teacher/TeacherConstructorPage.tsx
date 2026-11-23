@@ -7,7 +7,8 @@ import { RefreshCw as LoopUiRefreshCw } from '../../components/icons/appIcons'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from '../../components/icons/appIcons'
-import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, type ReactNode } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, memo, forwardRef, useImperativeHandle, lazy, Suspense, type ReactNode, type ComponentType } from 'react'
+import { retryImport } from '../../lib/chunkError'
 import { FIELD } from '../../lib/fieldStyle'
 import Skeleton from '../../components/Skeleton'
 import { ContentCard, CardSkeleton, type CardActions } from '../../components/teacher/ContentCard'
@@ -53,7 +54,7 @@ import { getOwnerId, getSessionUser } from '../../lib/owner'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDraft, clearDrafts } from '../../lib/useDraft'
-import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
+import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistryIds'
 import { useDashboard } from '../../store/dashboardStore'
 import { beginCourseNavigation } from '../../lib/courseNavigationIntent'
 import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
@@ -70,11 +71,10 @@ import { cardChip, cardChipTone, btn } from '../../lib/pillStyles'
 import TestlyMark, { TestlyTile } from '../../components/TestlyMark'
 import { fetchTestlyTests, testlyEditUrl, testlyMeta, testlyNewUrl, useTestlyModule, type TestlyTest } from '../../lib/testlyModule'
 import { useTaskBank } from '../../store/taskBankStore'
-import { TrainerBankBrowser, BankFilterFields, emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/TrainerBank'
+import { emptyTrainerFilters, type TrainerFilters } from '../../components/teacher/trainerFilters'
 import GoogleFormImportModal from '../../components/teacher/GoogleFormImportModal'
 import { questionToBankTask, type ImportedQuestion } from '../../lib/googleFormsImport'
-import CurriculumManager from '../../components/teacher/CurriculumManager'
-import TrainerMaterials, { MaterialPage, type MaterialRef } from '../../components/teacher/TrainerMaterials'
+import type { MaterialRef } from '../../components/teacher/TrainerMaterials'
 import { useCourseLessons } from '../../lib/useCourseLessons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import { useTaskMeta, mergeOptions, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
@@ -86,7 +86,6 @@ import {
   CHEMISTRY_LINES, BIOLOGY_LINES,
   sectionsForSubject, topicsForSelection, linesForSelection,
 } from '../../data/taskBankData'
-import { AP_CHEM_COURSES, AP_CHEM_TRAINERS, AP_CHEM_WIDGETS, mergeById } from '../../data/apChemistry'
 import {
   loadScreeningConfig, fetchScreeningConfig, saveScreeningConfig,
   DEFAULT_SCREENING_CONFIG, activeDomains,
@@ -104,6 +103,46 @@ type NewBankTask = Omit<BankTask, 'id'>
 // иначе кнопки с другим кеглем и рамкой меняют высоту строки, и список под
 // ней прыгает в момент их появления.
 const PILL_H = 40
+
+// ─── Ленивая вкладка «База» ─────────────────────────────────────────────────
+// Витрина материалов, банк заданий, разметка и страница материала нужны только
+// на «Базе» — один общий чанк (constructorDecks) вместо ~80 KB в первом кадре.
+// Как только чанк доехал, части рисуются напрямую: вложенные (банк внутри
+// витрины) не моргают своей заглушкой, а уже смонтированная витрина не
+// перемонтируется — выбор пути фиксируется при монтировании.
+type DecksModule = typeof import('../../components/teacher/constructorDecks')
+let decksModule: DecksModule | null = null
+const loadDecks = () => retryImport(() => import('../../components/teacher/constructorDecks'))
+  .then(m => (decksModule = m))
+function decksPart<P extends object>(pick: (m: DecksModule) => ComponentType<P>) {
+  const Lazy = lazy(() => loadDecks().then(m => ({ default: pick(m) })))
+  return function DecksPart(props: P) {
+    const [ready] = useState(() => decksModule !== null)
+    const C = (ready ? pick(decksModule!) : Lazy) as ComponentType<P>
+    return <C {...props} />
+  }
+}
+const TrainerMaterials = decksPart(m => m.TrainerMaterials)
+const MaterialPage = decksPart(m => m.MaterialPage)
+const TrainerBankBrowser = decksPart(m => m.TrainerBankBrowser)
+const BankFilterFields = decksPart(m => m.BankFilterFields)
+const CurriculumManager = decksPart(m => m.CurriculumManager)
+
+/** Заглушка «Базы» на время загрузки чанка — та же раскладка, что у витрины в
+ *  состоянии загрузки (ряд фильтров + сетка карточек), чтобы ничего не прыгало. */
+function DecksFallback() {
+  return (
+    <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ height: PILL_H }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+          {Array.from({ length: 8 }, (_, i) => <CardSkeleton key={i} />)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const LETTERS = 'АБВГДЕЖЗИКЛМНОП'
 
 // Палитра типов ответа справа от конструктора задания.
@@ -9408,12 +9447,13 @@ export default function TeacherConstructorPage() {
             }}
           />
         ) : openMaterial ? (
-          <MaterialPage
-            key="material"
-            target={openMaterial}
-            onSwitch={setOpenMaterial}
-            onClose={() => setOpenMaterial(null)}
-          />
+          <Suspense key="material" fallback={<div style={{ flex: 1, minWidth: 0 }} />}>
+            <MaterialPage
+              target={openMaterial}
+              onSwitch={setOpenMaterial}
+              onClose={() => setOpenMaterial(null)}
+            />
+          </Suspense>
         ) : (
           <motion.div
             key="list"
@@ -9662,6 +9702,7 @@ export default function TeacherConstructorPage() {
                   «Задания ↔ Разметка» стоят под своей полкой: разметка — это
                   настройка заданий, тот же отбор, что раздел или линия. */}
               {activeTab === 'decks' && (
+                <Suspense fallback={<DecksFallback />}>
                 <TrainerMaterials
                   createNonce={deckNonce}
                   subjects={shelfSubjects} onSubjects={setShelfSubjects}
@@ -9726,6 +9767,7 @@ export default function TeacherConstructorPage() {
                     ),
                   }}
                 />
+                </Suspense>
               )}
               {activeTab === 'widget' && (
                 <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>

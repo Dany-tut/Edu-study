@@ -706,12 +706,7 @@ export const AP_CHEM_COURSES: Course[] = [
   },
 ]
 
-/** Maps a constructor course id to its Supabase course short_id, so enrollment
- *  works even for AP courses already cached in localStorage (without dbCourseId). */
-export const AP_DB_COURSE_BY_CONSTRUCTOR_ID: Record<string, string> = {
-  'ap-c-ru': 'apchem-ru',
-  'ap-c-en': 'apchem-en',
-}
+export { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from './apChemistryIds'
 
 export const AP_CHEM_TRAINERS: Trainer[] = [...RU_TRAINERS, ...EN_TRAINERS]
 export const AP_CHEM_WIDGETS: Widget[] = [...RU_WIDGETS, ...EN_WIDGETS]
