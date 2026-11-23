@@ -6735,7 +6735,6 @@ export const EN: Record<string, string> = {
   "кабинет не открылся": "cabinet did not open",
   "ключ": "passkey",
   "обновляется раз в минуту": "refreshes every minute",
-  "онлайн": "online",
   "пароль": "password",
   "сбоя входа": "sign-in failures",
   "соцсеть": "social",
