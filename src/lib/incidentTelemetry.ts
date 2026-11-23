@@ -1,3 +1,5 @@
+// Список совпадает с частичным индексом analytics_events_incident_created_idx
+// (supabase/migrations/20261124003000_analytics_incident_index.sql) — меняете список, обновите индекс.
 // Diagnostic context contains technical breadcrumbs, never form values or OAuth URLs.
 export const INCIDENT_EVENTS = new Set(['db_error', 'js_error', 'promise_rejection', 'react_crash', 'widget_crash',
   'native_crash', 'bootstrap_error', 'api_slow', 'api_stalled', 'ui_freeze', 'ui_loading_stalled', 'ui_blank', 'operation_failed', 'auth_failed', 'auth_stalled', 'resource_error',
