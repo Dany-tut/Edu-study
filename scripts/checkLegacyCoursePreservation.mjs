@@ -5,24 +5,12 @@ import { build } from 'esbuild'
 // Run without production credentials. ISKRA_PGLITE_MODULE can point to an
 // isolated install of @electric-sql/pglite when it isn't in node_modules.
 const { PGlite } = await import(process.env.ISKRA_PGLITE_MODULE ?? '@electric-sql/pglite')
-const editor = readFileSync('src/pages/teacher/TeacherCourseEditorPage.tsx', 'utf8')
-const cloneStart = editor.indexOf('  function buildHandoutClone(')
-const cloneEnd = editor.indexOf('  async function runHandout(', cloneStart)
-assert.ok(cloneStart > 0 && cloneEnd > cloneStart)
 const { outputFiles } = await build({
   stdin: {
     contents: `
       export { courseAtomicRows } from './src/lib/courseAtomicRows';
       export { planLegacyLessonWrites } from './src/lib/courseLegacyLessonPreservation';
-      export { openCourseInEditor } from './src/lib/teacherNav';
-      export function cloneCourse(course, opts) {
-        let sequence = 0;
-        const uid = () => 'clone-' + (++sequence);
-        const earliestCourseDate = () => null;
-        const shiftDot = date => date;
-        ${editor.slice(cloneStart, cloneEnd)}
-        return buildHandoutClone(opts);
-      }`,
+      export { openCourseInEditor } from './src/lib/teacherNav';`,
     resolveDir: process.cwd(), loader: 'ts',
   },
   bundle: true, platform: 'node', format: 'esm', write: false,
@@ -40,7 +28,7 @@ globalThis.testSupabase = { from: table => {
     data: { short_id: 'copy', lessons: [{ short_id: 'copy-33', title: 'Урок 34' }] },
   }) }) }) }
 } }
-const { courseAtomicRows, planLegacyLessonWrites, openCourseInEditor, cloneCourse } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`)
+const { courseAtomicRows, planLegacyLessonWrites, openCourseInEditor } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`)
 const selection = new Map()
 globalThis.sessionStorage = { setItem: (key, value) => selection.set(key, value) }
 let opened
@@ -134,18 +122,7 @@ try {
   assert.deepEqual(planLegacyLessonWrites([clearOnlyDescription], stored).updates[0].values.timecodes, chapter)
   const chapterEdit = { ...old, timecodes: chapter, chapter_variants: variants, description: 'Новый текст' }
   assert.deepEqual(planLegacyLessonWrites([chapterEdit], stored).upserts, [chapterEdit])
-  const clone = cloneCourse({ ...copy, dbCourseId: 'copy', serverStamp: stored[0].updated_at }, { groupId: 'test', title: 'Отдельная группа' })
-  assert.equal(clone.dbCourseId, undefined)
-  assert.equal(clone.serverStamp, undefined)
-  const cloneRows = serialize(clone)
-  assert.equal(new Set(cloneRows.map(row => row.short_id)).size, 47)
-  assert.ok(cloneRows.every(row => row.short_id.startsWith(`${clone.id}-`)))
-  assert.deepEqual(cloneRows[33].timecodes, chapter)
-  await db.query(`insert into lessons (${columns}) select ${columns}
-    from jsonb_populate_recordset(null::lessons, $1::jsonb)`, [JSON.stringify(cloneRows)])
-  assert.equal((await read()).length, 141)
-  assert.deepEqual((await read()).filter(row => row.course_id === 'original'), initial.filter(row => row.course_id === 'original'))
-  console.log('PASS: schedule entry, exact preservation trigger, restored draft, guarded PATCH, 47-lesson readback and independent handout references')
+  console.log('PASS: schedule entry, exact preservation trigger, restored draft, guarded PATCH, 47-lesson readback')
 } finally {
   await db.close()
 }

@@ -44,7 +44,9 @@ import { prepareConfirmedSnapshot, advanceConfirmedContent } from '../../lib/cou
 import { createWideContentDelta, prepareWideConfirmedSnapshot, createWideContentAcknowledgement, WideContentPreservationError, type WideContentDelta } from '../../lib/courseWideDelta'
 import { courseContentSnapshot, courseContentDelta, courseDeltaProbeEnabled, type CourseContentSnapshot } from '../../lib/courseContentDelta'
 import CourseVisibilityButton from '../../components/teacher/CourseVisibilityButton'
-import { useCourseVisibility, flushCourseVisibility, loadCourseVisibility } from '../../lib/courseVisibility'
+import { isUuid } from '../../lib/db'
+import { handoutAttempt } from '../../lib/courseGroupHandout'
+import { useCourseVisibility, courseVisibilityReadyForCopy, flushCourseVisibility, loadCourseVisibility } from '../../lib/courseVisibility'
 import { courseModuleIdentitiesFor } from '../../lib/courseModuleIdentity'
 import { courseModuleWrites } from '../../lib/courseModuleWrites'
 import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, useSyncExternalStore } from 'react'
@@ -335,35 +337,6 @@ function ContentInput({ value, onFocus, onBlur, ...rest }: React.InputHTMLAttrib
 
 /** Функцией, а не константой: t() на уровне модуля замерзает на языке загрузки. */
 const HEAVY_WAIT_MSG = () => t('Уроки ещё догружаются — секунду, и можно сохранять.')
-
-// ── Date-shift helpers — used by «Выдать новой группе» to slide the whole
-// calendar so a cloned course starts fresh on a new date. Dates are DD.MM.YYYY.
-function dotToDate(d?: string): Date | null {
-  if (!d) return null
-  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(d)
-  return m ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])) : null
-}
-function dateToDot(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`
-}
-function shiftDot(d: string | undefined, days: number): string | undefined {
-  const base = dotToDate(d)
-  if (!base) return d
-  base.setDate(base.getDate() + days)
-  return dateToDot(base)
-}
-// Earliest lesson/recording date across the course — the anchor we pin to the new start.
-function earliestCourseDate(lessons: CELesson[]): Date | null {
-  let min: Date | null = null
-  for (const l of lessons) {
-    for (const d of [l.scheduledDate, l.recDate]) {
-      const dt = dotToDate(d)
-      if (dt && (!min || dt < min)) min = dt
-    }
-  }
-  return min
-}
 
 export { lessonShortIdMap } from '../../lib/lessonReferences'
 
@@ -7711,6 +7684,9 @@ export default function TeacherCourseEditorPage() {
   const [handoutBusy, setHandoutBusy] = useState(false)
   const [handoutDone, setHandoutDone] = useState(false)
 
+  const handoutRequests = useRef(new Map<string, string>())
+  const handoutInFlight = useRef(false)
+  const [handoutError, setHandoutError] = useState<string | null>(null)
   const courseHasDates = course.lessons.some(l => l.scheduledDate || l.recDate)
   const handoutGroups = groups.filter(g => !course.groupIds.includes(g.id))
 
@@ -7718,61 +7694,55 @@ export default function TeacherCourseEditorPage() {
     setHandoutGroupId(null)
     setHandoutTitle(`${course.title} · ${t('поток 2')}`)
     setHandoutStart('')
+    setHandoutError(null)
     setHandoutDone(false)
     setHandoutOpen(true)
   }
 
-  function buildHandoutClone(opts: { groupId: string; title: string; newStartIso?: string }): CourseEdData {
-    const { groupId, title, newStartIso } = opts
-    let deltaDays = 0
-    const anchor = earliestCourseDate(course.lessons)
-    if (newStartIso && anchor) {
-      const target = new Date(`${newStartIso}T00:00:00`)
-      deltaDays = Math.round((target.getTime() - anchor.getTime()) / 86400000)
-    }
-    // New lesson ids, dates shifted, lesson-level audiences (referencing the old
-    // group/students) cleared so nothing leaks from the source course.
-    const idMap: Record<string, string> = {}
-    const lessons = course.lessons.map(l => {
-      const nid = uid(); idMap[l.id] = nid
-      return {
-        ...l, id: nid, persistedShortId: undefined,
-        extraStudentIds: undefined, extraGroupIds: undefined,
-        scheduledDate: shiftDot(l.scheduledDate, deltaDays),
-        recDate: shiftDot(l.recDate, deltaDays),
-        hwDate: shiftDot(l.hwDate, deltaDays),
-        extraHw: l.extraHw?.map(x => ({ ...x, date: shiftDot(x.date, deltaDays) })),
-        recHwDate: shiftDot(l.recHwDate, deltaDays),
-      }
-    })
-    const modules = course.modules.map(m => ({ ...m, id: uid(), lessonIds: m.lessonIds.map(id => idMap[id] ?? id) }))
-    return {
-      ...course,
-      id: uid(),
-      dbCourseId: undefined,
-      serverStamp: undefined,
-      title: title.trim() || course.title,
-      groupIds: [groupId],
-      studentIds: [],
-      accessChanges: undefined,
-      modules,
-      lessons,
-      lastEdited: undefined,
-      heavyPending: undefined,
-    }
-  }
-
   async function runHandout() {
-    if (!handoutGroupId || handoutBusy) return
-    // Копия снимается с состояния редактора: пока тяжёлая половина не приехала,
-    // это курс без конспектов и домашек — вторая группа получила бы пустышку.
-    if (course.heavyPending) { setPublishErr(HEAVY_WAIT_MSG()); return }
+    if (!handoutGroupId || handoutInFlight.current || handoutDone) return
+    const source = course.dbCourseId
+    const stamp = baselineStamp.current
+    if (!source || !stamp || course.metadataPending || course.heavyPending || publicationPending || saving
+      || conflict || unsaved.current || autosaveEditRevision.current !== editRevision) {
+      setHandoutError(t('Дождитесь сохранения исходного курса. Если показан конфликт, сначала выберите нужную версию.'))
+      return
+    }
+    const title = handoutTitle.trim() || course.title
+    const modules = confirmedContent.current?.modules ?? course.modules
+      .map((m, position) => ({ id: m.id, label: m.label, position }))
+      .filter(m => isUuid(m.id))
+    handoutInFlight.current = true
     setHandoutBusy(true)
-    const clone = buildHandoutClone({ groupId: handoutGroupId, title: handoutTitle, newStartIso: handoutStart || undefined })
-    const ok = await syncAccessToSupabase(clone)
-    setHandoutBusy(false)
-    if (ok) { setHandoutDone(true); setTimeout(() => setHandoutOpen(false), 1200) }
-    else setPublishErr(t('Не удалось создать копию курса — проверьте, что вы вошли в аккаунт учителя, и попробуйте снова.'))
+    setHandoutError(null)
+    try {
+      if (!await courseVisibilityReadyForCopy(source)) {
+        setHandoutError(t('Дождитесь сохранения видимости модулей и уроков исходного курса.'))
+        return
+      }
+      const attempt = handoutAttempt(readScope.current.ownerId, source, handoutGroupId, title, handoutStart, handoutRequests.current)
+      const { data, error } = await supabase.rpc('hand_out_course_to_group', {
+        p_request_id: attempt.requestId, p_source: source, p_group: handoutGroupId,
+        p_title: title, p_start: handoutStart || null, p_stamp: stamp, p_modules: modules, p_lesson_refs: Object.values(lessonShortIdById),
+      })
+      if (error?.code === 'PT409') {
+        setHandoutError(t('Исходный курс изменился. Откройте его заново и повторите выдачу.'))
+        return
+      }
+      if (error?.code === '23505' && error.message?.includes('ISKRA_SCHEDULE_CONFLICT')) {
+        setHandoutError(t('У группы уже есть занятие в это время. Выберите другую дату старта.'))
+        return
+      }
+      if (error || !attempt.confirm(data)) throw Error('Unconfirmed handout')
+      setHandoutDone(true)
+      window.dispatchEvent(new Event('iskra:journal-changed'))
+      setTimeout(() => setHandoutOpen(false), 1200)
+    } catch {
+      setHandoutError(t('Сервер не подтвердил создание копии. Повторите с теми же параметрами.'))
+    } finally {
+      handoutInFlight.current = false
+      setHandoutBusy(false)
+    }
   }
 
   function handleSave(overrideCourse?: CourseEdData) {
@@ -8150,6 +8120,7 @@ export default function TeacherCourseEditorPage() {
             <input value={handoutTitle} onChange={e => setHandoutTitle(e.target.value)}
               style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-3)', color: 'var(--color-text)', fontSize: 14, fontFamily: 'inherit' }} />
 
+            {handoutError && <p role="alert" style={{ color: 'var(--color-red-text)', fontSize: 13 }}>{handoutError}</p>}
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button data-hover="layer" onClick={() => !handoutBusy && setHandoutOpen(false)}
                 style={btn('M', 'secondary')}>

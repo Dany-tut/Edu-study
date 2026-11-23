@@ -77,3 +77,39 @@ assert.equal(drafts.length,1);assert.deepEqual(drafts[0].groupIds,[])
 assert.equal(drafts[0].lessons[0].description,'rich description');assert.equal(drafts[0].lessons[0].id,drafts[0].id+'-0')
 assert.equal(requests.length,3);assert.equal(values.size,0)
 console.log('PASS catalog handler: simultaneous clicks, lost read-back + remount retry, server identities, explicit repeat, view-as read-only, complete seed and missing-source guard')
+
+const adminPage=source('src/components/teacher/AdminTeacherAccess.tsx')
+const adminHandlers=between(adminPage,'  async function save() {', '  return (\n    <div style={{ padding: \'4px 18px 18px\' }}>')
+const adminCode=(await transform(helper+`
+  export function mount({supabase,getSessionUser,courseAssignments,setCourseAssignments,groupIds,onSaved,setError}) {
+    const savingRef={current:false}
+    const setSaving=()=>{},setSaved=()=>{},setGroupIds=()=>{},setTimeout=()=>{}
+    const selectedTabs=[],selectedWidgets=[],selectedSubjects=[], teacher={id:'recipient'}
+    const hiddenTabsFrom=x=>x,hiddenWidgetsFrom=x=>x,t=x=>x,authErrorRu=e=>e?.message
+    ${adminHandlers}
+    return save
+  }`,{loader:'ts',format:'esm'})).code
+const admin=(await import('data:text/javascript;base64,'+Buffer.from(adminCode).toString('base64'))).mount
+let assignments=[{course_id:'source-uuid',mode:'copy'}], groupFails=true, adminRequests=0, adminDone=0
+const adminDeps={
+  getSessionUser:async()=>({id:'admin'}),
+  supabase:{rpc:async(name,args)=>{
+    if(name==='request_course_copy') {
+      assert.equal(args.p_target_owner,'recipient')
+      assert.equal(args.p_source,'source-uuid')
+      ++adminRequests
+      return {data:'copy-uuid'}
+    }
+    if(name==='admin_reassign_content' && groupFails) return {error:new Error('later group failed')}
+    return {}
+  }},
+  groupIds:['group'],onSaved:()=>adminDone++,setError(){},
+  setCourseAssignments(update){assignments=typeof update==='function'?update(assignments):update},
+}
+const save=admin({...adminDeps,courseAssignments:assignments})
+await Promise.all([save(),save()])
+assert.equal(adminRequests,1);assert.equal(adminDone,0);assert.deepEqual(assignments,[])
+groupFails=false
+await admin({...adminDeps,courseAssignments:assignments})()
+assert.equal(adminRequests,1);assert.equal(adminDone,1)
+console.log('PASS admin save handler: overlapping submits and retry after subsequent group provisioning failure preserve exactly one new copy')

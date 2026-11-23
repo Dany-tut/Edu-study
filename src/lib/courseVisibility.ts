@@ -75,6 +75,12 @@ export async function setCourseItemHidden(course: string, kind: CourseItemKind, 
   try { await operation } finally { if (mutations.get(mutationKey) === operation) mutations.delete(mutationKey) }
 }
 
+/** A copy can only read already-saved visibility. Do not replay draft edits on its source. */
+export async function courseVisibilityReadyForCopy(course: string) {
+  await Promise.all([...mutations].filter(([key]) => key.startsWith(`${course}/`)).map(([, promise]) => promise))
+  return Object.keys(snapshot(course).pending).length === 0
+}
+
 /** Called after the course row exists, before new modules/lessons are exposed.
  * Re-key only local module identities; content saves never overwrite visibility. */
 export async function flushCourseVisibility(course: string, aliases: Record<string, string>) {
