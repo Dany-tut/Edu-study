@@ -19,3 +19,10 @@ Actual TeacherAnalytics React effects with controlled transport: KPI303 appears 
 Segmented ink opt-in: actual caption bounds for the actual font, font+text cache bounded256; baseline default elsewhere unchanged. Roboto13 before: Data+0.452px, Analytics−0.620px, Teachers−0.617px; after absolute deviation<0.015px. Fourplatform previews ×2themes across7sizes (14cases): PC1440/1280low, iPhone320/390, iPad820portrait/1180landscape, Android412. Actual fonts, selected/unselected, 200%zoom; measured ink<0.15px, controls/icons geometry unchanged. PCdark/iPhonelight PNGs inspected. Not a physical device or authenticated server UI proof.
 
 Evidence outside Git: `/Users/dany/.codex/iskra-qa/admin-analytics-loading-20261123/` (scenario, React effects/matrix JSON, before/after PNGs, SQL comparison). Full published SHA/manifests and production UI readback must be recorded after release; do not substitute fixture PASS for production acceptance.
+
+
+## Populated heatmap follow-up
+
+The real post-release3589 screenshot exposed a separate pre-existing layout error: the eight grid row elements were direct children of HScrollFade's horizontal flex track, placing day rows beside the hour header. Add one block wrapper inside the same HScrollFade; iphone compact branch and edge fades unchanged. The initial empty-data fixture had not exercised this layout and is not evidence for populated grid correctness.
+
+Updated actual-component fixture supplies168 cells,24hours×7days. All14 platform/theme/size cases assert seven strictly increasing row Y positions, plus start/middle/end horizontal scroll and mask states where applicable. PCdark and Androiddark populated PNG inspected; pill/control geometry and progressive/late/error/retry tests pass unchanged. This is the only corrective source change after3589; no SQL/save/auth changes. Production manifests/live chart readback must be checked after the corrective release.

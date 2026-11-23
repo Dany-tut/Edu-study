@@ -185,7 +185,7 @@ function Heatmap({ cells, color }: { cells: HeatCell[]; color: string }) {
           {t('Пик активности:')} <b style={{ color:'var(--color-text)' }}>{peakHour}:00–{peakHour+1}:00 {t('МСК')}</b>
         </div>
       )}
-      {compact ? <div>{grid}</div> : <HScrollFade fadeWidth={24}>{grid}</HScrollFade>}
+      {compact ? <div>{grid}</div> : <HScrollFade fadeWidth={24}><div>{grid}</div></HScrollFade>}
       <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:10, fontSize:10, color:'var(--color-text-3)' }}>
         {t('меньше')}
         {[0,0.25,0.5,0.75,1].map(a => {
