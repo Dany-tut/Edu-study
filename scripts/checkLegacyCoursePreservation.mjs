@@ -84,7 +84,12 @@ try {
   await db.query(`insert into lessons (${columns}) select ${columns}
     from jsonb_populate_recordset(null::lessons, $1::jsonb)`, [JSON.stringify([...serialize(original), ...serialize(copy)])])
   await db.exec(readFileSync('supabase/migrations/20261122031218_data_preservation_history.sql', 'utf8'))
+  await db.exec(readFileSync('supabase/migrations/20261123085900_preserve_lesson_course.sql', 'utf8'))
   const initial = await read()
+  await assert.rejects(db.query(`insert into lessons(short_id,course_id)
+    values('original-33','copy') on conflict(short_id) do update set course_id=excluded.course_id`),
+    { code: '23514', message: /a saved lesson cannot change course/ })
+  assert.deepEqual(await read(), initial)
   const stored = initial.filter(row => row.course_id === 'copy')
   const draft = JSON.parse(JSON.stringify(copy))
   draft.lessons[33].title = 'Новая правка из восстановленного черновика'
