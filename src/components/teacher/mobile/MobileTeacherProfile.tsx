@@ -11,7 +11,7 @@ import CountBadge from '../../CountBadge'
 import { useNotificationsStore } from '../../../store/notificationsStore'
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image, CalendarClock, Layers, Link2, LogIn, Database, BarChart3, ClipboardList, AudioLines, Blocks, ListChecks, NotebookPen } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image, CalendarClock, Layers, Link2, LogIn, Database, BarChart3, ClipboardList, AudioLines, Blocks, ListChecks, NotebookPen, Activity } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -227,6 +227,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
 
   const adminShortcuts = [
     { id: 'users', label: t('Пользователи'), Icon: Users },
+    { id: 'online', label: t('Сейчас на сайте'), Icon: Activity },
     { id: 'requests', label: t('Заявки'), Icon: ClipboardList },
     { id: 'data', label: t('Данные'), Icon: Database },
     { id: 'analytics', label: t('Аналитика'), Icon: BarChart3 },

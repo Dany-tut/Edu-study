@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabase'
 import { useTeacher } from '../../store/teacherStore'
 import TeacherAnalytics from '../../components/teacher/TeacherAnalytics'
 import AdminUserActivity, { USERS_VIEW_KEY } from '../../components/teacher/AdminUserActivity'
+import AdminOnlineNow from '../../components/teacher/AdminOnlineNow'
 import FeedbackRequestsManager from '../../components/teacher/FeedbackRequestsManager'
 import TranscriptTermsManager from '../../components/teacher/TranscriptTermsManager'
 import { AudioLines } from '../../components/icons/appIcons'
@@ -543,7 +544,7 @@ const OVERVIEW_SECTIONS = ['features', 'ai', 'themes', 'storage'] as const
 type ActivityOverview = { dau: number; wau: number }
 type OverviewSection = typeof OVERVIEW_SECTIONS[number]
 
-export type AdminSheetSection = 'users' | 'data' | 'analytics' | 'requests'
+export type AdminSheetSection = 'users' | 'online' | 'data' | 'analytics' | 'requests'
 
 export default function TeacherAdminPage({ onBack, sheetSection }: {
   onBack?: () => void
@@ -560,10 +561,10 @@ export default function TeacherAdminPage({ onBack, sheetSection }: {
   const [groupCount, setGroupCount] = useState(0)
   const [studentCount, setStudentCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'users' | 'requests' | 'dictionary' | 'features'>(() => {
+  const [tab, setTab] = useState<'overview' | 'data' | 'analytics' | 'online' | 'users' | 'requests' | 'dictionary' | 'features'>(() => {
     if (sheetSection) return sheetSection
     const saved = sessionStorage.getItem('admin_tab')
-    return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' || saved === 'features' ? saved : 'overview'
+    return saved === 'data' || saved === 'analytics' || saved === 'online' || saved === 'users' || saved === 'requests' || saved === 'dictionary' || saved === 'features' ? saved : 'overview'
   })
   useEffect(() => {
     if (sheetSection) return
@@ -701,11 +702,13 @@ export default function TeacherAdminPage({ onBack, sheetSection }: {
         {/* Tabs */}
         <Segmented
           variant="mode" value={tab} onChange={setTab} style={{ marginBottom: 24 }}
-          items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox], ['dictionary', t('Словарь'), AudioLines], ['features', t('Функции'), ToggleRight]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
+          items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['online', t('Сейчас на сайте'), Activity], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox], ['dictionary', t('Словарь'), AudioLines], ['features', t('Функции'), ToggleRight]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
         />
 
         </>}
         {tab === 'analytics' && <TeacherAnalytics />}
+
+        {tab === 'online' && <AdminOnlineNow />}
 
         {tab === 'users' && <AdminUserActivity />}
 
