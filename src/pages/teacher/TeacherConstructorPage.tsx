@@ -55,6 +55,7 @@ import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
 import { usePersistentState, readDraft, writeDraft, clearDraft, clearDrafts } from '../../lib/useDraft'
 import { AP_DB_COURSE_BY_CONSTRUCTOR_ID } from '../../data/apChemistry'
 import { useDashboard } from '../../store/dashboardStore'
+import { beginCourseNavigation } from '../../lib/courseNavigationIntent'
 import { COURSE_SEEDS, seedTooltip, seedCourseId, type CourseSeed } from '../../data/courseSeeds'
 import { SEED_CARDS } from '../../data/courseSeedCards'
 import { seedKeyOf } from '../../lib/seedSync'
@@ -8071,6 +8072,8 @@ export default function TeacherConstructorPage() {
   const [editWidget, setEditWidget] = useState<Widget | null>(null)
   const [selectedTrainerId, setSelectedTrainerId] = useState<string | null>(null)
   const [courses, setCourses] = useState<Course[]>(_cachedCourses ?? [])
+  const coursesRef = useRef(courses)
+  coursesRef.current = courses
   const [trainers, setTrainers] = useState<Trainer[]>(_cachedTrainers ?? [])
   const [widgets, setWidgets] = useState<Widget[]>(_cachedWidgets ?? [])
   const [coursesLoading, setCoursesLoading] = useState(_cachedCourses === null)
@@ -8091,6 +8094,7 @@ export default function TeacherConstructorPage() {
   const diagEditorRef = useRef<DiagEditorHandle>(null)
 
   useEffect(() => {
+    let active = true
     let lastLoadedAt = 0
     let loadingCatalog = false
     async function loadAll() {
@@ -8101,6 +8105,7 @@ export default function TeacherConstructorPage() {
         // Courses are per-teacher: only load the ones this teacher owns, so a new
         // teacher doesn't inherit every course ever created (multi-tenant isolation).
         const uid = await getOwnerId()
+        if (!active) return
         _cachedOwnerId = uid
         setOwnerId(uid)
         // These catalogs don't gate the course shelf. Start them before the
@@ -8114,7 +8119,9 @@ export default function TeacherConstructorPage() {
         const courseQuery = sharedIds.length
           ? supabase.from('courses').select(COURSE_CARD_SELECT).or(`created_by.eq.${uid},id.in.(${sharedIds.join(',')})`).order('created_at')
           : supabase.from('courses').select(COURSE_CARD_SELECT).eq('created_by', uid).order('created_at')
+        const requestedCourses = coursesRef.current
         const { data: cData } = await courseQuery
+        if (!active) return
         loadColorOverridesFromDB().then(overrides => {
           Object.entries(overrides).forEach(([subject, hex]) => {
             const existing = CUSTOM_META.get(subject)
@@ -8122,15 +8129,20 @@ export default function TeacherConstructorPage() {
             CUSTOM_META.set(subject, { label: existing?.label ?? subject, accent: hex, soft })
           })
         })
-        const c = cData ? cData.map((x: any) => dbCourseToLocal(x, uid)) : []
-        _cachedCourses = c
-        setCourses(prev => {
-          const dbIds = new Set(c.map((x: Course) => x.id))
-          const localOnly = prev.filter(x => !dbIds.has(x.id))
-          return [...localOnly, ...c]
-        })
+        if (cData) {
+          const persisted = cData.map((row: any) => dbCourseToLocal(row, uid))
+          const ids = new Set(persisted.map(course => course.id))
+          setCourses(prev => {
+            // A local creation/ACK can complete while the shelf is refreshing.
+            // Keep it until the next read, but collapse old UUID aliases.
+            const keep = prev.filter(course => !ids.has(course.dbCourseId ?? course.id) &&
+              (!course.dbCourseId || !requestedCourses.includes(course)))
+            return [...keep, ...persisted]
+          })
+        }
         setCoursesLoading(false)
         const [{ data: tData }, { data: wData }] = await Promise.all([trainersRequest, widgetsRequest])
+        if (!active) return
         const t = tData ? tData.map(dbTrainerToLocal) : []
         const w = wData ? wData.map(dbWidgetToLocal) : []
         _cachedTrainers = t; _cachedWidgets = w
@@ -8147,6 +8159,7 @@ export default function TeacherConstructorPage() {
     window.addEventListener('focus', refreshCatalog)
     document.addEventListener('visibilitychange', refreshCatalog)
     return () => {
+      active = false
       window.removeEventListener('focus', refreshCatalog)
       document.removeEventListener('visibilitychange', refreshCatalog)
     }
@@ -8720,7 +8733,8 @@ export default function TeacherConstructorPage() {
         // конспектов и домашек, без автосейва и без сверки с сидом. Ищем в
         // ПРЕДЫДУЩЕМ состоянии, а не в замыкании: эффект висит на одном
         // courseEditedJson и держал бы список на кадр устаревшим.
-        const next = withSortTimes({ ...updated, id: old?.id ?? updated.id, dbCourseId: updated.dbCourseId ?? old?.dbCourseId }, old)
+        const dbCourseId = updated.dbCourseId ?? old?.dbCourseId
+        const next = withSortTimes({ ...old, ...updated, id: dbCourseId ?? updated.id, dbCourseId }, old)
         if (!old) return [next, ...prev]
         return prev.filter(c => c === old || !matches(c)).map(c => c === old ? next : c)
       })
@@ -8751,7 +8765,14 @@ export default function TeacherConstructorPage() {
   // Готовый курс из сида. Id курса стабилен (`seed-<ключ>`), а не случайный:
   // повторное открытие того же сида ведёт в тот же курс, а не плодит копии.
   async function goToSeedCourseEditor(seed: CourseSeed) {
-    const id = seedCourseId(seed, ownerId ?? await getOwnerId())
+    const current = beginCourseNavigation()
+    const owner = await getOwnerId()
+    if (!current()) return
+    if (!owner) {
+      void alertDialog({ title: t('Не удалось определить преподавателя. Обновите страницу и повторите открытие курса.'), tone: 'danger' })
+      return
+    }
+    const id = seedCourseId(seed, owner)
 
     // СОХРАНЁННЫЙ КУРС ГЛАВНЕЕ КАРТОЧКИ СИДА. Id у собранного из сида курса
     // стабилен и равен short_id сохранённой строки — то есть карточка сида и
@@ -8766,12 +8787,24 @@ export default function TeacherConstructorPage() {
     const saved = courses.find(c => (c.dbCourseId ?? c.id) === id)
     if (saved) { await goToCourseEditor(saved); return }
 
+    // A missing/stale catalog is not proof that this seed has never been saved.
+    const { data, error } = await supabase.from('courses').select(COURSE_CARD_SELECT)
+      .eq('short_id', id).maybeSingle()
+    if (!current()) return
+    if (error) {
+      void alertDialog({ title: t('Не удалось проверить сохранённую версию курса. Повторите открытие.'), tone: 'danger' })
+      return
+    }
+    if (data) { goToCourseEditor(dbCourseToLocal(data, owner)); return }
+
     // build асинхронный: контент курса приезжает своим чанком по клику, а не
     // лежит в главном бандле у всех (см. courseSeeds.ts).
     // Курс, только что собранный из сида, по определению стоит на его текущем
     // отпечатке — отсюда и штамп: дальше он меняется только применением «Из сида».
+    const built = await seed.build(id)
+    if (!current()) return
     openCourseEditor(JSON.stringify({
-      ...await seed.build(id),
+      ...built,
       seedStamp: seed.summary.stamp,
     }))
   }

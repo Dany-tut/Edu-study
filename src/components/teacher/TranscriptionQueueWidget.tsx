@@ -5,7 +5,7 @@ import { useT } from '../../lib/i18n'
 import { localRequest } from '../../lib/localTranscription'
 import { useTranscriptionOwner } from './LocalTranscription'
 import { useTeacher } from '../../store/teacherStore'
-import { openLessonInCourseEditor } from '../../lib/teacherNav'
+import { openCourseByShortRefs, openLessonInCourseEditor } from '../../lib/teacherNav'
 import './transcriptionQueueWidget.css'
 
 // Статус очереди расшифровки компьютера. Живёт слайдом в правом островке
@@ -31,23 +31,26 @@ export type QueueJob = {
   lessonTitle?: string
   courseTitle?: string
   lessonId?: string
+  localTarget?: { courseRef: string; lessonRef: string }
 }
 
 /** Карта jobId → контекст урока из локальных записей заданий этого браузера
  *  (iskra.transcription.job.*). Ключ кодирует [owner, [courseKey, lessonId]];
  *  название урока/курса дописывается при постановке задания (LocalTranscription). */
-function localLessonInfo(): Map<string, { lessonTitle?: string; courseTitle?: string; lessonId?: string }> {
-  const map = new Map<string, { lessonTitle?: string; courseTitle?: string; lessonId?: string }>()
+function localLessonInfo() {
+  const map = new Map<string, Pick<QueueJob, 'lessonTitle' | 'courseTitle' | 'localTarget'>>()
   const prefix = 'iskra.transcription.job.'
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (!key || !key.startsWith(prefix)) continue
-      let lessonId: string | undefined
+      let localTarget: QueueJob['localTarget']
       try {
         const lessonKey = JSON.parse(key.slice(prefix.length))[1]
         const parts = JSON.parse(lessonKey)
-        lessonId = Array.isArray(parts) && typeof parts[1] === 'string' ? parts[1] : undefined
+        if (Array.isArray(parts) && typeof parts[0] === 'string' && typeof parts[1] === 'string') {
+          localTarget = { courseRef: parts[0], lessonRef: parts[1] }
+        }
       } catch { continue }
       let value: Record<string, unknown> | null
       try { value = JSON.parse(localStorage.getItem(key) || 'null') } catch { continue }
@@ -55,7 +58,7 @@ function localLessonInfo(): Map<string, { lessonTitle?: string; courseTitle?: st
       map.set(value.id, {
         lessonTitle: typeof value.lessonTitle === 'string' ? value.lessonTitle : undefined,
         courseTitle: typeof value.courseTitle === 'string' ? value.courseTitle : undefined,
-        lessonId,
+        localTarget,
       })
     }
   } catch { /* приватный режим и т.п. — без контекста, покажем этап */ }
@@ -73,7 +76,7 @@ function withLessonContext(data: QueueData): QueueData {
       ...job,
       lessonTitle: job.lessonTitle ?? local.lessonTitle,
       courseTitle: job.courseTitle ?? local.courseTitle,
-      lessonId: job.lessonId ?? local.lessonId,
+      localTarget: local.localTarget,
     }
   }
   return { ...data, running: data.running.map(fill), queued: data.queued.map(fill) }
@@ -209,11 +212,12 @@ export function TranscriptionJobRow({ job, queued, hideTitle, onCancel }: {
   const open = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (job.lessonId) void openLessonInCourseEditor(job.lessonId, openCourseEditor)
+    else if (job.localTarget) void openCourseByShortRefs(job.localTarget.courseRef, job.localTarget.lessonRef, openCourseEditor)
   }
   return (
     <div className={'tqw-job' + (queued ? ' tqw-queued' : '')}>
-      <button type="button" className="tqw-job-open" disabled={!job.lessonId}
-        aria-label={job.lessonId ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
+      <button type="button" className="tqw-job-open" disabled={!job.lessonId && !job.localTarget}
+        aria-label={job.lessonId || job.localTarget ? `${t('Открыть урок в Конструкторе')}: ${title}` : title}
         onClick={open}>
         <div className="tqw-job-body">
           {!hideTitle && <div className="tqw-job-title">{title}</div>}

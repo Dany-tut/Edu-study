@@ -1,3 +1,4 @@
+import { invalidateCourseNavigation } from '../lib/courseNavigationIntent'
 import { studentIdFromTeacherHash } from '../lib/teacherStudentRoute'
 import { useDeskStore } from './deskStore'
 import { create } from 'zustand'
@@ -98,6 +99,7 @@ type TeacherStore = {
   openGradebook: (scheduleId?: string) => void
   clearPendingGradebookLesson: () => void
   // Course editor — JSON-serialized course data passed between constructor and editor pages
+  courseEditorEntry: number
   editingCourseJson: string | null
   openDeskEditor: () => void
   openCourseEditor: (courseJson: string) => void
@@ -289,17 +291,18 @@ export const useTeacher = create<TeacherStore>(set => ({
   pendingGradebookLessonId: null,
   openGradebook: scheduleId => whenMayLeave(() => { clearEditorSession(); clearCardsSession(); set({ activePage: 'gradebook', headerDocked: false, pendingGradebookLessonId: scheduleId ?? null }) }),
   clearPendingGradebookLesson: () => set({ pendingGradebookLessonId: null }),
+  courseEditorEntry: 0,
   editingCourseJson: readEditorSession(),
   openDeskEditor: () => whenMayLeave(() => {
     clearEditorSession(); clearCardsSession()
     set({ activePage: 'home', headerDocked: false, pendingGroupForm: null })
     useDeskStore.getState().setEditMode(true)
   }),
-  openCourseEditor: courseJson => {
+  openCourseEditor: courseJson => whenMayLeave(() => {
     clearCardsSession()
     try { sessionStorage.setItem(EDITOR_SESSION_KEY, courseJson) } catch { /* non-fatal */ }
-    set({ editingCourseJson: courseJson, activePage: 'course-editor', headerDocked: false })
-  },
+    set(state => ({ courseEditorEntry: state.courseEditorEntry + 1, editingCourseJson: courseJson, activePage: 'course-editor', headerDocked: false }))
+  }),
   editingCardsJson: readCardsSession(),
   openCardsEditor: payloadJson => {
     clearEditorSession()
@@ -415,4 +418,8 @@ export const useTeacher = create<TeacherStore>(set => ({
 
 // Persist the navigation snapshot on every state change so a refresh restores the
 // exact section the teacher was on (admin, finances, a student dashboard, …).
-useTeacher.subscribe(writeNav)
+useTeacher.subscribe((state, previous) => {
+  if (state.activePage !== previous.activePage || state.courseEditorEntry !== previous.courseEditorEntry ||
+      state.editingScheduleId !== previous.editingScheduleId) invalidateCourseNavigation()
+  writeNav(state)
+})

@@ -4,7 +4,7 @@ import { plainTitle } from '../../lib/lessonKey'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { FIELD } from '../../lib/fieldStyle'
-import { usePersistentState, readDraft, clearDrafts } from '../../lib/useDraft'
+import { usePersistentState, readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown, Plus, X, Trash2,
@@ -26,8 +26,10 @@ import {
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor, openCourseInEditor, findScheduleCourseTarget, type ScheduleCourseTarget } from '../../lib/teacherNav'
+import { patchScheduleMaterials, patchScheduleChapters, type ScheduleLessonField, type ScheduleLessonIntent, type ScheduleTimecode } from '../../lib/scheduleLessonEdits'
 import { scheduleMove } from '../../lib/teacherSchedule'
 import BackCircle from '../../components/BackCircle'
+import { confirmDialog } from '../../components/ConfirmHost'
 import { AlertStack } from '../../components/Alert'
 import { btn } from '../../lib/pillStyles'
 
@@ -408,7 +410,7 @@ function HomeworkCard({
 
 // ─── Timecode editor ───────────────────────────────────────────────────────────
 
-type Timecode = { time: string; label: string }
+type Timecode = ScheduleTimecode
 
 function TimecodeEditor({ codes, onChange }: { codes: Timecode[]; onChange: (c: Timecode[]) => void }) {
   const t = useT()
@@ -995,20 +997,21 @@ export default function TeacherLessonEditorPage() {
   const metaLift = useStickyLift(metaRef)
   useEffect(() => {
     if (!editingScheduleId) { setSource(null); setLessonRowId(null); return }
+    let active = true
     supabase
       .from('schedule_lessons')
       .select('*, groups(name, icon, color, color_soft, subject)')
       .eq('id', editingScheduleId)
       .single()
       .then(({ data }) => {
-        if (!data) return
+        if (!active || !data) return
         setLessonRowId(data.lesson_id ?? null)
         setCourseTarget(undefined)
         if (!data.lesson_id) {
           findScheduleCourseTarget({
             groupId: data.group_id ?? null, studentId: data.student_id ?? null,
             title: String(data.lesson_title ?? ''), lessonNumber: data.lesson_number ?? null,
-          }).then(setCourseTarget, () => setCourseTarget(null))
+          }).then(target => { if (active) setCourseTarget(target) }, () => { if (active) setCourseTarget(null) })
         }
         // date приходит как YYYY-MM-DD, поле редактора — DD.MM.YYYY.
         const iso = String(data.date ?? '').slice(0, 10).split('-')
@@ -1032,6 +1035,7 @@ export default function TeacherLessonEditorPage() {
           colorSoft: data.groups?.color_soft ?? '#E4D9FF',
         })
       })
+    return () => { active = false }
   }, [editingScheduleId])
 
   const isNew = !source
@@ -1041,7 +1045,7 @@ export default function TeacherLessonEditorPage() {
   // If a draft was restored, the Supabase load below must not clobber it.
   const hadMetaDraft = useRef(readDraft(`${draftNs}.meta`) !== null)
 
-  const [meta, setMeta] = usePersistentState<Meta>(`${draftNs}.meta`, {
+  const [meta, setMeta] = useState<Meta>(() => readDraft<Meta>(`${draftNs}.meta`) ?? {
     recipients: [],
     title: '',
     lessonNumber: '',
@@ -1074,12 +1078,14 @@ export default function TeacherLessonEditorPage() {
 
   // Сторож ухода. До «Опубликовать» правки живут только в черновике вкладки:
   // меню, «назад» и закрытие вкладки молча их теряли.
-  // Изменения в первые полторы секунды — загрузка урока из базы, не правка.
-  const openedAt = useRef(Date.now())
   const editDirty = useRef(false)
+  const revision = useRef(0)
+  const publishing = useRef(false)
+  const current = useRef(true)
   useEffect(() => {
-    if (Date.now() - openedAt.current > 1500) editDirty.current = true
-  }, [meta, videoUrl, timecodes, files, description])
+    current.current = true
+    return () => { current.current = false }
+  }, [])
   useEffect(() => {
     const isDirty = () => editDirty.current && !publishedRef.current
     const warn = (e: BeforeUnloadEvent) => { if (isDirty()) { e.preventDefault(); e.returnValue = '' } }
@@ -1094,32 +1100,64 @@ export default function TeacherLessonEditorPage() {
   // Содержимое привязанного урока — из `lessons`, а не из воздуха. Черновик
   // (несохранённая правка в этой вкладке) старше базы: он и был причиной, по
   // которой поля вообще переживали перезагрузку, — затирать его загрузкой нельзя.
-  const hadContentDraft = useRef({
-    videoUrl: readDraft(`${draftNs}.videoUrl`) !== null,
-    timecodes: readDraft(`${draftNs}.timecodes`) !== null,
-    files: readDraft(`${draftNs}.files`) !== null,
-    description: readDraft(`${draftNs}.description`) !== null,
+  const intent = useRef(readDraft<ScheduleLessonIntent>(`${draftNs}.intent`))
+  const [loaded, setLoaded] = useState<{
+    id: string; stamp: string; materials: unknown; variants: unknown
+  } | null>(null)
+  const legacy = useRef({
+    videoUrl: readDraft<string>(`${draftNs}.videoUrl`),
+    timecodes: readDraft<Timecode[]>(`${draftNs}.timecodes`),
+    files: readDraft<LessonFiles>(`${draftNs}.files`),
+    description: readDraft<string>(`${draftNs}.description`),
   })
   useEffect(() => {
     if (!lessonRowId) { setLessonHw(null); return }
+    let active = true
     supabase
       .from('lessons')
-      .select('youtube_url, timecodes, description, materials, homework')
+      .select('id, updated_at, youtube_url, timecodes, chapter_variants, description, materials, homework')
       .eq('id', lessonRowId)
       .single()
       .then(({ data }) => {
-        if (!data) return
-        const d = hadContentDraft.current
-        if (!d.videoUrl) setVideoUrl(data.youtube_url ?? '')
-        if (!d.timecodes) setTimecodes(Array.isArray(data.timecodes) ? data.timecodes as Timecode[] : [])
-        if (!d.description) setDescription(data.description ?? '')
-        if (!d.files) setFiles(parseLessonFiles(data.materials))
+        if (!active || !data || data.id !== lessonRowId || !data.updated_at) return
+        const variants = data.chapter_variants
+        const activeCodes = variants && (variants.active === 'slides' || variants.active === 'text') ? variants[variants.active] : null
+        const server = {
+          videoUrl: data.youtube_url ?? '',
+          timecodes: Array.isArray(activeCodes) ? activeCodes : Array.isArray(data.timecodes) ? data.timecodes : [],
+          files: parseLessonFiles(data.materials),
+          description: data.description ?? '',
+        }
+        // Older builds stored their blank initial controls before the read completed.
+        // Only a witnessed user edit authorizes a blank value. Retain nonempty
+        // divergent old drafts for explicit review before writing them back.
+        if (!intent.current) {
+          const fields = (Object.keys(server) as (keyof typeof server)[]).filter(key => {
+            const old = legacy.current[key]
+            return old != null && Object.keys(old).length > 0 && JSON.stringify(old) !== JSON.stringify(server[key])
+          })
+          if (fields.length) {
+            intent.current = { lessonId: lessonRowId, stamp: '', fields }
+            writeDraft(`${draftNs}.intent`, intent.current)
+          }
+        }
+        if (!intent.current?.fields.length) {
+          intent.current = { lessonId: lessonRowId, stamp: data.updated_at, fields: [] }
+          writeDraft(`${draftNs}.intent`, intent.current)
+        }
+        const keep = intent.current.fields
+        if (!keep.includes('videoUrl')) setVideoUrl(server.videoUrl)
+        if (!keep.includes('timecodes')) setTimecodes(server.timecodes)
+        if (!keep.includes('description')) setDescription(server.description)
+        if (!keep.includes('files')) setFiles(server.files)
+        setLoaded({ id: lessonRowId, stamp: data.updated_at, materials: data.materials, variants })
         const tasks = (data.homework as { hwTasks?: Array<{ isHard?: boolean }> } | null)?.hwTasks ?? []
         setLessonHw({
           basic: tasks.filter(x => !x.isHard).length,
           hard: tasks.filter(x => x.isHard).length,
         })
       })
+    return () => { active = false }
   }, [lessonRowId])
 
   // Scroll-driven header dock — same logic as the student lesson/homework pages:
@@ -1140,9 +1178,38 @@ export default function TeacherLessonEditorPage() {
     if (!ok) setActivePage('constructor')
   }
 
-  function updateMeta(p: Partial<Meta>) { setMeta(m => ({ ...m, ...p })) }
+  function mark(field?: ScheduleLessonField) {
+    editDirty.current = true
+    setPublished(false)
+    revision.current++
+    if (!field || !loaded) return
+    const previous = intent.current ?? { lessonId: loaded.id, stamp: loaded.stamp, fields: [] }
+    intent.current = { ...previous, fields: [...new Set([...previous.fields, field])] }
+    writeDraft(`${draftNs}.intent`, intent.current)
+  }
+
+  function updateMeta(p: Partial<Meta>) {
+    mark('title' in p ? 'title' : undefined)
+    hadMetaDraft.current = true
+    setMeta(m => {
+      const next = { ...m, ...p }
+      writeDraft(`${draftNs}.meta`, next)
+      return next
+    })
+  }
 
   async function handlePublish() {
+    if (publishing.current) return
+    publishing.current = true
+    const started = revision.current
+    try { await publish(started) } finally { publishing.current = false }
+  }
+
+  async function publish(started: number) {
+    if (editingScheduleId && (source?.id !== editingScheduleId || !sourceDate || (lessonRowId && loaded?.id !== lessonRowId))) {
+      setPublishErr({ tone: 'info', text: t('Дождитесь загрузки урока и попробуйте ещё раз.') })
+      return
+    }
     // Gate publish: needs an audience (кому/для кого) and a date + time.
     // Otherwise the teacher can still save it as a draft.
     if (meta.recipients.length === 0) {
@@ -1161,20 +1228,47 @@ export default function TeacherLessonEditorPage() {
     // Содержимое занятия — в урок курса, из которого оно родилось. Раньше здесь
     // сохранялись только название, номер, дата и время: видео, главы, описание и
     // файлы жили в черновике браузера и при публикации пропадали.
-    if (lessonRowId) {
-      const { error: lessonErr } = await supabase.from('lessons').update({
-        // Название пишем и в урок: иначе переименование здесь жило бы только в
-        // расписании, а следующее сохранение курса вернуло бы старое имя.
-        ...(plainTitle(meta.title) ? { title: plainTitle(meta.title) } : {}),
-        youtube_url: videoUrl.trim() || null,
-        timecodes,
-        description: description.trim() || null,
-        materials: files,
-      }).eq('id', lessonRowId)
-      if (lessonErr) {
-        console.error('[lesson-editor] lessons update failed', lessonErr)
-        setPublishErr({ tone: 'danger', text: t('Не удалось сохранить содержимое урока — попробуйте ещё раз.') })
+    const pending = intent.current
+    if (lessonRowId && loaded && pending?.fields.length) {
+      if (pending.lessonId !== lessonRowId) {
+        setPublishErr({ tone: 'danger', text: t('Черновик относится к другому уроку. Проверьте привязку в расписании.') })
         return
+      }
+      if (pending.stamp !== loaded.stamp) {
+        const names: Record<ScheduleLessonField, string> = { title: t('Название'), videoUrl: t('Видео'), description: t('Описание'), timecodes: t('Таймкоды'), files: t('Материалы') }
+        const confirmed = await confirmDialog({
+          title: t('Черновик отличается от версии в базе'),
+          message: t('Перенести в текущий урок поля из этой вкладки?') + ' ' + pending.fields.map(field => names[field]).join(', '),
+          confirmLabel: t('Перенести правки'),
+        })
+        if (!confirmed || !current.current || revision.current !== started) return
+      }
+      const fields = pending.fields
+      const patch: Record<string, unknown> = {}
+      if (fields.includes('title') && plainTitle(meta.title)) patch.title = plainTitle(meta.title)
+      if (fields.includes('videoUrl')) patch.youtube_url = videoUrl.trim() || null
+      if (fields.includes('description')) patch.description = description.trim() || null
+      try {
+        if (fields.includes('files')) patch.materials = patchScheduleMaterials(loaded.materials, parseLessonFiles(loaded.materials), files)
+        if (fields.includes('timecodes')) Object.assign(patch, patchScheduleChapters(timecodes, loaded.variants))
+      } catch (error) {
+        setPublishErr({ tone: 'danger', text: t(error instanceof Error ? error.message : 'Проверьте содержимое урока.') })
+        return
+      }
+      if (Object.keys(patch).length) {
+        const result = await supabase.from('lessons').update(patch).eq('id', lessonRowId)
+          .eq('updated_at', loaded.stamp).select('updated_at, materials, chapter_variants').maybeSingle()
+        if (!current.current) return
+        if (result.error || !result.data?.updated_at) {
+          setPublishErr({ tone: 'danger', text: t('Сохранение урока не подтверждено. Черновик остался в этой вкладке. Обновите страницу и сравните изменения.') })
+          return
+        }
+        const stamp = result.data.updated_at
+        setLoaded({ id: lessonRowId, stamp, materials: result.data.materials, variants: result.data.chapter_variants })
+        if (intent.current) {
+          intent.current = { ...intent.current, stamp, fields: revision.current === started ? [] : intent.current.fields }
+          writeDraft(`${draftNs}.intent`, intent.current)
+        }
       }
     }
 
@@ -1202,8 +1296,7 @@ export default function TeacherLessonEditorPage() {
           await scheduleMove(editingScheduleId, isoDate, meta.startTime)
           setSourceDate(meta.date)
           setSource(previous => previous ? {
-            ...previous, time: meta.startTime, endTime: meta.endTime,
-            topic: meta.title, lessonNumber: Number(meta.lessonNumber) || 0,
+            ...previous, time: meta.startTime,
           } : previous)
         } catch (error) {
           console.error('[lesson-editor] schedule move failed', error)
@@ -1212,15 +1305,18 @@ export default function TeacherLessonEditorPage() {
         }
       }
       // Timing belongs to schedule_move; only editor metadata is written here.
-      const { error } = await supabase.from('schedule_lessons').update({
-        lesson_title: scheduleBase.lesson_title,
-        lesson_number: scheduleBase.lesson_number,
-        time_end: scheduleBase.time_end,
-      }).eq('id', editingScheduleId)
-      if (error) {
-        console.error('[lesson-editor] schedule update failed', error)
-        setPublishErr({ tone: 'danger', text: t('Не удалось сохранить дату и время урока — попробуйте ещё раз.') })
-        return
+      const updates: Record<string, unknown> = {}
+      if (source.topic !== meta.title) updates.lesson_title = scheduleBase.lesson_title
+      if (source.lessonNumber !== (Number(meta.lessonNumber) || 0)) updates.lesson_number = scheduleBase.lesson_number
+      if ((source.endTime ?? '') !== meta.endTime) updates.time_end = scheduleBase.time_end
+      if (Object.keys(updates).length) {
+        let query = supabase.from('schedule_lessons').update(updates).eq('id', editingScheduleId)
+        query = lessonRowId ? query.eq('lesson_id', lessonRowId) : query.is('lesson_id', null)
+        const { data, error } = await query.select('id').maybeSingle()
+        if (error || !data) {
+          setPublishErr({ tone: 'danger', text: t('Не удалось сохранить изменения расписания. Проверьте текущую версию урока.') })
+          return
+        }
       }
     } else {
       const studentRecipients = meta.recipients.filter(r => r.kind === 'student')
@@ -1245,9 +1341,10 @@ export default function TeacherLessonEditorPage() {
     }
 
     window.dispatchEvent(new Event('iskra:journal-changed'))
-    clearDrafts(draftNs)
+    if (!current.current || revision.current !== started) return
+    clearDrafts(`${draftNs}.`)
     setPublished(true)
-    setTimeout(() => setActivePage('home'), 1600)
+    setTimeout(() => { if (current.current && revision.current === started) setActivePage('home') }, 1600)
   }
 
   // Shared glass recipe for the docked top-line pills — matched to the teacher
@@ -1344,7 +1441,7 @@ export default function TeacherLessonEditorPage() {
 
           {/* Left meta panel — sticky so its fields stay visible while scrolling. */}
           <div ref={metaRef} style={{ ...metaLift, position: 'sticky', top: 20, flexShrink: 0 }}>
-            <LeftPanel meta={meta} onChange={updateMeta} />
+            <fieldset disabled={!!editingScheduleId && (!source || (!!lessonRowId && !loaded))} style={{ border: 0, padding: 0, margin: 0 }}><LeftPanel meta={meta} onChange={updateMeta} /></fieldset>
           </div>
 
           {/* Center */}
@@ -1354,19 +1451,19 @@ export default function TeacherLessonEditorPage() {
                 главы, файлы и описание живут в строке `lessons`, и без неё их
                 некуда сохранить. Занятие, заведённое прямо здесь, — это запись в
                 расписании; вместо мёртвых полей показываем, где завести урок. */}
-            {lessonRowId ? (
+            {lessonRowId && !loaded ? <p>{t('Загрузка урока…')}</p> : lessonRowId ? (
               <>
                 {/* Row 1: video + timecodes */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 16, alignItems: 'stretch' }}>
-                  <VideoZone url={videoUrl} onChange={setVideoUrl} />
-                  <TimecodeEditor codes={timecodes} onChange={setTimecodes} />
+                  <VideoZone url={videoUrl} onChange={value => { mark('videoUrl'); setVideoUrl(value) }} />
+                  <TimecodeEditor codes={timecodes} onChange={value => { mark('timecodes'); setTimecodes(value) }} />
                 </div>
 
                 {/* Row 2: materials + homework */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, alignItems: 'start' }}>
-                  <UploadTile icon={NotebookPen} label={t('Рабочая тетрадь')} slot="workbook" files={files} onChange={setFiles} />
-                  <UploadTile icon={FileText} label={t('Конспект')} slot="notebook" files={files} onChange={setFiles} />
-                  <UploadTile icon={FolderOpen} label={t('Материалы')} slot="materials" files={files} onChange={setFiles} />
+                  <UploadTile icon={NotebookPen} label={t('Рабочая тетрадь')} slot="workbook" files={files} onChange={value => { mark('files'); setFiles(value) }} />
+                  <UploadTile icon={FileText} label={t('Конспект')} slot="notebook" files={files} onChange={value => { mark('files'); setFiles(value) }} />
+                  <UploadTile icon={FolderOpen} label={t('Материалы')} slot="materials" files={files} onChange={value => { mark('files'); setFiles(value) }} />
                   <HomeworkCard hw={lessonHw} onOpen={openInCourse} />
                 </div>
 
@@ -1383,7 +1480,7 @@ export default function TeacherLessonEditorPage() {
                   </div>
                   <textarea
                     value={description}
-                    onChange={e => setDescription(e.target.value)}
+                    onChange={e => { mark('description'); setDescription(e.target.value) }}
                     placeholder={t('Краткое содержание урока, что разобрали, ключевые моменты...')}
                     rows={5}
                     style={{ ...inputStyle, resize: 'vertical', minHeight: 120, lineHeight: 1.6, background: 'var(--color-bg-input)' }}
@@ -1406,12 +1503,12 @@ export default function TeacherLessonEditorPage() {
                 </p>
                 {courseTarget === null && (
                   <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0 }}>
-                    {t('Это занятие не связано с уроком курса: у его группы или ученика нет курса с таким уроком. Заведите урок в курсе в Конструкторе.')}
+                    {t('У занятия нет точной привязки к уроку. Выберите курс в Конструкторе.')}
                   </p>
                 )}
                 {courseTarget && !courseTarget.lessonShortId && (
                   <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', margin: 0 }}>
-                    {t('В курсе нет урока с таким названием или номером — откроется курс целиком:')} «{tc(courseTarget.courseTitle)}»
+                    {t('Для занятия найден курс. Выберите урок в курсе:')} «{tc(courseTarget.courseTitle)}»
                   </p>
                 )}
                 <button data-hover="layer"

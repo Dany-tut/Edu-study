@@ -54,6 +54,8 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
   // Цвета предметов, выбранные этим учителем: карточки курсов, чипсы и графики
   // читают палитру через реестр, поэтому карту достаточно поставить один раз.
   useTeacherSubjectColors()
+  const courseEditorEntry = useTeacher(s => s.courseEditorEntry)
+  const scheduleEntry = useTeacher(s => s.editingScheduleId)
   const activePage = useTeacher(s => s.activePage)
   const studentId = useTeacher(s => s.selectedStudentId)
   const setActivePage = useTeacher(s => s.setActivePage)
@@ -276,10 +278,10 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         {activePage === 'homework-create' && <TeacherHomeworkCreatePage />}
         {activePage === 'homework-review' && <TeacherHomeworkReviewPage />}
         {activePage === 'hard-review'     && <TeacherHardReviewPage />}
-        {activePage === 'lesson-editor'   && <TeacherLessonEditorPage />}
+        {activePage === 'lesson-editor'   && <TeacherLessonEditorPage key={scheduleEntry ?? 'new'} />}
         {activePage === 'gradebook'       && (standContent ? isDesktop && standContent : <TeacherGradebookPage />)}
         {activePage === 'constructor'     && <TeacherConstructorPage />}
-        {activePage === 'course-editor'   && <TeacherCourseEditorPage />}
+        {activePage === 'course-editor'   && <TeacherCourseEditorPage key={courseEditorEntry} />}
         {activePage === 'cards-editor'    && <TeacherCardSetEditorPage />}
         {activePage === 'student'         && (standContent ? isDesktop && standContent : <TeacherStudentDashboardPage />)}
         {activePage === 'storage' && accessLoaded && isAdministrator && <TeacherStoragePage />}
