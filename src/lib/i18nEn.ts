@@ -1289,6 +1289,7 @@ export const EN: Record<string, string> = {
   "дня": "days",
   "только что": "just now",
   "сейчас": "now",
+  "онлайн": "online",
   "мин": "min",
   "ч": "h",
   "д": "d",

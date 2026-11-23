@@ -38,12 +38,22 @@ function fmtMin(min: number): string {
   return m ? `${h} ${t('ч')} ${m} ${t('мин')}` : `${h} ${t('ч')}`
 }
 
-function fmtWhen(iso: string | null): string {
+/** Heartbeat шлётся раз в минуту: свежее 3 минут — вкладка открыта прямо сейчас. */
+const ONLINE_MS = 3 * 60_000
+
+function fmtWhen(iso: string | null): React.ReactNode {
   if (!iso) return '—'
   const d = new Date(iso)
   const now = Date.now()
-  const diffH = (now - d.getTime()) / 3_600_000
-  if (diffH < 1) return t('сейчас')
+  const diffMs = now - d.getTime()
+  if (diffMs < ONLINE_MS) return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--color-green-text, #2E8F76)', fontWeight: 600 }}>
+      <span aria-hidden style={{ width: 7, height: 7, borderRadius: '50%', background: '#34C759', boxShadow: '0 0 0 3px rgba(52,199,89,0.18)', flexShrink: 0 }} />
+      {t('онлайн')}
+    </span>
+  )
+  const diffH = diffMs / 3_600_000
+  if (diffH < 1) return `${Math.max(1, Math.floor(diffMs / 60_000))} ${t('мин')}`
   if (diffH < 24) return `${Math.floor(diffH)} ${t('ч')}`
   const diffD = Math.floor(diffH / 24)
   if (diffD < 30) return `${diffD} ${t('д')}`
@@ -319,7 +329,6 @@ function PeopleTable({ rows, onDeleted }: { rows: UserActivityRow[]; onDeleted: 
   return (
     <>
     {err && <Alert tone="danger" text={err} style={{ marginBottom: 12 }} />}
-  return (
     <TableShell>
       <thead>
         <tr>
