@@ -48,6 +48,7 @@ import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
 import { subscribeTeacherDataChanges } from '../../lib/teacherDataRealtime'
 import { isCourseResetRef } from '../../lib/homeworkReset'
+import { runCourseCopy } from '../../lib/courseCopyRequest'
 import { getOwnerId, getSessionUser } from '../../lib/owner'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { optimizePhoto, ImageTooLargeError } from '../../lib/imageOptim'
@@ -9169,35 +9170,49 @@ export default function TeacherConstructorPage() {
 
   const stamp = () => new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
 
-  // Per-card actions: duplicate clones with fresh ids + "(копия)" as a draft;
-  // delete confirms first (irreversible).
-  // Копия курса из базы делается в базе целиком: модули и уроки с содержимым
-  // (duplicate_my_course). Раньше копия собиралась только на экране и после
-  // F5 пропадала. Курс, которого в базе ещё нет, копируется на экране и
-  // записывается так же, как новый.
   async function duplicateCourse(c: Course) {
-    const title = (c.title) + t(' (копия)')
-    const copy: Course = {
-      ...c, id: uid(), title, status: 'draft', shared: false,
-      // Как и в duplicate_course: назначения и метка сида у копии свои (пустые).
-      groupIds: [], studentIds: [], seedStamp: undefined,
-      lessons: c.lessons.map(l => ({ ...l, id: uid() })), lastEdited: stamp(),
-      // Копия — новый курс: своё время создания, чужую публикацию не наследует.
-      createdAt: new Date().toISOString(), publishedAt: undefined,
-    }
-    if (!c.dbCourseId) {
-      setCourses(prev => [{ ...copy, dbCourseId: undefined }, ...prev])
-      syncCourseToDb({ ...copy, dbCourseId: undefined })
-      return
-    }
-    const { data, error } = await supabase.rpc('duplicate_my_course', { p_short_id: c.dbCourseId, p_title: title })
-    const row = (data as Array<{ id: string; short_id: string; created_at: string }> | null)?.[0]
-    if (error || !row) {
+    const title = c.title + t(' (копия)')
+    try {
+      const actor = (await getSessionUser())?.id
+      const owner = await getOwnerId()
+      if (!actor || !owner) throw new Error('Authentication required')
+      if (actor !== owner) {
+        await alertDialog({ title: t('В режиме просмотра кабинета изменения недоступны.'), tone: 'danger' })
+        return
+      }
+      const seed = seedById.get(c.id)
+      const sourceRef = c.dbCourseId ?? (seed ? seedCourseId(seed, owner) : c.id)
+      await runCourseCopy(actor, sourceRef, owner, async requestId => {
+        // A shelf projection can contain only titles, or just the seed's unit count.
+        // Check the real source even if the card has not yet learned its dbCourseId.
+        const { data: source, error: sourceError } = await supabase.from('courses')
+          .select('id, short_id').eq('short_id', sourceRef).maybeSingle()
+        if (sourceError) throw sourceError
+        if (!source) {
+          if (!seed) {
+            await alertDialog({ title: t('Сначала сохраните исходный курс, затем создайте копию.'), tone: 'danger' })
+            return
+          }
+          const complete = await seed.build(requestId)
+          openCourseEditor(JSON.stringify({ ...complete, id: requestId, dbCourseId: undefined,
+            title, status: 'draft', groupIds: [], studentIds: [], seedStamp: undefined }))
+          return
+        }
+        const { data: copiedId, error } = await supabase.rpc('request_course_copy', {
+          p_source: source.short_id, p_target_owner: null,
+          p_title: title, p_request_id: requestId,
+        })
+        if (error || !copiedId) throw error ?? new Error('Missing copy acknowledgement')
+        const { data, error: readError } = await supabase.from('courses')
+          .select(COURSE_CARD_SELECT).eq('id', copiedId).eq('created_by', owner).single()
+        if (readError || !data) throw readError ?? new Error('Copy not found')
+        const saved = dbCourseToLocal(data, owner)
+        setCourses(prev => [saved, ...prev.filter(item => (item.dbCourseId ?? item.id) !== saved.dbCourseId)])
+      })
+    } catch (error) {
       console.error('[duplicateCourse]', error)
-      void alertDialog({ title: t('Копия курса не создалась — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
-      return
+      void alertDialog({ title: t('Не удалось подтвердить копию курса — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
     }
-    setCourses(prev => [{ ...copy, id: row.short_id, dbCourseId: row.short_id, createdAt: row.created_at }, ...prev])
   }
   async function deleteCourse(c: Course) {
     const ok = await confirmDialog({

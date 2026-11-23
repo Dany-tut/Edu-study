@@ -1,8 +1,10 @@
 import OpticalText from '../OpticalText'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import { BookOpen, Users, X, Mail, Copy, Check, KeyRound, Trash2 } from '../icons/appIcons'
+import { runCourseCopy } from '../../lib/courseCopyRequest'
+import { getSessionUser } from '../../lib/owner'
 import { supabase } from '../../lib/supabase'
 import { copyToClipboard } from '../../lib/clipboard'
 import { TEACHER_TABS } from '../../lib/teacherAccess'
@@ -277,6 +279,7 @@ export function AccessEditor({ teacher, onSaved }: { teacher: TeacherAccess; onS
   const [courseAssignments, setCourseAssignments] = useState<CourseAssignment[]>([])
   const [groupIds, setGroupIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const savingRef = useRef(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   // Password reset (admin-only): teachers pick their own password on sign-up and
@@ -311,7 +314,20 @@ export function AccessEditor({ teacher, onSaved }: { teacher: TeacherAccess; onS
   }
 
   async function save() {
+    if (savingRef.current) return
+    savingRef.current = true
     setSaving(true)
+    try {
+      await saveAccess()
+    } catch (error) {
+      setError(t(authErrorRu(error instanceof Error ? error : null)))
+    } finally {
+      savingRef.current = false
+      setSaving(false)
+    }
+  }
+
+  async function saveAccess() {
     setError('')
     // 1. Access deny-lists (complement of the selected sections/widgets).
     const hiddenTabs = hiddenTabsFrom(selectedTabs)
@@ -321,21 +337,29 @@ export function AccessEditor({ teacher, onSaved }: { teacher: TeacherAccess; onS
       p_hidden_tabs: hiddenTabs,
       p_hidden_widgets: hiddenWidgets,
     })
-    if (err) { setSaving(false); setError(t(authErrorRu(err))); return }
+    if (err) { setError(t(authErrorRu(err))); return }
 
     // 1b. Subject scope (empty = all).
     const { error: sErr } = await supabase.rpc('admin_set_teacher_subjects', {
       p_teacher: teacher.id,
       p_subjects: selectedSubjects,
     })
-    if (sErr) { setSaving(false); setError(t(authErrorRu(sErr))); return }
+    if (sErr) { setError(t(authErrorRu(sErr))); return }
 
     // 2. Provision selected content to this teacher (incremental — cleared after).
     try {
       for (const a of courseAssignments) {
         if (a.mode === 'copy') {
-          const { error: e } = await supabase.rpc('admin_duplicate_course', { p_course_id: a.course_id, p_new_owner: teacher.id })
-          if (e) throw e
+          const actor = (await getSessionUser())?.id
+          if (!actor) throw new Error('Authentication required')
+          await runCourseCopy(actor, a.course_id, teacher.id, async requestId => {
+            const { data, error } = await supabase.rpc('request_course_copy', {
+              p_source: a.course_id, p_target_owner: teacher.id, p_title: null, p_request_id: requestId,
+            })
+            if (error || !data) throw error ?? new Error('Missing copy acknowledgement')
+            // A later assignment can fail. Retrying it must not repeat this copy.
+            setCourseAssignments(prev => prev.filter(item => item.course_id !== a.course_id))
+          })
         } else {
           const { error: e } = await supabase.from('course_shares').upsert({ course_id: a.course_id, teacher_id: teacher.id })
           if (e) throw e
@@ -346,10 +370,9 @@ export function AccessEditor({ teacher, onSaved }: { teacher: TeacherAccess; onS
         if (e) throw e
       }
     } catch (e: any) {
-      setSaving(false); setError(t('Доступы сохранены, но контент выдать не удалось:') + ' ' + t(authErrorRu(e))); return
+      setError(t('Доступы сохранены, но контент выдать не удалось:') + ' ' + t(authErrorRu(e))); return
     }
 
-    setSaving(false)
     setCourseAssignments([]); setGroupIds([])
     setSaved(true)
     setTimeout(() => setSaved(false), 1800)
