@@ -1,4 +1,5 @@
 import OpticalText from '../OpticalText'
+import { loadAnalyticsSections, type AnalyticsLoadTask } from '../../lib/adminAnalyticsLoad'
 import { LoopSelect } from '../icons/LoopSelect'
 import { PLATFORM } from '../../lib/platform'
 import HScrollFade from '../HScrollFade'
@@ -18,7 +19,7 @@ import { supabase } from '../../lib/supabase'
 import { useT, t as tGlobal } from '../../lib/i18n'
 import { tzToCountry } from '../../lib/tzCountry'
 import { copyToClipboard } from '../../lib/clipboard'
-import { Alert } from '../Alert'
+import { Alert, AlertStack } from '../Alert'
 
 // ── types ──────────────────────────────────────────────────────────────────
 type Overview = {
@@ -299,6 +300,10 @@ export default function TeacherAnalytics() {
   const t = useT()
   const [days, setDays]                   = useState(30)
   const [loading, setLoading]             = useState(true)
+  const [pending, setPending] = useState<Set<string>>(new Set(['overview', 'heat', 'daily', 'breakdown', 'funnel', 'geo']))
+  const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({})
+  const loadSequence = useRef(0)
+  const loadAbort = useRef<AbortController | null>(null)
   const [heatRole, setHeatRole]           = useState<'teacher'|'student'>('teacher')
   const [activeTab, setActiveTab]         = useState<'activity'|'issues'|'heatmap'|'digest'|'diagnostics'>('activity')
   const [overviewT, setOverviewT]         = useState<Overview|null>(null)
@@ -318,7 +323,10 @@ export default function TeacherAnalytics() {
   const [geo, setGeo]                     = useState<GeoRow[]>([])
   const [errExpanded, setErrExpanded]     = useState(false)
   const [copied, setCopied]               = useState(false)
-  const [err, setErr]                     = useState<string|null>(null)
+  const [loadScope, setLoadScope] = useState('')
+  const scope = `${activeTab}:${days}:${heatRole}`
+  const scopeMatches = loadScope === scope
+  const sectionPending = (id: string) => !scopeMatches || pending.has(id)
   // spatial click heatmaps
   const [clickPaths, setClickPaths]       = useState<ClickPath[]>([])
   const [clickPath, setClickPath]         = useState<string|null>(null)
@@ -333,67 +341,71 @@ export default function TeacherAnalytics() {
   const [digestBusy, setDigestBusy]       = useState(false)
   const [digestErr, setDigestErr]         = useState<string|null>(null)
 
-  const load = useCallback(async () => {
-    setLoading(true); setErr(null)
-    const [ovT, ovS, th, sh, dl, bd, fn, ps, re, rh] = await Promise.all([
-      supabase.rpc('admin_analytics_overview_by_role', { p_role:'teacher', p_days: days }),
-      supabase.rpc('admin_analytics_overview_by_role', { p_role:'student', p_days: days }),
-      supabase.rpc('admin_activity_heatmap_by_role',  { p_role:'teacher', p_days: days }),
-      supabase.rpc('admin_activity_heatmap_by_role',  { p_role:'student', p_days: days }),
-      supabase.rpc('admin_daily_activity',            { p_days: days }),
-      supabase.rpc('admin_event_breakdown',           { p_days: days }),
-      supabase.rpc('admin_progress_funnel'),
-      supabase.rpc('admin_page_stats',                { p_days: days }),
-      supabase.rpc('admin_recent_errors',             { p_limit: 500 }),
-      supabase.rpc('admin_rage_hotspots',             { p_days: days }),
-    ])
-    const failed = [ovT, ovS, th, sh, dl, bd, fn, ps, re, rh].find(result => result.error)
-    if (failed?.error) setErr(t('Ошибка загрузки:') + ' ' + failed.error.message)
-    setOverviewT((ovT.data as Overview) ?? null)
-    setOverviewS((ovS.data as Overview) ?? null)
-    setTeacherHeat((th.data as HeatCell[]) ?? [])
-    setStudentHeat((sh.data as HeatCell[]) ?? [])
-    setDaily((dl.data as DailyRow[]) ?? [])
-    setBreakdown((bd.data as BreakdownRow[]) ?? [])
-    setFunnel((fn.data as Funnel) ?? null)
-    setPageStats((ps.data as PageStat[]) ?? [])
-    setRecentErrors((re.data as ErrorRow[]) ?? [])
-    setRageHots((rh.data as RageHot[]) ?? [])
-    const { data: res } = await supabase
-      .from('analytics_issue_resolutions')
-      .select('signature, resolved_at, app_version, snapshot')
-    setResolutions((res as Resolution[]) ?? [])
+  const load = useCallback(async (retryId?: string) => {
+    loadAbort.current?.abort()
+    const controller = new AbortController()
+    loadAbort.current = controller
+    const sequence = ++loadSequence.current
+    const current = () => sequence === loadSequence.current && !controller.signal.aborted
+    const tasks: AnalyticsLoadTask[] = []
+    const rpc = (id: string, name: string, args: Record<string, unknown>, apply: (data: unknown) => void) => {
+      tasks.push({ id, run: () => supabase.rpc(name, args).abortSignal(controller.signal), apply })
+    }
+    if (activeTab === 'activity') {
+      rpc('overview', 'admin_analytics_overview_by_role', { p_role: heatRole, p_days: days }, data => {
+        (heatRole === 'teacher' ? setOverviewT : setOverviewS)(data as Overview | null)
+      })
+      rpc('heat', 'admin_activity_heatmap_by_role', { p_role: heatRole, p_days: days }, data => {
+        (heatRole === 'teacher' ? setTeacherHeat : setStudentHeat)((data as HeatCell[]) ?? [])
+      })
+      rpc('daily', 'admin_daily_activity', { p_days: days }, data => setDaily((data as DailyRow[]) ?? []))
+      rpc('breakdown', 'admin_event_breakdown', { p_days: days }, data => setBreakdown((data as BreakdownRow[]) ?? []))
+      rpc('funnel', 'admin_progress_funnel', {}, data => setFunnel(data as Funnel | null))
+      tasks.push({ id: 'geo', run: () => supabase.from('analytics_events').select('role, session_id, meta')
+        .eq('event', 'session_start').gte('created_at', new Date(Date.now() - days * 86_400_000).toISOString())
+        .limit(20_000).abortSignal(controller.signal), apply: data => {
+        const seen = new Set<string>()
+        const acc = new Map<string, GeoRow>()
+        for (const r of (data as { role: string; session_id: string; meta: Record<string, unknown> | null }[]) ?? []) {
+          if (r.session_id) { if (seen.has(r.session_id)) continue; seen.add(r.session_id) }
+          const c = tzToCountry(r.meta?.tz as string | undefined)
+          const isTeacher = r.role === 'teacher' || r.role === 'admin'
+          const isStudent = r.role === 'student'
+          if (!isTeacher && !isStudent) continue
+          const row = acc.get(c.code) ?? { code: c.code, name: c.name, flag: c.flag, teachers: 0, students: 0, total: 0 }
+          if (isTeacher) row.teachers++; else row.students++
+          row.total++
+          acc.set(c.code, row)
+        }
+        setGeo([...acc.values()].sort((a, b) => b.total - a.total))
+      } })
+    } else if (activeTab === 'issues') {
+      rpc('pages', 'admin_page_stats', { p_days: days }, data => setPageStats((data as PageStat[]) ?? []))
+      rpc('errors', 'admin_recent_errors', { p_limit: 500 }, data => setRecentErrors((data as ErrorRow[]) ?? []))
+      rpc('rage', 'admin_rage_hotspots', { p_days: days }, data => setRageHots((data as RageHot[]) ?? []))
+      tasks.push({ id: 'resolutions', run: () => supabase.from('analytics_issue_resolutions')
+        .select('signature, resolved_at, app_version, snapshot').abortSignal(controller.signal),
+        apply: data => setResolutions((data as Resolution[]) ?? []) })
+    }
+    const selected = retryId ? tasks.filter(task => task.id === retryId) : tasks
+    setPending(new Set(selected.map(task => task.id)))
+    setSectionErrors(previous => {
+      if (!retryId) return {}
+      const next = { ...previous }; delete next[retryId]; return next
+    })
+    setLoadScope(`${activeTab}:${days}:${heatRole}`)
+    setLoading(selected.length > 0)
+    await loadAnalyticsSections(selected, current, (id, error) => {
+      setPending(previous => { const next = new Set(previous); next.delete(id); return next })
+      if (error) setSectionErrors(previous => ({ ...previous, [id]: error }))
+    })
+    if (current()) setLoading(false)
+  }, [days, activeTab, heatRole])
 
-    // Geo breakdown by browser timezone. Each session emits one session_start
-    // carrying meta.tz — we count distinct sessions per country/role.
-    try {
-      const since = new Date(Date.now() - days * 86_400_000).toISOString()
-      const { data: geoRows } = await supabase
-        .from('analytics_events')
-        .select('role, session_id, meta')
-        .eq('event', 'session_start')
-        .gte('created_at', since)
-        .limit(20_000)
-      const seen = new Set<string>()
-      const acc = new Map<string, GeoRow>()
-      for (const r of (geoRows as { role: string; session_id: string; meta: Record<string, unknown> | null }[]) ?? []) {
-        if (r.session_id) { if (seen.has(r.session_id)) continue; seen.add(r.session_id) }
-        const c = tzToCountry(r.meta?.tz as string | undefined)
-        const isTeacher = r.role === 'teacher' || r.role === 'admin'
-        const isStudent = r.role === 'student'
-        if (!isTeacher && !isStudent) continue
-        const row = acc.get(c.code) ?? { code: c.code, name: c.name, flag: c.flag, teachers: 0, students: 0, total: 0 }
-        if (isTeacher) row.teachers++; else row.students++
-        row.total++
-        acc.set(c.code, row)
-      }
-      setGeo([...acc.values()].sort((a, b) => b.total - a.total))
-    } catch { setGeo([]) }
-
-    setLoading(false)
-  }, [days])
-
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+    return () => { ++loadSequence.current; loadAbort.current?.abort() }
+  }, [load])
 
   // Screen list for the heatmap selector — auto-built from captured click paths.
   useEffect(() => {
@@ -665,7 +677,7 @@ export default function TeacherAnalytics() {
 
   const currentHeat = heatRole === 'teacher' ? teacherHeat : studentHeat
   const currentColor = heatRole === 'teacher' ? ACCENT : ACCENT_S
-  const overview = heatRole === 'teacher' ? overviewT : overviewS
+  const overview = !scopeMatches || sectionErrors.overview ? null : heatRole === 'teacher' ? overviewT : overviewS
 
   const tabs = [
     ['activity', t('Активность')], ['issues', t('Проблемы')], ['heatmap', t('Тепловые карты')],
@@ -708,8 +720,17 @@ export default function TeacherAnalytics() {
         />
       )}
 
-      {err && (
-        <Alert tone="danger" text={err} style={{ marginBottom:18 }} />
+      {scopeMatches && Object.keys(sectionErrors).length > 0 && (
+        <div role="alert" style={{ marginBottom: 18 }}>
+          <AlertStack items={Object.entries(sectionErrors).map(([id, message]) => ({
+            id, tone: 'danger' as const,
+            title: t(({ overview: 'Активность', heat: 'Тепловая карта активности · МСК', daily: 'Активность по дням',
+              breakdown: 'Типы событий', funnel: 'Воронка прогресса', geo: 'География (по таймзоне браузера)',
+              pages: 'Страницы', errors: 'Ошибки', rage: 'Rage-click', resolutions: 'Проблемы' } as Record<string, string>)[id] ?? id),
+            text: `${t('Ошибка загрузки:')} ${message}`,
+            action: loading ? undefined : { label: t('Повторить'), onClick: () => { void load(id) } },
+          }))} />
+        </div>
       )}
 
       {/* ── TAB: ACTIVITY ── */}
@@ -717,18 +738,18 @@ export default function TeacherAnalytics() {
         <>
           {/* KPI grid — accented by the selected role */}
           <div style={{ display:'grid', gridTemplateColumns:onPhone ? 'repeat(2,minmax(0,1fr))' : 'repeat(4,1fr)', gap:10, marginBottom:24 }}>
-            <Kpi icon={Activity}      label="DAU"              accent={currentColor} loading={loading} value={overview?.dau ?? '—'}      sub={t('активны за сутки')} />
-            <Kpi icon={Users}         label="WAU"              accent={currentColor} loading={loading} value={overview?.wau ?? '—'}      sub={t('за 7 дней')} />
-            <Kpi icon={CalendarClock} label="MAU"              accent={currentColor} loading={loading} value={overview?.mau ?? '—'}      sub={t('за 30 дней')} />
-            <Kpi icon={TrendingUp}    label="Stickiness"       accent={currentColor} loading={loading}
+            <Kpi icon={Activity}      label="DAU"              accent={currentColor} loading={sectionPending('overview')} value={overview?.dau ?? '—'}      sub={t('активны за сутки')} />
+            <Kpi icon={Users}         label="WAU"              accent={currentColor} loading={sectionPending('overview')} value={overview?.wau ?? '—'}      sub={t('за 7 дней')} />
+            <Kpi icon={CalendarClock} label="MAU"              accent={currentColor} loading={sectionPending('overview')} value={overview?.mau ?? '—'}      sub={t('за 30 дней')} />
+            <Kpi icon={TrendingUp}    label="Stickiness"       accent={currentColor} loading={sectionPending('overview')}
               value={overview && overview.mau ? `${Math.round((overview.dau/overview.mau)*100)}%` : '—'}
               sub="DAU / MAU" />
-            <Kpi icon={Layers}        label={t('Сессии')}           accent={currentColor} loading={loading} value={overview?.sessions ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
-            <Kpi icon={Activity}      label={t('События')}          accent={currentColor} loading={loading} value={overview?.events_total ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
-            <Kpi icon={Users}         label={t('Активные ученики')} accent={currentColor} loading={loading}
+            <Kpi icon={Layers}        label={t('Сессии')}           accent={currentColor} loading={sectionPending('overview')} value={overview?.sessions ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
+            <Kpi icon={Activity}      label={t('События')}          accent={currentColor} loading={sectionPending('overview')} value={overview?.events_total ?? '—'} sub={`${t('за')} ${days} ${t('дн.')}`} />
+            <Kpi icon={Users}         label={t('Активные ученики')} accent={currentColor} loading={sectionPending('overview')}
               value={overview ? `${overview.students_active}/${overview.students_total}` : '—'}
               sub={t('за 7 дней')} />
-            <Kpi icon={BookOpen}      label={t('Групп')}            accent={currentColor} loading={loading} value={overview?.groups_total ?? '—'} sub={t('всего')} />
+            <Kpi icon={BookOpen}      label={t('Групп')}            accent={currentColor} loading={sectionPending('overview')} value={overview?.groups_total ?? '—'} sub={t('всего')} />
           </div>
 
           {/* Role heatmaps — role is chosen via the Учителя/Ученики control above */}
@@ -736,7 +757,7 @@ export default function TeacherAnalytics() {
             {(heatRole==='teacher' ? t('Учителя') : t('Ученики'))} · {t('Тепловая карта активности · МСК')}
           </SectionTitle>
           <Card style={{ marginBottom:24 }}>
-            <Heatmap cells={currentHeat} color={currentColor} />
+            {sectionPending('heat') ? <Skeleton w={200} h={16} /> : sectionErrors.heat ? null : <Heatmap cells={currentHeat} color={currentColor} />}
           </Card>
 
           {/* Summary for the selected role only */}
@@ -746,7 +767,7 @@ export default function TeacherAnalytics() {
                 {heatRole==='teacher' ? t('Учителя') : t('Ученики')}
               </div>
               <div style={{ fontSize:11, color:'var(--color-text-3)', lineHeight:1.6 }}>
-                {currentHeat.length === 0
+                {sectionPending('heat') || sectionErrors.heat ? '—' : currentHeat.length === 0
                   ? (heatRole==='teacher' ? t('Нет данных') : t('Нет данных — ученики ещё не заходили'))
                   : (() => {
                       const totH = new Map<number,number>()
@@ -770,7 +791,7 @@ export default function TeacherAnalytics() {
           {/* Daily bars */}
           <SectionTitle>{t('Активность по дням')}</SectionTitle>
           <Card style={{ marginBottom:24 }}>
-            {daily.length === 0
+            {sectionPending('daily') ? <Skeleton w={200} h={16} /> : sectionErrors.daily ? null : daily.length === 0
               ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Данные появятся после первых посещений.')}</div>
               : <div style={{ display:'flex', alignItems:'flex-end', gap:4, height:100 }}>
                   {daily.map(d => (
@@ -786,7 +807,7 @@ export default function TeacherAnalytics() {
             <div>
               <SectionTitle>{t('Воронка прогресса')}</SectionTitle>
               <Card>
-                {fSteps.map((s,i) => (
+                {sectionPending('funnel') ? <Skeleton w={140} h={16} /> : sectionErrors.funnel ? null : fSteps.map((s,i) => (
                   <div key={s.label} style={{ marginBottom:i<fSteps.length-1?12:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
                       <span style={{ color:'var(--color-text)', fontWeight:600 }}>{s.label}</span>
@@ -806,7 +827,7 @@ export default function TeacherAnalytics() {
             <div>
               <SectionTitle>{t('Типы событий')}</SectionTitle>
               <Card>
-                {breakdown.length===0
+                {sectionPending('breakdown') ? <Skeleton w={140} h={16} /> : sectionErrors.breakdown ? null : breakdown.length===0
                   ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Нет данных.')}</div>
                   : breakdown.map((b,i) => (
                       <div key={b.event} style={{ marginBottom:i<breakdown.length-1?10:0 }}>
@@ -829,9 +850,9 @@ export default function TeacherAnalytics() {
           {/* Geography by browser timezone */}
           <SectionTitle>{t('География (по таймзоне браузера)')}</SectionTitle>
           <Card style={{ marginBottom:24 }}>
-            {loading
+            {sectionPending('geo')
               ? <Skeleton w={200} h={16} />
-              : geo.length===0
+              : sectionErrors.geo ? null : geo.length===0
               ? <div style={{ fontSize:12, color:'var(--color-text-3)' }}>{t('Нет данных — определяется по часовому поясу браузера при старте сессии.')}</div>
               : (
                 <>
@@ -861,7 +882,8 @@ export default function TeacherAnalytics() {
       )}
 
       {/* ── TAB: ISSUES ── */}
-      {activeTab === 'issues' && (
+      {activeTab === 'issues' && (!scopeMatches || loading) && <Skeleton w={200} h={20} />}
+      {activeTab === 'issues' && scopeMatches && !loading && Object.keys(sectionErrors).length === 0 && (
         <>
           {/* Copy everything on this tab as text — for pasting into a bug report */}
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>

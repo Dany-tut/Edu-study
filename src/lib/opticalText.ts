@@ -22,7 +22,9 @@ function measure(element: HTMLElement): number {
   if (!element.textContent?.trim()) return 0
   const css = getComputedStyle(element)
   const font = `${css.fontStyle} ${css.fontWeight} ${css.fontSize} ${css.fontFamily}`
-  const cached = cache.get(font)
+  const ink = element.dataset.opticalAlign === 'ink'
+  const key = ink ? `${font}\0${element.textContent}` : font
+  const cached = cache.get(key)
   if (cached !== undefined) return cached
   let result = 0
   try {
@@ -31,11 +33,14 @@ function measure(element: HTMLElement): number {
     context.font = font
     const metrics = context.measureText('HНgpру0123456789')
     const capitals = context.measureText('HН'), descenders = context.measureText('gpру')
+    // Baseline captions reserve half a descender; pill ink alignment reserves the full visible glyph bounds.
+    const visible = ink ? context.measureText(element.textContent ?? '') : null
     result = opticalTextOffset(metrics.fontBoundingBoxAscent, metrics.fontBoundingBoxDescent,
-      capitals.actualBoundingBoxAscent, descenders.actualBoundingBoxDescent, parseFloat(css.fontSize))
+      visible?.actualBoundingBoxAscent ?? capitals.actualBoundingBoxAscent,
+      visible ? visible.actualBoundingBoxDescent * 2 : descenders.actualBoundingBoxDescent, parseFloat(css.fontSize))
   } catch { return 0 }
   if (cache.size >= 256) cache.delete(cache.keys().next().value!)
-  cache.set(font, result)
+  cache.set(key, result)
   return result
 }
 
