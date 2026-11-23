@@ -1,0 +1,23 @@
+/* Смена знаков как numericText в iOS: размытие + короткий сдвиг по вертикали.
+   Слот держит ширину знака; уходящий знак лежит поверх нового в той же клетке. */
+.blur-digits { display: inline-flex; font-variant-numeric: tabular-nums; white-space: pre; }
+.blur-digits-slot { display: inline-grid; overflow: visible; }
+.blur-digits-slot-new { animation: blur-digits-grow .32s cubic-bezier(.22, 1, .36, 1); }
+.blur-digits-slot > span { grid-area: 1 / 1; display: inline-block; }
+.blur-digits-slot.blur-digits-slot-gone { animation: blur-digits-shrink .32s cubic-bezier(.22, 1, .36, 1) forwards; }
+.blur-digits-in { animation: blur-digits-in .32s cubic-bezier(.22, 1, .36, 1) both; }
+.blur-digits-out { animation: blur-digits-out .26s cubic-bezier(.4, 0, .6, 1) both; pointer-events: none; }
+.blur-digits[data-dir="down"] .blur-digits-in { animation-name: blur-digits-in-down; }
+.blur-digits[data-dir="down"] .blur-digits-out { animation-name: blur-digits-out-down; }
+
+@keyframes blur-digits-in { from { opacity: 0; filter: blur(4px); transform: translateY(.42em) scale(.9); } }
+@keyframes blur-digits-out { to { opacity: 0; filter: blur(4px); transform: translateY(-.42em) scale(.9); } }
+@keyframes blur-digits-in-down { from { opacity: 0; filter: blur(4px); transform: translateY(-.42em) scale(.9); } }
+@keyframes blur-digits-out-down { to { opacity: 0; filter: blur(4px); transform: translateY(.42em) scale(.9); } }
+@keyframes blur-digits-grow { from { max-width: 0; } to { max-width: 1em; } }
+@keyframes blur-digits-shrink { from { max-width: 1em; } to { max-width: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .blur-digits-slot, .blur-digits-in { animation: none; }
+  .blur-digits-out { display: none; }
+}

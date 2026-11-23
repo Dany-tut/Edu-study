@@ -33,6 +33,7 @@ import {
 import type { VideoSource } from '../lib/videoSource'
 import { videoEmbedSrc } from '../lib/videoSource'
 import { NativeVideoVolume } from '../lib/nativeVideoVolume'
+import BlurDigits from './BlurDigits'
 import { driveProxyAvailable, resolveDriveVideo } from '../lib/driveVideo'
 import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
@@ -47,6 +48,8 @@ import {
 } from '../lib/videoProgress'
 
 const RATES = [0.75, 1, 1.25, 1.5, 1.75, 2]
+/** Через сколько нетронутые громкость/скорость закрываются сами. */
+const POPOVER_IDLE_MS = 2500
 /** Native video (including Drive via the media gateway) supports up to 10×.
  * YouTube keeps its separate engine limit. */
 const FAST_RATES = [2.5, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -366,6 +369,32 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
     }).catch(() => { if (alive) setDriveError(true) })
     return () => { alive = false }
   }, [started, originalSource.kind === 'gdrive' ? originalSource.id : '', driveAttempt, driveViaProxy])
+
+  /** Громкость и скорость закрываются сами, если их не трогают 2,5 с: выбрал
+   *  значение и отпустил — таблетка не висит поверх кадра. Пока ползунок зажат
+   *  или по таблетке водят мышью, отсчёт начинается заново. */
+  const popIdleTimer = useRef<number | null>(null)
+  const sliderHeld = useRef(false)
+  const bumpPopIdle = useCallback(() => {
+    if (popIdleTimer.current) window.clearTimeout(popIdleTimer.current)
+    popIdleTimer.current = window.setTimeout(() => {
+      popIdleTimer.current = null
+      if (sliderHeld.current) { bumpPopIdle(); return }
+      setVolumeOpen(false); setRateOpen(false); setRateKnob(null)
+    }, POPOVER_IDLE_MS)
+  }, [])
+  useEffect(() => {
+    if (!volumeOpen && !rateOpen) return
+    bumpPopIdle()
+    return () => { if (popIdleTimer.current) window.clearTimeout(popIdleTimer.current); popIdleTimer.current = null }
+  }, [volumeOpen, rateOpen, bumpPopIdle])
+  const popIdleHandlers = {
+    onPointerMove: bumpPopIdle,
+    onPointerDown: () => { sliderHeld.current = true; bumpPopIdle() },
+    onPointerUp: () => { sliderHeld.current = false; bumpPopIdle() },
+    onPointerCancel: () => { sliderHeld.current = false; bumpPopIdle() },
+    onKeyDown: bumpPopIdle,
+  }
 
   useEffect(() => {
     if (!volumeOpen) return
@@ -1562,7 +1591,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                   {muted || volume === 0 ? <VolumeX size={22} /> : volume < 0.5 ? <Volume1 size={22} /> : <Volume2 size={22} />}
                 </button>
                 {volumeOpen && (
-                  <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')}>
+                  <div className="lesson-player-volume-popover" role="group" aria-label={t('Настройка громкости')} {...popIdleHandlers}>
                     <div className="lesson-player-volume-control">
                       <div className="lesson-player-volume-level" aria-hidden="true">
                         <div style={{ width: `${volumeFill * 100}%`, height: `${volumeFillScale * 100}%`, left: `calc(${volumeFillScale - 1} * var(--slider-inset, 12px))` }} />
@@ -1583,7 +1612,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                         aria-valuetext={`${Math.round((muted ? 0 : volume) * 100)}%`}
                         className="video-volume lesson-player-volume-slider"
                       />
-                      <span className="lesson-player-rate-value" aria-hidden="true"><span>{Math.round((muted ? 0 : volume) * 100)}%</span><span>{Math.round(maxVolume * 100)}%</span></span>
+                      <span className="lesson-player-rate-value" aria-hidden="true"><BlurDigits value={`${Math.round((muted ? 0 : volume) * 100)}%`} /><span>{Math.round(maxVolume * 100)}%</span></span>
                     </div>
                   </div>
                 )}
@@ -1624,7 +1653,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     {/* Ширина по самой длинной подписи («0.00×»): кнопка не дёргает соседей при смене скорости,
                         а иконка с текущей подписью стоят по центру этой ширины одной парой. */}
                     <span className="lesson-player-rate-label">
-                      <span><Gauge size={22} />{fmtRate(liveRate)}</span>
+                      <span><Gauge size={22} /><BlurDigits value={fmtRate(liveRate)} /></span>
                       <span aria-hidden="true"><Gauge size={22} />0.00×</span>
                     </span>
                   </button>
@@ -1632,7 +1661,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     <div
                       data-rate-menu
                       className="lesson-player-rate-popover"
-                      onKeyDown={e => { if (e.key === 'Escape') { setRateOpen(false); rateBtnRef.current?.focus(); e.stopPropagation() } }}
+                      {...popIdleHandlers}
+                      onKeyDown={e => { bumpPopIdle(); if (e.key === 'Escape') { setRateOpen(false); rateBtnRef.current?.focus(); e.stopPropagation() } }}
                       style={{
                         position: 'fixed', left: ratePos.left, top: ratePos.top, zIndex: 4000,
                         width: RATE_MENU_W,
@@ -1659,7 +1689,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                           aria-valuetext={fmtRate(rate)}
                           className="video-volume lesson-player-volume-slider lesson-player-rate-slider"
                         />
-                        <span className="lesson-player-rate-value" aria-hidden="true"><span>{fmtRate(rate)}</span><span>0.00×</span></span>
+                        <span className="lesson-player-rate-value" aria-hidden="true"><BlurDigits value={fmtRate(rate)} /><span>0.00×</span></span>
                       </div>
                     </div>,
                     (fullscreen ? boxRef.current : null) ?? document.body,

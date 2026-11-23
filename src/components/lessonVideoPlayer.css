@@ -6,14 +6,19 @@
   backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
   border: 1px solid rgba(255,255,255,.2); box-shadow: 0 4px 14px rgba(0,0,0,.22);
 }
+.lesson-player-volume-popover, .lesson-player-rate-popover { animation: lesson-player-pop .28s cubic-bezier(.22, 1, .36, 1); transform-origin: 50% 100%; }
+.lesson-player-volume-popover { transform-origin: 24px 100%; }
+@keyframes lesson-player-pop { from { opacity: 0; transform: scale(.94); filter: blur(4px); } }
+@media (prefers-reduced-motion: reduce) { .lesson-player-volume-popover, .lesson-player-rate-popover { animation: none; } }
 .lesson-player-volume-control { position: relative; width: min(246px, calc(100vw - 48px)); height: 52px; }
 .lesson-player-volume-level {
-  position: absolute; inset: var(--slider-inset, 12px); transition: inset .12s ease;
+  position: absolute; inset: var(--slider-inset, 12px); transition: inset .34s cubic-bezier(.34, 1.4, .64, 1);
   border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.22); pointer-events: none;
 }
 .lesson-player-volume-level > div {
   position: absolute; top: 50%; left: 0; transform: translateY(-50%);
-  border-radius: 999px; background: #fff; transition: width .08s linear, height .1s ease, left .1s ease;
+  border-radius: 999px; background: #fff;
+  transition: width .18s cubic-bezier(.22, 1, .36, 1), height .3s cubic-bezier(.22, 1, .36, 1), left .3s cubic-bezier(.22, 1, .36, 1);
 }
 @media (prefers-reduced-motion: reduce) { .lesson-player-volume-level > div { transition: none; } }
 .lesson-player-volume-control:has(input:active) { --slider-inset: 8px; }
