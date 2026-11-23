@@ -105,10 +105,11 @@ const REGION_FALLBACK: Record<string, Country> = {
 
 const UNKNOWN: Country = { code: 'XX', name: 'Не определено', flag: '🏳️' }
 
-export function tzToCountry(tz: string | null | undefined): Country {
+export function tzToCountry(tz: string | null | undefined, includeRegion = true): Country {
   if (!tz) return UNKNOWN
   const direct = ZONE_COUNTRY[tz]
   if (direct) return direct
+  if (!includeRegion) return UNKNOWN
   const region = tz.split('/')[0]
   return REGION_FALLBACK[region] ?? UNKNOWN
 }

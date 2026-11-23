@@ -32,11 +32,12 @@ export function courseSaveStageText(stage: CourseSaveStage): string {
   return STAGE[stage]()
 }
 
-type Kind = 'auth' | 'network' | 'server'
+type Kind = 'auth' | 'network' | 'server' | 'preservation'
 
-function classify(error: CourseSaveError): Kind {
+export function classifyCourseSaveFailure(error: CourseSaveError): Kind {
   const code = error?.code ?? ''
   const message = error?.message ?? ''
+  if (code === 'ISKRA_DATA_PRESERVATION' || message.includes('ISKRA_DATA_PRESERVATION')) return 'preservation'
   if (/^PGRST30\d$/.test(code) || code === '42501' || /jwt|token.*expired|row-level security|permission denied/i.test(message)) return 'auth'
   if (!code && /failed to fetch|load failed|networkerror|network request|abort|timeout|timed out/i.test(message)) return 'network'
   return 'server'
@@ -50,10 +51,10 @@ export function courseSaveCause(error: CourseSaveError): string {
   if (error?.code === '23505' && /schedule_lessons_group_id_date_time_start_key|^ISKRA_SCHEDULE_CONFLICT:/.test(error.message ?? '')) {
     return t('Совпало время начала занятий.')
   }
-  switch (classify(error)) {
+  switch (classifyCourseSaveFailure(error)) {
     case 'auth': return t('Похоже, вход в аккаунт истёк. Войдите в Искру заново в новой вкладке, вернитесь сюда и нажмите «Повторить».')
     case 'network': return t('Не получилось связаться с Искрой. Проверьте интернет и нажмите «Повторить».')
-    default: return t('Сбой на нашей стороне, мы уже получили отчёт. Если «Повторить» не поможет, напишите в поддержку.')
+    default: return t('Попробуйте сохранить ещё раз.')
   }
 }
 
@@ -65,7 +66,7 @@ export function courseSaveReason(stage: CourseSaveStage, error: CourseSaveError,
   try {
     trackEvent('db_error', {
       ctx: `course_save:${stage}`,
-      kind: classify(error),
+      kind: classifyCourseSaveFailure(error),
       code: error?.code ?? null,
       msg: String(error?.message ?? (error ? '' : 'no row returned')).slice(0, 200),
       details: error?.details ? String(error.details).slice(0, 300) : null,

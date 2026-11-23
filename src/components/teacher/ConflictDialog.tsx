@@ -1,15 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// «Курс изменили в другом месте» — окно развилки, а не тупик
-//
-// Сохранение пишет курс ЦЕЛИКОМ и удаляет уроки, которых нет в памяти вкладки.
-// Если за время работы курс тронули со стороны (другая вкладка, телефон), слепо
-// сохранить отсюда — откатить ту работу, а слепо перезагрузить — потерять свою.
-// Поэтому вместо «перезагрузите» показываем, ЧТО именно разошлось, и даём выбрать
-// осознанно: оставить своё (перезаписать базу) или взять версию из базы.
-//
-// Окно ничего не пишет само — только зовёт onOverwrite / onReload у редактора.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import OpticalText from '../OpticalText'
 import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -18,25 +6,31 @@ import { AlertTriangle, Pencil, PlusCircle, RotateCcw, Save, Users, X } from '..
 import { useT } from '../../lib/i18n'
 import { btn } from '../../lib/pillStyles'
 
-export interface CourseConflict {
-  /** Отпечаток серверной версии на момент обнаружения конфликта. */
-  stamp: string
-  /** Уроки, появившиеся в базе, но которых нет в этой вкладке — сохранение их удалит. */
-  added: string[]
-  /** Уроки, переименованные со стороны. */
-  renamed: { from: string; to: string }[]
-  /** Наши новые уроки, которых в базе ещё нет (при сохранении уедут, при перезагрузке пропадут). */
-  localNew: string[]
-  titleChange: { from: string; to: string } | null
-  statusChange: { from: 'draft' | 'published'; to: 'draft' | 'published' } | null
-  audienceChanged: boolean
+import type { CourseConflict } from '../../lib/courseConflictComparison'
+export type { CourseConflict } from '../../lib/courseConflictComparison'
+
+function FieldComparison({ field }: { field: CourseConflict['courseFields'][number] }) {
+  const t = useT()
+  return <section style={{ marginBlock: 10 }}>
+    <h4 style={{ margin: '0 0 6px', fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{field.label}</h4>
+    <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', gap: 8, margin: 0 }}>
+      {[[t('В базе'), field.database], [t('В этой вкладке'), field.tab]].map(([side, value]) => (
+        <div key={side} style={{ padding: '8px 10px', borderRadius: 12, background: 'var(--color-bg-2)', minWidth: 0 }}>
+          <dt style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-muted)' }}>{side}</dt>
+          <dd style={{ margin: '4px 0 0', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.5, fontSize: 13,
+            color: value ? 'var(--color-text)' : 'var(--color-muted)' }}>{value || t('Пусто')}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
 }
 
-export default function ConflictDialog({ info, onOverwrite, onReload, onClose }: {
+export default function ConflictDialog({ info, onOverwrite, onReload, onClose, report }: {
   info: CourseConflict
   onOverwrite: () => void
   onReload: () => void
   onClose: () => void
+  report?: { label: string; onClick?: () => void }
 }) {
   const t = useT()
   const statusWord = (s: 'draft' | 'published') => (s === 'published' ? t('опубликован') : t('черновик'))
@@ -46,7 +40,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
     {
       id: 'added',
       title: t('Есть только в базе'),
-      note: t('Этих уроков нет в вашей вкладке — «Оставить моё» их удалит вместе с ответами учеников.'),
+      note: t('В этой вкладке этих уроков нет. Проверьте состав курса перед сохранением.'),
       Icon: AlertTriangle,
       tone: 'var(--color-red-text)',
       lines: info.added,
@@ -62,7 +56,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
     {
       id: 'localNew',
       title: t('Есть только в этой вкладке'),
-      note: t('Останутся при «Оставить моё», пропадут при «Взять из базы».'),
+      note: t('При загрузке версии из базы эти уроки исчезнут из вкладки.'),
       Icon: PlusCircle,
       tone: 'var(--color-green-text)',
       lines: info.localNew,
@@ -77,7 +71,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
   if (info.audienceChanged)
     fieldLines.push({ Icon: Users, text: t('Группы или ученики в базе и во вкладке различаются.') })
 
-  const nothing = groups.length === 0 && fieldLines.length === 0
+  const nothing = !groups.length && !fieldLines.length && !info.courseFields.length && !info.lessonFields.length
 
   const bodyRef = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ top: false, bottom: false })
@@ -88,9 +82,18 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
   })
 
   return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'min(4vw, 20px)' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
       <motion.div
+        role="dialog" aria-modal="true" aria-labelledby="course-conflict-title"
+        onKeyDown={event => {
+          if (event.key === 'Escape') onClose()
+          if (event.key !== 'Tab') return
+          const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not([disabled])')
+          const first = buttons[0], last = buttons[buttons.length - 1]
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
+        }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }}
         style={{
           position: 'relative', width: 'min(560px, 100%)', maxHeight: '82vh',
@@ -102,14 +105,14 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
         <header className="flex items-center flex-shrink-0" style={{ gap: 10, padding: '18px 22px', borderBottom: '1px solid var(--color-border-soft)' }}>
           <AlertTriangle size={18} style={{ color: 'var(--color-yellow-text)' }} />
           <span className="flex-1 min-w-0">
-            <span style={{ display: 'block', fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>
+            <span id="course-conflict-title" style={{ display: 'block', fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>
               {t('Курс изменили в другом месте')}
             </span>
             <span style={{ display: 'block', fontSize: 12, color: 'var(--color-muted)' }}>
               {t('Сравните версию в базе с черновиком этой вкладки.')}
             </span>
           </span>
-          <button data-hover="layer" onClick={onClose} aria-label={t('Закрыть')} className="cursor-pointer flex items-center justify-center flex-shrink-0"
+          <button autoFocus data-hover="layer" onClick={onClose} aria-label={t('Закрыть')} className="cursor-pointer flex items-center justify-center flex-shrink-0"
             style={{ width: 32, height: 32, borderRadius: 11, border: '1px solid var(--color-border-soft)', background: 'transparent', color: 'var(--color-muted)' }}>
             <X size={16} />
           </button>
@@ -117,13 +120,23 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
 
         <div style={{ position: 'relative', minHeight: 0, display: 'flex' }}>
           <div ref={el => { bodyRef.current = el; if (el) updateEdges(el) }} onScroll={e => updateEdges(e.currentTarget)}
-            style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '16px 22px' }}>
+            style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowWrap: 'anywhere', padding: '16px clamp(12px, 3vw, 22px)' }}>
+            <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)', marginBottom: 12 }}>
+              {t('«Взять из базы» откроет сохранённый курс и удалит черновик этой вкладки. «Оставить моё» попробует сохранить правки вкладки. Если сохранить их безопасно не удастся, черновик останется здесь.')}
+            </p>
             {nothing ? (
               <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5, padding: '12px 0' }}>
-                {t('Список уроков и показанные поля совпадают. Содержимое уроков в этом окне не сравнивается.')}
+                {t('Состав курса, названия, описания, таймкоды, статус и аудитория совпадают. Версии могут различаться материалами, заданиями или другими полями.')}
               </p>
             ) : (
               <>
+                {info.courseFields.map(field => <FieldComparison key={field.label} field={field} />)}
+                {info.lessonFields.map(lesson => <section key={lesson.id} style={{ marginBottom: 16 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+                    {t('Урок')}{lesson.number != null ? ` ${lesson.number}` : ''} · {lesson.title}
+                  </h3>
+                  {lesson.fields.map(field => <FieldComparison key={field.label} field={field} />)}
+                </section>)}
                 {groups.map(g => (
                   <section key={g.id} style={{ marginBottom: 18 }}>
                     <div className="flex items-center" style={{ gap: 8, marginBottom: 6 }}>
@@ -155,6 +168,10 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
                 )}
               </>
             )}
+            {report && <div aria-live="polite" style={{ marginTop: 10 }}><button type="button" data-hover="layer" disabled={!report.onClick}
+              onClick={report.onClick} style={btn('S', 'secondary')}>
+              <OpticalText as="iskra-button-label">{report.label}</OpticalText>
+            </button></div>}
           </div>
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0, height: 26, pointerEvents: 'none',
@@ -168,7 +185,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose }:
           }} />
         </div>
 
-        <footer className="flex items-center flex-shrink-0" style={{ gap: 10, padding: '14px 22px', borderTop: '1px solid var(--color-border-soft)' }}>
+        <footer className="flex items-center flex-shrink-0" style={{ flexWrap: 'wrap', gap: 8, padding: '12px clamp(12px, 3vw, 22px)', borderTop: '1px solid var(--color-border-soft)' }}>
           <button data-hover="layer" onClick={onReload} className="cursor-pointer flex items-center" style={{ ...btn('M', 'secondary'), gap: 8 }}>
             <RotateCcw size={14} /> <OpticalText as="iskra-button-label">{t('Взять из базы')}</OpticalText>
           </button>

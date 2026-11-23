@@ -565,6 +565,12 @@ export default function TeacherAdminPage({ onBack, sheetSection }: {
     const saved = sessionStorage.getItem('admin_tab')
     return saved === 'data' || saved === 'analytics' || saved === 'users' || saved === 'requests' || saved === 'dictionary' || saved === 'features' ? saved : 'overview'
   })
+  useEffect(() => {
+    if (sheetSection) return
+    const openRequests = () => setTab('requests')
+    window.addEventListener('iskra:open-admin-requests', openRequests)
+    return () => window.removeEventListener('iskra:open-admin-requests', openRequests)
+  }, [sheetSection])
   // Второй уровень «Обзора», как разделы в «Аналитике»: каждый блок — своя вкладка.
   const [section, setSection] = useState<OverviewSection>(() => {
     const saved = sessionStorage.getItem('admin_overview_section')

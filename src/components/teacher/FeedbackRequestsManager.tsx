@@ -76,7 +76,12 @@ export default function FeedbackRequestsManager() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    void load()
+    const openReport = () => { setView('requests'); setFilter('all'); void load() }
+    window.addEventListener('iskra:open-admin-requests', openReport)
+    return () => window.removeEventListener('iskra:open-admin-requests', openReport)
+  }, [])
   useEffect(() => {
     if (view !== 'digest') return
     let alive = true
@@ -186,7 +191,7 @@ export default function FeedbackRequestsManager() {
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-                    {r.author_name || (r.author_role === 'teacher' ? t('Учитель') : r.author_role === 'lead' ? t('Заявка') : t('Ученик'))}
+                    {r.author_name || account?.name || (r.author_role === 'teacher' ? t('Учитель') : r.author_role === 'lead' ? t('Заявка') : t('Ученик'))}
                     <span style={{ fontWeight: 500, color: 'var(--color-text-3)' }}> · {roleLabel}</span>
                   </div>
                   {r.contact && (

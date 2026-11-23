@@ -33,7 +33,9 @@ import { compactFullLessons } from '../../lib/courseFullCompact'
 import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
 import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
 import { courseSaveProvenance, courseSnapshotStamp } from '../../lib/courseSaveProvenance'
-import { courseSaveCause, courseSaveReason, courseSaveStageText } from '../../lib/courseSaveReason'
+import { createCourseSaveReport, type ReportContext } from '../../lib/courseSaveReport'
+import { submitCourseSaveReport } from '../../lib/submitCourseSaveReport'
+import { classifyCourseSaveFailure, courseSaveCause, courseSaveReason as describeCourseSaveFailure, courseSaveStageText, type CourseSaveError, type CourseSaveStage } from '../../lib/courseSaveReason'
 import { LoopTextIcon } from '../../components/icons/LoopIcon'
 import { X as LoopMarkX } from '../../components/icons/appIcons'
 import { Eye } from '../../components/icons/appIcons'
@@ -113,7 +115,8 @@ import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
 import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
-import ConflictDialog, { type CourseConflict } from '../../components/teacher/ConflictDialog'
+import ConflictDialog from '../../components/teacher/ConflictDialog'
+import { compareCourseVersions, type CourseConflict } from '../../lib/courseConflictComparison'
 import {
   paragraphsToTheory, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
   cutTheoryAtFigures, joinTheoryAtFigures, setFigureCaption, moveTheoryFigure,
@@ -6588,6 +6591,15 @@ export default function TeacherCourseEditorPage() {
   // сбоев подряд (по нему — «Не сохранено» и автоповтор через 30 с).
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null)
   const [saveFailures, setSaveFailures] = useState(0)
+  const courseKey = course.dbCourseId ?? course.id
+  const reporter = useMemo(() => createCourseSaveReport(`iskra.courseSaveReport.${courseKey}`), [courseKey])
+  const reportState = useSyncExternalStore(reporter.subscribe, reporter.getSnapshot, reporter.getSnapshot)
+  const failureDetail = useRef<Pick<ReportContext, 'stage' | 'code' | 'kind'>>({ stage: 'unknown' })
+  function courseSaveReason(stage: CourseSaveStage, error: CourseSaveError, id?: string) {
+    failureDetail.current = { stage, code: error?.code, kind: classifyCourseSaveFailure(error) }
+    return describeCourseSaveFailure(stage, error, id)
+  }
+
   // publishErr, который положил сбой записи, показываем карточкой «Не сохранено»
   // с «Повторить», а не второй плашкой с тем же смыслом.
   const saveFailText = useRef<string | null>(null)
@@ -6603,6 +6615,15 @@ export default function TeacherCourseEditorPage() {
   // Конфликт версий: не булев флаг, а что именно разошлось — окно показывает
   // список и даёт выбрать, чью версию оставить (см. ConflictDialog).
   const [conflict, setConflict] = useState<CourseConflict | null>(null)
+
+  const reportAction = reportState.attempts < 2 ? undefined : {
+    label: reportState.status === 'sent' ? t('Сообщение отправлено') : reportState.status === 'sending' ? t('Отправляем…')
+      : reportState.status === 'error' ? t('Не удалось отправить. Повторить отправку') : t('Сообщить об ошибке'),
+    onClick: reportState.status === 'sent' || reportState.status === 'sending' ? undefined : () => {
+      void reporter.send({ courseId: courseKey, recoveredDraft, conflict: !!conflict,
+        ...(conflict ? { stage: 'conflict' as const, code: 'PT409', kind: 'conflict' as const } : failureDetail.current) }, submitCourseSaveReport)
+    },
+  }
 
   // ── Autosave ──────────────────────────────────────────────────────────────
   // Persist edits ~900ms after the teacher stops changing things, so they never
@@ -6703,7 +6724,7 @@ export default function TeacherCourseEditorPage() {
     const c = latestCourse.current
     if (c.heavyPending || publicationPending) return
     if (!c.dbCourseId && !c.title.trim()) return
-    void latestRunAutosave.current(c)
+    return latestRunAutosave.current(c)
   }
   // Сеть вернулась — недоехавший курс досылаем сами: это обещание строки
   // «Нет сети — сохраню, когда появится».
@@ -6848,6 +6869,7 @@ export default function TeacherCourseEditorPage() {
   function flash() {
     setLastSavedAt(Date.now())
     setSaveFailures(0)
+    reporter.reset()
   }
 
   // Returns true when the course row (title/description/status/access) made it
@@ -6873,56 +6895,20 @@ export default function TeacherCourseEditorPage() {
     return lessonStamp > courseStamp ? lessonStamp : courseStamp
   }
 
-  // Собрать картину расхождения для окна конфликта: что в базе есть, а у нас нет
-  // (сохранение это удалит), что переименовали, что мы добавили сами, и правки
-  // полей курса. Читается только при конфликте — редкая ветка, лишний запрос
-  // здесь не в счёт.
   async function buildConflict(shortId: string, c: CourseEdData, stamp: string): Promise<CourseConflict> {
-    const nameless = t('Без названия')
-    const { data, error } = await supabase
-      .from('courses')
-      .select('title, status, group_ids, student_ids, lessons(short_id, title, lesson_number)')
+    // The values shown and the version the teacher reviews belong to one read.
+    const { data, error } = await supabase.from('courses')
+      .select('updated_at, title, description, status, group_ids, student_ids, lessons(short_id, updated_at, title, lesson_number, description, timecodes, chapter_variants)')
       .eq('short_id', shortId).maybeSingle()
-
     if (error || !data || !Array.isArray(data.lessons)) {
       throw new Error(t('Не удалось загрузить версию курса из базы. Черновик сохранён. Повторите сравнение.'))
     }
-
-    const srvLessons = ((data?.lessons ?? []) as Array<{ short_id: string; title: string | null; lesson_number: number | null }>)
-      .slice().sort((a, b) => (a.lesson_number ?? 0) - (b.lesson_number ?? 0))
-    const shortById = lessonShortIdMap(shortId, c.lessons)
-    const localByShort = new Map(c.lessons.map(l => [shortById[l.id] ?? l.id, l.title]))
-    const srvShortIds = new Set(srvLessons.map(l => l.short_id))
-
-    const added: string[] = []
-    const renamed: { from: string; to: string }[] = []
-    for (const l of srvLessons) {
-      if (!localByShort.has(l.short_id)) { added.push(l.title || nameless); continue }
-      const localTitle = localByShort.get(l.short_id) ?? ''
-      if ((l.title ?? '') !== localTitle) renamed.push({ from: l.title || nameless, to: localTitle || nameless })
+    const current = courseSnapshotStamp(data.updated_at, data.lessons.map(l => l.updated_at))
+    const currentKey = stampKey(current), conflictKey = stampKey(stamp)
+    if (!currentKey || !conflictKey || currentKey < conflictKey) {
+      throw new Error(t('Обновлённая версия курса ещё загружается. Черновик сохранён. Повторите сравнение.'))
     }
-    const localNew: string[] = []
-    for (const l of c.lessons) {
-      if (!srvShortIds.has(shortById[l.id] ?? l.id)) localNew.push(l.title || nameless)
-    }
-
-    const srvTitle = (data?.title as string | undefined) ?? null
-    const srvStatus = (data?.status as 'draft' | 'published' | undefined) ?? null
-    const sameSet = (a: string[], b: string[]) =>
-      a.length === b.length && [...a].sort().join('\u0000') === [...b].sort().join('\u0000')
-
-    return {
-      stamp,
-      added,
-      renamed,
-      localNew,
-      titleChange: data && (srvTitle ?? '') !== c.title ? { from: srvTitle || nameless, to: c.title || nameless } : null,
-      statusChange: srvStatus && srvStatus !== c.status ? { from: srvStatus, to: c.status } : null,
-      audienceChanged: !!data && (
-        !sameSet(((data?.group_ids as string[]) ?? []), c.groupIds) ||
-        !sameSet(((data?.student_ids as string[]) ?? []), c.studentIds)
-      ),
-    }
+    return compareCourseVersions(shortId, c, data, current, t)
   }
 
   // ── Записи курса идут строго по одной ─────────────────────────────────────
@@ -6993,6 +6979,7 @@ export default function TeacherCourseEditorPage() {
 
   async function syncCourseNow(c: CourseEdData): Promise<boolean> {
     saveIssue.current = null
+    failureDetail.current = { stage: 'unknown' }
     const shortId = c.dbCourseId ?? c.id
 
     // Страховка на случай нового пути в сохранение: запись идёт курсом целиком,
@@ -8078,6 +8065,7 @@ export default function TeacherCourseEditorPage() {
       {conflict && (
         <ConflictDialog
           info={conflict}
+          report={reportAction}
           onClose={() => setConflict(null)}
           // «Взять из базы» — перезагрузка: несохранённые правки этой вкладки
           // пропадут, зато версия станет ровно серверной. Черновик гасим, иначе
@@ -8090,13 +8078,14 @@ export default function TeacherCourseEditorPage() {
               metadataPending: true, heavyPending: true,
             }
             unsaved.current = false
+            reporter.reset()
             clearDrafts(draftNs)
             useTeacher.getState().openCourseEditor(JSON.stringify(fresh))
             window.location.reload()
           }}
           // The review applies only to this exact server version. A recovered
           // draft still uses the witnessed, raw-preserving ordinary write path.
-          onOverwrite={() => {
+          onOverwrite={() => { void reporter.retry(() => {
             const stamp = conflict.stamp
             if (recovering.current) {
               const base = confirmedContent.current
@@ -8108,16 +8097,17 @@ export default function TeacherCourseEditorPage() {
               }
               const local = latestCourse.current
               if (!draftSource.current && isAmbiguousLegacyRecovery(base, local.serverStamp, courseContentSnapshot(local, base.lessons))) {
+                failureDetail.current = { stage: 'conflict', code: 'ISKRA_DATA_PRESERVATION', kind: 'preservation' }
                 setConflict(null)
                 noteSaveFailure(t('Другие уроки изменились после создания старого черновика. Скопируйте свои правки, затем откройте версию из базы. Черновик сохранён на устройстве.'))
-                return
+                return Promise.resolve(false)
               }
             }
             setConflict(null)
             baselineStamp.current = stamp
             reviewedContentOverwrite.current = !recovering.current && courseDeltaProbeEnabled(latestCourse.current.dbCourseId ?? latestCourse.current.id)
-            void runAutosave(latestCourse.current)
-          }}
+            return runAutosave(latestCourse.current)
+          }) }}
         />
       )}
 
@@ -8239,14 +8229,19 @@ export default function TeacherCourseEditorPage() {
         style={{ flexShrink: 0, margin: '0 24px 8px' }}
         items={[
           // Сбой записи — «Не сохранено: причина» с «Повторить» (концепт ПК, вариант A).
-          // Без сети карточки нет: это не ошибка, строка статуса уже говорит
-          // «Нет сети — сохраню, когда появится», и правки уйдут сами.
-          saveFailures > 0 && !conflict && online && {
+          saveFailures > 0 && !conflict && {
             id: 'save-err', tone: 'danger', title: `${t('Не сохранено')}:`,
-            text: `${saveFailReason.current ?? ''} ${shouldAutoRetry(saveFailures, online, false)
+            text: <>{`${saveFailReason.current ?? ''} ${shouldAutoRetry(saveFailures, online, false)
               ? t('Правки целы в этой вкладке — повторю сам через 30 с.')
-              : t('Правки целы в этой вкладке.')}`,
-            action: { label: t('Повторить'), onClick: retrySave },
+              : t('Правки целы в этой вкладке.')}`}{reportAction && (
+                <span aria-live="polite" style={{ display: 'block', marginTop: 6 }}>
+                  {reportAction.onClick ? <button type="button" onClick={reportAction.onClick}
+                    style={{ color: 'var(--color-text)', font: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}>
+                    {reportAction.label}
+                  </button> : reportAction.label}
+                </span>
+              )}</>,
+            action: { label: t('Повторить'), onClick: () => { void reporter.retry(retrySave) } },
           },
           !!publishErr && !conflict && !(saveFailures > 0 && publishErr === saveFailText.current) && {
             id: 'publish-err', tone: 'danger', text: publishErr,

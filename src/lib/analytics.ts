@@ -70,7 +70,7 @@ function uuid(): string {
   return 'sess-' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('') + Date.now().toString(36)
 }
 
-function getSessionId(): string {
+export function getSessionId(): string {
   if (sessionId) return sessionId
   try {
     const existing = sessionStorage.getItem(SESSION_KEY)

@@ -88,6 +88,7 @@ function runUpdate(ctx: string, q: PromiseLike<{ error: unknown }>) {
 function teacherTarget(row: NotifRow): NotifAction | undefined {
   const link = row.link
   const open = t('Открыть')
+  if (row.type === 'course_save_failure') return { label: open, page: '#/teacher/admin', tab: 'requests' }
   if (row.type === 'fill_journal')
     return { label: t('Заполнить'), page: '#/teacher/gradebook', scheduleId: link?.scheduleId }
   if ((row.type === 'student_joined' || row.type === 'payment_due') && link?.studentId)
@@ -115,7 +116,10 @@ export function followNotifAction(action: NotifAction | undefined): boolean {
     try { sessionStorage.setItem(JOURNAL_SCHEDULE_KEY, action.scheduleId) } catch {}
     window.dispatchEvent(new CustomEvent(JOURNAL_SCHEDULE_EVENT, { detail: action.scheduleId }))
   }
-  if (action.tab && action.page.startsWith('#/teacher/profile')) {
+  if (action.page === '#/teacher/admin' && action.tab === 'requests') {
+    try { sessionStorage.setItem('admin_tab', 'requests'); sessionStorage.setItem('feedback_view', 'requests') } catch {}
+    window.dispatchEvent(new Event('iskra:open-admin-requests'))
+  } else if (action.tab && action.page.startsWith('#/teacher/profile')) {
     // Раздел профиля («Интеграции»): страница читает его при открытии,
     // а уже открытая — ловит событие.
     try { sessionStorage.setItem('profile_section', action.tab) } catch {}
