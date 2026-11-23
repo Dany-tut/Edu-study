@@ -103,10 +103,12 @@ export default function TeacherHardReviewPage() {
     const status = deriveHardRowStatus(sub!.taskBlocks, tasks)
     const score = deriveHardScore(tasks)
     setBusy(true)
-    const ok = await reviewHardMulti(sub!.id, review, status, score)
-    if (!ok) {
+    const result = await reviewHardMulti(sub!.id, review, status, score, sub!.updatedAt)
+    if (result !== 'ok') {
       // Черновик комментария остаётся на месте: он единственная копия.
-      void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+      void alertDialog({ title: result === 'stale'
+        ? t('Ученик прислал новое решение, пока вы проверяли. Работа обновлена — посмотрите её и проверьте снова.')
+        : t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
       setBusy(false)
       return
     }

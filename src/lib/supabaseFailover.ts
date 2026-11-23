@@ -130,8 +130,10 @@ export function ruFailoverFetch(base: typeof fetch, directUrl: string, proxyUrl:
     if (!ours) return base(input, init)
 
     const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
-    const restWrite = new URL(hrefOf(input)).pathname.startsWith('/rest/v1/') && method !== 'GET' && method !== 'HEAD'
-    if (restWrite) {
+    // Every non-read: REST, Storage uploads, edge functions, auth. A 2.5s abort
+    // would cut slow uploads and replay function calls that already ran.
+    const write = method !== 'GET' && method !== 'HEAD'
+    if (write) {
       // Probe a safe read before the FIRST write, never the mutation itself.
       // Aborting a POST does not prove its transaction was rolled back: replay
       // through another origin could apply the same action twice.
@@ -178,9 +180,8 @@ export function ruFailoverFetch(base: typeof fetch, directUrl: string, proxyUrl:
       clearTimeout(timer)
       // Отмену инициировал сам вызывающий (а не наш пробный таймаут) — пробрасываем.
       if (own?.aborted) throw e
-      // Ретрай с телом безопасен только для строкового input (body лежит в init —
-      // так шлёт auth/rest, включая логин). Для Request с потоковым телом (загрузки
-      // в Storage) не ретраим, тело уже может быть прочитано: честно пробрасываем.
+      // Сюда доходят только чтения. Request-объект мог быть уже прочитан —
+      // повторяем лишь строковый/URL input.
       if (!(typeof input === 'string' || input instanceof URL)) throw e
       try {
         const res = await base(swapOrigin(hrefOf(input), directOrigin, proxyOrigin), { ...init, signal: own })

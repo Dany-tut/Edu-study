@@ -6711,19 +6711,38 @@ export default function TeacherCourseEditorPage() {
     // They previously scheduled another full save, which acknowledged again.
     if (autosaveEditRevision.current === editRevision) return
     unsaved.current = true
-    const t = setTimeout(() => {
+    const run = () => {
+      clearTimeout(t)
+      if (pendingAutosave.current === run) pendingAutosave.current = null
       autosaveEditRevision.current = editRevision
       setCourseEdited(JSON.stringify(course))
       runAutosave(course)
-    }, 900)
-    return () => clearTimeout(t)
+    }
+    const t = setTimeout(run, 900)
+    pendingAutosave.current = run
+    return () => {
+      clearTimeout(t)
+      if (pendingAutosave.current === run) pendingAutosave.current = null
+    }
   }, [course, editRevision, publicationPending])
+  // iOS Safari and the app WebView skip beforeunload: a backgrounded editor may
+  // be killed inside the 900 ms debounce. Send the pending save as it hides.
+  useEffect(() => {
+    const flush = () => { if (document.visibilityState === 'hidden') pendingAutosave.current?.() }
+    document.addEventListener('visibilitychange', flush)
+    window.addEventListener('pagehide', flush)
+    return () => {
+      document.removeEventListener('visibilitychange', flush)
+      window.removeEventListener('pagehide', flush)
+    }
+  }, [])
 
   // «Сохранено!» — только после ответа базы. Раньше подпись мигала сразу, до
   // записи, и при неудаче врала: учитель видел «Сохранено!», а в базе пусто.
   // Пока последняя правка не доехала, `unsaved` поднят: по нему закрытие вкладки
   // спрашивает подтверждение, а уход из редактора дописывает курс напоследок.
   const unsaved = useRef(recoveredDraft)
+  const pendingAutosave = useRef<(() => void) | null>(null)
   const latestCourse = useRef(course)
   latestCourse.current = course
   // Свежая функция, а не из первого рендера: та видит пустую карту уровней

@@ -197,9 +197,10 @@ export default function MobileTeacherReview({ onDetailChange }: { onDetailChange
   // firing a Supabase write against a fake id.
   const onReviewed = async (id: string, verdict: 'completed' | 'returned', comment: string, att: ReviewAttachments) => {
     if (isDemoId(id)) return true
-    const ok = await reviewHard(id, verdict, comment, { ...att, annotation: null })
-    if (!ok) void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
-    return ok
+    const result = await reviewHard(id, verdict, comment, { ...att, annotation: null }, submissions.find(s => s.id === id)?.updatedAt)
+    if (result === 'stale') void alertDialog({ title: t('Ученик прислал новое решение, пока вы проверяли. Работа обновлена — посмотрите её и проверьте снова.'), tone: 'danger' })
+    else if (result === 'failed') void alertDialog({ title: t('Не удалось сохранить проверку — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+    return result === 'ok'
   }
 
   if (selectedHomework) return <MobileHomeworkReview key={selectedHomework.id} homework={selectedHomework} demoSubmissions={demo ? demoRows : undefined} onBack={() => setSelectedHomework(null)} onPublished={(id, verdict) => { if (demo) setDemoResults(old => ({ ...old, [id]: verdict })); else void reloadHomework() }} />

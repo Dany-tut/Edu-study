@@ -2475,56 +2475,71 @@ export default function HomeworkFlow({
 
   // Отправка решения по одной вкладке: дописываем НОВЫЙ круг в её историю,
   // сохраняя предыдущие решения и не трогая остальные задания / ревью учителя.
-  async function submitTabSolution(key: string, payload: { answer: string; photos: string[]; board: string | null; voice: string | null }) {
+  async function submitTabSolution(key: string, payload: { answer: string; photos: string[]; board: string | null; voice: string | null }, roundId = hardId('sol')) {
     const session = getStudentSession()
     if (!session?.id) return
     if (hardSubmittingRef.current) return
     hardSubmittingRef.current = true
     setHardBusy(true)
+    // «Повторить» после потерянного ответа шлёт тот же круг: id не меняется.
+    const retry = () => { void submitTabSolution(key, payload, roundId) }
     try {
       const ref = `${lessonId}-hard`
-      const { data, error: loadError } = await supabase
-        .from('lesson_progress')
-        // comment/review/status нужны, чтобы при первой пере-отправке мигрировать
-        // legacy одиночное решение в первый раунд (не потерять прошлый ответ).
-        .select('comment, attachments, review_attachments, status, updated_at')
-        .eq('student_id', ownerStudentIdFor(subject))
-        .eq('lesson_ref', ref)
-        .maybeSingle()
-      if (loadError) throw loadError
-      const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
-        ? (data!.attachments as HardAttachmentsNew).tasks
-        : (data ? legacyHardToBlocks(data as LegacyHardRow).taskBlocks : [])
-      const prevByKey = new Map(prevTasks.map(t => [t.key, t]))
+      const owner = ownerStudentIdFor(subject)
       let stored: typeof payload
       try {
-        stored = await storeSolutionImages(payload, ownerStudentIdFor(subject))
+        stored = await storeSolutionImages(payload, owner)
       } catch (error) {
         console.error('[hard photo upload]', error)
         setSubmitFailed({
           text: tStatic('Фото не отправлены — проверьте связь и повторите. Черновик сохранён.'),
-          retry: () => { void submitTabSolution(key, payload) },
+          retry,
         })
         setHardBusy(false)
         return
       }
-      const round: HardSolution = { id: hardId('sol'), at: new Date().toISOString(), ...stored }
-      const tasks: HardTaskStudentBlock[] = effectiveDefs.map(d => {
-        const sols = studentSolutions(prevByKey.get(d.key))
-        return { key: d.key, statement: d.statement, solutions: d.key === key ? [...sols, round] : sols }
-      })
-      const summary = tasks
-        .map(t => (studentSolutions(t).slice(-1)[0]?.answer || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim())
-        .filter(Boolean).join('\n\n')
-      // score / review_attachments не трогаем — сохраняем накопленную оценку учителя.
-      const { error } = await supabase.from('lesson_progress').upsert({
-        student_id: ownerStudentIdFor(subject),
-        lesson_ref: ref,
-        subject,
-        status: 'submitted',
-        comment: summary,
-        attachments: { v: 2, tasks },
-      }, { onConflict: 'student_id,lesson_ref' })
+      const round: HardSolution = { id: roundId, at: new Date().toISOString(), ...stored }
+      // Read → append → write only if the row is unchanged since the read; a
+      // concurrent round from another device is re-read, never overwritten.
+      let error: { code?: string; message?: string } | null = null
+      let written = false
+      for (let attempt = 0; attempt < 3 && !written; attempt++) {
+        const { data, error: loadError } = await supabase
+          .from('lesson_progress')
+          // comment/review/status нужны, чтобы при первой пере-отправке мигрировать
+          // legacy одиночное решение в первый раунд (не потерять прошлый ответ).
+          .select('comment, attachments, review_attachments, status, updated_at')
+          .eq('student_id', owner)
+          .eq('lesson_ref', ref)
+          .maybeSingle()
+        if (loadError) throw loadError
+        const prevTasks: HardTaskStudentBlock[] = isNewHard(data?.attachments)
+          ? (data!.attachments as HardAttachmentsNew).tasks
+          : (data ? legacyHardToBlocks(data as LegacyHardRow).taskBlocks : [])
+        const prevByKey = new Map(prevTasks.map(t => [t.key, t]))
+        if (studentSolutions(prevByKey.get(key)).some(s => s.id === roundId)) { written = true; break }
+        const tasks: HardTaskStudentBlock[] = effectiveDefs.map(d => {
+          const sols = studentSolutions(prevByKey.get(d.key))
+          return { key: d.key, statement: d.statement, solutions: d.key === key ? [...sols, round] : sols }
+        })
+        const summary = tasks
+          .map(t => (studentSolutions(t).slice(-1)[0]?.answer || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').trim())
+          .filter(Boolean).join('\n\n')
+        // score / review_attachments не трогаем — сохраняем накопленную оценку учителя.
+        // No trigger bumps lesson_progress.updated_at; writing it is what lets the
+        // other device and the teacher's review detect this round.
+        const values = { subject, status: 'submitted', comment: summary, attachments: { v: 2, tasks }, updated_at: new Date().toISOString() }
+        const res = data
+          ? await supabase.from('lesson_progress').update(values)
+            .eq('student_id', owner).eq('lesson_ref', ref).eq('updated_at', data.updated_at)
+            .select('updated_at').maybeSingle()
+          : await supabase.from('lesson_progress').insert({ student_id: owner, lesson_ref: ref, ...values })
+            .select('updated_at').maybeSingle()
+        // 23505: the row appeared since the read — re-read and append to it.
+        if (res.error && res.error.code !== '23505') { error = res.error; break }
+        written = !res.error && !!res.data
+      }
+      if (!written && !error) error = { code: 'ISKRA_CONCURRENT_EDIT', message: 'Hard row kept changing during submit' }
       if (error) {
         // Круг переписки не дошёл до базы: вкладку НЕ помечаем сданной, иначе
         // ученик закроет урок, а решения этого раунда не существует.
@@ -2535,7 +2550,7 @@ export default function HomeworkFlow({
         })
         setSubmitFailed({
           text: tStatic('Решение не отправлено — проверьте связь и повторите.'),
-          retry: () => { void submitTabSolution(key, payload) },
+          retry,
         })
         setHardBusy(false)
         return
@@ -2549,7 +2564,7 @@ export default function HomeworkFlow({
       console.error('[hard submit]', error)
       setSubmitFailed({
         text: tStatic('Решение не отправлено — проверьте связь и повторите.'),
-        retry: () => { void submitTabSolution(key, payload) },
+        retry,
       })
     } finally {
       hardSubmittingRef.current = false

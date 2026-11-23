@@ -2204,6 +2204,8 @@ export default function TeacherHomeworkCreatePage() {
   // its task ids, and kick off a task-bank load (the composer doesn't load it on
   // its own). Step 2 (below) rebuilds the task cards once the bank arrives.
   const prefilledRef = useRef(false)
+  // Version of the row the edit started from; '' when a restored draft won.
+  const editSeen = useRef('')
   const tasksBuiltRef = useRef(false)
   const [editTaskIds, setEditTaskIds] = useState<{ regular: number[]; hard: number[] } | null>(null)
   const [editHardDefs, setEditHardDefs] = useState<HardTaskDef[] | null>(null)
@@ -2216,11 +2218,12 @@ export default function TeacherHomeworkCreatePage() {
     if (hadDraft.meta && hadDraft.tasks) return
     supabase
       .from('homework')
-      .select('group_id, title, due_date, task_ids, hard_task_ids, hard_tasks, basic_tasks, lesson_id')
+      .select('group_id, title, due_date, task_ids, hard_task_ids, hard_tasks, basic_tasks, lesson_id, updated_at')
       .eq('id', editingHomeworkId)
       .single()
       .then(({ data }) => {
         if (!data) return
+        editSeen.current = data.updated_at ?? ''
         if (!hadDraft.tasks) {
           const hardIds: number[] = Array.isArray(data.hard_task_ids) ? data.hard_task_ids : []
           const allIds: number[] = Array.isArray(data.task_ids) ? data.task_ids : []
@@ -2381,12 +2384,17 @@ export default function TeacherHomeworkCreatePage() {
   }
 
   const [publishing, setPublishing] = useState(false)
+  // Two taps in one render both saw publishing=false; the ref closes that gap.
+  const publishingRef = useRef(false)
+  // Kept until a create succeeds, so a retry after a lost answer reuses it.
+  const createId = useRef(crypto.randomUUID())
   const [publishErr, setPublishErr] = useState<{ tone: 'danger' | 'info'; text: string } | null>(null)
 
   async function doPublish() {
     setShowPublishConfirm(false)
     // Двойной клик вставлял домашку дважды.
-    if (publishing) return
+    if (publishing || publishingRef.current) return
+    publishingRef.current = true
     setPublishing(true)
     setPublishErr(null)
     try {
@@ -2425,20 +2433,27 @@ export default function TeacherHomeworkCreatePage() {
         // Форм и правки банковских молча пропадали при публикации.
         basicTasks: hwTasks,
       }
-      const { error } = editingHomeworkId
-        ? await updateHomework(editingHomeworkId, payload)
-        : await createHomework(payload)
+      const result = editingHomeworkId
+        ? await updateHomework(editingHomeworkId, payload, editSeen.current)
+        : await createHomework(payload, createId.current)
+      const { error } = result
       // Черновик гасим и «Опубликовано!» показываем только после ответа базы:
       // при сбое работа остаётся на экране и в черновике.
+      if ('stale' in result && result.stale) {
+        setPublishErr({ tone: 'danger', text: t('Эту домашку изменили в другом месте. Ваши правки в черновике — откройте домашку заново и перенесите их.') })
+        return
+      }
       if (error) {
         console.error('[homework] publish failed', error)
         setPublishErr({ tone: 'danger', text: t('Не удалось опубликовать — проверьте интернет и попробуйте ещё раз. Задания сохранены в черновике.') })
         return
       }
+      if (!editingHomeworkId) createId.current = crypto.randomUUID()
       clearDrafts(`${draftScope}.`)
       setPublished(true)
       setActivePage('gradebook')
     } finally {
+      publishingRef.current = false
       setPublishing(false)
     }
   }

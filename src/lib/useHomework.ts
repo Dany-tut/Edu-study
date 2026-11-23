@@ -400,9 +400,11 @@ export function useHomework() {
     hardTotal?: number
     hardTasks?: HardTaskDef[]
     basicTasks?: unknown[]
-  }) {
+  }, id: string = crypto.randomUUID()) {
     const acknowledge = homeworkQuery.beginMutation()
-    const { data, error } = await supabase.from('homework').insert({
+    const select = '*, groups(name, icon, color, is_individual)'
+    let { data, error } = await supabase.from('homework').insert({
+      id,
       group_id: hw.groupId,
       title: hw.title,
       assigned_at: new Date().toISOString().slice(0, 10),
@@ -416,7 +418,9 @@ export function useHomework() {
       hard_tasks: hw.hardTasks ?? [],
       basic_tasks: hw.basicTasks ?? [],
       created_by: await getOwnerId(),
-    }).select('*, groups(name, icon, color, is_individual)').single()
+    }).select(select).single()
+    // Same id already stored: an earlier attempt landed but its answer was lost.
+    if (error?.code === '23505') ({ data, error } = await supabase.from('homework').select(select).eq('id', id).single())
     if (!mutationAcknowledged('create_homework', {data, error}, trackEvent)) return {data, error: error ?? missingMutationRow()}
     if (acknowledge(rows => [mapRow(data), ...rows.filter(row => row.id !== data.id)])) void load()
     return { data, error }
@@ -433,9 +437,9 @@ export function useHomework() {
     hardTotal?: number
     hardTasks?: HardTaskDef[]
     basicTasks?: unknown[]
-  }) {
+  }, seen = '') {
     const acknowledge = homeworkQuery.beginMutation()
-    const { data: saved, error } = await supabase.from('homework').update({
+    let query = supabase.from('homework').update({
       group_id: hw.groupId,
       title: hw.title,
       due_date: hw.dueDate || null,
@@ -446,7 +450,11 @@ export function useHomework() {
       hard_total: hw.hardTotal ?? (hw.hardTaskIds?.length ?? 0),
       hard_tasks: hw.hardTasks ?? [],
       basic_tasks: hw.basicTasks ?? [],
-    }).eq('id', id).select('*, groups(name, icon, color, is_individual)').single()
+    }).eq('id', id)
+    // A tab opened before someone else's edit must not overwrite it.
+    if (seen) query = query.eq('updated_at', seen)
+    const { data: saved, error } = await query.select('*, groups(name, icon, color, is_individual)').maybeSingle()
+    if (!error && !saved && seen) return { error: { message: 'stale', code: 'ISKRA_STALE', details: '', hint: '' }, stale: true }
     if (!mutationAcknowledged('update_homework', {data: saved, error}, trackEvent)) return {error: error ?? missingMutationRow()}
     if (acknowledge(rows => {
       const before = rows.find(row => row.id === id)
@@ -563,6 +571,8 @@ const hardQuery = createSharedQuery<HardSub[]>(withLoadFixture(fixtureHard, asyn
   },
 })
 
+export type HardReviewResult = 'ok' | 'failed' | 'stale'
+
 export function useHardSubmissions() {
   const { value: submissions, loading } = useSharedQuery(hardQuery)
   const load = hardQuery.reload
@@ -572,7 +582,8 @@ export function useHardSubmissions() {
     verdict: 'completed' | 'returned',
     comment = '',
     reviewAttachments?: HardReviewNew | { photos: string[]; board: string | null; annotation?: Annotation | null },
-  ) {
+    seen = '',
+  ): Promise<HardReviewResult> {
     const hasAtt = !!reviewAttachments && (
       isNewHard(reviewAttachments)
         ? (reviewAttachments as HardReviewNew).tasks.length > 0
@@ -580,14 +591,26 @@ export function useHardSubmissions() {
             || (reviewAttachments as { board: string | null }).board
             || (reviewAttachments as { annotation?: Annotation | null }).annotation)
     )
-    const { data: saved, error } = await supabase.from('lesson_progress').update({
+    return writeHardReview(id, seen, {
       status: verdict,
       review_comment: comment || null,
       review_attachments: hasAtt ? reviewAttachments : null,
-    }).eq('id', id).select('id')
-    if (!mutationAcknowledged('review_hard_homework', {data: saved,error}, trackEvent)) return false
+    })
+  }
+
+  // A round the student sent after the teacher opened the work must not be
+  // overwritten: write only if the row is unchanged since `seen`.
+  async function writeHardReview(id: string, seen: string, values: Record<string, unknown>): Promise<HardReviewResult> {
+    let query = supabase.from('lesson_progress').update({ ...values, updated_at: new Date().toISOString() }).eq('id', id)
+    if (seen) query = query.eq('updated_at', seen)
+    const { data: saved, error } = await query.select('id')
+    if (!error && seen && Array.isArray(saved) && saved.length === 0) {
+      await load()
+      return 'stale'
+    }
+    if (!mutationAcknowledged('review_hard_homework', {data: saved,error}, trackEvent)) return 'failed'
     await load()
-    return true
+    return 'ok'
   }
 
   // Per-task ревью с раундами: пишем весь обновлённый review_attachments
@@ -597,16 +620,9 @@ export function useHardSubmissions() {
     review: HardReviewNew,
     status: 'submitted' | 'returned' | 'completed',
     score: number,
-  ) {
-    const { data: saved, error } = await supabase.from('lesson_progress').update({
-      status,
-      score,
-      review_comment: null,
-      review_attachments: review,
-    }).eq('id', id).select('id')
-    if (!mutationAcknowledged('review_hard_homework', {data: saved,error}, trackEvent)) return false
-    await load()
-    return true
+    seen = '',
+  ): Promise<HardReviewResult> {
+    return writeHardReview(id, seen, { status, score, review_comment: null, review_attachments: review })
   }
 
   return { submissions, loading, reviewHard, reviewHardMulti, reload: load }
