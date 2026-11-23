@@ -469,9 +469,6 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               style={{
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                // Reserve the journal badge slot before its async query returns.
-                // Otherwise the tab grows when the count arrives and shifts the
-                // neighboring items in the centered navigation pill.
                 // Внешние поля у всех вкладок одинаковы — зазоры между вкладками
                 // ровные. Счётчик — обычный инлайн-элемент после слова: слово
                 // у «Журнала» чуть левее центра на пол-бейджа, без слотов-зеркал.
@@ -513,11 +510,16 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
               {collapsed
                 ? <CountBadge count={badgeCount} tone="danger" ring="var(--color-bg)" style={{ position: 'absolute', top: 3, right: 1, zIndex: 2 }} />
                 : item.id === 'gradebook' && <span aria-hidden={badgeCount <= 0} style={{
-                    // Keep the journal tab's geometry stable while the pending
-                    // count is fetched (and when it transitions back to zero).
-                    width: 32, height: 18, marginLeft: 8, flexShrink: 0,
+                    // Без счётчика слот сворачивается: «Журнал» без уведомлений
+                    // такой же плотный, как соседи. Число из кэша владельца
+                    // приходит сразу, поэтому рывка при загрузке нет; появление
+                    // и уход счётчика — плавные.
+                    width: badgeCount > 0 ? 32 : 0, height: 18,
+                    marginLeft: badgeCount > 0 ? 8 : 0, flexShrink: 0,
+                    opacity: badgeCount > 0 ? 1 : 0,
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative', zIndex: 1,
+                    position: 'relative', zIndex: 1, overflow: 'hidden',
+                    transition: 'width 0.32s cubic-bezier(0.22,1,0.36,1), margin-left 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.2s ease',
                   }}>
                     <CountBadge count={badgeCount} tone={isActive ? 'inverse' : 'danger'} />
                   </span>}
