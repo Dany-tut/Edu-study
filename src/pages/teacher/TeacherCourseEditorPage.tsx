@@ -112,6 +112,7 @@ import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
 import { supabase } from '../../lib/supabase'
 import { courseResetRef, isCourseResetRef } from '../../lib/homeworkReset'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
+import { readDurableCourseDraft, writeDurableCourseDraft, clearDurableCourseDraft } from '../../lib/courseDurableDraft'
 import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
@@ -6245,7 +6246,8 @@ export default function TeacherCourseEditorPage() {
           modules: [],
           lessons: [],
         }
-    const draft = readDraft<CourseDraft>(`coursed.${base.dbCourseId ?? base.id}.course`)
+    const draftKeyAtOpen = `coursed.${base.dbCourseId ?? base.id}.course`
+    const draft = readDraft<CourseDraft>(draftKeyAtOpen) ?? readDurableCourseDraft<CourseDraft>(draftKeyAtOpen)
     return openCourseRecovery(base, draft)
   })
   const setCourse = useCallback<React.Dispatch<React.SetStateAction<CourseEdData>>>(edit => {
@@ -6439,6 +6441,7 @@ export default function TeacherCourseEditorPage() {
     if (publishedEditRevision.current === editRevision) {
       persistedDraftRevision.current = editRevision
       clearDrafts(draftNs)
+      clearDurableCourseDraft(draftKey)
       return
     }
     if (!course.metadataPending) {
@@ -6451,6 +6454,7 @@ export default function TeacherCourseEditorPage() {
     if (synced && draftSeq.current === seqAtSave) {
       cleanRevision.current = seqAtSave
       clearDrafts(draftNs)
+      clearDurableCourseDraft(draftKey)
       try { sessionStorage.setItem('ce-session', JSON.stringify(persistedSnapshot(latestCourse.current, false))) } catch { /* storage quota */ }
     }
   }
@@ -6728,7 +6732,15 @@ export default function TeacherCourseEditorPage() {
   // iOS Safari and the app WebView skip beforeunload: a backgrounded editor may
   // be killed inside the 900 ms debounce. Send the pending save as it hides.
   useEffect(() => {
-    const flush = () => { if (document.visibilityState === 'hidden') pendingAutosave.current?.() }
+    const flush = () => {
+      if (document.visibilityState !== 'hidden') return
+      pendingAutosave.current?.()
+      // The OS may evict a hidden app with its sessionStorage; keep a durable copy
+      // of unsaved work until a save acknowledges it.
+      if (unsaved.current && !latestCourse.current.metadataPending) {
+        writeDurableCourseDraft(latestDraftKey.current, latestSnapshot.current(latestCourse.current, true))
+      }
+    }
     document.addEventListener('visibilitychange', flush)
     window.addEventListener('pagehide', flush)
     return () => {
@@ -6743,6 +6755,10 @@ export default function TeacherCourseEditorPage() {
   // спрашивает подтверждение, а уход из редактора дописывает курс напоследок.
   const unsaved = useRef(recoveredDraft)
   const pendingAutosave = useRef<(() => void) | null>(null)
+  const latestDraftKey = useRef(draftKey)
+  latestDraftKey.current = draftKey
+  const latestSnapshot = useRef(persistedSnapshot)
+  latestSnapshot.current = persistedSnapshot
   const latestCourse = useRef(course)
   latestCourse.current = course
   // Свежая функция, а не из первого рендера: та видит пустую карту уровней
