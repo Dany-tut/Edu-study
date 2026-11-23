@@ -1,13 +1,14 @@
--- teacher_finance_summary summed expected/debt over every teacher's students and
--- accepted any p_teacher_id: wrong totals and a cross-tenant leak. Same signature
--- and columns, so existing clients keep working. Read-only; touches no data.
+-- teacher_finance_summary summed expected/debt over every student the caller can
+-- read, not the requested teacher's: an admin (or the 0012 definer version) got
+-- totals across all teachers. Keeps production's security invoker + empty
+-- search_path, so RLS still applies. Same signature and columns. Read-only.
 create or replace function public.teacher_finance_summary(p_teacher_id uuid)
 returns table (
   received  bigint,
   expected  bigint,
   debt      bigint,
   forecast  bigint
-) language sql stable security definer set search_path = '' as $$
+) language sql stable security invoker set search_path = '' as $$
   with me as (
     select p_teacher_id as id
     where auth.uid() is not null and (p_teacher_id = auth.uid() or public.is_admin())
