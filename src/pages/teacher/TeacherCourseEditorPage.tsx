@@ -5498,7 +5498,7 @@ export function RightPanelLessons({
     inherited={moduleId ? visibility.hidden('module', moduleId) : false}
     disabled={!visibility.loaded || !!visibility.error || !!course.metadataPending}
     allowDraft={!course.dbCourseId} />
-  const [moduleExpansion, setModuleExpansion] = useState<Record<string, boolean>>({})
+  const [openModuleIds, setOpenModuleIds] = useState<Set<string>>(() => new Set())
   const [newTitle, setNewTitle] = useState('')
   const [addingModule, setAddingModule] = useState(false)
   const [newModuleLabel, setNewModuleLabel] = useState('')
@@ -5551,15 +5551,17 @@ export function RightPanelLessons({
     if (!label) return
     const mod: CEModule = { id: crypto.randomUUID(), label, expanded: true, lessonIds: [] }
     setCourse(c => ({ ...c, modules: [...c.modules, mod] }))
+    setOpenModuleIds(previous => new Set(previous).add(mod.id))
     setNewModuleLabel('')
     setAddingModule(false)
   }
 
-  function toggleModule(module: CEModule) {
-    setModuleExpansion(previous => ({
-      ...previous,
-      [module.id]: !(previous[module.id] ?? module.expanded),
-    }))
+  function toggleModule(id: string) {
+    setOpenModuleIds(previous => {
+      const next = new Set(previous)
+      if (!next.delete(id)) next.add(id)
+      return next
+    })
   }
 
   function renameModule(id: string, label: string) {
@@ -5828,7 +5830,7 @@ export function RightPanelLessons({
         ))}
 
         {course.modules.map(mod => {
-          const expanded = moduleExpansion[mod.id] ?? mod.expanded
+          const expanded = openModuleIds.has(mod.id)
           const modLessons = mod.lessonIds
             .map(id => course.lessons.find(l => l.id === id))
             .filter(Boolean) as CELesson[]
@@ -5838,16 +5840,17 @@ export function RightPanelLessons({
           return (
             <div key={mod.id} style={{ marginBottom: 6 }}>
               {!loose && <div className="course-visibility-row"><button data-hover="layer"
+                aria-expanded={expanded}
                 onClick={e => {
                   // e.detail > 1 — это второй клик двойного, его глотаем:
                   // раскрытие/сворачивание должно реагировать только на одиночный.
                   if (e.detail > 1) return
                   setActiveModuleId(mod.id)
-                  toggleModule(mod)
+                  toggleModule(mod.id)
                 }}
                 onDoubleClick={() => {
                   // Первый клик двойного уже переключил модуль — откатываем и правим название.
-                  toggleModule(mod)
+                  toggleModule(mod.id)
                   setEditingModuleLabel(mod.label)
                   setEditingModuleId(mod.id)
                 }}
@@ -5870,7 +5873,7 @@ export function RightPanelLessons({
                 <span
                   role="button" data-hover="layer"
                   aria-label={expanded ? t('Свернуть') : t('Развернуть')}
-                  onClick={e => { e.stopPropagation(); if (e.detail > 1) return; toggleModule(mod) }}
+                  onClick={e => { e.stopPropagation(); if (e.detail > 1) return; toggleModule(mod.id) }}
                   onDoubleClick={e => e.stopPropagation()}
                   style={{ display: 'flex', flexShrink: 0, cursor: 'pointer', padding: 3, margin: -3, borderRadius: 6 }}
                 >
@@ -5945,8 +5948,7 @@ export function RightPanelLessons({
                 hidden={visibility.hidden('module', mod.id)} disabled={!visibility.loaded || !!visibility.error || !!course.metadataPending || (!!course.dbCourseId && !/^[0-9a-f-]{36}$/i.test(mod.id))}
                 disabledReason={course.dbCourseId && !/^[0-9a-f-]{36}$/i.test(mod.id) ? t('Сначала сохраните модуль') : undefined}
                 allowDraft={!course.dbCourseId} /></div>}
-              {/* initial={false}: при входе в курс модули уже развёрнуты — без него
-                  каждый вырастал с нуля, и правая колонка дёргалась на входе. */}
+              {/* Уроки без модуля видны сразу, без анимации при открытии курса. */}
               <AnimatePresence initial={false}>
                 {(loose || expanded) && (
                   <motion.div
@@ -8468,6 +8470,7 @@ export default function TeacherCourseEditorPage() {
             низ всех колонок на одной линии, а не там, где кончился список. */}
         <GlassCard style={{ width: 288, flexShrink: 0, maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <RightPanelLessons
+            key={course.id}
             course={course} setCourse={setCourse}
             selectedLessonId={selectedLessonId} onSelectLesson={handleSelectLesson}
             openLessonShortIds={openLessonShortIds} lessonShortIdById={lessonShortIdById}
