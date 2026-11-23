@@ -1,8 +1,9 @@
-/** Text-only alignment. No DOM rewriting, value writes, control movement or input hooks. */
+/** Text-only alignment. No control rewriting, value writes, control movement or input hooks. */
 type Entry = { element: HTMLElement; visible: boolean; ink?: { font: string; text: string; epoch: number; offset: number } }
 const entries = new Map<HTMLElement, Entry>()
 const pending = new Set<HTMLElement>()
 const cache = new Map<string, number>()
+const baselines = new Map<string, number>()
 let context: CanvasRenderingContext2D | null = null
 let resize: ResizeObserver | undefined
 let intersection: IntersectionObserver | undefined
@@ -19,6 +20,32 @@ export function opticalTextOffset(fontAscent: number, fontDescent: number, capAs
   return Number.isFinite(delta) ? Math.max(-fontSize * .15, Math.min(fontSize * .15, delta)) : 0
 }
 
+/** Canvas font bounds omit browser leading/rounding for explicit line heights.
+ * Measure a neutral, isolated line once per font/line-height; never touch a control. */
+function lineBaseline(font: string, lineHeight: string): number | undefined {
+  const key = `${font}\0${lineHeight}`
+  const cached = baselines.get(key)
+  if (cached !== undefined) return cached
+  if (!document.body) return undefined
+  const line = document.createElement('span'), marker = document.createElement('span')
+  line.style.cssText = 'all:initial;position:fixed;left:0;top:0;display:inline-block;white-space:pre;visibility:hidden;pointer-events:none;contain:layout style paint;'
+  line.style.font = font
+  line.style.lineHeight = lineHeight
+  line.setAttribute('aria-hidden', 'true')
+  line.textContent = 'HНgpру0123456789'
+  marker.style.cssText = 'all:initial;font:inherit;display:inline-block;vertical-align:baseline;width:0;height:0;line-height:0;overflow:hidden;'
+  line.append(marker)
+  try {
+    document.body.append(line)
+    const bounds = line.getBoundingClientRect()
+    const value = marker.getBoundingClientRect().top - bounds.top - bounds.height / 2
+    if (!bounds.height || !Number.isFinite(value)) return undefined
+    if (baselines.size >= 256) baselines.delete(baselines.keys().next().value!)
+    baselines.set(key, value)
+    return value
+  } catch { return undefined } finally { line.remove() }
+}
+
 function measure(element: HTMLElement): number {
   const text = element.textContent ?? ''
   if (!text.trim()) return 0
@@ -33,7 +60,7 @@ function measure(element: HTMLElement): number {
   const entry = entries.get(element)
   if (ink) {
     const memo = entry?.ink
-    if (memo?.font === font && memo.text === text && memo.epoch === fontEpoch) return memo.offset
+    if (memo?.font === `${font}\0${css.lineHeight}` && memo.text === text && memo.epoch === fontEpoch) return memo.offset
   } else {
     const cached = cache.get(font)
     if (cached !== undefined) return cached
@@ -50,11 +77,17 @@ function measure(element: HTMLElement): number {
     result = opticalTextOffset(metrics.fontBoundingBoxAscent, metrics.fontBoundingBoxDescent,
       visible?.actualBoundingBoxAscent ?? capitals.actualBoundingBoxAscent,
       visible ? visible.actualBoundingBoxDescent * 2 : descenders.actualBoundingBoxDescent, parseFloat(css.fontSize))
+    if (ink && visible) {
+      const baseline = lineBaseline(font, css.lineHeight)
+      const size = parseFloat(css.fontSize)
+      if (baseline !== undefined) result = Math.max(-size * .15, Math.min(size * .15,
+        (visible.actualBoundingBoxAscent - visible.actualBoundingBoxDescent) / 2 - baseline))
+    }
   } catch { return 0 }
   if (ink && entry) {
     // Caption memo belongs to this mounted element; no user text is retained in
     // the cross-screen font cache after unmount.
-    entry.ink = { font, text, epoch: fontEpoch, offset: result }
+    entry.ink = { font: `${font}\0${css.lineHeight}`, text, epoch: fontEpoch, offset: result }
   } else {
     if (cache.size >= 256) cache.delete(cache.keys().next().value!)
     cache.set(font, result)
@@ -100,7 +133,7 @@ function start() {
   }, { rootMargin: '200px' })
   const refresh = () => { for (const entry of entries.values()) if (entry.visible) queue(entry.element) }
   window.addEventListener('resize', refresh, { passive: true })
-  document.fonts?.addEventListener('loadingdone', () => { ++fontEpoch; cache.clear(); refresh() })
+  document.fonts?.addEventListener('loadingdone', () => { ++fontEpoch; cache.clear(); baselines.clear(); refresh() })
 }
 
 export function trackOpticalText(element: HTMLElement) {
