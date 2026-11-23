@@ -33,7 +33,9 @@
 .st-track-caption { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:10px; color:var(--color-text-3); margin-top:0; }
 .st-track-hints { display:flex; align-items:center; justify-content:flex-end; gap:16px; margin-left:auto; flex-wrap:wrap; }
 .st-track-hints button { border:0; padding:2px 0; background:transparent; color:inherit; font:inherit; cursor:pointer; }
-.st-track-hints button:hover { color:var(--color-accent); }
+@media (hover: hover) and (pointer: fine) {
+  .st-track-hints button:hover { color:var(--color-accent); }
+}
 .st-footnote { flex:0 0 25px; text-align:center; font-size:10px; color:var(--color-text-4); }
 .st-filters { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
 .st-filters button { border:0; border-radius:999px; padding:8px 13px; background:var(--color-bg-3); color:var(--color-text-3); font-size:12px; cursor:pointer; }

@@ -35,8 +35,10 @@
   display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
   border: none; border-radius: 7px; background: transparent; color: var(--color-text-2); cursor: pointer;
 }
-.tterms-actions button:hover { background: var(--color-bg-3, var(--color-border)); color: var(--color-text); }
-.tterms-actions button.is-danger:hover { color: var(--color-red, #E5484D); }
+@media (hover: hover) and (pointer: fine) {
+  .tterms-actions button:hover { background: var(--color-bg-3, var(--color-border)); color: var(--color-text); }
+  .tterms-actions button.is-danger:hover { color: var(--color-red, #E5484D); }
+}
 @media (hover: none) {
   .tterms-card:not(.tterms-editor):has(.tterms-actions) { padding-right: 76px; }
   .tterms-card:not(.tterms-editor):has(.tterms-actions > :nth-child(3)) { padding-right: 110px; }

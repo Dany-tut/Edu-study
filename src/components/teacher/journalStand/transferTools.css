@@ -1,10 +1,14 @@
 .jt-more { display: inline-grid; place-items: center; flex: 0 0 auto; width: 28px; height: 28px; border: 0; border-radius: 9px; background: var(--color-bg-3); color: var(--color-text-2); cursor: pointer; }
-.jt-more:hover, .jt-more[aria-expanded='true'] { background: var(--color-purple-soft); color: var(--color-accent); }
+.jt-more[aria-expanded='true'] { background: var(--color-purple-soft); color: var(--color-accent); }
 @media (pointer: coarse) { .jt-more { width: 44px; height: 44px; border-radius: 12px; } }
 .jt-menu { position: fixed; z-index: 1300; width: 248px; padding: 6px; border-radius: 14px; background: var(--color-bg-card); box-shadow: var(--shadow-lg, 0 12px 32px rgba(20,20,40,.16)), 0 0 0 1px var(--color-border); display: grid; gap: 2px; }
 .jt-menu-caption { padding: 6px 10px 4px; color: var(--color-text-3); font-size: 11.5px; font-weight: 700; }
-.jt-menu button { min-height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: var(--color-text); font: inherit; font-size: 13.5px; font-weight: 600; text-align: left; cursor: pointer; }
-.jt-menu button:hover, .jt-menu button:focus-visible { background: var(--color-bg-3); }
+.jt-menu button { min-height: 40px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--color-text); font: inherit; font-size: 13.5px; font-weight: 600; text-align: left; cursor: pointer; }
+.jt-menu button:focus-visible { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .jt-more:hover { background: var(--color-purple-soft); color: var(--color-accent); }
+  .jt-menu button:enabled:hover { background: var(--color-bg-3); }
+}
 .jt-menu button:disabled { opacity: .45; cursor: default; }
 @media (pointer: coarse) { .jt-menu button { min-height: 44px; } }
 .jt-banner { display: flex; align-items: center; gap: 12px; margin: 0 0 10px; padding: 10px 12px 10px 14px; border-radius: 14px; background: color-mix(in srgb, #F08A24 15%, var(--color-bg-card)); color: var(--color-text); }
@@ -14,7 +18,9 @@
 .jt-banner-actions .cj-button { min-height: 40px; }
 .jt-head-actions { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
 .jt-date-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 0 9px; border: 1.5px dashed color-mix(in srgb, #F08A24 80%, transparent); border-radius: 9px; background: transparent; color: color-mix(in srgb, #F08A24 75%, var(--color-text)); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
-.jt-date-chip:hover { background: color-mix(in srgb, #F08A24 12%, transparent); }
+@media (hover: hover) and (pointer: fine) {
+  .jt-date-chip:hover { background: color-mix(in srgb, #F08A24 12%, transparent); }
+}
 @media (pointer: coarse) { .jt-date-chip { min-height: 44px; } }
 .jt-date { display: grid; gap: 12px; }
 .jt-date-field { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--color-text-2); }

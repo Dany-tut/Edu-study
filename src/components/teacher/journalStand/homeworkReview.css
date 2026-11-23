@@ -2,7 +2,9 @@
 .jh-review-top { display:flex; align-items:center; gap:12px; padding:17px 22px; border-bottom:1px solid var(--color-border-soft); flex:none; background:var(--color-bg-card); }
 .jh-review-emblem { flex:none; display:grid; place-items:center; width:38px; height:38px; border-radius:13px; color:var(--color-accent); background:var(--color-purple-soft); }
 .jh-review-title { min-width:0; flex:1; }.jh-review-title>span { display:block; font-size:10px; font-weight:550; color:var(--color-text-3); margin-bottom:3px; }.jh-review-title h2 { margin:0; font-size:17px; font-weight:650; line-height:1.3; letter-spacing:-.25px; overflow:hidden; --iskra-text-fade-lines:2; max-height:calc(2 * 1lh); overflow:hidden; display:block; }
-.jh-full-review { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--color-border-soft); border-radius:11px; padding:9px 12px; color:var(--color-text-2); background:var(--color-bg-card); font:inherit; font-size:11px; white-space:nowrap; cursor:pointer; }.jh-full-review:hover { color:var(--color-accent); background:var(--color-purple-soft); }
+.jh-full-review { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--color-border-soft); border-radius:11px; padding:9px 12px; color:var(--color-text-2); background:var(--color-bg-card); font:inherit; font-size:11px; white-space:nowrap; cursor:pointer; }@media (hover: hover) and (pointer: fine) {
+  .jh-full-review:hover { color:var(--color-accent); background:var(--color-purple-soft); }
+}
 .jh-review-close { display:grid; place-items:center; border:0; border-radius:50%; width:34px; height:34px; flex:none; color:var(--color-text-3); background:var(--color-bg-3); cursor:pointer; }
 .jh-review-body { display:grid; grid-template-columns:minmax(0,1fr) 274px; min-height:0; flex:1; overflow:hidden; }
 .jh-shell-has-stack .jh-review-body { grid-template-columns:224px minmax(0,1fr) 274px; }
@@ -10,7 +12,9 @@
 .jh-roster-heading { display:flex; align-items:center; justify-content:space-between; padding:18px 16px 11px; font-size:12px; }.jh-roster-heading strong { font-weight:600; }.jh-roster-heading>span { color:var(--color-text-3); font-size:11px; }
 .jh-roster-search { display:flex; align-items:center; gap:7px; margin:0 12px 12px; padding:7px 8px; border-radius:9px; border:1px solid var(--color-border-soft); background:var(--color-bg-card); color:var(--color-text-3); }.jh-roster-search input { min-width:0; width:100%; color:var(--color-text); font:inherit; font-size:11px; background:transparent; border:0; padding:0; }
 .jh-roster-scroll { flex:1; min-height:0; overflow:auto; padding:0 7px 10px; scrollbar-width:thin; }
-.jh-roster-student { display:flex; align-items:center; gap:8px; min-height:59px; width:100%; padding:10px 8px; text-align:left; color:var(--color-text); background:transparent; border:0; border-radius:10px; cursor:pointer; font:inherit; }.jh-roster-student:hover { background:var(--color-bg-3); }.jh-roster-student[aria-pressed=true] { background:var(--color-purple-soft); }
+.jh-roster-student { display:flex; align-items:center; gap:8px; min-height:59px; width:100%; padding:10px 8px; text-align:left; color:var(--color-text); background:transparent; border:0; border-radius:10px; cursor:pointer; font:inherit; }@media (hover: hover) and (pointer: fine) {
+  .jh-roster-student:hover { background:var(--color-bg-3); }
+}.jh-roster-student[aria-pressed=true] { background:var(--color-purple-soft); }
 .jh-roster-avatar { width:27px; height:27px; display:grid; place-items:center; flex:none; border-radius:50%; background:var(--color-bg-3); color:var(--color-text-3); font-size:9px; font-weight:600; }.jh-roster-student[aria-pressed=true] .jh-roster-avatar { background:var(--color-bg-card); color:var(--color-accent); }
 .jh-roster-name { min-width:0; flex:1; }.jh-roster-name strong { display:block; font-size:11px; font-weight:600; overflow-wrap:anywhere; }.jh-roster-name small { display:block; color:var(--color-text-3); font-size:10px; line-height:1.35; margin-top:4px; }
 .jh-roster-result { font-size:11px; font-variant-numeric:tabular-nums; color:var(--color-text-3); flex:none; }.jh-is-pending { color:var(--color-yellow-text); }.jh-is-passed { color:var(--color-green-text); }.jh-is-low { color:var(--color-red-text); }
@@ -42,7 +46,9 @@
 .jh-review-history { display:flex; flex-direction:column; flex:none; min-height:0; overflow:hidden; border-top:1px solid var(--color-border-soft); padding:10px 0; margin:0 20px; font-size:11px; }
 .jh-history-open { flex:1 1 auto; min-height:55px; }
 .jh-history-toggle { display:flex; align-items:center; gap:8px; flex:none; width:100%; min-height:34px; padding:7px 8px; border:0; border-radius:8px; background:transparent; text-align:left; color:var(--color-text-2); font:inherit; font-weight:500; cursor:pointer; }
-.jh-history-toggle:hover { background:var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .jh-history-toggle:hover { background:var(--color-bg-3); }
+}
 .jh-history-count { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; border-radius:6px; background:var(--color-bg-3); color:var(--color-text-3); font-size:10px; font-weight:500; font-variant-numeric:tabular-nums; }
 .jh-history-chevron { margin-left:auto; flex:none; color:var(--color-text-3); transition:transform .16s ease; }
 .jh-history-open .jh-history-chevron { transform:rotate(90deg); }

@@ -46,7 +46,9 @@
    толстеет и все вкладки съезжают при каждом клике. */
 .reminder-category-tabs span{display:inline-flex;flex-direction:column;align-items:center}
 .reminder-category-tabs span::after{content:attr(data-label);content:attr(data-label) / "";font-weight:600;visibility:hidden;height:0;overflow:hidden;pointer-events:none;user-select:none}
-.reminder-category-tabs button:not([aria-selected=true]):hover{color:var(--color-text-2,var(--color-text))}
+@media (hover: hover) and (pointer: fine) {
+  .reminder-category-tabs button:not([aria-selected=true]):hover{color:var(--color-text-2,var(--color-text))}
+}
 .reminder-category-tabs b{display:inline-grid;place-items:center;min-width:20px;height:18px;padding:0 6px;border-radius:999px;font-size:10px;font-weight:650;color:var(--color-text-3);background:rgba(0,0,0,.05)}
 [data-theme=dark] .reminder-category-tabs b{background:rgba(255,255,255,.07)}
 .reminder-category-tabs button[aria-selected=true] b{color:var(--color-accent);background:var(--color-accent-soft)}

@@ -58,7 +58,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) { .js-group-add { transition: none; } }
-.js-group-select:hover, .js-group-add:hover { background: var(--color-bg-3); color: var(--color-text); }
+@media (hover: hover) and (pointer: fine) {
+  .js-group-select:hover, .js-group-add:hover { background: var(--color-bg-3); color: var(--color-text); }
+}
 .js-compact-rail button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 @container (max-width: 1050px) { .js-compact-rail { --group-tab-width: 145px; } }
 @container (max-width: 650px) { .js-compact-rail { --group-tab-width: 107px; gap: 8px; } }
@@ -90,7 +92,9 @@
 .js-tabs.cj-tabs { display: inline-grid; grid-template-columns: repeat(3, max-content); flex: none; gap: 2px; padding: 3px; }
 .js-tabs.cj-tabs button { font-weight: 600; min-width: 0; height: 32px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
 .js-tabs button svg { display: none; }
-.js-tabs button:hover, .js-scope label:hover, .js-search:hover { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .js-tabs button:hover, .js-scope label:hover, .js-search:hover { background: var(--color-bg-3); }
+}
 .js-tabs button[aria-pressed='true'], .js-attention[aria-pressed='true'] { color: var(--color-accent); background: var(--color-purple-soft); }
 .teacher-table-search { display: flex; align-items: center; gap: 8px; box-sizing: border-box; width: 180px; height: 40px; padding: 0 12px; border-radius: 10px; background: var(--color-bg); border: 1px solid var(--color-border-soft); }
 .js-toolbar .js-search { margin-inline-start: 0; }
@@ -221,7 +225,9 @@
 .js-next-link { grid-row: 3; justify-self: start; display: flex; align-items: center; gap: 2px; padding: 0 3px; margin-left: -3px; border: 0; border-radius: 6px; background: transparent; color: var(--color-accent); text-align: left; }
 .js-next-link svg { flex: none; }
 .js-matrix .js-next-link { font-size: 10px; }
-.js-next-link:hover { background: var(--color-purple-soft); }
+@media (hover: hover) and (pointer: fine) {
+  .js-next-link:hover { background: var(--color-purple-soft); }
+}
 .js-name, .js-cell { color: inherit; width: 100%; border: 0; border-radius: 12px; background: transparent; text-align: left; cursor: pointer; font: inherit; }
 .js-name { display: flex; align-items: center; gap: 8px; padding: 5px 7px; font-weight: 600; min-height: var(--cell-height); }
 .js-name > span:last-child { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; }
@@ -252,7 +258,9 @@
 .js-mark-badges > [data-badge='debt'] { background: #F08A24; }
 .js-mark-badges > [data-badge='replay'] { background: #3B8FE0; }
 .js-cell[aria-pressed='true'] .js-mark-badges > span { box-shadow: 0 0 0 2px var(--color-purple-soft); }
-.js-name:hover, .js-cell:enabled:hover { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .js-name:hover, .js-cell:enabled:hover { background: var(--color-bg-3); }
+}
 .js-name[aria-pressed='true'], .js-cell[aria-pressed='true'] { background: var(--color-purple-soft); }
 .js-cell[aria-pressed='true'] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 48%, transparent); }
 .js-matrix :is(.js-name,.js-cell):focus-visible { outline-offset: -2px; }
@@ -350,7 +358,9 @@
 .js-work-history summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--color-border-soft); border-radius: 12px; font-weight: 600; list-style: none; }
 .js-work-history summary::-webkit-details-marker { display: none; }
 .js-work-history summary::marker { content: ''; }
-.js-work-history summary:hover { background: var(--color-purple-soft); }
+@media (hover: hover) and (pointer: fine) {
+  .js-work-history summary:hover { background: var(--color-purple-soft); }
+}
 .js-work-history summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
 .js-history-chevron { margin-left: auto; flex: none; }
 .js-work-history[open] > summary .js-history-chevron { transform: rotate(90deg); }
@@ -514,7 +524,9 @@
   cursor: pointer;
 }
 .js-work-link { border-radius: 7px; padding-inline: 4px; }
-.js-work-link:hover { background: var(--color-purple-soft); }
+@media (hover: hover) and (pointer: fine) {
+  .js-work-link:hover { background: var(--color-purple-soft); }
+}
 @media (max-width: 700px) {
   .js-example { padding: 10px 0 0; gap: 6px; }
   .js-example-area { --journal-end-padding: 8px; padding: 0 8px 10px; }

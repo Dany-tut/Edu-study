@@ -860,7 +860,9 @@ button:focus-visible .track-silhouette-ring { stroke: var(--color-text-2); opaci
 .sound-obj {
   transition: border-color .18s ease, background .18s ease, transform .12s ease;
 }
-.sound-obj:hover { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .sound-obj:hover { background: var(--color-bg-3); }
+}
 .sound-obj:active { transform: scale(0.985); }
 /* Значок оживает под курсором: связь «тык — звук» должна быть видна до
    первого тыка, но в покое значок не спорит с содержимым объекта. */
@@ -1097,8 +1099,10 @@ input[type=number]::-webkit-outer-spin-button {
   box-shadow: 2px 2px 0 rgba(0,0,0,0.2) !important;
   transition: border-color 0.15s ease !important;
 }
-.react-resizable-handle.react-resizable-handle-se:hover::after {
-  border-color: rgba(120, 106, 215, 1) !important;
+@media (hover: hover) and (pointer: fine) {
+  .react-resizable-handle.react-resizable-handle-se:hover::after {
+    border-color: rgba(120, 106, 215, 1) !important;
+  }
 }
 .react-resizable-handle:not(.react-resizable-handle-se) {
   display: none !important;
@@ -1185,7 +1189,9 @@ input::-webkit-contacts-auto-fill-button {
 /* Строка списка при наведении — одно правило (дизайн-система, круг 2) вместо
    ручных onMouseEnter с разными фонами (bg, bg-2, bg-3, bg-5). */
 .hover-row { transition: background 0.15s ease; }
-.hover-row:hover { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .hover-row:hover { background: var(--color-bg-3); }
+}
 
 /* ─── Ползунок — один стиль (дизайн-система, круг 3) ──────────────────────────
    Системный ползунок синий и в каждой ОС свой (доска, пометки на ответе рисовали
@@ -1265,7 +1271,7 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
    же цвет текста на 10 %: виден на любой заливке (серой, мягкой, градиенте,
    прозрачной) и в обеих темах. Кнопки со своим ховером — data-hover="own". */
 /* :where — нулевой вес: позицию из класса (absolute, fixed) не перебиваем. */
-:where([data-hover=layer]) {position:relative;isolation:isolate}
+:where([data-hover=layer]) {position:relative;isolation:isolate;-webkit-tap-highlight-color:transparent}
 /* Плашка повторяет скругление элемента. У кнопки без своего скругления (иконка,
    текстовая кнопка) плашка выходила квадратом — базовое скругление 8px; любой
    класс или инлайн-стиль со своим border-radius его перебивает (:where — вес 0).
@@ -1283,14 +1289,14 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   /* Строка списка с разделителем (data-hover="row"): без плашки. Строка без
      скругления и боковых полей — плашка на всю ширину читается квадратом и
      «засвечивает всё». Отклик — заголовок цветом акцента и шеврон сдвигается. */
-  [data-hover=row]:hover:not(:disabled) strong {color:var(--color-accent)}
+  [data-hover=row]:hover:not(:disabled):not([aria-disabled=true]) strong {color:var(--color-accent)}
   /* Заголовок с инлайн-цветом (таблицы, виджеты) — помечен data-row-title. */
-  [data-hover=row]:hover [data-row-title] {color:var(--color-accent)!important}
-  [data-hover=row]:hover:not(:disabled) > svg:last-child {color:var(--color-accent);transform:translateX(2px)}
+  [data-hover=row]:hover:not(:disabled):not([aria-disabled=true]) [data-row-title] {color:var(--color-accent)!important}
+  [data-hover=row]:hover:not(:disabled):not([aria-disabled=true]) > svg:last-child {color:var(--color-accent);transform:translateX(2px)}
 }
 [data-hover=row] strong {transition:color .15s}
 [data-hover=row] > svg:last-child {transition:color .15s,transform .15s}
-[data-hover=layer]:active:not(:disabled)::after {opacity:.18}
+[data-hover=layer]:active:not(:disabled):not([aria-disabled=true])::after {opacity:.18}
 
 /* ══════════════════════════════════════════════════════════
    iPhone · тёмная тема: стекло и поверхности не тонут в фоне

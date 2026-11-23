@@ -85,10 +85,14 @@
 
 /* Кнопки низа списка уроков: ховер. Пунктирные — лёгкая подложка своего тона. */
 .rail-tone-btn {transition:background .15s}
-.rail-tone-btn[data-tone=green]:hover:not(:disabled) {background:color-mix(in srgb,var(--color-green-soft),var(--color-green-text) 12%) !important}
+@media (hover: hover) and (pointer: fine) {
+  .rail-tone-btn[data-tone=green]:hover:not(:disabled) {background:color-mix(in srgb,var(--color-green-soft),var(--color-green-text) 12%) !important}
+}
 .rail-dashed-btn {transition:background .15s,color .15s,border-color .15s}
-.rail-dashed-btn:hover {background:var(--color-bg-3) !important;color:var(--color-text-2) !important;border-color:var(--color-border-medium) !important}
-.rail-dashed-btn[data-tone=green]:hover {background:var(--color-green-soft) !important;color:var(--color-green-text) !important;border-color:var(--color-green-text) !important}
+@media (hover: hover) and (pointer: fine) {
+  .rail-dashed-btn:hover {background:var(--color-bg-3) !important;color:var(--color-text-2) !important;border-color:var(--color-border-medium) !important}
+  .rail-dashed-btn[data-tone=green]:hover {background:var(--color-green-soft) !important;color:var(--color-green-text) !important;border-color:var(--color-green-text) !important}
+}
 
 /* Открытая вкладка «Запись»: «Оригинал | Предпросмотр» в той же ячейке.
    Слой лежит поверх невидимой подписи — размер вкладки не меняется.
@@ -100,7 +104,9 @@
 .recording-split-track > * {min-width:0}
 .recording-split-half {display:flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;border-radius:7px;margin:3px;color:var(--color-text-3);white-space:nowrap;overflow:hidden;cursor:pointer;transition:color .2s,background-color .2s}
 .recording-split-half[aria-pressed=true] {color:var(--color-green-text);background:color-mix(in srgb,var(--color-bg) 70%,transparent)}
-.recording-split-half:not([aria-pressed=true]):not([aria-disabled=true]):hover {color:var(--color-text)}
+@media (hover: hover) and (pointer: fine) {
+  .recording-split-half:not([aria-pressed=true]):not([aria-disabled=true]):hover {color:var(--color-text)}
+}
 .recording-split-half[aria-disabled=true] {cursor:default;opacity:.45}
 .recording-split-half:focus-visible {outline:2px solid var(--color-green-text);outline-offset:-2px}
 .recording-split-icon {flex:none;display:none}

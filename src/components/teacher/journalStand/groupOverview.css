@@ -422,7 +422,9 @@
 }
 .jo-evidence summary::-webkit-details-marker { display: none; }
 .jo-evidence summary::marker { content: ''; }
-.jo-evidence summary:hover { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .jo-evidence summary:hover { background: var(--color-bg-3); }
+}
 .jo-evidence summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
 .jo-evidence-icon, .jo-evidence-toggle {
   display: grid; place-items: center; flex: none;
@@ -516,8 +518,10 @@
 .jo-table tbody tr {
   cursor: pointer;
 }
-.js-matrix .jo-table tbody tr:hover > * {
-  background: var(--color-bg-3);
+@media (hover: hover) and (pointer: fine) {
+  .js-matrix .jo-table tbody tr:hover > * {
+    background: var(--color-bg-3);
+  }
 }
 .jo-table tbody tr:hover th {
   border-radius: 11px 0 0 11px;

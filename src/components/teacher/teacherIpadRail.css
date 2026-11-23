@@ -57,7 +57,9 @@
   padding: 0;
   transition: background .22s, color .18s, min-height .28s cubic-bezier(.32, .72, 0, 1);
 }
-.tir-cell:hover { color: var(--color-text); }
+@media (hover: hover) and (pointer: fine) {
+  .tir-cell:hover { color: var(--color-text); }
+}
 .tir-cell[aria-current="page"],
 .tir-cell[aria-pressed="true"] {
   min-height: 82px;
@@ -157,7 +159,9 @@
   color: var(--color-text);
   font: inherit;
 }
-.tir-pop-row:hover { background: var(--color-bg-5); }
+@media (hover: hover) and (pointer: fine) {
+  .tir-pop-row:hover { background: var(--color-bg-5); }
+}
 .tir-pop-tile {
   width: 34px;
   height: 34px;

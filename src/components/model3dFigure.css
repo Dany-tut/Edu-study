@@ -125,7 +125,9 @@
   background: var(--color-bg-4); color: var(--color-text); cursor: pointer;
   transition: border-color .15s, background .15s, color .15s;
 }
-.m3d__stagebtn[data-hover]:hover { border-color: var(--color-border); }
+@media (hover: hover) and (pointer: fine) {
+  .m3d__stagebtn[data-hover]:hover { border-color: var(--color-border); }
+}
 .m3d__stagebtn[aria-pressed="true"] { color: #786AD7; border-color: #786AD7; background: color-mix(in srgb, #786AD7 12%, var(--color-bg-4)); }
 .m3d__track { height: 3px; border-radius: 2px; background: var(--color-bg-5); overflow: hidden; }
 .m3d__track-fill { height: 100%; width: 0; background: #786AD7; border-radius: 2px; }
@@ -138,7 +140,9 @@
   background: var(--color-bg-4); color: var(--color-text); cursor: pointer;
   transition: border-color .15s, background .15s;
 }
-.m3d__part[data-hover]:hover { border-color: var(--color-border); }
+@media (hover: hover) and (pointer: fine) {
+  .m3d__part[data-hover]:hover { border-color: var(--color-border); }
+}
 .m3d__part[aria-pressed="true"] { border-color: var(--m3d-color); background: color-mix(in srgb, var(--m3d-color) 14%, var(--color-bg-4)); }
 .m3d__card {
   display: flex; flex-direction: column; gap: 8px;

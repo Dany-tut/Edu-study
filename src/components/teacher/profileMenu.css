@@ -6,11 +6,15 @@
    углы меню. Тот же радиус — у строки версии внизу (TeacherTopBar). */
 .profile-menu-row {transition:background .15s;border-radius:7px !important}
 .profile-menu-tile {width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--color-bg-3);color:var(--color-text-2);transition:background .15s,color .15s}
-.profile-menu-row:hover:not(:disabled) {background:var(--color-bg-3) !important}
-.profile-menu-row:hover:not(:disabled) .profile-menu-tile {background:color-mix(in srgb,var(--color-bg-3),var(--color-text) 9%);color:var(--color-text)}
+@media (hover: hover) and (pointer: fine) {
+  .profile-menu-row:hover:not(:disabled) {background:var(--color-bg-3) !important}
+  .profile-menu-row:hover:not(:disabled) .profile-menu-tile {background:color-mix(in srgb,var(--color-bg-3),var(--color-text) 9%);color:var(--color-text)}
+}
 .profile-menu-row[data-tone=red] .profile-menu-tile {background:var(--color-red-soft);color:var(--color-red-text)}
-.profile-menu-row[data-tone=red]:hover {background:color-mix(in srgb,var(--color-red-soft) 60%,transparent) !important}
-.profile-menu-row[data-tone=red]:hover .profile-menu-tile {background:color-mix(in srgb,var(--color-red-soft),var(--color-red-text) 14%);color:var(--color-red-text)}
+@media (hover: hover) and (pointer: fine) {
+  .profile-menu-row[data-tone=red]:hover {background:color-mix(in srgb,var(--color-red-soft) 60%,transparent) !important}
+  .profile-menu-row[data-tone=red]:hover .profile-menu-tile {background:color-mix(in srgb,var(--color-red-soft),var(--color-red-text) 14%);color:var(--color-red-text)}
+}
 /* Аватар в шапке: ховер — кольцо 3 px вокруг круга. Без transform — иначе
    круг уходит в свой слой, и стекло бара рисует вокруг него серый квадрат. */
 .topbar-avatar {box-shadow:0 0 0 0 rgba(120,106,215,0),0 2px 8px rgba(106,90,230,.35);transition:box-shadow .15s}

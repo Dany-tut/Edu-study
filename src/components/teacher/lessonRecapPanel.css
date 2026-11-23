@@ -10,14 +10,18 @@
 .rp-head-text strong { font-size: 15px; }
 .rp-head-text small { font-size: 12px; color: var(--color-text-3); line-height: 1.35; }
 .rp-close { flex-shrink: 0; height: 32px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--color-bg-3); color: var(--color-text-2, var(--color-text)); font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; }
-.rp-close:hover { background: var(--color-bg-4, var(--color-bg-3)); }
+@media (hover: hover) and (pointer: fine) {
+  .rp-close:hover { background: var(--color-bg-4, var(--color-bg-3)); }
+}
 
 .rp-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 6px 8px 0; }
 .rp-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .rp-lead { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; line-height: 1.45; color: var(--color-text-3); }
 
 .rp-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--color-bg-3); border: 1.5px solid transparent; cursor: pointer; transition: border-color .15s, background .15s, opacity .15s; }
-.rp-item:hover { background: color-mix(in srgb, var(--color-control-accent) 5%, var(--color-bg-3)); }
+@media (hover: hover) and (pointer: fine) {
+  .rp-item:hover { background: color-mix(in srgb, var(--color-control-accent) 5%, var(--color-bg-3)); }
+}
 .rp-item.is-picked { border-color: var(--color-control-accent); background: var(--color-bg-2); }
 .rp-item[data-off] .rp-item-body { opacity: .5; }
 .rp-item-body { display: grid; gap: 4px; min-width: 0; transition: opacity .15s; }
@@ -27,7 +31,9 @@
 /* Правка прямо по тексту: без рамки, подчёркивание только в фокусе —
    текст не сдвигается ни на пиксель при входе в правку. */
 .rp-edit { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 0 0 1px; border: 0; border-bottom: 1.5px solid transparent; border-radius: 0; background: transparent; color: var(--color-text-2, var(--color-text)); font: inherit; font-size: 14px; line-height: 1.45; resize: none; outline: none; cursor: text; }
-.rp-edit:hover { border-bottom-color: var(--color-border); }
+@media (hover: hover) and (pointer: fine) {
+  .rp-edit:hover { border-bottom-color: var(--color-border); }
+}
 .rp-edit:focus { border-bottom-color: var(--color-control-accent); color: var(--color-text); }
 .rp-edit.is-title { font-weight: 650; color: var(--color-text); }
 .rp-edit.is-hw-title { font-size: 15px; font-weight: 700; color: var(--color-text); padding: 2px 0 4px; }
@@ -84,7 +90,9 @@
 .lm-title-row { display: flex; align-items: center; gap: 12px; min-width: 0; width: 100%; }
 .lm-title-row > .lm-title { flex: 1; min-width: 0; }
 .lm-recap-btn { display: inline-flex; flex-shrink: 0; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 0; border-radius: 11px; background: var(--color-accent-soft); color: var(--color-purple-text); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; transition: background .15s; }
-.lm-recap-btn:hover { background: var(--color-purple-soft); }
+@media (hover: hover) and (pointer: fine) {
+  .lm-recap-btn:hover { background: var(--color-purple-soft); }
+}
 .lm-recap-btn[aria-pressed='true'] { box-shadow: inset 0 0 0 1.5px var(--color-control-accent); }
 .lm-recap-btn:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
 
@@ -125,11 +133,15 @@
 .rce-toast-head { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--color-green-text); }
 .rce-toast-head b { flex: 1; color: var(--color-text); }
 .rce-x { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; border: 0; border-radius: 10px; background: transparent; color: var(--color-text-3); cursor: pointer; }
-.rce-x:hover { background: var(--color-bg-3); }
+@media (hover: hover) and (pointer: fine) {
+  .rce-x:hover { background: var(--color-bg-3); }
+}
 .rce-toast-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 13.5px; color: var(--color-text-2, var(--color-text)); }
 .rce-toast-row svg { color: var(--color-text-3); }
 .rce-toast-row button { height: 30px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--color-purple-text); font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; }
-.rce-toast-row button:hover:not(:disabled) { background: var(--color-accent-soft); }
+@media (hover: hover) and (pointer: fine) {
+  .rce-toast-row button:hover:not(:disabled) { background: var(--color-accent-soft); }
+}
 .rce-toast-row button:disabled { opacity: .5; cursor: default; }
 .rce-toast small { font-size: 12px; color: var(--color-text-3); line-height: 1.4; }
 @keyframes rce-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

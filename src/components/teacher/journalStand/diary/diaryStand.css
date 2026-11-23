@@ -119,9 +119,11 @@
   padding: 0;
   border-radius: 50%;
 }
-.ds-round:hover {
-  color: var(--ds-primary);
-  background: var(--ds-focus);
+@media (hover: hover) and (pointer: fine) {
+  .ds-round:hover {
+    color: var(--ds-primary);
+    background: var(--ds-focus);
+  }
 }
 .ds-app {
   padding: 22px 38px 24px;
@@ -449,9 +451,11 @@
   background: var(--ds-focus);
   color: var(--ds-focus-text) !important;
 }
-.ds-primary:hover,
-.ds-secondary:hover {
-  filter: brightness(0.96);
+@media (hover: hover) and (pointer: fine) {
+  .ds-primary:hover,
+  .ds-secondary:hover {
+    filter: brightness(0.96);
+  }
 }
 .ds-course-label {
   overflow-wrap: anywhere;
@@ -508,8 +512,10 @@
 .ds-work-row:last-child {
   border-bottom: 0;
 }
-.ds-work-row:hover .ds-work-copy > strong {
-  color: var(--ds-primary);
+@media (hover: hover) and (pointer: fine) {
+  .ds-work-row:hover .ds-work-copy > strong {
+    color: var(--ds-primary);
+  }
 }
 .ds-work-number {
   display: grid;

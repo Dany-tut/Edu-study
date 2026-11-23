@@ -27,7 +27,9 @@
 .swj-table th:last-child { width: 182px; }
 .swj-table td:last-child, .swj-table th:last-child { padding-right: 0; text-align: right; }
 .swj-work-title { width: 100%; min-height: 48px; padding: 4px 0; border: 0; background: transparent; text-align: left; font-size: 13px; font-weight: 600; }
-.swj-work-title:hover { color: var(--color-accent); }
+@media (hover: hover) and (pointer: fine) {
+  .swj-work-title:hover { color: var(--color-accent); }
+}
 .swj-work-meta { display: block; margin-top: 3px; font-size: 11px; font-weight: 400; color: var(--color-text-3); overflow-wrap: anywhere; }
 .swj-result { font-size: 22px; font-weight: 600; letter-spacing: -.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .student-work-journal .swj-result small { font-size: 11px; font-weight: 400; letter-spacing: 0; color: var(--color-text-3); }

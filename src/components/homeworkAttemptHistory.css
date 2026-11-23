@@ -2,7 +2,11 @@
 .hw-history button { font:inherit; -webkit-tap-highlight-color:transparent; }
 .hw-history button:focus-visible { outline:2px solid var(--color-purple-text); outline-offset:3px; }
 .hw-history-toggle { width:100%; display:flex; align-items:center; gap:12px; padding:17px 20px; border:0; background:transparent; color:var(--color-text); text-align:left; cursor:pointer; }
-.hw-history-toggle:hover { background:var(--color-bg-2); }
+@media (hover: hover) and (pointer: fine) {
+  .hw-history-toggle:hover { background:var(--color-bg-2); }
+}
+.hw-history .hw-history-toggle:focus-visible { border-radius:21px; outline-offset:-3px; }
+.hw-history .hw-history-toggle[aria-expanded=true]:focus-visible { border-bottom-left-radius:0; border-bottom-right-radius:0; }
 .hw-history-symbol { width:40px; height:40px; display:grid; place-items:center; flex-shrink:0; border-radius:14px; color:var(--color-purple-text); background:var(--color-purple-soft); }
 .hw-history-heading { display:flex; flex:1; min-width:0; flex-direction:column; gap:4px; }
 .hw-history-heading strong { font-size:14px; font-weight:650; }

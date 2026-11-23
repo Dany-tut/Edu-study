@@ -28,7 +28,9 @@
   color: var(--color-text);
   transition: background 0.12s;
 }
-.tqw-job-open:hover:not(:disabled) { background: var(--color-bg-5); }
+@media (hover: hover) and (pointer: fine) {
+  .tqw-job-open:hover:not(:disabled) { background: var(--color-bg-5); }
+}
 .tqw-job-open:disabled { cursor: default; }
 
 /* Курс — отдельной строкой под названием, всегда в одну строку (фейд по
@@ -66,7 +68,9 @@
   margin-top: 5px;
   transition: background 0.12s, color 0.12s;
 }
-.tqw-x:hover:not(:disabled) { background: rgba(var(--accent-rgb), 0.14); color: var(--color-accent); }
+@media (hover: hover) and (pointer: fine) {
+  .tqw-x:hover:not(:disabled) { background: rgba(var(--accent-rgb), 0.14); color: var(--color-accent); }
+}
 .tqw-x:disabled { opacity: 0.5; cursor: default; }
 
 /* Неопределённый прогресс в свёрнутом островке. */
