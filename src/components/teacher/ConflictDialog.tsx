@@ -22,14 +22,20 @@ function FieldComparison({ field }: { field: CourseConflict['courseFields'][numb
         </div>
       ))}
     </dl>
+    {field.keep && <p style={{ marginTop: 4, fontSize: 12, color: 'var(--color-muted)' }}>
+      {field.keep === 'database'
+        ? t('При «Оставить моё» здесь останется значение из базы.')
+        : t('При «Оставить моё» здесь сохранится значение этой вкладки.')}
+    </p>}
   </section>
 }
 
-export default function ConflictDialog({ info, onOverwrite, onReload, onClose, report }: {
+export default function ConflictDialog({ info, onOverwrite, onReload, onClose, report, applying = false }: {
   info: CourseConflict
   onOverwrite: () => void
   onReload: () => void
   onClose: () => void
+  applying?: boolean
   report?: { label: string; onClick?: () => void }
 }) {
   const t = useT()
@@ -122,7 +128,7 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose, r
           <div ref={el => { bodyRef.current = el; if (el) updateEdges(el) }} onScroll={e => updateEdges(e.currentTarget)}
             style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowWrap: 'anywhere', padding: '16px clamp(12px, 3vw, 22px)' }}>
             <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--color-muted)', marginBottom: 12 }}>
-              {t('«Взять из базы» откроет сохранённый курс и удалит черновик этой вкладки. «Оставить моё» попробует сохранить правки вкладки. Если сохранить их безопасно не удастся, черновик останется здесь.')}
+              {info.knownIntent ? t('«Взять из базы» откроет сохранённый курс и удалит черновик вкладки. «Оставить моё» применит ваши правки поверх проверенной версии из базы. Остальные поля сохранятся такими, как в базе.') : t('«Взять из базы» откроет сохранённый курс и удалит черновик этой вкладки. «Оставить моё» попробует сохранить правки вкладки. Если сохранить их безопасно не удастся, черновик останется здесь.')}
             </p>
             {nothing ? (
               <p style={{ fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.5, padding: '12px 0' }}>
@@ -190,14 +196,14 @@ export default function ConflictDialog({ info, onOverwrite, onReload, onClose, r
             <RotateCcw size={14} /> <OpticalText as="iskra-button-label">{t('Взять из базы')}</OpticalText>
           </button>
           <button data-hover="layer"
-            onClick={onOverwrite}
+            onClick={onOverwrite} disabled={applying} aria-busy={applying}
             className="cursor-pointer flex items-center"
             style={{
               marginLeft: 'auto', gap: 8, padding: '10px 18px', borderRadius: 999, border: 'none',
               background: 'var(--grad-purple)', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
             }}
           >
-            <Save size={14} /> <OpticalText as="iskra-button-label">{t('Оставить моё')}</OpticalText>
+            <Save size={14} /> <OpticalText as="iskra-button-label">{applying ? t('Проверяю версию…') : t('Оставить моё')}</OpticalText>
           </button>
         </footer>
       </motion.div>

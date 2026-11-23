@@ -31,6 +31,13 @@ assert.match(rows['Таймкоды в плеере'].tab, /16 с/)
 assert.match(rows['Таймкоды по слайдам'].tab, /Оригинал/)
 assert.deepEqual([rows['Выбранный вариант'].database, rows['Выбранный вариант'].tab], ['По слайдам','По тексту'])
 assert.ok(rows['Источник таймкодов'])
+const original = structuredClone(local)
+original.lessons[0].description = b.description
+original.description = db.description
+const known = compareCourseVersions(id, local, db, 'stamp', s=>s, original)
+assert.equal(known.courseFields[0].keep, 'tab')
+assert.equal(known.lessonFields[0].fields.find(f=>f.label==='Описание урока').keep, 'tab')
+assert.equal(known.lessonFields[0].fields.find(f=>f.label==='Таймкоды в плеере').keep, 'database')
 local.lessons.pop()
 assert.deepEqual(compare().added, ['Одинаковое название'])
 assert.equal(compare().lessonFields[0].fields[0].tab, '')
@@ -51,7 +58,7 @@ try {
       const page = await browser.newPage({viewport:{width,height}})
       page.on('pageerror',e => errors.push(e.message))
       await page.setContent(`<html data-theme="${theme}"><head><style>${css}</style><style>*{box-sizing:border-box}.flex{display:flex}.items-center{align-items:center}.flex-1{flex:1}.flex-shrink-0{flex-shrink:0}.min-w-0{min-width:0}button{font:inherit}</style></head><body><div id="root"></div></body></html>`)
-      await page.evaluate(data => {window.info=data;window.calls=[]}, info)
+      await page.evaluate(data => {window.info=data;window.calls=[]}, known)
       await page.addScriptTag({content:script})
       const dialog = page.getByRole('dialog')
       await dialog.waitFor()
@@ -66,6 +73,8 @@ try {
         await page.screenshot({path:join(process.env.ISKRA_CONFLICT_SCREENSHOTS,`conflict-${width}-${theme}.png`),animations:'disabled'})
       }
       assert.equal(await page.locator('html').evaluate(el=>getComputedStyle(el).getPropertyValue('--color-bg-2').trim().toUpperCase()), theme==='dark'?'#1A1A1C':'#F9F9FB')
+      assert.ok(await dialog.getByText('При «Оставить моё» здесь останется значение из базы.',{exact:true}).count()>0)
+      assert.ok(await dialog.getByText('При «Оставить моё» здесь сохранится значение этой вкладки.',{exact:true}).count()>0)
       assert.equal(await dialog.getByText('Пусто',{exact:true}).count(),1)
       assert.equal(await dialog.getByText('Только Б',{exact:true}).count(),1)
       const geometry = await dialog.evaluate(el => {

@@ -33,6 +33,8 @@ const ctx={courseId:'qa01', recoveredDraft:true, conflict:false, stage:'lessons'
   draft:'SECRET TEXT',url:'secret.example/?apikey=SECRET', materials:[{name:'personal document'}]}
 globalThis.fixtureRPC=async(name,args)=>{calls.push({name,args});return new Promise(r=>{finish=r})}
 await report.retry(()=>undefined)
+await report.retry(async()=>undefined)
+assert.equal(report.getSnapshot().attempts,0,'a cancelled asynchronous conflict review is not a failed save')
 await report.retry(async()=>{ throw Error('failed manual transport') })
 await report.send(ctx,submitCourseSaveReport)
 assert.equal(calls.length,0,'one manual failure is below the threshold')

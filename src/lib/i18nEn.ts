@@ -6706,4 +6706,10 @@ export const EN: Record<string, string> = {
   "«Взять из базы» откроет сохранённый курс и удалит черновик этой вкладки. «Оставить моё» попробует сохранить правки вкладки. Если сохранить их безопасно не удастся, черновик останется здесь.": "“Use database version” opens the saved course and discards this tab’s draft. “Keep mine” tries to save this tab’s edits. If they cannot be saved safely, the draft stays here.",
   "Обновлённая версия курса ещё загружается. Черновик сохранён. Повторите сравнение.": "The updated course version is still loading. Your draft is safe. Please compare again.",
 
+  'При «Оставить моё» здесь останется значение из базы.': 'With “Keep mine”, this field keeps the database value.',
+  'При «Оставить моё» здесь сохранится значение этой вкладки.': 'With “Keep mine”, this field uses the value from this tab.',
+  '«Взять из базы» откроет сохранённый курс и удалит черновик вкладки. «Оставить моё» применит ваши правки поверх проверенной версии из базы. Остальные поля сохранятся такими, как в базе.': '“Use database version” opens the saved course and discards this tab’s draft. “Keep mine” applies your edits to the reviewed database version. Other fields keep their database values.',
+  'Не удалось проверить все уроки курса. Черновик сохранён. Повторите сравнение.': 'Could not verify all lessons. Your draft is safe. Compare the versions again.',
+  'Проверяю версию…': 'Checking version…',
+
 }

@@ -6,8 +6,8 @@ import { courseAtomicModules as productionCourseAtomicModules, eligibleCourseAto
 import { accessChangesForSave, acknowledgeCourseAccess } from '../../src/lib/courseAccessChanges'
 import { lessonShortIdMap } from '../../src/lib/lessonReferences'
 import { prepareConfirmedSnapshot, advanceConfirmedContent } from '../../src/lib/courseContentAcknowledgement'
-import { isAmbiguousLegacyRecovery } from '../../src/lib/courseDraftRecovery'
-import { baselineCanDriveDelta } from '../../src/lib/courseConfirmedBaseline'
+import { isAmbiguousLegacyRecovery, applyCourseDraftIntent, courseDraftIntent, normalizeLegacyDraftFiles } from '../../src/lib/courseDraftRecovery'
+import { baselineCanDriveDelta, captureConfirmedBaseline, stampKey } from '../../src/lib/courseConfirmedBaseline'
 import { courseContentSnapshot, courseContentDelta, courseDeltaProbeEnabled } from '../../src/lib/courseContentDelta'
 import { createWideContentDelta, prepareWideConfirmedSnapshot, createWideContentAcknowledgement, WideContentPreservationError } from '../../src/lib/courseWideDelta'
 import { compactFullLessons } from '../../src/lib/courseFullCompact'
@@ -79,7 +79,7 @@ function harness({response,error,delayed=false,telemetryThrows=false,typed=false
  getOwnerId:async()=>null,courseSaveProvenance:()=> 'unverified',
  }
  const write=Function(...Object.keys(env),`${actual};return syncCourseNow`)(...Object.values(env))
- return {write,calls,baselineStamp,latestCourse,saveIssue,savedDrafts,confirmedContent,resolve:()=>resolve({data:typed||ordinary?ack():normal,error:null}),getConflict:()=>conflict}
+ return {env,write,calls,baselineStamp,latestCourse,saveIssue,savedDrafts,confirmedContent,resolve:()=>resolve({data:typed||ordinary?ack():normal,error:null}),getConflict:()=>conflict}
 }
 let h=harness();assert.equal(await h.write(structuredClone(base)),true)
 assert.deepEqual(h.calls.map(c=>c.name),['flush','save_course_content_probe_20261122'],'one network RPC; visibility barrier precedes it')
@@ -179,3 +179,93 @@ ambiguousLesson.lessons[0].description = 'Older local copy of a changed lesson'
 assert.equal(await h.write(ambiguousLesson), false)
 assert.ok(h.calls.every(call => call.name === 'flush'))
 console.log('PASS actual F5 dispatch: 0 lesson patches for recovered metadata; unverified/ambiguous block writes, true conflict review and lost-ACK clean reopen')
+// Exercise the actual conflict callback, matched read and existing ordinary
+// writes together. Fake transport owns the authoritative CAS clock.
+const captureStart = source.indexOf('type EditorMetadataRead =')
+const captureEnd = source.indexOf('// ─── Main page',captureStart)
+const applyStart = source.indexOf('  async function applyReviewedConflict(')
+const applyEnd = source.indexOf('  // ── Записи курса',applyStart)
+const reviewCode = (await transform(source.slice(captureStart,captureEnd)+source.slice(applyStart,applyEnd),{loader:'ts',target:'es2020'})).code
+const reasonSource = readFileSync('src/lib/courseSaveReason.ts','utf8')
+const classifier = reasonSource.slice(reasonSource.indexOf('export function classifyCourseSaveFailure'), reasonSource.indexOf('/** Что делать учителю')).replace('export function', 'function')
+const classifyCourseSaveFailure = Function((await transform(classifier,{loader:'ts',target:'es2020'})).code + '; return classifyCourseSaveFailure')()
+for (const race of ['none','remote-before-choice','remote-before-write','close','auth','offline','mixed']) {
+  const client = harness({ordinary:true}), {env} = client
+  const first = '2026-01-01T02:00:00Z', second = '2026-01-01T03:00:00Z'
+  let clock = first, accepted = 0, attempts = 0
+  const rpc = env.supabase.rpc
+  env.supabase.rpc = async (name, args) => {
+    attempts++
+    if (args.p_baseline !== clock) return {data:null,error:{code:'PT409',message:`ISKRA_COURSE_CONFLICT:${clock}`}}
+    accepted++
+    return rpc(name,args)
+  }
+  env.draftSource.current = structuredClone(base)
+  const local = {...structuredClone(base),description:'ONLY THIS FIELD'}
+  client.latestCourse.current = local
+  assert.equal(await client.write(local),false)
+  assert.equal(client.getConflict()[2], first)
+  const original = env.confirmedContent.current
+  const review = {stamp:first,scope:env.readScope.current}, liveConflict={current:review}, reviewRead={current:null}
+  const changedChapters = [{seconds:42,time:'00:42',label:'Remote chapter'}]
+  const remote = structuredClone(base)
+  remote.lessons[0].timecodes = changedChapters
+  remote.lessons[0].chapterVariants = {source:'video',active:'text',text:changedChapters,revision:8}
+  const rawLessons = Object.values(structuredClone(original.serialized.rawLessons))
+  const modules = [...original.modules]
+  let newReview, visible=local
+  const model = {
+    ...env,reviewRead,liveConflict,setApplyingReview:()=>{},readSequence:{current:1},setConflict:v=>{liveConflict.current=v;newReview=v},
+    confirmedChapters:{current:new Map()},saveChain:{current:Promise.resolve()},
+    loadCourseEditorMetadata:async()=>{
+      if (race==='remote-before-choice') clock=second
+      if (race==='auth') throw {code:'42501',message:'permission denied'}
+      if (race==='offline') throw new TypeError('Failed to fetch')
+      if (race==='close') { liveConflict.current=null; reviewRead.current.abort() }
+      return {metadata:{...remote,serverStamp:clock},witness:{courseId:original.courseId,courseShortId:'qa',ownerId:original.ownerId,courseUpdatedAt:clock,
+        modules,lessons:original.lessons.map(r=>({...r,updatedAt:clock}))},numberStart:{included:false},rawCourse:original.serialized.rawCourse,rawLessons}
+    },
+    // This fixture's metadata includes the heavy projection. The independent
+    // hydration browser suite exercises the actual split and raw projector.
+    mergeCourseHeavy:c=>({...c,heavyPending:false}),captureConfirmedBaseline,courseContentSnapshot,
+    supabase:{from(){return {select(){return this},eq(){return this},abortSignal(){return this},async single(){return {
+      data:{id:original.courseId,created_by:original.ownerId,updated_at:race==='mixed'?second:clock,course_modules:modules,
+        lessons:original.lessons.map((r,i)=>({...rawLessons[i],id:r.id,short_id:r.shortId,module_id:r.moduleId,updated_at:clock}))},error:null,
+    }}}}},
+    stampKey,courseDraftIntent,applyCourseDraftIntent,normalizeLegacyDraftFiles,isAmbiguousLegacyRecovery,
+    reconcileCourse:fn=>{visible=fn(visible)}, buildConflict:async(_key,_c,stamp)=>({stamp}),noteSaveFailure:()=>{},
+    classifyCourseSaveFailure,courseSaveCause:()=> 'Could not save',
+    runAutosave:async c=>{if(race==='remote-before-write')clock=second;return client.write(c)},
+  }
+  const apply=Function(...Object.keys(model),`${reviewCode};return applyReviewedConflict`)(...Object.values(model))
+  const result=await apply(review)
+  if (race==='none') {
+    assert.equal(result,true); assert.equal(accepted,1); assert.equal(attempts,2)
+    const request=client.calls.find(c=>c.name==='save_course_content_delta').args
+    assert.equal(request.p_baseline,first)
+    assert.deepEqual(request.p_course_patch,{description:local.description});assert.deepEqual(request.p_lesson_patches,[])
+    assert.deepEqual(visible.lessons[0].timecodes,changedChapters)
+    assert.equal(visible.description,local.description)
+    assert.deepEqual(client.confirmedContent.current.serialized.rawLessons['qa-0'].materials.rawHiddenMaterials,{keep:true})
+  } else {
+    assert.equal(accepted,0)
+    assert.equal(client.latestCourse.current.description,local.description)
+    if(race==='remote-before-choice'){assert.equal(result,false); assert.deepEqual(newReview,{stamp:second});assert.equal(attempts,1)}
+    if(race==='remote-before-write'){assert.equal(result,false); assert.equal(client.getConflict()[2],second);assert.equal(attempts,2)}
+    if(race==='close'){assert.equal(result,undefined);assert.equal(attempts,1)}
+    if (['auth','offline','mixed'].includes(race)) {
+      assert.equal(result,false); assert.equal(attempts,1)
+      assert.deepEqual(env.failureDetail.current,{
+        stage:'conflict',code:{auth:'42501',mixed:'ISKRA_DATA_PRESERVATION'}[race],kind:{auth:'auth',offline:'network',mixed:'preservation'}[race],
+      })
+    }
+  }
+}
+console.log('PASS Keep mine: real prior 409, witnessed source, only description dispatched, remote chapters/raw materials retained, second writer before review or CAS and cancelled review preserved draft')
+
+// Local mismatch reported by ticket b145b684: no database request supplied a SQLSTATE.
+const mismatch = harness({ordinary:true,chapterStamp:true})
+assert.equal(await mismatch.write({...structuredClone(base), description:'unverified-source'}), false)
+assert.deepEqual(mismatch.env.failureDetail.current,{stage:'conflict',kind:'conflict'})
+assert.equal(mismatch.calls.filter(c => c.name.startsWith('save_')).length,0)
+console.log('PASS pre-dispatch version mismatch: classified as conflict, no fictitious SQL code or data write')

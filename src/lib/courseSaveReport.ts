@@ -47,14 +47,14 @@ export function createCourseSaveReport(storageKey: string) {
       if (!manualPending && !id && snapshot.attempts === 0) return
       generation++; manualPending = false; id = null; update(idle)
     },
-    async retry(write: () => Promise<boolean> | undefined) {
+    async retry(write: () => Promise<boolean | undefined> | undefined) {
       if (manualPending) return
       const current = generation
       manualPending = true
       let failed = false
       try {
         const result = write()
-        if (result) failed = !await result
+        if (result) failed = (await result) === false
       } catch {
         failed = true
       } finally {

@@ -2736,7 +2736,7 @@ function CenterLesson({
                     {link && (
                       <span style={{
                         position: 'absolute', right: -3, bottom: -3, width: 16, height: 16, borderRadius: '50%',
-                        background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: 'var(--color-green-fill)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         <Link2 size={9} style={{ color: '#fff' }} />
                       </span>
@@ -6179,6 +6179,52 @@ function mergeCourseHeavy(c: CourseEdData, rows: any[]): CourseEdData {
         }
 }
 
+type EditorMetadataRead = MetadataRead<{
+  course: CourseEdData; rawCourse: Record<string, unknown>; rawLessons: Array<Record<string, unknown>>
+}>
+const heavyCourseFields = 'id,created_by,updated_at,course_modules(id,label,position),lessons(id,short_id,module_id,updated_at,content,homework,materials)'
+
+function editorMetadataRead(token: ReadToken, loaded: Awaited<ReturnType<typeof loadCourseEditorMetadata>>): EditorMetadataRead {
+  const { metadata, witness, numberStart, rawCourse, rawLessons } = loaded
+  return {
+    origin: 'network-metadata', token, witness, sourceStamp: metadata.serverStamp ?? '', numberStart,
+    light: { course: { id: token.courseShortId, dbCourseId: token.courseShortId, ...metadata, metadataPending: false, heavyPending: true }, rawCourse, rawLessons },
+  }
+}
+
+// Both first-open hydration and conflict resolution must certify exactly the
+// same raw fields, owner, lesson/module identities and versions.
+function matchedEditorRead(metadata: EditorMetadataRead | null, heavy: any, token: ReadToken,
+  activeToken: ReadToken | null, currentScope: Scope) {
+  if (!Array.isArray(heavy?.lessons)) return null
+  const rows = heavy.lessons
+  const courseKey = token.courseShortId
+  let networkCourse: CourseEdData | undefined
+  const witness: Witness = {
+    courseId: heavy.id, courseShortId: courseKey, ownerId: heavy.created_by, courseUpdatedAt: heavy.updated_at,
+    modules: (heavy.course_modules ?? []).map((m: any) => ({ id: m.id, label: m.label, position: m.position })),
+    lessons: rows.map((l: any) => ({ id: l.id, shortId: l.short_id, moduleId: l.module_id, updatedAt: l.updated_at })),
+  }
+  const baseline = captureConfirmedBaseline({
+    metadata, heavy: { token, witness, rows }, activeToken,
+    currentScope, recoveredDraft: false, // projectClean uses only the two independent network reads.
+    projectClean: (light, heavyRows) => {
+      const byRef = new Map(heavyRows.map((row: any) => [row.short_id, row]))
+      return { course: mergeCourseHeavy(light.course, [...heavyRows]), rawCourse: light.rawCourse,
+        rawLessons: light.rawLessons.map(row => ({ ...row, ...(byRef.get(row.short_id as string) as object) })) }
+    },
+    serialize: clean => {
+      networkCourse = clean.course
+      const result = courseContentSnapshot(clean.course, witness.lessons)
+      if (!result || result.lessons.some(row => !row.id)) throw new Error('Course identities are not ready for a typed delta')
+      result.rawCourse = clean.rawCourse
+      result.rawLessons = Object.fromEntries(clean.rawLessons.map(row => [row.short_id as string, row]))
+      return result
+    },
+  })
+  return baseline && networkCourse ? { baseline, fresh: networkCourse as CourseEdData } : null
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function TeacherCourseEditorPage() {
@@ -6223,7 +6269,7 @@ export default function TeacherCourseEditorPage() {
   const freshEditor = useRef<CourseEdData | null>(null)
   const recoveryBlocked = useRef(false)
   const recovering = useRef(!!course.dbCourseId && (recoveredDraft || !needsHeavyFill))
-  const metadataRead = useRef<MetadataRead<{ course: CourseEdData; rawCourse: Record<string, unknown>; rawLessons: Array<Record<string, unknown>> }> | null>(null)
+  const metadataRead = useRef<EditorMetadataRead | null>(null)
   const reviewedContentOverwrite = useRef(false)
   const confirmedContent = useRef<ConfirmedBaseline<CourseContentSnapshot> | null>(null)
   const activeRead = useRef<ReadToken | null>(null)
@@ -6259,14 +6305,12 @@ export default function TeacherCourseEditorPage() {
       readScope.current = { authEpoch: epoch, ownerId: ownerId ?? '' }
       const token: ReadToken = { courseShortId: courseKey, scope: { ...readScope.current }, requestId: ++readSequence.current }
       activeRead.current = token
-      const { metadata, witness, numberStart, rawCourse, rawLessons } = await loadCourseEditorMetadata(courseKey, controller.signal)
+      const loaded = await loadCourseEditorMetadata(courseKey, controller.signal)
+      const { metadata } = loaded
       if (controller.signal.aborted) return
       if (token === activeRead.current && token.scope.authEpoch === readScope.current.authEpoch
         && token.scope.ownerId === readScope.current.ownerId) {
-        metadataRead.current = {
-          origin: 'network-metadata', token, witness, sourceStamp: metadata.serverStamp ?? '', numberStart,
-          light: { course: { id: courseKey, dbCourseId: courseKey, ...metadata, metadataPending: false, heavyPending: true }, rawCourse, rawLessons },
-        }
+        metadataRead.current = editorMetadataRead(token, loaded)
       }
       reconcileCourse(c => {
         if (!c.metadataPending || c.dbCourseId !== courseKey) return c
@@ -6305,41 +6349,17 @@ export default function TeacherCourseEditorPage() {
       const { data, error } = await supabase
         .from('courses')
         .select(wantWitness
-          ? 'id,created_by,updated_at,course_modules(id,label,position),lessons(id,short_id,module_id,updated_at,content,homework,materials)'
+          ? heavyCourseFields
           : 'lessons(short_id, content, homework, materials)')
         .eq('short_id', course.dbCourseId)
         .single()
       if (!alive) return
       if (error || !data) { setHeavyErr(true); return }
       const rows = (data as any).lessons ?? []
-      let networkCourse: CourseEdData | undefined
-      if (wantWitness && token) {
-        const heavy = data as any
-        const witness: Witness = {
-          courseId: heavy.id, courseShortId: courseKey, ownerId: heavy.created_by, courseUpdatedAt: heavy.updated_at,
-          modules: (heavy.course_modules ?? []).map((m: any) => ({ id: m.id, label: m.label, position: m.position })),
-          lessons: rows.map((l: any) => ({ id: l.id, shortId: l.short_id, moduleId: l.module_id, updatedAt: l.updated_at })),
-        }
-        confirmedContent.current = captureConfirmedBaseline({
-          metadata: metadataRead.current, heavy: { token, witness, rows }, activeToken: activeRead.current,
-          currentScope: readScope.current, recoveredDraft: false, // projectClean uses only the two independent network reads.
-          projectClean: (light, heavyRows) => {
-            const byRef = new Map(heavyRows.map((row: any) => [row.short_id, row]))
-            return { course: mergeCourseHeavy(light.course, [...heavyRows]), rawCourse: light.rawCourse,
-              rawLessons: light.rawLessons.map(row => ({ ...row, ...(byRef.get(row.short_id as string) as object) })) }
-          },
-          serialize: clean => {
-            networkCourse = clean.course
-            const result = courseContentSnapshot(clean.course, witness.lessons)
-            if (!result || result.lessons.some(row => !row.id)) throw new Error('Course identities are not ready for a typed delta')
-            result.rawCourse = clean.rawCourse
-            result.rawLessons = Object.fromEntries(clean.rawLessons.map(row => [row.short_id as string, row]))
-            return result
-          },
-        })
-      }
+      const pair = wantWitness && token ? matchedEditorRead(metadataRead.current, data, token, activeRead.current, readScope.current) : null
+      confirmedContent.current = pair?.baseline ?? null
       const light = metadataRead.current?.light.course
-      const fresh = confirmedContent.current && networkCourse ? networkCourse : null
+      const fresh = pair?.fresh ?? null
       freshEditor.current = fresh
       // A complete local draft can contain deliberate deletions. Filling its
       // nullish values from the server would undo those edits.
@@ -6615,13 +6635,24 @@ export default function TeacherCourseEditorPage() {
   // Конфликт версий: не булев флаг, а что именно разошлось — окно показывает
   // список и даёт выбрать, чью версию оставить (см. ConflictDialog).
   const [conflict, setConflict] = useState<CourseConflict | null>(null)
+  const liveConflict = useRef(conflict)
+  liveConflict.current = conflict
+  const reviewRead = useRef<AbortController | null>(null)
+  const [applyingReview, setApplyingReview] = useState(false)
+  useEffect(() => () => reviewRead.current?.abort(), [])
+  function closeConflict() {
+    reviewRead.current?.abort()
+    reviewRead.current = null
+    setApplyingReview(false)
+    setConflict(null)
+  }
 
   const reportAction = reportState.attempts < 2 ? undefined : {
     label: reportState.status === 'sent' ? t('Сообщение отправлено') : reportState.status === 'sending' ? t('Отправляем…')
       : reportState.status === 'error' ? t('Не удалось отправить. Повторить отправку') : t('Сообщить об ошибке'),
     onClick: reportState.status === 'sent' || reportState.status === 'sending' ? undefined : () => {
       void reporter.send({ courseId: courseKey, recoveredDraft, conflict: !!conflict,
-        ...(conflict ? { stage: 'conflict' as const, code: 'PT409', kind: 'conflict' as const } : failureDetail.current) }, submitCourseSaveReport)
+        ...(conflict ? { stage: 'conflict' as const, code: conflict.code, kind: 'conflict' as const } : failureDetail.current) }, submitCourseSaveReport)
     },
   }
 
@@ -6895,20 +6926,101 @@ export default function TeacherCourseEditorPage() {
     return lessonStamp > courseStamp ? lessonStamp : courseStamp
   }
 
-  async function buildConflict(shortId: string, c: CourseEdData, stamp: string): Promise<CourseConflict> {
+  async function buildConflict(shortId: string, c: CourseEdData, stamp: string, code?: string): Promise<CourseConflict> {
+    const scope = { ...readScope.current }
     // The values shown and the version the teacher reviews belong to one read.
     const { data, error } = await supabase.from('courses')
       .select('updated_at, title, description, status, group_ids, student_ids, lessons(short_id, updated_at, title, lesson_number, description, timecodes, chapter_variants)')
       .eq('short_id', shortId).maybeSingle()
     if (error || !data || !Array.isArray(data.lessons)) {
-      throw new Error(t('Не удалось загрузить версию курса из базы. Черновик сохранён. Повторите сравнение.'))
+      throw Object.assign(new Error(t('Не удалось загрузить версию курса из базы. Черновик сохранён. Повторите сравнение.')), { cause: error ?? undefined })
     }
     const current = courseSnapshotStamp(data.updated_at, data.lessons.map(l => l.updated_at))
     const currentKey = stampKey(current), conflictKey = stampKey(stamp)
     if (!currentKey || !conflictKey || currentKey < conflictKey) {
       throw new Error(t('Обновлённая версия курса ещё загружается. Черновик сохранён. Повторите сравнение.'))
     }
-    return compareCourseVersions(shortId, c, data, current, t)
+    if (scope.ownerId !== readScope.current.ownerId || scope.authEpoch !== readScope.current.authEpoch) {
+      throw Object.assign(new Error(t('Не удалось проверить все уроки курса. Черновик сохранён. Повторите сравнение.')), { code: '42501' })
+    }
+    return { ...compareCourseVersions(shortId, c, data, current, t, draftSource.current ?? undefined), scope, code }
+  }
+
+  async function applyReviewedConflict(review: CourseConflict): Promise<boolean | undefined> {
+    const courseKey = latestCourse.current.dbCourseId ?? latestCourse.current.id
+    if (!courseKey || reviewRead.current) return
+    if (!review.scope || review.scope.ownerId !== readScope.current.ownerId || review.scope.authEpoch !== readScope.current.authEpoch) {
+      closeConflict()
+      return
+    }
+    const controller = new AbortController()
+    reviewRead.current = controller
+    setApplyingReview(true)
+    let guardMessage: string | undefined
+    const guard = (message: string) => {
+      guardMessage = message
+      return Object.assign(new Error(message), { code: 'ISKRA_DATA_PRESERVATION' })
+    }
+    const scope = { ...readScope.current }
+    const active = () => !controller.signal.aborted && liveConflict.current === review
+      && (latestCourse.current.dbCourseId ?? latestCourse.current.id) === courseKey && readScope.current.authEpoch === scope.authEpoch
+      && readScope.current.ownerId === scope.ownerId
+    try {
+      const token: ReadToken = { courseShortId: courseKey, scope, requestId: ++readSequence.current }
+      const loaded = await loadCourseEditorMetadata(courseKey, controller.signal)
+      if (!active()) return
+      const { data, error } = await supabase.from('courses').select(heavyCourseFields)
+        .eq('short_id', courseKey).abortSignal(controller.signal).single()
+      if (!active()) return
+      if (error) throw error
+      const pair = matchedEditorRead(editorMetadataRead(token, loaded), data, token, token, readScope.current)
+      if (!pair) throw guard(t('Не удалось проверить все уроки курса. Черновик сохранён. Повторите сравнение.'))
+      // Drain previously dispatched writes before switching the live baseline.
+      await saveChain.current.catch(() => undefined)
+      if (!active()) return
+      const local = latestCourse.current, { baseline, fresh } = pair
+      if (stampKey(baseline.stamp) !== stampKey(review.stamp)) {
+        if (stampKey(baseline.stamp)! < stampKey(review.stamp)!) throw new Error(t('Обновлённая версия курса ещё загружается. Черновик сохранён. Повторите сравнение.'))
+        const next = await buildConflict(courseKey, local, baseline.stamp)
+        if (active()) setConflict(next)
+        return false
+      }
+      const origin = draftSource.current
+      const recovered = origin
+        ? applyCourseDraftIntent(fresh, local, courseDraftIntent(origin, local))
+        : normalizeLegacyDraftFiles(local, baseline.serialized.rawLessons)
+      if (!recovered || (!origin && (recoveryBlocked.current
+        || isAmbiguousLegacyRecovery(baseline, local.serverStamp, courseContentSnapshot(recovered, baseline.lessons))))) {
+        throw guard(t('Другие уроки изменились после создания старого черновика. Скопируйте свои правки, затем откройте версию из базы. Черновик сохранён на устройстве.'))
+      }
+      const next = { ...recovered, dbCourseId: courseKey, serverStamp: baseline.stamp }
+      confirmedContent.current = baseline
+      freshEditor.current = fresh
+      draftSource.current = fresh
+      recovering.current = true
+      recoveryBlocked.current = false
+      reviewedContentOverwrite.current = false
+      baselineStamp.current = baseline.stamp
+      confirmedChapters.current.clear()
+      latestCourse.current = next
+      reconcileCourse(() => next)
+      writeDraft(draftKey, persistedSnapshot(next, true))
+      setConflict(null)
+      return await runAutosave(next)
+    } catch (error) {
+      if (!active()) return
+      const detail = ((error as { cause?: unknown } | null)?.cause ?? error) as CourseSaveError
+      const kind = classifyCourseSaveFailure(detail)
+      failureDetail.current = { stage: 'conflict', code: detail?.code, kind }
+      setConflict(null)
+      noteSaveFailure(guardMessage ?? courseSaveCause(detail))
+      return false
+    } finally {
+      if (reviewRead.current === controller) {
+        reviewRead.current = null
+        if (!controller.signal.aborted) setApplyingReview(false)
+      }
+    }
   }
 
   // ── Записи курса идут строго по одной ─────────────────────────────────────
@@ -6944,7 +7056,7 @@ export default function TeacherCourseEditorPage() {
         const { data: saved, error } = await supabase.rpc('save_course_chapters_whole', request)
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
-            setConflict(await buildConflict(base.courseShortId, latestCourse.current, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+            setConflict(await buildConflict(base.courseShortId, latestCourse.current, error.message.slice('ISKRA_COURSE_CONFLICT:'.length), error.code))
           }
           throw new Error(courseSaveReason('course', error, base.courseShortId))
         }
@@ -6980,6 +7092,13 @@ export default function TeacherCourseEditorPage() {
   async function syncCourseNow(c: CourseEdData): Promise<boolean> {
     saveIssue.current = null
     failureDetail.current = { stage: 'unknown' }
+    // A client-side guard has no database error code. Keep its specific
+    // stage/cause for an eventual report without inventing a SQLSTATE.
+    const blocked = (stage: ReportContext['stage'], kind: 'conflict' | 'preservation', message: string) => {
+      failureDetail.current = { stage, kind }
+      saveIssue.current = message
+      return false
+    }
     const shortId = c.dbCourseId ?? c.id
 
     // Страховка на случай нового пути в сохранение: запись идёт курсом целиком,
@@ -6997,21 +7116,20 @@ export default function TeacherCourseEditorPage() {
         const base = confirmedContent.current
         if (base) {
           if (!baselineCanDriveDelta(base, { courseShortId: shortId, baselineStamp: writeStamp, scope: readScope.current })) {
-            saveIssue.current = t('Не удалось проверить версию курса перед публикацией. Черновик сохранён.')
-            return false
+            return blocked('conflict', 'conflict', t('Не удалось проверить версию курса перед публикацией. Черновик сохранён.'))
           }
           const request = buildWholeWitnessPublicationArgs(base, c.status)
           const dispatch = prepareConfirmedPublicationDispatch(base, request, readScope.current)
-          if (!dispatch) { saveIssue.current = t('Не удалось проверить публикацию. Черновик сохранён.'); return false }
+          if (!dispatch) { return blocked('status', 'preservation', t('Не удалось проверить публикацию. Черновик сохранён.')) }
           const { data: saved, error } = await supabase.rpc('save_course_publication_whole', request)
           if (error || !saved) {
             if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
-              setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+              setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length), error.code))
             } else saveIssue.current = courseSaveReason('status', error, shortId)
             return false
           }
           const next = advanceConfirmedPublication(dispatch, saved, readScope.current, confirmedContent.current)
-          if (!next) { saveIssue.current = t('Сервер не подтвердил публикацию. Черновик сохранён.'); return false }
+          if (!next) { return blocked('status', 'preservation', t('Сервер не подтвердил публикацию. Черновик сохранён.')) }
           confirmedContent.current = next
           writeStamp = next.stamp
         } else {
@@ -7236,8 +7354,7 @@ export default function TeacherCourseEditorPage() {
     }
     if (recovering.current) {
       if (!ordinaryScope || !contentBase || !ordinaryCanonical || recoveryBlocked.current) {
-        saveIssue.current = t('Не удалось проверить все уроки восстановленного черновика. Правки сохранены на устройстве. Откройте курс заново.')
-        return false
+        return blocked('lessons', 'preservation', t('Не удалось проверить все уроки восстановленного черновика. Правки сохранены на устройстве. Откройте курс заново.'))
       }
       if (!baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })) {
         // A previously committed draft can survive a dropped ACK. An identical
@@ -7257,8 +7374,7 @@ export default function TeacherCourseEditorPage() {
         return false
       }
       if (!draftSource.current && isAmbiguousLegacyRecovery(contentBase, c.serverStamp, ordinaryCanonical)) {
-        saveIssue.current = t('Другие уроки изменились после создания старого черновика. Скопируйте свои правки, затем откройте версию из базы. Черновик сохранён на устройстве.')
-        return false
+        return blocked('lessons', 'preservation', t('Другие уроки изменились после создания старого черновика. Скопируйте свои правки, затем откройте версию из базы. Черновик сохранён на устройстве.'))
       }
     }
     const ordinaryEligible = ordinaryScope && contentBase && noCourseAccessIntents(changes)
@@ -7267,8 +7383,7 @@ export default function TeacherCourseEditorPage() {
     if (ordinaryEligible && contentBase && ordinaryPlan && ordinaryCanonical) {
       const modules = eligibleCourseAtomicModules(c)
       if (!modules && ordinaryPlan.hasWide) {
-        saveIssue.current = t('Не удалось безопасно сохранить изменение содержимого. Черновик сохранён на устройстве.')
-        return false
+        return blocked('lessons', 'preservation', t('Не удалось безопасно сохранить изменение содержимого. Черновик сохранён на устройстве.'))
       }
       if (modules) {
         const canonical = ordinaryCanonical, dispatched = ordinaryPlan
@@ -7281,7 +7396,7 @@ export default function TeacherCourseEditorPage() {
         })
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
-            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length), error.code))
           } else saveIssue.current = courseSaveReason('course', error, shortId)
           return false
         }
@@ -7290,8 +7405,7 @@ export default function TeacherCourseEditorPage() {
           ? createWideContentAcknowledgement(advanceConfirmedContent)(contentBase, canonical, preserved, saved, readScope.current, expected, dispatched.delta)
           : advanceConfirmedContent(contentBase, canonical, preserved, saved, readScope.current, expected)
         if (!confirmedContent.current) {
-          saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.')
-          return false
+          return blocked('lessons', 'preservation', t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.'))
         }
         courseDbId = saved.course_id; writeStamp = saved.stamp; wrote = true
         return finishSave(c.status === contentBase.serialized.course.status)
@@ -7311,18 +7425,16 @@ export default function TeacherCourseEditorPage() {
       // the same transaction; never regenerate JSON from a lossy UI projection.
       if (ordinaryScope && contentBase && ordinaryCanonical && !reviewedContentOverwrite.current) {
         if (!baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })) {
-          saveIssue.current = t('Версия курса изменилась. Черновик сохранён; проверьте изменения перед повторным сохранением.')
-          return false
+          return blocked('conflict', 'conflict', t('Версия курса изменилась. Черновик сохранён; проверьте изменения перед повторным сохранением.'))
         }
         const full = prepareFullPreservedSnapshot(contentBase, ordinaryCanonical, readScope.current)
         if (!full) {
-          saveIssue.current = t('Не удалось безопасно сохранить изменение содержимого. Черновик сохранён на устройстве.')
-          return false
+          return blocked('lessons', 'preservation', t('Не удалось безопасно сохранить изменение содержимого. Черновик сохранён на устройстве.'))
         }
         const fullDispatch = prepareFullContentDispatch(contentBase, ordinaryCanonical, readScope.current)
-        if (!fullDispatch) { saveIssue.current = t('Не удалось проверить состав курса. Черновик сохранён.'); return false }
+        if (!fullDispatch) { return blocked('lessons', 'preservation', t('Не удалось проверить состав курса. Черновик сохранён.')) }
         const compactLessons = compactFullLessons(fullDispatch, readScope.current, confirmedContent.current)
-        if (!compactLessons) { saveIssue.current = t('Не удалось проверить исходные данные курса. Черновик сохранён.'); return false }
+        if (!compactLessons) { return blocked('lessons', 'preservation', t('Не удалось проверить исходные данные курса. Черновик сохранён.')) }
         const fullRequest = {
           p_short_id: shortId, p_baseline: contentBase.stamp,
           p_course: full.snapshot.course, p_modules: full.snapshot.modules,
@@ -7343,14 +7455,13 @@ export default function TeacherCourseEditorPage() {
         } catch { /* Numeric diagnostics cannot change a committed acknowledgement. */ }
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
-            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length), error.code))
           } else saveIssue.current = courseSaveReason('course', error, shortId)
           return false
         }
         confirmedContent.current = advanceFullContentDispatch(fullDispatch, saved, readScope.current, confirmedContent.current)
         if (!confirmedContent.current) {
-          saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён; откройте курс заново для проверки.')
-          return false
+          return blocked('lessons', 'preservation', t('Сервер не подтвердил полный состав курса. Черновик сохранён; откройте курс заново для проверки.'))
         }
         courseDbId = saved.course_id; writeStamp = saved.stamp; wrote = true
         const shortIds = payload.shortIdByLessonId
@@ -7379,8 +7490,7 @@ export default function TeacherCourseEditorPage() {
           wideCandidate = createWideContentDelta(courseContentDelta)(typedBase.serialized, canonicalSource, [...typedBase.modules])
         } catch (error) {
           if (!(error instanceof WideContentPreservationError)) throw error
-          saveIssue.current = t('Изменение состава содержимого требует отдельной проверки. Черновик сохранён на устройстве; данные на сервере не изменены.')
-          return false
+          return blocked('lessons', 'preservation', t('Изменение состава содержимого требует отдельной проверки. Черновик сохранён на устройстве; данные на сервере не изменены.'))
         }
       }
       const preservedSource = canonicalSource && typedBase && sameContentScope
@@ -7419,7 +7529,7 @@ export default function TeacherCourseEditorPage() {
         try { trackEvent('course_save_probe_profile', courseSaveProbeMetrics(request, saved?._qa_profile, performance.now() - started)) } catch { /* Numeric diagnostics are non-fatal. */ }
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
-            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+            setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length), error.code))
           } else saveIssue.current = courseSaveReason('course', error, shortId)
           return false
         }
@@ -7427,8 +7537,7 @@ export default function TeacherCourseEditorPage() {
           ? createWideContentAcknowledgement(advanceConfirmedContent)(base, canonical, preserved, saved, readScope.current, { modules: expectedModules, lessons: expectedLessons }, delta)
           : advanceConfirmedContent(base, canonical, preserved, saved, readScope.current, { modules: expectedModules, lessons: expectedLessons })
         if (!confirmedContent.current) {
-          saveIssue.current = t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.')
-          return false
+          return blocked('lessons', 'preservation', t('Сервер не подтвердил полный состав курса. Черновик сохранён на устройстве; откройте курс заново для проверки.'))
         }
         courseDbId = saved.course_id; writeStamp = saved.stamp; wrote = true
         // Both restricted entries checked authoritative empty audience before
@@ -7457,7 +7566,7 @@ export default function TeacherCourseEditorPage() {
       // which could obscure a real version, permission or preservation error.
       if (error || !saved) {
         if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
-          setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length)))
+          setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length), error.code))
         } else saveIssue.current = courseSaveReason('course', error, shortId)
         return false
       }
@@ -8066,11 +8175,13 @@ export default function TeacherCourseEditorPage() {
         <ConflictDialog
           info={conflict}
           report={reportAction}
-          onClose={() => setConflict(null)}
+          applying={applyingReview}
+          onClose={closeConflict}
           // «Взять из базы» — перезагрузка: несохранённые правки этой вкладки
           // пропадут, зато версия станет ровно серверной. Черновик гасим, иначе
           // F5-восстановление вернёт ту же устаревшую копию.
           onReload={() => {
+            closeConflict()
             // F5 also restores ce-session, independently from the draft. Do not
             // let that snapshot resurrect the version the teacher discarded.
             const fresh: CourseEdData = {
@@ -8083,31 +8194,7 @@ export default function TeacherCourseEditorPage() {
             useTeacher.getState().openCourseEditor(JSON.stringify(fresh))
             window.location.reload()
           }}
-          // The review applies only to this exact server version. A recovered
-          // draft still uses the witnessed, raw-preserving ordinary write path.
-          onOverwrite={() => { void reporter.retry(() => {
-            const stamp = conflict.stamp
-            if (recovering.current) {
-              const base = confirmedContent.current
-              if (!base || stampKey(base.stamp) !== stampKey(stamp)) {
-                // New changes arrived after the recovery reads. Keep the local
-                // draft and fetch a matched version for the next review.
-                window.location.reload()
-                return
-              }
-              const local = latestCourse.current
-              if (!draftSource.current && isAmbiguousLegacyRecovery(base, local.serverStamp, courseContentSnapshot(local, base.lessons))) {
-                failureDetail.current = { stage: 'conflict', code: 'ISKRA_DATA_PRESERVATION', kind: 'preservation' }
-                setConflict(null)
-                noteSaveFailure(t('Другие уроки изменились после создания старого черновика. Скопируйте свои правки, затем откройте версию из базы. Черновик сохранён на устройстве.'))
-                return Promise.resolve(false)
-              }
-            }
-            setConflict(null)
-            baselineStamp.current = stamp
-            reviewedContentOverwrite.current = !recovering.current && courseDeltaProbeEnabled(latestCourse.current.dbCourseId ?? latestCourse.current.id)
-            return runAutosave(latestCourse.current)
-          }) }}
+          onOverwrite={() => { void reporter.retry(() => applyReviewedConflict(conflict)) }}
         />
       )}
 
