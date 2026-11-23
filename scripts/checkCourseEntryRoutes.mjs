@@ -121,7 +121,7 @@ assert.equal(built, 1); assert.equal(requests.at(-1).id, 'seed-id')
 function environment(fields = []) {
   writes = []; returnRow = true; afterUpdate = () => {}
   const env = {
-    editingScheduleId: 'schedule', lessonRowId: 'lesson', loaded: { id: 'lesson', stamp: 'v1', materials: {}, variants: null },
+    editingScheduleId: 'schedule', lessonRowId: 'lesson', loaded: { id: 'lesson', stamp: 'v1', materials: {}, variants: null, publishedCodes: [], recording: 'video' },
     source: { id: 'schedule', topic: 'Тема', time: '10:00', endTime: '11:00', lessonNumber: 1 }, sourceDate: '01.02.2026',
     meta: { recipients: [{ kind: 'group', id: 'group' }], title: 'Тема', date: '01.02.2026', startTime: '10:00', endTime: '11:00', lessonNumber: '1' },
     intent: { current: { lessonId: 'lesson', stamp: 'v1', fields } }, current: { current: true }, revision: { current: 2 },
@@ -145,12 +145,14 @@ await src.runPublish(env)
 assert.deepEqual(writes, [{ table: 'lessons', patch: { description: 'Правка' }, filters: { id: 'lesson', updated_at: 'v1' } }])
 assert.equal(env.cleared, true)
 env = environment(['timecodes'])
-env.loaded.variants = { active: 'slides', revision: 1, text: [{ time: '0:11', label: 'Hidden' }], slides: [], extra: 7 }
+env.loaded.variants = { source: 'video', active: 'slides', revision: 1, text: [{ time: '0:11', label: 'Hidden' }], slides: [], extra: 7 }
 env.timecodes = [{ time: '1:02', label: 'Visible', originalTitle: 'Original' }]
 await src.runPublish(env)
 assert.equal(writes[0].patch.timecodes[0].seconds, 62)
 assert.deepEqual(writes[0].patch.chapter_variants.text[0].label, 'Hidden')
 assert.equal(writes[0].patch.chapter_variants.slides[0].originalTitle, 'Original')
+assert.throws(() => src.patchScheduleChapters([], { active: 'text', source: 'old', revision: 1, text: [] }, [], 'new'))
+assert.throws(() => src.patchScheduleChapters([], { active: 'text', source: 'video', revision: 1, text: [] }, [{ time: '0:00', label: 'New' }], 'video'))
 env = environment(['description'])
 returnRow = false
 await src.runPublish(env)

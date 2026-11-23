@@ -33,7 +33,22 @@ export function patchScheduleMaterials(raw: unknown, before: LessonFiles, after:
 }
 
 export type ScheduleTimecode = { time: string; label: string; seconds?: number; [key: string]: unknown }
-export function patchScheduleChapters(codes: ScheduleTimecode[], variants: unknown) {
+function matchingChapterVariant(variants: unknown, published: unknown, recording: string): ScheduleTimecode[] | null {
+  if (!object(variants) || (variants.active !== 'slides' && variants.active !== 'text') ||
+      variants.source !== recording || !Array.isArray(published)) return null
+  const active = variants[variants.active]
+  if (!Array.isArray(active)) return null
+  const project = (rows: unknown[]) => rows.map(row => object(row) ? [row.time, row.label, row.seconds ?? null] : null)
+  return JSON.stringify(project(active)) === JSON.stringify(project(published)) ? active : null
+}
+
+export function readScheduleChapters(variants: unknown, published: unknown, recording: string): ScheduleTimecode[] {
+  return matchingChapterVariant(variants, published, recording) ?? (Array.isArray(published) ? published : [])
+}
+
+export function patchScheduleChapters(
+  codes: ScheduleTimecode[], variants: unknown, published: unknown, recording: string,
+) {
   const normalized = codes.map(code => {
     const parts = code.time.trim().split(':')
     if (!parts.length || !parts.every(part => /^\d+$/.test(part)) || parts.length > 3 ||
@@ -44,6 +59,9 @@ export function patchScheduleChapters(codes: ScheduleTimecode[], variants: unkno
   if (!object(variants) || (variants.active !== 'slides' && variants.active !== 'text') ||
       !Array.isArray(variants[variants.active]) || !Number.isSafeInteger(variants.revision))
     throw new Error('Откройте варианты глав в редакторе курса')
+  if (!matchingChapterVariant(variants, published, recording)) {
+    throw new Error('Запись или набор глав изменились. Проверьте таймкоды в редакторе курса.')
+  }
   return {
     timecodes: normalized.map(({ time, label, seconds }) => ({ time, label, seconds })),
     chapter_variants: { ...variants, [variants.active]: normalized, revision: Number(variants.revision) + 1 },

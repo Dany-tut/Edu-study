@@ -26,7 +26,7 @@ import {
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
 } from '../../lib/lessonFiles'
 import { openLessonInCourseEditor, openCourseInEditor, findScheduleCourseTarget, type ScheduleCourseTarget } from '../../lib/teacherNav'
-import { patchScheduleMaterials, patchScheduleChapters, type ScheduleLessonField, type ScheduleLessonIntent, type ScheduleTimecode } from '../../lib/scheduleLessonEdits'
+import { readScheduleChapters, patchScheduleMaterials, patchScheduleChapters, type ScheduleLessonField, type ScheduleLessonIntent, type ScheduleTimecode } from '../../lib/scheduleLessonEdits'
 import { scheduleMove } from '../../lib/teacherSchedule'
 import BackCircle from '../../components/BackCircle'
 import { confirmDialog } from '../../components/ConfirmHost'
@@ -1102,7 +1102,7 @@ export default function TeacherLessonEditorPage() {
   // которой поля вообще переживали перезагрузку, — затирать его загрузкой нельзя.
   const intent = useRef(readDraft<ScheduleLessonIntent>(`${draftNs}.intent`))
   const [loaded, setLoaded] = useState<{
-    id: string; stamp: string; materials: unknown; variants: unknown
+    id: string; stamp: string; materials: unknown; variants: unknown; publishedCodes: unknown; recording: string
   } | null>(null)
   const legacy = useRef({
     videoUrl: readDraft<string>(`${draftNs}.videoUrl`),
@@ -1121,10 +1121,9 @@ export default function TeacherLessonEditorPage() {
       .then(({ data }) => {
         if (!active || !data || data.id !== lessonRowId || !data.updated_at) return
         const variants = data.chapter_variants
-        const activeCodes = variants && (variants.active === 'slides' || variants.active === 'text') ? variants[variants.active] : null
         const server = {
           videoUrl: data.youtube_url ?? '',
-          timecodes: Array.isArray(activeCodes) ? activeCodes : Array.isArray(data.timecodes) ? data.timecodes : [],
+          timecodes: readScheduleChapters(variants, data.timecodes, (data.youtube_url ?? '').trim()),
           files: parseLessonFiles(data.materials),
           description: data.description ?? '',
         }
@@ -1150,7 +1149,7 @@ export default function TeacherLessonEditorPage() {
         if (!keep.includes('timecodes')) setTimecodes(server.timecodes)
         if (!keep.includes('description')) setDescription(server.description)
         if (!keep.includes('files')) setFiles(server.files)
-        setLoaded({ id: lessonRowId, stamp: data.updated_at, materials: data.materials, variants })
+        setLoaded({ id: lessonRowId, stamp: data.updated_at, materials: data.materials, variants, publishedCodes: data.timecodes, recording: server.videoUrl })
         const tasks = (data.homework as { hwTasks?: Array<{ isHard?: boolean }> } | null)?.hwTasks ?? []
         setLessonHw({
           basic: tasks.filter(x => !x.isHard).length,
@@ -1250,21 +1249,21 @@ export default function TeacherLessonEditorPage() {
       if (fields.includes('description')) patch.description = description.trim() || null
       try {
         if (fields.includes('files')) patch.materials = patchScheduleMaterials(loaded.materials, parseLessonFiles(loaded.materials), files)
-        if (fields.includes('timecodes')) Object.assign(patch, patchScheduleChapters(timecodes, loaded.variants))
+        if (fields.includes('timecodes')) Object.assign(patch, patchScheduleChapters(timecodes, loaded.variants, loaded.publishedCodes, fields.includes('videoUrl') ? videoUrl.trim() : loaded.recording.trim()))
       } catch (error) {
         setPublishErr({ tone: 'danger', text: t(error instanceof Error ? error.message : 'Проверьте содержимое урока.') })
         return
       }
       if (Object.keys(patch).length) {
         const result = await supabase.from('lessons').update(patch).eq('id', lessonRowId)
-          .eq('updated_at', loaded.stamp).select('updated_at, materials, chapter_variants').maybeSingle()
+          .eq('updated_at', loaded.stamp).select('updated_at, materials, chapter_variants, timecodes, youtube_url').maybeSingle()
         if (!current.current) return
         if (result.error || !result.data?.updated_at) {
           setPublishErr({ tone: 'danger', text: t('Сохранение урока не подтверждено. Черновик остался в этой вкладке. Обновите страницу и сравните изменения.') })
           return
         }
         const stamp = result.data.updated_at
-        setLoaded({ id: lessonRowId, stamp, materials: result.data.materials, variants: result.data.chapter_variants })
+        setLoaded({ id: lessonRowId, stamp, materials: result.data.materials, variants: result.data.chapter_variants, publishedCodes: result.data.timecodes, recording: result.data.youtube_url ?? '' })
         if (intent.current) {
           intent.current = { ...intent.current, stamp, fields: revision.current === started ? [] : intent.current.fields }
           writeDraft(`${draftNs}.intent`, intent.current)
