@@ -26,7 +26,7 @@ export function initNotifications(recipientIds: string[]): () => void {
   // подписка пересоздана) не должен затирать список нового набора.
   supabase
     .from('notifications')
-    .select('*')
+    .select('id, recipient_id, recipient_role, type, title, body, link, read, created_at')
     .in('recipient_id', ids)
     .order('created_at', { ascending: false })
     .limit(50)

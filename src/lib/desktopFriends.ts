@@ -62,7 +62,7 @@ export function useDesktopFriends(enabled = true) {
     if (!account) return
     const visible = () => { if (document.visibilityState === 'visible') void refresh() }
     void refresh()
-    const interval = window.setInterval(visible, 15000)
+    const interval = window.setInterval(visible, 60_000)
     window.addEventListener('focus', visible)
     document.addEventListener('visibilitychange', visible)
     return () => { clearInterval(interval); window.removeEventListener('focus', visible); document.removeEventListener('visibilitychange', visible) }

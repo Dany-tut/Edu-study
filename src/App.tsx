@@ -348,7 +348,7 @@ function AppRoutes() {
         }))
       } catch (error) { console.error('[attendance sync]', error) }
       finally { syncingAttendance = false }
-    }, 30_000)
+    }, 60_000)
     return () => {
       disposed = true
       window.clearInterval(attendanceTimer)

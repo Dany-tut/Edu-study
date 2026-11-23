@@ -773,7 +773,7 @@ const courseTestlyQuery = createSharedQuery<Array<{
     const channel = supabase.channel(`course-testly-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => reload()).subscribe()
     const refresh = () => { if (document.visibilityState === 'visible') reload() }
-    const interval = window.setInterval(refresh, 20000)
+    const interval = window.setInterval(refresh, 120_000)
     window.addEventListener('focus', refresh)
     return () => { supabase.removeChannel(channel); window.clearInterval(interval); window.removeEventListener('focus', refresh) }
   },

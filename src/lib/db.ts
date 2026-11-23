@@ -72,6 +72,31 @@ interface DbScheduleLesson {
   status?: ScheduleEventStatus
 }
 
+// Охват человека для календаря: поллинг каждую минуту не должен каждый раз
+// ходить в RPC + students. TTL 5 минут; сброс при смене/выходе пользователя.
+const PERSON_SCOPE_TTL_MS = 5 * 60_000
+const personScopeCache = new Map<string, { at: number; scope: PersonScope }>()
+let personScopeAuthWatch = false
+function watchPersonScopeAuth() {
+  if (personScopeAuthWatch) return
+  personScopeAuthWatch = true
+  let lastUser: string | null | undefined
+  supabase.auth.onAuthStateChange((event, session) => {
+    const uid = session?.user?.id ?? null
+    if (event === 'SIGNED_OUT' || (lastUser !== undefined && uid !== lastUser)) personScopeCache.clear()
+    lastUser = uid
+  })
+}
+async function cachedPersonScope(fallback: { id: string; groupId: string }): Promise<PersonScope> {
+  watchPersonScopeAuth()
+  const key = `${fallback.id}|${fallback.groupId}`
+  const hit = personScopeCache.get(key)
+  if (hit && Date.now() - hit.at < PERSON_SCOPE_TTL_MS) return hit.scope
+  const scope = await fetchPersonScope(fallback)
+  personScopeCache.set(key, { at: Date.now(), scope })
+  return scope
+}
+
 export async function fetchScheduleDays(groupId: string, studentId?: string, range?: { from: string; to: string }): Promise<ScheduleDay[]> {
   await useStudentTz.getState().load()
   const viewerTz = useStudentTz.getState().tz
@@ -95,14 +120,14 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   // Resolve the entire person here so initial load, polling and month views
   // cannot accidentally narrow the calendar back to the active login row.
   const person = isUuid(studentId)
-    ? await fetchPersonScope({ id: studentId, groupId })
+    ? await cachedPersonScope({ id: studentId, groupId })
     : { rows: [{ id: '', groupId }], studentIds: [] }
   const scope = studentScheduleScope(person.rows)
   if (scope.length === 0) return []
 
   const { data, error } = await supabase
     .from('schedule_lessons')
-    .select('*')
+    .select('id, lesson_id, date, time_start, time_end, subject, lesson_title, lesson_number, node_type, status')
     .or(scope.join(','))
     .gte('date', fmt(from))
     .lte('date', fmt(to))

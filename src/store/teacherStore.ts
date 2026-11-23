@@ -357,7 +357,7 @@ export const useTeacher = create<TeacherStore>(set => ({
     if (LOAD_FIXTURE) { set({ tasks: fixtureTasks(LOAD_FIXTURE), tasksLoaded: true }); return }
     const { data, error } = await supabase
       .from('teacher_tasks')
-      .select('*')
+      .select('id, type_id, type_label, type_bg, type_color, title, date, time, comment, done, student_id, group_id')
       .order('created_at', { ascending: true })
     // Сбой сети не равен «задач нет»: уже показанный список не затираем.
     if (error) { console.warn('loadTasks failed', error.message); set({ tasksLoaded: true }); return }
