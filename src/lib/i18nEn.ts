@@ -250,6 +250,7 @@ export const EN: Record<string, string> = {
   'Не удалось сохранить черновик. Не закрывайте экран до отправки.': 'Could not save the draft. Keep this screen open until it is submitted.',
   'Подробности': 'Details',
   "Не удалось загрузить данные": "Could not load data",
+  "Сервер не ответил вовремя. Данные на месте — попробуйте ещё раз.": "The server did not respond in time. Your data is safe — try again.",
   "Попробуй ещё раз": "Try again",
   "Выбери ответ": "Choose an answer",
   "Есть просроченные работы": "You have overdue assignments",

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Users, GraduationCap, Clock, RefreshCw, Eye, Trash2, ShieldAlert, UserPlus, SlidersHorizontal, Lock, Eraser } from '../icons/appIcons'
 import { supabase } from '../../lib/supabase'
 import {
-  fetchUserActivity, fetchTeacherUsage,
+  loadUserActivity, loadTeacherUsage,
   type UserActivityRow, type TeacherUsageRow,
 } from '../../lib/plan'
 import { t, useT, tn } from '../../lib/i18n'
@@ -98,13 +98,19 @@ export default function AdminUserActivity() {
   const [people, setPeople] = useState<UserActivityRow[]>([])
   const [teachers, setTeachers] = useState<TeacherUsageRow[]>([])
   const [loading, setLoading] = useState(true)
+  // Сбой загрузки показываем как сбой, а не как «нет данных» с нулями.
+  const [loadErr, setLoadErr] = useState(false)
 
   useEffect(() => {
     let alive = true
     setLoading(true)
-    Promise.all([fetchUserActivity(days), fetchTeacherUsage(days)]).then(([p, t]) => {
+    Promise.all([loadUserActivity(days), loadTeacherUsage(days)]).then(([p, t]) => {
       if (!alive) return
-      setPeople(p); setTeachers(t); setLoading(false)
+      setPeople(p); setTeachers(t); setLoadErr(false); setLoading(false)
+    }, error => {
+      if (!alive) return
+      console.error('AdminUserActivity load:', error)
+      setPeople([]); setTeachers([]); setLoadErr(true); setLoading(false)
     })
     return () => { alive = false }
   }, [days, reloadKey])
@@ -162,13 +168,17 @@ export default function AdminUserActivity() {
         <>
           {/* KPI row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 18 }}>
-            <Kpi icon={Users} label={t('Пользователей')} value={String(totals.people)} />
-            <Kpi icon={GraduationCap} label={t('Учеников активно')} value={String(totals.students)} />
-            <Kpi icon={Users} label={t('Учителей')} value={String(totals.teachers)} />
-            <Kpi icon={Clock} label={t('Активное время')} value={fmtMin(totals.activeMin)} />
+            <Kpi icon={Users} label={t('Пользователей')} value={loadErr ? '—' : String(totals.people)} />
+            <Kpi icon={GraduationCap} label={t('Учеников активно')} value={loadErr ? '—' : String(totals.students)} />
+            <Kpi icon={Users} label={t('Учителей')} value={loadErr ? '—' : String(totals.teachers)} />
+            <Kpi icon={Clock} label={t('Активное время')} value={loadErr ? '—' : fmtMin(totals.activeMin)} />
           </div>
 
-          {view === 'people' ? (
+          {loadErr ? (
+            <Alert tone="danger" title={t('Не удалось загрузить данные')}
+              text={t('Сервер не ответил вовремя. Данные на месте — попробуйте ещё раз.')}
+              action={{ label: t('Повторить'), onClick: () => setReloadKey(k => k + 1) }} />
+          ) : view === 'people' ? (
             <PeopleTable rows={people} onDeleted={id => setPeople(prev => prev.filter(p => p.actor_id !== id))} />
           ) : (
             <>

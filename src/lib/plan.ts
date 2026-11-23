@@ -156,14 +156,23 @@ export interface TeacherUsageRow {
   last_seen: string | null
 }
 
-export async function fetchUserActivity(days = 30): Promise<UserActivityRow[]> {
+/** Строгая загрузка для админки: ошибку бросает, а не превращает в пустой список. */
+export async function loadUserActivity(days = 30): Promise<UserActivityRow[]> {
   const { data, error } = await supabase.rpc('admin_user_activity', { p_days: days })
-  if (error) { console.error('fetchUserActivity:', error); return [] }
+  if (error) throw error
   return (data ?? []) as UserActivityRow[]
 }
 
-export async function fetchTeacherUsage(days = 30): Promise<TeacherUsageRow[]> {
+export async function loadTeacherUsage(days = 30): Promise<TeacherUsageRow[]> {
   const { data, error } = await supabase.rpc('admin_teacher_usage', { p_days: days })
-  if (error) { console.error('fetchTeacherUsage:', error); return [] }
+  if (error) throw error
   return (data ?? []) as TeacherUsageRow[]
+}
+
+export async function fetchUserActivity(days = 30): Promise<UserActivityRow[]> {
+  try { return await loadUserActivity(days) } catch (error) { console.error('fetchUserActivity:', error); return [] }
+}
+
+export async function fetchTeacherUsage(days = 30): Promise<TeacherUsageRow[]> {
+  try { return await loadTeacherUsage(days) } catch (error) { console.error('fetchTeacherUsage:', error); return [] }
 }
