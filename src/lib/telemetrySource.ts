@@ -6,6 +6,20 @@
 // причина известна точно, потому что перезагрузку начали мы.
 let appReloading = false
 export function markAppReloading() { appReloading = true }
+// Ручная перезагрузка (⌘R/F5) и уход со страницы рвут запросы так же — и тоже
+// до pagehide: 24.11.2026 админ нажал ⌘R, и за 6 мс до session_start легли
+// 8 transport_error и db_error. beforeunload приходит раньше разрыва. Его
+// могут отменить (окно «Покинуть страницу?» у черновика) — тогда через 3 с
+// живая страница снимает флаг, и настоящие сбои снова пишутся.
+let unloadTimer: ReturnType<typeof setTimeout> | undefined
+export function installUnloadMarker() {
+  if (typeof window === 'undefined') return
+  window.addEventListener('beforeunload', () => {
+    appReloading = true
+    clearTimeout(unloadTimer)
+    unloadTimer = setTimeout(() => { appReloading = false }, 3000)
+  })
+}
 export function isAppReloading() { return appReloading }
 
 /** Diagnostic labels only; client-editable and never an authorization decision. */

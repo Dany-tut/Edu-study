@@ -1,5 +1,5 @@
 import { setJourneyReporter, observeReloadedJourneys } from './diagnosticJourney'
-import { isAppReloading, telemetrySource } from './telemetrySource'
+import { installUnloadMarker, isAppReloading, telemetrySource } from './telemetrySource'
 // Lightweight behavioural telemetry beacon. Automatic — no consent gate.
 // Records ids + behaviour only (no names/emails/PII). RLS enforces admin-only read.
 import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
@@ -489,6 +489,7 @@ export function initAnalytics() {
   setJourneyReporter(trackEvent, () => identity.user_id)
   setRequestReporter(({ event, ...meta }) => trackEvent(typeof event === 'string' ? event : 'api_request', meta))
   installRuntimeDiagnostics(trackEvent)
+  installUnloadMarker()
   window.dispatchEvent(new Event('iskra:diagnostics-ready'))
   window.addEventListener('offline', () => trackEvent('network_offline'))
   window.addEventListener('online', () => trackEvent('network_online'))

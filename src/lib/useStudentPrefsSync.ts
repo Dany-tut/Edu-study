@@ -1,4 +1,6 @@
 import { diagnosticFailure } from './diagnosticJourney'
+
+const SAVE_RETRY_MS = [2_000, 8_000, 30_000]
 import { useEffect, useRef } from 'react'
 import { DEFAULT_WIDGET_ORDER } from '../data/widgets'
 import { mergeWidgetOrder } from './widgetOrderMigration'
@@ -44,6 +46,7 @@ export function useStudentPrefsSync() {
 
   const loaded = useRef(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const saveGeneration = useRef(0)
 
   // Load on mount
   useEffect(() => {
@@ -107,13 +110,29 @@ export function useStudentPrefsSync() {
     const session = getStudentSession()
     if (!session?.id) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => {
-      void supabase.rpc('save_student_preferences', {
-        p_student: session.id,
-        p_preferences: { avatarId, widgetColumns, widgetOrder, knownWidgetIds: DEFAULT_WIDGET_ORDER, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors },
-      }).then(({ error }) => {
-        if (error) { diagnosticFailure('student_preferences', 'save_failed'); console.warn('Student preferences sync failed:', error.code) }
-      }, () => { diagnosticFailure('student_preferences', 'save_failed') })
-    }, 1500)
+    const generation = ++saveGeneration.current
+    const preferences = { avatarId, widgetColumns, widgetOrder, knownWidgetIds: DEFAULT_WIDGET_ORDER, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors }
+    // Сетевой обрыв не должен съедать настройку: раньше одна неудачная
+    // попытка — и новый порядок виджетов или цвет пропадали при следующем
+    // входе (сервер отдавал старое). Повторяем с паузами, пока это всё ещё
+    // последнее изменение; отказ базы (есть код ошибки) не повторяем.
+    // Обрыв 24.11.2026: save_student_preferences упал за 278 мс и не вернулся.
+    // Сбоем считаем только окончательный отказ: обрыв, который лечится
+    // повтором, уже виден в журнале запросов и человека не задел.
+    const attempt = (n: number) => {
+      if (generation !== saveGeneration.current) return
+      void supabase.rpc('save_student_preferences', { p_student: session.id, p_preferences: preferences })
+        .then(({ error }) => error ? (error.code ? 'refused' : 'network') : 'ok', () => 'network' as const)
+        .then(outcome => {
+          if (outcome === 'ok' || generation !== saveGeneration.current) return
+          if (outcome === 'refused' || n >= SAVE_RETRY_MS.length) {
+            diagnosticFailure('student_preferences', 'save_failed')
+            console.warn('Student preferences sync failed:', outcome)
+            return
+          }
+          saveTimer.current = setTimeout(() => attempt(n + 1), SAVE_RETRY_MS[n])
+        })
+    }
+    saveTimer.current = setTimeout(() => attempt(0), 1500)
   }, [avatarId, widgetColumns, widgetOrder, pomoTimerMode, pomoFocusDuration, tintLevel, subjectColors])
 }
