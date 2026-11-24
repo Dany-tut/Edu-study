@@ -20,6 +20,19 @@ const FILE_RE = /\.(webm|mp4|m4v|mov|ogg|ogv|m3u8)(\?.*)?$/i
 const AUDIO_RE = /\.(mp3|m4a|aac|wav|opus|oga|flac)(\?.*)?$/i
 
 /** Ссылка ведёт на Google Диск (встраивается страницей Google, без своего плеера). */
+/** Публичный адрес бакета R2 с записями уроков и его кеш на нашем VPS.
+ *  Cloudflare у российских провайдеров замедлен (обрыв после ~16 КБ), а из ЦОДа
+ *  в РФ он работает на полной скорости — поэтому записи из R2 плеер берёт через
+ *  nginx-кеш `api.iskra-study.ru/media/…` (docs: design/recordings-import/README.md).
+ *  Ссылка в уроке остаётся на r2.dev: при ошибке кеша плеер вернётся к ней. */
+const R2_PUBLIC_ORIGIN = 'https://pub-7fc0bdb31ef8477cb024b613af34e1d8.r2.dev/'
+const R2_RU_CACHE_ORIGIN = 'https://api.iskra-study.ru/media/'
+
+/** Адрес записи через кеш для РФ, если это файл из нашего R2; иначе undefined. */
+export function r2CachedUrl(url: string): string | undefined {
+  return url.startsWith(R2_PUBLIC_ORIGIN) ? R2_RU_CACHE_ORIGIN + url.slice(R2_PUBLIC_ORIGIN.length) : undefined
+}
+
 export const isDriveLink = (url: string | null | undefined) => !!url && /drive\.google\.com\//i.test(url)
 
 export function parseVideoSource(raw?: string | null): VideoSource | undefined {

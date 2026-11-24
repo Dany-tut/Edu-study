@@ -31,7 +31,7 @@ import {
   ChevronLeft, ChevronRight, Lock, LockOpen,
 } from './icons/appIcons'
 import type { VideoSource } from '../lib/videoSource'
-import { videoEmbedSrc } from '../lib/videoSource'
+import { r2CachedUrl, videoEmbedSrc } from '../lib/videoSource'
 import { NativeVideoVolume } from '../lib/nativeVideoVolume'
 import BlurDigits from './BlurDigits'
 import { driveProxyAvailable, resolveDriveVideo } from '../lib/driveVideo'
@@ -279,8 +279,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
    *  российский прокси (у ученика из РФ `*.supabase.co` может резаться). */
   const [driveViaProxy, setDriveViaProxy] = useState(false)
   const [mediaError, setMediaError] = useState(false)
+  /** Кеш R2 на VPS не отдал файл — дальше в этой сессии плеера берём r2.dev. */
+  const [r2CacheBypass, setR2CacheBypass] = useState(false)
+  const r2Cached = originalSource.kind === 'file' && !r2CacheBypass ? r2CachedUrl(originalSource.url) : undefined
   const source: VideoSource = originalSource.kind === 'gdrive' && driveUrl
-    ? { kind: 'file', url: driveUrl } : originalSource
+    ? { kind: 'file', url: driveUrl }
+    : r2Cached && originalSource.kind === 'file' ? { ...originalSource, url: r2Cached } : originalSource
 
   // Unknown pages stay embedded. Drive is resolved lazily into a native video
   // source through the authenticated media gateway.
@@ -1342,6 +1346,14 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
               setStartAt(currentRef.current)
               setDriveUrl('')
               setDriveViaProxy(true)
+              return
+            }
+            // Кеш записей R2 (российский VPS) не ответил: тихо повторяем с
+            // исходного r2.dev с той же секунды.
+            if (r2Cached) {
+              trackEvent('video_playback_retry', { ...errorMeta, retry: 'r2-direct' })
+              setStartAt(currentRef.current)
+              setR2CacheBypass(true)
               return
             }
             trackEvent('video_playback_error', errorMeta)
