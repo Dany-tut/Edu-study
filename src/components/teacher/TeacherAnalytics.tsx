@@ -581,7 +581,11 @@ export default function TeacherAnalytics() {
     await supabase.from('analytics_issue_resolutions').upsert(rows, { onConflict: 'signature' })
     setResolutions(prev => [...prev.filter(r => !rows.some(x => x.signature === r.signature)), ...rows])
   }, [openGroups])
-  const allProblemPages = pageStats.filter(p => (p.errors > 0 || p.rage_clicks > 0))
+  // Страница в списке, пока на ней есть хоть одна ОТКРЫТАЯ ошибка или
+  // rage-точка. Иначе закрытая и починенная проблема держала экран красным
+  // весь месяц окна: сырые числа admin_page_stats про закрытия не знают.
+  const openPaths = new Set([...openGroups.flatMap(g => g.paths), ...openRage.map(r => r.path)])
+  const allProblemPages = pageStats.filter(p => (p.errors > 0 || p.rage_clicks > 0) && openPaths.has(p.path))
   const problemPages = allProblemPages.slice(0,8)
   const slowPages    = [...pageStats]
     .filter(p => p.avg_dwell_sec !== null && p.avg_dwell_sec < 5 && p.visits > 1)

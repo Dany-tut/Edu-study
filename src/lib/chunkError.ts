@@ -1,3 +1,4 @@
+import { markAppReloading } from './telemetrySource'
 import { diagnosticFailure, diagnosticRetry, diagnosticRecovered, markProfileReload } from './diagnosticJourney'
 /**
  * Опознание и лечение «чанк пропал после деплоя».
@@ -67,6 +68,7 @@ export function recoverFromChunkError(msg: string): boolean {
  * `full` — снести все кеши сайта (вторая ступень, см. recoverFromChunkError).
  */
 export async function hardReload({ full = false, automatic = false }: { full?: boolean; automatic?: boolean } = {}): Promise<void> {
+  markAppReloading()
   const purge = async () => {
     const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? []
     await Promise.all(regs.map(r => r.unregister()))

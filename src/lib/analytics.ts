@@ -1,5 +1,5 @@
 import { setJourneyReporter, observeReloadedJourneys } from './diagnosticJourney'
-import { telemetrySource } from './telemetrySource'
+import { isAppReloading, telemetrySource } from './telemetrySource'
 // Lightweight behavioural telemetry beacon. Automatic — no consent gate.
 // Records ids + behaviour only (no names/emails/PII). RLS enforces admin-only read.
 import { supabase, SUPABASE_URL, SUPABASE_KEY } from './supabase'
@@ -213,6 +213,10 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   }
   rememberDiagnosticEvent(event, eventPath, meta)
   const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
+  // Перезагрузку начали мы сами (обновление, лечение чанка) — всё, что упало
+  // после этого, лишь обломки разрыва: db_error запросов, resource_error
+  // стилей, «Load failed» в промисах. Причина уже известна (см. telemetrySource).
+  if (isIncident && isAppReloading()) return
   // Удачный быстрый запрос в базу не пишем: это было ~68 % всех строк
   // analytics_events при лимите базы 500 МБ. Ошибки, обрывы и медленные
   // запросы остаются; локальная диагностика выше их всё равно помнит.
@@ -266,6 +270,8 @@ function recordDwell() {
 }
 
 let lastPath = ''
+let interactedSince = 0
+let navigatedBack = false
 /** Call on every route change — records dwell time for the previous page. */
 export function trackPath(path: string, meta: Record<string, unknown> = {}) {
   // Якорь внутри страницы («#modes», «#tariffs» в навигации лендинга) — не
@@ -278,7 +284,14 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
 
   path = analyticsPath(path) ?? '#/'
   if (path === lastPath) return
-  recordDwell()
+  // Экран сменился, а человек на прошлом ни разу не нажал, не провёл и не
+  // нажал клавишу — это редирект приложения, а не уход: учитель на «#/» ждёт
+  // проверку доступа и уезжает в «#/teacher», админа уводит с «#/landing».
+  // Такие «визиты по 2,8 с» стояли первыми в bounce-риске (отчёт 24.11.2026).
+  // «Назад» браузера (popstate) — действие человека, его время пишем.
+  if (interactedSince >= dwellStart || navigatedBack) recordDwell()
+  else dwellStart = 0
+  navigatedBack = false
 
   lastPath = path
   dwellPath = path
@@ -290,7 +303,12 @@ export function trackPath(path: string, meta: Record<string, unknown> = {}) {
 // уведомления за кадр и досылает их следующим. Ничего не ломается, но событие
 // приходит на каждый ресайз — за месяц оно дало 3000+ строк и вытеснило со
 // вкладки «Проблемы» все настоящие ошибки. Не пишем его вовсе.
-const IGNORED_ERROR = /^ResizeObserver loop/
+// «Script error.» — чужой скрипт с другого домена: браузер прячет и текст, и
+// место, разбирать в ней нечего. Регистрация воркера падает, когда sw.js
+// на миг недоступен во время выкладки, — офлайн-кеш встанет при следующем
+// заходе, человек ничего не замечает.
+const IGNORED_ERROR = /^ResizeObserver loop|^Script error\.?$|^Failed to register a ServiceWorker/
+const NETWORK_ECHO = /^(Load failed|Failed to fetch|NetworkError when attempting to fetch resource|The network connection was lost)|Lock was stolen|stole it|with the 'steal' option/
 
 // Ошибки самого инструментария разработки: оптимизатор зависимостей Vite
 // (`process is not defined` в .vite/deps), HMR-клиент, react-refresh. В проде
@@ -320,6 +338,12 @@ function installErrorTracking() {
     const msg = reason instanceof Error
       ? reason.message
       : (typeof reason === 'string' ? reason : 'Unhandled rejection')
+    // Сетевой обрыв уже записан diagnosticFetch — с адресом, длительностью и
+    // признаком online. Здесь от него остаётся только эхо без места: одна
+    // вкладка 16.11 дала 151 «Load failed (iskra-study.ru)» за три минуты, и на
+    // главной ученика это выглядело как 153 JS-ошибки. Перехват замка входа
+    // между вкладками supabase-js переигрывает сам (lib/supabase.ts).
+    if (NETWORK_ECHO.test(String(msg ?? '')) || IGNORED_ERROR.test(String(msg ?? ''))) return
     trackEvent('promise_rejection', {
       msg: String(msg ?? '').slice(0, 200),
       stack: reason instanceof Error ? reason.stack?.slice(0, 3000) : undefined,
@@ -360,7 +384,9 @@ function installRouteTracking() {
   const record = () => trackPath(location.hash || location.pathname || '#/')
   window.addEventListener(EVENT, record)
   window.addEventListener('hashchange', record)
-  window.addEventListener('popstate', record)
+  window.addEventListener('popstate', () => { navigatedBack = true; record() })
+  for (const type of ['pointerdown', 'keydown', 'wheel'] as const)
+    window.addEventListener(type, () => { interactedSince = Date.now() }, { capture: true, passive: true })
 }
 
 function installClickTracking() {
@@ -407,13 +433,36 @@ function rageLabel(target: EventTarget | null): Record<string, unknown> {
   }
 }
 
+// Отпечаток того, что человек видит вокруг кнопки: текст строки, в которой она
+// стоит, и её собственные состояния. Rage — это клики, на которые экран НЕ
+// ответил. Серия «Удалить главу 1» удаляла по главе на клик (на место
+// удалённой вставала следующая), «1.0.3230 Актуальна» каждый раз показывала
+// «Проверяем…», «Скорость воспроизведения» перебирала 1×→1,5×→2× — всё это
+// записывалось как ярость, хотя каждый клик сработал (отчёт 24.11.2026).
+function reactionPrint(target: EventTarget | null): string {
+  const start = target instanceof Element ? target : null
+  if (!start) return ''
+  const el = start.closest('button, a, [role="button"], input, select, label, summary') ?? start
+  const around = (el.parentElement ?? el).textContent ?? ''
+  const own = ['disabled', 'aria-pressed', 'aria-expanded', 'aria-checked', 'aria-selected', 'data-state']
+    .map(a => el.getAttribute(a) ?? '').join('|')
+  return `${around.length}:${around.slice(0, 300)}|${(el as HTMLInputElement).value ?? ''}|${own}`
+}
+
 function installRageClickTracking() {
-  // 4+ clicks on the same element within 800ms = rage click (user frustration signal)
+  // 4+ clicks on the same element within 800ms, and the screen did not react
+  // to any of them = rage click (user frustration signal)
   let clicks: number[] = []
   let lastTarget: EventTarget | null = null
+  let lastPrint = ''
   document.addEventListener('click', (e) => {
     const now = Date.now()
-    if (e.target !== lastTarget) { clicks = []; lastTarget = e.target }
+    if (e.target !== lastTarget) { clicks = []; lastTarget = e.target; lastPrint = '' }
+    // Сравниваем состояние на момент этого клика с моментом прошлого:
+    // изменение между ними — ответ экрана на прошлый клик, серия сбрасывается.
+    const print = reactionPrint(e.target)
+    if (lastPrint && print !== lastPrint) clicks = []
+    lastPrint = print
     clicks = clicks.filter(t => now - t < 800)
     clicks.push(now)
     if (clicks.length >= 4) {

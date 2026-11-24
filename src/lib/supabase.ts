@@ -28,7 +28,7 @@ if (!url || !key) {
 // the stealer like any other, so there is no steal-back cascade.
 function isStolenLock(e: unknown): boolean {
   const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message: unknown }).message) : ''
-  return /stole it|with the 'steal' option/.test(msg)
+  return /stole it|was stolen|with the 'steal' option/.test(msg)
 }
 async function requeueStolenLock<R>(name: string, acquireTimeout: number, fn: () => Promise<R>): Promise<R> {
   try {

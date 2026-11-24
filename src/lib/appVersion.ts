@@ -1,3 +1,4 @@
+import { markAppReloading } from './telemetrySource'
 // Версия приложения на экране: «1.0.625 · a1b2c3d».
 //
 // Зачем: между «коммит ушёл» и «обнова доехала до этого устройства» лежит
@@ -54,6 +55,7 @@ export async function fetchRemoteVersion(): Promise<RemoteVersion | null> {
 export type UpdateStep = 'sw' | 'caches' | 'done'
 
 export async function applyUpdate(onStep?: (step: UpdateStep) => void): Promise<void> {
+  markAppReloading()
   try {
     const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? []
     await Promise.all(regs.map(r => r.unregister().catch(() => false)))

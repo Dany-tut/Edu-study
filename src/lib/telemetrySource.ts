@@ -1,3 +1,13 @@
+// Приложение само уходит на перезагрузку (обновление версии, лечение чанка):
+// снимает воркер, чистит кеши и вызывает reload(). Safari при этом рвёт все
+// запросы в полёте с «Load failed» — до pagehide, поэтому page_leaving их не
+// ловил. 24.11.2026 одна вкладка дала 120 «transport_error» и 68 resource_error
+// за секунду до перезагрузки на новую версию. Это не сбой сети и не баг экрана:
+// причина известна точно, потому что перезагрузку начали мы.
+let appReloading = false
+export function markAppReloading() { appReloading = true }
+export function isAppReloading() { return appReloading }
+
 /** Diagnostic labels only; client-editable and never an authorization decision. */
 export function telemetrySource() {
   let qa = false

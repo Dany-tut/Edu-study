@@ -1,5 +1,5 @@
 // Observe only our backend. Never collect bodies, query strings, headers or tokens.
-import { telemetrySource } from './telemetrySource'
+import { isAppReloading, telemetrySource } from './telemetrySource'
 let report: ((meta: Record<string, unknown>) => void) | undefined
 export function setRequestReporter(sink: typeof report) { report = sink }
 
@@ -85,10 +85,10 @@ export function diagnosticFetch(base: typeof fetch, backend: string): typeof fet
     } catch (error) {
       const name = errorName(error)
       const timedOut = name === 'TimeoutError' || (signal?.aborted && errorName(signal.reason) === 'TimeoutError')
-      const cancelled = !timedOut && (name === 'AbortError' || signal?.aborted)
+      const cancelled = !timedOut && (name === 'AbortError' || signal?.aborted || isAppReloading())
       emit(0, cancelled ? 'api_cancelled' : 'api_request', {
         start_online: startOnline,
-        outcome: cancelled ? 'cancelled' : timedOut ? 'timeout' : 'transport_error',
+        outcome: isAppReloading() ? 'app_reload' : cancelled ? 'cancelled' : timedOut ? 'timeout' : 'transport_error',
         error_kind: cancelled ? 'abort' : timedOut ? 'timeout' : name === 'SecurityError' ? 'security' : name === 'TypeError' ? 'network' : 'unknown',
       })
       // Pagehide is correlation only, never sufficient to suppress a transport failure.
