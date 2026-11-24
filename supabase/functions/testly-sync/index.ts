@@ -1,7 +1,7 @@
 // Server-to-server completion notification. Scores are re-read from Testly;
 // the sender cannot supply a grade or a student name to match.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { applyTestlyResult } from '../_shared/testlyProgress.ts'
+import { applyTestlyResult, ensureTestlySnapshots } from '../_shared/testlyProgress.ts'
 Deno.serve(async req => {
   const secret = Deno.env.get('TESTLY_ISKRA_SECRET') ?? ''
   const supplied = req.headers.get('x-iskra-secret') ?? ''
@@ -17,6 +17,10 @@ Deno.serve(async req => {
     const people = db.from('students').select('id, created_by, group_id, auth_user_id')
     const { data: students, error } = attemptRows?.length ? await people.in('id',attemptRows.map(p => p.student_id)) : await people.eq('auth_user_id',key.slice(6))
     if (error) throw error
+    // All enrollment rows of the person: the course decides which one owns the homework.
+    const { data: person, error: peopleError } = await db.from('students').select('id, group_id, auth_user_id').eq('auth_user_id', key.slice(6))
+    if (peopleError) throw peopleError
+    let ensured = false
     for (const student of students ?? []) {
       let owner = student.created_by
       if (!owner && student.group_id) {
@@ -33,6 +37,7 @@ Deno.serve(async req => {
       if (!res.ok) throw new Error(`Testly status ${res.status}`)
       const result = (await res.json()).items?.[0]
       if (!result || !['submitted', 'started'].includes(result.state)) continue
+      if (!ensured) { await ensureTestlySnapshots(db, person ?? [], testId, key, result); ensured = true }
       const { data: rows, error: readError } = await db.from('lesson_progress').select('id, attachments, updated_at, status')
         .eq('student_id', student.id).contains('attachments', { v: 'basic-1' })
       if (readError) throw readError

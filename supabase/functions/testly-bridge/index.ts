@@ -21,7 +21,7 @@
 // TESTLY_ISKRA_SECRET — тот же, что ISKRA_BRIDGE_SECRET у функции iskra в Тестли.
 
 import { teacherReadContext } from '../_shared/teacherView.ts'
-import { applyTestlyResult } from '../_shared/testlyProgress.ts'
+import { applyTestlyResult, ensureTestlySnapshots } from '../_shared/testlyProgress.ts'
 
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { MFA_REQUIRED, mfaPending } from '../_shared/mfa.ts'
@@ -69,6 +69,16 @@ Deno.serve(async (req) => {
 
   const persistResult = async (studentIds: string[], testId: string, result: Record<string, unknown>, key?: string) => {
     if (!studentIds.length || !['submitted', 'started'].includes(String(result.state))) return
+    if (key && result.state === 'submitted') {
+      // Homework the student never reopened in Iskra has no snapshot to patch yet.
+      const { data: asked, error: askedError } = await admin.from('students').select('auth_user_id').in('id', studentIds)
+      if (askedError) throw askedError
+      const auth = [...new Set((asked ?? []).map(s => s.auth_user_id).filter(Boolean))]
+      const { data: people, error: peopleError } = auth.length
+        ? await admin.from('students').select('id, group_id, auth_user_id').in('auth_user_id', auth) : { data: [], error: null }
+      if (peopleError) throw peopleError
+      await ensureTestlySnapshots(admin, people ?? [], testId, key, result)
+    }
     const { data: progress, error } = await admin.from('lesson_progress').select('id, attachments, updated_at, status')
       .in('student_id', studentIds).contains('attachments', { v: 'basic-1' })
     if (error) throw error
@@ -181,11 +191,23 @@ Deno.serve(async (req) => {
         for (const p of progress ?? []) for (const row of (p.attachments as any)?.rows ?? []) {
           if (row.testly?.testId) { const key = (p.attachments as any)?.testlyKey ?? studentKey; tests.set(`${row.testly.testId}:${key}`, {testId: row.testly.testId, key}) }
         }
+        // Tests assigned in the student's courses that were never opened in Iskra.
+        const { data: rows } = await admin.from('students').select('id, group_id').eq('auth_user_id', teacher)
+        const groups = [...new Set((rows ?? []).map(r => r.group_id).filter(Boolean))]
+        const reach = [`student_ids.ov.{${ids.join(',')}}`, ...(groups.length ? [`group_ids.ov.{${groups.join(',')}}`] : [])].join(',')
+        const { data: courses } = await admin.from('courses').select('id').or(reach)
+        const { data: lessons } = courses?.length
+          ? await admin.from('lessons').select('homework').in('course_id', courses.map(c => c.id)).contains('homework', { hwTasks: [{ type: 'testly' }] })
+          : { data: [] }
+        for (const lesson of lessons ?? []) for (const task of (lesson.homework as any)?.hwTasks ?? []) {
+          const testId = task?.type === 'testly' ? task.testly?.id : null
+          if (testId && ![...tests.values()].some(t => t.testId === testId)) tests.set(`${testId}:${studentKey}`, { testId, key: studentKey })
+        }
         const { owners } = await ownersOfStudent(null)
         for (const owner of owners) {
           const token = await tokenFor(owner)
           if (!token || !tests.size) continue
-          const response = await testly({ action: 'status', token, items: [...tests.values()] })
+          const response = await testly({ action: 'status', token, items: [...tests.values()].slice(0, 100) })
           if (!response.ok) continue
           for (const result of (response.data.items ?? []) as Record<string, unknown>[]) {
             await persistResult(ids, String(result.testId), result, String(result.key ?? studentKey))

@@ -40,6 +40,7 @@
     "check:exams": "node scripts/checkExamClaims.mjs",
     "check:teacher-view": "node scripts/checkTeacherView.mjs && node scripts/checkTeacherToday.mjs && esbuild scripts/checkWorkspaceRoute.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkWorkspaceRoute.mjs --log-level=error && node node_modules/.cache/checkWorkspaceRoute.mjs",
     "check:standalone-homework": "node scripts/checkStandaloneHomeworkRecovery.mjs",
+    "check:testly-sync": "node scripts/checkTestlySync.mjs",
     "check:homework-results": "esbuild scripts/checkHomeworkResults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkHomeworkResults.mjs --log-level=error && node node_modules/.cache/checkHomeworkResults.mjs",
     "check:course-track": "node scripts/checkCourseTrack.mjs",
     "build:diag-defaults": "esbuild scripts/buildDiagDefaults.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/buildDiagDefaults.mjs --log-level=error && node node_modules/.cache/buildDiagDefaults.mjs",
