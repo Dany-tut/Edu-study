@@ -18,6 +18,7 @@ import DraftPublishToggle from '../../components/teacher/DraftPublishToggle'
 import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
+import { patchExplicitClears, withExplicitClears } from '../../lib/lessonExplicitClears'
 import ScrollFade from '../../components/ScrollFade'
 import { useT, t as tGlobal, useTc, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -1102,7 +1103,7 @@ export default function TeacherLessonEditorPage() {
   // которой поля вообще переживали перезагрузку, — затирать его загрузкой нельзя.
   const intent = useRef(readDraft<ScheduleLessonIntent>(`${draftNs}.intent`))
   const [loaded, setLoaded] = useState<{
-    id: string; stamp: string; materials: unknown; variants: unknown; publishedCodes: unknown; recording: string
+    id: string; shortId: string; stamp: string; materials: unknown; variants: unknown; publishedCodes: unknown; recording: string
   } | null>(null)
   const legacy = useRef({
     videoUrl: readDraft<string>(`${draftNs}.videoUrl`),
@@ -1115,7 +1116,7 @@ export default function TeacherLessonEditorPage() {
     let active = true
     supabase
       .from('lessons')
-      .select('id, updated_at, youtube_url, timecodes, chapter_variants, description, materials, homework')
+      .select('id, short_id, updated_at, youtube_url, timecodes, chapter_variants, description, materials, homework')
       .eq('id', lessonRowId)
       .single()
       .then(({ data }) => {
@@ -1149,7 +1150,7 @@ export default function TeacherLessonEditorPage() {
         if (!keep.includes('timecodes')) setTimecodes(server.timecodes)
         if (!keep.includes('description')) setDescription(server.description)
         if (!keep.includes('files')) setFiles(server.files)
-        setLoaded({ id: lessonRowId, stamp: data.updated_at, materials: data.materials, variants, publishedCodes: data.timecodes, recording: server.videoUrl })
+        setLoaded({ id: lessonRowId, shortId: data.short_id, stamp: data.updated_at, materials: data.materials, variants, publishedCodes: data.timecodes, recording: server.videoUrl })
         const tasks = (data.homework as { hwTasks?: Array<{ isHard?: boolean }> } | null)?.hwTasks ?? []
         setLessonHw({
           basic: tasks.filter(x => !x.isHard).length,
@@ -1255,7 +1256,9 @@ export default function TeacherLessonEditorPage() {
         return
       }
       if (Object.keys(patch).length) {
-        const result = await supabase.from('lessons').update(patch).eq('id', lessonRowId)
+        // Поле стёрто правкой, засвидетельствованной в этой вкладке (intent), а версия
+        // сверяется по updated_at — это намеренная очистка, а не незагруженное поле.
+        const result = await withExplicitClears(supabase.from('lessons').update(patch), patchExplicitClears(loaded.shortId, patch)).eq('id', lessonRowId)
           .eq('updated_at', loaded.stamp).select('updated_at, materials, chapter_variants, timecodes, youtube_url').maybeSingle()
         if (!current.current) return
         if (result.error || !result.data?.updated_at) {
@@ -1263,7 +1266,7 @@ export default function TeacherLessonEditorPage() {
           return
         }
         const stamp = result.data.updated_at
-        setLoaded({ id: lessonRowId, stamp, materials: result.data.materials, variants: result.data.chapter_variants, publishedCodes: result.data.timecodes, recording: result.data.youtube_url ?? '' })
+        setLoaded({ id: lessonRowId, shortId: loaded.shortId, stamp, materials: result.data.materials, variants: result.data.chapter_variants, publishedCodes: result.data.timecodes, recording: result.data.youtube_url ?? '' })
         if (intent.current) {
           intent.current = { ...intent.current, stamp, fields: revision.current === started ? [] : intent.current.fields }
           writeDraft(`${draftNs}.intent`, intent.current)

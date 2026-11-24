@@ -49,3 +49,16 @@ export function explicitClearHeader(clears: readonly string[]): string | null {
   const safe = clears.filter(pair => /^[A-Za-z0-9_-]+:(description|youtube_url)$/.test(pair))
   return safe.length ? safe.join(',') : null
 }
+
+/** Добавляет заголовок к запросу PostgREST, если очищать есть что. */
+export function withExplicitClears<Q extends { setHeader(name: string, value: string): Q }>(query: Q, clears: readonly string[]): Q {
+  const value = explicitClearHeader(clears)
+  return value ? query.setHeader(EXPLICIT_CLEAR_HEADER, value) : query
+}
+
+/** Пары для прямой записи одного урока: поле в патче стало пустым. */
+export function patchExplicitClears(shortId: string | null | undefined, patch: Readonly<Record<string, unknown>>): string[] {
+  if (!shortId) return []
+  return GUARDED_LESSON_FIELDS.filter(field => Object.prototype.hasOwnProperty.call(patch, field) && isEmptyLessonValue(patch[field]))
+    .map(field => `${shortId}:${field}`)
+}

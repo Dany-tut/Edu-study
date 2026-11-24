@@ -47,6 +47,7 @@ import { getContrastColor, getCircleShadow, fillUnderWhite } from '../../lib/uti
 import { copyToClipboard } from '../../lib/clipboard'
 import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
+import { patchExplicitClears, withExplicitClears } from '../../lib/lessonExplicitClears'
 import { subscribeTeacherDataChanges } from '../../lib/teacherDataRealtime'
 import { isCourseResetRef } from '../../lib/homeworkReset'
 import { runCourseCopy } from '../../lib/courseCopyRequest'
@@ -2057,12 +2058,17 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   const [videoUrl, setVideoUrl] = useState('')
   const [description, setDescription] = useState('')
   const [timecodes, setTimecodes] = useState<LessonTimecodeRow[]>([])
+  // Урок прочитан из базы: только тогда пустое поле при сохранении — стёртое
+  // учителем, а не незагруженное (защита данных, X-Iskra-Explicit-Clear).
+  const loadedFromDb = useRef(false)
 
   useEffect(() => {
     let alive = true
     setLoading(true); setMsg('')
+    loadedFromDb.current = false
     supabase.from('lessons').select('content, youtube_url, description, timecodes').eq('short_id', shortId).single().then(({ data }) => {
       if (!alive) return
+      loadedFromDb.current = !!data
       const dbc = (data?.content ?? undefined) as LessonContentData | undefined
       setTranscript(dbc?.transcript)
       // Запасной конспект из кода — по short_id урока (см. authoredLessons.ts).
@@ -2092,7 +2098,8 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     }
     // .select() returns affected rows — an empty array means RLS blocked the write
     // (e.g. the teacher session expired); Postgres reports that without an error.
-    const { data, error } = await supabase.from('lessons').update(patch).eq('short_id', shortId).select('short_id')
+    const { data, error } = await withExplicitClears(supabase.from('lessons').update(patch),
+      loadedFromDb.current ? patchExplicitClears(shortId, patch) : []).eq('short_id', shortId).select('short_id')
     setSaving(false)
     if (error) setMsg(t('Ошибка: ') + (error.message))
     else if (!data || data.length === 0) setMsg(t('Не сохранено: нет прав. Войдите в аккаунт преподавателя заново.'))
