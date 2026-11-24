@@ -213,6 +213,10 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
   }
   rememberDiagnosticEvent(event, eventPath, meta)
   const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
+  // Удачный быстрый запрос в базу не пишем: это было ~68 % всех строк
+  // analytics_events при лимите базы 500 МБ. Ошибки, обрывы и медленные
+  // запросы остаются; локальная диагностика выше их всё равно помнит.
+  if (event === 'api_request' && !isIncident) return
   const needsDelivery = isIncident || event === 'diagnostic_recovery'
   buffer.push({
     event,
