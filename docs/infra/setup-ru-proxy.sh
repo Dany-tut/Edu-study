@@ -5,6 +5,9 @@
 # Запуск с Mac (ключ и доступ уже есть):
 #   ssh -i ~/.ssh/id_onix_livekit root@177.177.220.129 'bash -s' < docs/infra/setup-ru-proxy.sh
 #
+# После этого скрипта запустите docs/infra/ru-proxy-keepalive.sh — он включает
+# пул соединений к Supabase (этот скрипт перезаписывает конфиг без него).
+#
 # Код приложения (VITE_SUPABASE_URL) этим скриптом НЕ трогается — это отдельный
 # поэтапный PR после проверки прокси (см. docs/infra/ru-proxy.md §3).
 set -euo pipefail

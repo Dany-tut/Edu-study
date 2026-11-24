@@ -60,7 +60,13 @@ export function useDesktopFriends(enabled = true) {
   }, [enabled])
   useEffect(() => {
     if (!account) return
-    const visible = () => { if (document.visibilityState === 'visible') void refresh() }
+    // focus и visibilitychange приходят парой при возврате на вкладку — один запрос.
+    let last = Date.now()
+    const visible = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - last < 5_000) return
+      last = Date.now()
+      void refresh()
+    }
     void refresh()
     const interval = window.setInterval(visible, 60_000)
     window.addEventListener('focus', visible)
