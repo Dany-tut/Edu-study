@@ -194,10 +194,16 @@ Deno.serve(async (req) => {
         if (!ids.length) return json({ ok: true })
         const groups = [...new Set((rows ?? []).map(r => r.group_id).filter(Boolean))]
         const reach = [`student_ids.ov.{${ids.join(',')}}`, ...(groups.length ? [`group_ids.ov.{${groups.join(',')}}`] : [])].join(',')
-        const [{ data: progress }, { data: courses }, { owners }] = await Promise.all([
+        const [{ data: progress }, { data: courses }, { owners }, { data: standalone }] = await Promise.all([
           admin.from('lesson_progress').select('lesson_ref, attachments').in('student_id', ids).contains('attachments', { v: 'basic-1' }),
           admin.from('courses').select('id').or(reach),
           ownersOfStudent(null),
+          // ДЗ вне курса (homework без урока): ensureStandaloneTestlySnapshots
+          // пишет его под lesson_ref «hw-<id>» — без него «уже записано» пропустило
+          // бы сдачу, которая должна создать там домашку.
+          groups.length
+            ? admin.from('homework').select('id, status, basic_tasks').in('group_id', groups).is('lesson_id', null).contains('basic_tasks', [{ type: 'testly' }])
+            : Promise.resolve({ data: [] as { id: string; status: string; basic_tasks: unknown }[] }),
         ])
         const tests = new Map<string, { testId: string; key: string }>()
         // Что уже записано по каждой паре «тест + ключ»: по этим строкам решаем,
@@ -223,6 +229,13 @@ Deno.serve(async (req) => {
           if (!testId) continue
           if (lesson.short_id) assigned.set(testId, (assigned.get(testId) ?? new Set()).add(String(lesson.short_id)))
           if (![...tests.values()].some(t => t.testId === testId)) tests.set(`${testId}:${studentKey}`, { testId, key: studentKey })
+        }
+        for (const hw of standalone ?? []) {
+          if (hw.status === 'draft' || hw.status === 'archived') continue
+          for (const task of (hw.basic_tasks as any[]) ?? []) {
+            const testId = task?.type === 'testly' ? task.testly?.id : null
+            if (testId) assigned.set(testId, (assigned.get(testId) ?? new Set()).add(`hw-${hw.id}`))
+          }
         }
         // Ответ ничего не изменит, если он уже записан во все домашки с этим
         // тестом и у каждого урока курса с этим тестом домашка уже есть
