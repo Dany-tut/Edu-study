@@ -186,6 +186,9 @@
   --track-recording-border: #A7D4E5;
   --track-recording-icon: #3985A2;
   --track-recording-text: #426879;
+  --track-missed-bg: #FDE8E9;
+  --track-missed-icon: #D35059;
+  --track-missed-text: #C0434C;
   --track-today-icon: #7464BD;
   --track-muted-text: #676872;
   --color-teal-pill-bg: #CFF3EE;
@@ -313,6 +316,9 @@
   --track-recording-border: #517C8F;
   --track-recording-icon: #89C9E1;
   --track-recording-text: #ACD8E7;
+  --track-missed-bg: rgba(248,99,107,0.30);
+  --track-missed-icon: #F48B91;
+  --track-missed-text: #F48B91;
   --track-today-icon: var(--status-now);
   --track-muted-text: var(--color-muted);
   --color-teal-pill-bg: rgba(74,222,180,0.20);

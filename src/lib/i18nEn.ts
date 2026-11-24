@@ -348,6 +348,7 @@ export const EN: Record<string, string> = {
   'Занятий нет — можно выдохнуть': 'No lessons — take a breather',
   'Был на занятии': 'Attended the lesson',
   'Не был на занятии': 'Did not attend the lesson',
+  'Не был на уроке': 'Missed the lesson',
   'Задача добавлена в демопросмотре': 'Task added in the demo',
   'Вне курсов': 'Outside courses',
   'Задача добавлена. Она откроет эту работу из «Моих задач».': 'Task added. Open this submission from My tasks.',

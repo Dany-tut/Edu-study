@@ -65,6 +65,7 @@ const detailStyles: Record<TrackLessonStatus, { badgeLabel?: string; icon: React
   submitted: { badgeLabel: 'отправлено на проверку', icon: Upload },
   test_low: { icon: CircleAlert }, test_passed: { icon: CheckCircle2 },
   submitted_unknown: { badgeLabel: 'Работа отправлена', icon: Clock },
+  missed: { badgeLabel: 'Не был на уроке', icon: CircleAlert },
   today: { icon: Play }, current: { icon: Play }, locked: { badgeLabel: 'недоступно', icon: Lock },
 }
 
@@ -559,17 +560,19 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                         style={{
                           fontSize: 13,
                           fontWeight: 600,
-                          color: quietLessonButton ? 'var(--color-accent)' : '#fff',
-                          background: selectedLesson.kind === 'test'
-                            ? 'linear-gradient(135deg, #34C877, #2A7D4F)'
-                            : quietLessonButton ? 'var(--color-accent-soft)' : 'var(--grad-purple)',
+                          color: selectedLessonStatus === 'missed' ? '#fff' : quietLessonButton ? 'var(--color-accent)' : '#fff',
+                          background: selectedLessonStatus === 'missed'
+                            ? 'linear-gradient(135deg, var(--track-missed-icon), #C0434C)'
+                            : selectedLesson.kind === 'test'
+                              ? 'linear-gradient(135deg, #34C877, #2A7D4F)'
+                              : quietLessonButton ? 'var(--color-accent-soft)' : 'var(--grad-purple)',
                           borderRadius: 12,
                           padding: '8px',
                           minHeight: 40,
                           cursor: 'pointer',
                         }}
                       >
-                        <OpticalText as="iskra-button-label">{selectedLesson.kind === 'test' ? t('Пройти тест') : t('Открыть урок')}</OpticalText>
+                        <OpticalText as="iskra-button-label">{selectedLessonStatus === 'missed' ? t('Смотреть запись') : selectedLesson.kind === 'test' ? t('Пройти тест') : t('Открыть урок')}</OpticalText>
                       </motion.button>
                     </div>
                   )}

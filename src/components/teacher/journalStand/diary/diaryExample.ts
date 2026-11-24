@@ -134,6 +134,7 @@ export const diaryStatusText = (work: DiaryWork) =>
     locked: 'Закрыто',
     today: 'Сегодня',
     submitted_unknown: 'Работа отправлена',
+    missed: 'Не был',
   })[work.status]
 export const isDiaryAction = (work: DiaryWork) =>
   ['returned', 'current', 'test_low', 'unviewed'].includes(work.status)

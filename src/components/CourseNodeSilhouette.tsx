@@ -27,9 +27,10 @@ interface Props {
   tone: { bg: string; border: string }
   active?: boolean
   highlighted?: boolean
+  dashed?: boolean
 }
 
-export default function CourseNodeSilhouette({ shape, tone, active, highlighted }: Props) {
+export default function CourseNodeSilhouette({ shape, tone, active, highlighted, dashed }: Props) {
   const { width, height, path } = silhouettes[shape]
   return (
     <svg aria-hidden="true" focusable="false" className="track-silhouette"
@@ -38,7 +39,7 @@ export default function CourseNodeSilhouette({ shape, tone, active, highlighted 
       <path className="track-silhouette-ring" d={path} fill="none" stroke={tone.border} strokeWidth="8" />
       {/* An opaque base keeps the track from showing through translucent dark fills. */}
       <path d={path} fill="var(--color-bg-3)" />
-      <path d={path} fill={tone.bg} stroke={tone.border} strokeWidth="2" />
+      <path d={path} fill={tone.bg} stroke={tone.border} strokeWidth="2" strokeDasharray={dashed ? '6 4' : undefined} />
       {shape === 'screen' && <path d="M25 42 H39" stroke="currentColor" strokeOpacity=".6" strokeWidth="2" strokeLinecap="round" />}
     </svg>
   )

@@ -37,6 +37,7 @@ const FLASH_RGB: Record<TrackLessonStatus, string> = {
   test_low: '244,139,145',
   test_passed: '110,231,160',
   submitted_unknown: '150,150,160',
+  missed:    '244,139,145',
   submitted: '248,201,145',
   today:     '99,84,207',
   current:   '150,150,160',
@@ -45,7 +46,7 @@ const FLASH_RGB: Record<TrackLessonStatus, string> = {
 
 const nodeIcon: Record<TrackLessonStatus, AnyIcon> = {
   completed: CheckCircle2, returned: IconReturned, unviewed: IconLessonRecording, submitted: Upload,
-  test_low: CircleAlert, test_passed: CheckCircle2, submitted_unknown: Clock, current: Play, today: Play, locked: Lock,
+  test_low: CircleAlert, test_passed: CheckCircle2, submitted_unknown: Clock, missed: CircleAlert, current: Play, today: Play, locked: Lock,
 }
 
 type HardStatus = 'submitted' | 'returned' | 'completed'
@@ -100,10 +101,11 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
   const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && !scheduleState.recordingAvailable && (scheduleState.isCurrent || scheduleState.phase === 'cancelled')
   const scheduleLabel = showScheduleStatus ? scheduleState.label : null
-  const missed = lessonMissedMark(lesson)
+  const missed = displayStatus === 'missed'
+  const missedBadge = !missed && lessonMissedMark(lesson)
   const missedText = tr('Пропуск занятия')
   const statusBase = scheduleLabel && !progressDescription.includes(tr(scheduleLabel)) ? `${tr(scheduleLabel)} · ${progressDescription}` : progressDescription
-  const statusDescription = missed ? `${missedText} · ${statusBase}` : statusBase
+  const statusDescription = (missed || missedBadge) ? `${missedText} · ${statusBase}` : statusBase
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
   const seasonal = useSeason().on('track')
@@ -204,7 +206,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
         className={cn('absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonal && !isAutoResult && 'season-node', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', isToday && 'season-node-current', displayStatus === 'unviewed' && 'season-node-unviewed', displayStatus === 'locked' && 'season-node-locked')}
         style={{
           background: silhouette ? 'transparent' : `linear-gradient(${palette.bg}, ${palette.bg}), var(--color-bg-3)`,
-          border: silhouette ? 0 : `2px solid ${palette.border}`,
+          border: silhouette ? 0 : `2px ${missed ? 'dashed' : 'solid'} ${palette.border}`,
           borderRadius: nodeRadius,
           color: palette.icon,
           ...(silhouette === 'screen' && { left: -4, right: -4 }),
@@ -213,7 +215,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
         aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lessonNo(lesson)}: ${tc(lesson.title)} · ${statusDescription}${overdueLabel ? ` · ${overdueLabel}` : ''}`}
         title={statusDescription}
       >
-        {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} />}
+        {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} dashed={missed} />}
         <div className="relative" style={{ rotate: isDiamond ? '-45deg' : '0deg', top: silhouette === 'screen' ? -2 : undefined }}>
           <Icon color={palette.icon} size={17} strokeWidth={isToday ? 2.5 : 2} />
         </div>
@@ -223,7 +225,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
 
       {overdueLabel && <span title={overdueLabel} aria-label={overdueLabel} style={{ position: 'absolute', right: -6, top: -7, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', pointerEvents: 'none' }}><CircleAlert size={14} /></span>}
 
-      {missed && <span aria-hidden style={{ position: 'absolute', left: -6, bottom: -5, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(var(--color-red-soft), var(--color-red-soft)), var(--color-bg)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', fontSize: 11, fontWeight: 700, lineHeight: 1, pointerEvents: 'none' }}>Н</span>}
+      {missedBadge && <span aria-hidden style={{ position: 'absolute', left: -6, bottom: -5, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(var(--color-red-soft), var(--color-red-soft)), var(--color-bg)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', fontSize: 11, fontWeight: 700, lineHeight: 1, pointerEvents: 'none' }}>Н</span>}
 
       {/* Hard satellite circle — appears half-overlapping from the right */}
       {showHardSatellite && (

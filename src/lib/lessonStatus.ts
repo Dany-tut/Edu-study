@@ -8,7 +8,7 @@ import { canRetakeHomework, gradedWorkLabel } from './homeworkResult'
 import { getScheduleState, pickScheduleFocus, type ScheduleSlot, type ScheduleState } from './scheduleState'
 
 export type LessonDisplayStatus = LessonStatus | 'test_passed' | 'test_low' | 'submitted_unknown'
-export type TrackLessonStatus = LessonDisplayStatus | 'today'
+export type TrackLessonStatus = LessonDisplayStatus | 'today' | 'missed'
 
 const LESSON_STATUS_LABELS: Record<Exclude<LessonDisplayStatus, 'test_passed' | 'test_low'>, string> = {
   completed: 'Выполнено', returned: 'Возвращено на доработку', unviewed: 'Запись доступна',
@@ -17,6 +17,7 @@ const LESSON_STATUS_LABELS: Record<Exclude<LessonDisplayStatus, 'test_passed' | 
 }
 
 export function lessonStatusLabel(status: TrackLessonStatus, kind?: Lesson['kind']): string {
+  if (status === 'missed') return 'Не был'
   if (status === 'today') return 'Сегодня'
   if (status === 'test_passed' || status === 'test_low') return gradedWorkLabel(status === 'test_passed', kind)
   if (status === 'current' && kind === 'test') return 'Тест доступен'
@@ -30,6 +31,7 @@ export const trackStepLabel = {
 /** The circle remembers a graded attempt; the caption describes what to do now. */
 export function lessonTrackStep(lesson: Lesson, status: TrackLessonStatus): keyof typeof trackStepLabel | null {
   if (status === 'locked') return null
+  if (status === 'missed') return lesson.videoUrl?.trim() ? 'watch' : null
   if (status === 'submitted') return 'review'
   if (lesson.kind === 'test') return null
   const result = lesson.result
@@ -48,7 +50,7 @@ export function lessonMissedMark(lesson: Lesson): boolean {
 // Submission/review status is authoritative. Calendar presentation only affects open lessons.
 export function getDisplayLessonStatus(lesson: Lesson, now: Date = new Date()): LessonDisplayStatus {
   const status = getTrackLessonStatus(lesson, now)
-  return status === 'today' ? 'current' : status
+  return status === 'today' ? 'current' : status === 'missed' ? 'unviewed' : status
 }
 
 export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date(), event = getLessonScheduleState(lesson, now)): TrackLessonStatus {
@@ -59,6 +61,8 @@ export function getTrackLessonStatus(lesson: Lesson, now: Date = new Date(), eve
     if (result?.percent != null) return result.percent < result.passingScore ? 'test_low' : 'test_passed'
     if (lesson.status === 'submitted' && result?.grading !== 'teacher') return 'submitted_unknown'
   }
+  // Пропуск: «Н» в журнале + запись ещё не досмотрена → красный узел.
+  if (lessonMissedMark(lesson)) return 'missed'
   // Locked and current lessons both depend on whether the lesson sits on the
   // calendar, so resolve its scheduled slot (any day in the window) once.
   const status = lesson.status === 'unviewed' && (event?.isCurrent || lessonStudyProgress(lesson).completed) ? 'current' : lesson.status

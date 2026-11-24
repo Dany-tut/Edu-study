@@ -45,6 +45,7 @@ export const TRACK_STATUS = {
   returned:  trackTone('var(--color-yellow-soft)', '#F8EF8C', 'var(--color-yellow-text)'),
   unviewed:  trackTone('var(--track-recording-bg)', 'var(--track-recording-border)', 'var(--track-recording-icon)', 'var(--track-recording-text)'),
   test_low:  trackTone('var(--color-red-soft)', '#F48B91', 'var(--color-red-text)'),
+  missed:    trackTone('var(--track-missed-bg)', '#F48B91', 'var(--track-missed-icon)', 'var(--track-missed-text)'),
   submitted: trackTone('var(--color-peach-soft)', '#F8C991', 'var(--color-peach-text)'),
   today:     trackTone('var(--status-now-soft)', 'var(--status-now)', 'var(--track-today-icon)', 'var(--status-now-text)'),
   current:   trackTone('rgb(var(--glass-rgb))', 'var(--color-border-strong)', 'var(--color-muted)', 'var(--track-muted-text)'),
@@ -54,5 +55,5 @@ export const TRACK_STATUS = {
 export function trackPalette(status: TrackLessonStatus) {
   if (status === 'test_passed') return TRACK_STATUS.completed
   if (status === 'submitted_unknown') return TRACK_STATUS.locked
-  return TRACK_STATUS[status]
+  return TRACK_STATUS[status as keyof typeof TRACK_STATUS]
 }
