@@ -1,12 +1,13 @@
 import { gradedTrackResult } from '../lib/homeworkResult'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Lock, Play, Upload, Star, RotateCcw, CircleAlert, Clock, TimedTest } from './icons/appIcons'
+import { CheckCircle2, Lock, Play, PenLine, Upload, Star, RotateCcw, CircleAlert, Clock, TimedTest } from './icons/appIcons'
 import { useEffect, useRef } from 'react'
 import type { ElementType, ReactElement } from 'react'
 import { IconReturned, IconLessonRecording, IconTest } from './icons'
 import type { Lesson } from '../data/mockData'
 import { lessonHasHardLevel } from '../data/lessonContent'
 import { lessonMissedMark, lessonStatusLabel, lessonTrackStep, trackStepLabel, type TrackLessonStatus } from '../lib/lessonStatus'
+import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { hardLevelState } from '../lib/lessonAssessments'
 import { cn } from '../lib/utils'
 import { playClick } from '../lib/sound'
@@ -122,7 +123,8 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   } else if (silhouette === 'token' && isOpen) {
     Icon = IconTest
   } else if (silhouette === 'screen' && (isOpen || displayStatus === 'unviewed' || displayStatus === 'missed')) {
-    Icon = Play
+    Icon = isOpen && lessonStudyProgress(lesson).completed ? PenLine : Play
+
   }
   const size = 56
 
@@ -290,7 +292,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
         {caption && (
           // Подпись уже́ шага между кружками (~88 px): длинная («Смотреть запись»)
           // переносится в две строки, а не наезжает на соседнюю.
-          <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, marginTop: 2, maxWidth: 76, lineHeight: 1.15, ...textFadeLines(2), overflowWrap: 'anywhere', hyphens: 'auto' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, marginTop: 2, maxWidth: 76, lineHeight: 1.15, ...textFadeLines(2), overflowWrap: 'break-word' }}>
             {caption}
           </span>
         )}
