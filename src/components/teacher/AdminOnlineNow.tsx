@@ -205,7 +205,7 @@ export default function AdminOnlineNow() {
           {filterItems.map(it => (
             <button key={it.id} type="button" data-hover="layer" onClick={() => setGroup(it.id)}
               style={{ flexShrink: 0, minHeight: 32, padding: '6px 12px', borderRadius: 999, border: 0, cursor: 'pointer', fontSize: 13, fontWeight: group === it.id ? 600 : 500,
-                background: group === it.id ? 'var(--color-accent)' : 'var(--color-bg-3)', color: group === it.id ? '#fff' : 'var(--color-text-2)', whiteSpace: 'nowrap' }}>
+                background: group === it.id ? 'var(--grad-purple)' : 'var(--color-bg-3)', color: group === it.id ? '#fff' : 'var(--color-text-2)', whiteSpace: 'nowrap' }}>
               <OpticalText as="iskra-button-label">{it.label}</OpticalText>
             </button>
           ))}

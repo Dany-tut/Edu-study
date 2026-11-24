@@ -115,7 +115,7 @@ export default function MobileTeacherCalendar() {
           const on = view === s.id
           return <button key={s.id} type="button" onClick={() => { tactile(); setView(s.id) }} aria-pressed={on}
             style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit',
-              background: on ? 'var(--color-purple)' : 'transparent', color: on ? '#fff' : 'var(--color-muted)',
+              background: on ? 'var(--grad-purple)' : 'transparent', color: on ? '#fff' : 'var(--color-muted)',
               boxShadow: on ? '0 2px 8px rgba(120,106,215,.3)' : 'none' }}><OpticalText as="iskra-button-label">{t(s.label)}</OpticalText></button>
         })}
       </div>
@@ -238,7 +238,7 @@ function GridView({ days, items, today, lo, hours, gridH, now, nowShown, scrollR
           return <div key={d} style={{ textAlign: 'center', padding: '2px 0 6px' }}>
             <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: .4, color: isToday ? 'var(--color-purple-text)' : 'var(--color-muted)' }}>{dow(d)}</div>
             <div style={{ margin: '2px auto 0', width: single ? 'auto' : 26, height: 26, lineHeight: '26px', borderRadius: single ? 13 : '50%', padding: single ? '0 12px' : 0,
-              fontSize: 15, fontWeight: 700, background: isToday ? 'var(--color-purple)' : 'transparent', color: isToday ? '#fff' : 'var(--color-text)' }}>{Number(d.slice(-2))}{single ? ` ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(new Date(`${d}T12:00:00`)).replace('.', '')}` : ''}</div>
+              fontSize: 15, fontWeight: 700, background: isToday ? 'var(--grad-purple)' : 'transparent', color: isToday ? '#fff' : 'var(--color-text)' }}>{Number(d.slice(-2))}{single ? ` ${new Intl.DateTimeFormat(locale, { month: 'short' }).format(new Date(`${d}T12:00:00`)).replace('.', '')}` : ''}</div>
           </div>
         })}
       </div>}
