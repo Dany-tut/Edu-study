@@ -503,6 +503,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                             )}
                           </span>
                           <span
+                            data-text-fade-mode="last-line"
                             style={{
                               fontSize: 15,
                               fontWeight: 600,
