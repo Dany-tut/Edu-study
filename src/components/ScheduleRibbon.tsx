@@ -73,7 +73,9 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
     if (personalExample) { setRemote([]); setPending(false); setFailed(false); return }
     if (!studentId) { setPending(false); return }
     setPending(true); setFailed(false)
-    Promise.all(requestedMonths.split('|').map(value => fetchScheduleDays(groupId ?? '', studentId, monthRange(value))))
+    // Каталог курсов уже в хранилище — не тянем всю структуру заново на каждый месяц.
+    const catalog = useStudentData.getState().subjects
+    Promise.all(requestedMonths.split('|').map(value => fetchScheduleDays(groupId ?? '', studentId, monthRange(value), { catalog })))
       .then(values => { if (active) setRemote(values.flat()) })
       .catch(() => { if (active) setFailed(true) })
       .finally(() => { if (active) setPending(false) })

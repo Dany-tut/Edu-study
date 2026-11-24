@@ -46,14 +46,27 @@ const CACHE_KEY = 'iskra:supabase-endpoint'
 type Endpoint = 'direct' | 'proxy'
 let chosen: Endpoint | null = null
 
+// «Прокси» помним и между запусками (12 ч): иначе ученик из РФ при каждом
+// открытии сайта/приложения сначала ждал 2,5 с пробы заблокированного прямого
+// адреса. «Прямой» — только на вкладку: если его начнут резать, следующий
+// запуск снова пробует и уходит на прокси. Сбой прокси стирает оба кэша.
+const PROXY_MEMORY_MS = 12 * 60 * 60_000
 function readCache(): Endpoint | null {
   try {
     const v = sessionStorage.getItem(CACHE_KEY)
-    return v === 'proxy' || v === 'direct' ? v : null
+    if (v === 'proxy' || v === 'direct') return v
+    const saved = Number(localStorage.getItem(CACHE_KEY + ':proxy-at'))
+    return Number.isFinite(saved) && saved > 0 && Date.now() - saved < PROXY_MEMORY_MS ? 'proxy' : null
   } catch { return null }
 }
-function writeCache(e: Endpoint) { try { sessionStorage.setItem(CACHE_KEY, e) } catch { /* приватный режим */ } }
-function clearCache() { try { sessionStorage.removeItem(CACHE_KEY) } catch { /* ignore */ } }
+function writeCache(e: Endpoint) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, e)
+    if (e === 'proxy') localStorage.setItem(CACHE_KEY + ':proxy-at', String(Date.now()))
+    else localStorage.removeItem(CACHE_KEY + ':proxy-at')
+  } catch { /* приватный режим */ }
+}
+function clearCache() { try { sessionStorage.removeItem(CACHE_KEY); localStorage.removeItem(CACHE_KEY + ':proxy-at') } catch { /* ignore */ } }
 
 function hrefOf(input: RequestInfo | URL): string {
   return typeof input === 'string' ? input : input instanceof URL ? input.href : input.url

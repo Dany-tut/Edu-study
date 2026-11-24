@@ -97,7 +97,13 @@ async function cachedPersonScope(fallback: { id: string; groupId: string }): Pro
   return scope
 }
 
-export async function fetchScheduleDays(groupId: string, studentId?: string, range?: { from: string; to: string }): Promise<ScheduleDay[]> {
+/**
+ * known — то, что вызывающий уже знает: охват человека из трека и каталог
+ * курсов. Без них функция сама ходит за охватом (2 запроса) и за всей
+ * структурой курсов (ещё 2) — раньше это делалось на каждой загрузке главной,
+ * каждую минуту в опросе и в ленте месяца.
+ */
+export async function fetchScheduleDays(groupId: string, studentId?: string, range?: { from: string; to: string }, known?: { person?: PersonScope; catalog?: Subject[] }): Promise<ScheduleDay[]> {
   await useStudentTz.getState().load()
   const viewerTz = useStudentTz.getState().tz
   const now = new Date()
@@ -119,8 +125,12 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   // (student-scoped) assignment. Match both.
   // Resolve the entire person here so initial load, polling and month views
   // cannot accidentally narrow the calendar back to the active login row.
+  if (known?.person && isUuid(studentId)) {
+    watchPersonScopeAuth()
+    personScopeCache.set(`${studentId}|${groupId}`, { at: Date.now(), scope: known.person })
+  }
   const person = isUuid(studentId)
-    ? await cachedPersonScope({ id: studentId, groupId })
+    ? known?.person ?? await cachedPersonScope({ id: studentId, groupId })
     : { rows: [{ id: '', groupId }], studentIds: [] }
   const scope = studentScheduleScope(person.rows)
   if (scope.length === 0) return []
@@ -141,7 +151,7 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   // A dated material without a clock time is a calendar item too. It has no
   // schedule row (the course editor only persists timed sessions). Project it
   // from the same assigned catalog as the track, without inventing a start time.
-  const catalog = await fetchCourseStructure(person.rows, { strict: true })
+  const catalog = known?.catalog?.length ? known.catalog : await fetchCourseStructure(person.rows, { strict: true })
   for (const subject of catalog) for (const module of subject.modules) for (const lesson of module.lessons) {
     if (!lesson.scheduledDate || lesson.scheduledTime) continue
     const parts = lesson.scheduledDate.split('.')

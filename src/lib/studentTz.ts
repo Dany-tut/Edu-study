@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { browserTz } from './teacherTz'
 import { supabase } from './supabase'
-import { getAuthUser } from './owner'
 
 const LOCAL_KEY = 'iskra:student-timezone'
 type StudentTzState = {
@@ -17,7 +16,9 @@ export const useStudentTz = create<StudentTzState>((set, get) => ({
   tz: 'Europe/Moscow', mode: 'auto', loaded: false,
   async load() {
     if (get().loaded) return
-    const user = await getAuthUser()
+    // Локальная сессия, а не GET /auth/v1/user: это был отдельный круг до
+    // сервера в самом начале цепочки расписания на каждом открытии главной.
+    const user = (await supabase.auth.getSession()).data.session?.user ?? null
     const meta = user?.user_metadata ?? {}
     let local: { tz?: string; mode?: 'auto' | 'manual' } = {}
     try { local = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '{}') } catch { /* ignore corrupt local preference */ }

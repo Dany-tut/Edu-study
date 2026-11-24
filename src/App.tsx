@@ -338,14 +338,23 @@ function AppRoutes() {
       if (document.visibilityState !== 'visible' || syncingAttendance) return
       syncingAttendance = true
       try {
+        const catalog = useStudentData.getState().subjects
         const [calendar, participation] = await Promise.allSettled([
-          fetchScheduleDays(sess.groupId, sess.id),
-          fetchLessonParticipation(useStudentData.getState().subjects),
+          fetchScheduleDays(sess.groupId, sess.id, undefined, { catalog }),
+          fetchLessonParticipation(catalog),
         ])
-        if (!disposed && getStudentSession()?.id === sess.id) useStudentData.setState(state => ({
-          ...(calendar.status === 'fulfilled' && calendar.value.length ? { scheduleDays: calendar.value } : {}),
-          ...(participation.status === 'fulfilled' ? { subjects: applyLessonParticipation(state.subjects, participation.value) } : {}),
-        }))
+        // Публикуем только настоящие изменения: новый массив каждую минуту
+        // заставлял ленту месяца и дневник заново грузить всё своё.
+        if (!disposed && getStudentSession()?.id === sess.id) useStudentData.setState(state => {
+          const patch: Partial<typeof state> = {}
+          if (calendar.status === 'fulfilled' && calendar.value.length
+            && JSON.stringify(calendar.value) !== JSON.stringify(state.scheduleDays)) patch.scheduleDays = calendar.value
+          if (participation.status === 'fulfilled') {
+            const next = applyLessonParticipation(state.subjects, participation.value)
+            if (JSON.stringify(next) !== JSON.stringify(state.subjects)) patch.subjects = next
+          }
+          return patch
+        })
       } catch (error) { console.error('[attendance sync]', error) }
       finally { syncingAttendance = false }
     }, 60_000)
@@ -370,7 +379,14 @@ function AppRoutes() {
     }
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'course_item_visibility',
-    }, () => { void loadStudentData().catch(e => console.error('[studentData.visibility]', e)) })
+    }, payload => {
+      // Подписка видит изменения видимости во ВСЕХ курсах; перезагружаемся
+      // только ради своих, иначе любой учитель дёргал все открытые кабинеты.
+      const row = (payload.new && Object.keys(payload.new).length ? payload.new : payload.old) as { course_id?: string } | null
+      const mine = useStudentData.getState().subjects
+      if (row?.course_id && mine.length && !mine.some(s => s.dbId === row.course_id)) return
+      void loadStudentData().catch(e => console.error('[studentData.visibility]', e))
+    })
     channel.subscribe(status => {
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.error('[realtime] lesson_progress subscription:', status)
     })

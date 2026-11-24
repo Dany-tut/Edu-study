@@ -100,8 +100,15 @@ function standaloneScope(student: StudentSession, auth: Session | null) {
     auth?.user.role ?? null, auth?.user.app_metadata ?? null, auth?.user.last_sign_in_at ?? null])
 }
 let testlySyncFlight: { owner: string; promise: Promise<unknown> } | null = null
+// Сверка с Тестли шла на КАЖДУЮ загрузку: возврат на вкладку, realtime, вторая
+// волна, — без паузы, и за ней ещё одна полная загрузка. Раз в 2 минуты на
+// ученика достаточно: свежую сдачу Тестли сам присылает в Искру.
+const TESTLY_SYNC_GAP_MS = 2 * 60_000
+const testlyLastSync = new Map<string, number>()
 function syncTestlyInBackground(owner: string) {
   if (testlySyncFlight?.owner === owner) return testlySyncFlight.promise
+  if (Date.now() - (testlyLastSync.get(owner) ?? 0) < TESTLY_SYNC_GAP_MS) return null
+  testlyLastSync.set(owner, Date.now())
   const promise = supabase.functions.invoke('testly-bridge', { body: { action: 'sync' } })
     .catch(error => { console.error('[studentData.testly]', error) })
     .finally(() => { if (testlySyncFlight?.promise === promise) testlySyncFlight = null })
@@ -224,7 +231,12 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     const focus = firstLoad && !options?.afterTestlySync && !options?.full ? readLastCourse(session.id) : null
     let syncP = options?.afterTestlySync || focus ? null : syncTestlyInBackground(session.id)
     const trackP = fetchStudentTrack({ id: session.id, groupId: session.groupId }, focus)
-    const scheduleP = fetchScheduleDays(session.groupId, session.id)
+    // Расписанию нужны охват человека и каталог курсов — трек привозит оба.
+    // Раньше оно добывало их само (ещё 5 кругов подряд), и весь экран ждал
+    // именно его: loaded ставится, когда готовы все части.
+    const scheduleP = trackP
+      .then(track => fetchScheduleDays(session.groupId, session.id, undefined, { person: track.scope, catalog: track.subjects }))
+      .catch(() => fetchScheduleDays(session.groupId, session.id))
     // Optional widgets must not hold the course/diary/home screen skeleton.
     // Keep the previous value on failure and reject obsolete account responses.
     if (!options?.afterTestlySync && !options?.full) void fetchQuizQuestions().then(quizQuestions => { if (getStudentSession()?.id === session.id) set({ quizQuestions }) }).catch(e => console.error('[studentData.quiz]', e))
