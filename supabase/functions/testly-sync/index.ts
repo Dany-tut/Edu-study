@@ -86,7 +86,10 @@ Deno.serve(async req => {
       return new Response('Sweep failed', { status: 500 })
     }
   }
-  if (!same(secret, req.headers.get('x-iskra-secret') ?? '')) return new Response('Forbidden', { status: 403 })
+  // Testly's database pings with its own secret when a teacher changes a grade
+  // (trigger testly_iskra_on_grade); the score itself is still re-read from Testly.
+  const notified = same(Deno.env.get('TESTLY_NOTIFY_SECRET') ?? '', req.headers.get('x-testly-notify') ?? '')
+  if (!notified && !same(secret, req.headers.get('x-iskra-secret') ?? '')) return new Response('Forbidden', { status: 403 })
   try {
     const { key, testId } = await req.json()
     if (!/^iskra:[0-9a-f-]{36}$/i.test(key ?? '') || typeof testId !== 'string') return new Response('Bad request', { status: 400 })
