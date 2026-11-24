@@ -308,7 +308,7 @@ export function ModuleChain({ subject, activeId, onSelect, debtCounts, onOpenDeb
               >
                 <motion.span initial={false} animate={{ width: isActive ? BAR_H - 2 : DOT - 2 }} transition={transition} style={{ height: 24, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ width: 24, height: 24, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--color-accent)' : 'transparent',
+                    background: isActive ? isDone ? 'var(--color-green-soft)' : 'var(--grad-purple)' : 'transparent',
                     color: isActive && !isDone ? '#fff' : 'inherit', fontSize: 12, fontWeight: 700 }}>
                     {isLocked ? <Lock size={14} /> : isDone ? <Check size={14} strokeWidth={2.8} /> : <span style={{ fontVariantNumeric: 'tabular-nums' }}><OpticalText as="iskra-button-label">{num}</OpticalText></span>}
                   </span>

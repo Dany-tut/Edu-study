@@ -206,7 +206,7 @@ export default function JoinPage() {
   }
   const chip = (sub: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px 10px 10px', borderRadius: 16, background: 'var(--color-purple-soft)', margin: '16px 0' }}>
-      <span style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', background: 'var(--color-accent)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600 }}>
+      <span style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', background: 'var(--grad-purple)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600 }}>
         {studentName.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]?.toUpperCase()).join('')}
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>
