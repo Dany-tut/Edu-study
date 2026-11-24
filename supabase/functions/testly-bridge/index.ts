@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
       const patch = applyTestlyResult(row.attachments, testId, result, row.status)
       if (!patch) continue
       // A concurrently submitted homework must never be overwritten by an older snapshot.
-      const { error: saveError } = await admin.from('lesson_progress').update(patch).eq('id', row.id).eq('updated_at', row.updated_at)
+      const { error: saveError } = await admin.from('lesson_progress').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', row.id).eq('updated_at', row.updated_at)
       if (saveError) throw saveError
     }
   }

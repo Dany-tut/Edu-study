@@ -45,7 +45,7 @@ Deno.serve(async req => {
         if ((row.attachments?.testlyKey ?? `iskra:${student.auth_user_id}`) !== key) continue
         const patch = applyTestlyResult(row.attachments, testId, result, row.status)
         if (patch) {
-          const { error } = await db.from('lesson_progress').update(patch).eq('id', row.id).eq('updated_at', row.updated_at)
+          const { error } = await db.from('lesson_progress').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', row.id).eq('updated_at', row.updated_at)
           if (error) throw error
         }
       }

@@ -98,7 +98,7 @@ export async function ensureTestlySnapshots(db: any, people: Person[], testId: s
     if (existing) {
       if (hasAnswers(existing.attachments) || !['current', 'unviewed'].includes(existing.status)) continue
       const attachments = { ...(existing.attachments ?? {}), ...snapshot.attachments }
-      const { error: saveError } = await db.from('lesson_progress').update({ ...snapshot, attachments })
+      const { error: saveError } = await db.from('lesson_progress').update({ ...snapshot, attachments, updated_at: new Date().toISOString() })
         .eq('id', existing.id).eq('updated_at', existing.updated_at)
       if (saveError) throw saveError
     } else {
