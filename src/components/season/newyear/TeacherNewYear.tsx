@@ -12,7 +12,7 @@ export default function TeacherNewYear() {
   if (!on) return null
   return (
     <div aria-hidden className="ny-teacher">
-      <Snow count={36} className="ny-snow--page ny-snow--teacher" />
+      <Snow count={40} scale={2} className="ny-snow--page ny-snow--teacher" />
       <div className="ny-teacher__garland"><Garland /></div>
     </div>
   )

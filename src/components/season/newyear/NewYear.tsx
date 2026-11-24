@@ -39,16 +39,16 @@ const rnd = (i: number, salt: number) => {
   return x - Math.floor(x)
 }
 
-export function Snow({ count, className }: { count: number; className: string }) {
+export function Snow({ count, className, scale = 1 }: { count: number; className: string; scale?: number }) {
   const flakes = useMemo(() => Array.from({ length: count }, (_, i) => ({
     left: rnd(i, 1) * 100,
     y: rnd(i, 2) * 100,
-    size: 2 + Math.round(rnd(i, 3) * 3),
+    size: Math.round((2 + rnd(i, 3) * 3) * scale),
     dur: 9 + rnd(i, 4) * 9,
     delay: -rnd(i, 5) * 18,
     drift: (rnd(i, 6) - 0.5) * 60,
     o: 0.45 + rnd(i, 7) * 0.5,
-  })), [count])
+  })), [count, scale])
   return (
     <span aria-hidden className={`ny-snow ${className}`}>
       {flakes.map((f, i) => (
@@ -102,10 +102,10 @@ export function NewYearBackdrop({ variant }: { variant: NewYearVariant }) {
     <div aria-hidden className={`ny-backdrop ny-backdrop--${variant}`}>
       <div className="ny-banner">
         <img src={newYearImg(`banner-${variant}`)} alt="" className="ny-banner__img" />
-        <Snow count={14} className="ny-snow--banner" />
+        <Snow count={22} scale={1.6} className="ny-snow--banner" />
         <Garland />
       </div>
-      <Snow count={24} className="ny-snow--page" />
+      <Snow count={34} scale={2.2} className="ny-snow--page" />
       <svg className="ny-drift" viewBox="0 0 1440 90" preserveAspectRatio="none">
         <path className="ny-drift__far" d="M0 38 C120 14 240 16 360 30 C480 44 560 20 700 18 C840 16 920 40 1060 36 C1200 32 1300 10 1440 24 V90 H0 Z" />
         <path className="ny-drift__near" d="M0 62 C140 40 260 46 380 58 C520 72 620 44 760 46 C900 48 1000 70 1140 64 C1260 58 1360 42 1440 50 V90 H0 Z" />

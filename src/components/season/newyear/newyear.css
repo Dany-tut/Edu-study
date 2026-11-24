@@ -64,6 +64,11 @@
 .ny-snow { position: absolute; inset: 0; overflow: hidden; color: #C9BFF5; }
 .ny-snow--banner { color: #fff; }
 html[data-theme="dark"] .ny-snow--page { color: #fff; }
+/* Крупные хлопья видны и на светлом фоне: белые с мягкой сиреневой каймой. */
+.ny-snow--page { color: #fff; }
+.ny-snow--page > i { box-shadow: 0 0 0 1px rgba(150, 130, 230, 0.35), 0 0 8px rgba(130, 110, 220, 0.45); }
+html[data-theme="dark"] .ny-snow--page > i { box-shadow: 0 0 8px rgba(255, 255, 255, 0.55); }
+.ny-snow--banner > i { box-shadow: 0 0 6px rgba(255, 255, 255, 0.6); }
 .ny-snow > i {
   position: absolute; top: -8px; border-radius: 50%; background: currentColor;
   animation-name: ny-fall-page; animation-timing-function: linear; animation-iteration-count: infinite;
@@ -165,8 +170,13 @@ html[data-season-variant="polnoch"] .season-node-done svg * { color: #FFD25A !im
 /* Волнистый край: полоса снега и капли, нарисованные радиальным градиентом. */
 html[data-season="new-year"] :is(.live-student-home .schedule-card, .live-student-home .ihw-card, .live-student-home .next-work-card, .ny-widget, .stat-card, .season-cap) { position: relative; }
 html[data-season="new-year"] :is(.live-student-home .schedule-card, .live-student-home .ihw-card, .live-student-home .next-work-card, .ny-widget, .stat-card, .season-cap)::before {
-  content: ''; position: absolute; left: 14px; right: 14px; top: -5px; height: 15px; z-index: 2;
-  pointer-events: none; border-radius: 10px 10px 0 0;
+  /* Шапка лежит на прямом участке верхнего края: отступ — не меньше скругления
+     карточки (виджеты ~40 px), иначе концы висят в воздухе над углами. Концы
+     сходят на нет маской, а не обрываются. */
+  content: ''; position: absolute; left: 34px; right: 34px; top: -3px; height: 14px; z-index: 2;
+  pointer-events: none; border-radius: 8px 8px 0 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
   --ny-cap: #fff;
   background:
     linear-gradient(var(--ny-cap), var(--ny-cap)) top / 100% 7px no-repeat,
@@ -175,6 +185,10 @@ html[data-season="new-year"] :is(.live-student-home .schedule-card, .live-studen
   filter: drop-shadow(0 1px 1px rgba(80, 60, 160, 0.16));
 }
 html[data-theme="dark"][data-season="new-year"] :is(.live-student-home .schedule-card, .live-student-home .ihw-card, .live-student-home .next-work-card, .ny-widget, .stat-card, .season-cap)::before { --ny-cap: #DCD6FF; }
+/* Телефон и маленькие карточки дней: скругление меньше — и отступ меньше. */
+@media (max-width: 1023px) {
+  html[data-season="new-year"] :is(.live-student-home .schedule-card, .live-student-home .ihw-card, .live-student-home .next-work-card, .ny-widget, .stat-card, .season-cap)::before { left: 22px; right: 22px; }
+}
 
 /* ── Виджет сезона (полоса виджетов: 180 px на ПК, 104–132 px на телефоне) ─ */
 .ny-widget {
@@ -238,7 +252,7 @@ html[data-theme="dark"] .ny-toys > i:not([data-on]) { border-color: #5A5296; }
    Хлопья мелкие и полупрозрачные: текст под ними читается. */
 .ny-teacher { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
 .ny-teacher * { pointer-events: none; }
-.ny-snow--teacher > i { opacity: 0.55; }
+.ny-snow--teacher > i { opacity: 0.7; }
 .ny-teacher__garland { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top, 0px); height: 40px; opacity: 0.95; }
 @media (max-width: 1023px) {
   .ny-teacher__garland { height: 32px; transform: scaleY(0.8); transform-origin: top; }
