@@ -1,6 +1,9 @@
 /* Записи модуля из папки Диска — облачка и окно сопоставления.
    Концепт: design/recordings-import/concept.html */
 .rec-module-button { position: relative; color: var(--color-text-3); }
+/* Ряд модуля растягивает кнопки (.course-visibility-row > button { flex: 1 }) —
+   облачко держит свою ширину, как кнопка «глаз», место остаётся названию. */
+.course-visibility-row > .rec-module-button { flex: 0 0 auto; }
 .rec-module-button[data-tone="ok"] { color: var(--color-green-text); }
 .rec-module-button[data-tone="busy"] { color: var(--color-purple-text); }
 .rec-module-button[data-tone="wait"] { color: var(--color-amber-text); }
