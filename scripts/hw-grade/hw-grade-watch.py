@@ -2,7 +2,9 @@
 """Сторож предоценки ДЗ Искры на Маке: работы по химии и биологии оценивает
 Claude Code по подписке Дани.
 
-Раз в полминуты спрашивает Edge Function hw-grade, есть ли сданные работы
+Спрашивает Edge Function hw-grade, есть ли сданные работы (раз в 30 с, пока
+они идут; в тишине пауза растёт до 5 минут — каждый опрос это вызов функции,
+а бесплатная квота Supabase — 500 тыс. вызовов в месяц)
 (action queue). Есть — берёт по одной (claim), запускает `claude -p` с чтением
 базы ChemBio_KB и сдаёт ответ по критериям ФИПИ (result). Балл считает функция.
 Системный промпт и схему ответа присылает функция (supabase/functions/hw-grade/
@@ -31,7 +33,8 @@ LOG = Path.home() / "Library/Logs/iskra-hw-grade.log"
 # у каждой работы своя пустая папка: там только фото и доска решения, Claude Code
 # не подхватывает чужие CLAUDE.md и настройки; база — через --add-dir, на чтение
 WORK = Path.home() / "Library/Caches/iskra-hw-grade"
-PERIOD = 30
+PERIOD = 30          # пока есть работы
+IDLE_MAX = 5 * 60    # потолок паузы в тишине
 # функция вернёт работу в очередь через 40 минут — дольше ждать нет смысла
 TIMEOUT = 30 * 60
 
@@ -100,10 +103,12 @@ def grade(task: dict, system: str, schema: dict):
         shutil.rmtree(cwd, ignore_errors=True)  # фото учеников на Маке не копим
 
 
-def tick():
+def tick() -> int:
     q = call({"action": "queue"})
-    for task in q.get("tasks", []):
+    tasks = q.get("tasks", [])
+    for task in tasks:
         grade(task, q["system"], q["schema"])
+    return len(tasks)
 
 
 if __name__ == "__main__":
@@ -111,9 +116,11 @@ if __name__ == "__main__":
         tick()
         sys.exit()
     log("сторож запущен")
+    pause = PERIOD
     while True:
         try:
-            tick()
+            pause = PERIOD if tick() else min(pause * 2, IDLE_MAX)
         except (urllib.error.URLError, OSError, ValueError) as e:  # сеть пропала — подождём
             log(f"функция недоступна: {e}")
-        time.sleep(PERIOD)
+            pause = min(pause * 2, IDLE_MAX)
+        time.sleep(pause)
