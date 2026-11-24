@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Стереть монеткой</title>
+<style>
+/* Концепт ИСК-4: скретч-слой «стереть монеткой». 4 версии × 2 темы. Токены — как в концептах Искры (recordings-import). */
+:root{--page:#ECECEF;--ink:#0B0B0D;--ink2:#5E5F68;--line:rgba(0,0,0,.10);--font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0d0d0f;--ink:#F0F0F2;--ink2:#9A9AA3;--line:rgba(255,255,255,.12);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0d0d0f;--ink:#F0F0F2;--ink2:#9A9AA3;--line:rgba(255,255,255,.12);color-scheme:dark}
+.t{--bg:#F5F5F6;--bg2:#FFFFFF;--bg3:#F0F0F2;--text:#0B0B0D;--muted:#676872;--border:rgba(0,0,0,.10);
+  --accent:#7E6EE6;--accent-ink:#fff;--accent-soft:#EEEBFC;--green:#1A5C38;--green-soft:#DFF8D6;--red:#A8282D;--red-soft:#FFE1E4;
+  --foil1:#C9C6D6;--foil2:#ECEAF3;--foil-ink:#6F6B85;--glass:rgba(255,255,255,.72);--shadow:0 12px 40px rgba(0,0,0,.14)}
+.t.dark{--bg:#111113;--bg2:#1A1A1C;--bg3:#222224;--text:#F0F0F2;--muted:#9A9AA3;--border:rgba(255,255,255,.15);
+  --accent:#B3A6F7;--accent-ink:#111;--accent-soft:rgba(179,166,247,.16);--green:#4ADE80;--green-soft:rgba(74,222,128,.13);--red:#F48B91;--red-soft:rgba(248,99,107,.22);
+  --foil1:#4A4758;--foil2:#6A6680;--foil-ink:#CFCBE3;--glass:rgba(22,22,24,.72);--shadow:0 12px 40px rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--font);padding:32px 16px 64px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font-size:28px;margin:0}h2{font-size:20px;margin:0 0 4px}
+p{margin:0;line-height:1.5;max-width:76ch;color:var(--ink2)}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid.phones{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.grid,.grid.phones{grid-template-columns:1fr}}
+.cap{font-size:12px;color:var(--ink2);margin:0 0 6px;display:flex;gap:8px;align-items:center}
+.chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--line)}
+.t{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:18px;overflow:hidden;position:relative;font-size:13px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.pad{border-radius:26px}.ph{border-radius:34px;padding:22px 14px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 16px}
+.q{font-size:15px;font-weight:600;line-height:1.4}
+.btn{border:0;border-radius:10px;padding:9px 14px;font:600 13px var(--font);background:var(--bg3);color:var(--text);cursor:pointer;transition:transform .15s}
+.btn:hover{transform:scale(1.03)}
+.btn.pri{background:var(--accent);color:var(--accent-ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+/* Скретч-зона: ответ снизу, фольга-канвас сверху */
+.scratch{position:relative;border-radius:12px;overflow:hidden;min-height:92px;background:var(--accent-soft);user-select:none;touch-action:none}
+.scratch .ans{padding:16px;display:flex;flex-direction:column;gap:4px;color:var(--text)}
+.scratch .ans b{font-size:20px;color:var(--accent)}
+.scratch canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;transition:opacity .35s}
+.scratch.done canvas{opacity:0;pointer-events:none}
+.hint{font-size:12px;color:var(--muted)}
+.self{display:none;gap:8px}
+.scratch.done + .self{display:flex}
+.self .btn{flex:1}
+.ok{background:var(--green-soft);color:var(--green)}.no{background:var(--red-soft);color:var(--red)}
+/* Редактор учителя */
+.field{display:flex;flex-direction:column;gap:6px}
+.field span{font-size:12px;color:var(--muted);padding:0 14px}
+.in{border:1px solid var(--border);border-radius:10px;padding:10px 14px;background:var(--bg);color:var(--text);font:13px var(--font)}
+.seg{display:inline-flex;background:var(--bg3);border-radius:99px;padding:3px;gap:2px}
+.seg i{font-style:normal;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;color:var(--muted)}
+.seg i.on{background:var(--bg2);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.capsule{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:99px;background:var(--glass);backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+.capsule b{width:36px;height:36px;border-radius:50%;background:var(--bg3);display:grid;place-items:center;font-size:14px}
+.tabbar{margin-top:auto;display:flex;justify-content:space-around;padding:10px;border-radius:99px;background:var(--glass);backdrop-filter:blur(18px);font-size:11px;color:var(--muted)}
+.andbar{margin-top:auto;display:flex;justify-content:space-around;padding:10px;border-radius:14px;background:var(--bg2);font-size:11px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-top:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:top}th{color:var(--ink2);font-weight:600}
+</style></head>
+<body><div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:8px">
+  <span class="eyebrow">Концепт · ИСК-4 · 24.11.2026 · не согласован</span>
+  <h1>Стереть монеткой</h1>
+  <p>Скрытый ответ под «фольгой». Ученик сначала вспоминает сам, потом стирает пальцем или мышью и честно отмечает «знал / не знал». Это как самопроверка у словарной карточки, только с тактильной механикой. Попробуй стереть в любой рамке ниже. Слой сходит, когда стёрто 55 %. Кнопка «Открыть» есть всегда: без неё задание не пройти с клавиатуры, и с ней проще тем, кому неудобно тереть.</p>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:12px">
+  <h2>Где это может жить: три варианта</h2>
+  <table>
+    <tr><th></th><th>A. Новый тип задания</th><th>B. Слой поверх части урока</th><th>C. Сюрприз после работы</th></tr>
+    <tr><td>Что</td><td>«Стереть и проверить» в реестре <code>taskTypes.ts</code>: вопрос + скрытый ответ (текст, формула, картинка)</td><td>Флажок «Спрятать под стирание» у подсказки, ответа или фрагмента конспекта в уроке</td><td>После сдачи ДЗ ученик стирает, чтобы увидеть балл или стикер</td></tr>
+    <tr><td>Баллы</td><td>Самооценка, как <code>flashcard</code>: не влияет на балл, видна учителю</td><td>Нет</td><td>Нет, только эмоция</td></tr>
+    <tr><td>Объём</td><td>Средний: тип + редактор + решатель + превью</td><td>Больше: трогает редактор уроков</td><td>Малый, но это геймификация, а не учёба</td></tr>
+    <tr><td>Риск</td><td>Низкий: реестр сделан ровно для новых типов</td><td>Смешивается с конспектом и транскриптом</td><td>Может раздражать на каждой сдаче</td></tr>
+  </table>
+  <p><b>Рекомендую A.</b> Рамки ниже показывают вариант A. Нужен ответ Дани: A, B или C. Можно и «A сейчас, C позже».</p>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:12px">
+  <h2>ПК · учитель создаёт задание</h2>
+  <div class="grid">
+    <div><div class="cap"><span class="chip">ПК</span>светлая</div>
+      <div class="t"><div class="card">
+        <div class="row"><b class="grow">Стереть и проверить</b><span class="seg"><i class="on">Текст</i><i>Картинка</i></span></div>
+        <label class="field"><span>Вопрос</span><input class="in" value="Какая степень окисления у серы в H₂SO₄?"></label>
+        <label class="field"><span>Под фольгой</span><input class="in" value="+6 — водород +1 ×2, кислород −2 ×4"></label>
+        <div class="row hint">Ученик сам отмечает «знал / не знал». На балл не влияет.</div>
+      </div></div></div>
+    <div><div class="cap"><span class="chip">ПК</span>тёмная</div>
+      <div class="t dark"><div class="card">
+        <div class="row"><b class="grow">Стереть и проверить</b><span class="seg"><i class="on">Текст</i><i>Картинка</i></span></div>
+        <label class="field"><span>Вопрос</span><input class="in" value="Какая степень окисления у серы в H₂SO₄?"></label>
+        <label class="field"><span>Под фольгой</span><input class="in" value="+6 — водород +1 ×2, кислород −2 ×4"></label>
+        <div class="row hint">Ученик сам отмечает «знал / не знал». На балл не влияет.</div>
+      </div></div></div>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:12px">
+  <h2>ПК и iPad · ученик решает</h2>
+  <div class="grid" id="big"></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:12px">
+  <h2>iPhone и Android · ученик решает</h2>
+  <div class="grid phones" id="phones"></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:8px">
+  <h2>Поведение</h2>
+  <p>• Фольга — canvas с <code>destination-out</code>. Стёртая доля считается по альфе раз в 200 мс. При 55 % слой растворяется за 0,35 с. • На телефоне стирание не прокручивает страницу (<code>touch-action:none</code> только внутри зоны). Фейды прокрутки вокруг не меняются. • Кнопка «Открыть» есть на всех версиях: на iPad нельзя прятать действие за ховер. • Лёгкая вибрация на iPhone и Android, когда слой сошёл. • Сохраняем «открыто» и самооценку вместе с попыткой. После F5 фольга не возвращается. • Android: без стекла, плашки с заливкой. iPad: управление в капсуле справа.</p>
+</section>
+</div>
+
+<template id="solver">
+  <div class="card">
+    <span class="lbl" style="padding:0">Задание 3 · Стереть и проверить</span>
+    <div class="q">Какая степень окисления у серы в H₂SO₄?</div>
+    <div class="scratch"><div class="ans"><b>+6</b><span>водород +1 ×2, кислород −2 ×4 → сера +6</span></div><canvas></canvas></div>
+    <div class="self"><button class="btn ok">Знал</button><button class="btn no">Не знал</button></div>
+    <div class="row"><span class="hint grow">Сначала вспомни, потом сотри</span><button class="btn open">Открыть</button></div>
+  </div>
+</template>
+
+<script>
+const frames=[['big','ПК','pc',false],['big','ПК','pc',true],['big','iPad','pad',false],['big','iPad','pad',true],
+  ['phones','iPhone','ph ios',false],['phones','iPhone','ph ios',true],['phones','Android','ph and',false],['phones','Android','ph and',true]];
+for(const [host,name,cls,dark] of frames){
+  const w=document.createElement('div');
+  w.innerHTML=`<div class="cap"><span class="chip">${name}</span>${dark?'тёмная':'светлая'}</div>`;
+  const t=document.createElement('div');t.className='t '+cls+(dark?' dark':'');
+  t.appendChild(document.getElementById('solver').content.cloneNode(true));
+  if(name==='iPad'){t.style.paddingRight='70px';t.insertAdjacentHTML('beforeend','<div class="capsule"><b>‹</b><b>›</b><b>…</b></div>')}
+  if(name==='iPhone')t.insertAdjacentHTML('beforeend','<div class="tabbar"><span>Главная</span><span>Курс</span><span>Тренажёр</span></div>');
+  if(name==='Android')t.insertAdjacentHTML('beforeend','<div class="andbar"><span>Главная</span><span>Курс</span><span>Тренажёр</span></div>');
+  w.appendChild(t);document.getElementById(host).appendChild(w);
+}
+function paintFoil(cv){
+  const r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;
+  const x=cv.getContext('2d'),cs=getComputedStyle(cv.closest('.t'));
+  const g=x.createLinearGradient(0,0,cv.width,cv.height);g.addColorStop(0,cs.getPropertyValue('--foil1'));g.addColorStop(.5,cs.getPropertyValue('--foil2'));g.addColorStop(1,cs.getPropertyValue('--foil1'));
+  x.globalCompositeOperation='source-over';x.fillStyle=g;x.fillRect(0,0,cv.width,cv.height);
+  for(let i=0;i<cv.width*cv.height/90;i++){x.fillStyle=`rgba(255,255,255,${Math.random()*.25})`;x.fillRect(Math.random()*cv.width,Math.random()*cv.height,d,d)}
+  x.fillStyle=cs.getPropertyValue('--foil-ink');x.font=`600 ${13*d}px Inter,system-ui`;x.textAlign='center';x.textBaseline='middle';
+  x.fillText('Сотри здесь',cv.width/2,cv.height/2);
+  return x;
+}
+document.querySelectorAll('.scratch').forEach(z=>{
+  const cv=z.querySelector('canvas');let x,down=false,last=null,timer=0;
+  requestAnimationFrame(()=>{x=paintFoil(cv)});
+  const finish=()=>{if(z.classList.contains('done'))return;z.classList.add('done');navigator.vibrate?.(12)};
+  const pos=e=>{const r=cv.getBoundingClientRect(),d=cv.width/r.width;return[(e.clientX-r.left)*d,(e.clientY-r.top)*d,d]};
+  const check=()=>{const a=x.getImageData(0,0,cv.width,cv.height).data;let c=0,n=0;for(let i=3;i<a.length;i+=64){n++;if(a[i]<40)c++}if(c/n>.55)finish()};
+  cv.addEventListener('pointerdown',e=>{down=true;last=null;cv.setPointerCapture(e.pointerId);move(e)});
+  const move=e=>{if(!down)return;const[px,py,d]=pos(e);x.globalCompositeOperation='destination-out';x.lineCap='round';x.lineWidth=26*d;
+    x.beginPath();x.moveTo(...(last||[px,py]));x.lineTo(px,py);x.stroke();last=[px,py];if(!timer)timer=setTimeout(()=>{timer=0;check()},200)};
+  cv.addEventListener('pointermove',move);cv.addEventListener('pointerup',()=>{down=false;check()});
+  z.closest('.card').querySelector('.open').addEventListener('click',finish);
+});
+</script>
+</body></html>

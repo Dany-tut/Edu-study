@@ -152,6 +152,19 @@ const StudentWidgetStand = window.location.pathname.replace(/\/+$/, '') === '/st
 const LessonMontageStand = import.meta.env.DEV && window.location.pathname.replace(/\/+$/, '') === '/lesson-montage-stand'
   ? lazy(() => import('./components/lessonMontageStand/LessonMontageStand')) : null
 
+// ИСК-4: прототип «Стереть монеткой». В DEV — по /#/scratch-stand; в тестовой
+// сборке с VITE_SCRATCH_PREVIEW=1 — сразу при запуске, «В приложение» уходит
+// в обычный кабинет до следующего холодного старта. В прод-сборке флага нет.
+const scratchPreviewBuild = import.meta.env.VITE_SCRATCH_PREVIEW === '1'
+const ScratchStand = (import.meta.env.DEV && (window.location.pathname.replace(/\/+$/, '') === '/scratch-stand' || window.location.hash === '#/scratch-stand'))
+  || (scratchPreviewBuild && (() => { try { return sessionStorage.getItem('scratch-preview-skip') !== '1' } catch { return true } })())
+  ? lazy(() => import('./components/scratchStand/ScratchStand')) : null
+const leaveScratchPreview = () => {
+  try { sessionStorage.setItem('scratch-preview-skip', '1') } catch { /* нет хранилища — просто перезагрузка */ }
+  if (window.location.hash === '#/scratch-stand') window.location.hash = ''
+  window.location.reload()
+}
+
 const FeedbackTriageStand = import.meta.env.DEV && (window.location.pathname.replace(/\/+$/, '') === '/feedback-triage-stand' || window.location.hash === '#/feedback-triage-stand')
   ? lazy(() => import('./components/teacher/feedbackTriageStand/FeedbackTriageStand')) : null
 
@@ -175,7 +188,7 @@ if (!(window as Window & { __iskraUnsupported?: boolean }).__iskraUnsupported) c
       <Suspense fallback={null}><NativeTitleTooltips /></Suspense>
       {IS_IOS && <WindowSoftEdges />}
       <ErrorBoundary>
-        {FeedbackTriageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><FeedbackTriageStand /></Suspense> : LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <MfaGate><App /></MfaGate>}
+        {ScratchStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><ScratchStand onExit={leaveScratchPreview} /></Suspense> : FeedbackTriageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><FeedbackTriageStand /></Suspense> : LessonMontageStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><LessonMontageStand /></Suspense> : StudentWidgetStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentWidgetStand /></Suspense> : StudentTrackStand ? <Suspense fallback={<div role="status">Загружаем стенд Искры…</div>}><StudentTrackStand /></Suspense> : <MfaGate><App /></MfaGate>}
       </ErrorBoundary>
     </MotionConfig>
   </StrictMode>,

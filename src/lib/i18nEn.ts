@@ -6770,4 +6770,13 @@ export const EN: Record<string, string> = {
   "Эта почта уже зарегистрирована — у вас есть аккаунт.": "This email is already registered — you have an account.",
   "Это не вы? Попросите учителя новую ссылку.": "Not you? Ask your teacher for a new link.",
   "Это приглашение уже ваше. Открываем кабинет…": "This invite is already yours. Opening your cabinet…",
+  "Сотри здесь": "Scratch here",
+  "Спрятано под фольгой": "Hidden under the foil",
+  "Сотри фольгу — внутри подарок": "Scratch off the foil — there is a gift inside",
+  "Новый стикер под фольгой": "New sticker under the foil",
+  "Сотри": "Scratch",
+  "Сотри — какой стикер пришёл?": "Scratch — which sticker did you get?",
+  "Под фольгой — сотри, чтобы узнать": "Under the foil — scratch to find out",
+  "Какой?": "Which one?",
+  "Потом": "Later",
 }

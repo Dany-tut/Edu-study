@@ -1,29 +1,29 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import OpticalText from '../../OpticalText'
 import FadeText from '../../FadeText'
+import ScratchFoil from '../../ScratchFoil'
 import { useT } from '../../../lib/i18n'
-import { newYearImg } from '../../../lib/season'
 import { ACHIEVEMENTS, markStickersSeen, openStickerAlbum, stickerDef, stickerImg, type OwnedSticker } from '../../../lib/seasonStickers'
 import StickerSurface, { useStickerSurface } from './StickerSurface'
 
 /*
  * H · «Подарок от учителя»: учитель вернул ДЗ со стикером (и, может быть, ачивкой
- * и подписью). На главной при следующем заходе — сцена: коробка раскрыта, стикер
- * вылетает, рядом медаль ачивки, ниже подпись учителя. «В альбом» — альбом на этом
- * стикере; «Спасибо!» — просто закрыть. Оба, как и ×/фон/свайп, помечают подарок
- * просмотренным, и окно не вернётся. Несколько подарков — по одному подряд.
- * «Уменьшить движение»: коробка сразу открыта, без конфетти и прыжка.
+ * и подписью). На главной при следующем заходе — подарок под фольгой (ИСК-4):
+ * ученик стирает её пальцем или жмёт «Открыть», от места, где дотёр, проходит
+ * волна, и только тогда видно, какой стикер, медаль ачивки и подпись учителя.
+ *
+ * «В альбом» — альбом на этом стикере; «Спасибо!» — просто закрыть. Оба, как и
+ * ×/фон/свайп ПОСЛЕ открытия, помечают подарок просмотренным, и окно не вернётся.
+ * Закрыли, не стерев, — подарок ждёт следующего захода на главную: нераскрытый
+ * подарок не должен пропадать молча. Несколько подарков — по одному подряд.
+ * «Уменьшить движение»: без волны и наклона, фольга просто исчезает.
  */
 
-const COLORS = ['#FF5C8A', '#7FE7FF', '#B6FF3B', '#F5B93D', '#B7ACFF']
-const PIECES = Array.from({ length: 22 }, (_, i) => ({
-  x: `${(i * 29 + 7) % 100}%`, d: `${200 + (i % 6) * 70}ms`, r: `${(i % 2 ? 1 : -1) * (200 + i * 15)}deg`, c: COLORS[i % COLORS.length],
-}))
-
-export default function TeacherGift({ studentId, gift, suspended }: {
+export default function TeacherGift({ studentId, gifts, suspended }: {
   studentId: string
-  gift: OwnedSticker | null
+  /** Непросмотренные подарки (unseenGifts). Показываем первый, который ученик не отложил. */
+  gifts: OwnedSticker[]
   /** Поверх уже открыто другое окно (приветствие, альбом) — ждём. */
   suspended: boolean
 }) {
@@ -33,9 +33,14 @@ export default function TeacherGift({ studentId, gift, suspended }: {
   // Держим показанный подарок, пока окно уезжает: после пометки он пропадает из списка.
   const [shown, setShown] = useState<OwnedSticker | null>(null)
   const [open, setOpen] = useState(false)
+  const [revealed, setRevealed] = useState(false)
+  // Закрытые без стирания — до следующего захода не показываем снова.
+  const later = useRef(new Set<string>())
+  const gift = gifts.find(g => !later.current.has(g.id)) ?? null
   useEffect(() => {
     if (open || suspended || !gift) return
     setShown(gift)
+    setRevealed(false)
     setOpen(true)
   }, [gift, suspended, open])
 
@@ -44,11 +49,18 @@ export default function TeacherGift({ studentId, gift, suspended }: {
   const done = (toAlbum: boolean) => {
     if (!shown) return
     setOpen(false)
+    if (!revealed) { later.current.add(shown.id); return }
     void markStickersSeen(studentId, [shown.id])
     if (toAlbum) openStickerAlbum(shown.stickerKey)
   }
 
-  const buttons = (
+  // До стирания в подвале одна «Потом»: высота окна не прыгает, когда появляются
+  // «В альбом» и «Спасибо!», а нераскрытый подарок подождёт следующего захода.
+  const buttons = !revealed ? (
+    <button type="button" data-hover="layer" className="stk-btn stk-btn--soft" onClick={() => done(false)}>
+      <OpticalText as="iskra-button-label">{t('Потом')}</OpticalText>
+    </button>
+  ) : (
     <>
       <button type="button" data-hover="layer" className="stk-btn stk-btn--primary" onClick={() => done(true)}>
         <OpticalText as="iskra-button-label">{t('В альбом')}</OpticalText>
@@ -67,38 +79,36 @@ export default function TeacherGift({ studentId, gift, suspended }: {
     >
       {def && shown && (
         <div className={kind === 'window' ? 'stk-gift' : undefined} style={{ textAlign: 'center' }}>
-          <div className="stk-scene" aria-hidden>
-            {!reduce && (
-              <span className="stk-confetti" style={{ '--h': '200px' } as CSSProperties}>
-                {PIECES.map((p, i) => <i key={i} style={{ '--x': p.x, '--d': p.d, '--r': p.r, '--c': p.c } as CSSProperties} />)}
-              </span>
-            )}
-            <img src={newYearImg('gifts')} alt="" className="stk-scene__box" />
-            <motion.img
-              src={stickerImg(def.key)} alt="" className="stk-scene__sticker"
-              initial={reduce ? false : { scale: 0.2, y: 60, opacity: 0, rotate: -12 }}
-              animate={{ scale: 1, y: 0, opacity: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 240, damping: 14, delay: 0.15 }}
-            />
-            {ach && (
-              <motion.span
-                className="stk-medal" style={{ background: ach.color }}
-                initial={reduce ? false : { scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 320, damping: 14, delay: 0.45 }}
-              >{ach.glyph}</motion.span>
-            )}
-          </div>
-          <div className="stk-gift__from">{t('Подарок от учителя')}</div>
-          <FadeText lines={2} className="stk-gift__name">{t(def.title)}</FadeText>
-          {shown.note && <div className="stk-gift__note">«{shown.note}»</div>}
-          {ach && (
-            <div className="stk-gift__ach">
-              <span className="stk-medal stk-medal--small" style={{ background: ach.color }} aria-hidden>{ach.glyph}</span>
-              <div style={{ minWidth: 0 }}>
-                <FadeText className="stk-gift__ach-title">{t('Ачивка')} «{t(ach.title)}»</FadeText>
-                <FadeText className="stk-gift__ach-sub">{t('Учитель отметил твою работу')}</FadeText>
-              </div>
+          {/* Подпись — над фольгой: сначала «от кого», потом стирание. */}
+          <div className="stk-gift__from stk-gift__from--top">{t('Подарок от учителя')}</div>
+          {/* key: следующий подарок — новая фольга, а не уже стёртая. */}
+          <ScratchFoil key={shown.id} revealed={revealed} onReveal={() => setRevealed(true)}
+            minHeight={190} radius={18} hint={t('Сотри фольгу — внутри подарок')}>
+            <div className="stk-scene stk-scene--foil">
+              <img src={stickerImg(def.key)} alt="" className="stk-scene__sticker" draggable={false} />
+              {ach && <span className="stk-medal" style={{ background: ach.color }}>{ach.glyph}</span>}
             </div>
+          </ScratchFoil>
+          {/* Что внутри — раскрывается плавно, пока проходит волна: окно растёт, а не прыгает. */}
+          {revealed && (
+            <motion.div
+              initial={reduce ? false : { height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              transition={{ height: { duration: 0.45, ease: [0.2, 0.8, 0.2, 1], delay: 0.25 }, opacity: { duration: 0.3, delay: 0.4 } }}
+              style={{ overflow: 'hidden', paddingTop: 10 }}
+            >
+              <FadeText lines={2} className="stk-gift__name">{t(def.title)}</FadeText>
+              {shown.note && <div className="stk-gift__note">«{shown.note}»</div>}
+              {ach && (
+                <div className="stk-gift__ach">
+                  <span className="stk-medal stk-medal--small" style={{ background: ach.color }} aria-hidden>{ach.glyph}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <FadeText className="stk-gift__ach-title">{t('Ачивка')} «{t(ach.title)}»</FadeText>
+                    <FadeText className="stk-gift__ach-sub">{t('Учитель отметил твою работу')}</FadeText>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           )}
           {kind === 'sheet' && <p className="stk-gift__hint">{t('Учитель дарит стикеры за работу. Ачивки — за серии и точность.')}</p>}
         </div>

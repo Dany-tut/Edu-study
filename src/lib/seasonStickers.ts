@@ -204,7 +204,10 @@ export async function markStickersSeen(studentId: string, ids: string[]): Promis
   const now = new Date().toISOString()
   const prev = cache.get(studentId)
   if (prev) { cache.set(studentId, { ...prev, owned: prev.owned.map(o => ids.includes(o.id) ? { ...o, seenAt: now } : o) }); emit() }
-  await supabase.from('season_stickers').update({ seen_at: now }).in('id', ids).eq('student_id', studentId)
+  // DEV-стикеры (devFakeSticker) живут только во вкладке — в базу о них не пишем.
+  const real = ids.filter(id => !id.startsWith('dev-'))
+  if (!real.length) return
+  await supabase.from('season_stickers').update({ seen_at: now }).in('id', real).eq('student_id', studentId)
 }
 
 /** Подарки учителя, которые ученик ещё не открыл. */
@@ -240,7 +243,9 @@ export function useStickerAlbum() {
 /** DEV: положить стикер в коллекцию вкладки (в базу не пишет). Обычный — со
  *  всплывашкой «Новый стикер!», 'teacher' — как непросмотренный подарок учителя. */
 export function devFakeSticker(studentId: string, stickerKey: StickerKey, source: StickerSource = 'hw', gift?: { achievement?: AchievementKey; note?: string }) {
-  if (!import.meta.env.DEV) return
+  // Ещё — в тестовой сборке прототипа ИСК-4 (VITE_SCRATCH_PREVIEW=1), где стенд
+  // показывает настоящие окна подарка и альбома без базы.
+  if (!import.meta.env.DEV && import.meta.env.VITE_SCRATCH_PREVIEW !== '1') return
   const s: OwnedSticker = {
     id: `dev-${stickerKey}-${Date.now()}`, studentId, stickerKey, source, sourceRef: `dev:${Date.now()}`,
     achievement: gift?.achievement ?? null, givenBy: source === 'teacher' ? 'dev' : null, note: gift?.note ?? null,

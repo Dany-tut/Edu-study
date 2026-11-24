@@ -1,0 +1,174 @@
+/* ИСК-4 · фольга награды (ScratchFoil): подлёт при открытии, наклон и перелив
+   за указателем — как у голо-стикеров. Цвета перелива — те же, что у
+   StickerBadge, чтобы открытая награда читалась частью коллекции. */
+
+.scratch-foil { perspective: 900px; }
+
+.scratch-foil__zone {
+  --sf-rx: 0deg;
+  --sf-ry: 0deg;
+  --sf-mx: 50%;
+  --sf-my: 50%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease;
+  will-change: transform;
+}
+
+/* Открыто: карточка приподнята над страницей. */
+.scratch-foil__zone.is-open {
+  transform: translateY(-4px) rotateX(var(--sf-rx)) rotateY(var(--sf-ry));
+  box-shadow: 0 14px 34px rgba(30, 20, 80, 0.16), 0 2px 6px rgba(30, 20, 80, 0.08);
+}
+[data-theme="dark"] .scratch-foil__zone.is-open {
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+/* Пока ведут мышью — наклон следует почти без задержки. */
+.scratch-foil__zone.is-open.is-tilting { transition: transform 0.12s ease-out, box-shadow 0.45s ease; }
+
+/* Момент открытия: подлетает и садится. */
+.scratch-foil__zone.is-celebrate { animation: sf-lift 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.15) both; }
+@keyframes sf-lift {
+  0%   { transform: translateY(0) scale(0.97); }
+  45%  { transform: translateY(-14px) scale(1.04); }
+  100% { transform: translateY(-4px) scale(1); }
+}
+
+/* Перелив: радужная полоса, привязанная к указателю. */
+.scratch-foil__holo {
+  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(115deg,
+    transparent 22%, #f589e6a6 34%, #8caaffab 43%, #ffffffcf 50%, #86ffe9b3 57%, #ffd69aa1 66%, transparent 78%);
+  background-size: 260% 260%;
+  background-position: var(--sf-mx) var(--sf-my);
+  /* Светлая тема: на почти белом overlay не виден — радуга ложится умножением. */
+  mix-blend-mode: multiply;
+  opacity: 0.22;
+  transition: opacity 0.35s ease;
+}
+[data-theme="dark"] .scratch-foil__holo { mix-blend-mode: color-dodge; opacity: 0.35; }
+.scratch-foil__zone.is-tilting .scratch-foil__holo { opacity: 0.75; }
+[data-theme="dark"] .scratch-foil__zone.is-tilting .scratch-foil__holo { opacity: 0.9; }
+
+/* Блик — светлое пятно под указателем. */
+.scratch-foil__glare {
+  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(circle at var(--sf-mx) var(--sf-my), rgba(255, 255, 255, 0.55), transparent 55%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.scratch-foil__zone.is-tilting .scratch-foil__glare { opacity: 1; }
+
+/* При открытии перелив дважды проходит по карточке сам — и на телефоне без мыши. */
+.scratch-foil__zone.is-celebrate .scratch-foil__holo { animation: sf-sweep 1.6s ease-in-out both; }
+@keyframes sf-sweep {
+  0%   { background-position: 0% 0%; opacity: 0; }
+  15%  { opacity: 0.85; }
+  50%  { background-position: 100% 100%; opacity: 0.75; }
+  85%  { opacity: 0.7; }
+  100% { background-position: 0% 0%; opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scratch-foil__zone,
+  .scratch-foil__zone.is-open,
+  .scratch-foil__zone.is-celebrate { animation: none; transform: none; transition: none; }
+  .scratch-foil__zone.is-celebrate .scratch-foil__holo { animation: none; }
+}
+
+/* ── Волна открытия ────────────────────────────────────────────────────────────
+   Перенос DistortionWave из Taskly (кнопка «Утвердить» в постах), только в CSS:
+   там это Metal-шейдер. Порядок тот же: всё на миг падает к источнику, затем
+   от места, где дотёрли, уходит одна мягкая волна — цветная кромка, размытие и
+   расслоение цветов на фронте, искры с ней; цвет задерживается на краях. */
+
+@property --sf-r {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+.scratch-foil__zone {
+  --sf-ox: 50%;
+  --sf-oy: 50%;
+  --sf-rmax: 600px;
+}
+
+.scratch-foil__content { transform-origin: var(--sf-ox) var(--sf-oy); }
+
+.scratch-foil__zone.is-celebrate { animation: sf-lift 0.9s 0.25s cubic-bezier(0.2, 0.9, 0.25, 1.15) both, sf-front 1.2s 0.18s cubic-bezier(0.3, 0.1, 0.3, 1) both; }
+@keyframes sf-front { from { --sf-r: 0px; } to { --sf-r: var(--sf-rmax); } }
+
+/* Притяжение к источнику, вспухание на фронте, радужное расслоение. */
+.scratch-foil__zone.is-celebrate .scratch-foil__content { animation: sf-swell 1.3s ease-out both; }
+@keyframes sf-swell {
+  0%   { transform: scale(1); filter: none; }
+  13%  { transform: scale(0.965); filter: none; }
+  30%  { transform: scale(1.03); filter: drop-shadow(3px 0 0 rgba(255, 60, 140, 0.55)) drop-shadow(-3px 0 0 rgba(60, 170, 255, 0.55)); }
+  48%  { transform: scale(1.012); filter: drop-shadow(-2px 1px 0 rgba(255, 200, 30, 0.45)) drop-shadow(2px -1px 0 rgba(150, 90, 255, 0.5)); }
+  66%  { transform: scale(1.004); filter: drop-shadow(1px 0 0 rgba(255, 60, 140, 0.3)) drop-shadow(-1px 0 0 rgba(60, 170, 255, 0.3)); }
+  100% { transform: scale(1); filter: none; }
+}
+
+/* Цветной фронт: розовая кайма впереди, голубая позади, палитра между. */
+.scratch-foil__wave {
+  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(circle at var(--sf-ox) var(--sf-oy),
+    transparent calc(var(--sf-r) - 72px),
+    rgba(90, 190, 255, 0.4) calc(var(--sf-r) - 60px),
+    rgba(127, 217, 238, 0.55) calc(var(--sf-r) - 50px),
+    rgba(154, 160, 255, 0.6) calc(var(--sf-r) - 40px),
+    rgba(180, 40, 230, 0.5) calc(var(--sf-r) - 30px),
+    rgba(235, 100, 160, 0.6) calc(var(--sf-r) - 20px),
+    rgba(255, 176, 122, 0.65) calc(var(--sf-r) - 12px),
+    rgba(255, 201, 21, 0.6) calc(var(--sf-r) - 5px),
+    rgba(255, 122, 182, 0.45) var(--sf-r),
+    transparent calc(var(--sf-r) + 14px));
+  mix-blend-mode: screen;
+  animation: sf-wave-fade 1.4s 0.18s ease-out both;
+}
+:root:not([data-theme="dark"]) .scratch-foil__wave { mix-blend-mode: normal; --sf-wave-max: 0.7; }
+@keyframes sf-wave-fade { 0% { opacity: 0; } 8% { opacity: var(--sf-wave-max, 1); } 70% { opacity: var(--sf-wave-max, 1); } 100% { opacity: 0; } }
+
+/* Размытие с пиком на фронте — та же кольцевая полоса маской. */
+.scratch-foil__wave-blur {
+  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  -webkit-mask-image: radial-gradient(circle at var(--sf-ox) var(--sf-oy), transparent calc(var(--sf-r) - 66px), #000 calc(var(--sf-r) - 34px), #000 calc(var(--sf-r) - 10px), transparent calc(var(--sf-r) + 10px));
+  mask-image: radial-gradient(circle at var(--sf-ox) var(--sf-oy), transparent calc(var(--sf-r) - 66px), #000 calc(var(--sf-r) - 34px), #000 calc(var(--sf-r) - 10px), transparent calc(var(--sf-r) + 10px));
+  animation: sf-wave-fade 1.4s 0.18s ease-out both;
+}
+
+/* Цвет задерживается на краях после того, как середина очистилась. */
+.scratch-foil__edge {
+  position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from 200deg at var(--sf-ox) var(--sf-oy), #FFC915, #7EC4FF, #B428E6, #EB64A0, #FFB07A, #9AA0FF, #7FD9EE, #FFC915);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  box-shadow: inset 0 0 28px rgba(154, 160, 255, 0.45);
+  animation: sf-edge 2.1s ease-out both;
+}
+@keyframes sf-edge { 0%, 35% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Искры: вылетают из источника вместе с фронтом и гаснут. */
+.scratch-foil__spark {
+  position: absolute; left: var(--sf-ox); top: var(--sf-oy);
+  width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%;
+  background: var(--sf-c); box-shadow: 0 0 8px var(--sf-c);
+  pointer-events: none; opacity: 0;
+  animation: sf-spark 1.1s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes sf-spark {
+  0%   { opacity: 0; transform: rotate(var(--sf-a)) translateX(0) scale(0.6); }
+  15%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--sf-a)) translateX(calc(var(--sf-rmax) * var(--sf-d) * 0.7)) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scratch-foil__zone.is-celebrate { animation: none; }
+  .scratch-foil__zone.is-celebrate .scratch-foil__content { animation: none; }
+  .scratch-foil__wave, .scratch-foil__wave-blur, .scratch-foil__spark { display: none; }
+}

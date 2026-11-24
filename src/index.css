@@ -193,6 +193,10 @@
   --track-muted-text: #676872;
   --color-teal-pill-bg: #CFF3EE;
   --color-teal-pill-text: #0E7A6F;
+  /* Фольга наград ИСК-4 (ScratchFoil): градиент и надпись на ней. */
+  --scratch-foil-1: #C9C6D6;
+  --scratch-foil-2: #ECEAF3;
+  --scratch-foil-ink: #6F6B85;
   /* Active pill (mode toggles) */
   --color-pill-active-bg: #FFFFFF;
   --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.10);
@@ -323,6 +327,9 @@
   --track-muted-text: var(--color-muted);
   --color-teal-pill-bg: rgba(74,222,180,0.20);
   --color-teal-pill-text: #4ADEB4;
+  --scratch-foil-1: #4A4758;
+  --scratch-foil-2: #6A6680;
+  --scratch-foil-ink: #CFCBE3;
   /* Active pill (mode toggles) */
   --color-pill-active-bg: var(--color-bg-5);
   --color-pill-active-shadow: 0 1px 4px rgba(0,0,0,0.30);

@@ -23,7 +23,7 @@ export default function SeasonStickerLayer() {
   const { owned } = useStickers(newYear ? studentId : null)
   const album = useStickerAlbum()
   const askOpen = useNewYearAskOpen()
-  const gift = newYear ? unseenGifts(owned)[0] ?? null : null
+  const gifts = newYear ? unseenGifts(owned) : []
 
   // DEV: window.stkDev.earn('rocket') — всплывашка; .gift('deer', 'perfect', 'Молодец!') — подарок.
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function SeasonStickerLayer() {
     <>
       <StickerAlbum studentId={newYear || album.open ? studentId : null} />
       <StickerToast />
-      <TeacherGift studentId={studentId} gift={gift} suspended={askOpen || album.open} />
+      <TeacherGift studentId={studentId} gifts={gifts} suspended={askOpen || album.open} />
     </>
   )
 }

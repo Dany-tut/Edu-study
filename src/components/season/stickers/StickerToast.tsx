@@ -6,12 +6,12 @@ import FadeText from '../../FadeText'
 import { ArrowRight } from '../../icons/appIcons'
 import { useT } from '../../../lib/i18n'
 import { PLATFORM } from '../../../lib/platform'
-import { onStickerEarned, openStickerAlbum, stickerDef, stickerImg, useStickerAlbum, type OwnedSticker } from '../../../lib/seasonStickers'
+import { onStickerEarned, openStickerAlbum, stickerDef, useStickerAlbum, type OwnedSticker } from '../../../lib/seasonStickers'
 import './stickers.css'
 
 /*
  * «Новый стикер!» — на каждый полученный стикер (onStickerEarned): конфетти,
- * картинка, «Открыть альбом →». ПК и iPad — правый нижний угол; iPhone — сверху
+ * плитка фольги (какой стикер — видно, когда сотрёшь в альбоме), «Открыть альбом →». ПК и iPad — правый нижний угол; iPhone — сверху
  * под островом; Android — снизу над нав-баром. Сама уходит через 5 с; наведение
  * и фокус держат её, пока на ней мышь или клавиатура. Подарки учителя сюда не
  * приходят — для них своё окно.
@@ -73,14 +73,15 @@ export default function StickerToast() {
                 {PIECES.map((p, i) => <i key={i} style={{ '--x': p.x, '--d': p.d, '--r': p.r, '--c': p.c } as CSSProperties} />)}
               </span>
             )}
-            <motion.img
-              src={stickerImg(def.key)} alt="" aria-hidden className="stk-toast__img"
+            {/* Стикер приходит запечатанным: какой — видно, когда сотрёшь в альбоме. */}
+            <motion.span
+              aria-hidden className="stk-toast__foil"
               initial={reduce ? false : { scale: 0.4, rotate: -14 }} animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', stiffness: 360, damping: 14, delay: 0.08 }}
             />
             <div className="stk-toast__body">
               <span className="stk-toast__eyebrow">{t(def.rare ? 'Редкий стикер!' : 'Новый стикер!')}</span>
-              <FadeText className="stk-toast__name">{t(def.title)}</FadeText>
+              <FadeText className="stk-toast__name">{t('Какой?')}</FadeText>
             </div>
             <button
               type="button" data-hover="layer" className="stk-btn stk-btn--soft stk-btn--small"

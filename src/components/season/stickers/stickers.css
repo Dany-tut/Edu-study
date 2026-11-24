@@ -209,3 +209,34 @@ html[data-platform="iphone"] .stk-toast, html[data-platform="ipad"] .stk-toast {
 html[data-platform="iphone"] .stk-btn--small,
 html[data-platform="ipad"] .stk-btn--small,
 html[data-platform="android"] .stk-btn--small { min-height: 44px; }
+
+/* ── Фольга (ИСК-4): новый стикер приходит запечатанным ──────────────────── */
+/* Плитка фольги в сетке, в плашке телефона и во всплывашке — тот же градиент,
+   что у стираемого слоя ScratchFoil (токены --scratch-foil-*), с бликом. */
+.stk-cell__foil, .stk-pick__foil, .stk-toast__foil {
+  flex-shrink: 0; border-radius: 12px; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, var(--scratch-foil-1) 0%, var(--scratch-foil-2) 50%, var(--scratch-foil-1) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.stk-cell__foil::after, .stk-pick__foil::after, .stk-toast__foil::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.55) 48%, transparent 62%);
+  background-size: 250% 100%; animation: stk-foil-shine 2.6s ease-in-out infinite;
+}
+@keyframes stk-foil-shine { 0% { background-position: 120% 0; } 60%, 100% { background-position: -120% 0; } }
+.stk-cell__foil { width: 54px; height: 54px; }
+.stk-pick__foil { width: 46px; height: 46px; }
+.stk-toast__foil { width: 56px; height: 56px; border-radius: 14px; }
+
+.stk-unwrap { width: 100%; }
+.stk-unwrap--wide { margin-bottom: 12px; }
+.stk-unwrap__scene { display: flex; align-items: center; justify-content: center; min-height: 190px;
+  background: radial-gradient(circle at 50% 55%, rgba(var(--accent-rgb), 0.18), transparent 60%); }
+.stk-unwrap--wide .stk-unwrap__scene { min-height: 150px; }
+.stk-unwrap__img { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18)); }
+.stk-unwrap--wide .stk-unwrap__img { width: 120px; height: 120px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stk-cell__foil::after, .stk-pick__foil::after, .stk-toast__foil::after { animation: none; }
+}
+.stk-gift__from--top { margin: 0 0 10px; font-size: 13px; }
