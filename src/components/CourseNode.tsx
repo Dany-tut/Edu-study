@@ -111,7 +111,11 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
   const seasonView = useSeason()
-  const seasonal = seasonView.on('track')
+  // Новый год дорожку не перекрашивает: узлы как без темы — свои формы и иконки
+  // (запись, тест, замок). Тема только ставит Огонька над текущим уроком.
+  // Хэллоуин по-прежнему рисует свою дорожку (кружки, фонарь/конфета/зелье).
+  const newYearTrack = seasonView.on('track') && seasonView.season?.key === 'new-year'
+  const seasonal = seasonView.on('track') && !newYearTrack
   const baseShape = baseNodeShape(lesson)
   const silhouette = !seasonal && baseShape !== 'circle' ? baseShape : null
   const isOpen = displayStatus === 'current' || displayStatus === 'today'
@@ -145,9 +149,9 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   const isActive = isSelected || isToday || !!scheduleState?.isCurrent
   // Праздничная тема: текущий урок — фонарь, конфета или шарик зелья поверх кружка.
   // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
-  const seasonNode = seasonal && seasonMark && isOpen && !isDiamond
-  // Новый год: Огонёк стоит НАД кружком, кружок урока остаётся видимым.
-  const seasonCovers = seasonNode && seasonView.season?.key !== 'new-year'
+  // Новый год: Огонёк стоит НАД узлом, узел урока остаётся видимым.
+  const seasonNode = (seasonal || newYearTrack) && seasonMark && isOpen && !isDiamond
+  const seasonCovers = seasonNode && !newYearTrack
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
