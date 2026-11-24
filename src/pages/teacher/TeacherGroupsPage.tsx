@@ -43,7 +43,7 @@ import {
 import { useGroups, useStudents, useAllStudentsSnapshot, reloadAllStudents, listTeacherCourses, bindGroupToCourse, personKey, type GroupCourseOption } from '../../lib/useGroups'
 import { assignedCourseTitles, type StudentCourseAssignment } from '../../lib/studentCourseAssignments'
 import { ensureCardFillTask } from '../../lib/cardFillTask'
-import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike } from '../../components/teacher/AddToGroupModals'
+import { PickStudentModal, PickGroupModal, AddExistingIndividualModal, type PersonLike, type BatchFailure } from '../../components/teacher/AddToGroupModals'
 import { supabase } from '../../lib/supabase'
 import { usePersistentState, clearDrafts, readDraft } from '../../lib/useDraft'
 import { copyToClipboard } from '../../lib/clipboard'
@@ -2723,7 +2723,6 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
 
   const [addToGroupTarget, setAddToGroupTarget] = useState<string | null>(null)  // group id → PickStudentModal
   const [addToGroupForStudent, setAddToGroupForStudent] = useState(false)         // student card → PickGroupModal
-  const [enrolling, setEnrolling] = useState(false)
   const [assignmentError, setAssignmentError] = useState('')
   // Меню «+ Ученик» — в портале по координатам кнопки: карточка таблицы с
   // overflow:hidden обрезала его, когда учеников мало или нет совсем.
@@ -2732,16 +2731,26 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
   const existingKeysForGroup = (gid: string) =>
     new Set(allStudents.filter(s => s.groupId === gid).map(personKey))
 
-  async function enrollExisting(targetGroupId: string, person: PersonLike) {
-    setEnrolling(true)
+  // Пакетное добавление существующих людей в группы. Идём по одному (каждый вызов
+  // перечитывает группы), ошибки собираем по строкам и возвращаем окну —
+  // ничего не глотаем. Всё прошло → закрываем окно и открываем группу.
+  async function enrollMany(items: { key: string; groupId: string; person: PersonLike }[]) {
     setAssignmentError('')
-    const result = await addExistingStudentToGroup(targetGroupId, person)
-    setEnrolling(false)
-    if (result.error) { setAssignmentError((result.error as { message?: string }).message ?? t('Не удалось назначить группу')); return }
+    const failures: BatchFailure[] = []
+    for (const it of items) {
+      try {
+        const result = await addExistingStudentToGroup(it.groupId, it.person)
+        if (result.error) failures.push({ key: it.key, message: (result.error as { message?: string }).message || t('Не удалось назначить группу') })
+      } catch (e) {
+        failures.push({ key: it.key, message: (e as { message?: string })?.message || t('Не удалось назначить группу') })
+      }
+    }
+    if (failures.length) return failures
     setAddToGroupTarget(null)
     setAddToGroupForStudent(false)
-    setSelectedGroupId(targetGroupId)
+    if (items[0]) setSelectedGroupId(items[0].groupId)
     setActiveStudentId(null)
+    return failures
   }
 
   // Existing person → brand-new 1:1 card (reuses their account via addIndividualCard).
@@ -3160,8 +3169,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
             targetGroup={addToGroupTargetGroup}
             people={people}
             existingKeys={existingKeysForGroup(addToGroupTargetGroup.id)}
-            busy={enrolling}
-            onPick={(person) => enrollExisting(addToGroupTargetGroup.id, person)}
+            onAdd={(picked) => enrollMany(picked.map(p => ({ key: p.key, groupId: addToGroupTargetGroup.id, person: p.person })))}
             onClose={() => setAddToGroupTarget(null)}
           />
         )}
@@ -3170,14 +3178,13 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
             studentName={tn(activeStudent.name)}
             groups={regularGroups}
             memberGroupIds={activeStudentMemberGroupIds}
-            busy={enrolling}
-            onPick={(groupId) => enrollExisting(groupId, {
+            onAdd={(groupIds) => enrollMany(groupIds.map(groupId => ({ key: groupId, groupId, person: {
               name: activeStudent.name, phone: activeStudent.phone, telegramLink: activeStudent.telegramLink,
               parentContact: activeStudent.parentContact, desiredScore: activeStudent.desiredScore,
               paymentAmount: activeStudent.paymentAmount, email: activeStudent.email,
               authUserId: activeStudent.authUserId,
               personId: activeStudent.personId,
-            })}
+            } })))}
             onClose={() => setAddToGroupForStudent(false)}
           />
         )}

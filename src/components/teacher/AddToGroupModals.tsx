@@ -11,6 +11,7 @@ import TeacherSelect from './TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
 import { btn, GRAD } from '../../lib/pillStyles'
+import { Alert } from '../Alert'
 
 // Identity a group-enrollment reuses. Any object carrying these fields works.
 export type PersonLike = Pick<
@@ -38,26 +39,162 @@ function initials(name: string) {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
-// ─── Pick an EXISTING person to enroll into `targetGroup` ──────────────────────
+// ─── Множественный выбор в пикерах ─────────────────────────────────────────────
+// Клик по строке не добавляет сразу, а отмечает её — как выбор учеников при
+// создании ДЗ: аватар превращается в залитую плитку с белой галочкой, строка
+// подкрашивается. Чекбоксов нет. Внизу «Выбрано N · Снять» и «Добавить · N» —
+// добавляет всех отмеченных одним действием. Если часть не добавилась, окно не
+// закрывается: добавленные уходят из списка, не добавленные остаются отмеченными
+// с причиной под именем, кнопка становится «Повторить · N».
+export type BatchFailure = { key: string; message: string }
+
+function SelectRow({
+  selected, color, tile, title, sub, error, busy, onToggle,
+}: {
+  selected: boolean
+  color: string
+  tile: React.ReactNode
+  title: string
+  sub: React.ReactNode
+  error?: string
+  busy: boolean
+  onToggle: () => void
+}) {
+  const c = error ? 'var(--color-red-text)' : color
+  return (
+    <button
+      type="button" disabled={busy} onClick={onToggle} aria-pressed={selected}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+        background: selected
+          ? `linear-gradient(color-mix(in srgb, ${c} 13%, transparent), color-mix(in srgb, ${c} 13%, transparent)), var(--color-bg-4)`
+          : 'var(--color-bg-4)',
+        border: `1px solid ${selected ? 'transparent' : 'var(--color-border-medium)'}`,
+        borderRadius: 14, cursor: busy ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
+        opacity: busy ? 0.6 : 1, transition: 'background 0.15s', fontFamily: 'inherit',
+      }}
+      onMouseEnter={e => { if (!busy && !selected) e.currentTarget.style.borderColor = color }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = selected ? 'transparent' : 'var(--color-border-medium)' }}
+    >
+      <div style={{
+        width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        ...(selected ? { background: c, color: '#fff' } : {}),
+      }}>
+        {selected ? <Check size={18} strokeWidth={2.6} aria-hidden /> : tile}
+      </div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 11, color: error ? 'var(--color-red-text)' : 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
+          {error ?? sub}
+        </div>
+      </div>
+    </button>
+  )
+}
+
+// Общая логика выбора: отмеченные ключи, добавленные за сеанс, ошибки по строкам.
+function useBatchPick(onAdd: (keys: string[]) => Promise<BatchFailure[]>) {
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [added, setAdded] = useState<Set<string>>(new Set())
+  const [errors, setErrors] = useState<Map<string, string>>(new Map())
+  const [running, setRunning] = useState(false)
+  const [summary, setSummary] = useState('')
+  function toggle(key: string) {
+    setSelected(prev => { const n = new Set(prev); if (n.has(key)) n.delete(key); else n.add(key); return n })
+  }
+  async function run(t: (s: string) => string) {
+    const keys = [...selected]
+    if (!keys.length || running) return
+    setRunning(true)
+    let failures: BatchFailure[]
+    try { failures = await onAdd(keys) }
+    catch (e) { failures = keys.map(key => ({ key, message: (e as { message?: string })?.message || t('Не удалось назначить группу') })) }
+    setRunning(false)
+    if (!failures.length) return  // родитель закрыл окно
+    const failed = new Set(failures.map(f => f.key))
+    const ok = keys.filter(k => !failed.has(k))
+    setAdded(prev => new Set([...prev, ...ok]))
+    setSelected(failed)
+    setErrors(new Map(failures.map(f => [f.key, f.message])))
+    setSummary(`${t('Добавлено')} ${ok.length} ${t('из')} ${keys.length}. ${t('Не добавленные остались отмеченными — можно повторить.')}`)
+  }
+  return { selected, setSelected, added, errors, running, summary, toggle, run }
+}
+
+function PickerFooter({ count, running, retry, onClear, onAdd }: {
+  count: number; running: boolean; retry: boolean; onClear: () => void; onAdd: () => void
+}) {
+  const t = useT()
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 14 }}>
+      {count > 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap' }}>{t('Выбрано')} {count}</span>
+          <button type="button" data-hover="layer" onClick={onClear} disabled={running}
+            style={{ border: 'none', background: 'transparent', padding: '4px 2px', fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
+            {t('Снять')}
+          </button>
+        </div>
+      ) : (
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-3)' }}>{t('Отметьте одного или нескольких')}</span>
+      )}
+      <div style={{ flex: 1 }} />
+      <button type="button" data-hover="layer" onClick={onAdd} disabled={!count || running}
+        style={btn('M', 'primary', { minHeight: 44, opacity: count ? 1 : 0.45, cursor: count && !running ? 'pointer' : 'not-allowed' })}>
+        <OpticalText as="iskra-button-label">
+          {running ? t('Добавляем…') : `${retry ? t('Повторить') : t('Добавить')}${count ? ` · ${count}` : ''}`}
+        </OpticalText>
+      </button>
+    </div>
+  )
+}
+
+function SelectAllLine({ label, allOn, onToggleAll }: { label: string; allOn: boolean; onToggleAll: () => void }) {
+  const t = useT()
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 4px 10px 12px' }}>
+      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)' }}>{label}</span>
+      <div style={{ flex: 1 }} />
+      <button type="button" data-hover="layer" onClick={onToggleAll}
+        style={{ border: 'none', background: 'transparent', padding: '2px 4px', fontSize: 12, fontWeight: 600, color: 'var(--color-purple-text)', cursor: 'pointer', fontFamily: 'inherit' }}>
+        {allOn ? t('Снять всех') : t('Выбрать всех')}
+      </button>
+    </div>
+  )
+}
+
+// ─── Pick EXISTING people to enroll into `targetGroup` ─────────────────────────
 // `people` should already be deduplicated per person (one entry per human).
 export function PickStudentModal({
-  targetGroup, people, existingKeys, busy, onPick, onClose,
+  targetGroup, people, existingKeys, onAdd, onClose,
 }: {
   targetGroup: Group
   people: { key: string; person: PersonLike; subjects: string[]; registered: boolean }[]
   existingKeys: Set<string>
-  busy: boolean
-  onPick: (person: PersonLike) => void
+  /** Добавляет отмеченных; возвращает не добавленных. Пустой ответ — родитель закрывает окно. */
+  onAdd: (picked: { key: string; person: PersonLike }[]) => Promise<BatchFailure[]>
   onClose: () => void
 }) {
   const t = useT()
   const { tc, tn } = useTc()
   const [q, setQ] = useState('')
   const query = q.trim().toLowerCase()
-  const list = useMemo(
-    () => people.filter(p => !existingKeys.has(p.key)).filter(p => !query || p.person.name.toLowerCase().includes(query)),
-    [people, existingKeys, query],
+  const pick = useBatchPick(keys => onAdd(keys.flatMap(k => {
+    const p = people.find(x => x.key === k)
+    return p ? [{ key: k, person: p.person }] : []
+  })))
+  const available = useMemo(
+    () => people.filter(p => !existingKeys.has(p.key) && !pick.added.has(p.key)),
+    [people, existingKeys, pick.added],
   )
+  const list = useMemo(
+    () => available.filter(p => !query || p.person.name.toLowerCase().includes(query)),
+    [available, query],
+  )
+  const allOn = list.length > 0 && list.every(p => pick.selected.has(p.key))
   return (
     <div style={overlay} onClick={onClose}>
       <motion.div
@@ -66,12 +203,13 @@ export function PickStudentModal({
         onClick={e => e.stopPropagation()} className="journal-person-dialog" style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить ученика')}</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить учеников')}</span>
           <ModalClose onClose={onClose} />
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          {t('в группу')} <b style={{ color: targetGroup.color }}>{targetGroup.name}</b> {t('— существующий ученик сохранит свой логин')}
+          {t('в группу')} <b style={{ color: targetGroup.color }}>{targetGroup.name}</b> {t('— существующие ученики сохранят свой логин')}
         </div>
+        {pick.summary && <div style={{ marginBottom: 12 }}><Alert tone="danger" text={pick.summary} /></div>}
 
         <div style={searchBox}>
           <Search size={16} style={{ color: 'var(--color-text-3)' }} />
@@ -80,67 +218,69 @@ export function PickStudentModal({
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
           />
         </div>
+        {list.length > 1 && (
+          <SelectAllLine
+            label={`${query ? t('Все найденные') : t('Все')} · ${list.length}`} allOn={allOn}
+            onToggleAll={() => pick.setSelected(prev => {
+              const n = new Set(prev)
+              for (const p of list) { if (allOn) n.delete(p.key); else n.add(p.key) }
+              return n
+            })}
+          />
+        )}
 
         <OverlayScrollArea showScrollbar={false} style={{minHeight:60}} scrollStyle={{display:'flex',flexDirection:'column',gap:6}}>
           {list.length === 0 && (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
-              {people.length === 0 ? t('Нет учеников') : t('Никого не нашлось')}
+              {available.length === 0 ? t('Нет учеников') : t('Никого не нашлось')}
             </div>
           )}
           {list.map(({ key, person, subjects, registered }) => (
-            <button
-              key={key} disabled={busy} onClick={() => onPick(person)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
-                borderRadius: 14, cursor: busy ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
-                opacity: busy ? 0.6 : 1,
-              }}
-              onMouseEnter={e => { if (!busy) e.currentTarget.style.borderColor = targetGroup.color }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border-medium)' }}
-            >
-              <div style={{
-                width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+            <SelectRow
+              key={key} selected={pick.selected.has(key)} color={targetGroup.color} busy={pick.running}
+              onToggle={() => pick.toggle(key)} error={pick.errors.get(key)}
+              title={tn(person.name)}
+              sub={<>{subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}{registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}</>}
+              tile={<div style={{
+                width: 38, height: 38, borderRadius: 11,
                 background: `linear-gradient(135deg, ${targetGroup.color}, ${targetGroup.color}cc)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 800, color: '#fff',
-              }}>{initials(tn(person.name))}</div>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
-                  {tn(person.name)}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
-                  {subjects.length ? subjects.map(s => tc(s)).join(' · ') : t('Без предметов')}
-                  {registered ? t(' · есть аккаунт') : t(' · не зарегистрирован')}
-                </div>
-              </div>
-            </button>
+              }}>{initials(tn(person.name))}</div>}
+            />
           ))}
         </OverlayScrollArea>
+        <PickerFooter count={pick.selected.size} running={pick.running} retry={pick.errors.size > 0}
+          onClear={() => pick.setSelected(new Set())} onAdd={() => void pick.run(t)} />
       </motion.div>
     </div>
   )
 }
 
-// ─── Pick a regular GROUP to enroll `studentName` into (from the student card) ─
+// ─── Pick regular GROUPS to enroll `studentName` into (from the student card) ──
 export function PickGroupModal({
-  studentName, groups, memberGroupIds, busy, onPick, onClose,
+  studentName, groups, memberGroupIds, onAdd, onClose,
 }: {
   studentName: string
   groups: Group[]
   memberGroupIds: Set<string>
-  busy: boolean
-  onPick: (groupId: string) => void
+  /** Добавляет в отмеченные группы; возвращает не добавленные (key = id группы). */
+  onAdd: (groupIds: string[]) => Promise<BatchFailure[]>
   onClose: () => void
 }) {
   const t = useT()
-  const { tn } = useTc()
   const [q, setQ] = useState('')
   const query = q.trim().toLowerCase()
-  const list = useMemo(
-    () => groups.filter(g => !memberGroupIds.has(g.id)).filter(g => !query || g.name.toLowerCase().includes(query)),
-    [groups, memberGroupIds, query],
+  const pick = useBatchPick(onAdd)
+  const available = useMemo(
+    () => groups.filter(g => !memberGroupIds.has(g.id) && !pick.added.has(g.id)),
+    [groups, memberGroupIds, pick.added],
   )
+  const list = useMemo(
+    () => available.filter(g => !query || g.name.toLowerCase().includes(query)),
+    [available, query],
+  )
+  const allOn = list.length > 0 && list.every(g => pick.selected.has(g.id))
   return (
     <div style={overlay} onClick={onClose}>
       <motion.div
@@ -149,12 +289,13 @@ export function PickGroupModal({
         onClick={e => e.stopPropagation()} className="journal-person-dialog" style={card}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить в группу')}</span>
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{t('Добавить в группы')}</span>
           <ModalClose onClose={onClose} />
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-muted)', marginBottom: 14 }}>
-          <b>{tn(studentName)}</b> {t('сохранит свой логин и увидит курс группы')}
+          <b>{studentName}</b> {t('сохранит свой логин и увидит курсы выбранных групп')}
         </div>
+        {pick.summary && <div style={{ marginBottom: 12 }}><Alert tone="danger" text={pick.summary} /></div>}
 
         <div style={searchBox}>
           <Search size={16} style={{ color: 'var(--color-text-3)' }} />
@@ -163,45 +304,39 @@ export function PickGroupModal({
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text)' }}
           />
         </div>
+        {list.length > 1 && (
+          <SelectAllLine
+            label={`${query ? t('Все найденные') : t('Все группы')} · ${list.length}`} allOn={allOn}
+            onToggleAll={() => pick.setSelected(prev => {
+              const n = new Set(prev)
+              for (const g of list) { if (allOn) n.delete(g.id); else n.add(g.id) }
+              return n
+            })}
+          />
+        )}
 
         <OverlayScrollArea showScrollbar={false} style={{minHeight:60}} scrollStyle={{display:'flex',flexDirection:'column',gap:6}}>
           {list.length === 0 && (
             <div style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: '24px 0' }}>
-              {groups.length === 0 ? t('Нет групп') : t('Уже во всех группах')}
+              {groups.length === 0 ? t('Нет групп') : available.length === 0 ? t('Уже во всех группах') : t('Ничего не нашлось')}
             </div>
           )}
-          {list.map(g => {
-            const already = memberGroupIds.has(g.id)
-            return (
-              <button
-                key={g.id} disabled={busy} onClick={() => onPick(g.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                  background: 'var(--color-bg-4)', border: '1px solid var(--color-border-medium)',
-                  borderRadius: 14, cursor: busy ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
-                  opacity: busy ? 0.6 : 1,
-                }}
-                onMouseEnter={e => { if (!busy) e.currentTarget.style.borderColor = g.color }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border-medium)' }}
-              >
-                <div style={{
-                  width: 38, height: 38, borderRadius: 11, flexShrink: 0,
-                  background: `${g.color}22`, border: `1px solid ${g.color}44`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: g.color,
-                }}><Users size={18} /></div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
-                    {g.name}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--color-muted)', marginTop: 2 }}>
-                    {g.level} · {g.studentCount} {t('студ.')}
-                  </div>
-                </div>
-                {already && <Check size={16} style={{ color: g.color }} />}
-              </button>
-            )
-          })}
+          {list.map(g => (
+            <SelectRow
+              key={g.id} selected={pick.selected.has(g.id)} color={g.color} busy={pick.running}
+              onToggle={() => pick.toggle(g.id)} error={pick.errors.get(g.id)}
+              title={g.name}
+              sub={<>{g.level} · {g.studentCount} {t('студ.')}</>}
+              tile={<div style={{
+                width: 38, height: 38, borderRadius: 11, boxSizing: 'border-box',
+                background: `${g.color}22`, border: `1px solid ${g.color}44`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: g.color,
+              }}><Users size={18} /></div>}
+            />
+          ))}
         </OverlayScrollArea>
+        <PickerFooter count={pick.selected.size} running={pick.running} retry={pick.errors.size > 0}
+          onClear={() => pick.setSelected(new Set())} onAdd={() => void pick.run(t)} />
       </motion.div>
     </div>
   )

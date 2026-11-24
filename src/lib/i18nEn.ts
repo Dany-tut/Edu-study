@@ -10,6 +10,17 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Добавить учеников': 'Add students',
+  '— существующие ученики сохранят свой логин': '— existing students keep their login',
+  'Добавить в группы': 'Add to groups',
+  'сохранит свой логин и увидит курсы выбранных групп': 'keeps their login and will see the courses of the selected groups',
+  'Не добавленные остались отмеченными — можно повторить.': 'The rest stay selected — you can retry.',
+  'Выбрано': 'Selected',
+  'Снять': 'Clear',
+  'Отметьте одного или нескольких': 'Select one or more',
+  'Снять всех': 'Deselect all',
+  'Выбрать всех': 'Select all',
+  'Все найденные': 'All found',
   'Показать модуль ученикам': 'Show module to students',
   'личные занятия': 'one-on-one',
   'Сначала сохраните модуль': 'Save the module first',
