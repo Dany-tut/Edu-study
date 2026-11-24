@@ -75,10 +75,55 @@ const hasAnswers = (a: any) => !!a && typeof a === 'object' && (a.v || a.rows ||
  * of the person's courses that assigns this test, even when Iskra has no
  * snapshot yet. Existing answers and grades are never replaced.
  */
+/** Write a server-built snapshot unless the student already has answers there. */
+async function upsertSnapshot(db: any, studentId: string, lessonRef: string, subject: string, snapshot: any) {
+  const { data: existing, error: readError } = await db.from('lesson_progress').select('id, attachments, updated_at, status')
+    .eq('student_id', studentId).eq('lesson_ref', lessonRef).maybeSingle()
+  if (readError) throw readError
+  if (existing) {
+    if (hasAnswers(existing.attachments) || !['current', 'unviewed'].includes(existing.status)) return
+    const attachments = { ...(existing.attachments ?? {}), ...snapshot.attachments }
+    const { error: saveError } = await db.from('lesson_progress').update({ ...snapshot, attachments, updated_at: new Date().toISOString() })
+      .eq('id', existing.id).eq('updated_at', existing.updated_at)
+    if (saveError) throw saveError
+  } else {
+    const { error: saveError } = await db.from('lesson_progress')
+      .insert({ student_id: studentId, lesson_ref: lessonRef, subject, ...snapshot })
+    if (saveError && saveError.code !== '23505') throw saveError
+  }
+}
+
+/**
+ * Homework assigned outside a course (the `homework` table: a group's or a
+ * single student's «ДЗ допом» in their 1:1 group). The student screen saves it
+ * under `hw-<id>` with the group's subject (src/lib/standaloneHomework.ts);
+ * the server builds the same snapshot when the student finished in Testly
+ * without coming back to Iskra.
+ */
+export async function ensureStandaloneTestlySnapshots(db: any, own: Person[], testId: string, result: any) {
+  const groupIds = [...new Set(own.map(row => row.group_id).filter(Boolean))] as string[]
+  if (!groupIds.length) return
+  const { data: rows, error } = await db.from('homework').select('id, group_id, status, basic_tasks')
+    .in('group_id', groupIds).is('lesson_id', null).contains('basic_tasks', [{ testly: { id: testId } }])
+  if (error) throw error
+  const live = (rows ?? []).filter((hw: any) => hw.status !== 'draft' && hw.status !== 'archived')
+  if (!live.length) return
+  const { data: groups, error: groupError } = await db.from('groups').select('id, subject').in('id', [...new Set(live.map((hw: any) => hw.group_id))])
+  if (groupError) throw groupError
+  for (const hw of live) {
+    const owner = own.find(row => row.group_id === hw.group_id)
+    const snapshot = owner ? testlySnapshotFor(hw.basic_tasks, testId, result) : null
+    if (!owner || !snapshot) continue
+    const subject = String((groups ?? []).find((g: any) => g.id === hw.group_id)?.subject ?? '').trim()
+    await upsertSnapshot(db, owner.id, `hw-${hw.id}`, subject, snapshot)
+  }
+}
+
 export async function ensureTestlySnapshots(db: any, people: Person[], testId: string, key: string, result: any) {
   if (result?.state !== 'submitted' || !people.length) return
   const own = people.filter(row => row.auth_user_id && `iskra:${row.auth_user_id}`.toLowerCase() === String(key).toLowerCase())
   if (!own.length) return
+  await ensureStandaloneTestlySnapshots(db, own, testId, result)
   const { data: lessons, error } = await db.from('lessons').select('short_id, course_id, homework')
     .contains('homework', { hwTasks: [{ testly: { id: testId } }] })
   if (error) throw error
@@ -92,19 +137,6 @@ export async function ensureTestlySnapshots(db: any, people: Person[], testId: s
     const owner = course && lesson.short_id && course.status !== 'draft' ? courseOwnerRow(own, course) : undefined
     const snapshot = owner ? testlySnapshotFor(lesson.homework?.hwTasks, testId, result) : null
     if (!owner || !snapshot) continue
-    const { data: existing, error: readError } = await db.from('lesson_progress').select('id, attachments, updated_at, status')
-      .eq('student_id', owner.id).eq('lesson_ref', lesson.short_id).maybeSingle()
-    if (readError) throw readError
-    if (existing) {
-      if (hasAnswers(existing.attachments) || !['current', 'unviewed'].includes(existing.status)) continue
-      const attachments = { ...(existing.attachments ?? {}), ...snapshot.attachments }
-      const { error: saveError } = await db.from('lesson_progress').update({ ...snapshot, attachments, updated_at: new Date().toISOString() })
-        .eq('id', existing.id).eq('updated_at', existing.updated_at)
-      if (saveError) throw saveError
-    } else {
-      const { error: saveError } = await db.from('lesson_progress')
-        .insert({ student_id: owner.id, lesson_ref: lesson.short_id, subject: course.short_id, ...snapshot })
-      if (saveError && saveError.code !== '23505') throw saveError
-    }
+    await upsertSnapshot(db, owner.id, lesson.short_id, course.short_id, snapshot)
   }
 }

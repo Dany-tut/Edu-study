@@ -543,14 +543,27 @@ export async function configureNewStudent(
   }
 }
 
-// Resolve the individual (1:1) group a single-student homework should attach to.
-// If the student already lives in an individual group, reuse it. Otherwise
-// auto-create a personal individual group named after the student (the student
-// stays enrolled in their original group — this group is just the 1:1 container).
+// Resolve the individual (1:1) group a single-student homework ("ДЗ допом")
+// attaches to — and make sure the student is actually ENROLLED in it.
+//
+// Homework is addressed by group: the student reads it through my_group_ids()
+// (RLS + fetchStandaloneSubject) and the journal places it on rows whose
+// students.group_id matches. Earlier this only created an empty 1:1 group, so
+// homework for a student without a group (course assigned personally through
+// courses.student_ids) or for a group student went to nobody: the student never
+// saw it and the journal had no row for it.
+//
+// Order: the student's own row is already in a 1:1 group → that group. Else a
+// sibling card of the same person in a 1:1 group → that group. Else the student's
+// row has no group → attach that row to a (reused orphan or new) 1:1 group, same
+// as «Назначить занятия 1:1». Else (row lives in a regular group) → add a sibling
+// card of the same person in the 1:1 group, copying the account link so the
+// existing login reaches it (mirrors addIndividualCard). Nothing is overwritten:
+// the only update is group_id NULL → id, guarded by `is('group_id', null)`.
 export async function resolveIndividualGroup(studentId: string): Promise<string | null> {
   const { data: student } = await supabase
     .from('students')
-    .select('id, name, group_id, groups(id, is_individual, subject, icon, level, color, color_soft)')
+    .select('id, name, group_id, person_id, auth_user_id, email, phone, telegram_link, parent_contact, desired_score, payment_amount, subject, groups(id, is_individual, subject, icon, level, color, color_soft)')
     .eq('id', studentId)
     .single()
   if (!student) return null
@@ -558,30 +571,84 @@ export async function resolveIndividualGroup(studentId: string): Promise<string 
   const home = (student as any).groups
   if (home?.is_individual) return home.id
 
-  // Already created a personal 1:1 group for this student before? Reuse it.
-  const { data: existing } = await supabase
+  const ownerId = await getOwnerId()
+
+  // A 1:1 card of the same person already exists → the homework goes there.
+  if (student.person_id) {
+    const { data: siblings } = await supabase
+      .from('students')
+      .select('id, group_id, groups!inner(id, is_individual)')
+      .eq('person_id', student.person_id)
+      .eq('created_by', ownerId)
+      .eq('groups.is_individual', true)
+      .order('created_at')
+      .limit(1)
+    const sib = siblings?.[0] as any
+    if (sib?.group_id) return sib.group_id as string
+  }
+
+  // Reuse an orphan 1:1 group named after the student (left by the old flow,
+  // which created the group but never enrolled anyone). Never reuse a group
+  // that already has members — a namesake is a different person.
+  let groupId: string | null = null
+  let createdNow = false
+  const { data: named } = await supabase
     .from('groups')
     .select('id')
     .eq('is_individual', true)
     .eq('name', student.name)
-    .eq('created_by', await getOwnerId())
-    .limit(1)
-  if (existing && existing.length > 0) return existing[0].id
+    .eq('created_by', ownerId)
+    .order('created_at')
+  for (const g of named ?? []) {
+    const { count } = await supabase.from('students').select('id', { count: 'exact', head: true }).eq('group_id', g.id)
+    if (count === 0) { groupId = g.id; break }
+  }
 
-  const { data: created, error } = await supabase.from('groups').insert({
-    name: student.name,
-    subject: home?.subject ?? 'Химия',
-    icon: home?.icon ?? '📚',
-    level: home?.level ?? '',
-    color: home?.color ?? '#9B6DFF',
-    color_soft: home?.color_soft ?? '#E4D9FF',
-    start_date: null,
-    total_lessons: 0,
-    is_individual: true,
-    created_by: await getOwnerId(),
-  }).select('id').single()
-  if (error || !created) return null
-  return created.id
+  if (!groupId) {
+    const subject = home?.subject ?? (student as any).subject ?? 'Химия'
+    const look = cardLook(subject)
+    const { data: created, error } = await supabase.from('groups').insert({
+      name: student.name,
+      subject,
+      icon: home?.icon ?? look.icon,
+      level: home?.level ?? '',
+      color: home?.color ?? look.color,
+      color_soft: home?.color_soft ?? look.colorSoft,
+      start_date: null,
+      total_lessons: 0,
+      is_individual: true,
+      created_by: ownerId,
+    }).select('id').single()
+    if (error || !created) return null
+    groupId = created.id as string
+    createdNow = true
+  }
+
+  const dropIfNew = async () => { if (createdNow) await supabase.from('groups').delete().eq('id', groupId!) }
+
+  if (!student.group_id) {
+    // Ungrouped row → enrol it (NULL → id only; a concurrent move wins).
+    const { data: moved, error } = await supabase.from('students').update({ group_id: groupId })
+      .eq('id', student.id).is('group_id', null).select('id').maybeSingle()
+    if (error || !moved) { await dropIfNew(); return null }
+  } else {
+    // Row lives in a regular group → a sibling 1:1 card for the same person.
+    const { data: srow, error } = await supabase.from('students').insert({
+      group_id: groupId,
+      name: student.name,
+      ...(student as any).subject ? { subject: (student as any).subject } : {},
+      phone: student.phone ?? '',
+      telegram_link: student.telegram_link ?? '',
+      parent_contact: student.parent_contact ?? '',
+      desired_score: student.desired_score ?? 80,
+      payment_amount: student.payment_amount ?? 0,
+      email: student.email || null,
+      auth_user_id: student.auth_user_id || null,
+      ...(student.person_id ? { person_id: student.person_id } : {}),
+    }).select('id').single()
+    if (error || !srow) { await dropIfNew(); return null }
+  }
+  return groupId
 }
 
 export function useStudents(groupId: string | null) {

@@ -64,12 +64,12 @@ assert.equal(courseOwnerRow([personal, grouped], { student_ids: [], group_ids: [
 assert.equal(courseOwnerRow([personal], { student_ids: [], group_ids: ['g1'] }), undefined)
 console.log('PASS: course owner row')
 
-function fakeDb(progress) {
+function fakeDb(progress, standalone = []) {
   const writes = []
   const table = name => {
     const q = { filters: {}, op: 'select', payload: null }
     const api = {
-      select: () => api, contains: () => api, in: () => api, maybeSingle: () => api,
+      select: () => api, contains: () => api, in: () => api, is: () => api, maybeSingle: () => api,
       eq: (k, v) => { q.filters[k] = v; return api },
       update: p => { q.op = 'update'; q.payload = p; return api },
       insert: p => { q.op = 'insert'; q.payload = p; return api },
@@ -79,6 +79,8 @@ function fakeDb(progress) {
         else if (name === 'lessons') out.data = [{ short_id: 'c-37', course_id: 'c', homework: { hwTasks: tasks } }]
         else if (name === 'courses') out.data = [{ id: 'c', short_id: 'c', status: 'published', student_ids: [], group_ids: ['g1'] }]
         else if (name === 'lesson_progress') out.data = progress
+        else if (name === 'homework') out.data = standalone
+        else if (name === 'groups') out.data = [{ id: 'g2', subject: 'Химия' }]
         return Promise.resolve(out).then(ok, bad)
       },
     }
@@ -106,3 +108,21 @@ f = fakeDb(null)
 await ensureTestlySnapshots(f.db, [grouped], 'kw', 'iskra:someone-else', done)
 assert.equal(f.writes.length, 0)
 console.log('PASS: server snapshot fills an empty row, inserts a missing one, never replaces answers or grades, ignores other keys')
+
+// «ДЗ допом» ученице в её 1:1-группе: вне курса, строка `homework`.
+const personalHw = [{ id: 'h1', group_id: 'g2', status: 'active', basic_tasks: tasks }]
+f = fakeDb(null, personalHw)
+await ensureTestlySnapshots(f.db, [personal], 'kw', 'iskra:u', done)
+assert.equal(f.writes.length, 1)
+assert.equal(f.writes[0].op, 'insert')
+assert.equal(f.writes[0].payload.student_id, 'personal')
+assert.equal(f.writes[0].payload.lesson_ref, 'hw-h1')
+assert.equal(f.writes[0].payload.subject, 'Химия')
+assert.equal(f.writes[0].payload.attachments.rows[0].testly.got, 36)
+f = fakeDb(null, [{ ...personalHw[0], status: 'draft' }])
+await ensureTestlySnapshots(f.db, [personal], 'kw', 'iskra:u', done)
+assert.equal(f.writes.length, 0)
+f = fakeDb({ id: 'p', status: 'submitted', attachments: { v: 'basic-1', rows: [] } }, personalHw)
+await ensureTestlySnapshots(f.db, [personal], 'kw', 'iskra:u', done)
+assert.equal(f.writes.length, 0)
+console.log('PASS: standalone (personal) homework gets the server snapshot under hw-<id>, drafts and answered rows untouched')
