@@ -19,6 +19,9 @@ const FILE_RE = /\.(webm|mp4|m4v|mov|ogg|ogv|m3u8)(\?.*)?$/i
 // и в него кладут оба потока); однозначно-аудио контейнер Ogg — это `.oga`.
 const AUDIO_RE = /\.(mp3|m4a|aac|wav|opus|oga|flac)(\?.*)?$/i
 
+/** Ссылка ведёт на Google Диск (встраивается страницей Google, без своего плеера). */
+export const isDriveLink = (url: string | null | undefined) => !!url && /drive\.google\.com\//i.test(url)
+
 export function parseVideoSource(raw?: string | null): VideoSource | undefined {
   const url = raw?.trim()
   if (!url) return undefined
@@ -45,7 +48,11 @@ export function parseVideoSource(raw?: string | null): VideoSource | undefined {
   // вставляли раньше, тянул весь интерфейс Диска вместе с его «Нет доступа».
   const gd = url.match(/drive\.google\.com\/(?:file\/d\/|uc\?[^#]*id=|open\?[^#]*id=)([\w-]{20,})/i)
     || url.match(/drive\.google\.com\/.*[?&]id=([\w-]{20,})/i)
-  if (gd) return { kind: 'gdrive', id: gd[1] }
+  // Встраиваем страницу Google как есть. Раньше поток шёл через Edge-функцию
+  // drive-video ради своего плеера, и каждый просмотр прокачивал весь ролик
+  // через трафик Supabase (54 ГБ за полмесяца, 21–23.11.2026). Свой плеер с
+  // ускорением — для файла записи в R2 (кнопка «Файл» в редакторе урока).
+  if (gd) return { kind: 'iframe', url: `https://drive.google.com/file/d/${gd[1]}/preview` }
 
   // Direct audio file → native <audio controls>.
   if (AUDIO_RE.test(url)) return { kind: 'audio', url }

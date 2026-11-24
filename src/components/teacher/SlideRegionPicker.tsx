@@ -58,7 +58,7 @@ function useFrameSource(source: string, file?: File | null): { url?: string; una
     }
     const parsed = parseVideoSource(source)
     if (parsed?.kind === 'file') { setState({ url: parsed.url }); return }
-    if (parsed?.kind !== 'gdrive') { setState({ unavailable: 'Кадр можно показать для файла с компьютера или видео Google Диска. Выберите файл выше или область из списка.' }); return }
+    if (parsed?.kind !== 'gdrive') { setState({ unavailable: 'Кадр можно показать для файла записи. Выберите файл выше или область из списка.' }); return }
     let alive = true
     setState({})
     resolveDriveVideo(parsed.id)

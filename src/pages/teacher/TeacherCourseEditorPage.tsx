@@ -127,7 +127,7 @@ import {
 import { authoredLesson } from '../../data/authoredLessons'
 import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
 import LessonVideoPlayer, { PLAYER_MAX_H, PLAYER_MAX_W, type LessonVideoHandle } from '../../components/LessonVideoPlayer'
-import { parseVideoSource } from '../../lib/videoSource'
+import { isDriveLink, parseVideoSource } from '../../lib/videoSource'
 import {
   uploadLessonFile, uploadLessonFileToR2, deleteLessonFile, parseLessonFiles, formatFileSize, isLinkFile,
   LessonFileTooLargeError, type LessonFile, type LessonFiles,
@@ -2107,7 +2107,7 @@ export function CenterRecording({
                     это снаружи нельзя (другой домен). Поэтому не ловим ошибку, а
                     заранее подсказываем учителю единственную её причину — так ему
                     не нужно гадать по чужой заглушке. */}
-                {linkSource?.kind === 'gdrive' && (
+                {linkSource?.kind === 'iframe' && isDriveLink(linkSource.url) && (
                   <div style={{
                     display: 'flex', alignItems: 'flex-start', gap: 8, padding: '9px 12px',
                     borderRadius: 12, background: 'var(--color-bg-2)',
@@ -2116,7 +2116,7 @@ export function CenterRecording({
                   }}>
                     <Info size={14} style={{ flexShrink: 0, marginTop: 1, color: 'var(--color-text-3)' }} />
                     <span>
-                      {t('Если вместо записи — «Нет доступа», откройте файл на Google Диске и поставьте доступ ')}
+                      {t('Видео с Google Диска играет в плеере Google, без ускорения и таймкодов. Для своего плеера загрузите файл записи кнопкой «Файл». Если вместо записи — «Нет доступа», поставьте на Диске доступ ')}
                       <b style={{ color: 'var(--color-text-2)' }}>{t('«Все, у кого есть ссылка»')}</b>.
                     </span>
                   </div>
