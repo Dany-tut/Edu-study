@@ -558,27 +558,42 @@ type TrackPayload = {
   pos?: Record<string, number | null>
   hard?: Array<[string, HardTaskDef[] | null]>
   courses?: CourseTuple[]
+  /** student_track_v2: поля оценки — тем же ответом, без второго круга. */
+  grading?: GradingTuple[]
+  /** student_track_v2 с p_focus: уроки только у одного курса. */
+  partial?: boolean
 }
+type GradingTuple = [string, LessonStatus, number | null, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown]
 
 // null means the progress request failed, NOT that the student has no work.
-export type StudentTrack = { scope: PersonScope; subjects: Subject[]; progress: ProgressMap | null }
+// partial: уроки пришли только у курса первого экрана — у остальных модули
+// пустые, полный ответ догружается следом (studentDataStore.load).
+export type StudentTrack = { scope: PersonScope; subjects: Subject[]; progress: ProgressMap | null; partial?: boolean }
 
 /** Пустые вложения — их привозит fetchProgressAttachments отдельно. */
 const emptyAtt = (): ProgressMap[string]['reviewAttachments'] => ({ photos: [], board: null, annotation: null })
 
 export async function fetchStudentTrack(
   fallback: { id: string; groupId: string },
+  focus: string | null = null,
 ): Promise<StudentTrack> {
   let payload: TrackPayload | null = null
-  try {
-    const { data, error } = await supabase.rpc('student_track', {
-      p_student: isUuid(fallback.id) ? fallback.id : null,
-      p_group: isUuid(fallback.groupId) ? fallback.groupId : null,
-    })
-    if (error) reportDbError('fetchStudentTrack', error)
-    else payload = data as TrackPayload
-  } catch (e) {
-    reportDbError('fetchStudentTrack', { message: String((e as Error)?.message ?? e) })
+  const args = {
+    p_student: isUuid(fallback.id) ? fallback.id : null,
+    p_group: isUuid(fallback.groupId) ? fallback.groupId : null,
+  }
+  // v2 = тот же ответ + оценки (второй круг не нужен) + первый экран по курсу.
+  // Если её нет (откат базы), старая RPC и отдельный запрос оценок ниже.
+  for (const rpc of ['student_track_v2', 'student_track'] as const) {
+    try {
+      const { data, error } = rpc === 'student_track_v2'
+        ? await supabase.rpc(rpc, { ...args, p_focus: focus })
+        : await supabase.rpc(rpc, args)
+      if (error) reportDbError('fetchStudentTrack', error)
+      else { payload = data as TrackPayload; break }
+    } catch (e) {
+      reportDbError('fetchStudentTrack', { message: String((e as Error)?.message ?? e) })
+    }
   }
 
   if (!payload) {
@@ -696,32 +711,41 @@ export async function fetchStudentTrack(
   const participationP = fetchLessonParticipation(subjects)
   const historyP = readAttemptHistory(scope.studentIds)
 
-  // Fetch only grading metadata, never the full task/voice/photo attachments.
-  // The lightweight RPC deliberately omits attachments, but a score alone cannot
-  // distinguish a finished auto-test from work awaiting its teacher.
-  try {
+  // Only grading metadata, never the full task/voice/photo attachments: a score
+  // alone cannot distinguish a finished auto-test from work awaiting its teacher.
+  type GradingRow = { lesson_ref: string; status: LessonStatus; score: number | null; snapshot: unknown; answer_rows: unknown;
+    review_required: unknown; passing_score: unknown; attempt_id: unknown; testly_key: unknown; draft: unknown;
+    reviewed_at: unknown; self_assessment: unknown; video: unknown }
+  const applyGrading = (row: GradingRow) => {
+    const p = progress[row.lesson_ref] ?? (row.video ? (progress[row.lesson_ref] = { status: row.status, score: row.score ?? 0, comment: '', reviewComment: '', reviewAttachments: emptyAtt(), hardSubmitted: false, hardTaskBlocks: [], hardReviewBlocks: [] }) : undefined)
+    if (!p || row.lesson_ref.endsWith('-hard')) return
+    if (row.video) p.watch = row.video as import('./videoProgress').VideoWatch
+    p.result = homeworkResult({ v: row.snapshot, rows: row.answer_rows,
+      reviewRequired: row.review_required, recommendationScore: row.passing_score,
+      attemptId: row.attempt_id, testlyKey: row.testly_key, draft: row.draft, reviewedAt: row.reviewed_at,
+      selfAssessment: row.self_assessment } as Parameters<typeof homeworkResult>[0], row.score as number, row.status)
+    p.status = row.status
+    p.score = row.score as number
+  }
+  if (Array.isArray(payload.grading)) {
+    for (const [lesson_ref, status, score, snapshot, answer_rows, review_required, passing_score, attempt_id,
+      testly_key, draft, reviewed_at, self_assessment, video] of payload.grading) {
+      if (lesson_ref) applyGrading({ lesson_ref, status, score, snapshot, answer_rows, review_required, passing_score,
+        attempt_id, testly_key, draft, reviewed_at, self_assessment, video })
+    }
+  } else try {
     const { data, error } = await supabase.from('lesson_progress')
       .select('lesson_ref, status, score, snapshot:attachments->v, answer_rows:attachments->rows, review_required:attachments->reviewRequired, passing_score:attachments->recommendationScore, attempt_id:attachments->attemptId, testly_key:attachments->testlyKey, draft:attachments->draft, reviewed_at:attachments->reviewedAt, self_assessment:attachments->selfAssessment, video:attachments->video')
       .in('student_id', scope.studentIds)
     if (error) reportDbError('fetchStudentTrack.grading', error)
-    else for (const row of data ?? []) {
-      const p = progress[row.lesson_ref] ?? (row.video ? (progress[row.lesson_ref] = { status: row.status, score: row.score, comment: '', reviewComment: '', reviewAttachments: emptyAtt(), hardSubmitted: false, hardTaskBlocks: [], hardReviewBlocks: [] }) : undefined)
-      if (!p || row.lesson_ref.endsWith('-hard')) continue
-      if (row.video) p.watch = row.video as unknown as import('./videoProgress').VideoWatch
-      p.result = homeworkResult({ v: row.snapshot, rows: row.answer_rows,
-        reviewRequired: row.review_required, recommendationScore: row.passing_score,
-        attemptId: row.attempt_id, testlyKey: row.testly_key, draft: row.draft, reviewedAt: row.reviewed_at,
-        selfAssessment: row.self_assessment }, row.score, row.status)
-      p.status = row.status
-      p.score = row.score
-    }
+    else for (const row of data ?? []) applyGrading(row as unknown as GradingRow)
   } catch (error) {
     reportDbError('fetchStudentTrack.grading', { message: String(error) })
   }
 
   await hydrateAttemptHistory(scope.studentIds, progress, historyP)
 
-  return { scope, subjects: orderCourses(applyLessonParticipation(subjects, await participationP), positions), progress: Array.isArray(payload.progress) ? progress : null }
+  return { scope, subjects: orderCourses(applyLessonParticipation(subjects, await participationP), positions), progress: Array.isArray(payload.progress) ? progress : null, partial: payload.partial === true }
 }
 
 /**

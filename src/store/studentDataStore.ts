@@ -58,7 +58,8 @@ interface StudentDataState {
   profileSubjects: string[]
   /** Чей это profileSubject — при смене аккаунта старый не должен протечь. */
   profileSubjectFor: string | null
-  load: (options?: { afterTestlySync: true }) => Promise<void>
+  /** full: вторая волна после первого экрана — полный трек всех курсов. */
+  load: (options?: { afterTestlySync?: true; full?: true }) => Promise<void>
   /**
    * Догрузить конспект и домашку конкретного урока — вызывается при его
    * открытии. Идемпотентно: уже приехавший или уже летящий урок второго
@@ -214,16 +215,23 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // The current database result is already authoritative. External Testly
     // reconciliation must not delay every screen. Once it finishes, re-read the
     // track under the same account before reconciling missing local answers.
-    const syncP = options?.afterTestlySync ? null : syncTestlyInBackground(session.id)
-    const trackP = fetchStudentTrack({ id: session.id, groupId: session.groupId })
+    //
+    // Первый экран: при первом входе за страницу просим уроки только курса,
+    // открытого в прошлый раз (у ученика с 11 курсами это 124 КБ вместо 439),
+    // рисуем главную и сразу догружаем полный трек (load({ full })). Пока трек
+    // частичный, ничего разрушительного не делаем: сверка черновиков с базой,
+    // Тестли и вложения идут только по полному ответу.
+    const focus = firstLoad && !options?.afterTestlySync && !options?.full ? readLastCourse(session.id) : null
+    let syncP = options?.afterTestlySync || focus ? null : syncTestlyInBackground(session.id)
+    const trackP = fetchStudentTrack({ id: session.id, groupId: session.groupId }, focus)
     const scheduleP = fetchScheduleDays(session.groupId, session.id)
     // Optional widgets must not hold the course/diary/home screen skeleton.
     // Keep the previous value on failure and reject obsolete account responses.
-    if (!options?.afterTestlySync) void fetchQuizQuestions().then(quizQuestions => { if (getStudentSession()?.id === session.id) set({ quizQuestions }) }).catch(e => console.error('[studentData.quiz]', e))
-    if (!options?.afterTestlySync) void fetchScienceFacts().then(scienceFacts => { if (getStudentSession()?.id === session.id) set({ scienceFacts }) }).catch(e => console.error('[studentData.facts]', e))
-    if (!options?.afterTestlySync) void fetchScienceMemes().then(scienceMemes => { if (getStudentSession()?.id === session.id) set({ scienceMemes }) }).catch(e => console.error('[studentData.memes]', e))
-    if (!options?.afterTestlySync) void fetchStudentOwnSubjects(session.id).then(profileSubjects => { if (getStudentSession()?.id === session.id) set({ profileSubject: profileSubjects[0] ?? null, profileSubjects, profileSubjectFor: session.id }) }).catch(() => {})
-    if (!options?.afterTestlySync) void fetchCourseReactions().then(courseReactions => { if (getStudentSession()?.id === session.id) set({ courseReactions }) }).catch(e => console.error('[studentData.reactions]', e))
+    if (!options?.afterTestlySync && !options?.full) void fetchQuizQuestions().then(quizQuestions => { if (getStudentSession()?.id === session.id) set({ quizQuestions }) }).catch(e => console.error('[studentData.quiz]', e))
+    if (!options?.afterTestlySync && !options?.full) void fetchScienceFacts().then(scienceFacts => { if (getStudentSession()?.id === session.id) set({ scienceFacts }) }).catch(e => console.error('[studentData.facts]', e))
+    if (!options?.afterTestlySync && !options?.full) void fetchScienceMemes().then(scienceMemes => { if (getStudentSession()?.id === session.id) set({ scienceMemes }) }).catch(e => console.error('[studentData.memes]', e))
+    if (!options?.afterTestlySync && !options?.full) void fetchStudentOwnSubjects(session.id).then(profileSubjects => { if (getStudentSession()?.id === session.id) set({ profileSubject: profileSubjects[0] ?? null, profileSubjects, profileSubjectFor: session.id }) }).catch(() => {})
+    if (!options?.afterTestlySync && !options?.full) void fetchCourseReactions().then(courseReactions => { if (getStudentSession()?.id === session.id) set({ courseReactions }) }).catch(e => console.error('[studentData.reactions]', e))
     const hwP = fetchStandaloneSubject(session.groupId)
 
     const additionalHwP = trackP.then(async ({ scope }) => {
@@ -280,6 +288,10 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     }
     if (results[0].status === 'rejected') throw results[0].reason
     const track = results[0].value
+    const partial = track.partial === true
+    // Фокус не подошёл (курс сняли и т.п.) — ответ уже полный, второй волны не
+    // будет, значит Тестли запускаем здесь.
+    if (focus && !partial && !syncP) syncP = syncTestlyInBackground(session.id)
     const scope = track.scope
     const progress = track.progress ?? get().progress
     const schedule  = val(1, get().scheduleDays)
@@ -304,7 +316,7 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
     // курса. Сверяем: нет строки — нет и сдачи (подробности и оговорки в
     // lib/homeworkReset.ts). Только когда база РЕАЛЬНО ответила: упавший запрос
     // даёт ту же пустую карту, и стирать по ней ответы нельзя.
-    if (track.progress !== null) {
+    if (track.progress !== null && !partial) {
       const wiped: string[] = []
       // 1. Прямая отметка учителя «курс обнулён такого-то числа». Она говорит то,
       // чего не выведешь из отсутствия строк, поэтому стирает и НЕДОДЕЛАННЫЕ
@@ -402,7 +414,20 @@ export const useStudentData = create<StudentDataState>((set, get) => ({
       scopeStudentIds: scope.studentIds,
     })
 
-    console.debug('[student-ready] ' + JSON.stringify({ reconciled: !!options?.afterTestlySync, ms: Math.round(performance.now() - loadStarted), courses: withHeavy.length, lessons: withHeavy.reduce((n, s) => n + s.modules.reduce((sum, m) => sum + m.lessons.length, 0), 0), progress: Object.keys(progress).length }))
+    console.debug('[student-ready] ' + JSON.stringify({ reconciled: !!options?.afterTestlySync, partial, ms: Math.round(performance.now() - loadStarted), courses: withHeavy.length, lessons: withHeavy.reduce((n, s) => n + s.modules.reduce((sum, m) => sum + m.lessons.length, 0), 0), progress: Object.keys(progress).length }))
+
+    if (partial) {
+      // Первый экран нарисован — догружаем остальные курсы. Активный курс
+      // ставим на тот, что пришёл с уроками, если ученик ещё никуда не ушёл.
+      if (firstLoad) {
+        const dash = useDashboard.getState()
+        if (!withHeavy.some(s => s.id === dash.activeSubjectId)) dash.setActiveSubject(focus!)
+        const open = withHeavy.find(s => s.id === useDashboard.getState().activeSubjectId)
+        if (open) void ensureLessonsHeavy(prefetchTargets([open]))
+      }
+      void get().load({ full: true }).catch(e => console.error('[studentData.full]', e))
+      return
+    }
 
     if (syncP) void syncP.then(() => {
       if (isCurrent()) return get().load({ afterTestlySync: true })
@@ -666,3 +691,18 @@ export function publishVideoWatch(lessonId: string, watch: import('../lib/videoP
     })) }
   })
 }
+
+// ─── Курс первого экрана ─────────────────────────────────────────────────────
+// Запоминаем, какой курс ученик держал открытым, чтобы следующий вход грузил
+// сначала его (см. load: focus). Только удобство: пусто или ошибка хранилища —
+// просто полный трек, как раньше.
+const lastCourseKey = (studentId: string) => `iskra:last-course:${studentId}`
+function readLastCourse(studentId: string): string | null {
+  try { return localStorage.getItem(lastCourseKey(studentId)) } catch { return null }
+}
+useDashboard.subscribe((state, prev) => {
+  if (state.activeSubjectId === prev.activeSubjectId || !state.activeSubjectId) return
+  const session = getStudentSession()
+  if (!session || !useStudentData.getState().subjects.some(s => s.id === state.activeSubjectId)) return
+  try { localStorage.setItem(lastCourseKey(session.id), state.activeSubjectId) } catch { /* private mode */ }
+})
