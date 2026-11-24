@@ -19,6 +19,7 @@ import FadeText from '../../FadeText'
 import MobileSheet from '../../MobileSheet'
 import { FIELD } from '../../../lib/fieldStyle'
 import { btn } from '../../../lib/pillStyles'
+import SeasonGiftPicker, { useSeasonGift } from '../SeasonGiftPicker'
 import '../journalStand/homeworkReview.css'
 import './mobileHomeworkReview.css'
 
@@ -98,6 +99,9 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
   const total = tasks.reduce((sum, task) => sum + Number(draft.taskScores[task.id] || 0), 0)
   const maximum = tasks.reduce((sum, task) => sum + task.maxScore, 0)
   const score = tasks.length ? Math.round(total / Math.max(1, maximum) * 100) : Number(draft.score)
+  // Новогодний подарок к проверке; на учебном стенде (демо/свой onReview) не пишем.
+  const seasonGift = useSeasonGift(demo || onReview || done ? null : current?.studentId)
+  const giftPerfect = tasks.length ? maximum > 0 && total === maximum && tasks.every(task => (draft.taskScores[task.id] ?? '').trim() !== '') : draft.score.trim() !== '' && score === 100
   async function publish(verdict: 'accepted' | 'returned') {
     if (!current || busyRef.current || done || getViewAs()) return
     if (verdict === 'accepted' && (tasks.length ? tasks.some(task => {
@@ -120,6 +124,8 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
       clearDraft(key); setPublished(old => ({ ...old, [current.id]: verdict })); setSelectedId(current.id)
       ring?.play()
       onPublished(current.id, verdict)
+      // Подарок — после сохранённой проверки; его ошибка проверку не отменяет.
+      if (verdict === 'accepted') await seasonGift.send(current.lessonRef ?? `hw-${homework.id}`)
     } catch { setSaveError(t(draftWarning ? 'Не удалось сохранить проверку. Не закрывайте экран и попробуйте ещё раз.' : 'Не удалось сохранить проверку. Черновик сохранён — попробуйте ещё раз.')) }
     finally { busyRef.current = false; setBusy(false) }
   }
@@ -130,7 +136,7 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
       if (next) { setSelectedId(next.id); tactile() } else onBack()
     }}><OpticalText as="iskra-button-label">{next ? t('Следующая работа') : t('К списку ДЗ')}</OpticalText><ChevronRight size={18} /></button> : <>
       <button data-hover="layer" type="button" disabled={busy || !!getViewAs()} style={btn('L', 'primary')} onClick={() => void publish('accepted')}>
-        {busy ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}<OpticalText as="iskra-button-label">{t(busy ? 'Сохраняем…' : 'Завершить проверку')}</OpticalText>
+        {busy ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}<OpticalText as="iskra-button-label">{t(busy ? 'Сохраняем…' : seasonGift.selected ? 'Отправить проверку и подарок' : 'Завершить проверку')}</OpticalText>
       </button>
       <button data-hover="layer" type="button" disabled={busy || !!getViewAs()} style={btn('L', 'secondary')} onClick={() => void publish('returned')}><RotateCcw size={18} /><OpticalText as="iskra-button-label">{t('На доработку')}</OpticalText></button>
     </>}
@@ -164,6 +170,7 @@ export default function MobileHomeworkReview({ homework, demoSubmissions, onBack
                 {!tasks.length && <div className="mhr-quick">{[60,75,85,100].map(n => <button data-hover="layer" key={n} type="button" style={btn('M','secondary')} aria-pressed={draft.score===String(n)} onClick={()=>update({score:String(n)})}><OpticalText as="iskra-button-label">{n}%</OpticalText></button>)}</div>}
                 <label className="mhr-label">{t('Комментарий ученику')}<textarea style={{...FIELD,minHeight:140}} value={draft.comment} placeholder={t('Что получилось и что исправить')} onChange={e=>update({comment:e.target.value})}/></label>
               </div>
+              {seasonGift.active && <SeasonGiftPicker {...seasonGift.pickerProps} perfect={giftPerfect} disabled={busy} />}
             </fieldset>
           </section>
         </>}

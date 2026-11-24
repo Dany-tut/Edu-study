@@ -8,7 +8,7 @@ import CountBadge, { countBadgeInset } from './CountBadge'
 import {
   Home, BookOpen, Dumbbell, Bell, ChevronLeft, ChevronRight,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star, Camera, X,
-  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered, Ghost, Wallet,
+  Settings, LayoutGrid, ArrowUpDown, GraduationCap, LogOut, Moon, Sun, MessageSquarePlus, Globe, Palette, ListOrdered, Ghost, Sparkles, Wallet,
   type LucideIcon,
 } from './icons/appIcons'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -34,7 +34,7 @@ import { useT, useLang, tn, type Lang } from '../lib/i18n'
 import { useFeedGlance } from '../lib/feedRead'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
-import { useSeason, openSeasonPicker, VARIANTS } from '../lib/season'
+import { useSeason, openSeasonPicker, variantsFor } from '../lib/season'
 import { signOutAndReload } from '../lib/signOutAndReload'
 
 const navItems = [
@@ -773,10 +773,12 @@ export default function Sidebar() {
                               fontSize: 14, fontWeight: 500, transition: 'background 0.15s',
                             }}
                           >
-                            <Ghost size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
-                            <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>{t('Хэллоуин-тема')}</span>
+                            {season.season?.key === 'new-year'
+                              ? <Sparkles size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />
+                              : <Ghost size={18} strokeWidth={2} style={{ color: 'var(--color-muted)', flexShrink: 0 }} />}
+                            <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap' }}>{t(season.season?.key === 'new-year' ? 'Новогодняя тема' : 'Хэллоуин-тема')}</span>
                             <span className="text-fade" style={{ maxWidth: 104, fontSize: 13, fontWeight: 500, color: 'var(--color-muted)' }}>
-                              {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
+                              {t(season.active ? (variantsFor(season.season?.key).find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
                             </span>
                           </motion.button>
                         )}

@@ -17,8 +17,12 @@ import { useTheme } from '../store/themeStore'
  * красит только то, что помечено её классами (season.css).
  */
 
-export type SeasonKey = 'halloween'
-export type SeasonVariant = 'lanterns' | 'candy' | 'potions'
+export type SeasonKey = 'halloween' | 'new-year'
+export type HalloweenVariant = 'lanterns' | 'candy' | 'potions'
+/** Новый год 2027: yolka «Ёлка-лаборатория», polnoch «Полночь», shar «Снежный шар».
+ *  Макеты — Figma «Искра», стр. «19 · Искра · Новый год 2027 · концепты». */
+export type NewYearVariant = 'yolka' | 'polnoch' | 'shar'
+export type SeasonVariant = HalloweenVariant | NewYearVariant
 export type SeasonPart = 'hero' | 'decor' | 'track' | 'empty'
 export type SeasonParts = Record<SeasonPart, boolean>
 /** ask — спрашивать ли ученика окном «Сейчас Хэллоуин — выбери тему» (иначе всем сразу
@@ -29,11 +33,20 @@ export type Season = { key: SeasonKey; enabled: boolean; startsAt: string; endsA
  *  у ученика из окна, у админа из админки; на других он не влияет. */
 export type SeasonChoice = SeasonVariant | 'off' | null
 
-export const VARIANTS: { key: SeasonVariant; title: string; about: string }[] = [
-  { key: 'lanterns', title: 'Ночь фонарей', about: 'Тёмная на сезон. Урок — зажжённый фонарь' },
-  { key: 'candy', title: 'Сладость или гадость', about: 'Светлая. Звёзды — конфеты в ведёрке' },
-  { key: 'potions', title: 'Зельеварня', about: 'Вечерняя шапка. Успеваемость — колба' },
+export type VariantInfo = { key: SeasonVariant; season: SeasonKey; title: string; about: string }
+export const ALL_VARIANTS: VariantInfo[] = [
+  { key: 'lanterns', season: 'halloween', title: 'Ночь фонарей', about: 'Тёмная на сезон. Урок — зажжённый фонарь' },
+  { key: 'candy', season: 'halloween', title: 'Сладость или гадость', about: 'Светлая. Звёзды — конфеты в ведёрке' },
+  { key: 'potions', season: 'halloween', title: 'Зельеварня', about: 'Вечерняя шапка. Успеваемость — колба' },
+  { key: 'yolka', season: 'new-year', title: 'Ёлка-лаборатория', about: 'Сданная домашка вешает игрушку на ёлку' },
+  { key: 'polnoch', season: 'new-year', title: 'Полночь', about: 'Отсчёт до Нового года и салют. Кабинет станет тёмным' },
+  { key: 'shar', season: 'new-year', title: 'Снежный шар', about: 'Пройденный урок зажигает окно в городке' },
 ]
+/** Варианты одного сезона — для окна выбора, меню и админки. */
+export const variantsFor = (key: SeasonKey | undefined | null): VariantInfo[] =>
+  ALL_VARIANTS.filter(v => v.season === (key ?? 'halloween'))
+/** Совместимость: варианты Хэллоуина. Новый код берёт variantsFor(season.key). */
+export const VARIANTS = variantsFor('halloween')
 
 export const PARTS: { key: SeasonPart; title: string }[] = [
   { key: 'hero', title: 'Шапка и фон на главной' },
@@ -45,11 +58,11 @@ export const PARTS: { key: SeasonPart; title: string }[] = [
 const ALL_ON: SeasonParts = { hero: true, decor: true, track: true, empty: true }
 
 const PREVIEW_KEY = 'season.preview'
-const PERSONAL_KEY = 'season.personal-halloween'
+const personalKey = (key: SeasonKey | undefined) => `season.personal-${key ?? 'halloween'}`
 /** Старый выключатель (до модалки) — читаем как ответ «не надо». */
 const LEGACY_OFF_KEY = 'season.off'
 const THEME_WAS = 'season.themeWas'
-const isVariant = (v: string | null): v is SeasonVariant => VARIANTS.some(x => x.key === v)
+const isVariant = (v: string | null): v is SeasonVariant => ALL_VARIANTS.some(x => x.key === v)
 
 const ls = {
   get: (k: string) => { try { return localStorage.getItem(k) } catch { return null } },
@@ -70,7 +83,7 @@ const choiceKey = (s: Season) => `season.choice.${s.key}.${new Date(s.startsAt).
 function readChoice(s: Season | null): SeasonChoice {
   if (!s) return null
   const v = ls.get(choiceKey(s))
-  if (v === 'off' || isVariant(v)) return v
+  if (v === 'off' || (isVariant(v) && seasonOfVariant(v) === s.key)) return v
   // «on» — ответ из окна до выбора вариантов: тогда включалась общая тема.
   if (v === 'on') return s.variant
   return ls.get(LEGACY_OFF_KEY) === '1' ? 'off' : null
@@ -80,10 +93,19 @@ export async function loadSeason(): Promise<Season | null> {
   const { data, error } = await supabase
     .from('app_seasons')
     .select('key, enabled, starts_at, ends_at, variant, parts')
-    .eq('key', 'halloween')
-    .maybeSingle()
+    .in('key', ['halloween', 'new-year'])
   if (error) throw new Error(error.message)
-  return data ? fromRow(data as Row) : null
+  return pickSeason(((data ?? []) as Row[]).map(fromRow))
+}
+
+/** Какой сезон сейчас главный: идущий, иначе ближайший предстоящий, иначе последний прошедший. */
+export function pickSeason(rows: Season[], now = Date.now()): Season | null {
+  if (!rows.length) return null
+  const live = rows.find(r => statusOf(r, now) === 'live')
+  if (live) return live
+  const soon = rows.filter(r => statusOf(r, now) === 'soon').sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))[0]
+  if (soon) return soon
+  return [...rows].sort((a, b) => Date.parse(b.endsAt) - Date.parse(a.endsAt))[0]
 }
 
 /** Админка: сохранить строку. Возвращает текст ошибки или null. */
@@ -116,6 +138,9 @@ function devSeason(): Season | null {
   const requested = new URLSearchParams(window.location.search).get('season')
   const v = designPreview ? (isVariant(requested) ? requested : 'candy') : ls.get('season.dev') as SeasonVariant | null
   if (!isVariant(v)) return null
+  if (seasonOfVariant(v) === 'new-year') {
+    return { key: 'new-year', enabled: true, startsAt: '2026-11-20T00:00:00+03:00', endsAt: '2027-01-11T00:00:00+03:00', variant: v, parts: ALL_ON, ask: true }
+  }
   return { key: 'halloween', enabled: true, startsAt: '2026-10-25T00:00:00+03:00', endsAt: '2026-11-02T00:00:00+03:00', variant: v, parts: ALL_ON, ask: true }
 }
 
@@ -125,8 +150,9 @@ function start() {
   const dev = devSeason()
   if (dev) { state = { ...state, season: dev, preview: ls.get('season.devAsk') !== '1', choice: readChoice(dev) }; queueMicrotask(emit); return }
   loadSeason().then(s => {
-    const latestPersonal = ls.get(PERSONAL_KEY)
-    state = { ...state, season: s, choice: latestPersonal === 'off' || isVariant(latestPersonal) ? latestPersonal : readChoice(s) }
+    const latestPersonal = ls.get(personalKey(s?.key))
+    const personal = latestPersonal === 'off' || (isVariant(latestPersonal) && seasonOfVariant(latestPersonal) === s?.key) ? latestPersonal as SeasonChoice : null
+    state = { ...state, season: s, choice: personal ?? readChoice(s) }
     emit()
   }).catch(() => { /* нет связи — без темы */ })
   // Граница дат проходит, пока вкладка открыта: раз в минуту сверяем часы.
@@ -151,7 +177,7 @@ export function setSeasonChoice(choice: SeasonVariant | 'off', persist = true) {
 
 /** Explicit personal appearance; never changes the school's seasonal settings. */
 export function setPersonalHalloween(choice: SeasonVariant | 'off') {
-  ls.set(PERSONAL_KEY, choice)
+  ls.set(personalKey(state.season?.key), choice)
   ls.set(PREVIEW_KEY, null)
   state = { ...state, preview: false, choice, picker: false }
   emit()
@@ -235,7 +261,7 @@ function mark() {
 }
 
 /** Режим кабинета у варианта: «Ночь фонарей» — ночь, две другие нарисованы на светлом. */
-const MODE: Record<SeasonVariant, 'dark' | 'light'> = { lanterns: 'dark', candy: 'light', potions: 'light' }
+const MODE: Record<SeasonVariant, 'dark' | 'light'> = { lanterns: 'dark', candy: 'light', potions: 'light', yolka: 'light', polnoch: 'dark', shar: 'light' }
 /** Вариант, чей режим уже поставлен: ставим один раз при выборе, дальше ученик меняет сам. */
 const APPLIED = 'season.themeApplied'
 
@@ -260,3 +286,11 @@ function syncTheme(v: SeasonView) {
 
 /** Картинки темы лежат в public/season/halloween (исходники — design/halloween-2026). */
 export const seasonImg = (name: string) => `/season/halloween/${name}.webp`
+/** Картинки новогодней темы и стикеров: public/season/new-year (исходники — design/new-year-2027). */
+export const newYearImg = (name: string) => `/season/new-year/${name}.webp`
+export const seasonOfVariant = (v: SeasonVariant): SeasonKey => ALL_VARIANTS.find(x => x.key === v)?.season ?? 'halloween'
+/** Идёт ли новогодний сезон (стикеры копятся и без включённой темы). */
+export function isNewYearLive(): boolean {
+  start()
+  return state.season?.key === 'new-year' && isLive(state)
+}

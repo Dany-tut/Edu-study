@@ -47,6 +47,7 @@ import { useConfirmWave } from '../lib/confirmWave/useConfirmWave'
 import ScriptHint from './ScriptHint'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentData, ownerStudentIdFor, subjectSlugFor, subjectAliases } from '../store/studentDataStore'
+import { earnSticker } from '../lib/seasonStickers'
 import { useTint } from '../store/tintStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
@@ -2364,6 +2365,10 @@ export default function HomeworkFlow({
       setState(current => ({ ...current, attemptId: data.attachments.attemptId }))
     }
     trackEvent('homework_submit', { lesson_ref: ref, kind: level })
+    // Новогодний стикер за сданную домашку — один на домашку (база и хард
+    // делят lessonId). Не ждём и не роняем сдачу: вне сезона earnSticker
+    // молчит, ошибки глотает, повтор за тот же ref — no-op.
+    void earnSticker(ownerStudentIdFor(subject), 'hw', lessonId)
     if (level === 'basic') void captureBasicToDeck()
     useStudentData.getState().load()
     return true
@@ -2564,6 +2569,8 @@ export default function HomeworkFlow({
       setSubmitFailed(null)
       setState(current => ({ ...current, hardSubmitted: true, submittedAt: new Date().toISOString() }))
       setHardCompleted(lessonId)
+      // Стикер за решение на проверку (fire-and-forget, см. submitToSupabase).
+      void earnSticker(owner, 'hw', lessonId)
       await reloadHardRow()
       useStudentData.getState().load()
     } catch (error) {
@@ -4197,6 +4204,8 @@ export default function HomeworkFlow({
                       value={selectedAnswer}
                       disabled={locked}
                       onChange={v => setFreeAnswer(question.id, v)}
+                      stickerStudentId={ownerStudentIdFor(subject)}
+                      stickerRef={`taskvideo:${lessonId}:${question.id}`}
                     />
 
                     /* Диктант: слушаешь и печатаешь. */

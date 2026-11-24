@@ -20,6 +20,7 @@ import { alertDialog } from '../../components/ConfirmHost'
 import BackCircle from '../../components/BackCircle'
 import { useFeature } from '../../lib/teacherFeatures'
 import { btn } from '../../lib/pillStyles'
+import SeasonGiftPicker, { useSeasonGift } from '../../components/teacher/SeasonGiftPicker'
 
 const glass: React.CSSProperties = {
   background: 'rgba(var(--glass-rgb), 0.88)',
@@ -57,6 +58,8 @@ export default function TeacherHardReviewPage() {
   // уже начал писать свой комментарий — уходит его текст).
   const { byProgress: aiByProgress, reload: reloadAi } = useAiGrades(sub ? [sub.id] : [])
   const [composerEpoch, setComposerEpoch] = useState(0)
+  // Новогодний подарок к проверке: уходит после сохранённого принятия задания.
+  const seasonGift = useSeasonGift(sub?.studentId)
 
   if (!sub) {
     return (
@@ -119,6 +122,8 @@ export default function TeacherHardReviewPage() {
     }
     void reloadAi()
     clearDrafts(`hardReview:${sub!.id}:${key}`)
+    // Подарок — после сохранённой проверки; его ошибка проверку не отменяет.
+    if (p.verdict === 'completed') await seasonGift.send(sub!.baseRef)
     setBusy(false)
   }
 
@@ -223,6 +228,8 @@ export default function TeacherHardReviewPage() {
             onReview={reviewTab}
             busy={busy}
             draftScope={`hardReview:${sub.id}`}
+            teacherGift={seasonGift.active ? score => <SeasonGiftPicker {...seasonGift.pickerProps} perfect={score === 5} disabled={busy} /> : undefined}
+            teacherGiftSelected={seasonGift.selected}
           />
         </div>
 

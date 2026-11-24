@@ -2,7 +2,9 @@ import OpticalText from '../OpticalText'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useSeason, setSeasonChoice, openSeasonPicker, seasonImg, VARIANTS, type SeasonVariant } from '../../lib/season'
+import { useSeason, setSeasonChoice, openSeasonPicker, seasonImg, VARIANTS, type HalloweenVariant } from '../../lib/season'
+import { PLATFORM } from '../../lib/platform'
+import NewYearAsk from './stickers/NewYearAsk'
 import { useT } from '../../lib/i18n'
 import './season.css'
 import { useNativeOverlay } from '../../lib/nativeGlass'
@@ -18,15 +20,25 @@ import { useNativeOverlay } from '../../lib/nativeGlass'
  * карточки не должен навсегда решать за ученика.
  */
 
-export const VARIANT_ART: Record<SeasonVariant, string> = { lanterns: 'lantern', candy: 'candy-bucket', potions: 'potions' }
+export const VARIANT_ART: Record<HalloweenVariant, string> = { lanterns: 'lantern', candy: 'candy-bucket', potions: 'potions' }
 
-const BLURB: Record<SeasonVariant, string> = {
+const BLURB: Record<HalloweenVariant, string> = {
   lanterns: 'Ночное небо и фонари на дорожке уроков. Кабинет станет тёмным',
   candy: 'Конфеты вместо звёзд, тыквы и леденцовая дорожка',
   potions: 'Колбы, зелья и вечерняя шапка на главной',
 }
 
+/** Окно выбора темы сезона. Новый год — своё окно «Собери новогоднюю коллекцию»
+ *  (stickers/NewYearAsk) на всех четырёх версиях; Хэллоуин на iPhone не показывали
+ *  и не показываем. */
 export default function SeasonAsk() {
+  const s = useSeason()
+  if (s.season?.key === 'new-year') return <NewYearAsk />
+  if (PLATFORM === 'iphone') return null
+  return <HalloweenAsk />
+}
+
+function HalloweenAsk() {
   const t = useT()
   const s = useSeason()
   const [dismissed, setDismissed] = useState(false)
@@ -74,11 +86,11 @@ export default function SeasonAsk() {
               {VARIANTS.map(v => (
                 <button key={v.key} className="season-ask__opt" data-current={current === v.key || undefined} aria-pressed={current === v.key} onClick={() => setSeasonChoice(v.key)}>
                   <span className={`season-ask__art season-ask__art--${v.key}`}>
-                    <img aria-hidden src={seasonImg(VARIANT_ART[v.key])} alt="" className="season-ask__img" />
+                    <img aria-hidden src={seasonImg(VARIANT_ART[v.key as HalloweenVariant])} alt="" className="season-ask__img" />
                   </span>
                   <span className="season-ask__opt-body">
                     <span className="season-ask__opt-name">{t(v.title)}</span>
-                    <span className="season-ask__opt-text">{t(BLURB[v.key])}</span>
+                    <span className="season-ask__opt-text">{t(BLURB[v.key as HalloweenVariant])}</span>
                   </span>
                 </button>
               ))}

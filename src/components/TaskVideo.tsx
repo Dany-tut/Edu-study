@@ -28,6 +28,7 @@ import {
   formatVideoAnswer, parseVideoAnswer, videoRequiredSeconds,
 } from '../lib/videoAnswer'
 import { useT } from '../lib/i18n'
+import { earnSticker } from '../lib/seasonStickers'
 
 interface Props {
   url: string
@@ -42,10 +43,13 @@ interface Props {
   value?: string
   disabled?: boolean
   onChange(next: string): void
+  /** Новогодний стикер за засчитанный просмотр: чей и за что (source_ref). Без них — не выдаётся. */
+  stickerStudentId?: string
+  stickerRef?: string
 }
 
 export default function TaskVideo({
-  url, title, credit, startSeconds, watchSeconds, value, disabled, onChange,
+  url, title, credit, startSeconds, watchSeconds, value, disabled, onChange, stickerStudentId, stickerRef,
 }: Props) {
   const t = useT()
   const source = useMemo(() => parseVideoSource(url), [url])
@@ -94,10 +98,21 @@ export default function TaskVideo({
     onChange(encoded)
   }
 
+  /** Стикер за просмотр — один раз за монтирование; дальше идемпотентность в базе.
+   *  Fire-and-forget: earnSticker вне сезона молчит и ошибки глотает. */
+  const stickerAsked = useRef(false)
+  const awardSticker = () => {
+    if (disabled || stickerAsked.current || !stickerStudentId || !stickerRef) return
+    stickerAsked.current = true
+    void earnSticker(stickerStudentId, 'video', stickerRef)
+  }
+
   const persist = (next: VideoWatch) => {
     setWatch(next)
     setLive({ seen: watchedSeconds(next.ranges), duration: next.duration })
     emit(next)
+    const needNext = videoRequiredSeconds(watchSeconds, next.duration)
+    if (needNext > 0 && watchedSeconds(next.ranges) + 0.5 >= needNext) awardSticker()
   }
 
   /** Секундный тик плеера: двигаем полосу, состояние плеера не трогаем. */
@@ -111,6 +126,7 @@ export default function TaskVideo({
     if (sentDone.current || needNow <= 0 || seenNow + 0.5 < needNow) return
     sentDone.current = true
     emit(w)
+    awardSticker()
   }
 
   // Объект прогресса для плеера считается ОДИН раз на изменение самого

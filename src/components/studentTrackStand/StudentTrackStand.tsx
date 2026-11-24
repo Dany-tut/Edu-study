@@ -15,7 +15,7 @@ import type { Lesson, ScheduleDay } from '../../data/mockData'
 import { makeTrackCourses, SCENARIOS, TODAY, type Scenario } from './data'
 import '../teacher/journalStand/studentWidgetsStand.css'
 import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from '../season/Season'
-import { setSeasonChoice, setSeasonPreview, useSeason, VARIANTS, type SeasonVariant } from '../../lib/season'
+import { setSeasonChoice, setSeasonPreview, useSeason, ALL_VARIANTS, variantsFor, type SeasonVariant } from '../../lib/season'
 import { useScrollFades } from '../../lib/useScrollFades'
 import './studentTrackStand.css'
 
@@ -46,7 +46,7 @@ export default function StudentTrackStand() {
   const season = useSeason()
   const [theme, setTheme] = useState<SeasonVariant | 'off'>(() => {
     const value = new URLSearchParams(location.search).get('season')
-    return VARIANTS.find(item => item.key === value)?.key ?? 'off'
+    return ALL_VARIANTS.find(item => item.key === value)?.key ?? 'off'
   })
   useEffect(() => { setSeasonPreview(true, false); setSeasonChoice(theme, false) }, [theme])
   function chooseTheme(value: SeasonVariant | 'off') {
@@ -137,7 +137,7 @@ export default function StudentTrackStand() {
     <header className="sw-home-header st-header">
       <label className="st-scenario"><span>Демо главной · Искра</span><select aria-label="Сценарий трека" value={scenario} onChange={e=>chooseScenario(e.target.value as Scenario)}>{SCENARIOS.map(([id,label])=><option value={id} key={id}>{label}</option>)}</select></label>
       <nav className="sw-home-nav" aria-label="Главная Искры"><span className="st-person"><span>М</span>Митя</span><button data-hover="layer" type="button" className="is-current" onClick={()=>{setListScope(null);setSelected(null)}}><TaskliIcon name="home" size={17}/><OpticalText as="iskra-button-label">Главная</OpticalText></button><button data-hover="layer" type="button" onClick={()=>openList('all')}><TaskliIcon name="courses" size={17}/><OpticalText as="iskra-button-label">Мои работы</OpticalText></button></nav>
-      <div className="sw-home-tools"><select className="st-theme-select" aria-label="Оформление главной" value={theme} onChange={e=>chooseTheme(e.target.value as SeasonVariant | 'off')}><option value="off">Без праздника</option>{VARIANTS.map(item=><option key={item.key} value={item.key}>{item.title}</option>)}</select><button data-hover="layer" className="sw-icon-button" type="button" aria-label="Сбросить пример" onClick={()=>chooseScenario(scenario)}><RotateCcw size={17}/></button><button data-hover="layer" className="sw-icon-button" type="button" aria-label="Сменить тему" onClick={toggle}>{dark?<Sun size={18}/>:<Moon size={18}/>}</button><button data-hover="layer" className="sw-icon-button" type="button" aria-label="Все задолженности" onClick={()=>openList('all','overdue')}><TaskliIcon name="notification" size={18}/>{overdue.length>0&&<span>{overdue.length}</span>}</button></div>
+      <div className="sw-home-tools"><select className="st-theme-select" aria-label="Оформление главной" value={theme} onChange={e=>chooseTheme(e.target.value as SeasonVariant | 'off')}><option value="off">Без праздника</option>{variantsFor(season.season?.key).map(item=><option key={item.key} value={item.key}>{item.title}</option>)}</select><button data-hover="layer" className="sw-icon-button" type="button" aria-label="Сбросить пример" onClick={()=>chooseScenario(scenario)}><RotateCcw size={17}/></button><button data-hover="layer" className="sw-icon-button" type="button" aria-label="Сменить тему" onClick={toggle}>{dark?<Sun size={18}/>:<Moon size={18}/>}</button><button data-hover="layer" className="sw-icon-button" type="button" aria-label="Все задолженности" onClick={()=>openList('all','overdue')}><TaskliIcon name="notification" size={18}/>{overdue.length>0&&<span>{overdue.length}</span>}</button></div>
     </header>
     <main className="sw-home-content st-content" data-season-active={season.active || undefined}>
       <section className="sw-home-schedule" aria-label="Расписание"><div className="sw-schedule-track">{[-1,0,1].map(offset=>{const day=days[dayIndex+offset];return day?<ScheduleCard key={day.date} day={day} mobile={!desktop} centerWidth={310} isCenter={offset===0} distance={Math.abs(offset)} dataSelected={offset===0} onClick={()=>setDayIndex(dayIndex+offset)} onOpenLesson={()=>{chooseModule(example.activeModule);setSelected(focusId)}}/>:<div className="sw-schedule-spacer" key={offset}/>})}</div><button data-hover="layer" className="sw-schedule-arrow is-left" type="button" aria-label="Предыдущий день" disabled={dayIndex===0} onClick={()=>setDayIndex(i=>i-1)}><ChevronLeft size={16}/></button><button data-hover="layer" className="sw-schedule-arrow is-right" type="button" aria-label="Следующий день" disabled={dayIndex===2} onClick={()=>setDayIndex(i=>i+1)}><ChevronRight size={16}/></button></section>

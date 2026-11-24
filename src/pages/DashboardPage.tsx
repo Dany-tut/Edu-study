@@ -1,5 +1,4 @@
 import OpticalText from '../components/OpticalText'
-import { PLATFORM } from '../lib/platform'
 import { useNow } from '../lib/useNow'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
 import Sidebar from '../components/Sidebar'
@@ -39,6 +38,7 @@ import { ClipboardList, ChevronRight } from '../components/icons/appIcons'
 import { useT, tc } from '../lib/i18n'
 import { MOBILE_TOP_INSET } from '../lib/mobileTokens'
 import SeasonAsk from '../components/season/SeasonAsk'
+import SeasonStickerLayer from '../components/season/stickers/SeasonStickerLayer'
 import Modal from '../components/Modal'
 import WindowBottomFade from '../components/WindowBottomFade'
 import '../components/studentHomeLayout.css'
@@ -355,8 +355,11 @@ export default function DashboardPage() {
   return (
     <>
       <AnswerFlightLayer />
-      {/* «Сейчас Хэллоуин — включить тему?» — один раз за сезон, если админ велел спрашивать. */}
-      {PLATFORM !== 'iphone' && <SeasonAsk />}
+      {/* Окно выбора темы сезона — один раз за сезон, если админ велел спрашивать.
+          Хэллоуин на iPhone не показывается (решает SeasonAsk), новогоднее — везде.
+          Рядом — новогодняя коллекция: альбом, «Новый стикер!», подарок учителя. */}
+      <SeasonAsk />
+      <SeasonStickerLayer />
       {/* Desktop live notifications surface inside CompactWidgetPill (beside the
           topbar); the standalone toast is only kept for mobile where there's no pill. */}
       {!isDesktop && <NotificationToastContainer />}

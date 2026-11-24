@@ -1,0 +1,150 @@
+/* Новогодний скин видеоурока (Figma «Искра», стр. 19, секция F).
+   Всё под .lesson-player[data-ny] или своими классами ny-*: без темы плеер
+   ровно прежний. Логику воспроизведения и учёта не трогаем — только краска. */
+
+/* ── Снежная шапка по верхнему краю корпуса ─────────────────────────────── */
+.ny-cap {
+  position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: 12px;
+  pointer-events: none;
+  --ny-snow: #FFFFFF;
+  background:
+    linear-gradient(var(--ny-snow), var(--ny-snow)) 0 0 / 100% 5px no-repeat,
+    radial-gradient(circle at 9px 3px, var(--ny-snow) 6px, transparent 6.5px) 0 0 / 22px 12px repeat-x,
+    radial-gradient(circle at 4px 2px, var(--ny-snow) 4px, transparent 4.5px) 13px 0 / 31px 10px repeat-x;
+  filter: drop-shadow(0 2px 2px rgba(30, 20, 80, .22));
+}
+[data-theme="dark"] .ny-cap { --ny-snow: #EEF0FF; }
+
+/* ── Гирлянда: провод провисает между лампочками ───────────────────────── */
+.ny-garland {
+  position: absolute; left: 6px; right: 6px; top: 6px; z-index: 1; height: 22px;
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  pointer-events: none;
+}
+.ny-garland > span { position: relative; }
+.ny-garland > span::before {
+  content: ''; position: absolute; left: 0; right: 0; top: -5px; height: 12px;
+  border-bottom: 1.5px solid rgba(20, 16, 40, .55); border-radius: 0 0 50% 50%;
+}
+.ny-garland > span::after {
+  content: ''; position: absolute; left: 50%; top: 6px; width: 6px; height: 9px;
+  transform: translateX(-50%); border-radius: 45% 45% 50% 50% / 40% 40% 60% 60%;
+  background: var(--ny-bulb); box-shadow: 0 0 6px 1px var(--ny-bulb);
+  animation: ny-twinkle 2.4s ease-in-out infinite;
+}
+.ny-garland > span:nth-child(5n+1) { --ny-bulb: #FFD36E; }
+.ny-garland > span:nth-child(5n+2) { --ny-bulb: #FF7FB6; }
+.ny-garland > span:nth-child(5n+3) { --ny-bulb: #7FE7C4; }
+.ny-garland > span:nth-child(5n+4) { --ny-bulb: #A79CFF; }
+.ny-garland > span:nth-child(5n+5) { --ny-bulb: #7FC8FF; }
+.ny-garland > span:nth-child(3n+2)::after { animation-delay: -.8s; }
+.ny-garland > span:nth-child(3n+3)::after { animation-delay: -1.6s; }
+@keyframes ny-twinkle { 50% { opacity: .45; box-shadow: 0 0 2px 0 var(--ny-bulb); } }
+/* На узком кадре лампочки реже: 14 вместо 28. */
+@media (max-width: 600px) { .ny-garland > span:nth-child(n+15) { display: none; } }
+
+/* Плашка монтажа уходит под гирлянду. */
+.lesson-player[data-ny="true"] .lesson-player-montage { top: 28px; }
+
+/* ── Шкала: заливка просмотренного — фиолетово-розовая ─────────────────── */
+.lesson-player[data-ny="true"] .lesson-player-segment-played {
+  background: linear-gradient(90deg, #8E82FF, #FF7FB6);
+}
+/* Главы — снежинки на стыках отрезков. */
+.ny-flake {
+  position: absolute; top: 50%; z-index: 1; width: 12px; height: 12px;
+  transform: translate(-50%, -50%); color: #fff; pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .45));
+}
+.ny-flake svg { display: block; width: 100%; height: 100%; }
+
+/* Бегунок — Огонёк в шарфе над точкой. */
+.ny-thumb {
+  position: absolute; top: 50%; z-index: 2; width: 0; height: 0; pointer-events: none;
+}
+.ny-thumb::before {
+  content: ''; position: absolute; left: -6px; top: -6px; width: 12px; height: 12px;
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+}
+.ny-thumb img {
+  position: absolute; left: 0; bottom: 4px; width: 26px; height: auto;
+  transform: translateX(-50%); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4));
+  user-select: none; -webkit-user-drag: none;
+}
+@media (max-width: 600px) { .ny-thumb img { width: 22px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ny-garland > span::after { animation: none; }
+}
+
+/* ── Лёгкий снег на фоне страницы урока ─────────────────────────────────
+   z-index: -1 — за карточками, над фоном приложения: снег не ложится на текст. */
+.ny-snow {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  --ny-flake: rgba(142, 130, 255, .32);
+}
+[data-theme="dark"] .ny-snow { --ny-flake: rgba(255, 255, 255, .5); }
+.ny-snow > span {
+  position: absolute; top: -10%; left: 0; right: 0; height: 120%;
+  background-image:
+    radial-gradient(circle at 12% 18%, var(--ny-flake) 1.5px, transparent 2px),
+    radial-gradient(circle at 37% 62%, var(--ny-flake) 1px, transparent 1.5px),
+    radial-gradient(circle at 58% 34%, var(--ny-flake) 2px, transparent 2.5px),
+    radial-gradient(circle at 81% 76%, var(--ny-flake) 1.5px, transparent 2px),
+    radial-gradient(circle at 93% 12%, var(--ny-flake) 1px, transparent 1.5px),
+    radial-gradient(circle at 24% 88%, var(--ny-flake) 1px, transparent 1.5px);
+  background-size: 420px 380px;
+  animation: ny-fall 26s linear infinite;
+}
+.ny-snow > span + span { background-size: 300px 260px; animation-duration: 38s; opacity: .7; transform: translateX(90px); }
+@keyframes ny-fall { from { background-position: 0 0; } to { background-position: 60px 380px; } }
+.ny-snow > span + span { animation-name: ny-fall-2; }
+@keyframes ny-fall-2 { from { background-position: 0 0; } to { background-position: -40px 260px; } }
+@media (prefers-reduced-motion: reduce) { .ny-snow > span { animation: none; } }
+
+/* ── Карточка «Стикер за просмотр» ─────────────────────────────────────── */
+.ny-sticker-card {
+  position: relative; display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px 14px 14px; border-radius: 24px; min-width: 0;
+  background: rgba(var(--glass-rgb), 0.96);
+  border: 1px solid var(--color-border-soft); box-shadow: var(--shadow-2);
+}
+/* Android: плотная заливка без стекла (docs/platforms.md). */
+html[data-platform="android"] .ny-sticker-card { background: var(--color-bg-2); }
+.ny-sticker-card[data-skin="true"] { overflow: visible; }
+.ny-sticker-card[data-skin="true"] .ny-cap { border-radius: 24px 24px 0 0; top: -1px; left: -1px; right: -1px; }
+.ny-sticker-card__art {
+  position: relative; flex-shrink: 0; width: 64px; height: 64px;
+  display: grid; place-items: center; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(142, 130, 255, .16), rgba(255, 127, 182, .16));
+}
+.ny-sticker-card__art img {
+  width: 56px; height: 56px; object-fit: contain;
+  transition: filter .5s ease, opacity .5s ease, transform .5s cubic-bezier(.34, 1.4, .64, 1);
+}
+.ny-sticker-card__art[data-earned="false"] img {
+  filter: brightness(0) saturate(0); opacity: .22;
+}
+[data-theme="dark"] .ny-sticker-card__art[data-earned="false"] img { filter: brightness(0) invert(1); opacity: .16; }
+.ny-sticker-card__art[data-earned="true"] img { transform: rotate(-6deg); }
+@media (prefers-reduced-motion: reduce) { .ny-sticker-card__art img { transition: none; } }
+.ny-sticker-card__body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.ny-sticker-card__eyebrow { font-size: 12px; font-weight: 600; color: var(--color-text-3); }
+.ny-sticker-card__title { font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--color-text); }
+.ny-sticker-card__bar {
+  height: 6px; margin-top: 4px; border-radius: 999px; overflow: hidden; background: var(--color-bg);
+}
+.ny-sticker-card__bar > div {
+  height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8E82FF, #FF7FB6);
+  transition: width .38s ease;
+}
+@media (prefers-reduced-motion: reduce) { .ny-sticker-card__bar > div { transition: none; } }
+.ny-sticker-card__pct {
+  flex-shrink: 0; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--color-text-3);
+}
+@media (max-width: 400px) {
+  .ny-sticker-card { gap: 10px; padding: 12px 14px 12px 12px; }
+  .ny-sticker-card__art { width: 52px; height: 52px; border-radius: 14px; }
+  .ny-sticker-card__art img { width: 46px; height: 46px; }
+  .ny-sticker-card__title { font-size: 14px; }
+}

@@ -264,9 +264,11 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
 
 // ─── Teacher composer ─────────────────────────────────────────────────────────
 
-function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAnnotating }: {
+function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAnnotating, gift, giftSelected }: {
   draftKey: string; solution: HardSolution | null; busy?: boolean
   onReview: (payload: ReviewPayload) => void
+  gift?: (score: number) => React.ReactNode
+  giftSelected?: boolean
   annotating: boolean
   setAnnotating: (open: boolean) => void
 }) {
@@ -380,10 +382,12 @@ function TeacherComposer({ draftKey, solution, busy, onReview, annotating, setAn
         </div>
       </div>
 
+      {gift?.(score)}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('completed')} disabled={busy}
           style={{ padding: '12px 0', borderRadius: 14, border: 'none', background: 'var(--grad-green)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 6px 18px rgba(42,125,79,0.28)', opacity: busy ? 0.6 : 1 }}>
-          <Check size={16} /> <OpticalText as="iskra-button-label">{t('Принять задание')} · {score}/5</OpticalText>
+          <Check size={16} /> <OpticalText as="iskra-button-label">{giftSelected ? t('Отправить проверку и подарок') : t('Принять задание')} · {score}/5</OpticalText>
         </motion.button>
         <motion.button whileHover={{ y: busy ? 0 : -1 }} whileTap={{ scale: 0.98 }} onClick={() => act('returned')} disabled={busy}
           style={{ ...btn('M', 'secondary'), opacity: busy ? 0.6 : 1 }}>
@@ -400,7 +404,7 @@ const DEFAULT_PALETTE = { accent: 'var(--color-accent)', soft: 'var(--color-purp
 
 export default function HardConversation({
   tabs, studentBlocks, reviewBlocks, role, activeKey, onSelectTab, onZoomPhoto,
-  onSubmitSolution, onReview, busy, palette = DEFAULT_PALETTE, draftScope,
+  onSubmitSolution, onReview, busy, palette = DEFAULT_PALETTE, draftScope, teacherGift, teacherGiftSelected,
 }: {
   tabs: HardTabVM[]
   studentBlocks: HardTaskStudentBlock[]
@@ -415,6 +419,10 @@ export default function HardConversation({
   palette?: { accent: string; soft: string; text: string; ring: string }
   // Draft namespace for the teacher composer, e.g. `hardReview:${submissionId}`.
   draftScope?: string
+  /** Новогодний подарок к проверке (SeasonGiftPicker) — получает оценку 1–5 задания. */
+  teacherGift?: (score: number) => React.ReactNode
+  /** Подарок выбран — кнопка принятия становится «Отправить проверку и подарок». */
+  teacherGiftSelected?: boolean
 }) {
   const t = useT()
   const [photo, setPhoto] = useState<{ src: string; solutionId?: string } | null>(null)
@@ -478,7 +486,7 @@ export default function HardConversation({
 
       {teacherCanReview && (
         <div style={{ padding: 18, borderRadius: 20, background: 'rgba(var(--glass-rgb),0.96)', border: '1px solid var(--color-border-soft)' }}>
-          <TeacherComposer key={annotationKey ?? tab.key} draftKey={`${draftScope ?? 'hardReview'}:${tab.key}`} solution={solution} annotating={annotationKey !== null && annotationTask === annotationKey} setAnnotating={setAnnotating} busy={busy} onReview={p => onReview!(tab.key, p)} />
+          <TeacherComposer key={annotationKey ?? tab.key} draftKey={`${draftScope ?? 'hardReview'}:${tab.key}`} solution={solution} annotating={annotationKey !== null && annotationTask === annotationKey} setAnnotating={setAnnotating} busy={busy} onReview={p => onReview!(tab.key, p)} gift={teacherGift} giftSelected={teacherGiftSelected} />
         </div>
       )}
 

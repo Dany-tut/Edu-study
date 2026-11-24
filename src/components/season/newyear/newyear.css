@@ -1,0 +1,234 @@
+/* Новый год 2027 (NewYear.tsx). Варианты: yolka и shar — светлые, polnoch — тёмная.
+   Только свои классы и html[data-season="new-year"]: акцент и фоны красит оттенок
+   курса инлайном на <html>, с ним не спорим (см. lib/season.ts).
+   Сброс Tailwind даёт картинкам max-width: 100% — у картинок темы размер задан
+   высотой, поэтому везде max-width: none. */
+
+.ny-backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.ny-backdrop img { max-width: none; pointer-events: none; user-select: none; }
+
+/* ── Баннер-шапка ───────────────────────────────────────────────────────── */
+.ny-banner {
+  position: absolute; top: 16px; left: 16px; right: 16px;
+  height: clamp(240px, 42vh, 360px);
+  border-radius: 36px; overflow: hidden; background: #3B2A8C;
+}
+.ny-backdrop--shar .ny-banner { background: #E9E4FF; }
+.ny-backdrop--polnoch .ny-banner { background: #1A1240; }
+.ny-banner__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+/* Под текстом шапки — мягкая тень с левого края, чтобы заголовок читался на любой картинке. */
+.ny-banner::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(20, 12, 60, 0.45), rgba(20, 12, 60, 0) 55%);
+}
+.ny-backdrop--shar .ny-banner::after { background: linear-gradient(90deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%); }
+
+/* Баннер накрывает ряд расписания целиком (как в макете): карточки дней стоят внутри
+   картинки, а не свисают с её края. Высота = шапка 84 + отступ под подпись + ряд + 14 − верх баннера 16. */
+@media (min-width: 1024px) {
+  .live-student-home[data-ny-hero] .ny-banner { height: calc(202px + clamp(170px, 22vh, 250px)); }
+}
+@media (min-width: 1024px) and (max-height: 860px) {
+  .live-student-home[data-ny-hero] .ny-banner { height: calc(162px + clamp(160px, 21vh, 200px)); }
+}
+@media (min-width: 1024px) and (max-height: 800px) {
+  .live-student-home[data-ny-hero] .ny-banner { height: clamp(220px, 40vh, 320px); }
+}
+/* Телефон и айпад в портрете: баннер — полоса под шапкой экрана, без подписи. */
+@media (max-width: 1023px) {
+  .ny-banner { top: 0; left: 0; right: 0; height: clamp(190px, 30dvh, 280px); border-radius: 0 0 28px 28px; }
+  html[data-season-variant="yolka"] .live-student-home .lh-header > strong,
+  html[data-season-variant="polnoch"] .live-student-home .lh-header > strong { color: #fff; }
+}
+
+/* ── Гирлянда: лампочки мигают по очереди ───────────────────────────────── */
+.ny-garland { position: absolute; left: 0; right: 0; top: 0; height: 40px; }
+.ny-garland__wire { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ny-garland__wire path { fill: none; stroke: #2A2160; stroke-width: 2; vector-effect: non-scaling-stroke; opacity: 0.85; }
+.ny-backdrop--shar .ny-garland__wire path { stroke: #6B5FB0; }
+.ny-garland__bulb {
+  position: absolute; width: 9px; height: 13px; margin-left: -4.5px;
+  border-radius: 50% 50% 45% 45%; background: var(--ny-bulb);
+  box-shadow: 0 0 10px 2px var(--ny-bulb);
+  animation: ny-blink 2.1s ease-in-out infinite;
+}
+.ny-garland__bulb::before {
+  content: ''; position: absolute; left: 2px; right: 2px; top: -3px; height: 4px; border-radius: 1px; background: #2A2160;
+}
+@keyframes ny-blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 12px 3px var(--ny-bulb); }
+  50% { opacity: 0.35; box-shadow: 0 0 2px 0 var(--ny-bulb); }
+}
+
+/* ── Снег ───────────────────────────────────────────────────────────────── */
+.ny-snow { position: absolute; inset: 0; overflow: hidden; color: #C9BFF5; }
+.ny-snow--banner { color: #fff; }
+html[data-theme="dark"] .ny-snow--page { color: #fff; }
+.ny-snow > i {
+  position: absolute; top: -8px; border-radius: 50%; background: currentColor;
+  animation-name: ny-fall-page; animation-timing-function: linear; animation-iteration-count: infinite;
+  will-change: translate;
+}
+.ny-snow--banner > i { animation-name: ny-fall-banner; }
+@keyframes ny-fall-page { from { translate: 0 0; } to { translate: var(--ny-drift) calc(100dvh + 16px); } }
+@keyframes ny-fall-banner { from { translate: 0 0; } to { translate: var(--ny-drift) 440px; } }
+@media (prefers-reduced-motion: reduce) {
+  .ny-snow > i { animation: none; top: var(--ny-y); }
+  .ny-garland__bulb { animation: none; }
+}
+
+/* ── Сугроб: два слоя, дальний и ближний ────────────────────────────────── */
+.ny-drift { position: absolute; left: 0; bottom: 0; width: 100%; height: 90px; }
+.ny-drift__far { fill: #E4DEFF; }
+.ny-drift__near { fill: #fff; }
+html[data-theme="dark"] .ny-drift__far { fill: #2C2760; }
+html[data-theme="dark"] .ny-drift__near { fill: #463F8C; }
+
+/* ── Ёлочки, предмет темы и снеговик на треке ───────────────────────────── */
+.ny-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 0; }
+.ny-ground > img { position: absolute; width: auto; filter: drop-shadow(0 8px 12px rgba(60, 40, 140, 0.18)); }
+/* Декор стоит в полосе сугроба по углам — ниже подписей трека, не на узлах. */
+.ny-ground__firs { left: 8px; bottom: 2px; height: 84px; }
+.ny-ground__snowman { right: 10px; bottom: 4px; height: 96px; }
+.ny-ground__item { right: 104px; bottom: 4px; height: 58px; }
+@media (min-width: 1024px) and (max-height: 800px) {
+  .ny-ground__firs { height: 64px; }
+  .ny-ground__snowman { height: 74px; }
+  .ny-ground__item { height: 46px; right: 82px; }
+  .ny-drift { height: 70px; }
+}
+@media (max-width: 1023px) {
+  .ny-drift { height: 64px; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .ny-ground { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .ny-ground__firs { left: 4px; bottom: 0; height: 46px; }
+  .ny-ground__snowman { right: 4px; bottom: 0; height: 52px; }
+  .ny-ground__item { display: none; }
+}
+
+/* ── Подпись темы поверх баннера (десктоп, айпад в ландшафте) ───────────── */
+.ny-hero { position: absolute; left: 52px; top: 92px; max-width: min(46%, 560px); pointer-events: none; }
+.ny-hero__chip {
+  display: inline-block; padding: 5px 12px; border-radius: 999px;
+  font-size: 12px; font-weight: 650; line-height: 1.2;
+  background: rgba(255, 255, 255, 0.18); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.ny-hero__title { margin: 8px 0 4px; font-size: 44px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; color: #fff; text-shadow: 0 2px 18px rgba(20, 12, 60, 0.45); }
+.ny-hero__sub { margin: 0; font-size: 15px; line-height: 1.35; color: #EDE8FF; text-shadow: 0 1px 10px rgba(20, 12, 60, 0.5); }
+.ny-hero--shar .ny-hero__chip { background: rgba(255, 255, 255, 0.75); color: #4A3FB8; box-shadow: none; }
+.ny-hero--shar .ny-hero__title { color: #1B1446; text-shadow: none; }
+.ny-hero--shar .ny-hero__sub { color: #3F3870; text-shadow: none; }
+/* Место под подпись забираем у ряда расписания: главная остаётся без прокрутки. */
+@media (min-width: 1024px) {
+  .live-student-home[data-ny-hero] .lh-content { padding-top: 120px; grid-template-rows: clamp(170px, 22vh, 250px) 180px minmax(210px, 1fr); }
+}
+@media (min-width: 1024px) and (max-height: 860px) {
+  .ny-hero { top: 84px; }
+  .ny-hero__title { font-size: 32px; margin: 6px 0 0; }
+  .ny-hero__sub { display: none; }
+  .live-student-home[data-ny-hero] .lh-content { padding-top: 80px; grid-template-rows: clamp(160px, 21vh, 200px) 180px minmax(200px, 1fr); }
+}
+/* Низкое окно: только баннер, подпись прячем — расписание и трек важнее. */
+@media (min-width: 1024px) and (max-height: 800px) {
+  .ny-hero { display: none; }
+  .live-student-home[data-ny-hero] .lh-content { padding-top: 8px; grid-template-rows: minmax(130px, 1fr) 180px 216px; }
+}
+@media (min-width: 1024px) and (max-height: 660px) {
+  .live-student-home[data-ny-hero] .lh-content { padding-top: 4px; grid-template-rows: minmax(90px, 1fr) 132px 200px; }
+}
+
+/* ── Огонёк над текущим уроком ──────────────────────────────────────────── */
+/* Кружок урока остаётся: Огонёк стоит над ним. Сверху у трека только поле под
+   свечение (--home-track-glow-pad), выше него ряд режет — высота считается от него. */
+.ny-node {
+  position: absolute; left: 50%; bottom: calc(50% + 14px); z-index: 3; pointer-events: none;
+  display: flex; align-items: flex-end; transform: translateX(-50%);
+  height: min(62px, calc(var(--home-track-glow-pad, 44px) + 14px));
+}
+.ny-node__og { height: 100%; width: auto; max-width: none; filter: drop-shadow(0 6px 10px rgba(60, 40, 140, 0.3)); transform-origin: 50% 100%; }
+.ny-node__pin { position: absolute; left: calc(100% - 4px); bottom: 0; height: 52%; width: auto; max-width: none; rotate: 10deg; filter: drop-shadow(0 4px 6px rgba(60, 40, 140, 0.25)); }
+.ny-node--polnoch .ny-node__og { filter: drop-shadow(0 0 14px rgba(255, 210, 90, 0.45)); }
+@keyframes ny-og-hop { 0%, 100% { translate: 0 0; } 40% { translate: 0 -6px; } }
+.season-node-wrap:hover .ny-node__og { animation: ny-og-hop 0.6s ease-in-out; }
+@media (prefers-reduced-motion: reduce) { .season-node-wrap:hover .ny-node__og { animation: none; } }
+
+/* Бусины трека в цветах темы. */
+html[data-season="new-year"] .season-node-done { background: #fff !important; border: 3px solid #6B55E0 !important; }
+html[data-season="new-year"] .season-node-done svg,
+html[data-season="new-year"] .season-node-done svg * { color: #6354CF !important; stroke: #6354CF !important; }
+html[data-season="new-year"] .season-node-label--now { position: relative; top: 4px; color: var(--color-text) !important; font-weight: 700 !important; }
+html[data-season-variant="polnoch"] .season-node:not(.season-node-done) { background: #2C2760 !important; border-color: #463F8C !important; }
+html[data-season-variant="polnoch"] .season-node-done { background: #463F8C !important; border-color: #FFD25A !important; }
+html[data-season-variant="polnoch"] .season-node-done svg,
+html[data-season-variant="polnoch"] .season-node-done svg * { color: #FFD25A !important; stroke: #FFD25A !important; }
+
+/* ── Снежные шапки на карточках ─────────────────────────────────────────── */
+/* Волнистый край: полоса снега и капли, нарисованные радиальным градиентом. */
+html[data-season="new-year"] :is(.live-student-home .schedule-card, .live-student-home .ihw-card, .live-student-home .next-work-card, .ny-widget, .stat-card, .season-cap) { position: relative; }
+html[data-season="new-year"] :is(.live-student-home .schedule-card, .live-student-home .ihw-card, .live-student-home .next-work-card, .ny-widget, .stat-card, .season-cap)::before {
+  content: ''; position: absolute; left: 14px; right: 14px; top: -5px; height: 15px; z-index: 2;
+  pointer-events: none; border-radius: 10px 10px 0 0;
+  --ny-cap: #fff;
+  background:
+    linear-gradient(var(--ny-cap), var(--ny-cap)) top / 100% 7px no-repeat,
+    radial-gradient(circle 6px at 50% 6px, var(--ny-cap) 96%, transparent) 0 0 / 22px 13px repeat-x,
+    radial-gradient(circle 4px at 50% 7px, var(--ny-cap) 96%, transparent) 11px 2px / 22px 13px repeat-x;
+  filter: drop-shadow(0 1px 1px rgba(80, 60, 160, 0.16));
+}
+html[data-theme="dark"][data-season="new-year"] :is(.live-student-home .schedule-card, .live-student-home .ihw-card, .live-student-home .next-work-card, .ny-widget, .stat-card, .season-cap)::before { --ny-cap: #DCD6FF; }
+
+/* ── Виджет сезона (полоса виджетов: 180 px на ПК, 104–132 px на телефоне) ─ */
+.ny-widget {
+  width: 100%; height: 100%; min-width: 0; display: flex; align-items: center; gap: 14px;
+  padding: 14px 20px; border-radius: 24px; text-align: left; cursor: pointer; font: inherit;
+  color: var(--color-text); border: 1px solid var(--color-border-glass); box-shadow: var(--shadow-3);
+  background: var(--color-bg-card, #fff); container-type: size;
+}
+.ny-widget:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.ny-widget:active { scale: 0.99; }
+.ny-widget--yolka { background: linear-gradient(90deg, rgba(255, 201, 61, 0.18), rgba(255, 201, 61, 0) 55%), var(--color-bg-card, #fff); }
+.ny-widget--shar { background: linear-gradient(90deg, rgba(255, 201, 77, 0.2), rgba(255, 201, 77, 0) 60%), var(--color-bg-card, #fff); }
+/* iPhone и iPad — стекло; Android и ПК — заливка (PLATFORM-01). */
+html[data-platform="iphone"] .ny-widget,
+html[data-platform="ipad"] .ny-widget { background-color: rgba(var(--glass-rgb), 0.72); backdrop-filter: var(--blur-solid); -webkit-backdrop-filter: var(--blur-solid); }
+.ny-widget__art { height: 100%; max-height: 150px; width: auto; max-width: none; flex-shrink: 0; margin-block: -6px; pointer-events: none; }
+.ny-widget__body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.ny-widget__eyebrow { font-size: 12px; font-weight: 600; color: var(--color-text-3); }
+.ny-widget__title { font-size: 24px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.1; color: var(--color-text); white-space: nowrap; }
+.ny-widget__hint { font-size: 12px; line-height: 1.3; color: var(--color-text-3); }
+
+.ny-toys { display: flex; flex-wrap: wrap; gap: 5px; }
+.ny-toys > i { width: 13px; height: 13px; border-radius: 50%; border: 1.5px dashed #C3BAEA; box-sizing: border-box; }
+.ny-toys > i[data-on] { border: 0; box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.12), 0 0 6px rgba(255, 200, 80, 0.35); }
+
+.ny-count { display: flex; gap: 8px; }
+.ny-count__cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ny-count__cell b {
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px;
+  background: #1B1446; color: #FFD25A; font-size: 24px; font-weight: 750; font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1px #463F8C;
+}
+.ny-count__cell small { font-size: 10px; color: var(--color-text-3); }
+html[data-theme="dark"] .ny-count__cell b { background: #0E0A24; }
+
+.ny-windows { display: flex; gap: 6px; }
+.ny-windows > i { width: 22px; height: 22px; border-radius: 5px; background: #DCD6F5; }
+.ny-windows > i[data-on] { background: #FFC94D; box-shadow: 0 0 10px rgba(255, 201, 77, 0.7); }
+html[data-theme="dark"] .ny-windows > i:not([data-on]) { background: #3A3470; }
+html[data-theme="dark"] .ny-toys > i:not([data-on]) { border-color: #5A5296; }
+
+/* Низкая полоса виджетов (телефон, низкое окно): без подсказки, всё мельче. */
+@container (max-height: 140px) {
+  .ny-widget__hint { display: none; }
+  .ny-widget__title { font-size: 19px; }
+  .ny-widget__body { gap: 4px; }
+  .ny-count__cell b { width: 38px; height: 38px; font-size: 18px; border-radius: 10px; }
+  .ny-windows > i { width: 17px; height: 17px; }
+  .ny-toys > i { width: 11px; height: 11px; }
+}
+@container (max-height: 112px) {
+  .ny-widget__eyebrow { display: none; }
+  .ny-count__cell small { display: none; }
+}
+@container (max-width: 250px) {
+  .ny-widget__art { display: none; }
+}

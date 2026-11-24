@@ -108,7 +108,8 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   const statusDescription = (missed || missedBadge) ? `${missedText} · ${statusBase}` : statusBase
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
-  const seasonal = useSeason().on('track')
+  const seasonView = useSeason()
+  const seasonal = seasonView.on('track')
   const baseShape = baseNodeShape(lesson)
   const silhouette = !seasonal && baseShape !== 'circle' ? baseShape : null
   const isOpen = displayStatus === 'current' || displayStatus === 'today'
@@ -142,6 +143,8 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   // Праздничная тема: текущий урок — фонарь, конфета или шарик зелья поверх кружка.
   // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
   const seasonNode = seasonal && seasonMark && isOpen && !isDiamond
+  // Новый год: Огонёк стоит НАД кружком, кружок урока остаётся видимым.
+  const seasonCovers = seasonNode && seasonView.season?.key !== 'new-year'
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
@@ -160,7 +163,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
       )}
 
       {/* Dark-theme active ring: soft, breathing, tinted to the node colour. */}
-      {dark && isActive && !isHighlighted && !seasonNode && !silhouette && (
+      {dark && isActive && !isHighlighted && !seasonCovers && !silhouette && (
         <div
           className="course-node-pulse-ring"
           style={{
@@ -203,7 +206,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
           scale: { type: 'spring', stiffness: 320, damping: 22 },
           opacity: { duration: 0.15 },
         }}
-        className={cn('absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonal && !isAutoResult && 'season-node', seasonNode && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', isToday && 'season-node-current', displayStatus === 'unviewed' && 'season-node-unviewed', displayStatus === 'locked' && 'season-node-locked')}
+        className={cn('absolute inset-0 flex items-center justify-center cursor-pointer focus-visible:outline-none', seasonal && !isAutoResult && 'season-node', seasonCovers && 'season-node-hidden', displayStatus === 'completed' && 'season-node-done', isToday && 'season-node-current', displayStatus === 'unviewed' && 'season-node-unviewed', displayStatus === 'locked' && 'season-node-locked')}
         style={{
           background: silhouette ? 'transparent' : `linear-gradient(${palette.bg}, ${palette.bg}), var(--color-bg-3)`,
           border: silhouette ? 0 : `2px ${missed ? 'dashed' : 'solid'} ${palette.border}`,

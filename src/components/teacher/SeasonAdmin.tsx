@@ -7,8 +7,8 @@ import DateTimeField from '../DateTimeField'
 import { Alert } from '../Alert'
 import { useT } from '../../lib/i18n'
 import {
-  loadSeason, saveSeason, setSeasonPreview, setSeasonChoice, statusOf, useSeason, seasonImg,
-  VARIANTS, PARTS, type Season, type SeasonVariant,
+  loadSeason, saveSeason, setSeasonPreview, setSeasonChoice, statusOf, useSeason, seasonImg, newYearImg,
+  variantsFor, PARTS, type Season, type SeasonVariant,
 } from '../../lib/season'
 
 /*
@@ -17,12 +17,20 @@ import {
  * браузере: ученики видят тему лишь между датами.
  */
 
-const VARIANT_IMG: Record<SeasonVariant, string> = { lanterns: 'lantern', candy: 'candy-bucket', potions: 'potions' }
+const VARIANT_IMG: Record<SeasonVariant, string> = {
+  lanterns: seasonImg('lantern'), candy: seasonImg('candy-bucket'), potions: seasonImg('potions'),
+  yolka: newYearImg('og-santa'), polnoch: newYearImg('og-astro'), shar: newYearImg('og-scarf'),
+}
 const VARIANT_BG: Record<SeasonVariant, string> = {
   lanterns: 'linear-gradient(180deg, #120C2A, #2A1F5C)',
   candy: 'linear-gradient(135deg, #FFF4EA, #F3EEFF)',
   potions: 'linear-gradient(180deg, #24184F, #7A5FC8)',
+  yolka: 'linear-gradient(180deg, #3B2A8C, #7A5FC8)',
+  polnoch: 'linear-gradient(180deg, #120C2A, #2C2760)',
+  shar: 'linear-gradient(135deg, #F3EEFF, #E4DEFF)',
 }
+/** Название сезона в админке и подсказке про окно выбора. */
+const SEASON_NAME: Record<Season['key'], string> = { halloween: 'Хэллоуин', 'new-year': 'Новый год' }
 
 export default function SeasonAdmin() {
   const t = useT()
@@ -55,6 +63,7 @@ export default function SeasonAdmin() {
     : status === 'live' ? `${t('Идёт')} · ${t('до')} ${until}`
     : status === 'soon' ? t('Ещё не началась') : t('Закончилась')
   const statusLive = draft.enabled && status === 'live'
+  const seasonName = SEASON_NAME[draft.key] ?? SEASON_NAME.halloween
 
   async function save() {
     if (!draft) return
@@ -78,10 +87,10 @@ export default function SeasonAdmin() {
         {/* Главный рубильник */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: 'var(--color-bg-3)' }}>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Хэллоуин')}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t(seasonName)}</div>
             <div style={{ fontSize: 12, marginTop: 4, fontWeight: 600, color: statusLive ? 'var(--color-green-text)' : 'var(--color-text-3)' }}>{statusText}</div>
           </div>
-          <Switch checked={draft.enabled} onChange={v => patch({ enabled: v })} label={t('Хэллоуин')} />
+          <Switch checked={draft.enabled} onChange={v => patch({ enabled: v })} label={t(seasonName)} />
         </div>
 
         <div style={{ padding: '14px 18px', borderTop: '1px solid var(--color-border)', opacity: draft.enabled ? 1 : 0.45, transition: 'opacity 0.15s' }}>
@@ -97,7 +106,9 @@ export default function SeasonAdmin() {
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t('Спрашивать учеников')}</div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 2, lineHeight: 1.4 }}>
                   {draft.ask
-                    ? t('При первом входе окно «Сейчас Хэллоуин»: ученик сам выбирает одну из трёх тем или оставляет всё как есть. Пока не выбрал — темы нет.')
+                    ? (draft.key === 'new-year'
+                      ? t('При первом входе окно «Сейчас Новый год»: ученик сам выбирает одну из трёх тем или оставляет всё как есть. Пока не выбрал — темы нет.')
+                      : t('При первом входе окно «Сейчас Хэллоуин»: ученик сам выбирает одну из трёх тем или оставляет всё как есть. Пока не выбрал — темы нет.'))
                     : t('Всем сразу включается тема, выбранная ниже.')}
                 </div>
               </div>
@@ -110,7 +121,7 @@ export default function SeasonAdmin() {
               : t('Тема для всех учеников')}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
-            {VARIANTS.map(v => {
+            {variantsFor(draft.key).map(v => {
               // Спрашиваем учеников — карточки выбирают ЛИЧНУЮ тему админа (как окно
               // у ученика); не спрашиваем — общую тему в базе, по «Сохранить».
               const on = draft.ask ? view.choice === v.key : draft.variant === v.key
@@ -127,7 +138,7 @@ export default function SeasonAdmin() {
                   }}
                 >
                   <span style={{ width: 48, height: 52, borderRadius: 10, background: VARIANT_BG[v.key], display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <img src={seasonImg(VARIANT_IMG[v.key])} alt="" style={{ height: 40, width: 'auto' }} />
+                    <img src={VARIANT_IMG[v.key]} alt="" style={{ height: 40, width: 'auto', maxWidth: 'none' }} />
                   </span>
                   <span style={{ minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{t(v.title)}</span>

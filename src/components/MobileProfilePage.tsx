@@ -40,7 +40,7 @@ import type { Subject } from '../data/mockData'
 import { XP_PER_LEVEL } from '../lib/xp'
 import { AvatarPhotoFill, AvatarCropModal, pickImageFile } from './AvatarPhoto'
 import { useStudentAvatarPhoto } from '../lib/avatarPhoto'
-import { useSeason, openSeasonPicker, VARIANTS } from '../lib/season'
+import { useSeason, openSeasonPicker, variantsFor } from '../lib/season'
 import { useStudentTz } from '../lib/studentTz'
 import { TZ_OPTIONS, browserTz, tzShortLabel } from '../lib/teacherTz'
 
@@ -378,9 +378,9 @@ export default function MobileProfilePage() {
                   className="flex items-center justify-between cursor-pointer"
                   style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
                 >
-                  <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t('Хэллоуин-тема')}</span>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>{t(season.season?.key === 'new-year' ? 'Новогодняя тема' : 'Хэллоуин-тема')}</span>
                   <span className="flex items-center" style={{ height: 34, padding: '0 16px', borderRadius: 999, background: 'var(--color-bg-5)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 600 }}>
-                    {t(season.active ? (VARIANTS.find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
+                    {t(season.active ? (variantsFor(season.season?.key).find(v => v.key === season.variant)?.title ?? '') : 'Выкл')}
                   </span>
                 </button>
               )}

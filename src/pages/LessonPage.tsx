@@ -26,8 +26,12 @@ import type { LessonVideoHandle } from '../components/LessonVideoPlayer'
 import LessonRecordingView from '../components/LessonRecordingView'
 import { getSubject, ICON_GAP } from '../lib/subjects'
 import {
-  emptyWatch, loadVideoWatch, saveVideoWatch, type VideoWatch,
+  emptyWatch, loadVideoWatch, saveVideoWatch, withCompletion, type VideoWatch,
 } from '../lib/videoProgress'
+import { earnSticker } from '../lib/seasonStickers'
+import VideoStickerCard, { videoStickerRef } from '../components/season/video/VideoStickerCard'
+import { LessonSnow } from '../components/season/video/PlayerSkin'
+import { useNewYearSkin } from '../components/season/video/useNewYearSkin'
 import { lessonStudyProgress } from '../lib/lessonStudyProgress'
 import { getLessonScheduleState, lessonScheduleDate } from '../lib/lessonStatus'
 import { useStudentTz } from '../lib/studentTz'
@@ -750,6 +754,7 @@ export default function LessonPage() {
   const topBarBox = useDashboard(s => s.topBarBox)
 
   const { big, scale, toggle: toggleBig } = useBigText()
+  const nySkin = useNewYearSkin()
   // Палитра предмета для разбора слов в конспекте — литеральным цветом, а не
   // переменной темы: подсветка слова строится конкатенацией (`${accent}22`).
   const { dark } = useTheme()
@@ -798,6 +803,10 @@ export default function LessonPage() {
     setWatch(next)
     if (!lessonKey || !lessonSubject) return
     publishVideoWatch(lessonKey, next)
+    // Порог 90% (тот же, что открывает ДЗ) — стикер за просмотр записи. Выдача
+    // идемпотентна по уроку, вне сезона ничего не делает и ошибки глотает:
+    // учёт просмотра ниже от неё не зависит и её не ждёт.
+    if (withCompletion(next).completed) void earnSticker(ownerStudentIdFor(lessonSubject), 'video', videoStickerRef(lessonKey))
     void saveVideoWatch(ownerStudentIdFor(lessonSubject), lessonKey, lessonSubject, next).then(() => setWatchSyncFailed(false)).catch(() => {
       setWatchSyncFailed(true)
       console.error('[video progress] Could not sync; local progress retained')
@@ -944,6 +953,8 @@ export default function LessonPage() {
     // paddingBottom — воздух под последним рядом карточек: чтобы страница
     // домотывалась с запасом и выпадающие списки плиток не упирались в край.
     <div className="flex flex-col" style={{ gap: 18, paddingBottom: isDesktop ? 72 : 24 }}>
+      {/* Новогодняя тема: лёгкий снег за страницей урока (pointer-events: none). */}
+      {nySkin && <LessonSnow />}
       {/* Rest-state Back / title / date row — in the scroll flow below the
           topbar. Fades out as the page docks; its docked twin is the fixed bar
           below, which sits ON the topbar line so nothing slides under blur. */}
@@ -1105,6 +1116,9 @@ export default function LessonPage() {
           timecodes={timecodes} watch={watch} onPersist={persistWatch} onTime={onPlayerTime}
           videoTime={videoTime} videoDuration={videoDuration} montage={montagePlan}
           progressFooter={<>
+            {/* Стикер за просмотр — пока идёт новогодний сезон, даже без темы. */}
+            <VideoStickerCard studentId={ownerStudentIdFor(lessonSubject)} lessonId={lesson.id}
+              watch={watch} duration={videoDuration} />
             {watchSyncFailed && (
               <div role="status" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',

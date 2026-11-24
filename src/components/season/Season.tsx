@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { useSeason, seasonImg, type SeasonVariant } from '../../lib/season'
+import { useSeason, seasonImg, newYearImg, type SeasonVariant } from '../../lib/season'
 import { useT } from '../../lib/i18n'
+import { isNewYearVariant, NewYearBackdrop, NewYearHero, NewYearCurrentNode } from './newyear/NewYear'
 import './season.css'
 
 /*
@@ -37,6 +38,8 @@ function heroCopy(v: SeasonVariant, until: string): HeroCopy {
 export function SeasonBackdrop() {
   const s = useSeason()
   if (!s.on('hero') || !s.variant) return null
+  // Новый год: баннер с гирляндой, снег и сугроб — newyear/NewYear.tsx.
+  if (isNewYearVariant(s.variant)) return <NewYearBackdrop variant={s.variant} />
   return (
     <div aria-hidden className={`season-backdrop season-backdrop--${s.variant}`}>
       {s.variant === 'lanterns' && (
@@ -69,6 +72,9 @@ export function SeasonHero({ compact = false, portalDecor = true }: { compact?: 
   const t = useT()
   const s = useSeason()
   if (!s.on('hero') || !s.variant || !s.season) return null
+  // Новый год: подпись лежит на баннере (десктоп). На телефоне главная без прокрутки —
+  // отдельной карточки-шапки нет, остаётся баннер за расписанием.
+  if (isNewYearVariant(s.variant)) return compact ? null : <NewYearHero variant={s.variant} />
   const c = heroCopy(s.variant, untilLabel(s.season.endsAt))
   // «Сладость» на компьютере — без карточки и текста (решение Дани 29.10.2026):
   // паук на паутине в левом верхнем углу экрана, скелет свисает на нитке от верха
@@ -157,6 +163,15 @@ export function SeasonEmptyDay() {
   const t = useT()
   const s = useSeason()
   if (!s.on('empty')) return null
+  if (isNewYearVariant(s.variant)) return (
+    <div className="season-empty">
+      <img aria-hidden src={newYearImg('snowman')} alt="" className="season-empty__ghost" />
+      <div style={{ minWidth: 0 }}>
+        <p className="season-empty__title">{t('Уроков нет')}</p>
+        <p className="season-empty__sub">{t(s.variant === 'polnoch' ? 'Отдыхай, до полуночи ещё есть время' : s.variant === 'shar' ? 'Городок отдыхает, окна ждут новых уроков' : 'Ёлка подождёт новую домашку')}</p>
+      </div>
+    </div>
+  )
   const sub = s.variant === 'potions' ? 'Загляни в тренажёр — зелье само не сварится'
     : s.variant === 'candy' ? 'Самое время перебрать конфеты'
     : 'Привидение-листок ждёт новую домашку'
@@ -196,6 +211,7 @@ export function SeasonFlask({ pct, height = 96 }: { pct: number; height?: number
 export function SeasonCurrentNode({ size }: { size: number }) {
   const s = useSeason()
   if (!s.on('track') || !s.variant) return null
+  if (isNewYearVariant(s.variant)) return <NewYearCurrentNode variant={s.variant} />
   if (s.variant === 'potions') return <span aria-hidden className="season-node-orb" />
   const img = s.variant === 'candy' ? 'sticker-candy' : 'lantern'
   const h = s.variant === 'candy' ? size * 1.5 : size * 2.1

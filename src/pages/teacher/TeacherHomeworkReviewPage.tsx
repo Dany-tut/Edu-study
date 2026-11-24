@@ -19,6 +19,7 @@ import { Alert } from '../../components/Alert'
 import { aiCommentHtml, homeworkAiForAttempt } from '../../lib/homeworkAiState'
 import { AiReviewSummary, AiTaskFeedback, AiCommentDraft, aiReviewLabel } from '../../components/teacher/journalStand/AiReviewConcept'
 import HomeworkReviewScroll from '../../components/teacher/HomeworkReviewScroll'
+import SeasonGiftPicker, { useSeasonGift } from '../../components/teacher/SeasonGiftPicker'
 import '../../components/teacher/journalStand/homeworkReview.css'
 import './homeworkReviewWorkspace.css'
 
@@ -251,6 +252,8 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const setHeaderDocked = useTeacher(s=>s.setHeaderDocked)
   useEffect(()=>{if(!embedded)setHeaderDocked(false)},[embedded,setHeaderDocked])
   useEffect(()=>{setSaveError('')},[submitters[idx]?.id])
+  // Новогодний подарок к проверке (стикер + ачивка). Не в учебном стенде.
+  const seasonGift = useSeasonGift(embedded ? null : submitters[idx]?.id)
   if (!hw || !group || submitters.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center" style={{ flex: 1, color: 'var(--color-muted)', gap: 12 }}>
@@ -322,6 +325,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
   const maxTaskTotal = hasTasks
     ? (hw.tasks ?? []).reduce((sum, t) => sum + t.maxScore, 0)
     : null
+  const giftPerfect = hasTasks ? (maxTaskTotal ?? 0) > 0 && taskTotal === maxTaskTotal : draft.score.trim() !== '' && Number(draft.score) === 100
   const reviewedCount = submitters.filter(s => reviewedMap[s.id]).length
   const allDone = reviewedCount === submitters.length
 
@@ -367,6 +371,8 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
       const ok = await onReview(submissionId,verdict,Number.isFinite(score)?score:0,comment,{photos:draft.photos,board:draft.board},currentSubmission?.answers?.attemptId)
       if(!ok){setSaveError(t('Не удалось сохранить проверку. Черновик сохранён — попробуйте ещё раз.'));return}
       if(verdict==='accepted'&&aiGrade&&(aiGrade.status==='graded'||aiGrade.status==='dismissed'))await onConfirmAi?.(aiGrade.id,score)
+      // Подарок — только после сохранённой проверки; его ошибка проверку не отменяет.
+      if(verdict==='accepted')await seasonGift.send(currentSubmission?.lessonRef??`hw-${hw!.id}`)
       void reloadAi?.()
       clearDraft(draftKey)
       setDrafts(previous=>{const {[student.id]:_saved,...rest}=previous;return rest})
@@ -456,8 +462,9 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
           {showAiReview&&<AiReviewSummary grade={aiGrade} reviewed={reviewed} busy={busy||!!aiRequest?.busy} loading={aiLoading} requestError={aiLoadError||(aiGrade&&['graded','confirmed','changed','dismissed'].includes(aiGrade.status)?'':aiRequest?.error)} onRequest={currentSubmission&&onRequestAi?()=>{if(aiLoadError)void reloadAi?.();else void askAi(currentSubmission,aiGrade?.status==='error'||aiGrade?.status==='skipped')}:undefined} onApply={hasTasks?(aiTaskScores?()=>setDraft({taskScores:aiTaskScores}):undefined):()=>{if(aiGrade?.score!=null)setDraft({score:String(aiGrade.score)})}} onDetails={()=>aiDetailsRef.current?.scrollIntoView({block:'nearest'})}/>}
           {hasTasks?<HomeworkReviewScroll key={'grades:'+student.id} label={t('Баллы за задания')} className="hr-task-grades"><TaskScoreGrid tasks={hw.tasks!} taskScores={draft.taskScores} onScoreChange={setTaskScore} groupColor="var(--color-accent)" groupColorSoft="var(--color-purple-soft)" total={taskTotal!} maxTotal={maxTaskTotal!}/></HomeworkReviewScroll>:<div className="hr-grade-block"><label>{t('Итоговый результат')}<div><input aria-label={t('Итог ДЗ в процентах')} type="number" min={0} max={100} step="any" value={draft.score} placeholder="—" disabled={busy} onChange={e=>setDraft({score:e.target.value})}/><span>%</span></div></label><div className="hr-score-context">{autoPercent!==null&&<span>{t('Автопроверка')}<b>{autoPercent}%</b></span>}<span>{t('Порог зачёта')}<b>{passingScore}%</b></span></div><div className="hr-quick-scores">{[60,75,85,100].map(value=><button data-hover="layer" key={value} type="button" disabled={busy} aria-label={t('Поставить')+' '+value+'%'} aria-pressed={Number(draft.score)===value} onClick={()=>setDraft({score:String(value)})}><OpticalText as="iskra-button-label">{value}%</OpticalText></button>)}</div></div>}
           <div className="hr-review-comment"><h3>{t('Комментарий ученику')}</h3><RichConditionEditor key={'comment:'+student.id} value={draft.comment} onChange={comment=>setDraft({comment})} placeholder={t('Что получилось и что исправить')} minHeight={0} fixedHeight="var(--hr-comment-height, 112px)" fontSize={13} toolbarPlacement="below" ariaLabel={t('Комментарий ученику в полной проверке')} inputSt={{width:'100%',boxSizing:'border-box',border:'1px solid var(--color-border-soft)',borderRadius:12,background:'var(--color-bg-card)',color:'var(--color-text)',outline:'none',fontFamily:'inherit'}}/>{showAiReview&&aiGrade?.comment&&aiGrade.status!=='working'&&aiGrade.status!=='pending'&&!reviewed&&<AiCommentDraft key={'ai-draft:'+student.id} comment={aiGrade.comment} busy={busy||draft.comment.includes(aiGrade.comment)} onUse={()=>setDraft({comment:draft.comment.trim()?draft.comment+'<p>'+aiCommentHtml(aiGrade.comment)+'</p>':aiCommentHtml(aiGrade.comment)})}/>}</div>
+          {seasonGift.active&&!reviewed&&<SeasonGiftPicker {...seasonGift.pickerProps} perfect={giftPerfect} disabled={busy}/>}
         </HomeworkReviewScroll>
-        <div className="hr-review-actions">{saveError&&<p className="hr-save-error" role="alert">{saveError}</p>}<button type="button" className="hr-button hr-primary" disabled={busy} onClick={()=>void handleVerdict('accepted')}><Check size={16}/><OpticalText as="iskra-button-label">{busy?t('Сохраняем…'):t('Завершить проверку')}</OpticalText></button><button type="button" className="hr-button" disabled={busy} onClick={()=>void handleVerdict('returned')}><RotateCcw size={15}/><OpticalText as="iskra-button-label">{t('На доработку')}</OpticalText></button></div>
+        <div className="hr-review-actions">{saveError&&<p className="hr-save-error" role="alert">{saveError}</p>}<button type="button" className="hr-button hr-primary" disabled={busy} onClick={()=>void handleVerdict('accepted')}><Check size={16}/><OpticalText as="iskra-button-label">{busy?t('Сохраняем…'):seasonGift.selected&&!reviewed?t('Отправить проверку и подарок'):t('Завершить проверку')}</OpticalText></button><button type="button" className="hr-button" disabled={busy} onClick={()=>void handleVerdict('returned')}><RotateCcw size={15}/><OpticalText as="iskra-button-label">{t('На доработку')}</OpticalText></button></div>
       </aside>
     </div>
     <footer className="hr-workspace-footer"><span>{allDone?t('Все работы проверены'):t('Проверено')+' '+reviewedCount+' '+t('из')+' '+submitters.length}{embedded?' · '+t('Учебный пример'):''}</span>{!embedded&&cleanAi.length>0&&<button type="button" className={'hr-button hr-batch-accept'+(batchArmed?' hr-batch-armed':'')} disabled={busy} onClick={()=>void acceptCleanAi()}><Check size={14}/><OpticalText as="iskra-button-label">{batchArmed?t('Принять')+' '+cleanAi.length+'? '+t('Нажмите ещё раз'):t('Принять без замечаний ИИ')+' · '+cleanAi.length}</OpticalText></button>}{nav}</footer>

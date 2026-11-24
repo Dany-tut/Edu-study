@@ -24,6 +24,7 @@ import { useTeacherSession } from '../../../lib/useTeacherSession'
 import type { HomeworkItem } from '../../../data/teacherMockData'
 import MobileHomeworkReview from './MobileHomeworkReview'
 import { DEMO_REGULAR_SUBMISSIONS } from '../../../data/mobileReviewDemo'
+import SeasonGiftPicker, { useSeasonGift } from '../SeasonGiftPicker'
 
 // Attachments the teacher leaves on the reviewed work — mirrors the desktop
 // hard-review composer (фото + доска). Persisted via reviewHard's legacy shape.
@@ -56,6 +57,8 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
   const fileRef = useRef<HTMLInputElement>(null)
   const initials = sub.studentName.trim().slice(0, 2).toUpperCase() || '—'
   const photoCount = sub.attachments.photos.length
+  // Новогодний подарок к проверке; демо-сдачи в базу не пишем.
+  const seasonGift = useSeasonGift(isDemoId(sub.id) ? null : sub.studentId)
 
   function addPhotos(files: FileList | null) {
     if (!files) return
@@ -76,7 +79,13 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
     tactile()
     setBusy(verdict)
     setReviewError('')
-    try { if (await onReviewed(sub.id, verdict, comment.trim(), { photos, board })) setOpen(false) }
+    try {
+      if (await onReviewed(sub.id, verdict, comment.trim(), { photos, board })) {
+        setOpen(false)
+        // Подарок — после сохранённой проверки; его ошибка проверку не отменяет.
+        if (verdict === 'completed') await seasonGift.send(sub.baseRef)
+      }
+    }
     catch { setReviewError(t('Не удалось сохранить — попробуйте ещё раз')) }
     finally { setBusy(null) }
     // hook reloads → this card drops out of the list
@@ -95,7 +104,8 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
     </button>
     <MobileSheet open={open} onClose={() => setOpen(false)} title={`${tn(sub.studentName)} · ${tc(sub.lessonTitle)}`} footer={<>
       {reviewError && <Alert tone="danger" text={reviewError} style={{ marginBottom: 8 }} />}
-      <div style={{ display: 'flex', gap: 10 }}>
+      {/* С подарком подпись длинная — «Отправить…» встаёт отдельной строкой сверху. */}
+      <div style={{ display: 'flex', gap: 10, flexDirection: seasonGift.selected ? 'column-reverse' : 'row' }}>
         <motion.button data-hover="layer"
           whileTap={{ scale: 0.97 }}
           onClick={() => act('returned')}
@@ -112,7 +122,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
           className="cursor-pointer"
           style={{ flex: 1.4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12, borderRadius: 14, background: PAIR.success.bg, color: PAIR.success.text, border: '1px solid transparent', fontSize: 14, fontWeight: 700 }}
         >
-          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="done" size={18} tone="success" />} <OpticalText as="iskra-button-label">{t('Принять')}</OpticalText>
+          {busy === 'completed' ? <Loader2 size={16} className="animate-spin" /> : <TaskliIcon name="done" size={18} tone="success" />} <OpticalText as="iskra-button-label">{seasonGift.selected ? t('Отправить проверку и подарок') : t('Принять')}</OpticalText>
         </motion.button>
       </div>
 
@@ -166,6 +176,8 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
         )}
         {showBoard && <div style={{ marginTop: 10 }}><WhiteboardCanvas initialData={board ?? undefined} onSave={setBoard} /></div>}
       </div>
+
+      {seasonGift.active && <SeasonGiftPicker {...seasonGift.pickerProps} disabled={!!busy} />}
 
 
       </div>

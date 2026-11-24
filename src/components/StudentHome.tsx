@@ -14,8 +14,9 @@ import { GLASS, useGlassBar } from '../lib/nativeGlass'
 import { PLATFORM } from '../lib/platform'
 import { useNotificationsStore } from '../store/notificationsStore'
 import Modal from './Modal'
-import { ChevronRight, User, Ghost } from './icons/appIcons'
+import { ChevronRight, User, Ghost, Sparkles } from './icons/appIcons'
 import { SeasonBackdrop, SeasonHero, SeasonCat, SeasonCornerPumpkin } from './season/Season'
+import { NewYearWidget, useNewYear, useStreakStickers } from './season/newyear/NewYear'
 import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { useStudentDiaryMetadata } from '../lib/useStudentDiary'
@@ -27,9 +28,11 @@ import { useStudentTz } from '../lib/studentTz'
 import { wallDateTimeInTz } from '../lib/teacherTz'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT, useLang, tc } from '../lib/i18n'
-import { setPersonalHalloween, useSeason, VARIANTS } from '../lib/season'
+import { setPersonalHalloween, useSeason, variantsFor } from '../lib/season'
 import './studentHome.css'
 
+/** Виджет новогодней темы в ряду: id вне каталога виджетов (lib/widgets), чтобы не совпасть с настройками ученика. */
+const NEW_YEAR_WIDGET = 901
 type WorkScope = { filter: 'actions' | 'upcoming' | 'overdue' | 'review'; course?: string; module?: number }
 function WorkDue({ entry, today }: { entry: StudentDiaryEntry; today: string }) {
   const t = useT(), lang = useLang(s=>s.lang)
@@ -48,6 +51,10 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   const entries = useMemo(()=>buildStudentDiary(subjects,metadata,progress,now),[subjects,metadata,progress,now])
   const work = useMemo(()=>studentHomeWork(entries,today),[entries,today])
   const season = useSeason()
+  // Новый год: виджет сезона в полосе виджетов, подпись на баннере, редкие Огоньки за серию.
+  const newYear = useNewYear()
+  const streak = useStudentData(s=>s.stats.streak)
+  useStreakStickers(streak)
   const iphone = PLATFORM === 'iphone'
   const nativeChrome = iphone && GLASS && !desktop
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -56,12 +63,13 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
   const [appearance,setAppearance] = useState(false)
   useEffect(()=>{
     const url = new URL(location.href)
-    const variant = VARIANTS.find(item=>item.key===url.searchParams.get('halloween'))
+    const variant = variantsFor(season.season?.key).find(item=>item.key===(url.searchParams.get('season') ?? url.searchParams.get('halloween')))
     if(!variant || iphone) return
     setPersonalHalloween(variant.key)
+    url.searchParams.delete('season')
     url.searchParams.delete('halloween')
     history.replaceState(null,'',url)
-  },[iphone])
+  },[iphone,season.season?.key])
   const [scope,setScope] = useState<WorkScope|null>(null)
   const trackPopoverOpen = useDashboard(s=>s.trackPopoverOpen)
   const dashboard = useDashboard.getState()
@@ -103,6 +111,8 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     (scope.module==null || entry.course.modules[entry.moduleOrder]?.id===scope.module)) : []
   const status = pending ? t('Загружаем дела') : error ? t('Не удалось загрузить работы') : null
   const workCards = [
+    // Виджет сезона первым: игра видна сразу, без листания ряда.
+    ...(newYear&&season.on('decor')?[{id:NEW_YEAR_WIDGET,content:<NewYearWidget variant={newYear}/>}]:[]),
     {id:11},
     {id:13,content:<NextWorkWidget
       status={pending?'loading':error?'error':next||review?'ready':'empty'}
@@ -116,7 +126,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
       onOpen={error?reload:next?()=>open(next):review?()=>dashboard.setActivePage('trainer'):()=>setScope({filter:'review'})}
     />},
   ]
-  return <div className="live-student-home" data-testid="live-student-home">
+  return <div className="live-student-home" data-testid="live-student-home" data-ny-hero={newYear&&season.on('hero')?'':undefined}>
     <SeasonBackdrop/><div className="lh-season-decor" aria-hidden><SeasonHero portalDecor={false}/></div><SeasonCornerPumpkin/>
     <header className="lh-header">
       {desktop ? <Sidebar/> : <>
@@ -130,7 +140,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
         </> : <MobileBell/>}
       </>}
       <div className="lh-assignments">{assignments}</div>
-      {canChooseAppearance && <button data-hover="layer" type="button" className="lh-appearance" aria-label={t('Оформление главной')} onClick={()=>setAppearance(true)}><Ghost size={18}/></button>}
+      {canChooseAppearance && <button data-hover="layer" type="button" className="lh-appearance" aria-label={t('Оформление главной')} onClick={()=>setAppearance(true)}>{season.season?.key==='new-year'?<Sparkles size={18}/>:<Ghost size={18}/>}</button>}
     </header>
     <main className="lh-content">
       <section className="lh-schedule" aria-label={t('Расписание')}><ScheduleCarousel swipe={iphone}/></section>
@@ -139,7 +149,7 @@ export default function StudentHome({ assignments }: { assignments?: ReactNode }
     </main>
     {!desktop&&<MobileBottomNav/>}
     {canChooseAppearance&&appearance&&<Modal title={t('Оформление главной')} onClose={()=>setAppearance(false)}>
-      <div className="lh-appearance-options"><button data-hover="layer" type="button" aria-pressed={!season.variant} onClick={()=>{setPersonalHalloween('off');setAppearance(false)}}><OpticalText as="iskra-button-label">{t('Без праздника')}</OpticalText></button>{VARIANTS.map(item=><button data-hover="layer" type="button" key={item.key} aria-pressed={season.variant===item.key} onClick={()=>{setPersonalHalloween(item.key);setAppearance(false)}}><OpticalText as="iskra-button-label">{t(item.title)}</OpticalText></button>)}</div>
+      <div className="lh-appearance-options"><button data-hover="layer" type="button" aria-pressed={!season.variant} onClick={()=>{setPersonalHalloween('off');setAppearance(false)}}><OpticalText as="iskra-button-label">{t('Без праздника')}</OpticalText></button>{variantsFor(season.season?.key).map(item=><button data-hover="layer" type="button" key={item.key} aria-pressed={season.variant===item.key} onClick={()=>{setPersonalHalloween(item.key);setAppearance(false)}}><OpticalText as="iskra-button-label">{t(item.title)}</OpticalText></button>)}</div>
     </Modal>}
     {scope&&<Modal title={t(scope.module!=null?'Несданные работы':scope.filter==='review'?'На проверке':scope.filter==='overdue'?'Просроченные работы':'Мои работы')} onClose={()=>setScope(null)} width={740}>
       <div className="lh-work-filters">{(['actions','upcoming','overdue','review'] as const).map(filter=><button data-hover="layer" type="button" key={filter} aria-pressed={scope.filter===filter} onClick={()=>setScope({...scope,filter})}><OpticalText as="iskra-button-label">{t(filter==='actions'?'Нужно сдать':filter==='upcoming'?'Без просрочки':filter==='overdue'?'Просрочено':'На проверке')}</OpticalText></button>)}</div>

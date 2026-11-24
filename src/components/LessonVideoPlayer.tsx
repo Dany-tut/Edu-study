@@ -38,6 +38,8 @@ import { driveProxyAvailable, resolveDriveVideo } from '../lib/driveVideo'
 import FadeText from './FadeText'
 import './lessonVideoPlayer.css'
 import { activeTimecodeIndex, type LessonTimecode } from '../data/lessonContent'
+import { useNewYearSkin } from './season/video/useNewYearSkin'
+import { ChapterFlake, OgonekThumb, PlayerGarland } from './season/video/PlayerSkin'
 import { montageTimeline } from '../lib/lessonMontage'
 import { useT } from '../lib/i18n'
 import { trackEvent } from '../lib/analytics'
@@ -266,6 +268,8 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   { source: originalSource, title, badge, durationLabel, timecodes = [], initialWatch, onPersist, onTime, onWatchTick, montage, onTick }, ref,
 ) {
   const t = useT()
+  // Новогодний скин — только оформление; воспроизведение и учёт не меняются.
+  const nySkin = useNewYearSkin()
   const touch = useCoarsePointer()
   const mouseSliderDrag = useRef(false)
   const [driveUrl, setDriveUrl] = useState('')
@@ -1276,6 +1280,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       onPointerLeave={() => { if (started && !paused && !rateOpen && !volumeOpen) setBarVisible(false) }}
       className="lesson-player relative min-w-0 outline-none"
       data-fullscreen={fullscreen}
+      data-ny={nySkin || undefined}
       style={{
         width: '100%',
         // В полноэкранном режиме коробку растягивает браузер; в потоке страницы
@@ -1370,6 +1375,9 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           }}
         />
       )}
+
+      {/* Новогодний скин: гирлянда и снежная шапка — только краска поверх кадра. */}
+      {nySkin && <PlayerGarland />}
 
       {/* ── Слой управления ── */}
       {started && custom && (
@@ -1603,6 +1611,12 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
                     </div>
                   )
                 })}
+                {nySkin && duration > 0 && chapterBoundaries.slice(1, -1).map(at => (
+                  <ChapterFlake key={at} left={`${tv(at) / total * 100}%`} />
+                ))}
+                {nySkin && duration > 0 && (
+                  <OgonekThumb left={`clamp(6px, ${tv(current) / total * 100}%, calc(100% - 6px))`} />
+                )}
                 {previewAt !== null && duration > 0 && (
                   <span aria-hidden="true" className="lesson-player-hover-mark"
                     style={{ left: `clamp(1px, ${tv(previewAt) / total * 100}%, calc(100% - 1px))` }} />

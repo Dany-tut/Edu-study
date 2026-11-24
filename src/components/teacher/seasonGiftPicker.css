@@ -1,0 +1,66 @@
+/* «Подарок к проверке» — SeasonGiftPicker.tsx. Figma «Искра», стр. 19, G (489:2).
+   Цвета — только токены темы (светлая/тёмная); цвета ачивок — из ACHIEVEMENTS,
+   на них тёмные знаки в обеих темах. */
+
+.sgp {
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  padding-top: 14px; border-top: 1px solid var(--color-border-soft);
+}
+.sgp-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sgp-head h3 { margin: 0; font-size: 14px; font-weight: 700; color: var(--color-text); }
+.sgp-head span { flex-shrink: 0; font-size: 12px; color: var(--color-muted); }
+.sgp-sub { font-size: 13px; font-weight: 700; color: var(--color-text); margin-top: 2px; }
+
+/* Лента стикеров — горизонтальная прокрутка с фейдами SCROLL-01 (useScrollFades). */
+.sgp-stickers, .sgp-chips {
+  display: flex; gap: 8px; min-width: 0;
+  overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+  padding: 2px 0;
+}
+.sgp-sticker {
+  position: relative; flex: 0 0 auto; width: 72px; height: 72px; padding: 6px;
+  border-radius: 16px; border: 2px solid transparent; background: var(--color-bg-2);
+  cursor: pointer; scroll-snap-align: start;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s ease, background-color .15s ease, transform .12s ease;
+}
+.sgp-sticker img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.sgp-sticker:not(:disabled):active { transform: scale(.96); }
+.sgp-sticker.sgp-on { border-color: var(--color-accent); background: var(--color-purple-soft); }
+/* Уже есть у ученика — приглушён и не выбирается. */
+.sgp-sticker.sgp-owned { opacity: .35; filter: grayscale(.6); cursor: default; }
+.sgp-sticker:disabled:not(.sgp-owned) { cursor: default; }
+.sgp-check {
+  position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 999px;
+  background: var(--color-accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sgp-chip {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; min-height: 36px;
+  padding: 5px 14px 5px 5px; border-radius: 999px; border: 1px solid transparent;
+  background: var(--color-bg-2); color: var(--color-text);
+  font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; scroll-snap-align: start;
+  transition: background-color .15s ease, color .15s ease;
+}
+.sgp-chip.sgp-on { background: var(--color-accent); color: #fff; }
+.sgp-chip:disabled { opacity: .55; cursor: default; }
+.sgp-chip-label { white-space: nowrap; }
+.sgp-glyph {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; color: #1b1530;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.sgp-glyph-num { font-size: 9px; font-weight: 800; letter-spacing: -.02em; }
+
+.sgp-preview {
+  display: flex; align-items: center; gap: 12px; min-width: 0;
+  padding: 10px 14px; border-radius: 14px; background: var(--color-purple-soft);
+}
+.sgp-preview img { width: 44px; height: 44px; flex-shrink: 0; object-fit: contain; }
+.sgp-preview-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sgp-preview-text > span { font-size: 12px; color: var(--color-muted); }
+.sgp-preview-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
+
+/* Телефон (MOBILE-01): кнопки-цели не меньше 44 px. */
+html[data-platform="iphone"] .sgp-chip, html[data-platform="ipad"] .sgp-chip, html[data-platform="android"] .sgp-chip { min-height: 44px; }

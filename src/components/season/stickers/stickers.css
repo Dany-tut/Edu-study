@@ -1,0 +1,211 @@
+/*
+ * Новогодняя коллекция стикеров: окно приветствия (D), альбом (E), подарок
+ * учителя (H), всплывашка «Новый стикер!». Макеты — Figma «Искра», стр. 19.
+ * Цвета — токены кабинета; золото редких и ночь баннеров — свои, сезонные.
+ */
+
+:root { --stk-gold: #F5B93D; --stk-gold-soft: rgba(245, 185, 61, 0.16); --stk-night: #1E1650; --stk-new: #FF4F8B; }
+
+/* ── каркас окна (ПК, iPad) ─────────────────────────────────────────────── */
+.stk-window { position: relative; display: flex; flex-direction: column; overflow: hidden; pointer-events: auto; max-width: 100%; max-height: 90dvh; }
+.stk-window__close { position: absolute; top: 24px; right: 24px; z-index: 3; }
+.stk-window__close button { background: rgba(255, 255, 255, 0.18) !important; color: #fff !important; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+/* Снежная кромка над баннером: зубчики сугроба по верху карточки. */
+.stk-snow { position: absolute; left: 0; right: 0; top: 0; height: 9px; z-index: 2; pointer-events: none;
+  background: radial-gradient(circle at 9px -2px, #fff 8px, transparent 8.5px) 0 0 / 18px 9px repeat-x; opacity: 0.92; }
+
+/* ── кнопки ─────────────────────────────────────────────────────────────── */
+.stk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 20px; border-radius: 14px; border: none; cursor: pointer;
+  font: inherit; font-size: 14px; font-weight: 700; transition: background 0.15s, transform 0.15s, box-shadow 0.15s; }
+.stk-btn:active { transform: scale(0.98); }
+.stk-btn:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+.stk-btn--primary { background: var(--color-control-accent); color: #fff; box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.3); }
+.stk-btn--primary:hover { box-shadow: 0 10px 26px rgba(var(--accent-rgb), 0.42); }
+.stk-btn--soft { background: rgba(var(--accent-rgb), 0.1); color: var(--color-control-accent); }
+.stk-btn--soft:hover { background: rgba(var(--accent-rgb), 0.16); }
+.stk-btn--link { background: none; color: var(--color-control-accent); padding: 0 12px; }
+.stk-btn--link:hover { background: rgba(var(--accent-rgb), 0.08); }
+.stk-btn--small { min-height: 36px; padding: 0 14px; font-size: 13px; border-radius: 12px; }
+html[data-theme="dark"] .stk-btn--primary { background: #8B7CF6; }
+html[data-theme="dark"] .stk-btn--soft { background: rgba(139, 124, 246, 0.16); color: #B7ACFF; }
+html[data-theme="dark"] .stk-btn--link { color: #B7ACFF; }
+
+/* ── баннер (шапка окна приветствия и альбома) ─────────────────────────── */
+.stk-banner { position: relative; overflow: hidden; border-radius: 18px; background: var(--stk-night) center / cover no-repeat; color: #fff; isolation: isolate; }
+.stk-banner::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(20, 12, 60, 0.55), rgba(20, 12, 60, 0) 60%); }
+.stk-banner__chips { position: absolute; left: 14px; top: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.stk-chip { display: inline-flex; align-items: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(255, 255, 255, 0.16); color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.stk-banner__og { position: absolute; right: 6px; bottom: -6px; height: 128%; width: auto; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35)); pointer-events: none; }
+
+/* ── окно приветствия (D) ──────────────────────────────────────────────── */
+.stk-ask { padding: 18px 20px 4px; }
+.stk-ask .stk-banner { height: 150px; }
+.stk-ask__title { margin: 16px 0 0; font-size: 22px; font-weight: 800; line-height: 1.2; color: var(--color-text); }
+.stk-ask__text { margin: 6px 0 0; font-size: 13.5px; line-height: 1.4; color: var(--color-text-3); }
+.stk-themes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.stk-theme { position: relative; display: flex; flex-direction: column; text-align: left; padding: 0; border-radius: 16px; overflow: hidden; cursor: pointer; font: inherit;
+  border: 1.5px solid var(--color-border); background: var(--color-bg-3); transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.stk-theme:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.stk-theme:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+.stk-theme[aria-pressed="true"] { border: 2px solid var(--color-control-accent); box-shadow: 0 8px 22px rgba(var(--accent-rgb), 0.22); }
+.stk-theme__art { display: block; height: 78px; background: var(--stk-night) center / cover no-repeat; }
+.stk-theme__check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--color-control-accent); color: #fff; font-size: 12px; font-weight: 800; box-shadow: 0 0 0 2px #fff; }
+.stk-theme__body { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px 10px; min-width: 0; }
+.stk-theme__name { font-size: 13px; font-weight: 750; color: var(--color-text); line-height: 1.25; }
+.stk-theme__about { font-size: 11.5px; color: var(--color-text-3); line-height: 1.3; }
+
+.stk-how { margin-top: 16px; }
+.stk-how__label { font-size: 12.5px; font-weight: 750; color: var(--color-text); }
+.stk-ways { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.stk-way { display: inline-flex; align-items: center; gap: 8px; min-height: 30px; padding: 3px 12px 3px 4px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-bg-2); font-size: 12.5px; color: var(--color-text-2); }
+.stk-badge { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 800;
+  background: rgba(var(--accent-rgb), 0.12); color: var(--color-control-accent); }
+.stk-badge--gold { background: var(--stk-gold); color: #4A2A00; }
+html[data-theme="dark"] .stk-badge { background: rgba(139, 124, 246, 0.2); color: #C9C0FF; }
+html[data-theme="dark"] .stk-badge--gold { background: var(--stk-gold); color: #4A2A00; }
+
+.stk-row { display: flex; align-items: center; margin-top: 14px; }
+.stk-row__img { width: 40px; height: 40px; object-fit: contain; margin-right: -6px; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.16)); }
+.stk-row__more { margin-left: 12px; }
+
+.stk-ask__foot { display: flex; align-items: center; gap: 12px; padding: 14px 20px 18px; }
+.stk-ask__foot .stk-btn--primary { min-width: 200px; }
+.stk-ask__note { margin-left: auto; max-width: 140px; text-align: right; font-size: 11px; line-height: 1.3; color: var(--color-text-4); }
+
+/* ── сетка альбома (E) ─────────────────────────────────────────────────── */
+.stk-album-head { position: relative; flex-shrink: 0; min-height: 96px; padding: 20px 64px 16px 24px; border-radius: 0; }
+.stk-album-head .stk-banner__title { font-size: 24px; font-weight: 800; line-height: 1.15; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+.stk-album-head .stk-banner__sub { margin-top: 4px; font-size: 12.5px; opacity: 0.9; }
+.stk-progress { position: relative; height: 6px; border-radius: 3px; background: rgba(var(--accent-rgb), 0.14); overflow: hidden; }
+.stk-progress > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, #8B7CF6, #FF8BC4); }
+.stk-album-head .stk-progress { width: min(260px, 60%); margin-top: 10px; background: rgba(255, 255, 255, 0.22); }
+
+.stk-album { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; padding: 18px 20px 20px; }
+.stk-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.stk-grid--phone { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stk-cell { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 6px; min-height: 96px; border-radius: 14px; cursor: pointer; font: inherit;
+  border: 1.5px solid var(--color-border); background: var(--color-bg-2); transition: border-color 0.15s, box-shadow 0.15s; }
+.stk-cell:hover { border-color: rgba(var(--accent-rgb), 0.45); }
+.stk-cell:focus-visible { outline: 2px solid var(--color-control-accent); outline-offset: 2px; }
+.stk-cell[data-missing] { border-style: dashed; background: var(--color-bg-3); }
+.stk-cell[data-rare] { border-color: rgba(245, 185, 61, 0.7); }
+.stk-cell[data-rare]:not([data-missing]) { border: 2px solid var(--stk-gold); background: var(--stk-gold-soft); }
+.stk-cell[aria-pressed="true"] { border: 2px solid var(--color-control-accent); box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.22); }
+.stk-cell__img { width: 54px; height: 54px; object-fit: contain; flex-shrink: 0; }
+.stk-silhouette { filter: brightness(0); opacity: 0.14; }
+html[data-theme="dark"] .stk-silhouette { filter: brightness(0) invert(1); opacity: 0.12; }
+.stk-cell__label { width: 100%; font-size: 10.5px; line-height: 1.25; text-align: center; color: var(--color-text-2); }
+.stk-cell[data-missing] .stk-cell__label { color: var(--color-text-4); }
+.stk-cell__star { position: absolute; top: 5px; left: 5px; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--stk-gold); color: #4A2A00; font-size: 10px; font-weight: 800; }
+.stk-new { position: absolute; top: -7px; right: 4px; padding: 1px 7px; border-radius: 999px; background: var(--stk-new); color: #fff; font-size: 10px; font-weight: 800; line-height: 15px; box-shadow: 0 2px 6px rgba(255, 79, 139, 0.4); }
+
+.stk-ways-box { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: rgba(var(--accent-rgb), 0.06); }
+.stk-ways-box__title { font-size: 13px; font-weight: 750; color: var(--color-text); }
+.stk-ways-list { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 8px 10px; margin-top: 10px; font-size: 12.5px; }
+.stk-ways-list b { font-weight: 700; color: var(--color-text); }
+.stk-ways-list span:not(.stk-badge) { color: var(--color-text-3); }
+
+/* Панель подробностей справа */
+.stk-detail { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 16px; border-radius: 18px; background: rgba(var(--accent-rgb), 0.06); align-self: start; }
+.stk-detail__img { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.18)); }
+.stk-detail__pill { margin-top: 6px; padding: 1px 9px; border-radius: 999px; background: var(--stk-new); color: #fff; font-size: 10.5px; font-weight: 800; }
+.stk-detail__pill--rare { background: var(--stk-gold); color: #4A2A00; }
+.stk-detail__name { margin-top: 8px; width: 100%; font-size: 17px; font-weight: 800; color: var(--color-text); line-height: 1.25; }
+.stk-detail__text { margin-top: 4px; width: 100%; font-size: 12.5px; line-height: 1.35; color: var(--color-text-3); }
+.stk-detail .stk-btn { width: 100%; margin-top: 12px; }
+
+.stk-next { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 14px; background: var(--color-bg-2); border: 1px solid var(--color-border); text-align: left; }
+.stk-next__img { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; }
+.stk-next__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.stk-next__title { font-size: 13px; font-weight: 750; color: var(--color-text); }
+.stk-next__hint { font-size: 11.5px; color: var(--color-text-3); }
+.stk-next-label { align-self: flex-start; margin-top: 16px; margin-bottom: 6px; font-size: 11.5px; font-weight: 700; color: var(--color-text-3); }
+
+/* Телефонная шапка альбома и плашка выбранного стикера */
+.stk-phone-head { padding: 2px 0 12px; }
+.stk-phone-head__title { font-size: 22px; font-weight: 800; color: var(--color-text); line-height: 1.2; }
+.stk-phone-head__line { display: flex; align-items: center; gap: 12px; margin-top: 4px; font-size: 12.5px; color: var(--color-text-3); }
+.stk-phone-head__line .stk-progress { flex: 1; }
+.stk-pick { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 12px; border-radius: 16px; background: rgba(var(--accent-rgb), 0.1); }
+.stk-pick__img { width: 46px; height: 46px; object-fit: contain; flex-shrink: 0; }
+.stk-pick__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.stk-pick__title { font-size: 13.5px; font-weight: 750; color: var(--color-text); }
+.stk-pick__text { font-size: 11.5px; color: var(--color-text-3); }
+.stk-pick .stk-btn { flex-shrink: 0; }
+
+/* ── подарок учителя (H) ───────────────────────────────────────────────── */
+.stk-gift { padding: 16px 16px 4px; text-align: center; }
+.stk-scene { position: relative; height: 190px; border-radius: 18px; overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 55%, rgba(255, 196, 92, 0.55), rgba(255, 196, 92, 0) 45%),
+    radial-gradient(circle at 12% 8%, #FF5C8A 2.5px, transparent 3px) 0 0 / 46px 24px repeat-x,
+    radial-gradient(circle at 34% 8%, #7FE7FF 2.5px, transparent 3px) 0 0 / 46px 24px repeat-x,
+    radial-gradient(circle at 60% 8%, #B6FF3B 2.5px, transparent 3px) 0 0 / 46px 24px repeat-x,
+    radial-gradient(circle at 84% 8%, #F5B93D 2.5px, transparent 3px) 0 0 / 46px 24px repeat-x,
+    linear-gradient(180deg, #160F3C, #2A1C6A); }
+.stk-scene__sticker { position: absolute; left: 50%; top: 52%; width: 150px; height: 150px; object-fit: contain; translate: -50% -50%; filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.35)); }
+.stk-scene__box { position: absolute; left: 10px; bottom: 6px; width: 74px; height: auto; pointer-events: none; }
+.stk-medal { position: absolute; right: 18px; bottom: 18px; width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 900; color: #3A2400; border: 3px solid #fff; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3); }
+.stk-medal--small { position: static; width: 34px; height: 34px; font-size: 12px; border-width: 2px; flex-shrink: 0; box-shadow: none; }
+.stk-gift__from { margin-top: 12px; font-size: 12px; font-weight: 700; color: var(--color-control-accent); }
+html[data-theme="dark"] .stk-gift__from { color: #B7ACFF; }
+.stk-gift__name { margin-top: 2px; font-size: 21px; font-weight: 800; color: var(--color-text); line-height: 1.2; }
+.stk-gift__note { margin-top: 10px; padding: 10px 14px; border-radius: 14px; background: rgba(var(--accent-rgb), 0.1); font-size: 13.5px; font-weight: 700; color: var(--color-text); line-height: 1.35; overflow-wrap: anywhere; }
+.stk-gift__ach { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 12px; border-radius: 14px; background: var(--color-bg-3); text-align: left; }
+.stk-gift__ach-title { font-size: 13px; font-weight: 750; color: var(--color-text); }
+.stk-gift__ach-sub { font-size: 11.5px; color: var(--color-text-3); }
+.stk-gift__hint { margin-top: 10px; font-size: 11.5px; color: var(--color-text-4); line-height: 1.35; }
+.stk-foot { display: flex; gap: 10px; padding: 14px 16px 16px; }
+.stk-foot .stk-btn { flex: 1; }
+.stk-foot--stack { flex-direction: column; gap: 8px; padding: 0; }
+
+/* ── всплывашка «Новый стикер!» ────────────────────────────────────────── */
+.stk-toast-wrap { position: fixed; z-index: 1300; pointer-events: none; display: flex; }
+.stk-toast-wrap[data-place="corner"] { right: 20px; bottom: 20px; }
+.stk-toast-wrap[data-place="top"] { left: 12px; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 8px); justify-content: center; }
+.stk-toast-wrap[data-place="bottom"] { left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); justify-content: center; }
+.stk-toast { position: relative; pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 340px; max-width: 100%; padding: 12px 12px 12px 10px; border-radius: 20px; overflow: hidden;
+  background: var(--color-bg-2); border: 1px solid var(--color-border); box-shadow: var(--shadow-5); }
+html[data-platform="iphone"] .stk-toast, html[data-platform="ipad"] .stk-toast { background: rgba(var(--glass-rgb), 0.86); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); }
+.stk-toast__img { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); }
+.stk-toast__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.stk-toast__eyebrow { font-size: 11px; font-weight: 800; color: var(--stk-new); text-transform: uppercase; letter-spacing: 0.04em; }
+.stk-toast__name { font-size: 14px; font-weight: 750; color: var(--color-text); }
+.stk-toast .stk-btn { flex-shrink: 0; }
+
+/* Конфетти: только когда движение не уменьшено. */
+.stk-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.stk-confetti i { position: absolute; top: -8px; width: 6px; height: 9px; border-radius: 2px; background: var(--c); left: var(--x); opacity: 0;
+  animation: stk-fall 1.6s var(--d) cubic-bezier(0.25, 0.6, 0.4, 1) forwards; }
+@keyframes stk-fall {
+  0% { opacity: 1; transform: translateY(0) rotate(0); }
+  100% { opacity: 0; transform: translateY(var(--h, 120px)) rotate(var(--r)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stk-confetti { display: none; }
+  .stk-btn, .stk-theme, .stk-cell { transition: none; }
+}
+
+/* ── телефон: колонки уже ──────────────────────────────────────────────── */
+.stk-sheet .stk-ask__title { margin-top: 14px; font-size: 20px; }
+.stk-sheet .stk-banner { height: 128px; }
+.stk-sheet .stk-themes { gap: 8px; }
+.stk-sheet .stk-theme__art { height: 60px; }
+.stk-sheet .stk-ways { flex-direction: column; align-items: flex-start; }
+.stk-sheet .stk-way { border: none; background: none; padding-left: 0; min-height: 26px; }
+.stk-sheet .stk-scene { height: 170px; }
+.stk-sheet-foot { display: flex; flex-direction: column; gap: 6px; }
+.stk-sheet-foot .stk-btn { width: 100%; min-height: 48px; }
+
+@media (max-width: 860px) {
+  .stk-album { grid-template-columns: minmax(0, 1fr); }
+  .stk-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Палец: малые кнопки тоже не ниже 44 px (MOBILE-01). */
+html[data-platform="iphone"] .stk-btn--small,
+html[data-platform="ipad"] .stk-btn--small,
+html[data-platform="android"] .stk-btn--small { min-height: 44px; }
