@@ -816,7 +816,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
       return initial
     }
   })
-  const { data, loading, error, reload, setData, commitAttendance } = useCourseJournal(selected.tab === 'Работы', journalActive)
+  const { data, loading, error, stale, reload, setData, commitAttendance } = useCourseJournal(selected.tab === 'Работы', journalActive)
   const position = useRef({ top: 0, left: 0 })
   const set = (v: Partial<StandSelection>) => setSelected((prev) => ({ ...prev, ...v }))
   useEffect(() => {
@@ -1091,6 +1091,14 @@ export default function JournalStand({ owner, user, production = false }: { owne
       standContent={
         content && (
           <>
+            {stale && data && !data.demo && (
+              <p role="alert" className="cj-note">
+                {stale}{' '}
+                <button type="button" className="cj-button" disabled={loading} onClick={reload}>
+                  <OpticalText as="iskra-button-label">Обновить</OpticalText>
+                </button>
+              </p>
+            )}
             {data?.warnings.map((w) => (
               <p key={w} role="status" className="cj-note">
                 {w}

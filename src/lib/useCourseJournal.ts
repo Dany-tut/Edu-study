@@ -13,6 +13,17 @@ import { readFreshJournalSnapshot, readStartupJournalSnapshot } from './journalS
 import { shouldReloadJournalForChange } from './journalRealtimePolicy'
 import { subscribeTeacherDataChanges } from './teacherDataRealtime'
 
+const SLOW_JOURNAL = 'Журнал загружается дольше обычного. Проверьте соединение и нажмите «Обновить».'
+const timedOut = () => new DOMException('Journal load timed out', 'TimeoutError')
+/** Обрыв, таймаут сервера и пустой пул соединений — не сырой «AbortError», а понятная причина. */
+export function journalLoadMessage(e: unknown) {
+  const name = e instanceof DOMException || e instanceof Error ? e.name : ''
+  const code = typeof e === 'object' && e && 'code' in e ? String((e as { code: unknown }).code) : ''
+  const message = e instanceof Error ? e.message : typeof e === 'object' && e && 'message' in e ? String((e as { message: unknown }).message) : ''
+  if (name === 'AbortError' || name === 'TimeoutError' || code === '57014' || code === 'PGRST003' || /aborted|timeout|timed out/i.test(message)) return SLOW_JOURNAL
+  return message || 'Не удалось загрузить журнал'
+}
+
 // A bounded pool avoids serial round trips for large rosters and session IDs.
 async function byIds<T>(table: string, columns: string, field: string, ids: string[], signal: AbortSignal): Promise<T[]> {
   const started = performance.now()
@@ -81,6 +92,8 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   const confirmations = useRef<AttendanceConfirmation[]>([])
   const [data, updateData] = useState<CourseJournalData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Повторная загрузка не удалась, но прежний журнал остаётся на экране.
+  const [stale, setStale] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [tick, setTick] = useState(0)
   const dataRef = useRef(data)
@@ -106,7 +119,7 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
   useEffect(() => {
     if (!enabled || (tick === 0 && dataRef.current && Date.now() - lastLoaded.current < 30_000)) return
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 20_000)
+    const timeout = setTimeout(() => controller.abort(timedOut()), 20_000)
     const owner = getOwnerId()
     const read = owner.then(id => id
       ? parallelRoster
@@ -145,6 +158,11 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     let active = true
     const controller = new AbortController()
     const { signal } = controller
+    // Уже показанный журнал не заменяем ошибкой: сбой перезагрузки — плашка поверх.
+    const fail = (message: string) => {
+      if (dataRef.current && !dataRef.current.demo) setStale(message)
+      else setError(message)
+    }
     lastLoaded.current = Date.now()
     const loadStarted = performance.now()
     traceStart.current = loadStarted
@@ -205,15 +223,15 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
       return { courses, lessons, modules, work, events, assignments, legacy, marks, attempts, warnings, demo: false, students: [], groups: [] } as CourseJournalData
     }
     const timeout = setTimeout(() => {
-      controller.abort()
+      controller.abort(timedOut())
       if (active) {
         active = false
-        setError('Журнал загружается дольше обычного. Проверьте соединение и нажмите «Обновить».')
+        fail(SLOW_JOURNAL)
         setLoading(false)
       }
     }, 20_000)
-    void load().then(next => { if (active) { loadedScope.current = loadKey; loadedCompleteWorkList.current = completeWorkList; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), completeWorkList, lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); updateData(reconcileAttendanceSnapshot(next, confirmations.current, readRevision)); confirmations.current = confirmations.current.filter(c => c.revision > readRevision) } }).catch(e => {
-      if (active) setError(e instanceof Error ? e.message : 'Не удалось загрузить журнал')
+    void load().then(next => { if (active) { loadedScope.current = loadKey; loadedCompleteWorkList.current = completeWorkList; lastLoaded.current = Date.now(); traceReady.current = performance.now(); console.debug('[journal-ready] ' + JSON.stringify({ ms: Math.round(performance.now() - loadStarted), completeWorkList, lessons: next.lessons.length, work: next.work.length, modules: next.modules.length, assignments: next.assignments.length, attempts: next.attempts.length, events: next.events.length, marks: next.marks.length, students: idsCount(studentIds), groups: idsCount(groupIds) })); setStale(null); updateData(reconcileAttendanceSnapshot(next, confirmations.current, readRevision)); confirmations.current = confirmations.current.filter(c => c.revision > readRevision) } }).catch(e => {
+      if (active) fail(journalLoadMessage(e))
     }).finally(() => { clearTimeout(timeout); controller.abort(); if (active) setLoading(false) })
     return () => { active = false; clearTimeout(timeout); controller.abort() }
   }, [studentIds, groupIds, tick, completeWorkList, rosterReady, enabled])
@@ -258,5 +276,5 @@ export function useCourseJournal(completeWorkList = false, enabled = true, paral
     return () => { unsubscribe(); if (timer) clearTimeout(timer) }
   }, [enabled, reloadFrom])
   const resolved = useMemo(() => data && !data.demo ? { ...data, students, groups } : data, [data, students, groups])
-  return { data: resolved, loading, error, reload, setData, commitAttendance }
+  return { data: resolved, loading, error, stale, reload, setData, commitAttendance }
 }

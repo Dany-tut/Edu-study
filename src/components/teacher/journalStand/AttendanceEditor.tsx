@@ -94,6 +94,8 @@ export default function AttendanceEditor({ cells, onClose, onSaved, onCommitted,
   function save() {
     if (!dirty || busy || blocked || invalidPercent) return
     setError('')
+    // Что-то уже записано — журнал перечитываем; иначе не грузим занятую базу повторно.
+    let committed = false
     void action.run(async signal => {
       const events = new Map<string, number[]>()
       cells.forEach((c, i) => {
@@ -106,6 +108,7 @@ export default function AttendanceEditor({ cells, onClose, onSaved, onCommitted,
         await saveLesson(event.group_id, event.date, indices.map(i => ({ studentId: cells[i].student.id, present: draft[i].present, grade: draft[i].grade })),
           event.lesson_title, event.id, signal, transfer ? 'transfer' : undefined)
         signal.throwIfAborted()
+        committed = true
         onCommitted?.(indices.map(i => ({ event, studentId: cells[i].student.id,
           present: draft[i].present, grade: draft[i].grade,
           source: transfer ? 'transfer' : recordings[i] ? 'recording' : 'live' })))
@@ -115,11 +118,12 @@ export default function AttendanceEditor({ cells, onClose, onSaved, onCommitted,
         if (!transfer || !data || !homeworkChanged(draft[i], baseline.current[i]) || draft[i].hw === 'keep' || blockedBy[i]) continue
         signal.throwIfAborted()
         await saveTransferHomework(cells[i], columnSubject(data, cells[i]), homeworkMark(draft[i]))
+        committed = true
         baseline.current = baseline.current.map((m, n) => n === i ? { ...m, hw: draft[i].hw, hwGrade: draft[i].hwGrade, hwPercent: draft[i].hwPercent } : m)
       }
       cells.forEach((_, i) => { drafts.delete(key(i)); try { sessionStorage.removeItem(key(i)) } catch { /* storage unavailable */ } })
     }, () => { onSaved(); onClose() }, cause => {
-      onSaved()
+      if (committed) onSaved()
       const reason = cause instanceof Error && /Проверьте|сдача|предмет/.test(cause.message) ? '\n' + cause.message : ''
       setError(t('Не удалось подтвердить сохранение всех отметок.\nЧерновик сохранён. Проверьте журнал и повторите оставшиеся изменения.') + reason)
     })

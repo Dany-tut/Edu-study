@@ -185,7 +185,7 @@ function NativeJournalBar({ bar, onTap, onMenu }: {
 export default function CourseJournal({ mobile = false, nativeIphone = false }: { mobile?: boolean; nativeIphone?: boolean }) {
   const t = useT()
   const { tc, tn } = useTc()
-  const { data, error, loading, reload, setData, commitAttendance } = useCourseJournal(false, true, nativeIphone)
+  const { data, error, stale, loading, reload, setData, commitAttendance } = useCourseJournal(false, true, nativeIphone)
   const tz = useTeacherTz(s => s.tz)
   const [clock, setClock] = useState(() => new Date().toISOString())
   // Schedule wall dates and homework deadlines are stored in Moscow time.
@@ -319,6 +319,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
       <div className="cj-heading-actions"><button className="cj-icon-button" type="button" aria-label={t('Обновить журнал')} disabled={loading} onClick={reload}><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /></button><button className="cj-button" type="button" onClick={exportCsv} disabled={!visibleCells.length}><Download size={15} /><OpticalText as="iskra-button-label">{mobile ? 'CSV' : t('Экспорт CSV')}</OpticalText></button></div>
     </header>}
     {data.demo && (mobile ? <div className="cj-mobile-demo-note"><span>{t('Демопросмотр')}</span><a data-hover="link" href="#/teacher/login">{t('Войти в аккаунт')}</a></div> : <div className="cj-demo"><span>{t('Демопросмотр')}</span>{t('Одна группа учится на химии, биологии и интенсиве. Изменения останутся в этом просмотре.')}<a data-hover="link" href="#/teacher/login">{t('Войти в аккаунт')}</a></div>)}
+    {stale && !data.demo && <Alert tone="warning" text={t(stale)} />}
     {data.warnings.map(warning => <Alert key={warning} tone="warning" text={t(warning)} />)}
     {mobile ? <>
       {nativeIphone ? <>
