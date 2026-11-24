@@ -15,6 +15,7 @@ import { GLASS, useGlassBar, useNativeOverlay } from '../lib/nativeGlass'
 import { PLATFORM } from '../lib/platform'
 import FeedbackModal from './FeedbackModal'
 import { useMyPayment } from '../lib/paymentClaims'
+import { useStickyMenuFlag } from '../lib/stickyMenuFlag'
 import CourseTintSheet, { useCurrentTintColor } from './CourseTintSheet'
 import { CourseOrderSheet } from './CourseOrderModal'
 import FeedGesturesSheet, { ACTION_LABEL } from './FeedGesturesSheet'
@@ -90,10 +91,14 @@ export default function MobileProfilePage() {
   // «Оплата» есть, только если у учителя включена функция оплат.
   const paymentAvailable = useMyPayment(s => !!paymentStudent && s.studentId === paymentStudent && s.info !== null)
   useEffect(() => { if (paymentStudent) void useMyPayment.getState().load(paymentStudent) }, [paymentStudent])
-  const [isAdmin, setIsAdmin] = useState(false)
+  const paymentKnown = useMyPayment(s => !!paymentStudent && s.studentId === paymentStudent && s.loaded)
+  const [adminAnswer, setAdminAnswer] = useState<boolean | null>(null)
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setIsAdmin(data.user?.app_metadata?.role === 'admin'))
+    supabase.auth.getUser().then(({ data }) => setAdminAnswer(data.user?.app_metadata?.role === 'admin'))
   }, [])
+  // Строки, зависящие от сервера, до ответа берутся из памяти — профиль не растёт на глазах.
+  const isAdmin = useStickyMenuFlag(paymentStudent, 'admin', adminAnswer === true, adminAnswer !== null)
+  const showPayment = useStickyMenuFlag(paymentStudent, 'payment', paymentAvailable, paymentKnown)
   const { avatarPath, savePhoto, removePhoto } = useStudentAvatarPhoto()
   const [cropFile, setCropFile] = useState<File | null>(null)
   const [tintOpen, setTintOpen] = useState(false)
@@ -508,7 +513,7 @@ export default function MobileProfilePage() {
                 <ChevronRight size={18} style={{ color: 'var(--color-accent)' }} />
               </motion.button>}
 
-              {paymentAvailable && <motion.button data-hover="layer"
+              {showPayment && <motion.button data-hover="layer"
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { tactile(); useMyPayment.getState().setOpen(true) }}
                 className="flex items-center justify-between cursor-pointer"

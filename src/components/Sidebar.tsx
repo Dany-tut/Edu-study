@@ -24,6 +24,7 @@ import WidgetOrderModal from './WidgetOrderModal'
 import CourseOrderModal from './CourseOrderModal'
 import { CourseTintModal, useCurrentTintColor } from './CourseTintSheet'
 import FeedbackModal from './FeedbackModal'
+import { useStickyMenuFlag } from '../lib/stickyMenuFlag'
 import { useMyPayment } from '../lib/paymentClaims'
 import AppVersionRow from './AppVersionRow'
 import { useTheme } from '../store/themeStore'
@@ -243,14 +244,20 @@ export default function Sidebar() {
   // «Оплата» есть, только если у учителя включена функция оплат.
   const paymentAvailable = useMyPayment(s => !!session && s.studentId === session.id && s.info !== null)
   useEffect(() => { if (session?.id) void useMyPayment.getState().load(session.id) }, [session?.id])
-  const [isAdmin, setIsAdmin] = useState(false)
+  const paymentKnown = useMyPayment(s => !!session && s.studentId === session.id && s.loaded)
+  const [adminAnswer, setAdminAnswer] = useState<boolean | null>(null)
   useEffect(() => {
     let alive = true
     supabase.auth.getUser().then(({ data }) => {
-      if (alive) setIsAdmin(data.user?.app_metadata?.role === 'admin')
+      if (alive) setAdminAnswer(data.user?.app_metadata?.role === 'admin')
     })
     return () => { alive = false }
   }, [])
+  // Меню профиля открывается сразу в прошлом размере: пункты, зависящие от
+  // сервера, до ответа берутся из памяти (lib/stickyMenuFlag).
+  const isAdmin = useStickyMenuFlag(session?.id, 'admin', adminAnswer === true, adminAnswer !== null)
+  const showPayment = useStickyMenuFlag(session?.id, 'payment', paymentAvailable, paymentKnown)
+  const showFriends = useStickyMenuFlag(session?.id, 'friends', !!friends.account, friends.resolved)
   const displayName = session?.name ?? ''
   const AVATARS = buildAvatars(displayName)
   const scheduleTodayIndex = useStudentData(s => s.scheduleTodayIndex)
@@ -657,14 +664,14 @@ export default function Sidebar() {
                       />
                     )}
                     <SettingsRow icon={UserCircle} label={t('Настройки профиля')} onClick={() => { closePicker(); setProfileTab('main') }} />
-                    {friends.account && <SettingsRow icon={Users} label={t('Друзья')} onClick={() => { closePicker(); friends.setTab('contacts') }} />}
+                    {showFriends && <SettingsRow icon={Users} label={t('Друзья')} onClick={() => { closePicker(); friends.setTab('contacts') }} />}
                     <SettingsRow
                       icon={Settings}
                       label={t('Настройки')}
                       active={menuView !== 'root'}
                       onClick={() => setMenuView(menuView === 'root' ? 'settings' : 'root')}
                     />
-                    {paymentAvailable && <SettingsRow
+                    {showPayment && <SettingsRow
                       icon={Wallet}
                       label={t('Оплата')}
                       onClick={() => { useMyPayment.getState().setOpen(true); closePicker() }}

@@ -15,6 +15,8 @@ export async function friendsAction<T>(account: string, operation: string, paylo
 
 export function useDesktopFriends(enabled = true) {
   const [account, setAccount] = useState<string | null>(null)
+  // Сессия уже прочитана: account=null после этого значит «друзей нет», а не «ещё не знаем».
+  const [resolved, setResolved] = useState(false)
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [error, setError] = useState('')
   const [tab, setTab] = useState<FriendsTab | null>(null)
@@ -42,6 +44,7 @@ export function useDesktopFriends(enabled = true) {
     let authRevision = 0
     const applySession = (session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) => {
       const id = !getViewAs() && !session?.user.is_anonymous ? session?.user.id ?? null : null
+      setResolved(true)
       if (current.current === id) return
       current.current = id
       version.current++
@@ -74,6 +77,6 @@ export function useDesktopFriends(enabled = true) {
     return () => { clearInterval(interval); window.removeEventListener('focus', visible); document.removeEventListener('visibilitychange', visible) }
   }, [account, refresh])
   const incoming = snapshot?.contacts.filter(c => c.state === 'incoming') ?? []
-  return { account, tab, setTab, snapshot, refresh, error, incoming }
+  return { account, resolved, tab, setTab, snapshot, refresh, error, incoming }
 }
 export type FriendsModel = ReturnType<typeof useDesktopFriends>
