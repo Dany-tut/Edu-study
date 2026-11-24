@@ -149,14 +149,14 @@ export default function AssignPlanButton({ teacherId, currentCode, expiresAt, on
         {ok ? <Check size={14} style={{ flexShrink: 0 }} /> : <span style={{ flex: 1, minWidth: 0, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>
           {current ? (
             <>
-              {t(current.name)}
+              <OpticalText alignment="ink">{t(current.name)}</OpticalText>
               {term && (
                 <span style={{ fontWeight: 500, opacity: term.over ? 1 : 0.75, color: term.over ? '#E86A6A' : undefined }}>
-                  {' · '}{term.text}
+                  <OpticalText alignment="ink">{` · ${term.text}`}</OpticalText>
                 </span>
               )}
             </>
-          ) : t('Тариф')}
+          ) : <OpticalText alignment="ink">{t('Тариф')}</OpticalText>}
         </span>}
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}

@@ -1135,7 +1135,7 @@ function PendingAccountsContent({ students, groups, remove, storageKey }: Pendin
       {done
         ? <Check size={18} strokeWidth={2.5} style={{ color: 'var(--color-green-text)', flexShrink: 0 }} />
         : <UserPlus size={18} strokeWidth={2} style={{ color: 'var(--color-text-2)', flexShrink: 0 }} />}
-      {!hidden && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
+      {!hidden && <OpticalText alignment="ink" style={{ whiteSpace: 'nowrap' }}>{label}</OpticalText>}
       {!done && <CountBadge count={issuableCount} ring={hidden ? 'rgb(var(--glass-rgb))' : undefined}
         style={hidden ? { position: 'absolute', top: -6, right: -6 } : undefined} />}
       {!hidden && <ChevronDown size={16} strokeWidth={2.2} style={{ color: 'var(--color-text-3)', flexShrink: 0,
