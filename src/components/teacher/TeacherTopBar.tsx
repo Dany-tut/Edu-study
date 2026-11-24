@@ -545,7 +545,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
           onClick={() => setAddOpen(o => !o)}
           aria-label={t('Действия')}
           aria-expanded={addOpen}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 44, borderRadius: 14, border: 'none', cursor: 'pointer', background: addOpen ? 'var(--grad-purple)' : 'none', color: addOpen ? '#fff' : 'var(--color-muted)' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', background: addOpen ? 'var(--grad-purple)' : 'none', color: addOpen ? '#fff' : 'var(--color-muted)' }}
         >
           <LayoutGrid size={18} strokeWidth={2} />
         </motion.button>
@@ -555,7 +555,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
           whileTap={{ scale: 0.96 }}
           onClick={() => setCollapsed(c => !c)}
           aria-label={collapsed ? t('Развернуть') : t('Свернуть')}
-          style={{ width: 36, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none' }}
+          style={{ width: 36, height: 44, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-muted)', background: 'none', border: 'none' }}
         >
           <motion.span
             animate={{ rotate: collapsed ? 0 : 180 }}

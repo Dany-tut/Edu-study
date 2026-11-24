@@ -70,7 +70,9 @@ export default function NotificationBell({ friendCount = 0, size = 16, hoverBg =
       aria-expanded={active || undefined}
       style={{
         position: 'relative',
-        width: 36, height: 44, borderRadius: 14,
+        // Капсула, как вкладки и сама панель: ховер и активный фон
+        // повторяют форму соседей, а не скруглённый квадрат.
+        width: 36, height: 44, borderRadius: 999,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'pointer', background: active ? 'var(--grad-purple)' : 'none', border: 'none',
         ...(active ? { color: '#fff' } : {}),
