@@ -292,7 +292,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
         {caption && (
           // Подпись уже́ шага между кружками (~88 px): длинная («Смотреть запись»)
           // переносится в две строки, а не наезжает на соседнюю.
-          <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, marginTop: 2, maxWidth: 76, lineHeight: 1.15, ...textFadeLines(1) }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: palette.text, marginTop: 2, maxWidth: 76, lineHeight: 1.15, overflowWrap: 'break-word', textAlign: 'center' }}>
             {caption}
           </span>
         )}
