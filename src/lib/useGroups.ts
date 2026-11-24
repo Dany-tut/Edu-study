@@ -183,7 +183,14 @@ export function useGroups() {
       .order('created_at').limit(1).maybeSingle()
     if (lookupError) throw lookupError
     if (!candidate) return null
-    const { data, error } = await supabase.from('students').update({ group_id: groupId })
+    // Предмет ученика без группы — лишь подстановка формы (первый предмет
+    // учителя). В группе главный предмет — её собственный, и старая подстановка
+    // иначе остаётся вторым предметом: так у 1:1-биолога висела «Химия».
+    const { data: target, error: groupError } = await supabase.from('groups').select('subject')
+      .eq('id', groupId).maybeSingle()
+    if (groupError) throw groupError
+    const subjectPatch = target?.subject ? studentSubjectFields({ subject: target.subject }) : {}
+    const { data, error } = await supabase.from('students').update({ group_id: groupId, ...subjectPatch })
       .eq('id', candidate.id).is('group_id', null).select('id, invite_token').maybeSingle()
     if (error) throw error
     return data
