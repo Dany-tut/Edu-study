@@ -28,9 +28,17 @@ interface Props {
   active?: boolean
   highlighted?: boolean
   dashed?: boolean
+  /** Текущий урок: обводка повторяет форму узла (экран, жетон), а не круг. */
+  current?: boolean
 }
 
-export default function CourseNodeSilhouette({ shape, tone, active, highlighted, dashed }: Props) {
+// Обводка «текущего урока» отстоит от формы на ~7px, как outline-offset 5 + 2px
+// у круглого узла.
+const CURRENT_OUTLINE: Partial<Record<keyof typeof silhouettes, string>> = {
+  screen: 'M15 1 H49 Q69 1 69 21 V35 Q69 55 49 55 H15 Q-5 55 -5 35 V21 Q-5 1 15 1 Z',
+}
+
+export default function CourseNodeSilhouette({ shape, tone, active, highlighted, dashed, current }: Props) {
   const { width, height, path } = silhouettes[shape]
   return (
     <svg aria-hidden="true" focusable="false" className="track-silhouette"
@@ -40,6 +48,10 @@ export default function CourseNodeSilhouette({ shape, tone, active, highlighted,
       {/* An opaque base keeps the track from showing through translucent dark fills. */}
       <path d={path} fill="var(--color-bg-3)" />
       <path d={path} fill={tone.bg} stroke={tone.border} strokeWidth="2" strokeDasharray={dashed ? '6 4' : undefined} />
+      {current && (CURRENT_OUTLINE[shape]
+        ? <path d={CURRENT_OUTLINE[shape]} fill="none" stroke="var(--color-accent)" strokeWidth="2" />
+        : <path d={path} fill="none" stroke="var(--color-accent)" strokeWidth="2" vectorEffect="non-scaling-stroke"
+            transform={`translate(${width / 2} ${height / 2}) scale(1.25) translate(${-width / 2} ${-height / 2})`} />)}
       {shape === 'screen' && <path d="M25 42 H39" stroke="currentColor" strokeOpacity=".6" strokeWidth="2" strokeLinecap="round" />}
     </svg>
   )

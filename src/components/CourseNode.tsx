@@ -96,7 +96,8 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   const displayStatus = grade?.status ?? status
   const step = lessonTrackStep(lesson, status)
   const isAutoResult = displayStatus === 'test_low' || displayStatus === 'test_passed'
-  const caption = step ? tr(trackStepLabel[step]) : null
+  // Пропуск подписан «Не был» (концепт B, 24.11): «Смотреть запись» — кнопка в карточке урока.
+  const caption = displayStatus === 'missed' ? tr('Не был') : step ? tr(trackStepLabel[step]) : null
   const statusText = tr(lessonStatusLabel(displayStatus, lesson.kind))
   const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
   const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && !scheduleState.recordingAvailable && (scheduleState.isCurrent || scheduleState.phase === 'cancelled')
@@ -120,7 +121,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
     else if (displayStatus === 'unviewed' && lesson.shape !== 'circle') Icon = IconTest
   } else if (silhouette === 'token' && isOpen) {
     Icon = IconTest
-  } else if (silhouette === 'screen' && (isOpen || displayStatus === 'unviewed')) {
+  } else if (silhouette === 'screen' && (isOpen || displayStatus === 'unviewed' || displayStatus === 'missed')) {
     Icon = Play
   }
   const size = 56
@@ -148,7 +149,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (
-    <div ref={wrapperRef} className="season-node-wrap relative flex-shrink-0" style={{ width: size, height: size, borderRadius: nodeRadius, outline: isCurrent ? '2px solid var(--color-accent)' : undefined, outlineOffset: isCurrent ? 5 : undefined }}>
+    <div ref={wrapperRef} className="season-node-wrap relative flex-shrink-0" style={{ width: size, height: size, borderRadius: nodeRadius, outline: isCurrent && !silhouette ? '2px solid var(--color-accent)' : undefined, outlineOffset: isCurrent && !silhouette ? 5 : undefined }}>
       {isHighlighted && !silhouette && (
         <div
           className="course-node-flash-ring"
@@ -218,7 +219,7 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
         aria-label={`${tr(isTest ? 'Тест' : baseShape === 'screen' ? 'Запись' : 'Урок')} ${lessonNo(lesson)}: ${tc(lesson.title)} · ${statusDescription}${overdueLabel ? ` · ${overdueLabel}` : ''}`}
         title={statusDescription}
       >
-        {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} dashed={missed} />}
+        {silhouette && <CourseNodeSilhouette shape={silhouette} tone={palette} active={isActive} highlighted={isHighlighted} dashed={missed} current={isCurrent} />}
         <div className="relative" style={{ rotate: isDiamond ? '-45deg' : '0deg', top: silhouette === 'screen' ? -2 : undefined }}>
           <Icon color={palette.icon} size={17} strokeWidth={isToday ? 2.5 : 2} />
         </div>
