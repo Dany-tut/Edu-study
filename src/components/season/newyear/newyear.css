@@ -232,3 +232,14 @@ html[data-theme="dark"] .ny-toys > i:not([data-on]) { border-color: #5A5296; }
 @container (max-width: 250px) {
   .ny-widget__art { display: none; }
 }
+
+/* ── Кабинет преподавателя: снег и гирлянда ──────────────────────────────
+   Слой fixed поверх страницы, но ниже окон и меню (у них z-index от 1000).
+   Хлопья мелкие и полупрозрачные: текст под ними читается. */
+.ny-teacher { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+.ny-teacher * { pointer-events: none; }
+.ny-snow--teacher > i { opacity: 0.55; }
+.ny-teacher__garland { position: absolute; left: 0; right: 0; top: env(safe-area-inset-top, 0px); height: 40px; opacity: 0.95; }
+@media (max-width: 1023px) {
+  .ny-teacher__garland { height: 32px; transform: scaleY(0.8); transform-origin: top; }
+}

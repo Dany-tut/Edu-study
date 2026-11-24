@@ -39,7 +39,7 @@ const rnd = (i: number, salt: number) => {
   return x - Math.floor(x)
 }
 
-function Snow({ count, className }: { count: number; className: string }) {
+export function Snow({ count, className }: { count: number; className: string }) {
   const flakes = useMemo(() => Array.from({ length: count }, (_, i) => ({
     left: rnd(i, 1) * 100,
     y: rnd(i, 2) * 100,
@@ -68,7 +68,7 @@ const BULB_COLORS = ['#FFD25A', '#FF5FA2', '#7CF08A', '#6FC3FF', '#FF9A3D', '#C9
 const BULBS = 26
 const wave = (x: number) => 12 + 8 * Math.sin(x * Math.PI * 2 * 6.5)
 
-function Garland() {
+export function Garland() {
   const path = useMemo(() => {
     let d = ''
     for (let i = 0; i <= 200; i++) { const x = i / 200; d += `${i ? 'L' : 'M'}${(x * 1000).toFixed(1)} ${wave(x).toFixed(2)} ` }

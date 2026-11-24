@@ -1,4 +1,5 @@
 import OpticalText from '../../components/OpticalText'
+import TeacherNewYear from '../../components/season/newyear/TeacherNewYear'
 import { motion, AnimatePresence } from 'framer-motion'
 import { studentIdFromTeacherHash, teacherStudentHash } from '../../lib/teacherStudentRoute'
 import { isWidgetReviewRoute } from '../../lib/widgetReviewRoute'
@@ -187,6 +188,8 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
       </Suspense>)}</AnimatePresence>
 
     <TeacherSubjectsPrompt />
+    {/* Новый год: снег и гирлянда (часть «teacher» в админке тем). */}
+    <TeacherNewYear />
     {/* iPad (§1.1): одна капсула справа — общая оболочка в ОБЕИХ ориентациях.
         Висит fixed поверх контента (ландшафт — десктоп-ветка, портрет —
         MobileTeacherApp), заменяя и десктопный топбар, и нижнюю навигацию айфона. */}

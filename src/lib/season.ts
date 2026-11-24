@@ -25,7 +25,7 @@ export type NewYearVariant = 'yolka' | 'polnoch' | 'shar'
 export type SeasonVariant = HalloweenVariant | NewYearVariant
 /** stickers и video — только у нового года: коллекция стикеров с подарками учителя
  *  и новогоднее оформление видеоурока. Хэллоуину их не показываем. */
-export type SeasonPart = 'hero' | 'decor' | 'track' | 'empty' | 'stickers' | 'video'
+export type SeasonPart = 'hero' | 'decor' | 'track' | 'empty' | 'stickers' | 'video' | 'teacher'
 export type SeasonParts = Record<SeasonPart, boolean>
 /** ask — спрашивать ли ученика окном «Сейчас Хэллоуин — выбери тему» (иначе всем сразу
  *  включается variant). В базе лежит в parts.ask: отдельной колонки под флаг не заводили.
@@ -63,11 +63,12 @@ const NEW_YEAR_PARTS: { key: SeasonPart; title: string }[] = [
   { key: 'empty', title: 'Пустой день: снеговик' },
   { key: 'stickers', title: 'Стикеры за учёбу и подарки учителя' },
   { key: 'video', title: 'Новогодний видеоурок' },
+  { key: 'teacher', title: 'Снег и гирлянда у преподавателей' },
 ]
 /** Части, которые есть у сезона, — для админки. */
 export const partsFor = (key: SeasonKey | undefined | null) => (key === 'new-year' ? NEW_YEAR_PARTS : PARTS)
 
-const ALL_ON: SeasonParts = { hero: true, decor: true, track: true, empty: true, stickers: true, video: true }
+const ALL_ON: SeasonParts = { hero: true, decor: true, track: true, empty: true, stickers: true, video: true, teacher: true }
 
 const PREVIEW_KEY = 'season.preview'
 const personalKey = (key: SeasonKey | undefined) => `season.personal-${key ?? 'halloween'}`
@@ -326,4 +327,12 @@ export const seasonOfVariant = (v: SeasonVariant): SeasonKey => ALL_VARIANTS.fin
 export function isNewYearLive(): boolean {
   start()
   return state.season?.key === 'new-year' && isLive(state) && state.season.parts.stickers
+}
+
+/** Кабинет преподавателя: снег и гирлянда, пока идёт новый год (или предпросмотр
+ *  у админа). Учитель тему не выбирает — окна выбора у него нет; выключается
+ *  частью «Снег и гирлянда у преподавателей» в админке. */
+export function useTeacherNewYear(): boolean {
+  const s = useSeason()
+  return s.live && s.season?.key === 'new-year' && !!s.season.parts.teacher
 }
