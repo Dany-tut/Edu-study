@@ -3,12 +3,13 @@ import { Ghost } from '../icons/appIcons'
 import Switch from '../Switch'
 import Checkbox from '../Checkbox'
 import TeacherSaveButton from './TeacherSaveButton'
+import Segmented from '../Segmented'
 import DateTimeField from '../DateTimeField'
 import { Alert } from '../Alert'
 import { useT } from '../../lib/i18n'
 import {
-  loadSeason, saveSeason, setSeasonPreview, setSeasonChoice, statusOf, useSeason, seasonImg, newYearImg,
-  variantsFor, PARTS, type Season, type SeasonVariant,
+  loadSeasons, pickSeason, focusSeason, saveSeason, setSeasonPreview, setSeasonChoice, statusOf, useSeason, seasonImg, newYearImg,
+  variantsFor, partsFor, type Season, type SeasonKey, type SeasonVariant,
 } from '../../lib/season'
 
 /*
@@ -35,7 +36,11 @@ const SEASON_NAME: Record<Season['key'], string> = { halloween: 'Хэллоуи�
 export default function SeasonAdmin() {
   const t = useT()
   const view = useSeason()
-  const [draft, setDraft] = useState<Season | null>(null)
+  // Все сезоны из базы; вкладка — какой правим. По умолчанию — идущий или ближайший.
+  const [drafts, setDrafts] = useState<Partial<Record<SeasonKey, Season>>>({})
+  const [key, setKey] = useState<SeasonKey | null>(null)
+  const draft = key ? drafts[key] ?? null : null
+  const setDraft = (f: (d: Season | null) => Season | null) => { if (key) setDrafts(all => { const next = f(all[key] ?? null); return next ? { ...all, [key]: next } : all }) }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -43,8 +48,15 @@ export default function SeasonAdmin() {
 
   useEffect(() => {
     let alive = true
-    loadSeason()
-      .then(s => { if (alive) { setDraft(s); setLoading(false) } })
+    loadSeasons()
+      .then(rows => {
+        if (!alive) return
+        setDrafts(Object.fromEntries(rows.map(r => [r.key, r])))
+        const current = (view.season && rows.find(r => r.key === view.season!.key)) || pickSeason(rows)
+        setKey(current?.key ?? null)
+        if (current) focusSeason(current)
+        setLoading(false)
+      })
       .catch(e => { if (alive) { setError(String(e.message ?? e)); setLoading(false) } })
     return () => { alive = false }
   }, [])
@@ -72,7 +84,7 @@ export default function SeasonAdmin() {
     const err = await saveSeason(draft)
     setSaving(false)
     if (err) setError(err)
-    else setSaved(true)
+    else { setSaved(true); focusSeason(draft) }
   }
 
   return (
@@ -83,6 +95,16 @@ export default function SeasonAdmin() {
           {t('Праздничная тема')}
         </div>
       </div>
+      {Object.keys(drafts).length > 1 && (
+        <div style={{ marginBottom: 10 }}>
+          <Segmented<SeasonKey>
+            variant="filter"
+            value={draft.key}
+            onChange={k => { const s = drafts[k]; if (!s) return; setKey(k); setSaved(false); setError(null); focusSeason(s) }}
+            items={(['halloween', 'new-year'] as const).filter(k => drafts[k]).map(k => ({ id: k, label: t(SEASON_NAME[k]) }))}
+          />
+        </div>
+      )}
       <div style={{ background: 'var(--color-bg-2)', border: '1px solid var(--color-border-medium)', borderRadius: 16, overflow: 'hidden' }}>
         {/* Главный рубильник */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', background: 'var(--color-bg-3)' }}>
@@ -151,7 +173,7 @@ export default function SeasonAdmin() {
 
           <div style={{ fontSize: 12, color: 'var(--color-text-3)', margin: '16px 0 8px' }}>{t('Что включать')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
-            {PARTS.map(p => (
+            {partsFor(draft.key).map(p => (
               <Checkbox key={p.key} checked={draft.parts[p.key]} onChange={v => patch({ parts: { ...draft.parts, [p.key]: v } })}>
                 <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t(p.title)}</span>
               </Checkbox>

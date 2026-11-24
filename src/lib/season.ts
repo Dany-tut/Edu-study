@@ -23,7 +23,9 @@ export type HalloweenVariant = 'lanterns' | 'candy' | 'potions'
  *  Макеты — Figma «Искра», стр. «19 · Искра · Новый год 2027 · концепты». */
 export type NewYearVariant = 'yolka' | 'polnoch' | 'shar'
 export type SeasonVariant = HalloweenVariant | NewYearVariant
-export type SeasonPart = 'hero' | 'decor' | 'track' | 'empty'
+/** stickers и video — только у нового года: коллекция стикеров с подарками учителя
+ *  и новогоднее оформление видеоурока. Хэллоуину их не показываем. */
+export type SeasonPart = 'hero' | 'decor' | 'track' | 'empty' | 'stickers' | 'video'
 export type SeasonParts = Record<SeasonPart, boolean>
 /** ask — спрашивать ли ученика окном «Сейчас Хэллоуин — выбери тему» (иначе всем сразу
  *  включается variant). В базе лежит в parts.ask: отдельной колонки под флаг не заводили.
@@ -54,8 +56,18 @@ export const PARTS: { key: SeasonPart; title: string }[] = [
   { key: 'track', title: 'Дорожка уроков в стиле темы' },
   { key: 'empty', title: 'Пустой день: привидение-листок' },
 ]
+const NEW_YEAR_PARTS: { key: SeasonPart; title: string }[] = [
+  { key: 'hero', title: 'Баннер, гирлянда и снег на главной' },
+  { key: 'decor', title: 'Сугроб, снеговик и виджет сезона' },
+  { key: 'track', title: 'Огонёк на дорожке уроков' },
+  { key: 'empty', title: 'Пустой день: снеговик' },
+  { key: 'stickers', title: 'Стикеры за учёбу и подарки учителя' },
+  { key: 'video', title: 'Новогодний видеоурок' },
+]
+/** Части, которые есть у сезона, — для админки. */
+export const partsFor = (key: SeasonKey | undefined | null) => (key === 'new-year' ? NEW_YEAR_PARTS : PARTS)
 
-const ALL_ON: SeasonParts = { hero: true, decor: true, track: true, empty: true }
+const ALL_ON: SeasonParts = { hero: true, decor: true, track: true, empty: true, stickers: true, video: true }
 
 const PREVIEW_KEY = 'season.preview'
 const personalKey = (key: SeasonKey | undefined) => `season.personal-${key ?? 'halloween'}`
@@ -89,13 +101,24 @@ function readChoice(s: Season | null): SeasonChoice {
   return ls.get(LEGACY_OFF_KEY) === '1' ? 'off' : null
 }
 
-export async function loadSeason(): Promise<Season | null> {
+export const SEASON_KEYS: SeasonKey[] = ['halloween', 'new-year']
+
+/** Все сезоны из базы (админка). */
+export async function loadSeasons(): Promise<Season[]> {
   const { data, error } = await supabase
     .from('app_seasons')
     .select('key, enabled, starts_at, ends_at, variant, parts')
-    .in('key', ['halloween', 'new-year'])
+    .in('key', SEASON_KEYS)
   if (error) throw new Error(error.message)
-  return pickSeason(((data ?? []) as Row[]).map(fromRow))
+  return ((data ?? []) as Row[]).map(fromRow)
+}
+
+/** Сезон кабинета: идущий, ближайший или последний. Админский предпросмотр
+ *  другого сезона (season.preview = его ключ) берёт именно его. */
+export async function loadSeason(): Promise<Season | null> {
+  const rows = await loadSeasons()
+  const pv = ls.get(PREVIEW_KEY)
+  return rows.find(r => r.key === pv) ?? pickSeason(rows)
 }
 
 /** Какой сезон сейчас главный: идущий, иначе ближайший предстоящий, иначе последний прошедший. */
@@ -123,7 +146,7 @@ export async function saveSeason(s: Season): Promise<string | null> {
 // ── общее состояние: грузим один раз на вкладку, все хуки видят одно и то же ──
 
 type State = { season: Season | null; preview: boolean; choice: SeasonChoice; now: number; picker: boolean }
-let state: State = { season: null, preview: ls.get(PREVIEW_KEY) === '1', choice: null, now: Date.now(), picker: false }
+let state: State = { season: null, preview: !!ls.get(PREVIEW_KEY), choice: null, now: Date.now(), picker: false }
 const subs = new Set<() => void>()
 function emit() { subs.forEach(f => f()); mark() }
 let started = false
@@ -162,8 +185,18 @@ const subscribe = (f: () => void) => { start(); subs.add(f); return () => { subs
 
 /** Админ: показать тему у себя до начала (или после конца) сезона. */
 export function setSeasonPreview(on: boolean, persist = true) {
-  if (persist) ls.set(PREVIEW_KEY, on ? '1' : null)
+  if (persist) ls.set(PREVIEW_KEY, on ? (state.season?.key ?? '1') : null)
   state = { ...state, preview: on }
+  emit()
+}
+
+/** Админка: работать с конкретным сезоном (вкладка «Хэллоуин» / «Новый год»).
+ *  Только у этого человека: выбор темы и предпросмотр относятся к нему. */
+export function focusSeason(s: Season) {
+  if (state.season?.key === s.key && state.season === s) return
+  const pv = ls.get(PREVIEW_KEY)
+  const preview = !!pv && (pv === s.key || pv === '1')
+  state = { ...state, season: s, choice: readChoice(s), preview }
   emit()
 }
 
@@ -292,5 +325,5 @@ export const seasonOfVariant = (v: SeasonVariant): SeasonKey => ALL_VARIANTS.fin
 /** Идёт ли новогодний сезон (стикеры копятся и без включённой темы). */
 export function isNewYearLive(): boolean {
   start()
-  return state.season?.key === 'new-year' && isLive(state)
+  return state.season?.key === 'new-year' && isLive(state) && state.season.parts.stickers
 }

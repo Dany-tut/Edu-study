@@ -7,7 +7,7 @@ import { isNewYearLive, useSeason } from '../../../lib/season'
  */
 export function useNewYearSkin(): boolean {
   const s = useSeason()
-  return s.active && s.season?.key === 'new-year'
+  return s.active && s.season?.key === 'new-year' && s.on('video')
 }
 
 /**
