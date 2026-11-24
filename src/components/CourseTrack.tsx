@@ -503,13 +503,14 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                             )}
                           </span>
                           <span
-                            data-text-fade-mode="last-line"
+                            title={tc(selectedLesson.title)}
                             style={{
                               fontSize: 15,
                               fontWeight: 600,
                               color: 'var(--color-text)',
-                              ...textFadeLines(2),
-
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical' as const,
                               overflow: 'hidden',
                               lineHeight: 1.3,
                             }}
