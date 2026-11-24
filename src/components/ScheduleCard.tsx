@@ -27,6 +27,8 @@ interface Props {
   day: ScheduleDay
   isCenter: boolean
   distance: number
+  /** Плавный край ленты, когда она шире окна (см. edgeMasks в ScheduleCarousel). */
+  edgeMask?: string
   onClick: () => void
   /** Mobile: shrink the side cards so the row fits a phone screen. */
   mobile?: boolean
@@ -38,7 +40,7 @@ interface Props {
   onOpenLesson?: (lesson: ScheduleLesson) => void
 }
 
-export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth, dataSelected = false, onOpenLesson }: Props) {
+export default function ScheduleCard({ day, isCenter, distance, onClick, mobile = false, centerWidth, dataSelected = false, onOpenLesson, edgeMask }: Props) {
   const t = useT()
   // Праздничная тема: пустой день в центральной карточке — привидение-листок
   // вместо «Пока нет данных». В боковых карточках его нет: ряд из пяти
@@ -172,6 +174,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             background: 'var(--schedule-center-bg, rgba(var(--glass-rgb), 0.85))',
             backdropFilter: 'var(--blur-solid)',
             WebkitBackdropFilter: 'var(--blur-solid)',
+            maskImage: edgeMask, WebkitMaskImage: edgeMask,
             boxShadow: 'var(--schedule-card-edge, inset 0 0 0 0 transparent), var(--shadow-3)',
           }}
         >
@@ -320,6 +323,7 @@ export default function ScheduleCard({ day, isCenter, distance, onClick, mobile 
             padding: '14px 16px',
             background: `var(--schedule-side-bg, rgba(var(--glass-rgb), ${glassFade ? (0.35 + 0.4 * opacity).toFixed(2) : 0.80}))`,
             backdropFilter: 'var(--blur-solid)', WebkitBackdropFilter: 'var(--blur-solid)',
+            maskImage: edgeMask, WebkitMaskImage: edgeMask,
             boxShadow: 'var(--schedule-card-edge, inset 0 0 0 0 transparent), var(--shadow-2)',
           }}
         >

@@ -7,6 +7,7 @@ import { useT } from '../lib/i18n'
 import ScheduleCard from './ScheduleCard'
 import Skeleton from './Skeleton'
 import ScheduleRibbon from './ScheduleRibbon'
+import './scheduleEmpty.css'
 import type { ScheduleDay } from '../data/mockData'
 
 // Side card widths by distance from center — must match ScheduleCard.
@@ -16,12 +17,14 @@ const SLOT_WIDTH_MOBILE: Record<number, number> = { 1: 84, 2: 60, 3: 44 }
 // Reserve paint space for shadows without moving the dashboard rows.
 const SHADOW_PAD = 96
 /** A date strip is navigation, not a freely scrollable row. Clipping paint
- * without a scroll container also prevents focus/trackpad scroll from moving it. */
-function CenteredDateStrip({ children, width, viewportWidth, onSwipe }: { children: ReactNode; width: number; viewportWidth: number; onSwipe?: (info: PanInfo) => void }) {
-  const mask = viewportWidth > 0 && width > viewportWidth
+ * without a scroll container also prevents focus/trackpad scroll from moving it.
+ * Режем через overflow: clip, а не clip-path: clip-path делает обёртку «корнем
+ * фона», и backdrop-filter карточек внутри неё в Chromium ничего не размывает. */
+function CenteredDateStrip({ children, width, viewportWidth, onSwipe, maskEdges = true }: { children: ReactNode; width: number; viewportWidth: number; onSwipe?: (info: PanInfo) => void; maskEdges?: boolean }) {
+  const mask = maskEdges && viewportWidth > 0 && width > viewportWidth
     ? 'linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent)'
     : undefined
-  return <div data-schedule-strip="fixed" style={{ position: 'absolute', insetInline: 0, top: -SHADOW_PAD, height: `calc(100% + ${SHADOW_PAD * 2}px)`, clipPath: 'inset(0)', maskImage: mask, WebkitMaskImage: mask, pointerEvents: 'none' }}>
+  return <div data-schedule-strip="fixed" className="schedule-strip-clip" style={{ position: 'absolute', insetInline: 0, top: -SHADOW_PAD, height: `calc(100% + ${SHADOW_PAD * 2}px)`, maskImage: mask, WebkitMaskImage: mask, pointerEvents: 'none' }}>
     <motion.div
       drag={onSwipe ? 'x' : false}
       dragConstraints={{ left: 0, right: 0 }}
@@ -32,6 +35,31 @@ function CenteredDateStrip({ children, width, viewportWidth, onSwipe }: { childr
       style={{ position: 'absolute', left: '50%', top: SHADOW_PAD, bottom: SHADOW_PAD, width, marginLeft: -width / 2, display: 'flex', gap: 8, alignItems: 'center' }}
     >{children}</motion.div>
   </div>
+}
+
+const EDGE_FADE = 32
+const SLOT_GAP = 8
+const slotScale = (d: number) => d === 0 ? 1 : d === 1 ? 0.9 : d === 2 ? 0.82 : 0.74
+
+/** Плавный край ленты, когда она шире окна. Маска на обёртке (как у скелетона)
+ * в Chromium гасит backdrop-filter карточек, поэтому край рисуем маской каждой
+ * карточки: та же зона 32 px у краёв окна, пересчитанная в координаты карточки
+ * с учётом её масштаба. Возвращает маску для слота или undefined. */
+function edgeMasks(widths: number[], stripWidth: number, viewportWidth: number): (string | undefined)[] {
+  if (!(viewportWidth > 0 && stripWidth > viewportWidth)) return widths.map(() => undefined)
+  const overflow = (stripWidth - viewportWidth) / 2
+  let left = 0
+  return widths.map((w, i) => {
+    const s = slotScale(Math.abs(i - 3))
+    const right = stripWidth - left - w
+    const local = (edgeDist: number, X: number) => w / 2 + (X - edgeDist - w / 2) / s
+    const aL = local(left, overflow), bL = local(left, overflow + EDGE_FADE)
+    const aR = local(right, overflow), bR = local(right, overflow + EDGE_FADE)
+    left += w + SLOT_GAP
+    if (bL <= 0 && bR <= 0) return undefined
+    const px = (n: number) => `${Math.round(n * 10) / 10}px`
+    return `linear-gradient(to right, transparent ${px(aL)}, #000 ${px(bL)}, #000 calc(100% - ${px(bR)}), transparent calc(100% - ${px(aR)}))`
+  })
 }
 
 export default function ScheduleCarousel({ swipe = false }: { swipe?: boolean } = {}) {
@@ -94,6 +122,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
   }
 
   const offsets = [-3, -2, -1, 0, 1, 2, 3]
+  const masks = edgeMasks(offsets.map(o => o === 0 ? (centerWidth ?? (mobile ? 300 : 480)) : slotWidth[Math.abs(o)]), stripWidth, wrapW)
   const slots = offsets.map(offset => {
     const index = scheduleIndex + offset
     return {
@@ -151,7 +180,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
     >
       <div ref={wrapRef} style={{ height: '100%' }}>
-      <CenteredDateStrip width={stripWidth} viewportWidth={wrapW} onSwipe={props.swipe && total > 1 ? swipeDay : undefined}>
+      <CenteredDateStrip width={stripWidth} viewportWidth={wrapW} maskEdges={false} onSwipe={props.swipe && total > 1 ? swipeDay : undefined}>
         {slots.map(slot =>
           slot.day ? (
             <ScheduleCard
@@ -163,6 +192,7 @@ function ScheduleCarouselStrip(props: { days?: ScheduleDay[]; index?: number; on
               onClick={() => setScheduleIndex(slot.index)}
               mobile={mobile}
               centerWidth={centerWidth}
+              edgeMask={masks[slot.offset + 3]}
             />
           ) : (
             <div

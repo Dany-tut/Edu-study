@@ -44,3 +44,7 @@
   .schedule-empty__art { height: min(64px, 80cqh); }
   .schedule-empty__copy { text-align: start; }
 }
+
+/* Лента дат: обрезка без clip-path (он гасит backdrop-filter карточек).
+   iOS 15 не знает clip — остаётся hidden. */
+.schedule-strip-clip { overflow: hidden; overflow: clip; }
