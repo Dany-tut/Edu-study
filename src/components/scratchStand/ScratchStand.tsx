@@ -30,6 +30,14 @@ export default function ScratchStand({ onExit }: { onExit?: () => void }) {
   const [promoOpen, setPromoOpen] = useState(false)
   const [promoRound, setPromoRound] = useState(0)
   const [copied, setCopied] = useState(false)
+  // Сезон на <html> — тот же атрибут, что ставит lib/season.ts. Фольга в режиме
+  // 'auto' берёт настроение от него: так видно, что модуль не новогодний.
+  const [season, setSeasonAttr] = useState<string | null>(() => document.documentElement.dataset.season ?? null)
+  const pickSeason = (v: string | null) => {
+    if (v) document.documentElement.dataset.season = v
+    else delete document.documentElement.dataset.season
+    setSeasonAttr(v)
+  }
 
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--color-bg)', color: 'var(--color-text)', padding: 'calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 48px)' }}>
@@ -41,6 +49,16 @@ export default function ScratchStand({ onExit }: { onExit?: () => void }) {
           </div>
           <button data-hover="layer" onClick={toggle} style={btn}>{dark ? 'Светлая тема' : 'Тёмная тема'}</button>
           {onExit && <button data-hover="layer" onClick={onExit} style={btn}>В приложение</button>}
+        </div>
+
+        <div className="flex" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, color: 'var(--color-text-3)' }}>Настроение от сезона:</span>
+          {([[null, 'Вне сезона · Искра'], ['new-year', 'Новый год'], ['halloween', 'Хэллоуин']] as const).map(([v, name]) => (
+            <button key={name} data-hover="layer" onClick={() => pickSeason(v)} aria-pressed={season === v}
+              style={{ ...btn, minHeight: 36, fontSize: 13, ...(season === v ? { background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' } : null) }}>
+              {name}
+            </button>
+          ))}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 16, alignItems: 'start' }}>
@@ -58,8 +76,8 @@ export default function ScratchStand({ onExit }: { onExit?: () => void }) {
             </div>
           </Scenario>
 
-          <Scenario n="3" title="Промокод · позже" lead="Концепт: за серию 14 дней или приглашённого друга. Нужны таблица кодов, погашение и решение по цене — код ненастоящий.">
-            <ScratchFoil key={promoRound} revealed={promoOpen} onReveal={() => setPromoOpen(true)} minHeight={150} hint="Подарок за 14 дней подряд" background="var(--color-purple-soft)">
+          <Scenario n="3" title="Промокод · позже" lead="Концепт: за серию 14 дней или приглашённого друга. Настроение задано явно — «золото», сезон его не меняет. Код ненастоящий.">
+            <ScratchFoil key={promoRound} mood="gold" revealed={promoOpen} onReveal={() => setPromoOpen(true)} minHeight={150} hint="Подарок за 14 дней подряд" background="var(--color-purple-soft)">
               <div style={{ padding: '22px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-purple-text)' }}>−20 % на следующий месяц</div>
                 <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--color-text)' }}>ISKRA-7Q2F</div>

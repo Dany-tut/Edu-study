@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // «Стереть монеткой» (ИСК-4) — фольга поверх награды
 //
-// ГДЕ ЖИВЁТ. Не в заданиях: это механика НАГРАДЫ — подарок учителя, стикер за
-// сданное ДЗ, промокод. Под фольгу кладут что угодно (children), компонент
-// отвечает только за слой и момент «открыто».
+// ГДЕ ЖИВЁТ. Не в заданиях: это общий модуль НАГРАДЫ — подарок учителя, стикер
+// за сданное ДЗ, промокод, ачивка. Под фольгу кладут что угодно (children),
+// компонент отвечает только за слой и момент «открыто». К сезону не привязан:
+// настроение (mood) по умолчанию берётся от текущего сезона, вне сезона —
+// «Искра»; задать явно — проп mood. Цвета — в scratchFoil.css.
 //
 // КАК УСТРОЕНО. Награда лежит в обычной вёрстке, поверх — canvas, залитый
 // градиентом фольги. Палец/мышь рисуют по нему в режиме destination-out, то
@@ -33,18 +35,29 @@ const REVEAL_AT = 0.55
 const BRUSH = 34
 const FADE_MS = 350
 
-/** Искры, которые волна несёт с собой: угол, доля пути, цвет из палитры волны. */
-const WAVE_COLORS = ['#FFC915', '#7EC4FF', '#B428E6', '#EB64A0', '#FFB07A', '#9AA0FF', '#7FD9EE']
+/**
+ * Настроения фольги. Цвета — в scratchFoil.css (переменные --sf-*); здесь
+ * только ключи. 'auto' — от сезона (html[data-season]), вне сезона «Искра».
+ * Новое настроение: блок переменных в CSS + ключ сюда.
+ */
+export const SCRATCH_MOODS = ['auto', 'iskra', 'new-year', 'halloween', 'gold'] as const
+export type ScratchMood = typeof SCRATCH_MOODS[number]
+
+/** Искры, которые волна несёт с собой: угол, доля пути, цвет из палитры настроения. */
 const SPARKS = Array.from({ length: 14 }, (_, i) => ({
   a: Math.round((i * 360) / 14 + ((i * 37) % 17) - 8),
   d: (0.55 + ((i * 29) % 40) / 100).toFixed(2),
-  c: WAVE_COLORS[i % WAVE_COLORS.length],
+  c: `rgb(var(--sf-w${(i % 7) + 1}))`,
   delay: 150 + ((i * 53) % 120),
 }))
 
-export default function ScratchFoil({ revealed, onReveal, children, hint, minHeight = 120, radius = 16, background = 'var(--color-bg-3)' }: {
+export default function ScratchFoil({ revealed, onReveal, children, hint, label, mood = 'auto', minHeight = 120, radius = 16, background = 'var(--color-bg-3)' }: {
   revealed: boolean
   onReveal: () => void
+  /** Настроение: цвета фольги, волны и перелива. По умолчанию — от сезона. */
+  mood?: ScratchMood
+  /** Надпись на фольге; по умолчанию «Сотри здесь». */
+  label?: string
   /** Что спрятано под фольгой. */
   children: ReactNode
   /** Подпись рядом с «Открыть»; пусто — без подписи. */
@@ -69,8 +82,8 @@ export default function ScratchFoil({ revealed, onReveal, children, hint, minHei
   const doneRef = useRef(revealed)
   // Надпись — через ref: функция t() меняется между рендерами, и эффект,
   // зависящий от неё, перезаливал бы фольгу посреди стирания.
-  const label = useRef('')
-  label.current = t('Сотри здесь')
+  const labelRef = useRef('')
+  labelRef.current = label ?? t('Сотри здесь')
 
   // Где дотёрли — оттуда пойдёт волна (как DistortionWave в Taskly от кнопки
   // «Утвердить»). Без касания — из центра.
@@ -152,9 +165,10 @@ export default function ScratchFoil({ revealed, onReveal, children, hint, minHei
     if (!x) return
     ctxRef.current = x
     const cs = getComputedStyle(zone)
-    const c1 = cs.getPropertyValue('--scratch-foil-1').trim() || '#C9C6D6'
-    const c2 = cs.getPropertyValue('--scratch-foil-2').trim() || '#ECEAF3'
-    const ink = cs.getPropertyValue('--scratch-foil-ink').trim() || '#6F6B85'
+    // Цвета настроения: --sf-foil-* уже подставлены (сезон, data-mood, тема).
+    const c1 = cs.getPropertyValue('--sf-foil-1').trim() || '#C9C6D6'
+    const c2 = cs.getPropertyValue('--sf-foil-2').trim() || '#ECEAF3'
+    const ink = cs.getPropertyValue('--sf-foil-ink').trim() || '#6F6B85'
     x.globalCompositeOperation = keep ? 'source-in' : 'source-over'
     const g = x.createLinearGradient(0, 0, cv.width, cv.height)
     g.addColorStop(0, c1); g.addColorStop(0.5, c2); g.addColorStop(1, c1)
@@ -171,7 +185,7 @@ export default function ScratchFoil({ revealed, onReveal, children, hint, minHei
     x.font = `600 ${14 * d}px Inter, system-ui, -apple-system, sans-serif`
     x.textAlign = 'center'
     x.textBaseline = 'middle'
-    x.fillText(label.current, cv.width / 2, cv.height / 2)
+    x.fillText(labelRef.current, cv.width / 2, cv.height / 2)
   }, [])
 
   useLayoutEffect(() => {
@@ -188,7 +202,8 @@ export default function ScratchFoil({ revealed, onReveal, children, hint, minHei
     ro.observe(zone)
     // Тема переключается атрибутом на <html> — фольга должна перекраситься.
     const mo = new MutationObserver(() => { if (!doneRef.current) paint(true) })
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] })
+    // Тема и сезон переключаются атрибутами на <html> — фольга перекрашивается.
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-season', 'class'] })
     return () => { ro.disconnect(); mo.disconnect() }
   }, [foilMounted, paint])
 
@@ -259,7 +274,7 @@ export default function ScratchFoil({ revealed, onReveal, children, hint, minHei
   }
 
   return (
-    <div className="flex flex-col scratch-foil" style={{ gap: 10 }}>
+    <div className="flex flex-col scratch-foil" data-mood={mood === 'auto' ? undefined : mood} style={{ gap: 10 }}>
       <div
         ref={zoneRef}
         role="group"

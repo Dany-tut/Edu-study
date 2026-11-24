@@ -2,6 +2,73 @@
    за указателем — как у голо-стикеров. Цвета перелива — те же, что у
    StickerBadge, чтобы открытая награда читалась частью коллекции. */
 
+/* ── Настроения (модуль ИСК-4) ────────────────────────────────────────────────
+   Фольга — общий модуль наград, не новогодний. Всё, что меняется с
+   настроением, — переменные ниже: цвет фольги и надписи, палитра волны
+   (7 цветов + кайма впереди/позади), перелив. Цвета — тройками RGB, чтобы
+   прозрачность задавалась как rgb(var(--sf-w1) / 0.5) и работала на iOS 15
+   (color-mix там нет).
+
+   Откуда настроение:
+   • по умолчанию — от сезона: html[data-season] ставит lib/season.ts;
+   • вне сезона — «Искра» (:root);
+   • явно — проп mood у ScratchFoil → data-mood на обёртке; он сильнее сезона.
+   Новое настроение = один блок переменных здесь + ключ в SCRATCH_MOODS. */
+
+:root {
+  --sf-foil-1: var(--scratch-foil-1);
+  --sf-foil-2: var(--scratch-foil-2);
+  --sf-foil-ink: var(--scratch-foil-ink);
+  /* Палитра волны — DistortionWave «colorful» из Taskly. */
+  --sf-w1: 255 201 21;  --sf-w2: 126 196 255; --sf-w3: 180 40 230; --sf-w4: 235 100 160;
+  --sf-w5: 255 176 122; --sf-w6: 154 160 255; --sf-w7: 127 217 238;
+  --sf-ahead: 255 122 182; --sf-behind: 90 190 255;
+  /* Перелив открытой награды — как у голо-стикеров (StickerBadge). */
+  --sf-h1: 245 137 230; --sf-h2: 140 170 255; --sf-h3: 134 255 233; --sf-h4: 255 214 154;
+}
+
+/* Новый год: серебристо-ледяная фольга, волна холоднее. */
+html[data-season="new-year"], .scratch-foil[data-mood="new-year"] {
+  --sf-foil-1: #C3D0E6; --sf-foil-2: #F2F6FC; --sf-foil-ink: #4F6383;
+  --sf-w1: 255 214 102; --sf-w2: 126 196 255; --sf-w3: 154 160 255; --sf-w4: 235 100 160;
+  --sf-w5: 190 230 255; --sf-w6: 120 150 255; --sf-w7: 127 217 238;
+  --sf-ahead: 255 122 182; --sf-behind: 90 190 255;
+}
+html[data-theme="dark"][data-season="new-year"], [data-theme="dark"] .scratch-foil[data-mood="new-year"] {
+  --sf-foil-1: #3A4560; --sf-foil-2: #5B6B8C; --sf-foil-ink: #D3DEF2;
+}
+
+/* Хэллоуин: тыквенная фольга, волна оранжево-фиолетово-кислотная. */
+html[data-season="halloween"], .scratch-foil[data-mood="halloween"] {
+  --sf-foil-1: #E3B486; --sf-foil-2: #F7E1C6; --sf-foil-ink: #7A4318;
+  --sf-w1: 255 140 26; --sf-w2: 182 255 59; --sf-w3: 140 60 230; --sf-w4: 255 92 40;
+  --sf-w5: 255 200 90; --sf-w6: 120 70 200; --sf-w7: 200 255 120;
+  --sf-ahead: 255 120 30; --sf-behind: 140 60 230;
+  --sf-h1: 255 150 60; --sf-h2: 170 110 255; --sf-h3: 190 255 120; --sf-h4: 255 210 120;
+}
+html[data-theme="dark"][data-season="halloween"], [data-theme="dark"] .scratch-foil[data-mood="halloween"] {
+  --sf-foil-1: #5A3A22; --sf-foil-2: #8A5A30; --sf-foil-ink: #F7D7B0;
+}
+
+/* «Искра» — явный базовый, даже когда идёт сезон. */
+.scratch-foil.scratch-foil[data-mood="iskra"] {
+  --sf-foil-1: var(--scratch-foil-1); --sf-foil-2: var(--scratch-foil-2); --sf-foil-ink: var(--scratch-foil-ink);
+  --sf-w1: 255 201 21;  --sf-w2: 126 196 255; --sf-w3: 180 40 230; --sf-w4: 235 100 160;
+  --sf-w5: 255 176 122; --sf-w6: 154 160 255; --sf-w7: 127 217 238;
+  --sf-ahead: 255 122 182; --sf-behind: 90 190 255;
+  --sf-h1: 245 137 230; --sf-h2: 140 170 255; --sf-h3: 134 255 233; --sf-h4: 255 214 154;
+}
+
+/* Золото — для ценного: промокод, ачивка, редкий стикер. */
+.scratch-foil.scratch-foil[data-mood="gold"] {
+  --sf-foil-1: #D8B25A; --sf-foil-2: #FBEBB8; --sf-foil-ink: #6B4A0E;
+  --sf-w1: 255 214 90; --sf-w2: 255 240 180; --sf-w3: 245 170 40; --sf-w4: 255 150 90;
+  --sf-w5: 255 225 140; --sf-w6: 230 190 90; --sf-w7: 255 250 220;
+  --sf-ahead: 255 200 60; --sf-behind: 245 160 40;
+  --sf-h1: 255 210 110; --sf-h2: 255 240 190; --sf-h3: 250 190 80; --sf-h4: 255 255 230;
+}
+[data-theme="dark"] .scratch-foil.scratch-foil[data-mood="gold"] { --sf-foil-1: #7A5A1E; --sf-foil-2: #B8913E; --sf-foil-ink: #FFF0C2; }
+
 .scratch-foil { perspective: 900px; }
 
 .scratch-foil__zone {
@@ -37,7 +104,7 @@
 .scratch-foil__holo {
   position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   background: linear-gradient(115deg,
-    transparent 22%, #f589e6a6 34%, #8caaffab 43%, #ffffffcf 50%, #86ffe9b3 57%, #ffd69aa1 66%, transparent 78%);
+    transparent 22%, rgb(var(--sf-h1) / 0.65) 34%, rgb(var(--sf-h2) / 0.67) 43%, rgb(255 255 255 / 0.81) 50%, rgb(var(--sf-h3) / 0.7) 57%, rgb(var(--sf-h4) / 0.63) 66%, transparent 78%);
   background-size: 260% 260%;
   background-position: var(--sf-mx) var(--sf-my);
   /* Светлая тема: на почти белом overlay не виден — радуга ложится умножением. */
@@ -104,9 +171,9 @@
 @keyframes sf-swell {
   0%   { transform: scale(1); filter: none; }
   13%  { transform: scale(0.965); filter: none; }
-  30%  { transform: scale(1.03); filter: drop-shadow(3px 0 0 rgba(255, 60, 140, 0.55)) drop-shadow(-3px 0 0 rgba(60, 170, 255, 0.55)); }
-  48%  { transform: scale(1.012); filter: drop-shadow(-2px 1px 0 rgba(255, 200, 30, 0.45)) drop-shadow(2px -1px 0 rgba(150, 90, 255, 0.5)); }
-  66%  { transform: scale(1.004); filter: drop-shadow(1px 0 0 rgba(255, 60, 140, 0.3)) drop-shadow(-1px 0 0 rgba(60, 170, 255, 0.3)); }
+  30%  { transform: scale(1.03); filter: drop-shadow(3px 0 0 rgb(var(--sf-ahead) / 0.55)) drop-shadow(-3px 0 0 rgb(var(--sf-behind) / 0.55)); }
+  48%  { transform: scale(1.012); filter: drop-shadow(-2px 1px 0 rgb(var(--sf-w1) / 0.45)) drop-shadow(2px -1px 0 rgb(var(--sf-w3) / 0.5)); }
+  66%  { transform: scale(1.004); filter: drop-shadow(1px 0 0 rgb(var(--sf-ahead) / 0.3)) drop-shadow(-1px 0 0 rgb(var(--sf-behind) / 0.3)); }
   100% { transform: scale(1); filter: none; }
 }
 
@@ -115,14 +182,14 @@
   position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   background: radial-gradient(circle at var(--sf-ox) var(--sf-oy),
     transparent calc(var(--sf-r) - 72px),
-    rgba(90, 190, 255, 0.4) calc(var(--sf-r) - 60px),
-    rgba(127, 217, 238, 0.55) calc(var(--sf-r) - 50px),
-    rgba(154, 160, 255, 0.6) calc(var(--sf-r) - 40px),
-    rgba(180, 40, 230, 0.5) calc(var(--sf-r) - 30px),
-    rgba(235, 100, 160, 0.6) calc(var(--sf-r) - 20px),
-    rgba(255, 176, 122, 0.65) calc(var(--sf-r) - 12px),
-    rgba(255, 201, 21, 0.6) calc(var(--sf-r) - 5px),
-    rgba(255, 122, 182, 0.45) var(--sf-r),
+    rgb(var(--sf-behind) / 0.4) calc(var(--sf-r) - 60px),
+    rgb(var(--sf-w7) / 0.55) calc(var(--sf-r) - 50px),
+    rgb(var(--sf-w6) / 0.6) calc(var(--sf-r) - 40px),
+    rgb(var(--sf-w3) / 0.5) calc(var(--sf-r) - 30px),
+    rgb(var(--sf-w4) / 0.6) calc(var(--sf-r) - 20px),
+    rgb(var(--sf-w5) / 0.65) calc(var(--sf-r) - 12px),
+    rgb(var(--sf-w1) / 0.6) calc(var(--sf-r) - 5px),
+    rgb(var(--sf-ahead) / 0.45) var(--sf-r),
     transparent calc(var(--sf-r) + 14px));
   mix-blend-mode: screen;
   animation: sf-wave-fade 1.4s 0.18s ease-out both;
@@ -143,12 +210,13 @@
 .scratch-foil__edge {
   position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   padding: 2px;
-  background: conic-gradient(from 200deg at var(--sf-ox) var(--sf-oy), #FFC915, #7EC4FF, #B428E6, #EB64A0, #FFB07A, #9AA0FF, #7FD9EE, #FFC915);
+  background: conic-gradient(from 200deg at var(--sf-ox) var(--sf-oy),
+    rgb(var(--sf-w1)), rgb(var(--sf-w2)), rgb(var(--sf-w3)), rgb(var(--sf-w4)), rgb(var(--sf-w5)), rgb(var(--sf-w6)), rgb(var(--sf-w7)), rgb(var(--sf-w1)));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  box-shadow: inset 0 0 28px rgba(154, 160, 255, 0.45);
+  box-shadow: inset 0 0 28px rgb(var(--sf-w6) / 0.45);
   animation: sf-edge 2.1s ease-out both;
 }
 @keyframes sf-edge { 0%, 35% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 0; } }
