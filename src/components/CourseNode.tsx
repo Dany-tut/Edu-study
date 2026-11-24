@@ -151,7 +151,9 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   // Кружок прячем, но кнопка остаётся на месте: по ней кликают.
   // Новый год: Огонёк стоит НАД узлом, узел урока остаётся видимым.
   const seasonNode = (seasonal || newYearTrack) && seasonMark && isOpen && !isDiamond
-  const seasonCovers = seasonNode && !newYearTrack
+  // Узел этапа не прячем ни в одной теме: украшение стоит над ним, иконка и
+  // состояние урока видны всегда (решение Дани 24.11.2026).
+  const seasonCovers = false
   const nodeRadius = isDiamond ? 12 : isSquare ? 16 : 999
 
   return (

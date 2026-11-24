@@ -214,7 +214,8 @@ export function SeasonCurrentNode({ size }: { size: number }) {
   if (isNewYearVariant(s.variant)) return <NewYearCurrentNode variant={s.variant} />
   if (s.variant === 'potions') return <span aria-hidden className="season-node-orb" />
   const img = s.variant === 'candy' ? 'sticker-candy' : 'lantern'
-  const h = s.variant === 'candy' ? size * 1.5 : size * 2.1
+  // Над узлом — в пределах поля над дорожкой (как Огонёк у нового года).
+  const h = s.variant === 'candy' ? size * 0.9 : size * 1.1
   return (
     <img
       aria-hidden src={seasonImg(img)} alt=""

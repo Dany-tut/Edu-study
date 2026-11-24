@@ -288,23 +288,25 @@ html[data-season-variant="potions"] .season-track-fill {
 .season-hero__sticker, .season-stat-img, .season-cat, .season-corner, .season-empty__ghost,
 .season-ask__img { max-width: none; }
 .season-node-img {
-  position: absolute; left: 50%; bottom: 50%; width: auto; z-index: 2;
-  transform: translate(-50%, 42%); pointer-events: none;
+  /* Украшение стоит НАД узлом, а не на нём: иконка этапа под ним видна. */
+  position: absolute; left: 50%; bottom: calc(100% - 8px); width: auto; z-index: 2;
+  transform: translate(-50%, 0); pointer-events: none; max-width: none;
 }
-.season-node-img--lanterns { filter: drop-shadow(0 0 22px rgba(255, 179, 71, 0.75)); transform: translate(-50%, 48%) scale(0.86); transform-origin: 50% 2%; }
-.season-node-img--candy { transform: translate(-50%, 50%) scale(0.72) rotate(30deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
+.season-node-img--lanterns { filter: drop-shadow(0 0 22px rgba(255, 179, 71, 0.75)); transform-origin: 50% 0; }
+.season-node-img--candy { transform: translate(-50%, 0) rotate(30deg); filter: drop-shadow(0 6px 10px rgba(124, 108, 224, 0.35)); }
 .season-node-orb {
-  position: absolute; inset: -4px; border-radius: 999px; z-index: 2; pointer-events: none;
-  background: #34D399; box-shadow: 0 0 0 4px #fff, 0 0 22px rgba(52, 211, 153, 0.7);
+  /* Зелье — светящееся кольцо вокруг узла, а не заливка поверх иконки. */
+  position: absolute; inset: 4px; border-radius: 999px; z-index: 2; pointer-events: none;
+  background: transparent; box-shadow: 0 0 0 3px #34D399, 0 0 22px rgba(52, 211, 153, 0.7);
 }
 .season-node-hidden { opacity: 0 !important; }
 
-/* Узлы дорожки в теме — как в макетах: бусины поменьше (26 px вместо 44) и без
-   иконок; замок у закрытого урока остаётся — это не украшение, а «нельзя».
+/* Узлы дорожки в теме: бусины поменьше (26 px вместо 44), но иконки этапов
+   остаются — тема меняет форму и цвет, а не смысл (решение Дани 24.11.2026:
+   «то, что просто пропало, — нет»). Иконка ужимается вместе с бусиной.
    Кликабельная обёртка узла прежнего размера, сжимается только кружок. */
 html[data-season] .season-node:not(.season-node-hidden) { inset: 9px !important; border-width: 3px !important; }
-html[data-season] .season-node:not(.season-node-locked) svg { opacity: 0 !important; }
-html[data-season] .season-node-locked svg { transform: scale(0.7); }
+html[data-season] .season-node svg { transform: scale(0.7); }
 html[data-season] .season-node-label { font-size: 11px !important; }
 html[data-season-variant="lanterns"] .season-node-label--done { color: #FFD08A !important; }
 html[data-season-variant="lanterns"] .season-node-label--now { color: #FFB36B !important; font-weight: 700 !important; }
