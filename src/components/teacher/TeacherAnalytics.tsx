@@ -584,7 +584,10 @@ export default function TeacherAnalytics() {
   // Страница в списке, пока на ней есть хоть одна ОТКРЫТАЯ ошибка или
   // rage-точка. Иначе закрытая и починенная проблема держала экран красным
   // весь месяц окна: сырые числа admin_page_stats про закрытия не знают.
-  const openPaths = new Set([...openGroups.flatMap(g => g.paths), ...openRage.map(r => r.path)])
+  // Пути берём из открытых ЗАПИСЕЙ, а не из групп: у группы пути копятся по
+  // всем её записям, и одна свежая ошибка на «#/teacher» возвращала в таблицу
+  // «Главную (студент)» со старыми закрытыми 153 (24.11.2026).
+  const openPaths = new Set([...openErrors.map(e => e.path).filter((p): p is string => !!p), ...openRage.map(r => r.path)])
   const allProblemPages = pageStats.filter(p => (p.errors > 0 || p.rage_clicks > 0) && openPaths.has(p.path))
   const problemPages = allProblemPages.slice(0,8)
   const slowPages    = [...pageStats]
