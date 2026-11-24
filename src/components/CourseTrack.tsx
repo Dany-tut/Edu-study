@@ -266,8 +266,11 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
   const showRetake = hasBasicHomework && (resumeRetake || selectedStep === 'retake')
   const isResumingRetake = showRetake && resumeRetake
   const homeworkAccepted = selectedLessonStatus === 'test_passed' || selectedLessonStatus === 'completed'
+  const studyDone = selectedLesson ? lessonStudyProgress(selectedLesson).completed : false
+  const showHomework = hasBasicHomework && !showRetake && !homeworkAccepted && studyDone
+    && selectedLessonStatus !== 'missed' && selectedLessonStatus !== 'submitted'
   const quietLessonButton = selectedLesson && selectedLesson.kind !== 'test' && (
-    showRetake || lessonStudyProgress(selectedLesson).completed || (homeworkAccepted && !selectedLesson.videoUrl?.trim())
+    showRetake || showHomework || studyDone || (homeworkAccepted && !selectedLesson.videoUrl?.trim())
   )
   const selectedDetail = selectedLessonStatus ? {
     ...detailStyles[selectedLessonStatus],
@@ -551,8 +554,22 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                       {t('Недоступно')}
                     </span>
                   ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: showRetake ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)', gap: 8 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: (showRetake || showHomework) ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)', gap: 8 }}>
                       {showRetake && <TrackHomeworkButton lesson={selectedLesson} resume={resumeRetake} />}
+                      {showHomework && (
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => { setSelectedLessonId(null); openHomeworkForLesson(selectedLesson.id, 'basic') }}
+                          style={{
+                            fontSize: 13, fontWeight: 600, color: '#fff',
+                            background: 'var(--grad-purple)', borderRadius: 12,
+                            padding: '8px', minHeight: 40, cursor: 'pointer',
+                          }}
+                        >
+                          <OpticalText as="iskra-button-label">{t('Открыть ДЗ')}</OpticalText>
+                        </motion.button>
+                      )}
                       <motion.button
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.96 }}
@@ -572,7 +589,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
                           cursor: 'pointer',
                         }}
                       >
-                        <OpticalText as="iskra-button-label">{selectedLessonStatus === 'missed' ? t('Смотреть запись') : selectedLesson.kind === 'test' ? t('Пройти тест') : t('Открыть урок')}</OpticalText>
+                        <OpticalText as="iskra-button-label">{selectedLessonStatus === 'missed' ? t('Смотреть запись') : selectedLesson.kind === 'test' ? t('Пройти тест') : showHomework ? t('Урок') : t('Открыть урок')}</OpticalText>
                       </motion.button>
                     </div>
                   )}
