@@ -19,7 +19,7 @@ export default function StudentReportDrawer({ student, group, host, children, on
   }, [])
   return createPortal(
     <aside role="dialog" aria-modal="false" aria-label={'Полная статистика · ' + student.name}
-      className="js-report-drawer" style={{ '--report-accent': group?.color || 'var(--color-accent)' } as CSSProperties}
+      className="js-report-drawer" style={{ '--report-accent': group?.color || 'var(--color-accent)', ...(group?.color ? { '--report-avatar-fill': group.color } : {}) } as CSSProperties}
       onKeyDown={e => {
         if (e.key === 'Escape') { e.stopPropagation(); onClose() }
       }}>

@@ -1142,7 +1142,7 @@ function PreviewTab({
                       }}>
                         <div style={{
                           width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                          background: (task.correctChoices ?? []).includes(ci) ? 'var(--color-green-text)' : 'var(--color-text-4)',
+                          background: (task.correctChoices ?? []).includes(ci) ? 'var(--btn-green-bg)' : 'var(--color-text-4)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
                           {(task.correctChoices ?? []).includes(ci) && <Check size={12} style={{ color: '#fff' }} />}

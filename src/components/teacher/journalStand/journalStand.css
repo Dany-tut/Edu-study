@@ -343,7 +343,7 @@
   color: var(--color-text); border: 1px solid var(--color-border); border-radius: 20px; box-shadow: var(--shadow-4); }
 .js-report-drawer > header { flex: none; display: flex; align-items: flex-start; gap: 6px; padding: 20px 20px 16px;
   border-bottom: 1px solid color-mix(in srgb, var(--report-accent, var(--color-accent)) 27%, transparent); background: color-mix(in srgb, var(--report-accent, var(--color-accent)) 13%, transparent); }
-.js-report-avatar { position: relative; display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 50%; font-size: 18px; font-weight: 700; color: white; background: var(--report-accent, var(--color-accent)); }
+.js-report-avatar { position: relative; display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 50%; font-size: 18px; font-weight: 700; color: white; background: var(--report-avatar-fill, var(--grad-purple)); }
 .js-report-person { min-width: 0; flex: 1; align-self: center; padding-left: 6px; }
 .js-report-person > * { display: block; overflow: hidden; text-overflow: clip; white-space: nowrap; --iskra-text-fade-lines: 1; }
 .js-report-person strong { font-size: 15px; line-height: 1.2; }

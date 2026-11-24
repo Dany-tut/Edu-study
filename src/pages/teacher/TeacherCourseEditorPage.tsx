@@ -758,7 +758,7 @@ function AssignPicker({
               }}>
                 <div style={{
                   width: 26, height: 26, borderRadius: '50%',
-                  background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
+                  background: on ? 'var(--btn-green-bg)' : 'var(--color-bg-3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 11, fontWeight: 700,
                   color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
@@ -5071,7 +5071,7 @@ function StudentsLeftPanel({
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%',
-                background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
+                background: on ? 'var(--btn-green-bg)' : 'var(--color-bg-3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 700,
                 color: on ? '#fff' : 'var(--color-muted)', flexShrink: 0,
@@ -5103,7 +5103,7 @@ function StudentsLeftPanel({
             }}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%',
-                background: on ? 'var(--color-green-text)' : 'var(--color-bg-3)',
+                background: on ? 'var(--btn-green-bg)' : 'var(--color-bg-3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <Users size={14} style={{ color: on ? '#fff' : 'var(--color-muted)' }} />
@@ -5255,7 +5255,7 @@ function CenterLessonStudents({
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '8px 10px 8px 8px', borderRadius: 12, background: 'var(--color-green-soft)',
                   }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--btn-green-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Users size={14} style={{ color: '#fff' }} />
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-green-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{g.name}</span>
@@ -5272,7 +5272,7 @@ function CenterLessonStudents({
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '8px 10px 8px 8px', borderRadius: 12, background: 'var(--color-bg-3)',
                 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--btn-green-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {tn(s.name).slice(0, 1).toUpperCase()}
                   </div>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{tn(s.name)}</span>
@@ -5339,7 +5339,7 @@ function CenterLessonStudents({
                   display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12,
                   background: 'var(--color-green-soft)', border: '1px solid var(--color-border-glass)',
                 }}>
-                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--color-green-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--btn-green-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {tn(s.name).slice(0, 1).toUpperCase()}
                   </div>
                   <span style={{ fontSize: 13, fontWeight: 600, flex: 1, color: 'var(--color-green-text)' }}>{tn(s.name)}</span>
@@ -5414,7 +5414,7 @@ function LessonRow({
         <div style={{
           width: 18, height: 18, borderRadius: '50%', flexShrink: 0, margin: '0 4px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: checked ? 'var(--color-green-text)' : 'transparent',
+          background: checked ? 'var(--btn-green-bg)' : 'transparent',
           border: checked ? 'none' : '1.5px solid var(--color-border)',
           color: '#fff', transition: 'background 0.15s',
         }}>
@@ -5707,7 +5707,7 @@ export function RightPanelLessons({
                   onClick={() => setMoveMenuOpen(o => !o)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 8,
-                    border: 'none', background: 'var(--color-green-text)', color: '#fff', cursor: 'pointer',
+                    border: 'none', background: 'var(--btn-green-bg)', color: '#fff', cursor: 'pointer',
                     fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
                   }}
                 >

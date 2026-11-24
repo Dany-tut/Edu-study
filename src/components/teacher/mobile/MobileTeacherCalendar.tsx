@@ -318,7 +318,7 @@ function MonthGrid({ anchor, today, locale, onPick }: { anchor: string; today: s
           return (
             <button key={d} type="button" onClick={() => { tactile(); onPick(d) }}
               style={{ aspectRatio: '1 / 1', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
-                background: isToday ? 'var(--color-purple)' : 'var(--color-surface)', opacity: inMonth ? 1 : .4,
+                background: isToday ? 'var(--grad-purple)' : 'var(--color-surface)', opacity: inMonth ? 1 : .4,
                 color: isToday ? '#fff' : 'var(--color-text)', fontSize: 15, fontWeight: isToday ? 700 : 500,
                 boxShadow: isToday ? 'none' : 'inset 0 0 0 1px var(--color-border-soft)' }}>
               <OpticalText as="iskra-button-label">{Number(d.slice(-2))}</OpticalText>

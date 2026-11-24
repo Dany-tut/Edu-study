@@ -279,7 +279,7 @@ export default function TeacherSchedule({ mobile = false, embedded = false, read
                 style={{
                   flex: 1, minWidth: 0, margin: '0 3px', cursor: 'pointer', borderRadius: 16, border: 0, outline: 'none', font: 'inherit',
                   padding: '6px 0 7px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                  background: sel ? (mobile ? 'var(--color-purple)' : 'var(--grad-purple)') : hot ? 'color-mix(in srgb, var(--color-purple) 30%, transparent)' : 'transparent',
+                  background: sel ? 'var(--grad-purple)' : hot ? 'color-mix(in srgb, var(--color-purple) 30%, transparent)' : 'transparent',
                   boxShadow: d === today && !sel ? 'inset 0 0 0 2px var(--color-purple)' : undefined,
                   transition: 'background 0.15s',
                 }}
@@ -494,7 +494,7 @@ function Chip({ children, tone }: { children: React.ReactNode; tone?: 'danger' |
   return (
     <span style={{
       fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, flexShrink: 0,
-      background: tone === 'live' ? 'var(--color-purple)' : tone === 'now' ? 'var(--status-now-soft)' : tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
+      background: tone === 'live' ? 'var(--grad-purple)' : tone === 'now' ? 'var(--status-now-soft)' : tone === 'danger' ? 'var(--color-red-soft)' : 'var(--color-bg-3)',
       color: tone === 'live' ? '#fff' : tone === 'now' ? 'var(--status-now-text)' : tone === 'danger' ? 'var(--color-red-text)' : 'var(--color-text-3)',
       ...(tone === 'now' ? { boxShadow: 'inset 0 0 0 1px var(--status-now)' } : {}),
     }}>{children}</span>

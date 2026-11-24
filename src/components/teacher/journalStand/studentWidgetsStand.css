@@ -19,7 +19,7 @@
 .sw-grid-options button[aria-pressed=true] { background:var(--color-bg-card); color:var(--color-accent); box-shadow:var(--shadow-1); }
 .sw-home-tools { display:flex; align-items:center; gap:14px; justify-self:end; }
 .sw-icon-button { position:relative; display:grid; place-items:center; width:38px; height:38px; background:var(--color-bg-card); border:0; border-radius:50%; color:var(--color-text-2); cursor:pointer; }
-.sw-icon-button>span { position:absolute; top:-1px; right:-1px; min-width:16px; height:16px; border-radius:50%; background:var(--color-accent); color:#fff; font-size:10px; display:grid; place-items:center; }
+.sw-icon-button>span { position:absolute; top:-1px; right:-1px; min-width:16px; height:16px; border-radius:50%; background:var(--grad-purple); color:#fff; font-size:10px; display:grid; place-items:center; }
 /* The same three home zones; excess space sits below the track, lifting the calendar. */
 .sw-home-content {
   flex:1; min-height:0; display:grid;

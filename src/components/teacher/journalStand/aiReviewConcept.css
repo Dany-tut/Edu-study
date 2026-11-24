@@ -27,7 +27,7 @@
 .aic-outcome-warning { color:var(--color-accent); border-color:color-mix(in srgb,var(--color-accent) 16%,transparent); background:color-mix(in srgb,var(--color-bg-card) 78%,var(--color-purple-soft)); }
 .aic-summary-copy { margin:10px 0 14px; font-size:11px; line-height:1.65; color:var(--color-text-2); }
 .aic-summary-actions { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-.aic-summary-actions button,.aic-comment-draft button { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:8px 10px; border:0; border-radius:8px; background:var(--color-accent); color:white; font:inherit; font-size:10px; font-weight:500; cursor:pointer; }
+.aic-summary-actions button,.aic-comment-draft button { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:8px 10px; border:0; border-radius:8px; background:var(--grad-purple); color:white; font:inherit; font-size:10px; font-weight:500; cursor:pointer; }
 .aic-summary-actions .aic-text-button { padding:4px 0; color:var(--color-accent); background:transparent; }
 .aic-approved { display:flex; align-items:center; gap:5px; margin-top:10px; font-size:9px; color:var(--color-text-3); }
 .aic-waiting { display:grid; gap:9px; padding-top:18px; color:var(--color-accent); }

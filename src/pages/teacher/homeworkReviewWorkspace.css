@@ -6,7 +6,7 @@
 .hr-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:36px; padding:8px 12px; border:1px solid var(--color-border-soft); border-radius:10px; background:var(--color-bg-card); color:var(--color-text); font:inherit; font-size:12px; cursor:pointer; }
 @media (hover: hover) and (pointer: fine) {
   .hr-button:hover { background:var(--color-bg-3); }
-}.hr-button[aria-pressed=true] { color:var(--color-accent); background:var(--color-purple-soft); border-color:var(--color-purple-soft); }.hr-button.hr-primary { color:#fff; background:var(--color-accent); border-color:transparent; box-shadow:0 3px 10px color-mix(in srgb,var(--color-accent) 18%,transparent); }@media (hover: hover) and (pointer: fine) {
+}.hr-button[aria-pressed=true] { color:var(--color-accent); background:var(--color-purple-soft); border-color:var(--color-purple-soft); }.hr-button.hr-primary { color:#fff; background:var(--grad-purple); border-color:transparent; box-shadow:0 3px 10px color-mix(in srgb,var(--color-accent) 18%,transparent); }@media (hover: hover) and (pointer: fine) {
   .hr-button.hr-primary:hover { filter:brightness(1.04); }
 }
 .hr-back { flex:none; font-size:11px; }

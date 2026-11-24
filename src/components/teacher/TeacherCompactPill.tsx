@@ -55,7 +55,7 @@ function TranscriptionPreview({ data, expanded, onCancel }: {
     <PillContent
       avatar={
         <div style={{
-          width: '100%', height: '100%', background: 'var(--color-accent)',
+          width: '100%', height: '100%', background: 'var(--grad-purple)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
         }}>
           <AudioLines size={18} />

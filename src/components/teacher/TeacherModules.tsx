@@ -145,7 +145,7 @@ export default function TeacherModules({ showHeading = true, sheet = false }: { 
                 </button>
               </div>
               <button data-hover="layer" onClick={() => void connect()} disabled={busy || code.length < 6} style={{
-                padding: '10px 18px', borderRadius: 12, border: 'none', background: 'var(--color-accent)', color: '#fff',
+                padding: '10px 18px', borderRadius: 12, border: 'none', background: 'var(--grad-purple)', color: '#fff',
                 fontSize: 13, fontWeight: 700, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit', flexShrink: 0,
                 display: 'flex', alignItems: 'center', gap: 6, opacity: busy || code.length < 6 ? 0.6 : 1,
               }}>

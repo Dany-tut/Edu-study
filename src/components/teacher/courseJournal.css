@@ -190,7 +190,7 @@
 .cj-mobile-demo-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 2px 8px; font-size: 11px; line-height: 1.5; color: var(--color-text-3); }
 .cj-mobile-demo-note > span { color: var(--color-accent); }
 .cj-mobile-demo-note a { color: var(--color-accent); }
-.cj-mobile-filter-count { position: absolute; top: -3px; right: -3px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--color-accent); color: white; font-size: 10px; font-weight: 700; }
+.cj-mobile-filter-count { position: absolute; top: -3px; right: -3px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--grad-purple); color: white; font-size: 10px; font-weight: 700; }
 .cj-mobile-search-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .cj-mobile-search-row .cj-search { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; min-height: 44px; padding: 0 12px; border: 1px solid var(--color-border-soft); border-radius: 14px; background: var(--color-bg-2); color: var(--color-text-3); }
 .cj-mobile-search-row .cj-search input { font-size: 16px; }

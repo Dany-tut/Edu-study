@@ -1264,7 +1264,7 @@ function StudentsBadge({ access, enrolled }: { access: { id: string; name: strin
         {opened && (
           <span style={{
             position: 'absolute', right: -4, bottom: -3, width: 9, height: 9, borderRadius: '50%',
-            background: 'var(--color-green-text)', border: '1.5px solid var(--color-bg)',
+            background: 'var(--btn-green-bg)', border: '1.5px solid var(--color-bg)',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'content-box',
           }}>
             <Check size={6} strokeWidth={2.5} style={{ color: '#fff' }} />
