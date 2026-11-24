@@ -671,7 +671,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                         )}
                       </AnimatePresence>
                     </span>
-                    {t('Решение')}
+                    <OpticalText alignment="ink">{t('Решение')}</OpticalText>
                   </motion.button>
               </AnimatePresence>
         </div>
@@ -876,7 +876,7 @@ function MobileViewTabs({ value, onChange, accent, items }: {
               transition: 'background 0.15s, color 0.15s',
             }}
           >
-            <Icon size={14} /> {t(label)}
+            <Icon size={14} /><OpticalText alignment="ink">{t(label)}</OpticalText>
           </button>
         )
       })}

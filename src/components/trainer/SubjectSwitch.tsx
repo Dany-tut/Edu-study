@@ -1,3 +1,4 @@
+import OpticalText from '../OpticalText'
 import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
 // ─────────────────────────────────────────────────────────────────────────────
@@ -317,7 +318,7 @@ export function SubjectPill({ state, palette, onOpenList, compact }: {
         <span style={{ fontSize: compact ? 20 : 15, lineHeight: 1 }}><SubjectMark subject={current?.def.id} size={compact ? 22 : 16} /></span>
         {!compact && (
           <>
-            <span style={{ whiteSpace: 'nowrap' }}>{current ? t(current.def.name) : t('Тренажёр')}</span>
+            <OpticalText alignment="ink" style={{ whiteSpace: 'nowrap' }}>{current ? t(current.def.name) : t('Тренажёр')}</OpticalText>
             {many && <ChevronDown size={14} style={{ color: palette.accent, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />}
           </>
         )}

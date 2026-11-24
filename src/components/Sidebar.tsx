@@ -142,7 +142,7 @@ function SettingsRow({ icon: Icon, label, onClick, active = false, danger = fals
       }}
     >
       <Icon size={18} strokeWidth={2} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-muted)', flexShrink: 0 }} />
-      <span style={{ flex: 1 }}>{label}</span>
+      <OpticalText alignment="ink" style={{ flex: 1 }}>{label}</OpticalText>
       <ChevronRight size={16} style={{ color: danger ? 'var(--color-red-text)' : 'var(--color-text-3)', flexShrink: 0 }} />
     </motion.button>
   )
@@ -905,7 +905,7 @@ export default function Sidebar() {
         >
           <span style={{ display: 'block', paddingLeft: 10, paddingRight: 8 }}>
             <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
-              <span ref={nameTextRef} style={{ display: 'inline-block' }}>{tn(displayName)}</span>
+              <span ref={nameTextRef} style={{ display: 'inline-block' }}><OpticalText alignment="ink">{tn(displayName)}</OpticalText></span>
             </FadeText>
           </span>
         </motion.button>
@@ -982,7 +982,7 @@ export default function Sidebar() {
                 transition={transition}
                 style={{ display: 'block', overflow: 'hidden', whiteSpace: 'nowrap' }}
               >
-                <span data-topbar-label style={{ display: 'block', width: 'max-content' }}>{t(item.label)}</span>
+                <span data-topbar-label style={{ display: 'block', width: 'max-content' }}><OpticalText alignment="ink">{t(item.label)}</OpticalText></span>
               </motion.span>
 
               {/* Развёрнутый пункт — число внутри после слова, свёрнутый до иконки —

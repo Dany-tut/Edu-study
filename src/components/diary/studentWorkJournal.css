@@ -14,7 +14,7 @@
 .swj-metric-art { position: absolute; right: 0; bottom: 7px; width: 120px; height: 122px; object-fit: contain; pointer-events: none; filter: drop-shadow(0 5px 8px rgba(36, 20, 66, .08)); }
 .swj-filters { display: flex; align-items: center; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 5px 3px 9px; margin: -5px -3px 8px; }
 .swj-filters button { display: inline-flex; align-items: center; gap: 9px; flex-shrink: 0; min-height: 38px; padding: 8px 13px; border: 1px solid var(--swj-line); border-radius: 22px; background: transparent; font-size: 12px; white-space: nowrap; }
-.swj-filters button > span { font-variant-numeric: tabular-nums; opacity: .7; }
+.swj-filters button > span:last-child { font-variant-numeric: tabular-nums; opacity: .7; }
 .swj-filters button[aria-pressed='true'] { color: var(--color-bg); background: var(--color-text); border-color: var(--color-text); }
 .swj-table-surface { padding: 0 20px; border-radius: 24px; background: var(--swj-card); box-shadow: var(--shadow-2); }
 .swj-table { width: 100%; table-layout: fixed; text-align: left; border-collapse: collapse; font-size: 13px; }

@@ -1322,7 +1322,7 @@ function FilterPill({ count, onClick }: { count: number; onClick: () => void }) 
       {/* Воронка, а не ползунки: ползунки в доке открывают рейл режима, и два
           одинаковых значка на экране означали бы одно и то же место. */}
       <Filter size={14} />
-      {t('Фильтры')}
+      <OpticalText alignment="ink">{t('Фильтры')}</OpticalText>
       {on && <CountBadge count={count} style={{ background: 'color-mix(in srgb, var(--color-accent) 22%, transparent)' }} />}
     </button>
   )
@@ -1700,7 +1700,7 @@ export function StatusTabs({ options, value, onChange, accent, fill }: {
               <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>
                 {t(o.label)}
               </span>
-              <span style={{ gridArea: '1 / 1' }}>{t(o.label)}</span>
+              <OpticalText alignment="ink" style={{ gridArea: '1 / 1' }}>{t(o.label)}</OpticalText>
             </span>
           </button>
         )
@@ -1854,7 +1854,7 @@ export function SortMenu({ options, value, onChange, accent, soft }: {
           ...PILL_GLASS, color: 'var(--color-text-2)', whiteSpace: 'nowrap',
         }}
       >
-        {t(current?.label ?? '')}
+        <OpticalText alignment="ink">{t(current?.label ?? '')}</OpticalText>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }} style={{ display: 'flex' }}>
           <ChevronDown size={14} />
         </motion.span>
@@ -1989,7 +1989,7 @@ export function FilterMenu({ label, options, value, onChange, accent, soft }: {
           color: on ? tint : 'var(--color-text-2)', whiteSpace: 'nowrap',
         }}
       >
-        {t(label)}
+        <OpticalText alignment="ink">{t(label)}</OpticalText>
         {on && <CountBadge count={value.length} style={{ background: `color-mix(in srgb, ${tint} 18%, transparent)`, color: tint }} />}
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }} style={{ display: 'flex' }}>
           <ChevronDown size={14} />

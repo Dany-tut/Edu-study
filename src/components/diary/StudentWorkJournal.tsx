@@ -170,7 +170,7 @@ export default function StudentWorkJournal({ entries, pending, onOpen }: {
         ['all', 'Все работы', summary.total], ['improve', 'Ниже порога', summary.improve],
         ['passed', 'Зачтено', summary.passed], ['pending', 'На проверке', works.filter(w => w.state === 'pending').length],
       ] as const).map(([id, label, count]) => <button data-hover="layer" type="button" key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>
-        {t(label)}<span>{count}</span>
+        <OpticalText alignment="ink">{t(label)}</OpticalText><span><OpticalText alignment="ink">{count}</OpticalText></span>
       </button>)}
     </div>
     <div className="swj-table-surface" data-more-below={hasMore || undefined}>

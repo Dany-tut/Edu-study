@@ -128,7 +128,7 @@ export default function ScheduleRibbon({ children }: { children: (days: Schedule
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Предыдущий день')} onClick={() => choose(shift(selected, -1))}><Icon name="ChevronLeft" /></button>
         <button type="button" className="ssr-button ssr-icon" aria-label={t('Следующий день')} onClick={() => choose(shift(selected, 1))}><Icon name="ChevronRight" /></button>
         <div className="ssr-picker" ref={picker}>
-          <button type="button" className="ssr-button ssr-trigger" ref={trigger} aria-expanded={open} aria-controls={dialogId} onClick={() => { if (!open) { setMonth(selectedMonth); setExpanded(false) } setOpen(value => !value) }}><Icon name="CalendarDays" />{t('Календарь')}</button>
+          <button type="button" className="ssr-button ssr-trigger" ref={trigger} aria-expanded={open} aria-controls={dialogId} onClick={() => { if (!open) { setMonth(selectedMonth); setExpanded(false) } setOpen(value => !value) }}><Icon name="CalendarDays" /><OpticalText alignment="ink">{t('Календарь')}</OpticalText></button>
           {visible && (expanded ? <dialog ref={expandedDialog} className="ssr-expanded-dialog" aria-label={t('Календарь')} onCancel={event => { event.preventDefault(); setOpen(false); trigger.current?.focus() }} onClick={event => { if (event.target === event.currentTarget) { setOpen(false); trigger.current?.focus() } }}>{calendar}</dialog> : calendar)}
         </div>
       </div>}

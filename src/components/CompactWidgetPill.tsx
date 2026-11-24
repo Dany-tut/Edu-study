@@ -1,7 +1,7 @@
 import OpticalText from './OpticalText'
 import { textFadeLines } from '../lib/textFades'
 import { SubjectMark } from './icons/SubjectMark'
-import { LoopTextIcon, LoopActionLabel } from './icons/LoopIcon'
+import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
@@ -894,7 +894,7 @@ function TrainerProgressPreview({ expanded }: { expanded: boolean }) {
             {kind === 'bank' && (
               <button data-hover="layer" onClick={e => { e.stopPropagation(); setOpenModal(true) }}
                 style={{ flexShrink: 0, padding: '4px 8px', borderRadius: 999, border: 'none', background: `${accent}26`, color: palette.text, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
-                <LoopActionLabel icon={ArrowRight} label={t('Подробнее →')} />
+                <OpticalText alignment="ink">{t('Подробнее')}</OpticalText> <ArrowRight size="1em" style={{ display: 'inline-block', verticalAlign: '-0.12em' }} />
               </button>
             )}
           </div>

@@ -1,3 +1,4 @@
+import OpticalText from './OpticalText'
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../lib/i18n'
 import { tactile } from '../lib/feedback'
@@ -94,10 +95,10 @@ export default function AppVersionRow({ variant = 'row', style }: { variant?: 'r
           ...style,
         }}
       >
-        <span>{APP_VERSION}</span>
-        <span style={{ opacity: 0.85, marginLeft: 'auto' }}>
+        <OpticalText alignment="ink">{APP_VERSION}</OpticalText>
+        <OpticalText alignment="ink" style={{ opacity: 0.85, marginLeft: 'auto' }}>
           {updating ? `${t('Обновляем…')} ${Math.round(progress * 100)}%` : stale ? `${t('Доступна')} ${remote}` : label}
-        </span>
+        </OpticalText>
       </button>
     )
   }
