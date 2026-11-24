@@ -420,6 +420,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 'none',
+              // Ховер-слой повторяет плитку внутри: то же скругление 12 и, на
+              // телефоне, отступ 2 px от зоны касания 44 до плитки 40.
+              borderRadius: 12, ...(mobile ? { '--hover-inset': '2px' } as React.CSSProperties : {}),
               // Apple-style 44pt tap target on the phone; the negative margins let
               // the hit area overflow the header row without inflating its height
               // (so the title stays snug to the badges). Desktop keeps a plain 36.

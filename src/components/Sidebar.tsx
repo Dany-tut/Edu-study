@@ -900,7 +900,7 @@ export default function Sidebar() {
           transition={transition}
           // Include the viewport cap in the numeric target, so clipping does
           // not switch constraints partway through the animation.
-          style={{ overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 0, minHeight: 44, border: 0, background: 'transparent', cursor: 'pointer', font: 'inherit', padding: 0 }}
+          style={{ overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 0, minHeight: 44, border: 0, borderRadius: 999, background: 'transparent', cursor: 'pointer', font: 'inherit', padding: 0 }}
           tabIndex={isCompact ? -1 : 0}
         >
           <span style={{ display: 'block', paddingLeft: 10, paddingRight: 8 }}>
