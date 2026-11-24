@@ -20,6 +20,11 @@ function json(body: unknown, status = 200) {
   })
 }
 
+// Записи уроков раздаются из R2 (bucket iskra-media) — бесплатный egress; этот
+// же публичный адрес с РФ-кешем на нашем VPS см. src/lib/videoSource.ts.
+const R2_PUBLIC_ORIGIN = 'https://pub-7fc0bdb31ef8477cb024b613af34e1d8.r2.dev/'
+const R2_RU_CACHE_ORIGIN = 'https://api.iskra-study.ru/media/'
+
 export async function handleDriveVideo(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
   const secret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -67,6 +72,20 @@ export async function handleDriveVideo(req: Request): Promise<Response> {
     const ticket = new URL(req.url).searchParams.get('ticket') ?? ''
     const fileId = await verifyVideoTicket(ticket, secret)
     if (!fileId) return json({ error: 'Ссылка на запись устарела. Откройте видео заново' }, 401)
+    // Если урок уже переехал в R2, не стримим ни байта с Диска: уводим старый
+    // клиентский <video> (кеш бандла со ссылкой Диска) редиректом на R2 через
+    // РФ-кеш. Egress уходит на бесплатный Cloudflare, перемотка и доступ из РФ
+    // сохранены. См. миграцию 20261124160000_drive_video_r2_replacement.
+    try {
+      const admin = createClient(Deno.env.get('SUPABASE_URL')!, secret, { auth: { persistSession: false } })
+      const { data: r2 } = await admin.rpc('drive_video_r2_replacement', { p_file_id: fileId })
+      if (typeof r2 === 'string' && r2) {
+        const location = r2.startsWith(R2_PUBLIC_ORIGIN)
+          ? R2_RU_CACHE_ORIGIN + r2.slice(R2_PUBLIC_ORIGIN.length)
+          : r2
+        return new Response(null, { status: 302, headers: { ...cors, 'Location': location, 'Cache-Control': 'no-store' } })
+      }
+    } catch { /* нет замены или БД недоступна — отдаём как раньше, потоком с Диска */ }
     let range: string
     try {
       range = boundedVideoRange(req.method === 'HEAD' ? 'bytes=0-0' : req.headers.get('Range'))
