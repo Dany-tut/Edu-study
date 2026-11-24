@@ -410,6 +410,7 @@ export const EN: Record<string, string> = {
   'ДЗ не зачтено': 'Homework not passed',
   'Тест не сдан': 'Test not passed',
   'Урок засчитан — был на занятии': 'Lesson completed — attended the session',
+  'Пропуск занятия': 'Missed the class',
   'Посещение зачтено': 'Attendance credited',
   'Запись можно пересмотреть для повторения.': 'You can replay the recording to revise.',
   'Формат урока': 'Lesson format',

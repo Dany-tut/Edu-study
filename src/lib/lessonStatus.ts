@@ -40,6 +40,11 @@ export function lessonTrackStep(lesson: Lesson, status: TrackLessonStatus): keyo
   return null
 }
 
+/** Пропуск виден, пока урок не засчитан: досмотренная запись снимает бейдж «Н». */
+export function lessonMissedMark(lesson: Lesson): boolean {
+  return lesson.missed === true && lesson.kind !== 'test' && !lessonStudyProgress(lesson).completed
+}
+
 // Submission/review status is authoritative. Calendar presentation only affects open lessons.
 export function getDisplayLessonStatus(lesson: Lesson, now: Date = new Date()): LessonDisplayStatus {
   const status = getTrackLessonStatus(lesson, now)

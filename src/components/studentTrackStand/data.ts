@@ -38,6 +38,9 @@ export function makeTrackExample(scenario: Scenario, courseIndex = 0) {
       if (status === 'submitted') lesson.result = { grading: 'teacher', percent: null, passingScore: 80, pending: true }
       if (scenario === 'states' && i === 5) lesson.result = { grading: 'unknown', percent: null, passingScore: 80 }
       if (scenario === 'states' && i === 6) lesson.result = { grading: 'auto', percent: 55, passingScore: 80, passed: false }
+      // «Н» в журнале: запись не досмотрена (i 1) и урок без записи (i 4).
+      if (scenario === 'states' && i === 1) Object.assign(lesson, { missed: true, videoUrl: 'https://youtu.be/stand' })
+      if (scenario === 'states' && i === 4) lesson.missed = true
       if (scenario === 'states' && i === 2) lesson.result = { grading: 'auto', percent: null, passingScore: 80, draft: true, attemptId: id }
       if (m+1 === activeModule && i === (scenario === 'empty' ? 0 : scenario === 'fifty' ? focusIndex : 2)) focusId = id
       if (lesson.hasHard) assessments[id] = { emojiIndex: -1, score: status === 'completed' ? 92 : 80, hardAvailable: true, hardStatus: status === 'completed' ? 'completed' : status === 'returned' ? 'returned' : undefined }

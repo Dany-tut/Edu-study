@@ -5,6 +5,8 @@ export interface LessonParticipation {
   lesson_ref: string
   delivery_mode: 'live' | 'recording'
   attended: boolean
+  /** Нет у старой версии функции — тогда пропуск не показываем. */
+  missed?: boolean
 }
 export type ParticipationMap = Map<string, LessonParticipation>
 const key = (studentId: string, lessonRef: string) => `${studentId}:${lessonRef}`
@@ -44,7 +46,8 @@ export async function fetchLessonParticipation(subjects: Subject[]): Promise<Par
           for (const owner of ownersByStudent.get(studentId) ?? []) {
             const k = key(owner, row.lesson_ref)
             const prev = result.get(k)
-            result.set(k, prev ? { ...prev, attended: prev.attended || row.attended } : row)
+            const attended = (prev?.attended ?? false) || row.attended
+            result.set(k, { ...row, attended, missed: !attended && (prev?.missed === true || row.missed === true) })
           }
         }
       })())
@@ -61,7 +64,7 @@ export function applyLessonParticipation(subjects: Subject[], participation: Par
   return subjects.map(subject => ({ ...subject, modules: subject.modules.map(module => ({
     ...module, lessons: module.lessons.map(lesson => {
       const row = participation.get(key(subject.ownerStudentId ?? '', lesson.id))
-      return row ? { ...lesson, deliveryMode: row.delivery_mode, attended: row.attended } : lesson
+      return row ? { ...lesson, deliveryMode: row.delivery_mode, attended: row.attended, missed: row.missed === true } : lesson
     }),
   })) }))
 }

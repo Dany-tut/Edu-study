@@ -27,6 +27,8 @@ export interface Lesson {
   deliveryMode?: 'live' | 'recording'
   /** Current journal mark; independent of homework and actual video coverage. */
   attended?: boolean
+  /** «Н» в журнале и ни одного «Был» — трек ставит на кружок бейдж «Н». */
+  missed?: boolean
   comment?: string
   subject: string
   /** Node kind: a normal lesson or a final test that opens a quiz. */

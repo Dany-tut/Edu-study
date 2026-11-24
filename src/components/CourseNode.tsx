@@ -6,7 +6,7 @@ import type { ElementType, ReactElement } from 'react'
 import { IconReturned, IconLessonRecording, IconTest } from './icons'
 import type { Lesson } from '../data/mockData'
 import { lessonHasHardLevel } from '../data/lessonContent'
-import { lessonStatusLabel, lessonTrackStep, trackStepLabel, type TrackLessonStatus } from '../lib/lessonStatus'
+import { lessonMissedMark, lessonStatusLabel, lessonTrackStep, trackStepLabel, type TrackLessonStatus } from '../lib/lessonStatus'
 import { hardLevelState } from '../lib/lessonAssessments'
 import { cn } from '../lib/utils'
 import { playClick } from '../lib/sound'
@@ -100,7 +100,10 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
   const progressDescription = caption && displayStatus !== 'submitted' ? `${statusText} · ${caption}` : caption ?? statusText
   const showScheduleStatus = !!scheduleState && displayStatus !== 'locked' && !scheduleState.recordingAvailable && (scheduleState.isCurrent || scheduleState.phase === 'cancelled')
   const scheduleLabel = showScheduleStatus ? scheduleState.label : null
-  const statusDescription = scheduleLabel && !progressDescription.includes(tr(scheduleLabel)) ? `${tr(scheduleLabel)} · ${progressDescription}` : progressDescription
+  const missed = lessonMissedMark(lesson)
+  const missedText = tr('Пропуск занятия')
+  const statusBase = scheduleLabel && !progressDescription.includes(tr(scheduleLabel)) ? `${tr(scheduleLabel)} · ${progressDescription}` : progressDescription
+  const statusDescription = missed ? `${missedText} · ${statusBase}` : statusBase
   const palette = trackPalette(displayStatus)
   const isTest = lesson.kind === 'test'
   const seasonal = useSeason().on('track')
@@ -219,6 +222,8 @@ export default function CourseNode({ lesson, status, scheduleState, isSelected =
       {seasonNode && <SeasonCurrentNode size={size} />}
 
       {overdueLabel && <span title={overdueLabel} aria-label={overdueLabel} style={{ position: 'absolute', right: -6, top: -7, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--color-red-soft)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', pointerEvents: 'none' }}><CircleAlert size={14} /></span>}
+
+      {missed && <span aria-hidden style={{ position: 'absolute', left: -6, bottom: -5, zIndex: 12, width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'linear-gradient(var(--color-red-soft), var(--color-red-soft)), var(--color-bg)', color: 'var(--color-red-text)', border: '2px solid var(--color-bg)', fontSize: 11, fontWeight: 700, lineHeight: 1, pointerEvents: 'none' }}>Н</span>}
 
       {/* Hard satellite circle — appears half-overlapping from the right */}
       {showHardSatellite && (
