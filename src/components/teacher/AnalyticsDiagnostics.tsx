@@ -62,7 +62,10 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
     return () => controller.abort()
   }, [session, refresh])
   const bad = requests.filter(r => Number(r.meta.status) === 0 || Number(r.meta.status) >= 400)
-  const slow = requests.filter(r => Number(r.meta.duration_ms) >= 3000)
+  // Фоновая вкладка растягивает время любого запроса (браузер придерживает
+  // сеть), поэтому скорость считаем только по запросам на открытом экране.
+  const foreground = requests.filter(r => r.meta.start_visibility !== 'hidden' && r.meta.end_visibility !== 'hidden' && r.meta.visibility_changed !== true && r.meta.page_leaving !== true)
+  const slow = foreground.filter(r => Number(r.meta.duration_ms) >= 3000)
   const incidents = [...rows, ...requests.filter(r => bad.includes(r) || slow.includes(r))].sort((a, b) => b.created_at.localeCompare(a.created_at))
   const videoIncidents = rows.filter(r => videoEvents.has(r.event))
   const videoBuffering = videoIncidents.filter(r => r.event === 'video_buffering_start')
@@ -70,7 +73,7 @@ export default function AnalyticsDiagnostics({ days }: { days: number }) {
   const videoErrors = videoIncidents.filter(r => r.event === 'video_playback_error' || r.event === 'video_playback_retry')
   const videoDroppedFrames = videoIncidents.filter(r => r.event === 'video_dropped_frames')
   const videoSessions = new Set(videoIncidents.map(r => r.session_id)).size
-  const durations = requests.map(r => Number(r.meta.duration_ms)).filter(Number.isFinite).sort((a,b) => a-b)
+  const durations = foreground.map(r => Number(r.meta.duration_ms)).filter(Number.isFinite).sort((a,b) => a-b)
   function download() {
     const url = URL.createObjectURL(new Blob([JSON.stringify({ product: 'Искра', exported_at: new Date().toISOString(), period_days: days, scope: 'Latest 500 incidents, 500 requests, 200 session events; client telemetry only', rows, requests, session, timeline }, null, 2)], { type: 'application/json' }))
     const a = document.createElement('a'); a.href = url; a.download = `iskra-diagnostics-${Date.now()}.json`; a.click()

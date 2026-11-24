@@ -62,7 +62,7 @@ export function diagnosticFetch(base: typeof fetch, backend: string): typeof fet
         method: (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase(),
         online: navigator.onLine, ...source, start_route: initial.route, start_visibility: initial.visibility,
         end_route: pageContext().route, end_visibility: pageContext().visibility,
-        page_changed: generation !== pageGeneration, page_leaving: leaving, signal_aborted: signal?.aborted ?? false,
+        page_changed: generation !== pageGeneration, page_leaving: leaving, visibility_changed: visibilityAtStart !== visibilityGeneration, signal_aborted: signal?.aborted ?? false,
         ...detail }) } catch { /* telemetry is best effort */ }
     }
     const pending = (event: string, thresholdMs: number) => {

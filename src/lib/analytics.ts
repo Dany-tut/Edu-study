@@ -193,6 +193,10 @@ const actionEvents = new Set(['page_view', 'click', 'homework_submit', 'lesson_o
   'course_create', 'auth_started', 'network_offline', 'network_online'])
 let actionOwner = ''
 
+function waitedInForeground(meta: Record<string, unknown>) {
+  return meta.start_visibility !== 'hidden' && meta.end_visibility !== 'hidden' && meta.visibility_changed !== true && meta.page_leaving !== true
+}
+
 export function trackEvent(event: string, meta: Record<string, unknown> = {}, path?: string) {
   // Единственная дверь для ВСЕХ событий: и автоматических, и бизнесовых
   // (trackNow на входе/выходе), поэтому дев-заслонка стоит здесь, а не только
@@ -212,7 +216,10 @@ export function trackEvent(event: string, meta: Record<string, unknown> = {}, pa
     meta = { ...meta, action_trail: actions.filter(action => Date.parse(action.at) >= since) }
   }
   rememberDiagnosticEvent(event, eventPath, meta)
-  const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || Number(meta.duration_ms) >= 3000))
+  // Медленным считаем только запрос, который человек ждал на открытом экране.
+  // В фоновой вкладке браузер придерживает сеть и таймеры: is_staff, который
+  // база выполняет за 11 мс, «шёл» 5–46 с, пока вкладка спала (24.11.2026).
+  const isIncident = INCIDENT_EVENTS.has(event) || (event === 'api_request' && (Number(meta.status) === 0 || Number(meta.status) >= 400 || (Number(meta.duration_ms) >= 3000 && waitedInForeground(meta))))
   // Перезагрузку начали мы сами (обновление, лечение чанка) — всё, что упало
   // после этого, лишь обломки разрыва: db_error запросов, resource_error
   // стилей, «Load failed» в промисах. Причина уже известна (см. telemetrySource).

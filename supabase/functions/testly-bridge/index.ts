@@ -183,34 +183,72 @@ Deno.serve(async (req) => {
         return json({ error: 'not_connected' }, 409)
       }
       case 'sync': {
-        const { data: students } = await admin.from('students').select('id').eq('auth_user_id', teacher)
-        const ids = (students ?? []).map(s => s.id)
-        if (!ids.length) return json({ ok: true })
-        const { data: progress } = await admin.from('lesson_progress').select('attachments').in('student_id', ids).contains('attachments', { v: 'basic-1' })
-        const tests = new Map<string, { testId: string; key: string }>()
-        for (const p of progress ?? []) for (const row of (p.attachments as any)?.rows ?? []) {
-          if (row.testly?.testId) { const key = (p.attachments as any)?.testlyKey ?? studentKey; tests.set(`${row.testly.testId}:${key}`, {testId: row.testly.testId, key}) }
-        }
-        // Tests assigned in the student's courses that were never opened in Iskra.
+        // Сверка идёт фоном раз в 2 минуты на каждого открытого ученика (≈2 тыс.
+        // вызовов в сутки), и раньше каждый вызов шёл цепочкой: ученик дважды,
+        // прогресс, курсы, уроки, учителя — по очереди, а потом по ~6 запросов на
+        // КАЖДЫЙ тест из ответа Тестли, даже если этот балл уже лежит в домашке.
+        // Теперь независимые чтения идут разом, а уже применённый результат
+        // пропускается без записи и без перечитывания (24.11.2026).
         const { data: rows } = await admin.from('students').select('id, group_id').eq('auth_user_id', teacher)
+        const ids = (rows ?? []).map(s => s.id)
+        if (!ids.length) return json({ ok: true })
         const groups = [...new Set((rows ?? []).map(r => r.group_id).filter(Boolean))]
         const reach = [`student_ids.ov.{${ids.join(',')}}`, ...(groups.length ? [`group_ids.ov.{${groups.join(',')}}`] : [])].join(',')
-        const { data: courses } = await admin.from('courses').select('id').or(reach)
+        const [{ data: progress }, { data: courses }, { owners }] = await Promise.all([
+          admin.from('lesson_progress').select('lesson_ref, attachments').in('student_id', ids).contains('attachments', { v: 'basic-1' }),
+          admin.from('courses').select('id').or(reach),
+          ownersOfStudent(null),
+        ])
+        const tests = new Map<string, { testId: string; key: string }>()
+        // Что уже записано по каждой паре «тест + ключ»: по этим строкам решаем,
+        // изменит ли ответ Тестли хоть что-то.
+        const applied = new Map<string, { lessons: Set<string>; rows: any[] }>()
+        for (const p of progress ?? []) for (const row of (p.attachments as any)?.rows ?? []) {
+          if (!row.testly?.testId) continue
+          const key = (p.attachments as any)?.testlyKey ?? studentKey
+          const id = `${row.testly.testId}:${key}`
+          tests.set(id, { testId: row.testly.testId, key })
+          const seen = applied.get(id) ?? { lessons: new Set<string>(), rows: [] }
+          if (p.lesson_ref) seen.lessons.add(String(p.lesson_ref))
+          seen.rows.push(row)
+          applied.set(id, seen)
+        }
+        // Tests assigned in the student's courses that were never opened in Iskra.
         const { data: lessons } = courses?.length
-          ? await admin.from('lessons').select('homework').in('course_id', courses.map(c => c.id)).contains('homework', { hwTasks: [{ type: 'testly' }] })
+          ? await admin.from('lessons').select('short_id, homework').in('course_id', courses.map(c => c.id)).contains('homework', { hwTasks: [{ type: 'testly' }] })
           : { data: [] }
+        const assigned = new Map<string, Set<string>>()
         for (const lesson of lessons ?? []) for (const task of (lesson.homework as any)?.hwTasks ?? []) {
           const testId = task?.type === 'testly' ? task.testly?.id : null
-          if (testId && ![...tests.values()].some(t => t.testId === testId)) tests.set(`${testId}:${studentKey}`, { testId, key: studentKey })
+          if (!testId) continue
+          if (lesson.short_id) assigned.set(testId, (assigned.get(testId) ?? new Set()).add(String(lesson.short_id)))
+          if (![...tests.values()].some(t => t.testId === testId)) tests.set(`${testId}:${studentKey}`, { testId, key: studentKey })
         }
-        const { owners } = await ownersOfStudent(null)
+        // Ответ ничего не изменит, если он уже записан во все домашки с этим
+        // тестом и у каждого урока курса с этим тестом домашка уже есть
+        // (иначе ensureTestlySnapshots должна её создать).
+        const alreadyApplied = (result: Record<string, unknown>, key: string) => {
+          const seen = applied.get(`${result.testId}:${key}`)
+          if (!seen?.rows.length) return false
+          for (const lesson of assigned.get(String(result.testId)) ?? []) if (!seen.lessons.has(lesson)) return false
+          if (result.state === 'started') return seen.rows.every(row => !row.testly.submittedAt || row.testly.returned)
+          const max = Number(result.max), got = Number(result.got)
+          const verdict = result.pending ? 'review' : max > 0 && got / max >= 1 ? 'correct' : 'wrong'
+          return result.state === 'submitted' && !!result.updatedAt && seen.rows.every(({ testly: t, answer, verdict: v }) =>
+            t.updatedAt === result.updatedAt && t.submittedAt === result.submittedAt && !t.returned
+            && t.got === result.got && t.max === result.max && !!t.pending === !!result.pending
+            && answer === 'сдал тест в Тестли' && v === verdict)
+        }
+        if (!tests.size) return json({ ok: true })
         for (const owner of owners) {
           const token = await tokenFor(owner)
-          if (!token || !tests.size) continue
+          if (!token) continue
           const response = await testly({ action: 'status', token, items: [...tests.values()].slice(0, 100) })
           if (!response.ok) continue
           for (const result of (response.data.items ?? []) as Record<string, unknown>[]) {
-            await persistResult(ids, String(result.testId), result, String(result.key ?? studentKey))
+            const key = String(result.key ?? studentKey)
+            if (alreadyApplied(result, key)) continue
+            await persistResult(ids, String(result.testId), result, key)
           }
         }
         return json({ ok: true })
