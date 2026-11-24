@@ -7,16 +7,39 @@ import ScrollFade from './ScrollFade'
 import { supabase } from '../lib/supabase'
 import { getStudentSession, setStudentSession } from '../lib/studentSession'
 import { getSessionUser } from '../lib/owner'
-import { tc } from '../lib/i18n'
+import { t, tc } from '../lib/i18n'
 
 // A 1:1 student can own several subject cards — each a separate individual group
 // + student row for the same person, all sharing one auth account. This switcher
 // lists those cards and lets the student jump between subjects with one login.
 // Renders nothing when the student has only one card (the common case).
 
-export type Card = { id: string; groupId: string; subject: string; level: string; icon: string; color: string }
+export type Card = {
+  id: string; groupId: string; subject: string; level: string; icon: string; color: string
+  // Уточнение, когда у человека две карточки с одинаковыми предметом и уровнем
+  // (личные занятия + групповой курс): без него в списке две «Биология · ЕГЭ».
+  note?: string
+}
 
-export const subjectCardLabel = (c: Card) => `${tc(c.subject)}${c.level ? ` · ${tc(c.level)}` : ''}`
+export const subjectCardLabel = (c: Card) =>
+  `${tc(c.subject)}${c.level ? ` · ${tc(c.level)}` : ''}${c.note ? ` — ${c.note}` : ''}`
+
+const sameText = (a: string, b: string) =>
+  a.trim().replace(/\s+/g, ' ').toLocaleLowerCase() === b.trim().replace(/\s+/g, ' ').toLocaleLowerCase()
+
+// Совпадающие «предмет · уровень» различаем названием группы; у личной группы
+// название обычно = имя ученика, ему это ничего не скажет — пишем «личные занятия».
+function withNotes(cards: (Card & { groupName: string; individual: boolean })[], personName: string): Card[] {
+  const key = (c: Card) => `${c.subject}\u0000${c.level}`
+  const counts = new Map<string, number>()
+  for (const c of cards) counts.set(key(c), (counts.get(key(c)) ?? 0) + 1)
+  return cards.map(({ groupName, individual, ...c }) => {
+    if ((counts.get(key(c)) ?? 0) < 2) return c
+    const name = groupName.trim()
+    const note = individual || !name || sameText(name, personName) ? t('личные занятия') : tc(name)
+    return { ...c, note }
+  })
+}
 
 // Карточки человека + переход между ними. Хук, а не только компонент: оболочек
 // две — выпадашка в сайдбаре (десктоп) и шторка из шапки профиля (телефон), а
@@ -34,7 +57,7 @@ export function useSubjectCards() {
       const authUser = await getSessionUser()
       let query = supabase
         .from('students')
-        .select('id, group_id, name, groups(subject, level, icon, color, is_individual)')
+        .select('id, group_id, name, groups(name, subject, level, icon, color, is_individual)')
       query = authUser
         ? query.eq('auth_user_id', authUser.id)
         : query.eq('name', session.name)
@@ -43,7 +66,7 @@ export function useSubjectCards() {
       // Every card the person belongs to — their 1:1 subject groups AND any
       // regular group they were later enrolled into (e.g. bought a group course).
       // Each switch re-points the session to that group so its course/lessons load.
-      const mapped: Card[] = (data as any[])
+      const mapped = (data as any[])
         .filter(r => r.groups)
         .map(r => ({
           id: r.id,
@@ -52,8 +75,10 @@ export function useSubjectCards() {
           level: r.groups?.level ?? '',
           icon: r.groups?.icon ?? '📚',
           color: r.groups?.color ?? 'var(--color-accent)',
+          groupName: r.groups?.name ?? '',
+          individual: !!r.groups?.is_individual,
         }))
-      setCards(mapped)
+      setCards(withNotes(mapped, session.name))
     })()
     return () => { cancelled = true }
   }, [session?.id])
