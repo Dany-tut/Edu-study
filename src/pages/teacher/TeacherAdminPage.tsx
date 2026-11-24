@@ -4,6 +4,7 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import BackCircle from '../../components/BackCircle'
 import { confirmDialog } from '../../components/ConfirmHost'
 import Segmented from '../../components/Segmented'
+import HScrollFade from '../../components/HScrollFade'
 import Skeleton from '../../components/Skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Database, HardDrive, Users, BookOpen, RefreshCw, BarChart3, ShieldAlert, Inbox, Sparkles, Ghost, ToggleRight, ChevronRight, X, GraduationCap, Activity } from '../../components/icons/appIcons'
@@ -700,10 +701,14 @@ export default function TeacherAdminPage({ onBack, sheetSection }: {
         </div>
 
         {/* Tabs */}
+        {/* Восемь вкладок шире полосы на узком ПК: ряд прокручивается под фейдом,
+            а не вылезает за край дорожки. */}
+        <HScrollFade gap={0} padTop={0} padBottom={0} style={{ marginBottom: 24 }}>
         <Segmented
-          variant="mode" value={tab} onChange={setTab} style={{ marginBottom: 24 }}
+          variant="mode" value={tab} onChange={setTab} style={{ maxWidth: 'none', flexShrink: 0 }}
           items={([['overview', t('Обзор'), Database], ['data', t('Данные'), BookOpen], ['analytics', t('Аналитика'), BarChart3], ['online', t('Сейчас на сайте'), Activity], ['users', t('Пользователи'), Users], ['requests', t('Заявки'), Inbox], ['dictionary', t('Словарь'), AudioLines], ['features', t('Функции'), ToggleRight]] as const).map(([id, label, icon]) => ({ id, label, icon }))}
         />
+        </HScrollFade>
 
         </>}
         {tab === 'analytics' && <TeacherAnalytics />}
