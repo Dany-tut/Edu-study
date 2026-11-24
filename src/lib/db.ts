@@ -637,6 +637,8 @@ export async function fetchStudentTrack(
   const ownerFor = (studentIds: string[] | null, groupIds: string[] | null): string | undefined =>
     rows.find(r => (studentIds ?? []).includes(r.id))?.id
     ?? rows.find(r => (groupIds ?? []).includes(r.groupId))?.id
+  const attendanceIdsFor = (studentIds: string[] | null, groupIds: string[] | null): string[] =>
+    [...new Set(rows.filter(r => (studentIds ?? []).includes(r.id) || (groupIds ?? []).includes(r.groupId)).map(r => r.id))]
 
   const subjects: Subject[] = (payload.courses ?? []).map(c => {
     const [cid, shortId, title, subject, studentIds, groupIds, mods, numberStart] = c
@@ -650,6 +652,7 @@ export async function fetchStudentTrack(
       activeModuleId: 1,
       accessMode: modes[cid] ?? 'custom',
       ownerStudentId: ownerFor(studentIds, groupIds),
+      attendanceStudentIds: attendanceIdsFor(studentIds, groupIds),
       modules: (mods ?? []).map(([position, label, lessons]) => ({
         id: position,
         label: label?.trim() ? label : 'Уроки',
@@ -856,6 +859,9 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
     return rows.find(r => sids.includes(r.id))?.id
       ?? rows.find(r => gids.includes(r.groupId))?.id
   }
+  const attendanceIdsFor = (course: DbCourse): string[] => [...new Set(rows
+    .filter(r => (course.student_ids ?? []).includes(r.id) || (course.group_ids ?? []).includes(r.groupId))
+    .map(r => r.id))]
 
   const { data: visibility, error: visibilityError } = await visibilityRequest
   if (visibilityError) {
@@ -872,6 +878,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
     activeModuleId: 1,
     accessMode: modeByCourse[course.id] ?? 'custom',
     ownerStudentId: ownerFor(course),
+    attendanceStudentIds: attendanceIdsFor(course),
     modules: visibleCourseModules(course.course_modules, visibilityRows.filter(row => row.course_id === course.id))
       .sort((a, b) => a.position - b.position)
       .map(mod => ({

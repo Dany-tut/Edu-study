@@ -9,17 +9,26 @@ export interface LessonParticipation {
 export type ParticipationMap = Map<string, LessonParticipation>
 const key = (studentId: string, lessonRef: string) => `${studentId}:${lessonRef}`
 
-/** Includes old lessons outside the short calendar window; scoped to each course owner. */
+/** Includes old lessons outside the short calendar window; scoped to each course owner.
+ * A person may have several student rows with access to one course (assigned
+ * personally and through a group). The journal marks «Был» on whichever row the
+ * teacher sees, so every such row is asked and a mark on any of them counts. */
 export async function fetchLessonParticipation(subjects: Subject[]): Promise<ParticipationMap> {
   const refsByStudent = new Map<string, Set<string>>()
+  const ownersByStudent = new Map<string, Set<string>>()
   for (const subject of subjects) {
-    const studentId = subject.ownerStudentId
-    if (!studentId) continue
-    const refs = refsByStudent.get(studentId) ?? new Set<string>()
-    for (const module of subject.modules) for (const lesson of module.lessons) {
-      if (lesson.kind !== 'test') refs.add(lesson.id.replace(/~rec$/, ''))
+    const owner = subject.ownerStudentId
+    if (!owner) continue
+    const refs = [...new Set(subject.modules.flatMap(module => module.lessons
+      .filter(lesson => lesson.kind !== 'test').map(lesson => lesson.id.replace(/~rec$/, ''))))]
+    for (const studentId of new Set([owner, ...(subject.attendanceStudentIds ?? [])])) {
+      const set = refsByStudent.get(studentId) ?? new Set<string>()
+      for (const ref of refs) set.add(ref)
+      refsByStudent.set(studentId, set)
+      const owners = ownersByStudent.get(studentId) ?? new Set<string>()
+      owners.add(owner)
+      ownersByStudent.set(studentId, owners)
     }
-    refsByStudent.set(studentId, refs)
   }
   const result: ParticipationMap = new Map()
   const requests: Promise<void>[] = []
@@ -32,7 +41,11 @@ export async function fetchLessonParticipation(subjects: Subject[]): Promise<Par
         })
         if (error) throw error
         for (const row of (Array.isArray(data) ? data : []) as LessonParticipation[]) {
-          result.set(key(studentId, row.lesson_ref), row)
+          for (const owner of ownersByStudent.get(studentId) ?? []) {
+            const k = key(owner, row.lesson_ref)
+            const prev = result.get(k)
+            result.set(k, prev ? { ...prev, attended: prev.attended || row.attended } : row)
+          }
         }
       })())
     }

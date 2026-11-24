@@ -129,6 +129,9 @@ export interface Subject {
   // the active session row, so a multi-subject/multi-group person's submissions
   // land under the row the teacher actually reads. Undefined → use session.id.
   ownerStudentId?: string
+  // Все карточки этого человека с доступом к курсу (лично и через группу).
+  // Журнал может отмечать «Был» на любой из них — трекер собирает отметки со всех.
+  attendanceStudentIds?: string[]
   /**
    * uuid курса в БД. `id` — это short_id, которым курс зовётся на клиенте.
    *
