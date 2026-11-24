@@ -32,6 +32,7 @@ import { prepareFullDispatch as prepareFullContentDispatch, advanceConfirmedFull
 import { compactFullLessons } from '../../lib/courseFullCompact'
 import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
 import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
+import { EXPLICIT_CLEAR_HEADER, explicitClearHeader, lessonExplicitClears } from '../../lib/lessonExplicitClears'
 import { courseSaveProvenance, courseSnapshotStamp } from '../../lib/courseSaveProvenance'
 import { createCourseSaveReport, type ReportContext } from '../../lib/courseSaveReport'
 import { submitCourseSaveReport } from '../../lib/submitCourseSaveReport'
@@ -7402,6 +7403,15 @@ export default function TeacherCourseEditorPage() {
         ordinaryPlan = null
       }
     }
+    // Намеренная очистка описания / ссылки урока: только против подтверждённого
+    // сервером снимка, открытого в редакторе, без черновика и восстановления.
+    const explicitClear = ordinaryScope && contentBase && ordinaryCanonical && draftSource.current
+      && !recovering.current && !recoveryBlocked.current && !reviewedContentOverwrite.current
+      && baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })
+      ? explicitClearHeader(lessonExplicitClears(contentBase.serialized.lessons, ordinaryCanonical.lessons))
+      : null
+    const withExplicitClear = <Q extends { setHeader(name: string, value: string): Q }>(query: Q): Q =>
+      explicitClear ? query.setHeader(EXPLICIT_CLEAR_HEADER, explicitClear) : query
     if (recovering.current) {
       if (!ordinaryScope || !contentBase || !ordinaryCanonical || recoveryBlocked.current) {
         return blocked('lessons', 'preservation', t('Не удалось проверить все уроки восстановленного черновика. Правки сохранены на устройстве. Откройте курс заново.'))
@@ -7441,9 +7451,9 @@ export default function TeacherCourseEditorPage() {
           ? prepareWideConfirmedSnapshot(contentBase.serialized, canonical, dispatched.delta, prepareConfirmedSnapshot)
           : prepareConfirmedSnapshot(contentBase.serialized, canonical)
         await flushCourseVisibility(shortId, Object.fromEntries(modules.map(module => [module.id, module.id])))
-        const { data: saved, error } = await supabase.rpc('save_course_content_delta', {
+        const { data: saved, error } = await withExplicitClear(supabase.rpc('save_course_content_delta', {
           p_short_id: shortId, p_baseline: baselineStamp.current, ...dispatched.wire,
-        })
+        }))
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
             setConflict(await buildConflict(shortId, c, error.message.slice('ISKRA_COURSE_CONFLICT:'.length), error.code))
@@ -7492,7 +7502,7 @@ export default function TeacherCourseEditorPage() {
           p_changes: changes, p_expected_modules: contentBase.modules,
         }
         const fullStarted = performance.now()
-        const { data: saved, error } = await supabase.rpc('save_course_content_full', fullRequest)
+        const { data: saved, error } = await withExplicitClear(supabase.rpc('save_course_content_full', fullRequest))
         try {
           trackEvent('course_save_full_transport', {
             ...courseSaveProbeMetrics(fullRequest, null, performance.now() - fullStarted),
@@ -7574,8 +7584,8 @@ export default function TeacherCourseEditorPage() {
         const started = performance.now()
         // Select the engine before dispatch; an attempted write is never
         // retried through another path after conflict or preservation failure.
-        const { data: saved, error } = await supabase.rpc(delta ? (hasWide ? 'save_course_wide_delta_probe_20261122' : 'save_course_delta_probe_20261122')
-          : 'save_course_full_witness_probe_20261122', request)
+        const { data: saved, error } = await withExplicitClear(supabase.rpc(delta ? (hasWide ? 'save_course_wide_delta_probe_20261122' : 'save_course_delta_probe_20261122')
+          : 'save_course_full_witness_probe_20261122', request))
         try { trackEvent('course_save_probe_profile', courseSaveProbeMetrics(request, saved?._qa_profile, performance.now() - started)) } catch { /* Numeric diagnostics are non-fatal. */ }
         if (error || !saved) {
           if ((error?.code === 'PT409' || error?.code === '40001') && error.message?.startsWith('ISKRA_COURSE_CONFLICT:')) {
@@ -7608,7 +7618,7 @@ export default function TeacherCourseEditorPage() {
         p_changes: changes,
       }
       const probeStart = performance.now()
-      const { data: saved, error } = await supabase.rpc('save_course_content_probe_20261122', probeArgs)
+      const { data: saved, error } = await withExplicitClear(supabase.rpc('save_course_content_probe_20261122', probeArgs))
       try {
         if (saved?._qa_profile) trackEvent('course_save_probe_profile', courseSaveProbeMetrics(probeArgs, saved._qa_profile, performance.now() - probeStart))
       } catch { /* Diagnostic delivery must never change a committed save acknowledgement. */ }
