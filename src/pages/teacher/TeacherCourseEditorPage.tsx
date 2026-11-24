@@ -15,6 +15,8 @@ import { saveLessonChapters } from '../../lib/saveLessonChapters'
 import { makeExamTaskDraft, needsExamCondition } from '../../lib/examTaskDraft'
 import { importBankTask } from '../../lib/bankTaskImport'
 import './lessonRow.css'
+import { LessonRecordingCloud, ModuleRecordingsButton } from '../../components/teacher/ModuleRecordings'
+import { useCourseRecordings, type RecordingItem } from '../../lib/recordingImports'
 import { isModelRef, modelRefLabel } from '../../lib/models3d/registry'
 import Model3DThumb from '../../components/Model3DThumb'
 import Model3DPicker from '../../components/teacher/Model3DPicker'
@@ -5360,12 +5362,14 @@ function CenterLessonStudents({
 // ─── RIGHT panel: always lesson list ─────────────────────────────────────────
 
 function LessonRow({
-  lesson, selected, isOpen, checked, multiMode, displayIndex, onClick, onDelete, visibilityControl,
+  lesson, selected, isOpen, checked, multiMode, displayIndex, onClick, onDelete, visibilityControl, recording,
 }: {
   lesson: CELesson; selected: boolean; isOpen?: boolean
   checked?: boolean; multiMode?: boolean; displayIndex?: number
   onClick: (e: React.MouseEvent) => void; onDelete: () => void
   visibilityControl?: React.ReactNode
+  /** Облачко записи из папки Диска (ModuleRecordings). */
+  recording?: React.ReactNode
 }) {
   const t = useT()
   const hasDots = lesson.kind === 'test'
@@ -5410,6 +5414,7 @@ function LessonRow({
       }}>
         {tc(lesson.title) || (lesson.kind === 'test' ? t('Тест без названия') : t('Урок без названия'))}
       </span>
+      {recording}
       {/* Multi-select check → checkmark; selected → trash; otherwise indicator dots */}
       {multiMode ? (
         <div style={{
@@ -5470,6 +5475,17 @@ export function RightPanelLessons({
 }) {
   const t = useT()
   const visibilityCourse = course.dbCourseId ?? course.id
+  // Записи из папки Диска: папки модулей и облачко статуса у каждого урока.
+  const recordings = useCourseRecordings(course.dbCourseId ? course.modules.map(m => m.id) : [])
+  const recordingByShortId = useMemo(() => {
+    const out: Record<string, RecordingItem> = {}
+    for (const item of recordings.items) {
+      if (!item.lesson_short_id || item.status === 'skipped') continue
+      const prev = out[item.lesson_short_id]
+      if (!prev || prev.updated_at < item.updated_at) out[item.lesson_short_id] = item
+    }
+    return out
+  }, [recordings.items])
   const visibility = useCourseVisibility(visibilityCourse)
   const visibilityControl = (lesson: CELesson, moduleId?: string) => <CourseVisibilityButton
     key={`${visibilityCourse}/lesson/${lesson.id}`}
@@ -5927,7 +5943,11 @@ export function RightPanelLessons({
               </button><CourseVisibilityButton key={`${visibilityCourse}/module/${mod.id}`} course={visibilityCourse} kind="module" item={mod.id}
                 hidden={visibility.hidden('module', mod.id)} disabled={!visibility.loaded || !!visibility.error || !!course.metadataPending || (!!course.dbCourseId && !/^[0-9a-f-]{36}$/i.test(mod.id))}
                 disabledReason={course.dbCourseId && !/^[0-9a-f-]{36}$/i.test(mod.id) ? t('Сначала сохраните модуль') : undefined}
-                allowDraft={!course.dbCourseId} /></div>}
+                allowDraft={!course.dbCourseId} />
+                {course.dbCourseId && <ModuleRecordingsButton moduleId={mod.id} moduleLabel={tc(mod.label)}
+                  source={recordings.sources[mod.id]} items={recordings.items.filter(i => i.source_id === recordings.sources[mod.id]?.id)}
+                  disabledReason={!/^[0-9a-f-]{36}$/i.test(mod.id) ? t('Сначала сохраните модуль') : undefined}
+                  onChanged={() => { void recordings.refresh() }} />}</div>}
               {/* Уроки без модуля видны сразу, без анимации при открытии курса. */}
               <AnimatePresence initial={false}>
                 {(loose || expanded) && (
@@ -5967,7 +5987,7 @@ export function RightPanelLessons({
                               }}
                               style={{ cursor: 'grab' }}
                             >
-                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} visibilityControl={visibilityControl(l, mod.id)} />
+                              <LessonRow lesson={l} selected={l.id === selectedLessonId} isOpen={openLessonShortIds.has(lessonShortIdById[l.id])} checked={selectedIds.has(l.id)} multiMode={multiMode} displayIndex={displayIndexById[l.id]} onClick={e => handleRowClick(l.id, e)} onDelete={() => deleteLesson(l.id)} visibilityControl={visibilityControl(l, mod.id)} recording={<LessonRecordingCloud item={recordingByShortId[lessonShortIdById[l.id] ?? l.id]} />} />
                             </div>
                           </div>
                         ))}

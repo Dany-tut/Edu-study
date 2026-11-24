@@ -1,0 +1,48 @@
+/* Записи модуля из папки Диска — облачка и окно сопоставления.
+   Концепт: design/recordings-import/concept.html */
+.rec-module-button { position: relative; color: var(--color-text-3); }
+.rec-module-button[data-tone="ok"] { color: var(--color-green-text); }
+.rec-module-button[data-tone="busy"] { color: var(--color-purple-text); }
+.rec-module-button[data-tone="wait"] { color: var(--color-amber-text); }
+.rec-module-button[data-tone="bad"] { color: var(--color-red-text); }
+.rec-module-count { position: absolute; right: 3px; bottom: 3px; min-width: 13px; height: 13px; padding: 0 3px; border-radius: 7px;
+  background: var(--color-bg-2); font-size: 9px; font-weight: 700; line-height: 13px; text-align: center; color: inherit; }
+
+.rec-cloud { position: relative; display: inline-grid; place-items: center; width: 20px; height: 20px; flex-shrink: 0; color: var(--color-text-3); }
+.rec-cloud[data-tone="ok"] { color: var(--color-green-text); }
+.rec-cloud[data-tone="busy"] { color: var(--color-purple-text); animation: rec-pulse 1.6s ease-in-out infinite; }
+.rec-cloud[data-tone="wait"] { color: var(--color-amber-text); }
+.rec-cloud[data-tone="bad"] { color: var(--color-red-text); }
+.rec-cloud-dot { position: absolute; right: 1px; bottom: 2px; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 1.5px var(--color-bg-2); }
+@keyframes rec-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .rec-cloud[data-tone="busy"] { animation: none; } }
+
+.rec-connect, .rec-status { display: flex; flex-direction: column; gap: 12px; }
+.rec-field { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 12px; background: var(--color-bg-input); }
+.rec-field-label { font-size: 11px; font-weight: 600; color: var(--color-text-3); }
+.rec-field input { border: none; outline: none; background: transparent; font: inherit; font-size: 14px; color: var(--color-text); padding: 0; min-width: 0; }
+.rec-hint { margin: 0; font-size: 12px; line-height: 1.4; color: var(--color-text-3); }
+.rec-error { padding: 8px 12px; border-radius: 10px; background: var(--color-red-soft); color: var(--color-red-text); font-size: 12px; margin-bottom: 10px; }
+.rec-note { padding: 8px 12px; border-radius: 10px; background: var(--color-bg-3); color: var(--color-text-2); font-size: 12px; margin-bottom: 10px; }
+
+.rec-table { display: flex; flex-direction: column; }
+.rec-tr { display: grid; grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.3fr) 104px; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--color-border-soft); }
+.rec-tr:first-child { border-top: none; }
+.rec-file { display: flex; flex-direction: column; min-width: 0; }
+.rec-file-name { font-size: 13px; font-weight: 600; color: var(--color-text); overflow: hidden; white-space: nowrap; }
+.rec-sub { font-size: 11px; color: var(--color-text-3); }
+.rec-lesson { min-width: 0; }
+.rec-chip { justify-self: start; border: none; font: inherit; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: var(--color-bg-3); color: var(--color-text-3); white-space: nowrap; }
+.rec-chip[data-tone="wait"] { background: var(--color-amber-soft); color: var(--color-amber-text); cursor: pointer; }
+.rec-chip[data-tone="wait"][data-on] { background: var(--color-green-soft); color: var(--color-green-text); }
+.rec-chip[data-tone="bad"] { background: var(--color-red-soft); color: var(--color-red-text); }
+@media (max-width: 640px) {
+  .rec-tr { grid-template-columns: auto minmax(0, 1fr); }
+  .rec-lesson, .rec-kind { grid-column: 2; }
+}
+
+.rec-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rec-footer-note { flex: 1; min-width: 140px; font-size: 12px; color: var(--color-text-3); }
+.rec-folder { font-size: 12px; color: var(--color-purple-text); overflow: hidden; white-space: nowrap; }
+.rec-item { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.rec-item-text { flex: 1; min-width: 0; font-size: 12px; color: var(--color-text-2); overflow: hidden; white-space: nowrap; }

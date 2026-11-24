@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Записи из папки</title>
+<style>
+/* Концепт: автоимпорт записей уроков из папки Диска. Три состояния × 4 версии × 2 темы. Токены — как в концептах трека Искры. */
+:root{--page:#ECECEF;--ink:#0B0B0D;--ink2:#5E5F68;--line:rgba(0,0,0,.10);--font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0d0d0f;--ink:#F0F0F2;--ink2:#9A9AA3;--line:rgba(255,255,255,.12);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0d0d0f;--ink:#F0F0F2;--ink2:#9A9AA3;--line:rgba(255,255,255,.12);color-scheme:dark}
+.t{--bg:#F5F5F6;--bg2:#FFFFFF;--bg3:#F0F0F2;--text:#0B0B0D;--muted:#676872;--border:rgba(0,0,0,.10);
+  --accent:#7E6EE6;--accent-ink:#fff;--accent-soft:#EEEBFC;--green:#1A5C38;--green-soft:#DFF8D6;--amber:#8A5A00;--amber-soft:#FFF1D6;--red:#A8282D;--red-soft:#FFE1E4;
+  --glass:rgba(255,255,255,.72);--shadow:0 12px 40px rgba(0,0,0,.14)}
+.t.dark{--bg:#111113;--bg2:#1A1A1C;--bg3:#222224;--text:#F0F0F2;--muted:#9A9AA3;--border:rgba(255,255,255,.15);
+  --accent:#B3A6F7;--accent-ink:#111;--accent-soft:rgba(179,166,247,.16);--green:#4ADE80;--green-soft:rgba(74,222,128,.13);--amber:#F5C063;--amber-soft:rgba(245,192,99,.14);--red:#F48B91;--red-soft:rgba(248,99,107,.22);
+  --glass:rgba(22,22,24,.72);--shadow:0 12px 40px rgba(0,0,0,.5)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--font);padding:32px max(16px,env(safe-area-inset-left)) 64px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font-size:28px;margin:0}h2{font-size:20px;margin:0 0 4px}
+p{margin:0;line-height:1.5;max-width:76ch;color:var(--ink2)}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid.phones{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.grid,.grid.phones{grid-template-columns:1fr}}
+.cap{font-size:12px;color:var(--ink2);margin:0 0 6px;display:flex;gap:8px;align-items:center}
+.chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--line)}
+/* Рамки устройств */
+.t{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:18px;overflow:hidden;position:relative;font-size:13px}
+.pc{height:520px}.pad{height:520px;border-radius:26px}.ph{height:640px;border-radius:34px}
+/* Общие элементы */
+.btn{border:0;border-radius:10px;padding:8px 14px;font:600 13px var(--font);background:var(--bg3);color:var(--text);white-space:nowrap}
+.btn.pri{background:var(--accent);color:var(--accent-ink)}
+.pill{border-radius:99px}
+.mod{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.modh{display:flex;align-items:center;gap:8px;font-weight:600}
+.modh .grow{flex:1}
+.ls{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;padding:4px 0}
+.ls .n{width:20px;height:20px;border-radius:50%;background:var(--bg3);display:grid;place-items:center;font-size:10px;font-weight:700;flex:none}
+.ls .v{margin-left:auto;font-size:11px}
+.folder{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.st{font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.st.ok{background:var(--green-soft);color:var(--green)}.st.wait{background:var(--amber-soft);color:var(--amber)}.st.bad{background:var(--red-soft);color:var(--red)}.st.mut{background:var(--bg3);color:var(--muted)}
+.field{background:var(--bg3);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.field small{font-size:10px;color:var(--muted);font-weight:600}
+.field span{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw{width:34px;height:20px;border-radius:99px;background:var(--accent);position:relative;flex:none}.sw::after{content:"";position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.row{display:flex;align-items:center;gap:10px}
+.cb{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--border);flex:none;display:grid;place-items:center}
+.cb.on{background:var(--accent);border-color:var(--accent)}.cb.on::after{content:"";width:8px;height:4px;border-left:2px solid var(--accent-ink);border-bottom:2px solid var(--accent-ink);transform:rotate(-45deg) translate(1px,-1px)}
+.file{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:11px;color:var(--muted)}
+.arrow{color:var(--muted)}
+.sel{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--bg3);border-radius:8px;padding:5px 8px;min-width:0}
+.sel span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sel::after{content:"";width:6px;height:6px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-2px);flex:none}
+.bar{height:6px;border-radius:99px;background:var(--bg3);overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.fade-b{position:absolute;left:0;right:0;height:36px;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg2))}
+/* ПК */
+.pcw{display:grid;grid-template-columns:200px 1fr;height:100%}
+.side{border-right:1px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:12px}
+.side b{color:var(--text)}
+.main{padding:16px;display:flex;flex-direction:column;gap:10px;position:relative}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.28);display:grid;place-items:center}
+.dlg{background:var(--bg2);border-radius:18px;box-shadow:var(--shadow);width:min(640px,92%);display:flex;flex-direction:column;max-height:92%;position:relative}
+.dlg header{padding:16px 18px 10px;display:flex;flex-direction:column;gap:4px}
+.dlg header b{font-size:16px}
+.tbl{padding:0 18px;overflow:hidden;position:relative}
+.tr{display:grid;grid-template-columns:20px 1.2fr 14px 1.2fr 92px 86px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--border)}
+.tr.h{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-top:0}
+.dlg footer{padding:12px 18px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border)}
+.dlg footer .grow{flex:1;font-size:12px;color:var(--muted)}
+.pop{position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:12px;width:300px;display:flex;flex-direction:column;gap:10px}
+/* iPad */
+.padw{display:flex;height:100%;padding:16px 72px 16px 16px;gap:12px;flex-direction:column}
+.capsule{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:99px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-shadow:var(--shadow)}
+.capsule i{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:16px;color:var(--text)}
+.capsule i.on{background:var(--accent);color:var(--accent-ink)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg2);border-radius:22px 22px 0 0;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.padsheet{left:50%;right:auto;transform:translateX(-50%);width:78%;top:24px;bottom:24px;border-radius:22px}
+.grab{width:36px;height:5px;border-radius:99px;background:var(--border);margin:8px auto 2px;flex:none}
+.sheet header{padding:8px 16px 8px;display:flex;flex-direction:column;gap:2px}
+.sheet header b{font-size:16px}
+.cards{padding:0 16px;display:flex;flex-direction:column;gap:8px;overflow:hidden;position:relative;flex:1}
+.card{background:var(--bg3);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.card .row .grow{flex:1;min-width:0}
+.sheet footer{padding:10px 16px 18px;display:flex;flex-direction:column;gap:6px}
+.sheet footer .btn{padding:12px;font-size:15px;border-radius:14px}
+/* iPhone */
+.status{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:12px;font-weight:600}
+.phw{padding:6px 14px;display:flex;flex-direction:column;gap:10px}
+.ios-top{font-size:22px;font-weight:700;padding:2px 2px 4px}
+/* Android */
+.and .sheet{border-radius:28px 28px 0 0}
+.and .btn{border-radius:99px}
+.and .appbar{height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:18px;font-weight:600;background:var(--bg2);border-bottom:1px solid var(--border)}
+.and .full{position:absolute;inset:0;background:var(--bg2);display:flex;flex-direction:column}
+.and .full .cards{padding-top:10px}
+.and .fab-row{padding:12px 16px 18px;display:flex;gap:8px}
+.and .fab-row .btn{flex:1;padding:12px}
+.cl{margin-left:auto;position:relative;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;cursor:default}
+.cl:hover,.cl:focus{background:var(--bg3);outline:none}
+.cl.ok{color:var(--green)}.cl.busy{color:var(--accent)}.cl.wait{color:var(--amber)}
+.cl .ring{position:absolute;inset:3px;border-radius:50%;background:conic-gradient(var(--accent) 72%,transparent 0);-webkit-mask:radial-gradient(circle,transparent 9.5px,#000 10px);mask:radial-gradient(circle,transparent 9.5px,#000 10px);opacity:.55}
+.tip{position:absolute;right:0;bottom:calc(100% + 6px);background:var(--text);color:var(--bg2);font-size:11px;font-weight:500;line-height:1.35;padding:6px 9px;border-radius:8px;width:max-content;max-width:210px;opacity:0;pointer-events:none;transform:translateY(2px);transition:.15s;z-index:3;text-align:left}
+.cl:hover .tip,.cl:focus .tip,.tip.open{opacity:1;transform:none}
+.ib{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted);background:var(--bg3);font-size:14px}
+.note{font-size:12px;color:var(--ink2);line-height:1.5}
+.note li{margin:2px 0}
+</style></head>
+<body>
+<div class="wrap">
+<header style="display:flex;flex-direction:column;gap:8px">
+  <span class="eyebrow">Концепт · Искра · 24.11.2026</span>
+  <h1>Записи уроков из папки Диска</h1>
+  <p>Учитель один раз даёт модулю ссылку на папку Google или Яндекс Диска. Искра находит ролики, предлагает соответствия «файл → урок», а после подтверждения сама копирует записи в наше хранилище и ставит ссылки. Ниже три состояния: <b>A</b> подключение папки, <b>B</b> подтверждение соответствий, <b>C</b> статус на модуле. Каждое — ПК, iPad, iPhone, Android, светлая и тёмная тема.</p>
+</header>
+
+<section id="A"><h2>A · Подключить папку к модулю</h2><p>ПК — всплывающее окно из меню модуля «⋯ → Папка с записями». iPad — то же из стеклянной капсулы справа. iPhone — лист с грабером. Android — нижний лист Material с таблетками.</p></section>
+<div class="grid" id="gridA"></div>
+<div class="grid phones" id="gridA2"></div>
+
+<section id="B"><h2>B · Подтвердить соответствия</h2><p>Каждая пара с меткой: «по номеру», «по названию», «по порядку». Уроки, где уже стоит ссылка, по умолчанию <b>не отмечены</b> — видна текущая ссылка, заменить можно только галочкой. Лишние файлы и дубли — красным, не отмечены.</p></section>
+<div class="grid" id="gridB"></div>
+<div class="grid phones" id="gridB2"></div>
+
+<section id="C"><h2>C · Компактный статус (правка Дани 24.11)</h2><p>У каждого урока — облачко: зелёное с галочкой — запись в Искре, фиолетовое с кольцом — копируется, жёлтое с часами — ждёт подтверждения. Подпись — при наведении на ПК и по нажатию на iPad/телефонах (в концепте раскрыта у копирующегося урока). В шапке модуля — облачко «3/4» с подписью о папке и кнопка ⟳ «Подтянуть записи». Новые файлы проверяются раз в 3 часа.</p></section>
+<div class="grid" id="gridC"></div>
+<div class="grid phones" id="gridC2"></div>
+
+<section><h2>Правила, которые держит интерфейс</h2>
+<ul class="note">
+<li>Ручная ссылка учителя никогда не заменяется без явной галочки; при гонке (учитель поменял ссылку во время копирования) — статус «Конфликт», ничего не пишется.</li>
+<li>У каждой применённой записи в меню урока — «Вернуть прежнюю ссылку».</li>
+<li>Списки прокручиваются с фейдами сверху/снизу (на Android — фейды SCROLL-01, без стекла).</li>
+<li>iPad: все действия — в капсуле справа, в лендскейпе без hover-only действий.</li>
+<li>Подписи внутри полей; лист с грабером — без крестика.</li>
+</ul></section>
+</div>
+
+<script>
+const FILES=[
+ {f:'Водоросли 1.mp4',s:'612 МБ',l:'1. Зелёные водоросли',m:'по номеру',on:1,cur:'—'},
+ {f:'Водоросли 2.mp4',s:'540 МБ',l:'2. Бурые и красные',m:'по номеру',on:1,cur:'—'},
+ {f:'Диатомовые (доп).mov',s:'310 МБ',l:'3. Диатомовые',m:'по названию',on:1,cur:'—'},
+ {f:'Водоросли 4.mp4',s:'702 МБ',l:'4. Лишайники',m:'по номеру',on:0,cur:'YouTube'},
+ {f:'Водоросли 5.mp4',s:'488 МБ',l:'Нет урока',m:'лишний',on:0,cur:'',bad:1},
+];
+const tag=(x)=>x.bad?'<span class="st bad">нет урока</span>':x.cur&&x.cur!=='—'?'<span class="st wait">есть '+x.cur+'</span>':'<span class="st mut">'+x.m+'</span>';
+const CLOUD='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.4 9.2 4.5 4.5 0 0 0 7 18Z"/></svg>';
+const MARK={ok:'<path d="m9.5 13.5 2 2 3.5-4" />',busy:'<path d="M12 11v5m0-5-2 2m2-2 2 2"/>',wait:'<path d="M12 11.5v2.5l1.5 1"/>'};
+const cloud=(k,tip,open)=>`<span class="cl ${k}" tabindex="0" aria-label="${tip}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.4 10.2 4.5 4.5 0 0 0 7 19Z"/>${MARK[k]}</svg>${k==='busy'?'<i class="ring"></i>':''}<span class="tip ${open?'open':''}">${tip}</span></span>`;
+const cb=(on)=>`<span class="cb ${on?'on':''}"></span>`;
+const mod=(state,extra='')=>{
+  const head={A:'<span class="folder">+ Папка с записями</span>',B:'<span class="folder">📁 Водоросли · Яндекс Диск</span>',C:'<span class="folder" title="Папка «Водоросли» · Яндекс Диск · 3 из 4 в Искре · 1 ждёт подтверждения">'+CLOUD+' 3/4</span><span class="ib" title="Подтянуть записи">⟳</span>'}[state];
+  const rows=['Зелёные водоросли','Бурые и красные','Диатомовые','Лишайники'].map((t,i)=>{
+    const v= state==='C' ? (i<2?cloud('ok','Запись в Искре · Водоросли '+(i+1)+'.mp4'):i===2?cloud('busy','Копируем из папки · 72 %',true):cloud('wait','Ждёт подтверждения: «Водоросли 4.mp4» — у урока уже есть YouTube')) : (i===3?'<span class="v">YouTube</span>':'<span class="v">нет записи</span>');
+    return `<div class="ls"><span class="n">${i+1}</span>${t}${v}</div>`}).join('');
+  const prog='';
+  return `<div class="mod"><div class="modh"><span class="grow">Водоросли</span>${head}<span style="color:var(--muted)">⋯</span></div>${rows}${prog}${extra}</div>`;
+};
+const connectBody=`<div class="field"><small>Ссылка на папку Google или Яндекс Диска</small><span>https://disk.yandex.ru/d/Xk2…Водоросли</span></div>
+ <div class="row sub"><span class="st ok">Яндекс Диск</span> найдено 5 видео · 2,6 ГБ</div>
+ <div class="row"><span style="flex:1">Подтягивать новые записи сами</span><span class="sw"></span></div>`;
+
+function pc(state,dark){
+  let over='';
+  if(state==='A') over=`<div class="pop" style="right:24px;top:70px"><b>Папка с записями модуля</b>${connectBody}<div class="row" style="justify-content:flex-end;gap:8px"><button class="btn">Отмена</button><button class="btn pri">Найти записи</button></div></div>`;
+  if(state==='B') over=`<div class="scrim"><div class="dlg"><header><b>Записи для модуля «Водоросли»</b><span class="sub">Яндекс Диск · 5 файлов · отмечено 3 · 1,5 ГБ</span></header>
+   <div class="tbl"><div class="tr h"><span></span><span>Файл</span><span></span><span>Урок</span><span>Как найдено</span><span>Размер</span></div>
+   ${FILES.map(x=>`<div class="tr">${cb(x.on)}<span class="file">${x.f}</span><span class="arrow">→</span><span class="sel"><span>${x.l}</span></span>${tag(x)}<span class="sub">${x.s}</span></div>`).join('')}
+   <div class="fade-b" style="bottom:0"></div></div>
+   <footer><span class="grow">Урок 4 уже с записью YouTube — не трогаем, пока не отметите.</span><button class="btn">Отмена</button><button class="btn pri">Скопировать 3 записи</button></footer></div></div>`;
+  return `<div class="t pc ${dark?'dark':''}"><div class="pcw"><div class="side"><b>Конструктор</b><span>Биология ЕГЭ — годовой</span><span>Модули и уроки</span><span>Доступ</span></div>
+  <div class="main"><div class="row"><b style="font-size:16px;flex:1">Модули</b><button class="btn">+ Урок</button></div>${mod(state)}${mod('A').replace('Водоросли','Грибы').replace(/Зелёные водоросли|Бурые и красные|Диатомовые|Лишайники/g,'Урок')}</div></div>${over}</div>`;
+}
+function cards(){return FILES.map(x=>`<div class="card"><div class="row">${cb(x.on)}<div class="grow"><div class="file">${x.f}</div><div class="sub">${x.s}</div></div>${tag(x)}</div><div class="sel"><span>→ ${x.l}</span></div></div>`).join('')}
+function pad(state,dark){
+  let over='';
+  if(state==='A') over=`<div class="sheet padsheet" style="top:auto;bottom:auto;top:90px;height:auto"><div class="grab"></div><header><b>Папка с записями</b></header><div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px">${connectBody}<button class="btn pri" style="padding:12px;border-radius:14px">Найти записи</button></div></div>`;
+  if(state==='B') over=`<div class="scrim" style="display:block"><div class="sheet padsheet"><div class="grab"></div><header><b>Записи для «Водоросли»</b><span class="sub">5 файлов · отмечено 3 · 1,5 ГБ</span></header><div class="cards">${cards()}<div class="fade-b" style="bottom:0;--bg2:var(--bg2)"></div></div><footer><button class="btn pri">Скопировать 3 записи</button></footer></div></div>`;
+  return `<div class="t pad ${dark?'dark':''}"><div class="padw"><b style="font-size:20px">Модули и уроки</b>${mod(state)}</div>
+  <div class="capsule"><i>＋</i><i class="${state==='A'?'on':''}">📁</i><i>⟳</i><i>⋯</i></div>${over}</div>`;
+}
+function iphone(state,dark){
+  let over='';
+  if(state==='A') over=`<div class="scrim" style="display:block"><div class="sheet"><div class="grab"></div><header><b>Папка с записями</b><span class="sub">Модуль «Водоросли»</span></header><div style="padding:0 16px;display:flex;flex-direction:column;gap:10px">${connectBody}</div><footer><button class="btn pri">Найти записи</button></footer></div></div>`;
+  if(state==='B') over=`<div class="scrim" style="display:block"><div class="sheet" style="top:46px"><div class="grab"></div><header><b>Записи для «Водоросли»</b><span class="sub">отмечено 3 · 1,5 ГБ</span></header><div class="cards">${cards()}<div class="fade-b" style="bottom:0"></div></div><footer><button class="btn pri">Скопировать 3 записи</button></footer></div></div>`;
+  return `<div class="t ph ${dark?'dark':''}"><div class="status"><span>9:41</span><span>100%</span></div><div class="phw"><div class="ios-top">Курс</div>${mod(state)}</div>${over}</div>`;
+}
+function android(state,dark){
+  let over='';
+  if(state==='A') over=`<div class="scrim" style="display:block"><div class="sheet"><div class="grab"></div><header><b>Папка с записями</b></header><div style="padding:0 16px;display:flex;flex-direction:column;gap:10px">${connectBody}</div><div class="fab-row"><button class="btn">Отмена</button><button class="btn pri">Найти записи</button></div></div></div>`;
+  if(state==='B') over=`<div class="full"><div class="appbar"><span>←</span><span style="flex:1">Записи · Водоросли</span></div><div class="cards">${cards()}<div class="fade-b" style="bottom:0"></div></div><div class="fab-row"><button class="btn pri">Скопировать 3 записи</button></div></div>`;
+  return `<div class="t ph and ${dark?'dark':''}"><div class="status"><span>9:41</span><span>▲ ■ 100%</span></div><div class="appbar">Курс</div><div class="phw">${mod(state)}</div>${over}</div>`;
+}
+const cap=(p,d)=>`<div class="cap"><span class="chip">${p}</span>${d?'тёмная':'светлая'}</div>`;
+for(const s of ['A','B','C']){
+  document.getElementById('grid'+s).innerHTML=[['ПК',pc],['iPad',pad]].flatMap(([n,f])=>[0,1].map(d=>`<div>${cap(n,d)}${f(s,d)}</div>`)).join('');
+  document.getElementById('grid'+s+'2').innerHTML=[['iPhone',iphone],['Android',android]].flatMap(([n,f])=>[0,1].map(d=>`<div>${cap(n,d)}${f(s,d)}</div>`)).join('');
+}
+</script>
+</body></html>
