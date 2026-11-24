@@ -38,7 +38,8 @@ const mocks = {
   '../lib/homeworkReset':
     'export const reconcileLocalHomework=()=>[];export const reconcileCourseReset=()=>[];export const courseResetRef=id=>"reset:"+id',
   './dashboardStore':
-    'export const useDashboard={getState:()=>({activeSubjectId:"hw-inbox",forgetLessons(){},syncLessonAssessments(){},setActiveSubject(){},setScheduleIndex(){},setHardStatus(){}})}',
+    // subscribe — studentDataStore подписывается на смену открытого курса (41c6fe7a).
+    'export const useDashboard={subscribe:()=>()=>{},getState:()=>({activeSubjectId:"hw-inbox",forgetLessons(){},syncLessonAssessments(){},setActiveSubject(){},setScheduleIndex(){},setHardStatus(){}})}',
   './i18n': 'export const t=x=>x',
 }
 await build({
