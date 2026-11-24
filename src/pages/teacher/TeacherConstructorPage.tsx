@@ -1896,7 +1896,7 @@ function TabBtn({ tab, activeTab, label, icon: Icon, color, bg, onClick, onPlus,
         boxShadow: isActive ? '0 4px 14px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.04)',
         transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
       }}>
-      <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />{label}
+      <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} /><OpticalText as="iskra-button-label">{label}</OpticalText>
       <AnimatePresence>
         {isActive && hover && plus && (
           <motion.span

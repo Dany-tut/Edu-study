@@ -1,4 +1,5 @@
 import { SubjectMark } from '../icons/SubjectMark'
+import OpticalText from '../OpticalText'
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
@@ -160,7 +161,7 @@ export function SortDropdown<V extends string>({ value, options, accent, minWidt
       onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); trigger.current?.focus() } }}>
       <button data-hover="layer" ref={trigger} type="button" aria-expanded={open} onClick={() => setOpen(o => !o)} style={pillStyle(open)}>
         <ArrowUpDown size={12} style={{ color: 'var(--color-text-3)' }} />
-        <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}>{label}</span>
+        <span style={{ minWidth, textAlign: 'left', whiteSpace: 'nowrap' }}><OpticalText alignment="ink">{label}</OpticalText></span>
         <Caret open={open} />
       </button>
       <AnimatePresence>
@@ -245,7 +246,7 @@ export function FacetDropdown({ value, options, allLabel, icon, accent, minWidth
         // заполненного фасета выбивалась из ряда таблеток шапки.
         style={pillStyle(open, { gap: iconGap, fontWeight: value ? 700 : 600 })}>
         <span style={{ display: 'flex', color: 'var(--color-text-3)' }}>{icon}</span>
-        <span style={{ minWidth, textAlign: 'left' }}>{value ? label(value) : allLabel}</span>
+        <span style={{ minWidth, textAlign: 'left' }}><OpticalText alignment="ink">{value ? label(value) : allLabel}</OpticalText></span>
         <Caret open={open} />
       </button>
       <AnimatePresence>
@@ -308,7 +309,7 @@ export function SegmentFilter<V extends string>({ value, options, onChange, comp
               boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none', transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease' }}>
             <span style={{ display: 'grid', justifyItems: 'center' }}>
               <span aria-hidden style={{ gridArea: '1 / 1', height: 0, overflow: 'hidden', visibility: 'hidden', fontWeight: 700 }}>{lbl}</span>
-              <span style={{ gridArea: '1 / 1' }}>{lbl}</span>
+              <OpticalText alignment="ink" style={{ gridArea: '1 / 1' }}>{lbl}</OpticalText>
             </span>
           </button>
         )

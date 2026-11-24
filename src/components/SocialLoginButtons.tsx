@@ -204,7 +204,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
               : id === 'yandex' ? <YandexMark size={20} />
               : <VkMark size={20} />}
           </span>
-          <span style={{ display: 'block', lineHeight: '20px' }}>{busy === id ? t('Отмена') : label}</span>
+          <OpticalText as="iskra-button-label" style={{ display: 'block', lineHeight: '20px' }}>{busy === id ? t('Отмена') : label}</OpticalText>
         </button>
       ))}
       {(passkeyOn || passkeyReserve) && <button
@@ -228,7 +228,7 @@ export default function SocialLoginButtons({ role, joinToken }: { role: LoginRol
           }}
         >
           <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, flexShrink: 0 }}>{busy === 'passkey' ? <Loader2 size={18} className="auth-feedback-spinner" /> : <KeyRound size={19} />}</span>
-          <span style={{ display: 'block', lineHeight: '20px' }}>{t('Войти с ключом доступа')}</span>
+          <OpticalText as="iskra-button-label" style={{ display: 'block', lineHeight: '20px' }}>{t('Войти с ключом доступа')}</OpticalText>
         </button>}
       </div>}
     </div>

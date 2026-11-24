@@ -2814,7 +2814,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                         return (
                           <button data-hover="layer" type="button" key={f.id} aria-pressed={rosterFilter === f.id}
                             onClick={() => setRosterFilter(f.id)}>
-                            <span>{f.label}</span>
+                            <OpticalText alignment="ink">{f.label}</OpticalText>
                             {count > 0 && <CountBadge count={count} className="roster-filter-count" tone={f.id === 'all' ? 'accent' : 'danger'}
                               style={f.id === 'fading' || f.id === 'nohw' ? { background: 'var(--color-amber-soft)', color: 'var(--color-amber-text)' } : undefined} />}
                           </button>
