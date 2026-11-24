@@ -359,7 +359,7 @@ export default function Sidebar() {
         const element = child as HTMLElement
         const css = getComputedStyle(element)
         const size = element === nav ? expandedNav
-          : element === profile ? (profile.firstElementChild as HTMLElement).offsetWidth
+          : element === profile ? (profile.firstElementChild as HTMLElement).offsetWidth + parseFloat(css.paddingLeft)
           : element.offsetWidth
         return width + size + parseFloat(css.marginLeft) + parseFloat(css.marginRight)
       }, parseFloat(outer.paddingLeft) + parseFloat(outer.paddingRight)
@@ -571,7 +571,10 @@ export default function Sidebar() {
       }}
     >
       {/* Avatar (flower on a generated-color backdrop) + Name */}
-      <div ref={avatarRef} style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0, paddingRight: 0 }}>
+      {/* Ховер — одна таблетка на всю группу: аватар 36 в ней по центру,
+          кольцо 4 px ровное. Раньше плашка была только у имени и начиналась
+          от края круга — аватар её «надкусывал». */}
+      <div ref={avatarRef} data-hover="layer" data-hover-under style={{ display: 'flex', alignItems: 'center', order: 5, minWidth: 0, minHeight: 44, paddingLeft: 4, paddingRight: 0, borderRadius: 22, color: 'var(--color-text)' }}>
         <div style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
           <motion.button
             whileHover={{ scale: 1.08, filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.35))' }}
@@ -881,7 +884,7 @@ export default function Sidebar() {
         </div>
         {/* Width collapses to 0 (instead of popLayout's absolute exit) so the
             name tucks behind the avatar in flow — nothing detaches sideways. */}
-        <motion.button data-hover="layer"
+        <motion.button data-hover="own"
           type="button"
           aria-label={t('Профиль')}
           title={tn(displayName)}
@@ -905,7 +908,7 @@ export default function Sidebar() {
           style={{ overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 0, minHeight: 44, border: 0, borderRadius: 999, background: 'transparent', cursor: 'pointer', font: 'inherit', padding: 0 }}
           tabIndex={isCompact ? -1 : 0}
         >
-          <span style={{ display: 'block', paddingLeft: 10, paddingRight: 8 }}>
+          <span style={{ display: 'block', paddingLeft: 10, paddingRight: 14 }}>
             <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>
               <span ref={nameTextRef} style={{ display: 'inline-block' }}><OpticalText alignment="ink">{tn(displayName)}</OpticalText></span>
             </FadeText>
