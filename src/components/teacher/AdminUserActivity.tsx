@@ -549,8 +549,8 @@ function DeleteTeacherDialog({ teacher, onClose, onDone }: {
   const btn = (danger: boolean): React.CSSProperties => ({
     padding: '10px 14px', borderRadius: 11, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
     cursor: armed && !busy ? 'pointer' : 'default', opacity: armed ? 1 : 0.45,
-    border: danger ? 'none' : '1px solid #E04848',
-    background: danger ? 'var(--color-red-text)' : 'transparent', color: danger ? '#fff' : 'var(--color-red-text)',
+    border: danger ? 'none' : '1px solid var(--color-red-border)',
+    background: danger ? 'var(--btn-red-bg)' : 'transparent', color: danger ? '#fff' : 'var(--color-red-text)',
   })
 
   return createPortal(
