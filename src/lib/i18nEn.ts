@@ -4409,6 +4409,10 @@ export const EN: Record<string, string> = {
   'Редактор: ': 'Editor: ',
   ' (копия)': ' (copy)',
   'Удалить курс «': 'Delete the course "',
+  'Удалить отмеченное': 'Delete selected',
+  'Уроки и задания курсов удалятся вместе с ними. Это действие необратимо.':
+    'The courses\' lessons and tasks are deleted with them. This cannot be undone.',
+  'Это действие необратимо.': 'This cannot be undone.',
   'Уроки и задания курса удалятся вместе с ним. Это действие необратимо.':
     'The course\'s lessons and tasks are deleted with it. This cannot be undone.',
   'Удалить виджет «': 'Delete the widget "',

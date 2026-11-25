@@ -9015,6 +9015,26 @@ export default function TeacherConstructorPage() {
   // сразу: отказ (нет прав, нет связи) молчал, и после F5 «удалённое»
   // возвращалось. Не удалилось — остаётся отмеченным, и учитель это видит.
   async function deleteChecked() {
+    if (!checkedIds.size) return
+    // Массовое удаление необратимо так же, как одиночное, — и спрашиваем так же.
+    // 25.11.2026 «Удалить 3» без вопроса снёс курс «Японский с нуля: кана»
+    // вместе с двумя тестовыми (восстановили из истории версий).
+    const names: string[] = onTasksShelf ? []
+      : activeTab === 'course' ? courses.filter(c => checkedIds.has(c.id)).map(c => c.title)
+      : activeTab === 'testing' ? customTests.filter(ct => checkedIds.has(ct.id)).map(ct => ct.label)
+      : widgets.filter(w => checkedIds.has(w.id)).map(w => w.title)
+    const shown = names.filter(Boolean).slice(0, 6).map(name => `«${name}»`)
+    const rest = names.length - shown.length
+    const ok = await confirmDialog({
+      title: t('Удалить отмеченное') + ` (${checkedIds.size})?`,
+      message: [
+        shown.join(', ') + (rest > 0 ? ` ${t('и ещё')} ${rest}` : ''),
+        activeTab === 'course' ? t('Уроки и задания курсов удалятся вместе с ними. Это действие необратимо.') : t('Это действие необратимо.'),
+      ].filter(Boolean).join('\n\n'),
+      confirmLabel: t('Удалить'),
+      tone: 'danger',
+    })
+    if (!ok) return
     const failed = new Set<string>()
     if (activeTab === 'course') {
       const toDelete = courses.filter(c => checkedIds.has(c.id))
