@@ -200,9 +200,11 @@ Deno.serve(async (req) => {
           ownersOfStudent(null),
           // ДЗ вне курса (homework без урока): ensureStandaloneTestlySnapshots
           // пишет его под lesson_ref «hw-<id>» — без него «уже записано» пропустило
-          // бы сдачу, которая должна создать там домашку.
+          // бы сдачу, которая должна создать там домашку. Массив в .contains()
+          // supabase-js шлёт как массив Postgres («cs.{…}»), а jsonb ждёт JSON —
+          // поэтому фильтр строкой.
           groups.length
-            ? admin.from('homework').select('id, status, basic_tasks').in('group_id', groups).is('lesson_id', null).contains('basic_tasks', [{ type: 'testly' }])
+            ? admin.from('homework').select('id, status, basic_tasks').in('group_id', groups).is('lesson_id', null).filter('basic_tasks', 'cs', JSON.stringify([{ type: 'testly' }]))
             : Promise.resolve({ data: [] as { id: string; status: string; basic_tasks: unknown }[] }),
         ])
         const tests = new Map<string, { testId: string; key: string }>()

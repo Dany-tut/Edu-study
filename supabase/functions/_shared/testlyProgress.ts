@@ -104,7 +104,9 @@ export async function ensureStandaloneTestlySnapshots(db: any, own: Person[], te
   const groupIds = [...new Set(own.map(row => row.group_id).filter(Boolean))] as string[]
   if (!groupIds.length) return
   const { data: rows, error } = await db.from('homework').select('id, group_id, status, basic_tasks')
-    .in('group_id', groupIds).is('lesson_id', null).contains('basic_tasks', [{ testly: { id: testId } }])
+    .in('group_id', groupIds).is('lesson_id', null)
+    // Не .contains([...]): массив supabase-js шлёт как массив Postgres, jsonb ждёт JSON.
+    .filter('basic_tasks', 'cs', JSON.stringify([{ testly: { id: testId } }]))
   if (error) throw error
   const live = (rows ?? []).filter((hw: any) => hw.status !== 'draft' && hw.status !== 'archived')
   if (!live.length) return

@@ -380,12 +380,14 @@ export default function TeacherAnalytics() {
         setGeo([...acc.values()].sort((a, b) => b.total - a.total))
       } })
     } else if (activeTab === 'issues') {
-      rpc('pages', 'admin_page_stats', { p_days: days }, data => setPageStats((data as PageStat[]) ?? []))
-      rpc('errors', 'admin_recent_errors', { p_limit: 500 }, data => setRecentErrors((data as ErrorRow[]) ?? []))
-      rpc('rage', 'admin_rage_hotspots', { p_days: days }, data => setRageHots((data as RageHot[]) ?? []))
+      // Закрытия и лог ошибок идут первой парой: счётчик на вкладке считается
+      // только из них обоих, иначе на миг все 500 записей выглядят открытыми.
       tasks.push({ id: 'resolutions', run: () => supabase.from('analytics_issue_resolutions')
         .select('signature, resolved_at, app_version, snapshot').abortSignal(controller.signal),
         apply: data => setResolutions((data as Resolution[]) ?? []) })
+      rpc('errors', 'admin_recent_errors', { p_limit: 500 }, data => setRecentErrors((data as ErrorRow[]) ?? []))
+      rpc('pages', 'admin_page_stats', { p_days: days }, data => setPageStats((data as PageStat[]) ?? []))
+      rpc('rage', 'admin_rage_hotspots', { p_days: days }, data => setRageHots((data as RageHot[]) ?? []))
     }
     const selected = retryId ? tasks.filter(task => task.id === retryId) : tasks
     setPending(new Set(selected.map(task => task.id)))
@@ -506,6 +508,8 @@ export default function TeacherAnalytics() {
   const openErrors   = errorRows.filter(e => !isResolved(e))
   const closedErrors = errorRows.length - openErrors.length
   const totalErrors  = openErrors.length
+  // Пока лог или закрытия грузятся (или упали), число было бы неверным — не показываем.
+  const issueCountKnown = !['errors', 'resolutions'].some(id => (activeTab === 'issues' && sectionPending(id)) || sectionErrors[id])
 
   /** Группировка лога: 800 копий одного бага — одна строка с кнопкой «Закрыть». */
   type ErrGroup = { key: string; sample: ErrorRow; n: number; last: string; paths: string[]; closed: boolean; version: string | null }
@@ -712,7 +716,7 @@ export default function TeacherAnalytics() {
           variant="mode" value={activeTab} onChange={setActiveTab} style={{ marginLeft:'auto' }}
           items={tabs.map(([id,label]) => ({
             id, title: label,
-            label, ...(id==='issues' ? { count: totalErrors, countTone: 'danger' as const } : {}),
+            label, ...(id==='issues' && issueCountKnown ? { count: totalErrors, countTone: 'danger' as const } : {}),
           }))}
         />
         )}
