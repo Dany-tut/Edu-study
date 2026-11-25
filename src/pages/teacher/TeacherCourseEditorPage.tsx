@@ -746,7 +746,10 @@ function AssignPicker({
           const want = (wantSubject ?? '').trim().toLowerCase()
           const hasWantCard = !!want && chips.some(c => c.subject.trim().toLowerCase() === want)
           return (
-            <div key={item.id} style={{
+            // Ховер — на всю карточку, а не только на строку с именем: иначе
+            // у ученика с чипсами предметов подсвечивалась половина карточки
+            // (25.11.2026). Слой под содержимым, у чипсов — свой ховер.
+            <div key={item.id} data-hover="layer" data-hover-under style={{
               position: 'relative',
               borderRadius: 12,
               border: on ? '1.5px solid var(--color-green-text)'
@@ -755,7 +758,7 @@ function AssignPicker({
               background: on ? 'var(--color-green-soft)' : 'transparent',
               transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s',
             }}>
-              <button data-hover="layer" onClick={() => onToggle(item)} style={{
+              <button onClick={() => onToggle(item)} style={{
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                 padding: on ? '10px 42px 10px 14px' : '10px 14px', border: 'none', background: 'transparent',
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -770,7 +773,7 @@ function AssignPicker({
                   {kind === 'group' ? <Users size={14} style={{ color: on ? '#fff' : 'var(--color-muted)' }} /> : tn(item.name).slice(0, 1).toUpperCase()}
                 </div>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 1, flex: 1, minWidth: 0, textAlign: 'left' }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)', ...oneLine }} title={tn(item.name)}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: on ? 'var(--color-green-text)' : 'var(--color-text)', ...oneLine }}>
                     {tn(item.name)}
                   </span>
                   {subtitle && (
@@ -8060,7 +8063,16 @@ export default function TeacherCourseEditorPage() {
     const hasAudience = c.groupIds.length > 0 || c.studentIds.length > 0
     if (!hasAudience) return t('Выберите, кому виден курс (группа или ученик) — иначе можно только сохранить в черновик.')
     const realLessons = c.lessons.filter(l => l.kind !== 'test')
-    if (realLessons.length > 0 && !realLessons.some(lessonScheduled)) {
+    // Дата нужна только тем, кому уроки открываются «По датам». Если всем
+    // открыто «Всё открыто» или «Настраиваемый», расписание ничего не решает
+    // (курс в своём темпе, 25.11.2026). У группы без учеников режим ещё не
+    // выбран — новые участники получают «По датам», так что дата нужна.
+    const groupIds = new Set(c.groupIds)
+    const members = allStudents.filter(s => s.groupId && groupIds.has(s.groupId)).map(s => s.id)
+    const audience = [...new Set([...c.studentIds, ...members])]
+    const emptyGroup = c.groupIds.some(id => !allStudents.some(s => s.groupId === id))
+    const needsDates = emptyGroup || audience.length === 0 || audience.some(id => (accessModes[id] ?? 'by_date') === 'by_date')
+    if (needsDates && realLessons.length > 0 && !realLessons.some(lessonScheduled)) {
       return t('Укажите дату и время хотя бы для одного урока — иначе можно только сохранить в черновик.')
     }
     return null
