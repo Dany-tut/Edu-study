@@ -29,7 +29,7 @@ export function useStickerSurface(): StickerSurfaceKind {
   return PLATFORM === 'ipad' || desktop ? 'window' : 'sheet'
 }
 
-export default function StickerSurface({ open, onClose, label, width = 560, header, children, footer, sheetFooter, zIndex = 1200 }: {
+export default function StickerSurface({ open, onClose, label, width = 560, header, children, footer, sheetFooter, zIndex = 1200, closeInset }: {
   open: boolean
   onClose: () => void
   /** Подпись окна для читалок экрана. */
@@ -43,6 +43,8 @@ export default function StickerSurface({ open, onClose, label, width = 560, head
   /** Подвал листа; по умолчанию тот же, что у окна. */
   sheetFooter?: ReactNode
   zIndex?: number
+  /** Отступ × от верха и правого края окна (по умолчанию из CSS, 24). */
+  closeInset?: number
 }) {
   const kind = useStickerSurface()
   if (kind === 'sheet') {
@@ -55,11 +57,11 @@ export default function StickerSurface({ open, onClose, label, width = 560, head
       </MobileSheet>
     )
   }
-  return <Window open={open} onClose={onClose} label={label} width={width} header={header} footer={footer} zIndex={zIndex}>{children}</Window>
+  return <Window open={open} onClose={onClose} label={label} width={width} header={header} footer={footer} zIndex={zIndex} closeInset={closeInset}>{children}</Window>
 }
 
-function Window({ open, onClose, label, width, header, children, footer, zIndex }: {
-  open: boolean; onClose: () => void; label: string; width: number; header?: ReactNode; children: ReactNode; footer?: ReactNode; zIndex: number
+function Window({ open, onClose, label, width, header, children, footer, zIndex, closeInset }: {
+  open: boolean; onClose: () => void; label: string; width: number; header?: ReactNode; children: ReactNode; footer?: ReactNode; zIndex: number; closeInset?: number
 }) {
   const reduce = useReducedMotion()
   const cardRef = useRef<HTMLDivElement>(null)
@@ -113,7 +115,7 @@ function Window({ open, onClose, label, width, header, children, footer, zIndex 
             style={{ ...MODAL_CARD, width, outline: 'none' }}
           >
             <div className="stk-snow" aria-hidden />
-            <div className="stk-window__close"><ModalClose onClose={onClose} /></div>
+            <div className="stk-window__close" style={closeInset != null ? { top: closeInset, right: closeInset } : undefined}><ModalClose onClose={onClose} /></div>
             {header && <div style={{ flexShrink: 0 }}>{header}</div>}
             <OverlayScrollArea style={{ flex: 1 }}>{children}</OverlayScrollArea>
             {footer && <div style={{ flexShrink: 0 }}>{footer}</div>}

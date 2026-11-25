@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
+import { MODAL_RADIUS } from '../../Modal'
 import { motion, useReducedMotion } from 'framer-motion'
 import OpticalText from '../../OpticalText'
 import FadeText from '../../FadeText'
@@ -31,6 +32,13 @@ export function useNewYearAskOpen(): boolean {
   return useSyncExternalStore(f => { askSubs.add(f); return () => { askSubs.delete(f) } }, () => askOpen, () => false)
 }
 
+// Баннер в окне — вложенная карточка: одинаковый отступ сверху и по бокам,
+// радиус концентричен окну (внешний − рамка − отступ). Крестик стоит
+// на том же расстоянии от верха и правого края баннера, что и чипсы слева.
+const BANNER_INSET = 8
+const BANNER_RADIUS = MODAL_RADIUS - 1 - BANNER_INSET
+const CLOSE_INSET = 14
+
 export default function NewYearAsk() {
   const t = useT()
   const s = useSeason()
@@ -52,8 +60,12 @@ export default function NewYearAsk() {
   const rare = STICKERS.filter(x => x.rare).length
 
   const header = (
-    <div style={{ padding: kind === 'window' ? '18px 20px 0' : 0 }}>
-      <div className="stk-banner" style={{ height: kind === 'window' ? 150 : 128, backgroundImage: `url(${newYearImg('banner-yolka')})` }}>
+    <div style={{ padding: kind === 'window' ? `${BANNER_INSET}px ${BANNER_INSET}px 0` : 0 }}>
+      <div className="stk-banner" style={{
+        height: kind === 'window' ? 150 : 128,
+        backgroundImage: `url(${newYearImg('banner-yolka')})`,
+        ...(kind === 'window' ? { borderRadius: BANNER_RADIUS } : null),
+      }}>
         <div className="stk-banner__chips">
           <span className="stk-chip">{t('Новый год в Искре')}</span>
           {until && <span className="stk-chip">{t('до')} {until}</span>}
@@ -83,6 +95,7 @@ export default function NewYearAsk() {
   return (
     <StickerSurface
       open={open} onClose={close} label={t('Собери новогоднюю коллекцию')} width={600}
+      closeInset={BANNER_INSET + CLOSE_INSET}
       header={header}
       footer={<div className="stk-ask__foot">{buttons(false)}</div>}
       sheetFooter={<div className="stk-sheet-foot">{buttons(true)}</div>}
