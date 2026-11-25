@@ -28,8 +28,12 @@ import { homeworkResult, homeworkDisplayScore, type HomeworkAttempt, type Homewo
  * so it surfaces in the admin dashboard instead of vanishing into a silent `[]`.
  * Empty result sets are NOT errors and are not reported.
  */
+// Отмена запроса (уход со страницы, заморозка вкладки в iOS) — не ошибка базы,
+// а обрыв сети уже записан событием api_request с адресом запроса.
+const NOT_A_DB_ERROR = /^(AbortError|TypeError: (Load failed|Failed to fetch|NetworkError))/
 function reportDbError(ctx: string, error: { message?: string; code?: string } | null) {
   if (!error) return
+  if (!error.code && NOT_A_DB_ERROR.test(String(error.message ?? ''))) { console.warn(`[db:${ctx}]`, error.message); return }
   console.error(`[db:${ctx}]`, error)
   try { trackEvent('db_error', { ctx, msg: String(error.message ?? '').slice(0, 200), code: error.code ?? null }) } catch { /**/ }
 }
