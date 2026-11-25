@@ -60,6 +60,26 @@ function handbook(modules: AccModule[], numberOf: (key: string) => number): AccL
   }
 }
 
+/**
+ * В конце каждого конспекта — куда написать вопрос или комментарий со
+ * скриншотом. Отдельного поля в уроке нет: используется существующая
+ * «Обратная связь» (feedback_requests: текст, свой раздел, скриншоты; видит
+ * админ). В домашку базового уровня фото не прикладываются, а практическое
+ * задание открывается только после теста — поэтому путь один для всех уроков.
+ * Номер урока в разделе связывает сообщение с уроком.
+ */
+function withComment(lesson: AccLesson, index: number): AccLesson {
+  if (lesson.content.paragraphs.some(par => par.id === 'comment')) return lesson
+  return {
+    ...lesson,
+    content: {
+      ...lesson.content,
+      paragraphs: [...lesson.content.paragraphs, p('comment',
+        `**Вопрос или комментарий к уроку.** Если что-то непонятно или у вас на работе устроено иначе — меню профиля → «Обратная связь», раздел «Бухгалтерия, урок №${index + 1}». Напишите, как у вас, и вставьте скриншот (Ctrl+V, на Mac — Cmd+V) без ФИО, ИНН и счетов. Практическое задание урока тоже принимает фото.`)],
+    },
+  }
+}
+
 /** Уроки курса по порядку, с модулем — для каталога, отчёта и стенда. */
 export const ACC_LESSONS: Array<{ shortId: string; index: number; module: AccModule; lesson: AccLesson }> = (() => {
   const order: Array<{ module: AccModule; lesson: AccLesson }> = []
@@ -70,12 +90,33 @@ export const ACC_LESSONS: Array<{ shortId: string; index: number; module: AccMod
   }
   const keys = order.map(o => o.lesson?.key ?? 'm00-02')
   const numberOf = (key: string) => keys.indexOf(key)
+  // Авторы ссылаются на соседние уроки внутренними ключами («см. m13-07»).
+  // Ученик видит номера занятий, поэтому ключ заменяется на «№N «название»».
+  // Ключи внутри id вопросов (acc-m13-07-q1) не трогаем — перед ними дефис.
+  const titles = new Map(order.map(o => [o.lesson?.key ?? 'm00-02', o.lesson?.title ?? 'Справочник']))
+  const relinkText = (t: string) => t.replace(/(?<![\w-])m(\d\d)-(\d\d)(?![\w-])/g, (k: string) => {
+    const n = numberOf(k)
+    return n < 0 ? k : `№${n + 1} «${titles.get(k)}»`
+  })
+  const relink = (l: AccLesson): AccLesson => ({
+    ...l,
+    content: {
+      paragraphs: l.content.paragraphs.map(par => ({ ...par, text: relinkText(par.text) })),
+      quiz: l.content.quiz.map(q => ({
+        ...q,
+        prompt: relinkText(q.prompt),
+        explanation: relinkText(q.explanation),
+        options: q.options.map(o => ({ ...o, text: relinkText(o.text) })),
+      })),
+      hardTask: { ...l.content.hardTask, prompt: relinkText(l.content.hardTask.prompt), teacherNote: relinkText(l.content.hardTask.teacherNote), placeholder: relinkText(l.content.hardTask.placeholder) },
+    },
+  })
   const intro = MODULES.find(m => m.id === 'EXP00')
   return order.map((o, index) => ({
     shortId: `${ACC_COURSE_ID}-${index}`,
     index,
     module: o.module,
-    lesson: o.lesson ?? handbook(MODULES, numberOf),
+    lesson: withComment(relink(o.lesson ?? handbook(MODULES, numberOf)), index),
   })).map(x => (x.lesson.key === 'm00-02' && intro ? { ...x, module: intro } : x))
 })()
 
