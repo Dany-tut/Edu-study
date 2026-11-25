@@ -23,6 +23,68 @@ import { studentScheduleScope } from './studentScheduleScope'
 import type { BasicAnswersPayload } from './basicAnswers'
 import { homeworkResult, homeworkDisplayScore, type HomeworkAttempt, type HomeworkResult } from './homeworkResult'
 
+type DbError = { message?: string; code?: string } | null | undefined
+
+/**
+ * Классификация ошибки чтения. `network`/`timeout` отделяют сетевой обрыв и
+ * таймаут выражения от настоящей ошибки БД: мобильный Safari рвёт фоновые
+ * коннекты, и такой `TypeError: Load failed` раньше летел в `db_error`
+ * неотличимо от RLS-отказа или 5xx, раздувая админскую сводку ложными
+ * «ошибками базы». Правила — те же, что в classifyCourseSaveFailure.
+ */
+type DbErrorKind = 'auth' | 'network' | 'timeout' | 'server'
+export function classifyDbError(error: DbError): DbErrorKind {
+  const code = error?.code ?? ''
+  const message = error?.message ?? ''
+  if (/^PGRST30\d$/.test(code) || code === '42501' || /jwt|token.*expired|row-level security|permission denied/i.test(message)) return 'auth'
+  if (code === '57014' || /statement timeout|canceling statement|timeouterror|timed ?out/i.test(message)) return 'timeout'
+  if (!code && /failed to fetch|load failed|networkerror|network request|lock was stolen|was stolen|stole it|fetch is aborted|aborterror/i.test(message)) return 'network'
+  return 'server'
+}
+
+/**
+ * Транзиент, который безопасно повторить у ЧТЕНИЯ: сетевой обрыв, таймаут
+ * выражения, нехватка коннектов/обрыв соединения и украденная auth-блокировка.
+ * Есть SQLSTATE-код (ответ сервера) — повторяем только известные инфраструктурные
+ * коды, остальное (RLS, 23505, 4xx) считаем окончательным. Отмену при уходе со
+ * страницы («Fetch is aborted») НЕ повторяем — это штатный шум.
+ */
+function isTransientDbError(error: unknown): boolean {
+  const message = error && typeof error === 'object' && 'message' in error ? String((error as { message: unknown }).message) : String(error ?? '')
+  const code = error && typeof error === 'object' && 'code' in error ? String((error as { code?: unknown }).code ?? '') : ''
+  if (code) return code === '57014' || code === '53300' || code === '08006' || code === '08003'
+  return /statement timeout|canceling statement|failed to fetch|load failed|networkerror|network request|lock was stolen|was stolen|stole it|timeouterror|timed ?out/i.test(message)
+}
+
+const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
+
+/**
+ * Ограниченный ретрай ТОЛЬКО чтений и ТОЛЬКО на транзиентных ошибках
+ * (сеть/таймаут/обрыв/украденная блокировка). Запись (данные-предохранитель,
+ * AGENTS.md) сюда не заворачиваем никогда: повтор POST мог бы применить действие
+ * дважды. Возвращает `{data,error}` в форме PostgREST; на нетранзиентный БРОСОК
+ * пробрасывает дальше, поэтому у вызова не меняется ни ветка `if (error)`, ни
+ * внешний try/catch. Транзиентный бросок превращаем в возвращённую ошибку той же
+ * формы — её подхватит обычная `if (error) reportDbError(...)`, одно событие.
+ */
+async function retryTransient<T>(
+  make: () => PromiseLike<{ data: T | null; error: DbError }>,
+  tries = 2,
+): Promise<{ data: T | null; error: DbError }> {
+  let res: { data: T | null; error: DbError } = { data: null, error: { message: 'unavailable' } }
+  for (let attempt = 0; attempt < tries; attempt++) {
+    try {
+      res = await make()
+    } catch (e) {
+      if (!isTransientDbError(e)) throw e
+      res = { data: null, error: { message: String((e as Error)?.message ?? e), code: (e as { code?: string })?.code } }
+    }
+    if (!res.error || !isTransientDbError(res.error)) return res
+    if (attempt < tries - 1) await sleep(300 * (attempt + 1) + Math.floor(Math.random() * 150))
+  }
+  return res
+}
+
 /**
  * Report a real Supabase error (RLS denial, 5xx, timeout) to console + analytics
  * so it surfaces in the admin dashboard instead of vanishing into a silent `[]`.
@@ -31,11 +93,12 @@ import { homeworkResult, homeworkDisplayScore, type HomeworkAttempt, type Homewo
 // Отмена запроса (уход со страницы, заморозка вкладки в iOS) — не ошибка базы,
 // а обрыв сети уже записан событием api_request с адресом запроса.
 const NOT_A_DB_ERROR = /^(AbortError|TypeError: (Load failed|Failed to fetch|NetworkError))/
-function reportDbError(ctx: string, error: { message?: string; code?: string } | null) {
+function reportDbError(ctx: string, error: DbError) {
   if (!error) return
   if (!error.code && NOT_A_DB_ERROR.test(String(error.message ?? ''))) { console.warn(`[db:${ctx}]`, error.message); return }
   console.error(`[db:${ctx}]`, error)
-  try { trackEvent('db_error', { ctx, msg: String(error.message ?? '').slice(0, 200), code: error.code ?? null }) } catch { /**/ }
+  try { trackEvent('db_error', { ctx, msg: String(error.message ?? '').slice(0, 200), code: error.code ?? null,
+    kind: classifyDbError(error), online: typeof navigator !== 'undefined' ? navigator.onLine : null }) } catch { /**/ }
 }
 
 // «Похож на UUID». Битая student_session (легаси-формат без id/groupId) даёт
@@ -139,14 +202,14 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   const scope = studentScheduleScope(person.rows)
   if (scope.length === 0) return []
 
-  const { data, error } = await supabase
+  const { data, error } = await retryTransient(() => supabase
     .from('schedule_lessons')
     .select('id, lesson_id, date, time_start, time_end, subject, lesson_title, lesson_number, node_type, status')
     .or(scope.join(','))
     .gte('date', fmt(from))
     .lte('date', fmt(to))
     .order('date', { ascending: true })
-    .order('time_start', { ascending: true })
+    .order('time_start', { ascending: true }))
 
   if (error) reportDbError('fetchScheduleDays', error)
   if (error) throw error
@@ -171,9 +234,9 @@ export async function fetchScheduleDays(groupId: string, studentId?: string, ran
   const attendance = new Map<string, boolean | null>()
   if (data.length) {
     await Promise.all(person.studentIds.filter(isUuid).map(async id => {
-      const result = await supabase.rpc('student_schedule_attendance', {
+      const result = await retryTransient(() => supabase.rpc('student_schedule_attendance', {
         p_student: id, p_schedules: data.filter(row => isUuid(row.id)).map(row => row.id),
-      })
+      }))
       if (result.error) reportDbError('student_schedule_attendance', result.error)
       else for (const mark of result.data ?? []) {
         if (attendance.get(mark.schedule_id) == null) attendance.set(mark.schedule_id, mark.present)
@@ -305,7 +368,7 @@ export async function fetchPersonScope(
   // предмет лучше пустого экрана.
   if (isUuid(fallback.id)) {
     try {
-      const { data, error } = await supabase.rpc('person_student_rows', { p_student: fallback.id })
+      const { data, error } = await retryTransient(() => supabase.rpc('person_student_rows', { p_student: fallback.id }))
       if (error) reportDbError('fetchPersonScope.rpc', error)
       for (const r of (data ?? []) as Array<{ id: string; group_id: string }>) raw.push(r)
     } catch (e) {
@@ -600,9 +663,9 @@ export async function fetchStudentTrack(
   // Если её нет (откат базы), старая RPC и отдельный запрос оценок ниже.
   for (const rpc of ['student_track_v2', 'student_track'] as const) {
     try {
-      const { data, error } = rpc === 'student_track_v2'
-        ? await supabase.rpc(rpc, { ...args, p_focus: focus })
-        : await supabase.rpc(rpc, args)
+      const { data, error } = await retryTransient(() => rpc === 'student_track_v2'
+        ? supabase.rpc(rpc, { ...args, p_focus: focus })
+        : supabase.rpc(rpc, args))
       if (error) reportDbError('fetchStudentTrack', error)
       else { payload = data as TrackPayload; break }
     } catch (e) {
@@ -847,7 +910,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
   // спутник-звезда у такого урока не зажглась бы. Запрос лёгкий — строка на
   // назначение — и идёт параллельно скелету, своего круга не добавляя.
   const hardTasksP = fetchLessonHardTasks(groupIds).catch(() => new Map<string, HardTaskDef[]>())
-  const { data, error } = await supabase
+  const { data, error } = await retryTransient(() => supabase
     .from('courses')
     .select(`
       id, short_id, title, subject, student_ids, group_ids,
@@ -858,7 +921,7 @@ export async function fetchCourseStructure(rows: Array<{ id: string; groupId: st
     `)
     .eq('status', 'published')
     .or(orParts.join(','))
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: true }))
 
   if (error) reportDbError('fetchCourseStructure', error)
   // The calendar must distinguish a failed material projection from a free day.
