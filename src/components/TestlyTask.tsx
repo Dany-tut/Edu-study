@@ -52,9 +52,11 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
   const live = useRef({ value, onChange, disabled, onReopen })
   live.current = { value, onChange, disabled, onReopen }
 
+  const inFlight = useRef(false)
   const refresh = useCallback(async () => {
     if (!test?.id) return
     const request = ++requestSeq.current
+    inFlight.current = true
     try {
       const a = await fetchTestlyStatus(test.id, test.owner, lessonRef)
       if (request !== requestSeq.current) return
@@ -80,6 +82,8 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
         setSessionError(needsStudentLogin(error) ? (error as Error).message : '')
         setOffline(true)
       }
+    } finally {
+      if (request === requestSeq.current) inFlight.current = false
     }
   }, [test?.id, test?.owner, lessonRef])
 
@@ -91,11 +95,16 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
     return () => { requestSeq.current++; window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', onFocus) }
   }, [refresh])
 
-  // Пока тест начат (или итог ждёт проверки учителя) — переспрашиваем сами.
-  const waiting = !!test?.id
+  // Пока тест открыт здесь, начат или итог ждёт проверки учителя — переспрашиваем
+  // сами. Не начатый и уже оценённый тест не опрашиваем: каждый вызов идёт в
+  // Тестли (~3 с), а вкладка и так переспросит при возврате фокуса. Следующий
+  // запрос не шлём, пока не вернулся предыдущий.
+  const waiting = !!test?.id && (opened || attempt?.state === 'started' || (attempt?.state === 'submitted' && !!attempt.pending))
   useEffect(() => {
     if (!waiting || sessionError) return
-    const id = window.setInterval(() => { if (document.visibilityState === 'visible') void refresh() }, POLL_MS)
+    const id = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && !inFlight.current) void refresh()
+    }, POLL_MS)
     return () => window.clearInterval(id)
   }, [waiting, refresh, sessionError])
 

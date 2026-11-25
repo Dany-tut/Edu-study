@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
   const ownersOfStudent = async (owner: unknown) => {
     // Ученик может быть независимым от группы: у таких записей group_id = null,
     // а владелец хранится прямо в students.created_by.
-    const { data: rows } = await admin.from('students').select('name, group_id, created_by').eq('auth_user_id', teacher)
+    const { data: rows } = await admin.from('students').select('id, name, group_id, created_by').eq('auth_user_id', teacher)
     const groups = [...new Set((rows ?? []).map(r => r.group_id).filter(Boolean))]
     const { data: gs } = groups.length
       ? await admin.from('groups').select('created_by').in('id', groups)
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       ...(gs ?? []).map(g => g.created_by as string | null),
     ].filter((id): id is string => !!id))]
     const owners = typeof owner === 'string' && all.includes(owner) ? [owner] : all
-    return { name: String(rows?.[0]?.name ?? ''), owners }
+    return { name: String(rows?.[0]?.name ?? ''), owners, studentIds: (rows ?? []).map(r => r.id as string) }
   }
   const tokenFor = async (owner: string) => {
     const { data } = await admin.from('teacher_module_secrets').select('token')
@@ -148,17 +148,23 @@ Deno.serve(async (req) => {
       }
       case 'start':
       case 'status': {
-        const { name, owners } = await ownersOfStudent(body.owner)
+        // Опрос идёт каждые 5 с, пока тест открыт: строки ученика читаем один раз,
+        // ключи всех его учителей — одним запросом, попытку урока — параллельно.
+        const t0 = Date.now()
+        const { name, owners, studentIds } = await ownersOfStudent(body.owner)
         if (!owners.length) return json({ error: 'not_student' }, 403)
-        let attemptKey = studentKey
-        if (body.lessonRef) {
-          const { data: people } = await admin.from('students').select('id').eq('auth_user_id', teacher)
-          const { data: progress } = await admin.from('lesson_progress').select('attachments').in('student_id',(people ?? []).map(s => s.id)).eq('lesson_ref',String(body.lessonRef)).limit(1).maybeSingle()
-          attemptKey = progress?.attachments?.testlyKey ?? studentKey
-        }
+        const [{ data: secrets }, attemptKey] = await Promise.all([
+          admin.from('teacher_module_secrets').select('teacher_id, token').in('teacher_id', owners).eq('module', 'testly'),
+          body.lessonRef && studentIds.length
+            ? admin.from('lesson_progress').select('attachments').in('student_id', studentIds).eq('lesson_ref', String(body.lessonRef)).limit(1).maybeSingle()
+                .then(({ data }) => (data?.attachments?.testlyKey as string | undefined) ?? studentKey)
+            : Promise.resolve(studentKey),
+        ])
+        const tokens = new Map((secrets ?? []).map(r => [r.teacher_id as string, r.token as string]))
+        const tDb = Date.now() - t0
         // Тест ищем у владельца задания; у старых заданий его нет — пробуем учителей ученика по очереди.
         for (const owner of owners) {
-          const token = await tokenFor(owner)
+          const token = tokens.get(owner)
           if (!token) continue
           if (body.action === 'start') {
             const r = await testly({ action: 'invite', token, testId: String(body.testId ?? ''), key: attemptKey, name })
@@ -166,18 +172,21 @@ Deno.serve(async (req) => {
             if (!r.ok) return json({ error: 'testly' }, 502)
             return json({ path: r.data.path, status: r.data.status })
           }
+          const t1 = Date.now()
           const r = await testly({ action: 'status', token, items: [{ testId: String(body.testId ?? ''), key: attemptKey }] })
+          const tTestly = Date.now() - t1
           if (!r.ok) continue
           const it = (r.data.items as Record<string, unknown>[] | undefined)?.[0]
-          console.log('[testly-bridge] status result', {
-            state: it?.state ?? 'missing',
-            hasScore: it?.got != null && it?.max != null,
-            pending: !!it?.pending,
-            showAfter: it?.showAfter ?? null,
-          })
           if (!it || it.state === 'gone') continue
-          const { data: students } = await admin.from('students').select('id').eq('auth_user_id', teacher)
-          await persistResult((students ?? []).map(s => s.id), String(body.testId), it, attemptKey)
+          const t2 = Date.now()
+          await persistResult(studentIds, String(body.testId), it, attemptKey)
+          console.log('[testly-bridge] status result', {
+            state: it.state ?? 'missing',
+            hasScore: it.got != null && it.max != null,
+            pending: !!it.pending,
+            showAfter: it.showAfter ?? null,
+            ms: { db: tDb, testly: tTestly, persist: Date.now() - t2 },
+          })
           return json(forStudent(it))
         }
         return json({ error: 'not_connected' }, 409)
