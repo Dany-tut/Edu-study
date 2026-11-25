@@ -115,7 +115,7 @@ import ExtraTaskEditors from '../../components/teacher/ExtraTaskEditors'
 import { supabase } from '../../lib/supabase'
 import { courseResetRef, isCourseResetRef } from '../../lib/homeworkReset'
 import { readDraft, writeDraft, clearDrafts } from '../../lib/useDraft'
-import { readDurableCourseDraft, writeDurableCourseDraft, clearDurableCourseDraft } from '../../lib/courseDurableDraft'
+import { readDurableCourseDraft, writeDurableCourseDraft, clearDurableCourseDraft, discardDurableCourseDraft } from '../../lib/courseDurableDraft'
 import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
@@ -8279,7 +8279,7 @@ export default function TeacherCourseEditorPage() {
             pendingAutosave.current = null
             reporter.reset()
             clearDrafts(draftNs)
-            clearDurableCourseDraft(draftKey)
+            discardDurableCourseDraft(draftKey)
             useTeacher.getState().openCourseEditor(JSON.stringify(fresh))
             window.location.reload()
           }}
