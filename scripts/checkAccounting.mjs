@@ -41,7 +41,10 @@ const covered = new Map() // moduleId -> Set(topic)
 
 for (const mod of MODULES) {
   // EXP00 — вводный модуль курса (как учиться, справочник): тем ТЗ не закрывает.
-  const bp = mod.id === 'EXP00' ? { id: 'EXP00', title: 'Введение', topics: [] } : bpById.get(mod.id)
+  // EXT* — дополнительные модули сверх ТЗ (по решению Дани): темы ТЗ не закрывают,
+  // их темы описаны в самом модуле. Покрытие 332 тем считается только по EXP*.
+  const extra = mod.id === 'EXP00' || mod.id.startsWith('EXT')
+  const bp = extra ? { id: mod.id, title: mod.title, topics: [] } : bpById.get(mod.id)
   if (!bp) { err(mod.id, 'нет такого модуля в BLUEPRINT'); continue }
   const srcIds = new Set()
   for (const s of mod.sources) {
@@ -52,16 +55,16 @@ for (const mod of MODULES) {
     if (!['opened', 'unreachable', 'not-checked'].includes(s.status)) err(`${mod.id}/src ${s.id}`, 'неизвестный status')
   }
   const cov = covered.get(mod.id) ?? new Set()
-  covered.set(mod.id, cov)
+  if (!extra) covered.set(mod.id, cov)
   for (const l of mod.lessons) {
     lessonsTotal++
     const w = `${mod.id}/${l.key}`
     if (keys.has(l.key)) err(w, 'повтор ключа урока')
     keys.add(l.key)
     if (!l.title?.trim()) err(w, 'нет названия')
-    if (!l.topics?.length && mod.id !== 'EXP00') err(w, 'урок не закрывает ни одной темы ТЗ')
+    if (!l.topics?.length && mod.id !== 'EXP00') err(w, 'урок не закрывает ни одной темы')
     for (const t of l.topics ?? []) {
-      if (!bp.topics.includes(t)) err(w, `тема «${t}» не из ТЗ модуля (строка должна совпадать дословно)`)
+      if (!extra && !bp.topics.includes(t)) err(w, `тема «${t}» не из ТЗ модуля (строка должна совпадать дословно)`)
       cov.add(t)
     }
     if (!l.sources?.length) warn(w, 'нет источников')

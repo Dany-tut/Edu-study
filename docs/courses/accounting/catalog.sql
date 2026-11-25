@@ -28,7 +28,7 @@ begin
 
   insert into courses (short_id, kind, title, subject, level, description, status, color, bg, created_by)
   values ('acc-ru', 'course', 'Бухгалтерия: Excel, 1С и закон на практике', 'Бухгалтерия', 'Практикующий бухгалтер',
-    'Практический курс для бухгалтера, который ведёт несколько организаций: Excel и Power Query, сверки, 1С, самозанятые, зарплата и численность, налоги, закрытие месяца, ИИ, безопасность и переход на ФСБУ 2027. 188 уроков, справочник по рабочим вопросам, учебные файлы.',
+    'Практический курс для бухгалтера, который ведёт несколько организаций: Excel и Power Query, сверки, 1С, самозанятые, зарплата и численность, налоги, закрытие месяца, ИИ, безопасность и переход на ФСБУ 2027. 199 уроков, справочник по рабочим вопросам, учебные файлы.',
     'draft', '#2E6FD8', '#E3EDFB', v_owner)
   on conflict (short_id) do nothing;
 
@@ -57,7 +57,8 @@ begin
       ('17. Искусственный интеллект', 18),
       ('18. Продвинутая автоматизация', 19),
       ('19. Информационная безопасность', 20),
-      ('20. Итоговые проекты', 21)
+      ('20. Итоговые проекты', 21),
+      ('Дополнительно. ИИ: основы, техники и мировая практика', 22)
     ) as t(label, pos) order by pos
   loop
     select id into v_id from course_modules where course_id = v_course_id and label = r.label limit 1;
@@ -69,7 +70,7 @@ begin
 
   insert into lessons (course_id, module_id, short_id, title, lesson_number, position, kind, shape, materials)
   select v_course_id, v_mod[d.block], 'acc-ru-' || d.n, d.title, d.n, d.n, 'lesson',
-         case when d.n in (0, 187) then 'diamond' else 'circle' end, d.materials::jsonb
+         case when d.n in (0, 198) then 'diamond' else 'circle' end, d.materials::jsonb
   from (values
     (0, 1, 'Знакомство: расскажите о своей работе', '{}'),
     (1, 1, 'Как устроен курс и как им пользоваться на работе', '{"materials":[{"id":"acc-praktikum-ishodnyj.xlsx","name":"praktikum-ishodnyj.xlsx","path":"/courses/accounting/praktikum-ishodnyj.xlsx","url":"/courses/accounting/praktikum-ishodnyj.xlsx","size":14769,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"id":"acc-chislennost-shablon.xlsx","name":"chislennost-shablon.xlsx","path":"/courses/accounting/chislennost-shablon.xlsx","url":"/courses/accounting/chislennost-shablon.xlsx","size":1256955,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"id":"acc-sverka-shablon.xlsx","name":"sverka-shablon.xlsx","path":"/courses/accounting/sverka-shablon.xlsx","url":"/courses/accounting/sverka-shablon.xlsx","size":14832,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"id":"acc-samozanyatye-kontrol.xlsx","name":"samozanyatye-kontrol.xlsx","path":"/courses/accounting/samozanyatye-kontrol.xlsx","url":"/courses/accounting/samozanyatye-kontrol.xlsx","size":21558,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"id":"acc-vygruzki-dlya-power-query.zip","name":"vygruzki-dlya-power-query.zip","path":"/courses/accounting/vygruzki-dlya-power-query.zip","url":"/courses/accounting/vygruzki-dlya-power-query.zip","size":16011,"mime":"application/zip"}]}'),
@@ -258,7 +259,18 @@ begin
     (184, 22, 'Проект 5. Контроль выплат самозанятым и диагностика реестра', '{"materials":[{"id":"acc-samozanyatye-kontrol.xlsx","name":"samozanyatye-kontrol.xlsx","path":"/courses/accounting/samozanyatye-kontrol.xlsx","url":"/courses/accounting/samozanyatye-kontrol.xlsx","size":21558,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}]}'),
     (185, 22, 'Проект 6. Управленческий отчёт по платежам', '{"materials":[{"id":"acc-praktikum-ishodnyj.xlsx","name":"praktikum-ishodnyj.xlsx","path":"/courses/accounting/praktikum-ishodnyj.xlsx","url":"/courses/accounting/praktikum-ishodnyj.xlsx","size":14769,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}]}'),
     (186, 22, 'Проект 7. Комплектность документов', '{}'),
-    (187, 22, 'Проект 8. Моя библиотека автоматизаций и итоговый проект', '{"materials":[{"id":"acc-chislennost-shablon.xlsx","name":"chislennost-shablon.xlsx","path":"/courses/accounting/chislennost-shablon.xlsx","url":"/courses/accounting/chislennost-shablon.xlsx","size":1256955,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"id":"acc-praktikum-ishodnyj.xlsx","name":"praktikum-ishodnyj.xlsx","path":"/courses/accounting/praktikum-ishodnyj.xlsx","url":"/courses/accounting/praktikum-ishodnyj.xlsx","size":14769,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}]}')
+    (187, 22, 'Проект 8. Моя библиотека автоматизаций и итоговый проект', '{"materials":[{"id":"acc-chislennost-shablon.xlsx","name":"chislennost-shablon.xlsx","path":"/courses/accounting/chislennost-shablon.xlsx","url":"/courses/accounting/chislennost-shablon.xlsx","size":1256955,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"id":"acc-praktikum-ishodnyj.xlsx","name":"praktikum-ishodnyj.xlsx","path":"/courses/accounting/praktikum-ishodnyj.xlsx","url":"/courses/accounting/praktikum-ishodnyj.xlsx","size":14769,"mime":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}]}'),
+    (188, 23, 'Как устроена нейросеть простыми словами', '{}'),
+    (189, 23, 'Промпты уровнем выше: роль, пример, формат, проверка', '{}'),
+    (190, 23, 'Что автоматизировать у себя: хронометраж и матрица', '{}'),
+    (191, 23, 'ChatGPT и Claude: что умеют, сколько стоят', '{}'),
+    (192, 23, 'Агенты для кода: Codex и Claude Code для бухгалтера', '{}'),
+    (193, 23, 'Microsoft Copilot и Google Gemini', '{}'),
+    (194, 23, 'DeepSeek, GigaChat и YandexGPT: что у них за тарифы', '{}'),
+    (195, 23, 'ИИ в 1С и сервисах для бухгалтера в России', '{}'),
+    (196, 23, 'Россия и санкции: доступность, оплата, риски', '{}'),
+    (197, 23, 'Мировая практика: как ИИ применяют в учёте и финансах', '{}'),
+    (198, 23, 'Лайфхаки на каждый день и план автоматизации на месяц', '{}')
   ) as d(n, block, title, materials)
   where not exists (select 1 from lessons l where l.short_id = 'acc-ru-' || d.n);
 end $$;

@@ -1,6 +1,6 @@
 # Реестр источников курса
 
-Всего записей: 372 (opened: 298, not-checked: 67, unreachable: 7). opened — страница открыта и сверена автором урока; unreachable — не открылась, утверждение смягчено или вынесено в открытые вопросы.
+Всего записей: 399 (opened: 325, not-checked: 67, unreachable: 7). opened — страница открыта и сверена автором урока; unreachable — не открылась, утверждение смягчено или вынесено в открытые вопросы.
 
 | Модуль | Источник | Издатель | Вид | Статус | Проверено | URL | Уроки №, примечание |
 |---|---|---|---|---|---|---|---|
@@ -376,3 +376,30 @@
 | EXP20 | Создание сводной таблицы | Microsoft | vendor-doc | not-checked | 2026-11-25 | https://support.microsoft.com/ru-ru/excel/get-started/create-a-pivottable-to-analyze-worksheet-data | 186 | Ссылка перенесена из пособия.
 | EXP20 | Power Query: импорт из папки | Microsoft | vendor-doc | not-checked | 2026-11-25 | https://support.microsoft.com/ru-ru/excel/import-data-from-a-folder-with-multiple-files-power-query | 182, 188 | Ссылка перенесена из пособия.
 | EXP20 | ФНС: проверка статуса налогоплательщика НПД | ФНС России | service | opened | 2026-11-25 | https://npd.nalog.ru/check-status/ | 185 | Описание результата проверки на странице не приведено.
+| EXT01 | What is ChatGPT Plus? | OpenAI Help | vendor-doc | opened | 2026-11-25 | https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus | 192 | Plus — 20 долларов в месяц.
+| EXT01 | ChatGPT and Codex plans and pricing | OpenAI | vendor-doc | opened | 2026-11-25 | https://learn.chatgpt.com/docs/pricing | 192, 193 | Редирект с developers.openai.com/codex/pricing. Plus 20, Business 20/25 за пользователя, Pro от 100 долларов.
+| EXT01 | ChatGPT supported countries | OpenAI Help | vendor-doc | opened | 2026-11-25 | https://help.openai.com/en/articles/7947663-chatgpt-supported-countries | 192, 197 | России в списке не найдено.
+| EXT01 | API supported countries and territories | OpenAI | vendor-doc | opened | 2026-11-25 | https://developers.openai.com/api/docs/supported-countries | 197 | России в списке нет.
+| EXT01 | Multi-currency billing | OpenAI Help | vendor-doc | opened | 2026-11-25 | https://help.openai.com/en/articles/10421635-multicurrency-billing | 192, 197 | Для всех стран указаны кредитные и дебетовые карты.
+| EXT01 | Claude pricing | Anthropic | vendor-doc | opened | 2026-11-25 | https://claude.com/pricing | 192, 193 | Страница в долларах США, без налогов.
+| EXT01 | Supported Regions Policy | Anthropic | vendor-doc | opened | 2026-11-25 | https://www.anthropic.com/supported-countries | 192, 197 | Действует с 12.11.2026; России в списке нет.
+| EXT01 | Claude Code overview | Anthropic | vendor-doc | opened | 2026-11-25 | https://code.claude.com/docs/en/overview | 193 |
+| EXT01 | Gemini Apps: supported countries and territories | Google | vendor-doc | opened | 2026-11-25 | https://support.google.com/gemini/answer/13575153 | 194, 197 | Список идёт от Romania к Rwanda.
+| EXT01 | Google Gemini subscriptions | Google | vendor-doc | opened | 2026-11-25 | https://gemini.google/subscriptions/ | 194 | Цены отображались в валюте страны; в уроке не приведены.
+| EXT01 | Microsoft 365 Copilot pricing | Microsoft | vendor-doc | opened | 2026-11-25 | https://www.microsoft.com/en-us/microsoft-365-copilot/pricing | 194 | USD, США; страница не показывает дату.
+| EXT01 | What is Copilot in Excel? | Microsoft Support | vendor-doc | opened | 2026-11-25 | https://support.microsoft.com/en-us/Excel/copilot/frequently-asked-questions-about-copilot-in-excel | 194, 199 | Версии страницы различаются составом лицензий.
+| EXT01 | Microsoft suspends new sales in Russia | Microsoft | vendor-doc | opened | 2026-11-25 | https://blogs.microsoft.com/on-the-issues/2022/03/04/microsoft-suspends-russia-sales-ukraine-conflict/ | 194, 197 | Заявление от 04.03.2022.
+| EXT01 | DeepSeek API: Models & Pricing | DeepSeek | vendor-doc | opened | 2026-11-25 | https://api-docs.deepseek.com/quick_start/pricing | 195 | Валюта явно не названа; знак $.
+| EXT01 | DeepSeek Privacy Policy | DeepSeek | vendor-doc | opened | 2026-11-25 | https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html | 195, 197 | Last Update: Feb 10, 2026.
+| EXT01 | Тарифы GigaChat API для физлиц | Сбер | vendor-doc | opened | 2026-11-25 | https://developers.sber.ru/docs/ru/gigachat/tariffs/individual-tariffs | 195, 197 | Обновлено 07.10.2026. Страница giga.chat не загрузилась (unreachable).
+| EXT01 | Алиса Плюс | Яндекс | vendor-doc | opened | 2026-11-25 | https://alice.yandex.ru/support/ru/assistant/alice-plus | 195, 197 | Дата на странице не указана; 199 руб. в месяц по FAQ.
+| EXT01 | Yandex AI Studio: правила тарификации | Яндекс | vendor-doc | opened | 2026-11-25 | https://aistudio.yandex.ru/docs/ru/ai-studio/pricing | 195 | Дата обновления на странице не указана.
+| EXT01 | Карта ИИ-возможностей 1С: готовые сервисы для вашего бизнеса | Фирма «1С» | vendor-doc | opened | 2026-11-25 | https://static.1c.ru/files/Карта_ИИ-возможностей_1С_готовые_сервисы_для_вашего_бизнеса.pdf | 196, 197 | Презентация в PDF; дата в файле не указана.
+| EXT01 | AI Is Reshaping Accounting Jobs by Doing the Boring Stuff | Stanford GSB | secondary | opened | 2026-11-25 | https://www.gsb.stanford.edu/insights/ai-reshaping-accounting-jobs-doing-boring-stuff | 189, 191, 198 | 26.06.2025; рабочая статья Choi и Xie.
+| EXT01 | AI cuts monthly financial close time by 7.5 days: MIT/Stanford study | CFO Dive | secondary | opened | 2026-11-25 | https://www.cfodive.com/news/ai-cuts-monthly-financial-close-time-75-days-mit-stanford-study-accounting-accountants/757610/ | 198 | 13.08.2025.
+| EXT01 | Organizations turning to AI in the finance function (Gartner survey) | Journal of Accountancy | secondary | opened | 2026-11-25 | https://www.journalofaccountancy.com/news/2024/sep/organizations-turning-to-ai-in-finance-function/ | 198 | Пресс-релиз Gartner открыть не удалось (403).
+| EXT01 | AI and the Future of the Global Chartered Accountancy Profession (CAW/Ipsos) | Chartered Accountants Worldwide / Ipsos | secondary | opened | 2026-11-25 | https://icaew.com/-/media/corporate/files/technical/technology/caw-ai-in-accountancy-research.ashx | 198 | Отчёт, апрель 2025.
+| EXT01 | EY launches enterprise-scale agentic AI to redefine the audit experience | EY | secondary | opened | 2026-11-25 | https://www.ey.com/en_gl/newsroom/2026/04/ey-launches-enterprise-scale-agentic-ai-to-redefine-the-audit-experience-for-the-ai-era | 198 | 07.04.2026; заявление компании.
+| EXT01 | Inside Microsoft finance team AI-driven cost and time savings | CFO Dive | secondary | opened | 2026-11-25 | https://www.cfodive.com/news/inside-microsoft-finance-teams-ai-driven-cost-time-savings/750912 | 198 | 17.06.2025; оценки самой компании.
+| EXT01 | Hands off the task, eyes on the outcome (Deloitte case study) | Deloitte | secondary | opened | 2026-11-25 | https://www.deloitte.com/us/en/what-we-do/case-studies/hands-off-the-task-eyes-on-the-outcome.html | 198 | Клиент не назван, год не указан.
+| EXT01 | GAO-26-107522: Artificial Intelligence: IRS Actions Needed | GAO | secondary | opened | 2026-11-25 | https://www.gao.gov/products/gao-26-107522 | 198 | 24.03.2026.

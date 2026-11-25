@@ -30,7 +30,7 @@ const COURSE_FILES = new Set(readdirSync('public/courses/accounting'))
 
 // ── catalog.sql ──────────────────────────────────────────────────────────────
 const modules = [...new Map(ACC_LESSONS.map(x => [x.module.id, x.module])).values()]
-const modLabel = m => m.id === 'EXP00' ? `Введение` : `${Number(m.id.slice(3))}. ${m.title}`
+const modLabel = m => m.id === 'EXP00' ? `Введение` : m.id.startsWith('EXT') ? `Дополнительно. ${m.title}` : `${Number(m.id.slice(3))}. ${m.title}`
 const lessonRows = ACC_LESSONS.map(x => {
   const files = [...new Set([x.lesson.practice, ...x.lesson.content.paragraphs.map(p => p.text)].flatMap(t => [...t.matchAll(FILE_RE)].map(m => m[1])).filter(f => COURSE_FILES.has(f)))]
   const materials = files.length ? {
