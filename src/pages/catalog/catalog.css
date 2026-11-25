@@ -1,0 +1,201 @@
+/* Витрина курсов: #/catalog и #/catalog/<slug>.
+   Четыре версии (docs/platforms.md): ПК — топбар и колонки, наведение;
+   iPhone — стеклянные круги и плашка покупки снизу, мягкий край; iPad —
+   управление в капсуле у правого края; Android — таблетки с заливкой, фейды. */
+
+.cat-root {
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  --cat-gutter: 16px;
+  --cat-radius: 24px;
+  --cat-card: var(--color-bg-2, #fff);
+}
+[data-theme="dark"] .cat-root { --cat-card: var(--color-bg-2); }
+.cat-root[data-layout="desktop"] { --cat-gutter: 32px; }
+.cat-root[data-shell="ipad"] { --cat-gutter: 32px; padding-right: 104px; }
+
+.cat-wrap { max-width: 1240px; margin: 0 auto; padding: 0 var(--cat-gutter) 140px; display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Топбар ПК ───────────────────────────────────────────── */
+.cat-topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(var(--glass-rgb), 0.86);
+  backdrop-filter: var(--blur-solid); -webkit-backdrop-filter: var(--blur-solid);
+  box-shadow: var(--shadow-bar, 0 1px 0 var(--color-border));
+}
+.cat-topbar-in { max-width: 1240px; margin: 0 auto; height: 68px; padding: 0 var(--cat-gutter); display: flex; align-items: center; gap: 24px; }
+.cat-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; color: var(--color-text); text-decoration: none; }
+.cat-brand-dot { width: 28px; height: 28px; border-radius: 9px; background: var(--grad-purple); flex-shrink: 0; }
+.cat-nav-link { font-weight: 650; font-size: 15px; color: var(--color-text-2); text-decoration: none; padding: 8px 10px; border-radius: 10px; }
+.cat-nav-link[aria-current="page"] { color: var(--loop-ink); }
+.cat-nav-link:hover { background: var(--color-bg-3); }
+
+/* ── Поиск ───────────────────────────────────────────────── */
+.cat-search {
+  display: flex; align-items: center; gap: 10px;
+  height: 44px; padding: 0 14px; border-radius: 14px;
+  background: var(--color-bg-3); color: var(--color-text-3);
+  min-width: 0; flex: 1; max-width: 420px;
+}
+.cat-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; font-size: 15px; }
+.cat-search:focus-within { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.45); }
+[data-platform="iphone"] .cat-search, [data-platform="ipad"] .cat-search { height: 48px; border-radius: 16px; max-width: none; background: var(--cat-card); box-shadow: var(--shadow-xs); }
+[data-platform="android"] .cat-search { height: 56px; border-radius: 28px; max-width: none; }
+.cat-root:not([data-layout="desktop"]) .cat-search input { font-size: 16px; }
+
+/* ── Шапка телефона/айпада ───────────────────────────────── */
+.cat-mhead { display: flex; align-items: center; gap: 12px; padding-top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.cat-mtitle { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 0; flex: 1; min-width: 0; }
+[data-platform="android"] .cat-mtitle { font-size: 26px; font-weight: 700; letter-spacing: 0; }
+
+/* ── Категории (горизонтальная прокрутка с фейдами) ──────── */
+.cat-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--cat-gutter) * -1); padding: 4px var(--cat-gutter); }
+.cat-chips::-webkit-scrollbar { display: none; }
+.cat-chip {
+  flex-shrink: 0; height: 36px; padding: 0 14px; border-radius: 999px; border: 0;
+  background: var(--cat-card); color: var(--color-text-2); box-shadow: var(--shadow-xs);
+  font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap;
+}
+.cat-chip[aria-pressed="true"] { background: rgba(var(--accent-rgb), 0.14); color: var(--loop-ink); box-shadow: none; }
+[data-platform="android"] .cat-chip { border-radius: 10px; background: transparent; box-shadow: inset 0 0 0 1px var(--color-border-strong); height: 40px; }
+[data-platform="android"] .cat-chip[aria-pressed="true"] { background: rgba(var(--accent-rgb), 0.16); box-shadow: none; }
+.cat-root[data-layout="desktop"] .cat-chip:hover { color: var(--color-text); }
+.cat-root:not([data-layout="desktop"]) .cat-chip { height: 44px; }
+
+/* ── Обложка ─────────────────────────────────────────────── */
+.cat-cover { position: relative; overflow: hidden; border-radius: 18px; color: #fff; isolation: isolate; }
+.cat-cover-glyph { position: absolute; right: 12px; bottom: 4px; font: 800 44px/1 ui-monospace, "SF Mono", Menlo, monospace; opacity: 0.3; letter-spacing: -0.04em; white-space: nowrap; pointer-events: none; }
+.cat-cover-badge { position: absolute; left: 12px; top: 12px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #1E1E24; font-size: 12px; font-weight: 700; }
+
+/* ── Карточки курсов ─────────────────────────────────────── */
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-grid { grid-template-columns: 1fr; gap: 12px; }
+.cat-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: var(--cat-radius);
+  background: var(--cat-card); box-shadow: var(--shadow-sm); color: inherit; text-decoration: none;
+  transition: transform 0.16s ease, box-shadow 0.16s ease; min-width: 0;
+}
+.cat-root[data-layout="desktop"] .cat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.cat-card:focus-visible { outline: 2px solid var(--loop-ink); outline-offset: 3px; }
+.cat-card-body { display: flex; flex-direction: column; gap: 4px; padding: 0 6px 6px; min-width: 0; }
+.cat-card-title { font-weight: 700; font-size: 16px; line-height: 1.25; }
+.cat-card-meta { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-3); margin-top: 4px; }
+.cat-price { font-weight: 800; color: var(--color-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-card { flex-direction: row; align-items: center; gap: 12px; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-card .cat-cover { width: 92px; height: 92px !important; flex-shrink: 0; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-card .cat-cover-glyph { font-size: 26px; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-card .cat-cover-badge { display: none; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-card-body { padding: 0; }
+[data-platform="android"] .cat-card { box-shadow: none; border-radius: 20px; }
+
+/* ── Герой витрины ───────────────────────────────────────── */
+.cat-hero { display: grid; grid-template-columns: 1.1fr 1fr; overflow: hidden; border-radius: var(--cat-radius); background: var(--cat-card); box-shadow: var(--shadow-sm); color: inherit; text-decoration: none; }
+.cat-hero-text { display: flex; flex-direction: column; gap: 10px; justify-content: center; padding: 28px 30px; min-width: 0; }
+.cat-hero .cat-cover { border-radius: 0; min-height: 240px; }
+.cat-hero .cat-cover-glyph { font-size: 76px; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-hero { grid-template-columns: 1fr; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-hero .cat-cover { min-height: 150px; order: -1; }
+.cat-root:not([data-layout="desktop"]):not([data-shell="ipad"]) .cat-hero-text { padding: 14px 16px 16px; gap: 6px; }
+.cat-h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 0; text-wrap: balance; }
+.cat-root:not([data-layout="desktop"]) .cat-h1 { font-size: 26px; }
+.cat-h2 { font-size: 20px; font-weight: 750; letter-spacing: -0.01em; margin: 0; }
+.cat-sub { color: var(--color-text-2); font-size: 16px; line-height: 1.45; margin: 0; }
+.cat-muted { color: var(--color-text-3); font-size: 13.5px; }
+
+.cat-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; align-self: flex-start; }
+.cat-badge-green { background: var(--color-green-soft, rgba(52,200,119,.14)); color: var(--color-green-text); }
+.cat-badge-acc { background: rgba(var(--accent-rgb), 0.14); color: var(--loop-ink); }
+.cat-badge-mut { background: var(--color-bg-3); color: var(--color-text-3); }
+.cat-badge-amber { background: rgba(245,138,46,.14); color: var(--color-peach-text); }
+
+/* ── Кнопки ──────────────────────────────────────────────── */
+.cat-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 48px; padding: 0 22px; border-radius: 999px; border: 0; cursor: pointer;
+  font: inherit; font-weight: 700; font-size: 16px; white-space: nowrap; text-decoration: none;
+  transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+}
+.cat-btn:active { transform: scale(0.98); }
+.cat-btn:disabled { opacity: 0.55; cursor: default; }
+.cat-btn:focus-visible { outline: 2px solid var(--loop-ink); outline-offset: 2px; }
+.cat-btn-pri { background: var(--grad-purple); color: #fff; box-shadow: var(--glow-accent); }
+.cat-root[data-layout="desktop"] .cat-btn-pri:hover:not(:disabled) { filter: brightness(1.06); }
+.cat-btn-sec { background: var(--color-bg-3); color: var(--color-text); }
+.cat-root[data-layout="desktop"] .cat-btn-sec:hover:not(:disabled) { background: var(--color-bg-5); }
+.cat-btn-s { height: 36px; font-size: 14px; padding: 0 14px; }
+[data-platform="android"] .cat-btn-pri { box-shadow: none; }
+
+/* ── Карточка курса ──────────────────────────────────────── */
+.cat-course { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 32px; align-items: start; }
+.cat-root:not([data-layout="desktop"]) .cat-course { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.cat-root[data-shell="ipad"][data-layout="desktop"] .cat-course { grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; }
+.cat-aside { position: sticky; top: 88px; display: flex; flex-direction: column; gap: 16px; }
+.cat-panel { background: var(--cat-card); border-radius: var(--cat-radius); box-shadow: var(--shadow-sm); padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+[data-platform="android"] .cat-panel { box-shadow: none; border-radius: 20px; }
+.cat-outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
+.cat-root:not([data-layout="desktop"]) .cat-outcomes { grid-template-columns: 1fr; }
+.cat-check-row { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; line-height: 1.4; }
+.cat-check-row svg { flex-shrink: 0; color: var(--color-green-text); margin-top: 1px; }
+.cat-module { border-top: 1px solid var(--color-border); }
+.cat-module:first-child { border-top: 0; }
+.cat-module-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; min-height: 48px; }
+.cat-module-num { width: 22px; font-weight: 700; color: var(--color-text-3); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.cat-module-title { flex: 1; min-width: 0; font-weight: 650; }
+.cat-module-lessons { margin: 0 0 12px 34px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; color: var(--color-text-2); font-size: 14.5px; }
+.cat-price-big { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cat-prose { white-space: pre-wrap; line-height: 1.55; font-size: 15.5px; color: var(--color-text-2); margin: 0; }
+.cat-banner { border-radius: 16px; padding: 12px 16px; background: rgba(245,138,46,.12); color: var(--color-peach-text); font-size: 14px; line-height: 1.45; }
+
+/* Нижняя плашка покупки: iPhone — стекло, Android — заливка. */
+.cat-buybar {
+  position: fixed; left: 16px; right: 16px; z-index: 60;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  min-height: 72px; border-radius: 36px; padding: 8px 8px 8px 22px;
+  display: flex; align-items: center; gap: 12px;
+}
+[data-platform="iphone"] .cat-buybar {
+  background: rgba(var(--glass-rgb), 0.62);
+  backdrop-filter: var(--blur-solid); -webkit-backdrop-filter: var(--blur-solid);
+  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.5), 0 8px 30px rgba(0,0,0,0.14);
+}
+[data-platform="android"] .cat-buybar, [data-platform="pc"] .cat-buybar { background: var(--color-bg-5); box-shadow: 0 2px 10px rgba(0,0,0,0.12); left: 12px; right: 12px; }
+.cat-buybar .cat-btn { height: 56px; border-radius: 28px; }
+
+/* Круглые кнопки iPhone поверх обложки. */
+.cat-circle {
+  width: 44px; height: 44px; border-radius: 50%; border: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(var(--glass-rgb), 0.62); color: var(--color-text);
+  backdrop-filter: var(--blur-glass); -webkit-backdrop-filter: var(--blur-glass);
+  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.5), 0 4px 16px rgba(0,0,0,0.12);
+}
+[data-platform="android"] .cat-circle { background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; width: 48px; height: 48px; }
+
+/* ── Капсула iPad (docs/platforms.md §1.1) ───────────────── */
+.cat-capsule { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 16px); top: 50%; transform: translateY(-50%); z-index: 60; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.cat-capsule-body {
+  width: 72px; padding: 4px; border-radius: 36px; display: flex; flex-direction: column; gap: 4px;
+  background: rgba(var(--glass-rgb), 0.62);
+  backdrop-filter: var(--blur-solid); -webkit-backdrop-filter: var(--blur-solid);
+  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.5), 0 8px 30px rgba(0,0,0,0.14);
+}
+.cat-cell { width: 64px; height: 64px; border-radius: 32px; border: 0; background: transparent; color: var(--color-text-2); display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; }
+.cat-cell[aria-current="page"] { background: rgba(var(--accent-rgb), 0.14); color: var(--loop-ink); }
+.cat-cell-sep { height: 1px; margin: 2px 14px; background: var(--color-border); }
+.cat-cap-main { width: 72px; height: 72px; border-radius: 36px; border: 0; display: flex; align-items: center; justify-content: center; background: var(--grad-purple); color: #fff; box-shadow: var(--glow-accent); cursor: pointer; }
+.cat-cap-main:disabled { opacity: 0.55; }
+
+/* ── Окно записи ─────────────────────────────────────────── */
+.cat-scrim { position: fixed; inset: 0; z-index: 1000; background: rgba(10,10,14,0.38); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.cat-dialog { width: min(520px, 100%); max-height: calc(100dvh - 48px); overflow-y: auto; background: var(--cat-card, var(--color-bg-2)); color: var(--color-text); border-radius: 28px; box-shadow: var(--shadow-modal); padding: 24px 26px; display: flex; flex-direction: column; gap: 14px; }
+.cat-root[data-shell="ipad"] .cat-scrim, .cat-scrim[data-shell="ipad"] { justify-content: flex-end; padding-right: 112px; }
+.cat-dialog-head { display: flex; align-items: center; gap: 12px; }
+.cat-x { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--color-bg-3); color: var(--color-text-2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.cat-consent { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.4; color: var(--color-text-2); }
+.cat-consent a { color: var(--loop-ink); }
+.cat-error { color: var(--color-red-text); font-size: 14px; line-height: 1.4; }
+.cat-linkbtn { border: 0; background: none; padding: 4px 0; color: var(--loop-ink); font: inherit; font-weight: 600; cursor: pointer; align-self: flex-start; min-height: 44px; }
+
+.cat-skel { background: var(--color-bg-3); border-radius: var(--cat-radius); animation: cat-pulse 1.2s ease-in-out infinite; }
+@keyframes cat-pulse { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .cat-skel { animation: none; } .cat-card, .cat-btn { transition: none; } }

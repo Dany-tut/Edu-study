@@ -1226,12 +1226,19 @@ const allStudentsQuery = createSharedQuery<Student[]>(withLoadFixture(fixtureStu
   if (!uid) return []
   if (!navigator.onLine) throw new NetworkReadError('Список учеников недоступен без сети')
   const columns = 'id,group_id,name,phone,telegram_link,parent_contact,started_at,last_visit,hw_score,test_score,trial_score,desired_score,attendance,comment,payment_due,payment_amount,last_payment,debt,invite_token,email,auth_user_id,person_id,avatar_path,lesson_balance,created_at,created_by, groups(subject, is_individual)'
-  const read = (withSubject: boolean, withSchoolClass = false, withSubjects = false) => supabase
-    .from('students')
-    .select(`${columns}${withSubject ? ', subject' : ''}${withSchoolClass ? ', school_class' : ''}${withSubjects ? ', subjects' : ''}`)
-    .eq('created_by', uid)
-    .order('name')
+  // Ученики площадки (source='purchase', купили курс в каталоге) — не
+  // ученики репетитора: в списке их нет, работа с ними — в «Витрине».
+  let hideBuyers = true
+  const read = (withSubject: boolean, withSchoolClass = false, withSubjects = false) => {
+    const q = supabase
+      .from('students')
+      .select(`${columns}${withSubject ? ', subject' : ''}${withSchoolClass ? ', school_class' : ''}${withSubjects ? ', subjects' : ''}`)
+      .eq('created_by', uid)
+    return (hideBuyers ? q.neq('source', 'purchase') : q).order('name')
+  }
   let { data, error, status } = await read(true, true, true)
+  // База без колонки students.source (миграция площадки ещё не применена).
+  if (error?.code === '42703') { hideBuyers = false; ({ data, error, status } = await read(true, true, true)) }
   if (error?.code === '42703') ({ data, error, status } = await read(true, false, true))
   if (error?.code === '42703') ({ data, error, status } = await read(true, false, false))
   // База без колонки students.subject (миграция 20261108130000 ещё не

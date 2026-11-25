@@ -6,6 +6,7 @@ import MobileTeacherStudents from './MobileTeacherStudents'
 import MobileTeacherGradebook from './MobileTeacherGradebook'
 import MobileTeacherProfile from './MobileTeacherProfile'
 import MobileTeacherParentReports from './MobileTeacherParentReports'
+import MobileTeacherStorefront from './MobileTeacherStorefront'
 import { useFeature } from '../../../lib/teacherFeatures'
 import { useTeacherAccess, type TeacherTabId } from '../../../lib/teacherAccess'
 import { useDeskStore } from '../../../store/deskStore'
@@ -52,6 +53,10 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
   const [reportsOpen, setReportsOpen] = useState(() => useTeacher.getState().activePage === 'parent-reports')
   const showReports = reportsOn && reportsOpen && tab === 'profile'
   useEffect(() => { if (teacherPage === 'parent-reports') { setReportsOpen(true); setTab('profile') } }, [teacherPage])
+  const [storefrontOpen, setStorefrontOpen] = useState(() => useTeacher.getState().activePage === 'storefront')
+  const showStorefront = storefrontOpen && tab === 'profile'
+  useEffect(() => { if (teacherPage === 'storefront') { setStorefrontOpen(true); setTab('profile') } }, [teacherPage])
+  const closeStorefront = () => { setStorefrontOpen(false); if (useTeacher.getState().activePage === 'storefront') useTeacher.getState().setActivePage('home') }
   const closeReports = () => { setReportsOpen(false); if (useTeacher.getState().activePage === 'parent-reports') useTeacher.getState().setActivePage('home') }
   const [dayDetailOpen, setDayDetailOpen] = useState(false)
   const [reviewDetailOpen, setReviewDetailOpen] = useState(false)
@@ -77,9 +82,10 @@ export default function MobileTeacherApp({ widgetsReady }: { widgetsReady: boole
       {tab === 'students'  && <MobileTeacherStudents />}
 
       {tab === 'gradebook' && <MobileTeacherGradebook onBack={() => setTab('profile')} />}
-      {tab === 'profile'   && !showReports && <MobileTeacherProfile onOpenReports={reportsOn ? () => setReportsOpen(true) : undefined} onOpenWidgets={widgetsReady && !isHidden('home') ? () => useDeskStore.getState().setShowWidgetLibrary(true) : undefined} onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} onOpenNotifications={() => setNotifOpen(true)} />}
+      {tab === 'profile'   && !showReports && !showStorefront && <MobileTeacherProfile onOpenStorefront={() => setStorefrontOpen(true)} onOpenReports={reportsOn ? () => setReportsOpen(true) : undefined} onOpenWidgets={widgetsReady && !isHidden('home') ? () => useDeskStore.getState().setShowWidgetLibrary(true) : undefined} onOpenJournal={!isHidden('gradebook') ? () => setTab('gradebook') : undefined} onOpenNotifications={() => setNotifOpen(true)} />}
 
       {showReports && <MobileTeacherParentReports onBack={closeReports} />}
+      {showStorefront && <MobileTeacherStorefront onBack={closeStorefront} />}
 
       <NotificationSheet native={PLATFORM === 'iphone' && tab === 'home'} open={notifOpen} onClose={() => setNotifOpen(false)} />
       {/* iPad (§1.1): нижней навигации айфона нет — её заменяет капсула справа

@@ -33,6 +33,7 @@ const ExampleGroups = import.meta.env.DEV ? lazy(() => retryImport(() => import(
 const TeacherLoginPage = lazy(() => retryImport(() => import('./pages/teacher/TeacherLoginPage')))
 const TeacherRouteGate = lazy(() => retryImport(() => import('./components/teacher/TeacherRouteGate')))
 const JoinPage = lazy(() => retryImport(() => import('./pages/JoinPage')))
+const CatalogPage = lazy(() => retryImport(() => import('./pages/catalog/CatalogPage')))
 const JoinTeacherPage = lazy(() => retryImport(() => import('./pages/JoinTeacherPage')))
 const DiagnosticTestPage = lazy(() => retryImport(() => import('./pages/DiagnosticTestPage')))
 const ReviewSession = lazy(() => retryImport(() => import('./components/ReviewSession')))
@@ -417,6 +418,11 @@ function AppRoutes() {
 
   // Лендинг доступен по явному адресу даже при активном входе (для просмотра)
   if (hash.startsWith('#/landing')) return <Chunk><LandingPage /></Chunk>
+  // Витрина курсов — открыта всем, включая гостя и вошедшего ученика/учителя.
+  if (hash === '#/catalog' || hash.startsWith('#/catalog/') || hash.startsWith('#/catalog?')) {
+    const slug = decodeURIComponent(hash.slice('#/catalog/'.length).split(/[?#/]/)[0] || '')
+    return <Chunk><CatalogPage key={slug || 'list'} slug={hash.startsWith('#/catalog/') && slug ? slug : null} /></Chunk>
+  }
   if (hash.startsWith('#/join-teacher')) return <Chunk><JoinTeacherPage /></Chunk>
   if (hash.startsWith('#/join')) return <Chunk><JoinPage /></Chunk>
   if (hash.startsWith('#/diagnostic')) return <Chunk><DiagnosticTestPage /></Chunk>

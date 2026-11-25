@@ -6454,6 +6454,8 @@ export const EN: Record<string, string> = {
   "Они соберутся сами в пятницу в 17:00 из журнала и домашних работ. Можно собрать и сейчас — цифры обновятся в пятницу.": "They build themselves on Friday at 17:00 from the journal and homework. You can build them now too — the numbers will refresh on Friday.",
   "Собрать сейчас": "Build now",
   "Отчёты родителям": "Parent reports",
+  "Витрина курсов": "Course storefront",
+  "каталог и заявки": "catalog and orders",
   "Пересчитать цифры недели. Ваши фразы не изменятся.": "Recount this week's numbers. Your notes stay as they are.",
   "Обновить цифры": "Refresh numbers",
   "Первые 2 недели все отчёты — на проверку": "For the first 2 weeks every report needs your review",

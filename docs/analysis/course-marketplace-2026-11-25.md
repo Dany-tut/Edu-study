@@ -349,3 +349,23 @@ Stepik: [выплаты и налоги](https://help.stepik.org/article/62011),
 54-ФЗ и агенты: [Контур 19839](https://kontur.ru/qa/19839), [Контур 26435](https://kontur.ru/qa/26435), [подборка Консультанта](https://www.consultant.ru/law/podborki/primenenie_kkt_agentom/). НПД: [ppt.ru](https://ppt.ru/art/samozanyatie/kak-proverit-status), [протокол обмена](https://www.mtsbank.ru/upload/static/landings/2021-samozanyatim/docs/protokol-informacionnogo-obmena-poryadok-informacionnogo-vzaimodejstviya.pdf), [API Сбера](https://developers.sber.ru/docs/ru/sber-api/specifications/self-employed/register-self-employed-receipt).
 273-ФЗ ст. 91: [legalacts](https://legalacts.ru/doc/273_FZ-ob-obrazovanii/glava-12/statja-91/), [обзор изменений с 01.03.2026](https://getcourse.ru/magazine/licenzirovaniye-obrazovaniya-01-03-2026). ЗоЗПП: [Консультант](https://www.consultant.ru/document/cons_doc_LAW_305/). 289-ФЗ: [текст](https://www.consultant.ru/document/cons_doc_LAW_511088/), [обзор](https://www.consultant.ru/law/hotdocs/90272.html).
 152-ФЗ: [отдельное согласие](https://www.garant.ru/article/1862510/), [локализация и трансграничка](https://kontur.ru/articles/1478), [письмо Минцифры](https://pravo.ppt.ru/pismo/mincifry-rossii/n-p25-44929-316881), [штрафы](https://www.klerk.ru/buh/news/656738/).
+
+---
+
+## 8. Основа площадки: что сделано в ветке (25.11, после ответа Дани)
+
+Дани: продавец, договор, цена, возвраты, провайдер и локализация ПДн решаются позже; сейчас — основа, чтобы всё работало и было удобно, не только для школьных предметов. Сделано в `claude/course-marketplace-0cc252`, **не в main и не в проде**.
+
+| Слой | Что | Файлы |
+|---|---|---|
+| База | `course_listings` (модерация: публикует только админ), `course_entitlements` (источник правды о доступе), `course_orders` (заявка → «Оплата получена»), `user_consents` (отдельное согласие 152-ФЗ), `students.source` (покупатели не тратят лимит тарифа). Доступ проецируется в `courses.student_ids` и `course_enrollments`, триггеры не дают сохранению курса снять оплаченный доступ. Пробный доступ — только модули из `preview_module_ids` через RLS. Снятие доступа помечает право, данные ученика остаются | `supabase/migrations/20261125200000_course_marketplace_foundation.sql` |
+| Проверка базы | 30 утверждений на настоящем PostgreSQL: модерация, гость не видит содержимое уроков, пробный и полный доступ через RLS, одна открытая заявка, решения только автора/админа, защита при сохранении курса, снятие доступа, бесплатный курс, лимит тарифа | `scripts/checkCourseMarketplaceDb.mjs` (`npm run check:marketplace-db`; без Docker — `ISKRA_PGLITE_TEST_MODULE`) |
+| Витрина | `#/catalog`, `#/catalog/<slug>`: поиск, категории (бухгалтерия, Excel и данные, IT, бизнес, дизайн, языки, школа, наука, саморазвитие), карточка, программа, окно записи с регистрацией и согласиями; 4 версии | `src/pages/catalog/*`, `src/lib/catalog.ts`, маршрут в `src/App.tsx` |
+| Автор | «Витрина курсов» в меню профиля (ПК, iPad) и «Ещё» (iPhone, Android): заявки, курсы на витрине, ученики площадки, редактор карточки, публикация для админа | `src/components/teacher/storefront/StorefrontView.tsx`, `TeacherStorefrontPage.tsx`, `MobileTeacherStorefront.tsx`, правки меню |
+| Репетиторы | Покупатели скрыты из общего списка учеников (`neq source purchase`, откат для старой базы) | `src/lib/useGroups.ts` |
+| Документы | Черновики `consent.html`, `offer.html` с пометкой «проверяет юрист» | `public/` |
+| Превью | `?catalogDemo=1` (только dev) — демо-данные; `?iphone=1` — версия iPhone в dev | `src/lib/catalogDemo.ts`, `src/lib/platform.ts` |
+
+**Порядок выпуска (после «да» Дани):** снимок затронутых таблиц по `data-preservation.md` → миграция в прод → фронтенд в main. Фронтенд без миграции не ломается (список учеников откатывается на старый запрос), но витрина покажет ошибку загрузки.
+
+**Не сделано в основе:** онлайн-оплата и чеки (ждут провайдера), вход покупателя через Яндекс/VK (сейчас почта и пароль), отзывы, сертификаты, приватное хранилище платных файлов, SEO-страницы, английский перевод витрины, обложки-картинки.

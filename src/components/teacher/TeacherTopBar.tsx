@@ -12,7 +12,7 @@ import {
   LayoutGrid, UserPlus, CheckSquare, LayoutDashboard, LogOut, Moon, Sun,
   UserCircle, Shield, MessageSquarePlus, MessageCircle, Globe, Zap,
   Flower2, Cat, Rabbit, Bird, Fish, Bug, Rocket, Star,
-  CalendarDays, type LucideIcon,
+  CalendarDays, ShoppingBag, type LucideIcon,
 } from '../icons/appIcons'
 import { useState, useRef, useLayoutEffect, useEffect, Fragment } from 'react'
 import { createPortal } from 'react-dom'
@@ -413,6 +413,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
         ]
       : []),
     { icon: UserCircle,  label: t('Настройки профиля'), sub: t('имя, аватар'),         action: 'profile', group: 1 },
+    { icon: ShoppingBag, label: t('Витрина курсов'), sub: t('каталог и заявки'), action: 'storefront', group: 1 },
     ...(friends.account ? [{ icon: Users, label: t('Друзья'), sub: t('Ник, поиск и заявки'), action: 'friends', group: 1 }] : []),
     { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'),  action: 'widgets', group: 2 },
     { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme', group: 2 },
@@ -734,6 +735,7 @@ const visibleNav = navItems.filter(item => canTab(item.id as TeacherTabId))
                   if (item.action === 'theme') toggleTheme()
                   if (item.action === 'profile') { friends.setTab(null); setActivePage('profile-settings') }
                   if (item.action === 'payment') setActivePage('payment')
+                  if (item.action === 'storefront') setActivePage('storefront')
                   if (item.action === 'admin') setActivePage('admin')
                   if (item.action === 'dialogs') {
                     // Открыть Админку сразу на «Заявки» → «Диалоги».

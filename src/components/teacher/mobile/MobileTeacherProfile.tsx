@@ -11,7 +11,7 @@ import CountBadge from '../../CountBadge'
 import { useNotificationsStore } from '../../../store/notificationsStore'
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image, CalendarClock, Layers, Link2, LogIn, Database, BarChart3, ClipboardList, AudioLines, Blocks, ListChecks, NotebookPen, Activity } from '../../icons/appIcons'
+import { Bell, LayoutDashboard, LogOut, Monitor, MessageSquarePlus, Moon, Sun, Wallet, AlertTriangle, Users, ClipboardCheck, ChevronRight, Sparkles, Download, Languages, BookOpen, FileText, Image, CalendarClock, Layers, Link2, LogIn, Database, BarChart3, ClipboardList, AudioLines, Blocks, ListChecks, NotebookPen, Activity, ShoppingBag } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import { GlassPill } from '../../mobileChrome'
 import FeedbackModal from '../../FeedbackModal'
@@ -111,7 +111,7 @@ function StatTile({ icon, value, label, bg, fg }: { icon: React.ReactNode; value
   )
 }
 
-export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onOpenNotifications, onOpenReports }: { onOpenJournal?: () => void; onOpenWidgets?: () => void; onOpenNotifications?: () => void; onOpenReports?: () => void }) {
+export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onOpenNotifications, onOpenReports, onOpenStorefront }: { onOpenJournal?: () => void; onOpenWidgets?: () => void; onOpenNotifications?: () => void; onOpenReports?: () => void; onOpenStorefront?: () => void }) {
   const unreadNotifs = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
   const signedIn = useTeacherSession()
   const studentCabinet = useOpenStudentCabinet()
@@ -325,6 +325,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
           {adminAccess && <MoreRow label={t('Тариф')} icon={<Sparkles size={21} />} onClick={() => setTariffOpen(true)} />}
           {onOpenJournal && <MoreRow label={t('Журнал')} icon={<ClipboardCheck size={21} />} onClick={onOpenJournal} />}
           {onOpenReports && <MoreRow label={t('Отчёты родителям')} icon={<FileText size={21} />} onClick={onOpenReports} />}
+          {onOpenStorefront && <MoreRow label={t('Витрина курсов')} icon={<ShoppingBag size={21} />} onClick={onOpenStorefront} />}
           {onOpenWidgets && <MoreRow label={t('Настроить виджеты')} icon={<LayoutDashboard size={21} />} onClick={onOpenWidgets} />}
           {payments && <MoreRow label={t('Оплаты: ждут вас')} icon={<Wallet size={21} />}
             value={<CountBadge count={paymentClaims} tone="danger" />} onClick={() => setPaymentsOpen(true)} />}
@@ -415,6 +416,7 @@ export default function MobileTeacherProfile({ onOpenJournal, onOpenWidgets, onO
 
         {onOpenJournal && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenJournal() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ClipboardCheck size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Журнал')}</span><ChevronRight size={18} /></button>}
         {onOpenReports && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenReports() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><FileText size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Отчёты родителям')}</span><ChevronRight size={18} /></button>}
+        {onOpenStorefront && <button data-hover="layer" type="button" onClick={() => { tactile(); onOpenStorefront() }} style={{ gridColumn: 'span 2', width: '100%', minHeight: 52, borderRadius: 24, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--color-bg-3)', color: 'var(--color-text)', border: '1px solid var(--color-border-soft)' }}><ShoppingBag size={22} /><span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>{t('Витрина курсов')}</span><ChevronRight size={18} /></button>}
 
         <div style={{ gridColumn: 'span 2' }}><TeacherLoginMethods /></div>
         <div style={{ gridColumn: 'span 2' }}><TeacherFeatureSettings /></div>

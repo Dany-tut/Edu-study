@@ -25,6 +25,8 @@ function detect(): Platform {
   // DEV-ONLY: ?ipad=1 форсит версию iPad в превью (проверка оболочки iPad на ПК).
   // Строго аддитивно и только в dev-сборке — прод-детект по UA не меняется.
   if (import.meta.env?.DEV && typeof location !== 'undefined' && /[?&]ipad=1(?:&|$)/.test(location.search)) return 'ipad'
+  // DEV-ONLY: ?iphone=1 — то же для версии iPhone (снимки концептов в превью).
+  if (import.meta.env?.DEV && typeof location !== 'undefined' && /[?&]iphone=1(?:&|$)/.test(location.search)) return 'iphone'
   if (typeof navigator === 'undefined') return 'pc'
   const ua = navigator.userAgent
   if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'ipad'

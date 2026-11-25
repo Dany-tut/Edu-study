@@ -26,6 +26,7 @@ const TeacherStudentDashboardPage = lazy(() => retryImport(() => import('./Teach
 const TeacherCourseEditorPage = lazy(() => retryImport(() => import('./TeacherCourseEditorPage')))
 const TeacherCardSetEditorPage = lazy(() => retryImport(() => import('./TeacherCardSetEditorPage')))
 const TeacherStoragePage = lazy(() => retryImport(() => import('./TeacherStoragePage')))
+const TeacherStorefrontPage = lazy(() => retryImport(() => import('./TeacherStorefrontPage')))
 const TeacherAdminPage = lazy(() => retryImport(() => import('./TeacherAdminPage')))
 const TeacherProfileSettingsPage = lazy(() => retryImport(() => import('./TeacherProfileSettingsPage'), 3, 'teacher_profile'))
 const TeacherPaymentPage = lazy(() => retryImport(() => import('./TeacherPaymentPage')))
@@ -293,6 +294,7 @@ export default function TeacherDashboardPage({ standContent, pendingAttendanceCo
         {activePage === 'payment'          && <TeacherPaymentPage />}
         {activePage === 'finances'         && <TeacherFinancesPage />}
         {activePage === 'parent-reports'   && <TeacherParentReportsPage />}
+        {activePage === 'storefront'       && <TeacherStorefrontPage />}
         </Suspense>
       </motion.div>
 

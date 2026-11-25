@@ -7,7 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   Home, Users, BookOpen, Layers, Wallet, Plus, GraduationCap, ClipboardList,
   CheckSquare, UserPlus, LayoutDashboard, LogOut, Moon, Sun, UserCircle,
-  Shield, MessageSquarePlus, Globe, Image, type LucideIcon,
+  Shield, MessageSquarePlus, Globe, Image, ShoppingBag, type LucideIcon,
 } from '../icons/appIcons'
 import FadeText from '../FadeText'
 import CountBadge from '../CountBadge'
@@ -151,6 +151,7 @@ export default function TeacherIpadRail() {
       ? [{ icon: Shield, label: t('Админка'), sub: t('аналитика, хранилище'), action: 'admin', group: 0 }]
       : []),
     { icon: UserCircle, label: t('Настройки профиля'), sub: t('имя, аватар'), action: 'profile', group: 1 },
+    { icon: ShoppingBag, label: t('Витрина курсов'), sub: t('каталог и заявки'), action: 'storefront', group: 1 },
     { icon: LayoutDashboard, label: t('Настроить виджеты'), sub: t('Рабочий стол'), action: 'widgets', group: 2 },
     { icon: dark ? Sun : Moon, label: dark ? t('Светлая тема') : t('Тёмная тема'), sub: t('переключить'), action: 'theme', group: 2 },
     { icon: Globe, label: t('Язык'), sub: lang === 'ru' ? 'Русский' : 'English', action: 'lang', group: 2 },
@@ -179,6 +180,7 @@ export default function TeacherIpadRail() {
     }
     if (action === 'profile') setActivePage('profile-settings')
     if (action === 'admin') setActivePage('admin')
+    if (action === 'storefront') setActivePage('storefront')
     if (action === 'feedback') { setFeedbackOpen(true); setPop(null); return }
     setPop(null)
   }
