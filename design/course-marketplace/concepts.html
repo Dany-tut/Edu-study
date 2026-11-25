@@ -1,0 +1,414 @@
+<title>Площадка курсов Искры</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Доска концептов: экран выбирается вкладкой, ниже 4 платформы, у каждой светлый и тёмный кадр рядом.
+   Токены рамки повторяют src/index.css Искры (фон #F5F5F6 / #111113, акцент #7E6EE6 / #B3A6F7). */
+:root{
+  --page:#EEEEF1; --page-fg:#0B0B0D; --page-2:#5A5A62; --page-card:#FFFFFF; --page-line:rgba(0,0,0,.08); --page-acc:#5C47BD;
+  --f-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, system-ui, sans-serif;
+  --f-and: Roboto, "Google Sans", system-ui, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#0C0C0E;--page-fg:#F0F0F2;--page-2:#9A9AA3;--page-card:#18181B;--page-line:rgba(255,255,255,.09);--page-acc:#C6B7FF;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0C0C0E;--page-fg:#F0F0F2;--page-2:#9A9AA3;--page-card:#18181B;--page-line:rgba(255,255,255,.09);--page-acc:#C6B7FF;color-scheme:dark}
+body{background:var(--page);color:var(--page-fg);font-family:var(--f-ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.wrap{max-width:1500px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:28px;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.lead{color:var(--page-2);max-width:72ch;line-height:1.5;margin:0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--page);padding-block:8px}
+.tabs button{font:600 14px var(--f-ui);border:1px solid var(--page-line);background:var(--page-card);color:var(--page-fg);padding:9px 16px;border-radius:999px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--page-acc);color:var(--page);border-color:transparent}
+.tabs button:focus-visible{outline:2px solid var(--page-acc);outline-offset:2px}
+.notes{background:var(--page-card);border:1px solid var(--page-line);border-radius:16px;padding:16px 18px;line-height:1.5;font-size:14px}
+.notes h3{margin:0 0 6px;font-size:15px}.notes ul{margin:0;padding-left:18px}
+.plat{display:flex;flex-direction:column;gap:10px}
+.plat h2{font-size:17px;margin:8px 0 0}.plat p{margin:0;color:var(--page-2);font-size:13.5px;max-width:110ch;line-height:1.45}
+.pair{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;overflow-x:auto;padding-bottom:6px}
+.slot{flex:none}.slot .cap{font-size:12px;color:var(--page-2);margin-bottom:6px;letter-spacing:.02em}
+.vp{overflow:hidden;border-radius:18px;box-shadow:0 0 0 1px var(--page-line),0 10px 30px rgba(0,0,0,.12)}
+.vp.phone{border-radius:34px}
+
+/* ───────── Внутри кадра: токены Искры ───────── */
+.fr{--bg:#F5F5F6;--bg2:#FFFFFF;--bg3:#F0F0F2;--bg5:#EBEBEF;--tx:#0B0B0D;--tx2:#3A3A40;--tx3:#717178;--tx4:#C2C2C8;--ln:rgba(0,0,0,.08);
+  --acc:#7E6EE6;--acc-ink:#5C47BD;--acc-soft:rgba(126,110,230,.12);--grad:linear-gradient(135deg,#9D8BFF,#6A5AE6);--glow:0 12px 28px rgba(106,90,230,.35);
+  --glass:rgba(255,255,255,.62);--glass-ln:rgba(255,255,255,.72);--sh:0 4px 24px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.05);--sh-lg:0 20px 60px rgba(0,0,0,.18);
+  --green:#1A5C38;--green-soft:rgba(52,200,119,.14);--amber:#8B4900;--amber-soft:rgba(245,138,46,.14);--red:#A8282D;--red-soft:rgba(244,139,145,.16);
+  --and-bar:#ECE9F6;--scrim:rgba(10,10,14,.32);
+  position:relative;background:var(--bg);color:var(--tx);font-family:var(--f-ui);transform-origin:0 0;overflow:hidden;font-size:15px;line-height:1.35}
+.fr.dk{--bg:#111113;--bg2:#1A1A1C;--bg3:#222224;--bg5:#2A2A2C;--tx:#F0F0F2;--tx2:#C2C2C8;--tx3:#8C8C95;--tx4:#3A3A40;--ln:rgba(255,255,255,.08);
+  --acc:#B3A6F7;--acc-ink:#C6B7FF;--acc-soft:rgba(179,166,247,.14);--glow:0 12px 28px rgba(0,0,0,.45);
+  --glass:rgba(40,40,44,.55);--glass-ln:rgba(255,255,255,.10);--sh:inset 0 1px 0 rgba(255,255,255,.08),0 4px 24px rgba(0,0,0,.40);--sh-lg:0 28px 80px rgba(0,0,0,.65);
+  --green:#6EE7A0;--green-soft:rgba(52,200,119,.16);--amber:#FFBA78;--amber-soft:rgba(245,138,46,.16);--red:#F48B91;--red-soft:rgba(244,139,145,.14);
+  --and-bar:#232129;--scrim:rgba(0,0,0,.55)}
+.fr.and{font-family:var(--f-and)}
+.fr *{box-sizing:border-box}
+.row{display:flex;align-items:center;gap:10px}.col{display:flex;flex-direction:column;gap:10px}
+.sp{flex:1}.mut{color:var(--tx3)}.t2{color:var(--tx2)}
+.card{background:var(--bg2);border-radius:24px;box-shadow:var(--sh)}
+.chip{padding:8px 14px;border-radius:999px;background:var(--bg2);box-shadow:var(--sh);font-weight:600;font-size:14px;white-space:nowrap;color:var(--tx2)}
+.chip.on{background:var(--acc-soft);color:var(--acc-ink);box-shadow:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 22px;border-radius:999px;font-weight:700;font-size:16px;white-space:nowrap}
+.btn.pri{background:var(--grad);color:#fff;box-shadow:var(--glow)}
+.btn.sec{background:var(--bg3);color:var(--tx)}
+.btn.s{height:36px;font-size:14px;padding:0 14px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.b-green{background:var(--green-soft);color:var(--green)}.b-amber{background:var(--amber-soft);color:var(--amber)}.b-acc{background:var(--acc-soft);color:var(--acc-ink)}.b-mut{background:var(--bg3);color:var(--tx3)}.b-red{background:var(--red-soft);color:var(--red)}
+.cover{border-radius:18px;position:relative;overflow:hidden;color:#fff}
+.cover .glyph{position:absolute;right:10px;bottom:6px;font:800 44px var(--f-mono);opacity:.28;letter-spacing:-.04em}
+.field{height:48px;border-radius:16px;background:var(--bg2);box-shadow:var(--sh);display:flex;align-items:center;gap:10px;padding:0 16px;color:var(--tx3);font-size:16px}
+.ico{width:20px;height:20px;flex:none;display:inline-block}
+.ico svg{width:100%;height:100%;display:block}
+.stars{color:#F5A524;letter-spacing:1px;font-size:13px}
+.fade-x{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 28px),transparent)}
+.fade-y{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 24px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,transparent 0,#000 24px,#000 calc(100% - 40px),transparent)}
+/* мягкий край iOS: размытие без цвета у кромки */
+.soft-top{position:absolute;left:0;right:0;top:0;height:110px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(#000 40%,transparent);mask-image:linear-gradient(#000 40%,transparent);z-index:3}
+.soft-bot{position:absolute;left:0;right:0;bottom:0;height:130px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent,#000 60%);mask-image:linear-gradient(transparent,#000 60%);z-index:3}
+.glass{background:var(--glass);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);box-shadow:inset 0 0 0 .5px var(--glass-ln),0 8px 30px rgba(0,0,0,.14)}
+.status{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 36px;font-weight:600;font-size:16px;z-index:6}
+.status.and{height:36px;padding:0 20px;font-size:13px}
+.home-ind{position:absolute;bottom:8px;left:50%;width:134px;height:5px;border-radius:3px;background:var(--tx);opacity:.85;transform:translateX(-50%);z-index:9}
+.and-nav{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:108px;height:4px;border-radius:2px;background:var(--tx3);z-index:9}
+.prog{height:6px;border-radius:3px;background:var(--bg5);overflow:hidden}.prog i{display:block;height:100%;background:linear-gradient(90deg,#6A5AE6,#A697FF);border-radius:3px}
+.hover-hint{outline:2px dashed var(--acc);outline-offset:3px}
+.tiny{font-size:12px}.sm{font-size:13.5px}
+.h1{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+.h2{font-size:20px;font-weight:750;letter-spacing:-.01em}
+.h3{font-size:16px;font-weight:700}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--f-mono)}
+.divider{height:1px;background:var(--ln)}
+.toggle{width:44px;height:26px;border-radius:13px;background:var(--bg5);position:relative;flex:none}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on{background:#6A5AE6}.toggle.on::after{left:21px}
+.radio{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--tx4);flex:none}
+.radio.on{box-shadow:inset 0 0 0 7px #6A5AE6}
+.capsule{position:absolute;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:12px;z-index:8}
+.cap-body{border-radius:36px;padding:4px;display:flex;flex-direction:column;gap:4px;width:72px}
+.cell{width:64px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.cell.on{background:var(--acc-soft);color:var(--acc-ink)}
+.cell.pill{width:auto}
+.cap-sep{height:1px;margin:2px 14px;background:var(--ln)}
+.cap-main{width:72px;height:72px;border-radius:36px;display:flex;align-items:center;justify-content:center;background:var(--grad);color:#fff;box-shadow:var(--glow)}
+.tabbar{position:absolute;left:16px;right:16px;bottom:24px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:space-around;padding:0 6px;z-index:8}
+.tabbar .t{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;font-weight:600;color:var(--tx2);padding:6px 14px;border-radius:24px}
+.tabbar .t.on{color:var(--acc-ink);background:var(--acc-soft)}
+.and-bottom{position:absolute;left:12px;right:12px;bottom:22px;height:68px;border-radius:34px;background:var(--and-bar);display:flex;align-items:center;justify-content:space-around;z-index:8;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.and-bottom .t{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:500;color:var(--tx2)}
+.and-bottom .t .pill{width:60px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
+.and-bottom .t.on .pill{background:var(--acc-soft);color:var(--acc-ink)}
+.and-bottom .t.on{color:var(--tx);font-weight:700}
+.sheet{position:absolute;left:0;right:0;bottom:0;border-radius:32px 32px 0 0;background:var(--bg2);z-index:10;box-shadow:var(--sh-lg);padding:10px 20px 36px}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--tx4);margin:0 auto 14px}
+.scrim{position:absolute;inset:0;background:var(--scrim);z-index:9}
+.kpi{padding:16px 18px;border-radius:20px;background:var(--bg2);box-shadow:var(--sh)}
+.kpi .v{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;color:var(--tx3);font-weight:600;padding:8px 10px}
+.tbl td{padding:12px 10px;border-top:1px solid var(--ln)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="col" style="gap:8px">
+    <h1>Площадка курсов Искры: концепты на согласование</h1>
+    <p class="lead">Четыре новых экрана: витрина, карточка курса, покупка, кабинет автора. Для каждого показаны ПК, iPhone, iPad и Android, у каждой версии светлая и тёмная тема. Цены, рейтинги и цифры продаж в кадрах выдуманы для примера. Курс «Бухгалтерия без ручной рутины» взят из пакета требований: 8 модулей, 34 урока, практикум XLSX.</p>
+  </header>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <section id="notes" class="notes"></section>
+  <section id="board" class="col" style="gap:26px"></section>
+</div>
+
+<script>
+const I = {
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke-linecap="round"/></svg>',
+  filter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
+  sort:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0-4 4m4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>',
+  cart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 9h18"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+  file:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+  more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="10" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+};
+const ic=(n,s=20)=>`<span class="ico" style="width:${s}px;height:${s}px">${I[n]}</span>`;
+
+const COURSES=[
+  {t:'Бухгалтерия без ручной рутины',a:'Автор курса · бухгалтер-практик',p:'2 990 ₽',r:'4,9',n:'34 урока',tag:'Бухгалтерия',g:'linear-gradient(135deg,#2FA862,#1C6B4A)',glyph:'=СУММ',hit:true},
+  {t:'Химия ЕГЭ: задания 19–22',a:'Искра · ХимБио',p:'1 490 ₽',r:'4,8',n:'12 уроков',tag:'ЕГЭ',g:'linear-gradient(135deg,#5A9BF0,#1F4FB8)',glyph:'H₂O'},
+  {t:'Корейский с нуля: хангыль',a:'Искра · Языки',p:'Бесплатно',r:'4,7',n:'20 уроков',tag:'Языки',g:'linear-gradient(135deg,#F58A6E,#C2405A)',glyph:'한'},
+  {t:'Power Query за выходные',a:'Пример автора',p:'1 990 ₽',r:'4,6',n:'9 уроков',tag:'Бухгалтерия',g:'linear-gradient(135deg,#FFC94D,#E0762E)',glyph:'PQ'},
+  {t:'AP Chemistry',a:'Искра · ХимБио',p:'3 490 ₽',r:'4,9',n:'40 уроков',tag:'Наука',g:'linear-gradient(135deg,#9D8BFF,#5A47D6)',glyph:'AP'},
+  {t:'Биология: клетка',a:'Искра · ХимБио',p:'990 ₽',r:'4,5',n:'8 уроков',tag:'ЕГЭ',g:'linear-gradient(135deg,#5AD4C5,#13887A)',glyph:'ДНК'},
+];
+const MODS=['Основы Excel и очистка данных','Формулы и сверки','Отчётность','Численность сотрудников','Power Query и Google Таблицы','Искусственный интеллект','Работа в 1С','Внедрение автоматизаций'];
+const MODL=[5,6,4,4,5,3,4,3];
+const cover=(c,h,big)=>`<div class="cover" style="height:${h}px;background:${c.g}"><div class="glyph" style="${big?'font-size:72px':''}">${c.glyph}</div>${c.hit?'<span class="badge" style="position:absolute;left:12px;top:12px;background:rgba(255,255,255,.9);color:#1C6B4A">Новый курс</span>':''}</div>`;
+
+function courseCard(c,o={}){return `<div class="card ${o.hover?'hover-hint':''}" style="padding:10px;display:flex;flex-direction:column;gap:10px;${o.w?`width:${o.w}px`:''}">
+  ${cover(c,o.ch||120)}
+  <div class="col" style="gap:4px;padding:0 6px 6px">
+    <div class="h3" style="line-height:1.25">${c.t}</div>
+    <div class="tiny mut">${c.a}</div>
+    <div class="row tiny" style="gap:8px;margin-top:4px"><span class="stars">★</span><b>${c.r}</b><span class="mut">· ${c.n}</span><span class="sp"></span><b class="num" style="font-size:15px">${c.p}</b></div>
+  </div></div>`}
+function courseRow(c){return `<div class="card" style="padding:10px;display:flex;gap:12px;align-items:center">
+  <div style="width:84px;flex:none">${cover(c,84)}</div>
+  <div class="col" style="gap:3px;min-width:0"><div class="h3" style="font-size:15px;line-height:1.25">${c.t}</div><div class="tiny mut">${c.a}</div>
+  <div class="row tiny" style="gap:6px"><span class="stars">★</span><b>${c.r}</b><span class="mut">· ${c.n}</span></div><b class="num" style="font-size:15px">${c.p}</b></div></div>`}
+const chips=(arr,on=0)=>arr.map((x,i)=>`<span class="chip ${i===on?'on':''}">${x}</span>`).join('');
+const CATS=['Все','Бухгалтерия','ЕГЭ и ОГЭ','Языки','Наука','Бесплатные'];
+
+/* ───────── Общие каркасы ───────── */
+function pcTop(active){
+  const items=['Каталог','Мои курсы','Преподавать'];
+  return `<div class="row" style="height:72px;padding:0 32px;gap:28px;background:var(--bg2);box-shadow:var(--sh);position:relative;z-index:4">
+    <div class="row" style="gap:8px;font-weight:800;font-size:20px"><span style="width:28px;height:28px;border-radius:9px;background:var(--grad);display:inline-block"></span>Искра</div>
+    ${items.map(x=>`<span style="font-weight:650;color:${x===active?'var(--acc-ink)':'var(--tx2)'}">${x}</span>`).join('')}
+    <div class="field" style="width:380px;height:42px;box-shadow:none;background:var(--bg3)">${ic('search',18)}<span class="sm">Курс, тема или автор</span></div>
+    <span class="sp"></span>${ic('heart',22)}${ic('cart',22)}
+    <span style="width:36px;height:36px;border-radius:50%;background:#6B5FC0;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">ДА</span></div>`}
+function iphoneTabs(on){const t=[['grid','Каталог'],['book','Мои курсы'],['user','Профиль']];
+  return `<div class="tabbar glass">${t.map(([i,l],k)=>`<div class="t ${k===on?'on':''}">${ic(i,24)}${l}</div>`).join('')}</div>`}
+function andTabs(on){const t=[['grid','Каталог'],['book','Мои курсы'],['user','Профиль']];
+  return `<div class="and-bottom">${t.map(([i,l],k)=>`<div class="t ${k===on?'on':''}"><span class="pill">${ic(i,22)}</span>${l}</div>`).join('')}</div>`}
+function ipadCapsule(on,screen,main){
+  const top=[['grid','Каталог'],['book','Мои курсы'],['user','Профиль']];
+  return `<div class="capsule"><div class="cap-body glass">${top.map(([i],k)=>`<div class="cell ${k===on?'on':''}">${ic(i,26)}</div>`).join('')}
+    ${screen.length?'<div class="cap-sep"></div>'+screen.map(i=>`<div class="cell">${ic(i,24)}</div>`).join(''):''}</div>
+    <div class="cap-main">${ic(main,28)}</div></div>`}
+const iosStatus=()=>`<div class="status"><span>9:41</span><span class="row" style="gap:6px;font-size:13px">●●● ▮</span></div>`;
+const andStatus=()=>`<div class="status and"><span>9:41</span><span>▾ ▮</span></div>`;
+
+/* ───────── Экран 1. Витрина ───────── */
+const S={};
+S.catalog={
+ pc:()=>`${pcTop('Каталог')}
+  <div style="display:grid;grid-template-columns:240px 1fr;gap:28px;padding:28px 32px;height:828px">
+   <aside class="col" style="gap:18px">
+    ${[['Тема',['Бухгалтерия и финансы','ЕГЭ и ОГЭ','Языки','Наука']],['Уровень',['С нуля','Практик','Продвинутый']],['Формат',['Текст и практика','Видео','С проверкой автора']],['Цена',['Бесплатные','До 2 000 ₽','До 5 000 ₽']]].map(([h,a],k)=>`<div class="col" style="gap:8px"><div class="tiny mut" style="letter-spacing:.06em;text-transform:uppercase;font-weight:700">${h}</div>${a.map((x,i)=>`<div class="row sm" style="gap:10px"><span class="radio ${k===0&&i===0?'on':''}" style="width:18px;height:18px;border-radius:6px;${k===0&&i===0?'box-shadow:none;background:#6A5AE6':''}"></span>${x}</div>`).join('')}</div>`).join('')}
+   </aside>
+   <main class="col" style="gap:20px;min-width:0">
+    <div class="card" style="display:grid;grid-template-columns:1.1fr 1fr;overflow:hidden">
+      <div class="col" style="padding:28px 30px;gap:12px;justify-content:center">
+        <span class="badge b-green" style="align-self:flex-start">Новый курс</span>
+        <div class="h1">Бухгалтерия без ручной рутины</div>
+        <div class="t2">Excel, Power Query, 1С и нейросети — пошагово, на рабочих ситуациях</div>
+        <div class="row sm mut" style="gap:14px"><span>8 модулей</span><span>34 урока</span><span>практикум XLSX</span></div>
+        <div class="row" style="margin-top:6px"><span class="btn pri">Подробнее</span><span class="btn sec">Первый урок бесплатно</span></div>
+      </div>${cover(COURSES[0],290,true).replace('border-radius:18px','border-radius:0')}
+    </div>
+    <div class="row"><div class="h2">Популярное</div><span class="sp"></span><span class="sm mut row" style="gap:6px">${ic('sort',16)}По популярности</span></div>
+    <div class="fade-y" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;overflow:hidden;flex:1;align-content:start">
+      ${COURSES.slice(1,5).map((c,i)=>courseCard(c,{hover:i===1})).join('')}
+      ${[COURSES[5],COURSES[0]].map(c=>courseCard(c)).join('')}
+    </div>
+   </main></div>`,
+ iphone:()=>`${iosStatus()}
+  <div class="col" style="padding:62px 16px 0;gap:14px;height:100%">
+   <div class="row"><div class="h1" style="font-size:34px">Каталог</div><span class="sp"></span><span style="width:40px;height:40px;border-radius:50%;background:#6B5FC0;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">ДА</span></div>
+   <div class="field">${ic('search')}Курс, тема или автор</div>
+   <div class="row fade-x" style="gap:8px;overflow:hidden;margin:0 -16px;padding:4px 16px">${chips(CATS,1)}</div>
+   <div class="card" style="overflow:hidden">${cover(COURSES[0],150,true).replace('border-radius:18px','border-radius:0')}
+     <div class="col" style="padding:14px 16px 16px;gap:6px"><div class="h2">Бухгалтерия без ручной рутины</div><div class="sm t2">Excel, Power Query, 1С и нейросети</div>
+     <div class="row tiny"><span class="stars">★</span><b>4,9</b><span class="mut">· 34 урока</span><span class="sp"></span><b style="font-size:16px">2 990 ₽</b></div></div></div>
+   ${COURSES.slice(3,6).map(courseRow).join('')}
+  </div><div class="soft-bot"></div>${iphoneTabs(0)}<div class="home-ind"></div>`,
+ ipad:()=>`<div class="col" style="padding:34px 120px 0 40px;gap:18px;height:100%">
+   <div class="row"><div class="h1" style="font-size:34px">Каталог</div><span class="sp"></span><div class="field" style="width:360px">${ic('search')}Курс, тема или автор</div></div>
+   <div class="row fade-x" style="gap:8px;overflow:hidden">${chips(CATS,1)}</div>
+   <div class="card" style="display:grid;grid-template-columns:1fr 1fr;overflow:hidden">
+     <div class="col" style="padding:24px 26px;gap:10px;justify-content:center"><span class="badge b-green" style="align-self:flex-start">Новый курс</span><div class="h1" style="font-size:28px">Бухгалтерия без ручной рутины</div><div class="t2 sm">Excel, Power Query, 1С и нейросети — пошагово</div><div class="row" style="margin-top:4px"><b style="font-size:18px">2 990 ₽</b><span class="mut sm">· первый урок бесплатно</span></div></div>
+     ${cover(COURSES[0],230,true).replace('border-radius:18px','border-radius:0')}</div>
+   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">${COURSES.slice(1,4).map(c=>courseCard(c,{ch:110})).join('')}</div>
+  </div><div class="soft-bot" style="height:90px"></div>${ipadCapsule(0,['filter','sort'],'search')}`,
+ android:()=>`${andStatus()}
+  <div class="col" style="padding:46px 16px 0;gap:14px;height:100%">
+   <div class="row" style="height:48px"><div style="font-size:26px;font-weight:700">Каталог</div><span class="sp"></span>${ic('heart',24)}<span style="width:36px;height:36px;border-radius:50%;background:#6B5FC0;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">ДА</span></div>
+   <div class="field" style="border-radius:28px;height:56px;box-shadow:none;background:var(--and-bar)">${ic('search',22)}Курс, тема или автор</div>
+   <div class="row fade-x" style="gap:8px;overflow:hidden;margin:0 -16px;padding:2px 16px">${CATS.map((x,i)=>`<span class="chip ${i===1?'on':''}" style="border-radius:10px;box-shadow:inset 0 0 0 1px var(--ln);background:${i===1?'var(--acc-soft)':'transparent'}">${x}</span>`).join('')}</div>
+   <div class="fade-y col" style="gap:12px;overflow:hidden;flex:1;padding-bottom:110px">
+    <div class="card" style="overflow:hidden;border-radius:20px;box-shadow:none;background:var(--bg2)">${cover(COURSES[0],140,true).replace('border-radius:18px','border-radius:0')}
+     <div class="col" style="padding:14px 16px;gap:6px"><div class="h2">Бухгалтерия без ручной рутины</div><div class="row tiny"><span class="stars">★</span><b>4,9</b><span class="mut">· 34 урока</span><span class="sp"></span><b style="font-size:16px">2 990 ₽</b></div></div></div>
+    ${COURSES.slice(3,6).map(courseRow).join('').replaceAll('border-radius:24px','')}
+   </div></div>${andTabs(0)}<div class="and-nav"></div>`,
+};
+
+/* ───────── Экран 2. Карточка курса ───────── */
+const buyBox=(w)=>`<div class="card col" style="padding:22px;gap:14px;${w?`width:${w}px`:''}">
+  <div class="row"><div style="font-size:30px;font-weight:800" class="num">2 990 ₽</div><span class="sp"></span><span class="badge b-acc">Доступ навсегда</span></div>
+  <span class="btn pri">Купить курс</span><span class="btn sec">Пройти первый урок бесплатно</span>
+  <div class="col tiny mut" style="gap:6px">
+   <div class="row" style="gap:8px">${ic('check',16)}34 урока, 34 проверочных вопроса</div>
+   <div class="row" style="gap:8px">${ic('file',16)}Практикум Excel для скачивания</div>
+   <div class="row" style="gap:8px">${ic('star',16)}Сертификат Искры о прохождении*</div>
+  </div><div class="tiny mut" style="line-height:1.4">14 дней — полный возврат, позже — за непройденную часть. Чек придёт на почту. *Не удостоверение о повышении квалификации.</div></div>`;
+const program=(n)=>MODS.slice(0,n).map((m,i)=>`<div class="row" style="padding:13px 0;border-top:${i?'1px solid var(--ln)':'0'};gap:12px"><span class="num mut" style="width:22px;font-weight:700">${i+1}</span><span style="font-weight:600;flex:1">${m}</span><span class="tiny mut">${MODL[i]} ур.</span>${i===0?'<span class="badge b-green">Бесплатно</span>':ic('lock',16)}</div>`).join('');
+const outcomes=['Чистить выгрузки из 1С и банка за минуты','Сверять платежи формулами, а не глазами','Собирать отчёт по численности сотрудников','Разбирать ошибки в 1С по шагам'];
+S.card={
+ pc:()=>`${pcTop('Каталог')}
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:32px;padding:28px 48px;height:828px;overflow:hidden">
+   <main class="col fade-y" style="gap:20px;overflow:hidden;min-width:0">
+     <div class="row sm mut" style="gap:6px">Каталог ${ic('chev',14)} Бухгалтерия</div>
+     <div class="h1" style="font-size:38px">Бухгалтерия без ручной рутины</div>
+     <div class="t2" style="font-size:18px">Excel, Power Query, 1С и нейросети — пошагово, на рабочих ситуациях</div>
+     <div class="row sm" style="gap:16px"><span class="row" style="gap:6px"><span class="stars">★★★★★</span><b>4,9</b><span class="mut">· 128 отзывов</span></span><span class="mut">1 240 учеников</span><span class="mut">Обновлён в ноябре 2026</span></div>
+     <div class="row" style="gap:12px"><span style="width:44px;height:44px;border-radius:50%;background:var(--green-soft);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:800">Б</span><div class="col" style="gap:2px"><b>Автор курса</b><span class="tiny mut">Бухгалтер-практик, ведёт 10 организаций</span></div></div>
+     <div class="card" style="padding:20px 22px"><div class="h3" style="margin-bottom:10px">Чему вы научитесь</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 22px">${outcomes.map(o=>`<div class="row sm" style="gap:8px;align-items:flex-start"><span style="color:var(--green)">${ic('check',18)}</span>${o}</div>`).join('')}</div></div>
+     <div class="card" style="padding:8px 22px 10px"><div class="row" style="padding:12px 0"><div class="h3">Программа</div><span class="sp"></span><span class="tiny mut">8 модулей · 34 урока · ~17 часов</span></div>${program(6)}</div>
+   </main>
+   <aside class="col" style="gap:16px">${cover(COURSES[0],200,true)}${buyBox()}</aside>
+  </div>`,
+ iphone:()=>`${iosStatus()}
+  <div style="height:100%;overflow:hidden">
+   ${cover(COURSES[0],300,true).replace('border-radius:18px','border-radius:0')}
+   <div class="col" style="padding:18px 16px 0;gap:12px">
+    <div class="h1" style="font-size:28px">Бухгалтерия без ручной рутины</div>
+    <div class="row sm" style="gap:8px"><span class="stars">★</span><b>4,9</b><span class="mut">· 128 отзывов · 1 240 учеников</span></div>
+    <div class="row" style="gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:var(--green-soft);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:800">Б</span><div class="col" style="gap:0"><b class="sm">Автор курса</b><span class="tiny mut">Бухгалтер-практик</span></div></div>
+    <div class="row" style="gap:8px">${['8 модулей','34 урока','XLSX'].map(x=>`<span class="badge b-mut" style="font-size:13px;padding:6px 10px">${x}</span>`).join('')}</div>
+    <div class="card" style="padding:4px 16px">${program(3)}</div>
+   </div></div>
+  <div class="row" style="position:absolute;top:58px;left:16px;right:16px;z-index:7"><span class="glass" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center">${ic('back',22)}</span><span class="sp"></span><span class="glass" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center">${ic('heart',20)}</span><span class="glass" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center">${ic('share',20)}</span></div>
+  <div class="soft-bot"></div>
+  <div class="glass row" style="position:absolute;left:16px;right:16px;bottom:24px;height:72px;border-radius:36px;padding:0 8px 0 22px;z-index:8"><div class="col" style="gap:0"><b class="num" style="font-size:20px">2 990 ₽</b><span class="tiny mut">первый урок бесплатно</span></div><span class="sp"></span><span class="btn pri" style="height:56px;border-radius:28px">Купить</span></div><div class="home-ind"></div>`,
+ ipad:()=>`<div style="display:grid;grid-template-columns:1fr 330px;gap:24px;padding:30px 120px 0 40px;height:100%">
+   <div class="col fade-y" style="gap:14px;overflow:hidden;min-width:0">
+     <div class="h1" style="font-size:32px">Бухгалтерия без ручной рутины</div>
+     <div class="t2">Excel, Power Query, 1С и нейросети — пошагово, на рабочих ситуациях</div>
+     <div class="row sm" style="gap:8px"><span class="stars">★</span><b>4,9</b><span class="mut">· 128 отзывов · 1 240 учеников</span></div>
+     <div class="card" style="padding:16px 18px"><div class="h3" style="margin-bottom:8px">Чему вы научитесь</div>${outcomes.map(o=>`<div class="row sm" style="gap:8px;padding:4px 0"><span style="color:var(--green)">${ic('check',18)}</span>${o}</div>`).join('')}</div>
+     <div class="card" style="padding:4px 18px">${program(5)}</div>
+   </div>
+   <div class="col" style="gap:14px">${cover(COURSES[0],180,true)}
+     <div class="card col" style="padding:18px;gap:10px"><div style="font-size:28px;font-weight:800" class="num">2 990 ₽</div><div class="tiny mut">Доступ навсегда · возврат 14 дней · чек на почту</div><div class="divider"></div><div class="tiny mut">Купить — главная кнопка в капсуле справа. Пробный урок — вторая кнопка капсулы.</div></div></div>
+  </div><div class="soft-bot" style="height:80px"></div>${ipadCapsule(0,['play','heart','share'],'cart')}`,
+ android:()=>`${andStatus()}
+  <div style="height:100%;overflow:hidden">
+   <div class="row" style="height:64px;padding:36px 8px 0;gap:4px;box-sizing:content-box"><span style="width:48px;height:48px;display:flex;align-items:center;justify-content:center">${ic('back',24)}</span><span class="sp"></span><span style="width:48px;height:48px;display:flex;align-items:center;justify-content:center">${ic('heart',22)}</span><span style="width:48px;height:48px;display:flex;align-items:center;justify-content:center">${ic('share',22)}</span></div>
+   <div class="col" style="padding:4px 16px 0;gap:12px">${cover(COURSES[0],180,true)}
+    <div style="font-size:26px;font-weight:700;line-height:1.15">Бухгалтерия без ручной рутины</div>
+    <div class="row sm" style="gap:8px"><span class="stars">★</span><b>4,9</b><span class="mut">· 128 отзывов · 1 240 учеников</span></div>
+    <div class="row" style="gap:8px">${['8 модулей','34 урока','XLSX'].map(x=>`<span class="chip" style="border-radius:10px;box-shadow:inset 0 0 0 1px var(--ln);background:transparent;font-size:13px;padding:6px 10px">${x}</span>`).join('')}</div>
+    <div class="card fade-y" style="padding:4px 16px;border-radius:20px;box-shadow:none;max-height:280px;overflow:hidden">${program(5)}</div>
+   </div></div>
+  <div class="row" style="position:absolute;left:12px;right:12px;bottom:22px;height:76px;border-radius:38px;background:var(--and-bar);padding:0 10px 0 22px;z-index:8;box-shadow:0 2px 10px rgba(0,0,0,.12)"><div class="col" style="gap:0"><b class="num" style="font-size:20px">2 990 ₽</b><span class="tiny mut">первый урок бесплатно</span></div><span class="sp"></span><span class="btn pri" style="height:56px;border-radius:28px;box-shadow:none">Купить</span></div><div class="and-nav"></div>`,
+};
+
+/* ───────── Экран 3. Покупка ───────── */
+const pay=[['СБП','Без комиссии для вас, через приложение банка',true],['Карта «Мир»','Visa и Mastercard российских банков',false],['SberPay / T-Pay','Подтверждение в приложении банка',false]];
+const checkoutBody=(compact)=>`
+  <div class="row" style="gap:12px"><div style="width:64px;flex:none">${cover(COURSES[0],64)}</div><div class="col" style="gap:2px;min-width:0"><b>Бухгалтерия без ручной рутины</b><span class="tiny mut">Доступ навсегда · 34 урока</span></div><span class="sp"></span><b class="num" style="font-size:18px;white-space:nowrap">2 990 ₽</b></div>
+  <div class="col" style="gap:6px"><div class="tiny mut" style="font-weight:600">Почта для чека и доступа</div><div class="field" style="box-shadow:inset 0 0 0 1.5px var(--acc);background:var(--bg2);color:var(--tx)">anna.buh@example.ru</div></div>
+  <div class="col" style="gap:8px">${pay.map(([t,s,on])=>`<div class="row" style="padding:12px 14px;border-radius:18px;background:${on?'var(--acc-soft)':'var(--bg3)'};gap:12px"><span class="radio ${on?'on':''}"></span><div class="col" style="gap:1px"><b class="sm">${t}</b>${compact?'':`<span class="tiny mut">${s}</span>`}</div></div>`).join('')}</div>
+  <div class="row sm" style="gap:12px;align-items:flex-start"><span class="toggle on"></span><span class="t2">Принимаю <u>оферту</u> и <u>правила возврата</u></span></div>
+  <div class="row sm" style="gap:12px;align-items:flex-start"><span class="toggle on"></span><span class="t2">Даю <u>согласие на обработку персональных данных</u></span></div>
+  <span class="btn pri" style="height:56px">Оплатить 2 990 ₽</span>
+  <div class="tiny mut" style="text-align:center;line-height:1.4">Платёж принимает ЮKassa, Искра не видит данные карты. Продавец и реквизиты указаны в оферте.</div>`;
+S.checkout={
+ pc:()=>`${pcTop('Каталог')}<div style="padding:28px 48px;filter:blur(1px);opacity:.6"><div class="h1" style="font-size:38px">Бухгалтерия без ручной рутины</div></div>
+  <div class="scrim" style="top:72px"></div>
+  <div class="card col" style="position:absolute;left:50%;top:120px;transform:translateX(-50%);width:520px;padding:26px 28px;gap:16px;z-index:10;box-shadow:var(--sh-lg);border-radius:28px">
+   <div class="row"><div class="h2">Оформление покупки</div><span class="sp"></span><span class="mut" style="font-size:22px">×</span></div>${checkoutBody(false)}</div>`,
+ iphone:()=>`${iosStatus()}<div style="padding:62px 16px;opacity:.5">${cover(COURSES[0],220,true)}</div><div class="scrim"></div>
+  <div class="sheet col" style="gap:14px"><div class="grab"></div><div class="h2" style="margin-top:-4px">Оформление покупки</div>${checkoutBody(true)}</div><div class="home-ind"></div>`,
+ ipad:()=>`<div style="padding:30px 120px 0 40px;opacity:.45"><div class="h1">Бухгалтерия без ручной рутины</div></div><div class="scrim"></div>
+  <div class="card col" style="position:absolute;right:108px;top:50%;transform:translateY(-50%);width:440px;padding:22px 24px;gap:13px;z-index:10;box-shadow:var(--sh-lg);border-radius:32px">
+   <div class="h2">Оформление покупки</div>${checkoutBody(true)}</div>
+  ${ipadCapsule(0,[],'back').replace('class="capsule"','class="capsule" style="z-index:11"')}`,
+ android:()=>`${andStatus()}
+  <div class="row" style="height:64px;padding:36px 8px 0;box-sizing:content-box;gap:4px"><span style="width:48px;height:48px;display:flex;align-items:center;justify-content:center">${ic('back',24)}</span><span style="font-size:20px;font-weight:600">Оформление покупки</span></div>
+  <div class="col" style="padding:8px 16px;gap:14px">${checkoutBody(false).replaceAll('border-radius:18px;background:var(--bg3)','border-radius:16px;background:var(--and-bar)')}</div><div class="and-nav"></div>`,
+};
+
+/* ───────── Экран 4. Кабинет автора ───────── */
+const spark=(w,h)=>{const pts=[3,4,3,6,5,7,9,8,11,10,13,15,14,17];const mx=17;return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="display:block" aria-hidden="true">
+  <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7E6EE6" stop-opacity=".35"/><stop offset="1" stop-color="#7E6EE6" stop-opacity="0"/></linearGradient></defs>
+  ${[.25,.5,.75].map(f=>`<line x1="0" x2="${w}" y1="${h*f}" y2="${h*f}" stroke="currentColor" stroke-opacity=".08"/>`).join('')}
+  <path d="M0 ${h} ${pts.map((p,i)=>`L${i*w/(pts.length-1)} ${h-p/mx*(h-8)}`).join(' ')} L${w} ${h}Z" fill="url(#ag)"/>
+  <path d="${pts.map((p,i)=>`${i?'L':'M'}${i*w/(pts.length-1)} ${h-p/mx*(h-8)}`).join(' ')}" fill="none" stroke="#7E6EE6" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="${w}" cy="${h-17/mx*(h-8)}" r="4.5" fill="#7E6EE6"/></svg>`};
+const KPI=[['Выручка, ноябрь','184 300 ₽','+22% к октябрю','b-green'],['Продажи','68','5 возвратов','b-mut'],['Ученики','1 240','312 активны за неделю','b-mut'],['Доходят до конца','41%','медиана по площадке 18%','b-acc']];
+const MYC=[['Бухгалтерия без ручной рутины','Опубликован','b-green','2 990 ₽','1 240'],['Power Query для бухгалтера','На модерации','b-amber','1 990 ₽','—'],['1С: самозанятые и реестры','Черновик','b-mut','—','—']];
+const payout=`<div class="card col" style="padding:18px 20px;gap:10px"><div class="row"><div class="h3">Выплаты</div><span class="sp"></span><span class="badge b-green">Самозанятый · статус проверен</span></div>
+  <div class="row"><div class="col" style="gap:0"><span class="tiny mut">К выплате 1 декабря</span><b class="num" style="font-size:24px">147 440 ₽</b></div><span class="sp"></span><span class="btn sec s">Отчёт агента</span></div>
+  <div class="tiny mut" style="line-height:1.4">184 300 ₽ продаж − вознаграждение Искры (ставка — пример) − возвраты. Чек НПД формирует Искра через «Мой налог» по вашему разрешению.</div></div>`;
+S.author={
+ pc:()=>`${pcTop('Преподавать')}
+  <div style="display:grid;grid-template-columns:220px 1fr;height:828px">
+   <aside class="col" style="padding:26px 16px;gap:4px;background:var(--bg2);border-right:1px solid var(--ln)">${[['chart','Обзор',1],['book','Мои курсы'],['user','Ученики'],['star','Отзывы'],['wallet','Выплаты']].map(([i,l,on])=>`<div class="row" style="gap:12px;padding:10px 14px;border-radius:14px;font-weight:600;${on?'background:var(--acc-soft);color:var(--acc-ink)':'color:var(--tx2)'}">${ic(i)}${l}</div>`).join('')}</aside>
+   <main class="col" style="padding:26px 32px;gap:18px;min-width:0">
+    <div class="row"><div class="h1" style="font-size:30px">Кабинет автора</div><span class="sp"></span><span class="btn sec s">Ноябрь 2026 ${ic('down',16)}</span><span class="btn pri s">${ic('plus',16)}Новый курс</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">${KPI.map(([l,v,s,b])=>`<div class="kpi col" style="gap:6px"><span class="tiny mut" style="font-weight:600">${l}</span><span class="v num">${v}</span><span class="badge ${b}" style="align-self:flex-start">${s}</span></div>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px">
+     <div class="card col" style="padding:18px 20px;gap:8px;color:var(--tx)"><div class="row"><div class="h3">Продажи по дням</div><span class="sp"></span><span class="tiny mut">14 дней</span></div>${spark(640,150)}</div>${payout}</div>
+    <div class="card" style="padding:8px 12px"><table class="tbl"><thead><tr><th>Курс</th><th>Статус</th><th>Цена</th><th>Ученики</th><th></th></tr></thead><tbody>${MYC.map(([t,s,b,p,u],i)=>`<tr ${i===1?'style="background:var(--bg3)"':''}><td><b>${t}</b></td><td><span class="badge ${b}">${s}</span></td><td class="num">${p}</td><td class="num">${u}</td><td style="text-align:right;color:var(--tx3)">${i===1?'<span class="btn sec s">'+ic('edit',14)+'Изменить</span>':''}</td></tr>`).join('')}</tbody></table></div>
+   </main></div>`,
+ iphone:()=>`${iosStatus()}
+  <div class="col" style="padding:62px 16px 0;gap:12px">
+   <div class="h1" style="font-size:34px">Автор</div>
+   <div class="card col" style="padding:16px;gap:6px;color:var(--tx)"><span class="tiny mut" style="font-weight:600">Выручка, ноябрь</span><div class="row"><b class="num" style="font-size:30px">184 300 ₽</b><span class="sp"></span><span class="badge b-green">+22%</span></div>${spark(340,70)}</div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${KPI.slice(1,3).map(([l,v])=>`<div class="kpi" style="padding:12px 14px"><div class="tiny mut">${l}</div><div class="v num" style="font-size:22px">${v}</div></div>`).join('')}</div>
+   ${payout.replace('padding:18px 20px','padding:14px 16px').replace(/<div class="tiny mut" style="line-height:1.4">.*?<\/div><\/div>$/,'</div>')}
+   ${MYC.slice(0,2).map(([t,s,b])=>`<div class="card row" style="padding:12px 14px;gap:10px"><div class="col" style="gap:4px;min-width:0"><b class="sm">${t}</b><span class="badge ${b}" style="align-self:flex-start">${s}</span></div><span class="sp"></span><span class="mut">${ic('chev',18)}</span></div>`).join('')}
+  </div><div class="soft-bot"></div>
+  <span class="glass" style="position:absolute;right:16px;bottom:100px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:8;color:var(--acc-ink)">${ic('plus',26)}</span>
+  ${iphoneTabs(2)}<div class="home-ind"></div>`,
+ ipad:()=>`<div class="col" style="padding:30px 120px 0 40px;gap:16px;height:100%">
+   <div class="row"><div class="h1" style="font-size:32px">Кабинет автора</div><span class="sp"></span><span class="tiny mut">Ноябрь 2026</span></div>
+   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">${KPI.map(([l,v,s,b])=>`<div class="kpi col" style="gap:4px;padding:14px"><span class="tiny mut" style="font-weight:600">${l}</span><span class="v num" style="font-size:22px">${v}</span><span class="badge ${b}" style="align-self:flex-start;font-size:11px">${s}</span></div>`).join('')}</div>
+   <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:14px"><div class="card col" style="padding:16px 18px;gap:6px;color:var(--tx)"><div class="h3">Продажи по дням</div>${spark(560,130)}</div>${payout}</div>
+   <div class="card" style="padding:4px 10px"><table class="tbl">${MYC.map(([t,s,b,p,u])=>`<tr><td style="border-top:0;border-bottom:1px solid var(--ln)"><b>${t}</b></td><td style="border-top:0;border-bottom:1px solid var(--ln)"><span class="badge ${b}">${s}</span></td><td class="num" style="border-top:0;border-bottom:1px solid var(--ln)">${p}</td></tr>`).join('')}</table></div>
+  </div><div class="soft-bot" style="height:70px"></div>${ipadCapsule(2,['chart','wallet'],'plus')}`,
+ android:()=>`${andStatus()}
+  <div class="col" style="padding:46px 16px 0;gap:12px">
+   <div class="row" style="height:48px"><div style="font-size:26px;font-weight:700">Автор</div><span class="sp"></span><span class="chip" style="border-radius:10px;box-shadow:inset 0 0 0 1px var(--ln);background:transparent">Ноябрь ▾</span></div>
+   <div class="card col" style="padding:16px;gap:6px;border-radius:20px;box-shadow:none;color:var(--tx)"><span class="tiny mut">Выручка, ноябрь</span><div class="row"><b class="num" style="font-size:30px">184 300 ₽</b><span class="sp"></span><span class="badge b-green">+22%</span></div>${spark(350,70)}</div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${KPI.slice(1,3).map(([l,v])=>`<div class="kpi" style="padding:12px 14px;border-radius:18px;box-shadow:none"><div class="tiny mut">${l}</div><div class="v num" style="font-size:22px">${v}</div></div>`).join('')}</div>
+   <div class="fade-y col" style="gap:10px;max-height:300px;overflow:hidden">${payout.replace('class="card col"','class="card col" style="border-radius:20px;box-shadow:none"').replace(/<div class="tiny mut" style="line-height:1.4">.*?<\/div><\/div>$/,'</div>')}
+   ${MYC.map(([t,s,b])=>`<div class="card row" style="padding:12px 14px;gap:10px;border-radius:18px;box-shadow:none"><div class="col" style="gap:4px"><b class="sm">${t}</b><span class="badge ${b}" style="align-self:flex-start">${s}</span></div></div>`).join('')}</div>
+  </div>
+  <span style="position:absolute;right:16px;bottom:104px;height:56px;padding:0 20px;border-radius:18px;background:var(--acc-soft);color:var(--acc-ink);display:flex;align-items:center;gap:8px;font-weight:700;z-index:8;box-shadow:0 3px 10px rgba(0,0,0,.15)">${ic('plus',22)}Курс</span>
+  ${andTabs(2)}<div class="and-nav"></div>`,
+};
+
+const SCREENS=[
+ {id:'catalog',name:'Витрина',notes:['Главный вход для покупателя без аккаунта: открывается без входа, ищет по названию, теме и автору.','Фильтры: тема, уровень, формат, цена. На ПК слева колонкой, на iPhone и Android чипами с фейдом справа, на iPad фильтр и сортировка в капсуле.','Курсы репетиторов в витрину не попадают: туда идут только курсы со статусом «Опубликован в каталоге».','ПК: карточка поднимается при наведении (пунктир показывает hover-состояние).']},
+ {id:'card',name:'Карточка курса',notes:['Отвечает на вопросы покупателя по порядку: что это, кто автор, чему научусь, что внутри, сколько стоит, что с возвратом.','Первый модуль открыт бесплатно, остальные под замком: это пробный урок вместо видео-трейлера.','Сертификат подписан как «сертификат Искры о прохождении» со сноской: не удостоверение о повышении квалификации (требование пакета курса и 273-ФЗ).','Покупка: на ПК липкий блок справа, на iPhone стеклянная плашка снизу, на Android таблетка с заливкой, на iPad главная кнопка капсулы.']},
+ {id:'checkout',name:'Покупка',notes:['Одно окно без перехода в корзину: курс, почта для чека, способ оплаты, два отдельных согласия, кнопка «Оплатить».','Согласие на обработку персональных данных стоит отдельным переключателем, а не строкой в оферте: так требует 152-ФЗ с 01.09.2025.','В MVP продавец — Искра (вариант А плана), поэтому чек пробивает Искра. Данные карты вводятся на странице платёжного сервиса, Искра их не видит. Чек 54-ФЗ приходит на почту.','iPhone: лист с грабером без ×. iPad: окно выезжает от капсулы влево. Android: отдельный экран, системная «Назад» закрывает его.']},
+ {id:'author',name:'Кабинет автора',notes:['Обзор за период: выручка, продажи с возвратами, ученики, доля дошедших до конца. Ниже продажи по дням и выплаты.','Статусы курса: черновик → на модерации → опубликован. Цена и публикация в каталоге задаются в редакторе курса, который уже есть у учителя.','Этап 3 плана: в MVP продаёт сама Искра, выплат авторам нет. Блок выплат показывает статус самозанятого или ИП и расчёт: продажи − вознаграждение площадки − возвраты. «Отчёт агента» скачивается за месяц.','«Новый курс»: на ПК кнопка в шапке, на iPhone стеклянный круг над вкладками, на iPad главная кнопка капсулы, на Android FAB-таблетка.']},
+];
+const PLATS=[
+ {id:'pc',name:'ПК',w:1440,h:900,s:.42,desc:'Топбар Искры, колонки, наведение. Кадр 1440 × 900.'},
+ {id:'iphone',name:'iPhone',w:402,h:874,s:.6,phone:true,desc:'Нижняя стеклянная навигация, контролы в стеклянных кругах, мягкий край у нижней кромки. Кадр 402 × 874.'},
+ {id:'ipad',name:'iPad',w:1180,h:820,s:.5,desc:'Всё управление в одной капсуле у правого края: разделы, действия экрана, главная кнопка отдельным кругом. Сверху и снизу кнопок нет. Кадр 1180 × 820.'},
+ {id:'android',name:'Android',w:412,h:915,s:.58,phone:true,and:true,desc:'Фиксированные таблетки с заливкой, без iOS-стекла, фейды SCROLL-01 у прокрутки. Кадр 412 × 915.'},
+];
+
+function render(id){
+  const sc=SCREENS.find(s=>s.id===id)||SCREENS[0];
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.id===sc.id));
+  document.getElementById('notes').innerHTML=`<h3>${sc.name}: что решает экран</h3><ul>${sc.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`;
+  document.getElementById('board').innerHTML=PLATS.map(p=>`<div class="plat"><h2>${p.name}</h2><p>${p.desc}</p><div class="pair">${['Светлая','Тёмная'].map((th,k)=>`
+    <div class="slot"><div class="cap">${th} тема</div><div class="vp ${p.phone?'phone':''}" style="width:${Math.round(p.w*p.s)}px;height:${Math.round(p.h*p.s)}px">
+    <div class="fr ${k?'dk':''} ${p.and?'and':''}" style="width:${p.w}px;height:${p.h}px;transform:scale(${p.s})">${S[sc.id][p.id]()}</div></div></div>`).join('')}</div></div>`).join('');
+}
+const tabs=document.getElementById('tabs');
+tabs.innerHTML=SCREENS.map(s=>`<button role="tab" data-id="${s.id}">${s.name}</button>`).join('');
+tabs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;location.hash=b.dataset.id;render(b.dataset.id)});
+addEventListener('hashchange',()=>render(location.hash.slice(1)));
+render(location.hash.slice(1)||'catalog');
+</script>
