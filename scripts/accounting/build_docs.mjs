@@ -6,7 +6,7 @@
 //   docs/courses/accounting/handbook.json — данные справочника (вопрос → урок)
 // Запуск: node scripts/accounting/build_docs.mjs
 import { build } from 'esbuild'
-import { writeFileSync, mkdirSync, statSync } from 'node:fs'
+import { writeFileSync, mkdirSync, statSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -23,13 +23,16 @@ const { ACC_LESSONS, ACC_COURSE_ID, ACC_COURSE_TITLE, BLUEPRINT, MODULES } = awa
 const dir = 'docs/courses/accounting'
 mkdirSync(dir, { recursive: true })
 const sq = s => `'${String(s).replace(/'/g, "''")}'`
-const FILE_RE = /\b([a-z0-9-]+\.(?:xlsx|zip))\b/g
+const FILE_RE = /(?<![\w.-])([a-z0-9-]+\.(?:xlsx|zip))\b/g
+// Только файлы, которые реально лежат в public/courses/accounting: имена внутри
+// архива (vygruzka_2026-01.xlsx) иначе давали «файлы» 03.xlsx и -01.xlsx.
+const COURSE_FILES = new Set(readdirSync('public/courses/accounting'))
 
 // ── catalog.sql ──────────────────────────────────────────────────────────────
 const modules = [...new Map(ACC_LESSONS.map(x => [x.module.id, x.module])).values()]
 const modLabel = m => m.id === 'EXP00' ? `Введение` : `${Number(m.id.slice(3))}. ${m.title}`
 const lessonRows = ACC_LESSONS.map(x => {
-  const files = [...new Set([x.lesson.practice, ...x.lesson.content.paragraphs.map(p => p.text)].flatMap(t => [...t.matchAll(FILE_RE)].map(m => m[1])))]
+  const files = [...new Set([x.lesson.practice, ...x.lesson.content.paragraphs.map(p => p.text)].flatMap(t => [...t.matchAll(FILE_RE)].map(m => m[1])).filter(f => COURSE_FILES.has(f)))]
   const materials = files.length ? {
     materials: files.map(f => {
       let size = 0

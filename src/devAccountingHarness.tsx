@@ -29,7 +29,7 @@ const LAST = 'acc-stand:last'
 const read = <T,>(k: string, d: T): T => { try { return JSON.parse(localStorage.getItem(k) ?? '') as T } catch { return d } }
 const write = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { /* приватный режим */ } }
 
-const FILE_RE = /\b([a-z0-9-]+\.(?:xlsx|zip))\b/g
+const FILE_RE = /(?<![\w.-])([a-z0-9-]+\.(?:xlsx|zip))\b/g
 const filesOf = (texts: string[]) => [...new Set(texts.flatMap(t => [...t.matchAll(FILE_RE)].map(m => m[1])))]
 
 const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е')
