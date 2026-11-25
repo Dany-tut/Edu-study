@@ -1,0 +1,260 @@
+<title>ИИ-помощники Искры</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: page = project brief (left-aligned prose) + concept wall: 4 platform rows × 2 theme columns */
+:root{
+  --bg:#F6F5FB; --fg:#1D1A2B; --muted:#6B6780; --line:#E3E0F0; --card:#FFFFFF; --accent:#6353C4; --accent-soft:#E7E4FB; --ok:#1a7a3f; --warn:#A35A00; --bad:#B4233A;
+  --display:'Space Grotesk',ui-sans-serif,system-ui,sans-serif; --body:'Inter',ui-sans-serif,system-ui,-apple-system,sans-serif; --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121019;--fg:#ECEAF5;--muted:#A19DB5;--line:#2C2840;--card:#1B1826;--accent:#A99BFF;--accent-soft:#2B2547;--ok:#5FD38A;--warn:#F0B35A;--bad:#FF7A8E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121019;--fg:#ECEAF5;--muted:#A19DB5;--line:#2C2840;--card:#1B1826;--accent:#A99BFF;--accent-soft:#2B2547;--ok:#5FD38A;--warn:#F0B35A;--bad:#FF7A8E;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:40px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:34px} h2{font-size:24px} h3{font-size:17px}
+.lede{max-width:68ch;color:var(--muted);margin:8px 0 0}
+.tag{display:inline-block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;min-width:0}
+.box p,.box li{margin:0}
+.box ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);padding:1px 5px;border-radius:5px}
+pre{font-family:var(--mono);font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;overflow-x:auto;margin:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.tablewrap{overflow-x:auto}
+.stage{display:flex;gap:10px;flex-wrap:wrap}
+.stage span{border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px}
+.stage span.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.asks{counter-reset:a;display:grid;gap:8px;padding:0;margin:0;list-style:none}
+.asks li{counter-increment:a;display:flex;gap:10px}
+.asks li::before{content:counter(a);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;display:grid;place-items:center;font-weight:600}
+a{color:var(--accent)}
+/* concept wall */
+.row{display:grid;gap:12px}
+.rowhead{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
+.rowhead p{margin:0;color:var(--muted);font-size:14px;max-width:80ch}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px}
+.pair.phones{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.cap{font-size:12px;color:var(--muted);margin:0 0 6px;letter-spacing:.04em;text-transform:uppercase}
+.frame{overflow-x:auto}
+
+/* ---- mock tokens (fixed per frame, independent of page theme) ---- */
+.m{--mbg:#F4F3F8;--mcard:#FFFFFF;--mfg:#1D1A2B;--mmut:#77728C;--mline:#E6E3EF;--macc:#7E6EE6;--maccT:#6353C4;--msoft:#EEEBFD;--mok:#1a7a3f;--mbad:#C0283F;--mglass:rgba(255,255,255,.62);--mglassline:rgba(255,255,255,.9);
+  font-family:var(--body);color:var(--mfg);background:var(--mbg);border-radius:18px;border:1px solid var(--line);overflow:hidden;font-size:12.5px;line-height:1.4;position:relative}
+.m.dark{--mbg:#14121C;--mcard:#1E1B29;--mfg:#EEECF6;--mmut:#9C97B2;--mline:#2D2940;--macc:#9C8CF0;--maccT:#B3A7FF;--msoft:#2A2444;--mok:#62D18E;--mbad:#FF7F91;--mglass:rgba(40,36,58,.6);--mglassline:rgba(255,255,255,.12)}
+.m *{box-sizing:border-box}
+.m h4{font-family:var(--display);font-size:16px;margin:0 0 2px}
+.m .mut{color:var(--mmut)}
+.m .card{background:var(--mcard);border:1px solid var(--mline);border-radius:14px;padding:12px}
+.m .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:6px 11px;border:1px solid var(--mline);background:var(--mcard);color:var(--mfg);font-weight:500;font-size:12px;white-space:nowrap}
+.m .btn.pri{background:var(--macc);border-color:var(--macc);color:#fff}
+.m .btn.danger{color:var(--mbad);border-color:color-mix(in srgb,var(--mbad) 40%,transparent)}
+.m .chip{display:inline-block;border-radius:999px;padding:2px 8px;background:var(--msoft);color:var(--maccT);font-size:11px;font-weight:500}
+.m .chip.off{background:transparent;border:1px dashed var(--mline);color:var(--mmut)}
+.m .ava{width:30px;height:30px;border-radius:9px;background:var(--msoft);color:var(--maccT);display:grid;place-items:center;font-weight:700;flex:none}
+.m .item{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px}
+.m .item.sel{background:var(--msoft)}
+.m .item+.item{margin-top:2px}
+.m .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.m .tog{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--mline)}
+.m .tog:last-child{border-bottom:0}
+.m .sw{width:30px;height:18px;border-radius:999px;background:var(--mline);position:relative;flex:none}
+.m .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.m .sw.on{background:var(--macc)} .m .sw.on::after{left:14px}
+.m .android .sw{border-radius:999px;height:20px;width:34px} .m .android .sw::after{width:16px;height:16px} .m .android .sw.on::after{left:16px}
+.m .log{position:relative;max-height:150px;overflow:hidden}
+.m .log::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(transparent,var(--mcard));pointer-events:none}
+.m .lr{display:grid;grid-template-columns:38px 1fr auto;gap:8px;padding:6px 0;border-bottom:1px solid var(--mline);align-items:baseline}
+.m .lr b{font-weight:500}
+.m .st{font-size:11px;font-weight:600}
+.m .st.ok{color:var(--mok)} .m .st.bad{color:var(--mbad)}
+.m .sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mmut);margin:10px 0 4px;font-weight:600}
+.m .addr{font-family:var(--mono);font-size:10.5px;background:var(--mbg);border:1px solid var(--mline);border-radius:8px;padding:5px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m .warnline{font-size:11px;color:var(--mmut);border-left:2px solid var(--macc);padding-left:8px;margin-top:8px}
+/* desktop */
+.m.pc{display:grid;grid-template-columns:150px 1fr;min-width:540px;height:430px}
+.m .side{border-right:1px solid var(--mline);padding:14px 10px;display:grid;align-content:start;gap:2px;background:var(--mcard)}
+.m .side div{padding:6px 9px;border-radius:8px;color:var(--mmut)} .m .side div.on{background:var(--msoft);color:var(--maccT);font-weight:600}
+.m .main{padding:16px;display:grid;grid-template-rows:auto 1fr;gap:12px;min-width:0}
+.m .cols{display:grid;grid-template-columns:200px 1fr;gap:12px;min-height:0}
+.m .hov{outline:2px solid color-mix(in srgb,var(--macc) 35%,transparent)}
+/* ipad */
+.m.ipad{min-width:540px;height:430px;padding:16px 70px 16px 16px;display:grid;grid-template-rows:auto 1fr;gap:12px}
+.m .capsule{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:grid;gap:8px;padding:8px;border-radius:26px;background:var(--mglass);border:1px solid var(--mglassline);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 8px 30px rgba(20,10,60,.14)}
+.m .capsule i{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:15px;color:var(--maccT);background:var(--mcard)}
+.m .capsule i.pri{background:var(--macc);color:#fff}
+/* phones */
+.m.phone{width:280px;height:560px;margin:0 auto;border-radius:34px;padding:44px 14px 14px;display:grid;align-content:start;gap:10px}
+.m .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:84px;height:22px;border-radius:12px;background:#000}
+.m .android .notch,.m.android .notch{width:10px;height:10px;border-radius:50%}
+.m .sheet{position:absolute;left:0;right:0;bottom:0;height:62%;background:var(--mcard);border-radius:22px 22px 0 0;padding:8px 14px 14px;box-shadow:0 -10px 30px rgba(10,5,40,.18);border-top:1px solid var(--mline)}
+.m .grab{width:36px;height:5px;border-radius:3px;background:var(--mline);margin:0 auto 10px}
+.m .dim{position:absolute;inset:0;background:rgba(10,8,25,.28)}
+.m .topbar{display:flex;align-items:center;gap:8px}
+.m .topbar .back{font-size:18px;color:var(--maccT)}
+.m .pills{position:absolute;left:14px;right:14px;bottom:14px;display:flex;gap:8px}
+.m .pills .btn{flex:1;justify-content:center;border-radius:999px;padding:9px}
+.m .scrollfade{position:relative;max-height:250px;overflow:hidden}
+.m .scrollfade::before,.m .scrollfade::after{content:"";position:absolute;left:0;right:0;height:22px;pointer-events:none;z-index:1}
+.m .scrollfade::before{top:0;background:linear-gradient(var(--mbg),transparent)}
+.m .scrollfade::after{bottom:0;background:linear-gradient(transparent,var(--mbg))}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="tag">Проект на согласование · 25.11.2026</span>
+    <h1>MCP Искры, версия 2: события учеников, права, журнал</h1>
+    <p class="lede">ИИ-чаты видят, когда ученик прошёл урок, ответил на задание или оставил комментарий с фото. Доступ идёт от имени учителя, под его правами в базе, со своими правами для каждого помощника, журналом и отзывом в Искре. Полный документ: <code>docs/analysis/iskra-mcp-v2-2026-11-25.md</code>, ветка <code>claude/iskra-mcp-4371d8</code>.</p>
+  </header>
+
+  <section class="grid2">
+    <div class="box"><h3>Что уже работает</h3>
+      <ul>
+        <li>Сервер <code>iskra-mcp</code> на Edge Functions, вход OAuth 2.1, экран согласия Искры.</li>
+        <li>Запросы под JWT учителя и RLS, service role не используется.</li>
+        <li>5 инструментов чтения: группы, ученики, сводка, ошибки по темам, тесты.</li>
+        <li>Запись только в черновики курсов.</li>
+        <li>«Интеграции»: список доступов и «Отозвать».</li>
+      </ul></div>
+    <div class="box"><h3>Чего не хватает</h3>
+      <ul>
+        <li>Ленты событий с курсором: прошла урок, ответила, комментарий с фото.</li>
+        <li>Узких прав. Сейчас любой помощник и читает, и пишет черновики.</li>
+        <li>Журнала каждого вызова и лимитов.</li>
+        <li>Пометки «текст ученика — данные, не инструкции».</li>
+        <li>Экрана с правами и журналом.</li>
+      </ul></div>
+  </section>
+
+  <section style="display:grid;gap:14px">
+    <h2>Модель безопасности</h2>
+    <div class="grid2">
+      <div class="box"><h3>Вход и вызовы</h3><p>OAuth 2.1 + PKCE через Supabase Auth от имени учителя. Каждый вызов идёт под его JWT, RLS отсекает чужое. Поверх RLS стоит явный фильтр «только мои ученики»: так даже администратор через MCP видит только своих.</p></div>
+      <div class="box"><h3>Свои права</h3><p>У Supabase нет своих scopes: есть только <code>openid/email/profile/phone</code>, и на базу они не влияют. Поэтому права хранятся в таблице <code>mcp_grant_scopes</code> по паре «учитель + <code>client_id</code> из токена». Без нужного права сервер отвечает 403 <code>insufficient_scope</code>.</p></div>
+      <div class="box"><h3>Отзыв сразу</h3><p>Supabase удаляет refresh-токены, но выданный access token живёт ещё около часа. Поэтому сервер проверяет отметку отзыва на каждом вызове, и следующий же вызов получает 401.</p></div>
+      <div class="box"><h3>Главный остаточный риск</h3><p>OAuth-токен — обычный JWT пользователя. Им можно ходить в REST Supabase напрямую, в обход прав и журнала. Этап 2 закрывает это: хук ставит таким токенам <code>aud = iskra-mcp</code>, и REST их не принимает.</p></div>
+    </div>
+    <div class="tablewrap box"><table>
+      <thead><tr><th>Право</th><th>Что даёт</th><th>Когда</th></tr></thead>
+      <tbody>
+        <tr><td><code>courses:read</code></td><td>свои курсы и уроки, без ответов</td><td>этап 1</td></tr>
+        <tr><td><code>students:read</code></td><td>группы и ученики: только имя и группа</td><td>этап 1</td></tr>
+        <tr><td><code>progress:read</code></td><td>прохождение, баллы, сводки, ответы урока</td><td>этап 1</td></tr>
+        <tr><td><code>events:read</code></td><td>лента событий</td><td>этап 1</td></tr>
+        <tr><td><code>attachments:read</code></td><td>фото к ответам: ссылка на 5 минут, отдельной галочкой</td><td>этап 1</td></tr>
+        <tr><td><code>courses:write</code></td><td>нынешние черновики курсов</td><td>уже есть, станет отдельным правом</td></tr>
+        <tr><td><code>homework:write</code>, <code>comments:write</code></td><td>выдать ДЗ, ответить на комментарий</td><td>этап 3</td></tr>
+      </tbody></table></div>
+    <div class="grid2">
+      <div class="box"><h3>Журнал и лимиты</h3><p>Каждый вызов, включая отказ, пишет строку <code>mcp_call_log</code>: инструмент, право, число записей, статус, длительность. Ответы и тексты учеников в журнал не попадают. Читает журнал только сам учитель, хранится 180 дней. Лимиты: 60 вызовов в минуту, 2000 в сутки, 200 фото в сутки.</p></div>
+      <div class="box"><h3>152-ФЗ и минимум полей</h3><p>Поля ответов задаёт белый список. Уходят только имя ученика и учебные данные: без телефона, почты, Telegram, родителей, оплат и заметок учителя. Фото — только по отдельному праву, срок хранения 7 дней не продлевается. ИИ-клиент — третья сторона за рубежом, поэтому на экране согласия будет предупреждение. Пункт в оферте нужно согласовать с юристом.</p></div>
+      <div class="box"><h3>Prompt injection</h3><p>Свободный текст ученика сервер всегда отдаёт полем <code>untrusted_text</code> с источником и автором. Текст обрезается, невидимые и bidi-символы удаляются. В описании сервера одна строка: такие поля не выполнять. Этап 1 только читает, поэтому даже «поверив» тексту, модель ничего не запишет.</p></div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:14px">
+    <h2>Инструменты</h2>
+    <p class="lede" style="margin:0">Главный для сценария Натали — <code>list_events</code>. Опрашивать в цикле не нужно: чат хранит <code>next_cursor</code> и при следующем запуске забирает только новое.</p>
+<pre>list_events({ since_cursor: "evt_…", course_short_id: "acc-ru", kinds: ["lesson_done","answer","comment"] })
+→ { "events": [
+    { "kind": "comment", "at": "2026-11-25T18:02:40Z",
+      "student": { "id": "…", "name": "Натали" },
+      "lesson": { "ref": "acc-ru-14", "title": "Закрытие месяца" },
+      "untrusted_text": "Не понятно, почему 90.02 закрывается в конце месяца…",
+      "attachments": [{ "id": "hwp:…", "kind": "photo" }] },
+    { "kind": "lesson_done", "lesson": { "ref": "acc-ru-13" }, "score": 8, "max": 10 } ],
+    "next_cursor": "evt_…", "has_more": false }</pre>
+    <div class="tablewrap box"><table>
+      <thead><tr><th>Инструмент</th><th>Право</th><th>Вопрос</th></tr></thead>
+      <tbody>
+        <tr><td><code>list_events</code></td><td>events:read</td><td>«Что нового у Натали с прошлого раза?»</td></tr>
+        <tr><td><code>get_lesson_answers</code></td><td>progress:read</td><td>«Что она ответила в уроке 14?»</td></tr>
+        <tr><td><code>get_attachment</code></td><td>attachments:read</td><td>«Покажи фото к комментарию»</td></tr>
+        <tr><td><code>course_progress</code></td><td>progress:read</td><td>«Прогресс группы по курсу»</td></tr>
+        <tr><td><code>lesson_comments</code></td><td>events:read</td><td>«Какие комментарии к урокам за неделю?»</td></tr>
+        <tr><td>ресурсы <code>iskra://courses/…</code>, <code>iskra://lessons/…</code></td><td>courses:read</td><td>структура и конспект урока, без данных учеников</td></tr>
+      </tbody></table></div>
+    <p class="lede" style="margin:0">События собираются из существующих таблиц <code>lesson_progress</code> (статус, комментарий, фото, ответы по заданиям) и <code>homework_attempts</code>. Одна оговорка: <code>lesson_progress</code> хранит одну строку на урок. Если ученица дважды поправила комментарий между запусками, придёт одно событие с последним текстом.</p>
+  </section>
+
+  <section style="display:grid;gap:14px">
+    <h2>Этапы</h2>
+    <div class="stage"><span class="on">1 · чтение, события, права, журнал</span><span>2 · токен только для MCP</span><span>3 · запись: ДЗ, ответы на комментарии</span><span>4 · для всех учителей, тарифы, уведомления</span></div>
+    <div class="box"><p><b>Этап 1, файлы:</b> новая миграция (только добавляет): <code>mcp_grant_scopes</code>, <code>mcp_call_log</code>, RPC, индексы курсора; существующим подключениям выдаются ровно те права, которыми они уже пользуются. Функция <code>iskra-mcp</code>: обёртка «право → лимит → вызов → журнал», новые <code>events.ts</code>, <code>scopes.ts</code>, <code>untrusted.ts</code> с тестами. Экран согласия с галочками и панель ИИ-помощников вместо <code>ClaudeAccessCard</code>. Сторож «в iskra-mcp нет service role».</p>
+    <p style="margin-top:8px"><b>Тесты:</b> учитель Б не видит учеников учителя А, даже подменив id; администратор видит только своих; после отзыва тот же токен получает 401; без права фото — 403; каждый вызов пишет журнал; курсор не теряет и не дублирует события; в ответах нет полей вне белого списка.</p></div>
+  </section>
+
+  <section style="display:grid;gap:22px">
+    <div><h2>Концепт: «Подключённые ИИ-помощники»</h2>
+    <p class="lede">Заменяет карточку в «Настройки → Интеграции» и «Ещё → Интеграции». Пример данных: один помощник с журналом. Имя клиента приходит из его же регистрации, поэтому подписано «назвался так».</p></div>
+    <div id="wall" style="display:grid;gap:34px"></div>
+  </section>
+
+  <section class="box" style="display:grid;gap:10px">
+    <h2>Нужно решение Дани</h2>
+    <ol class="asks">
+      <li>«Да» на этап 1 в этом объёме: только чтение, события, права, журнал.</li>
+      <li>Концепт экрана: подходит или что поправить.</li>
+      <li>Старые подключения: оставить им запись черновиков или попросить переподключиться.</li>
+      <li>Согласие Натали на доступ ИИ-помощника к её ответам и фото.</li>
+    </ol>
+  </section>
+
+  <p class="lede" style="font-size:13px">Источники: <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">MCP: авторизация</a> · <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http">Streamable HTTP</a> · <a href="https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices">MCP: безопасность</a> · <a href="https://modelcontextprotocol.io/specification/2026-07-28/server/tools">MCP: инструменты</a> · <a href="https://supabase.com/docs/guides/auth/oauth-server">Supabase OAuth 2.1 Server</a> · <a href="https://supabase.com/docs/guides/auth/oauth-server/token-security">токены и RLS</a> · <a href="https://supabase.com/docs/guides/auth/oauth-server/mcp-authentication">MCP на Supabase</a> · <a href="https://claude.com/docs/connectors/building/authentication">Claude: коннекторы</a></p>
+</div>
+
+<script>
+const log = [
+  ['18:04','Лента событий','3 записи','ok'],
+  ['18:04','Фото к ответу','1 фото','ok'],
+  ['18:03','Ответы урока','1 урок','ok'],
+  ['17:51','Фото к ответу','нет права «Фото»','bad'],
+  ['12:10','Сводка ученика','1 ученик','ok'],
+  ['12:09','Мои ученики','4 ученика','ok'],
+];
+const rights = [['Курсы и уроки',1],['Ученики: имя и группа',1],['Прогресс и ответы',1],['Лента событий',1],['Фото к ответам',1],['Черновики курсов (запись)',0]];
+const logHtml = () => `<div class="log">${log.map(r=>`<div class="lr"><span class="mut">${r[0]}</span><span><b>${r[1]}</b> <span class="mut">· ${r[2]}</span></span><span class="st ${r[3]}">${r[3]==='ok'?'ок':'отказ'}</span></div>`).join('')}</div>`;
+const rightsHtml = () => rights.map(r=>`<div class="tog"><span>${r[0]}</span><span class="sw ${r[1]?'on':''}"></span></div>`).join('');
+const chips = () => `<div class="chips"><span class="chip">Ученики</span><span class="chip">События</span><span class="chip">Фото</span><span class="chip off">Запись</span></div>`;
+const item = (sel,name='Claude',sub='подключён 21.11 · вызов 18:04') => `<div class="item ${sel?'sel':''}"><div class="ava">${name[0]}</div><div style="min-width:0"><b>${name}</b> <span class="mut" style="font-size:11px">назвался так</span><div class="mut" style="font-size:11px">${sub}</div>${chips()}</div></div>`;
+const head = () => `<div><h4>ИИ-помощники</h4><div class="mut">Claude и другие приложения читают данные ваших учеников от вашего имени</div></div>`;
+const detail = (btns=true) => `<div class="card" style="min-width:0;overflow:hidden"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><b>Claude</b> <span class="mut" style="font-size:11px">client 6f2c…a91 · claude.ai</span></div>${btns?'<span class="btn danger">Отозвать доступ</span>':''}</div>
+<div class="sec">Права</div>${rightsHtml()}
+<div class="sec">Журнал · сегодня</div>${logHtml()}</div>`;
+
+function pc(theme){return `<div class="m pc ${theme}"><div class="side"><div>Профиль</div><div>Оформление</div><div>Уведомления</div><div class="on">Интеграции</div><div>Безопасность</div></div>
+<div class="main"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">${head()}<div style="display:flex;gap:6px"><span class="btn">Скопировать адрес</span><span class="btn pri">Подключить в Claude</span></div></div>
+<div class="cols"><div>${item(true)}${item(false,'Codex','подключён 18.11 · вызов 19.11')}<div class="warnline">Снять право можно здесь. Добавить — только новым согласием в самом помощнике.</div></div>${detail()}</div></div></div>`}
+
+function ipad(theme){return `<div class="m ipad ${theme}">${head()}<div class="cols" style="grid-template-columns:200px 1fr;display:grid;gap:12px">
+<div>${item(true)}${item(false,'Codex','подключён 18.11 · вызов 19.11')}</div>${detail(true)}</div>
+<div class="capsule" aria-label="Управление"><i class="pri" title="Подключить">+</i><i title="Скопировать адрес">⧉</i><i title="Обновить">↻</i><i title="Фильтр журнала">⚑</i></div></div>`}
+
+function iphone(theme){return `<div class="m phone ${theme}"><div class="notch"></div>
+<div class="topbar"><span class="back">‹</span><b style="font-size:15px">ИИ-помощники</b></div>
+<div class="card" style="padding:4px">${item(true)}${item(false,'Codex','вызов 19.11')}</div>
+<div class="dim"></div>
+<div class="sheet"><div class="grab"></div><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">Claude</b><span class="mut" style="font-size:11px">назвался так</span></div>
+<div class="sec">Права</div>${rights.slice(2,6).map(r=>`<div class="tog"><span>${r[0]}</span><span class="sw ${r[1]?'on':''}"></span></div>`).join('')}
+<div class="sec">Журнал</div><div class="log" style="max-height:92px">${log.slice(0,4).map(r=>`<div class="lr"><span class="mut">${r[0]}</span><span><b>${r[1]}</b></span><span class="st ${r[3]}">${r[3]==='ok'?'ок':'отказ'}</span></div>`).join('')}</div>
+<div style="margin-top:8px;text-align:center"><span class="btn danger" style="width:100%;justify-content:center">Отозвать доступ</span></div></div></div>`}
+
+function android(theme){return `<div class="m phone android ${theme}" style="border-radius:26px"><div class="notch"></div>
+<div class="topbar"><span class="back">←</span><b style="font-size:15px">Claude</b><span class="mut" style="font-size:11px;margin-left:auto">назвался так</span></div>
+<div class="scrollfade"><div class="card" style="margin:8px 0"><div class="sec" style="margin-top:0">Права</div>${rights.slice(1,6).map(r=>`<div class="tog"><span>${r[0]}</span><span class="sw ${r[1]?'on':''}"></span></div>`).join('')}</div>
+<div class="card"><div class="sec" style="margin-top:0">Журнал</div>${log.map(r=>`<div class="lr"><span class="mut">${r[0]}</span><span><b>${r[1]}</b></span><span class="st ${r[3]}">${r[3]==='ok'?'ок':'отказ'}</span></div>`).join('')}</div></div>
+<div class="pills"><span class="btn">Только отказы</span><span class="btn pri" style="background:var(--mbad);border-color:var(--mbad)">Отозвать</span></div></div>`}
+
+const rows = [
+  ['ПК','Две колонки: список помощников и карточка выбранного. Наведение подсвечивает строку и журнал; все действия видны и без наведения.',pc,''],
+  ['iPad','Десктопная раскладка (≥ 1024), без действий только по наведению. Управление в стеклянной капсуле у правого края: подключить, адрес, обновить, фильтр журнала.',ipad,''],
+  ['iPhone','Список на странице, карточка помощника — лист с грабером, без ×. Мягкий край, журнал с фейдом.',iphone,'phones'],
+  ['Android','Отдельная страница помощника, фиксированные таблетки с заливкой внизу, фейды прокрутки SCROLL-01, без iOS-стекла.',android,'phones'],
+];
+document.getElementById('wall').innerHTML = rows.map(([n,d,f,c])=>`<div class="row"><div class="rowhead"><h3>${n}</h3><p>${d}</p></div>
+<div class="pair ${c}"><div class="frame"><p class="cap">Светлая</p>${f('light')}</div><div class="frame"><p class="cap">Тёмная</p>${f('dark')}</div></div></div>`).join('');
+</script>
