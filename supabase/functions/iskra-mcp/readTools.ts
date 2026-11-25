@@ -19,6 +19,7 @@ export interface Query extends PromiseLike<DbResult> {
   in(column: string, values: readonly unknown[]): Query
   gte(column: string, value: unknown): Query
   lt(column: string, value: unknown): Query
+  gt(column: string, value: unknown): Query
   or(filter: string): Query
   order(column: string, options?: { ascending?: boolean }): Query
   limit(count: number): Query
@@ -29,10 +30,10 @@ export type ToolResult = { ok: true; value: unknown } | { ok: false; message: st
 const ok = (value: unknown): ToolResult => ({ ok: true, value })
 const no = (message: string): ToolResult => ({ ok: false, message })
 
-class ReadError extends Error {}
+export class ReadError extends Error {}
 
 type Row = Record<string, unknown>
-interface OwnStudent { id: string; name: string; group_id: string | null }
+export interface OwnStudent { id: string; name: string; group_id: string | null }
 interface OwnGroup { id: string; name: string; subject: string | null; level: string | null; is_individual: boolean }
 
 const CHUNK = 150
@@ -41,20 +42,20 @@ const MISTAKE_VERDICTS = new Set(['wrong', 'hint', 'empty'])
 // Проверка ИИ готова: graded — ждёт учителя, confirmed/changed — учитель подтвердил (миграция 0116).
 const AI_DONE = new Set(['graded', 'confirmed', 'changed'])
 
-const str = (v: unknown): string => (typeof v === 'string' ? v : '')
-const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+export const str = (v: unknown): string => (typeof v === 'string' ? v : '')
+export const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
 const round1 = (n: number) => Math.round(n * 10) / 10
 const isoDate = (d: Date) => d.toISOString().slice(0, 10)
 
-async function rows(q: PromiseLike<DbResult>): Promise<Row[]> {
+export async function rows(q: PromiseLike<DbResult>): Promise<Row[]> {
   const { data, error } = await q
   if (error) throw new ReadError('db')
   return Array.isArray(data) ? (data as Row[]) : []
 }
 
 /** Запрос `.in()` порциями, чтобы URL PostgREST не разрастался. */
-async function inChunks(ids: readonly string[], make: (part: string[]) => PromiseLike<DbResult>): Promise<Row[]> {
+export async function inChunks(ids: readonly string[], make: (part: string[]) => PromiseLike<DbResult>): Promise<Row[]> {
   const out: Row[] = []
   for (let i = 0; i < ids.length; i += CHUNK) out.push(...await rows(make(ids.slice(i, i + CHUNK))))
   return out
@@ -70,7 +71,7 @@ export function period(since?: string, until?: string, now = new Date()): Period
   return { since: from, until: to, untilExclusive: toExclusive, fromTs: `${from}T00:00:00Z`, toTs: `${toExclusive}T00:00:00Z` }
 }
 
-async function ownStudents(db: Db, uid: string): Promise<Map<string, OwnStudent>> {
+export async function ownStudents(db: Db, uid: string): Promise<Map<string, OwnStudent>> {
   const list = await rows(db.from('students').select('id, name, group_id, created_by').eq('created_by', uid).order('name'))
   const out = new Map<string, OwnStudent>()
   for (const r of list) {
@@ -120,12 +121,12 @@ async function guard(fn: () => Promise<ToolResult>): Promise<ToolResult> {
 }
 
 /** lesson_ref → «основа»: short_id урока или `hw-<uuid>` задания. */
-function baseRef(ref: string): string {
+export function baseRef(ref: string): string {
   return ref.replace(/^video-/, '').replace(/-hard$/, '').split('~')[0]
 }
 
 /** Названия уроков и заданий для набора lesson_ref (уроки читаются публично, задания — свои). */
-async function refTitles(db: Db, uid: string, refs: Iterable<string>): Promise<Map<string, { title: string; kind: string }>> {
+export async function refTitles(db: Db, uid: string, refs: Iterable<string>): Promise<Map<string, { title: string; kind: string }>> {
   const bases = [...new Set([...refs].map(baseRef))]
   const hwIds = bases.filter(b => b.startsWith('hw-')).map(b => b.slice(3))
   const shortIds = bases.filter(b => !b.startsWith('hw-'))

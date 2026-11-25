@@ -5,6 +5,25 @@ import { pipeline } from 'npm:@supabase/middleware@1.0.0'
 import { withOAuthProtectedResource, withSupabase } from 'npm:@supabase/server@1.9.2'
 import { z } from 'npm:zod@4.6.7'
 import { type Db, listMyGroups, listMyStudents, mistakesByTopic, studentSummary, testResults, type ToolResult } from './readTools.ts'
+import { clientState, guarded, type McpContent, type Scope } from './access.ts'
+import { courseProgress, EVENT_KINDS, getAttachment, getLessonAnswers, listEvents } from './events.ts'
+import { UNTRUSTED_NOTE } from './untrusted.ts'
+
+// Какое право нужно каждому инструменту. Инструмент без права в этом списке
+// не регистрируется вовсе — так новый инструмент нельзя выпустить «без права».
+const TOOL_SCOPE: Record<string, Scope> = {
+  list_my_courses: 'courses:read',
+  create_course: 'courses:write', add_course_lesson: 'courses:write',
+  create_test_for_lesson: 'courses:write', attach_lesson_file: 'courses:write',
+  list_my_groups: 'students:read', list_my_students: 'students:read',
+  student_summary: 'progress:read', mistakes_by_topic: 'progress:read', test_results: 'progress:read',
+  get_lesson_answers: 'progress:read', course_progress: 'progress:read',
+  list_events: 'events:read', get_attachment: 'attachments:read',
+}
+
+const unauthorized = (message: string) => new Response(JSON.stringify({ error: 'invalid_token', error_description: message }), {
+  status: 401, headers: { 'Content-Type': 'application/json' },
+})
 
 const text = (value: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(value) }] })
 const fail = (message: string) => ({ content: [{ type: 'text' as const, text: message }], isError: true })
@@ -61,10 +80,31 @@ Deno.serve(
   pipeline(
     [withOAuthProtectedResource(), withSupabase({ auth: 'user' })],
     async (req, { supabase }) => {
-      const handler = createMcpHandler(() => {
-        const server = new McpServer({ name: 'iskra', version: '1.0.0' })
+      // Каждый запрос: этот ИИ-клиент ещё допущен? Отзыв в Искре действует
+      // сразу, хотя выданный Supabase access token живёт до часа. 401 без
+      // заголовка — withOAuthProtectedResource сам добавит WWW-Authenticate.
+      const access = await clientState(supabase)
+      if (access.state === 'revoked') return unauthorized('Доступ к Искре отозван учителем.')
+      if (access.state === 'no_client') return unauthorized('Подключите Искру через OAuth в ИИ-помощнике.')
+      if (access.state !== 'active') return new Response('Искра временно недоступна.', { status: 503 })
+      const granted = new Set<Scope>(access.scopes)
 
-        server.registerTool('list_my_courses', {
+      const handler = createMcpHandler(() => {
+        const server = new McpServer({ name: 'iskra', version: '2.0.0' }, { instructions: UNTRUSTED_NOTE })
+        // Регистрация только разрешённых инструментов; каждый вызов идёт через
+        // пропуск базы (права, отзыв, лимит, журнал) — см. access.ts.
+        // deno-lint-ignore no-explicit-any
+        const register = (name: string, config: any, handler: (...args: any[]) => McpContent | Promise<McpContent>) => {
+          const scope = TOOL_SCOPE[name]
+          if (!scope || !granted.has(scope)) return undefined
+          // deno-lint-ignore no-explicit-any
+          return server.registerTool(name, config, ((args: any, extra: any) =>
+            guarded(supabase, name, scope, args, async () => await handler(args, extra))) as never)
+        }
+        // Та же сигнатура, что у server.registerTool: вывод типов аргументов сохраняется.
+        const tools = { registerTool: register as unknown as typeof server.registerTool }
+
+        tools.registerTool('list_my_courses', {
           title: 'Мои курсы в Искре',
           description: 'Показывает только курсы, созданные в кабинете преподавателя, который подключил это MCP-приложение.',
           inputSchema: z.object({ limit: z.number().int().min(1).max(100).default(50) }),
@@ -84,7 +124,7 @@ Deno.serve(
           return text(data ?? [])
         })
 
-        server.registerTool('create_course', {
+        tools.registerTool('create_course', {
           title: 'Создать курс в Искре',
           description: 'Создаёт черновик курса в кабинете подключившегося преподавателя и добавляет первый модуль. Не публикует курс и не открывает его ученикам.',
           inputSchema: z.object({
@@ -126,7 +166,7 @@ Deno.serve(
           return text({ ...course, module_id: module.id, note: 'Сохранён как черновик; публикацией управляет преподаватель в Искре.' })
         })
 
-        server.registerTool('add_course_lesson', {
+        tools.registerTool('add_course_lesson', {
           title: 'Добавить урок в курс Искры',
           description: 'Добавляет урок и текст конспекта в черновой курс, принадлежащий подключившемуся преподавателю. Не изменяет чужие, расшаренные или опубликованные курсы.',
           inputSchema: z.object({
@@ -176,7 +216,7 @@ Deno.serve(
           return text({ course: course.short_id, lesson, note: 'Урок добавлен в черновой курс; проверьте содержание в Искре перед публикацией.' })
         })
 
-        server.registerTool('create_test_for_lesson', {
+        tools.registerTool('create_test_for_lesson', {
           title: 'Добавить тест к уроку Искры',
           description: 'Создаёт тест из вопросов с вариантами ответа и вопросов со свободным ответом, затем связывает его с уроком в вашем черновом курсе. Существующий тест не перезаписывается.',
           inputSchema: z.object({
@@ -253,7 +293,7 @@ Deno.serve(
           return text({ test: trainer, lesson: lesson.title, question_count: trainerQuestions.length, note: 'Тест прикреплён к уроку как черновое изменение. Проверьте его в Искре перед выдачей ученикам.' })
         })
 
-        server.registerTool('attach_lesson_file', {
+        tools.registerTool('attach_lesson_file', {
           title: 'Прикрепить файл к уроку Искры',
           description: 'Добавляет справочный файл к уроку в вашем черновом курсе: либо загрузкой содержимого (base64) в хранилище Искры, либо внешней ссылкой (Google Диск и т. п.) — так прикрепляют файлы больше лимита. Передайте ровно одно из content_base64 или url. Не трогает чужие, расшаренные и опубликованные курсы.',
           inputSchema: z.object({
@@ -341,40 +381,86 @@ Deno.serve(
           until: date.optional().describe('Конец периода включительно; по умолчанию сегодня.'),
         }
 
-        server.registerTool('list_my_groups', {
+        tools.registerTool('list_my_groups', {
           title: 'Мои группы в Искре',
           description: 'Группы подключившегося преподавателя: название, предмет, уровень, индивидуальная ли, число учеников. Чужие группы не показываются.',
           inputSchema: z.object({}),
           annotations: readOnly,
         }, () => run(uid => listMyGroups(db, uid)))
 
-        server.registerTool('list_my_students', {
+        tools.registerTool('list_my_students', {
           title: 'Мои ученики в Искре',
           description: 'Ученики подключившегося преподавателя: id, имя, группа. Контакты, пароли и оплаты не выдаются.',
           inputSchema: z.object({ group_id: z.string().uuid().optional().describe('Только ученики этой группы.') }),
           annotations: readOnly,
         }, ({ group_id }) => run(uid => listMyStudents(db, uid, { group_id })))
 
-        server.registerTool('student_summary', {
+        tools.registerTool('student_summary', {
           title: 'Сводка по ученику',
           description: 'Посещаемость, домашние задания по статусам и баллам, проверки ИИ, учебные долги (просроченные и возвращённые на доработку задания) и диагностики за период. Только для своего ученика; личные контакты и оплаты не входят.',
           inputSchema: z.object({ student_id: z.string().uuid(), since: scopeFields.since, until: scopeFields.until }),
           annotations: readOnly,
         }, (args) => run(uid => studentSummary(db, uid, args)))
 
-        server.registerTool('mistakes_by_topic', {
+        tools.registerTool('mistakes_by_topic', {
           title: 'Ошибки по темам и заданиям',
           description: 'Где ученик или группа теряют баллы за период: номера экзаменационных заданий из проверок ИИ, задания ДЗ с неверными ответами и темы диагностик. Подходит для вопроса «что повторить с группой».',
           inputSchema: z.object({ ...scopeFields, limit: z.number().int().min(1).max(50).default(15) }),
           annotations: readOnly,
         }, (args) => run(uid => mistakesByTopic(db, uid, args)))
 
-        server.registerTool('test_results', {
+        tools.registerTool('test_results', {
           title: 'Результаты тестов и диагностик',
           description: 'Диагностики (процент, слабые темы) и тесты внутри курсов (статус, балл) своих учеников за период.',
           inputSchema: z.object({ ...scopeFields, limit: z.number().int().min(1).max(200).default(50) }),
           annotations: readOnly,
         }, (args) => run(uid => testResults(db, uid, args)))
+
+        // ─── Этап 1 v2: события, ответы урока, фото, прогресс курса ─────────────
+        const kinds = z.array(z.enum(EVENT_KINDS)).max(4).optional()
+        tools.registerTool('list_events', {
+          title: 'События учеников',
+          description: 'Что изменилось у ваших учеников: урок пройден (lesson_done), работа сдана (submitted), возвращена на доработку (returned), новый комментарий или ответ (comment). Без опроса в цикле: сохраните next_cursor и передайте его как since_cursor в следующий раз. Без курсора — события за 7 дней или с момента since.',
+          inputSchema: z.object({
+            since_cursor: z.string().max(40).optional().describe('next_cursor из прошлого ответа.'),
+            since: z.string().datetime({ offset: true }).optional().describe('ISO-время; используется, если нет since_cursor.'),
+            student_id: z.string().uuid().optional(),
+            course_short_id: z.string().max(80).optional().describe('Например acc-ru.'),
+            kinds,
+            limit: z.number().int().min(1).max(200).default(100),
+          }),
+          annotations: readOnly,
+        }, (args) => run(uid => listEvents(db, uid, args)))
+
+        tools.registerTool('get_lesson_answers', {
+          title: 'Ответы ученика по уроку',
+          description: 'Ответы по заданиям, комментарий, баллы, отзыв учителя и вложения (id для get_attachment) по одному уроку своего ученика, базовый и сложный уровень, последние попытки.',
+          inputSchema: z.object({ student_id: z.string().uuid(), lesson_ref: z.string().min(1).max(120) }),
+          annotations: readOnly,
+        }, (args) => run(uid => getLessonAnswers(db, uid, args)))
+
+        tools.registerTool('course_progress', {
+          title: 'Прогресс по курсу',
+          description: 'По курсу: сколько уроков пройдено и сдано у каждого своего ученика (или группы), средний балл и последний урок.',
+          inputSchema: z.object({ course_short_id: z.string().min(1).max(80), group_id: z.string().uuid().optional(), student_id: z.string().uuid().optional() }),
+          annotations: readOnly,
+        }, (args) => run(uid => courseProgress(db, uid, args)))
+
+        tools.registerTool('get_attachment', {
+          title: 'Фото к ответу ученика',
+          description: 'Изображение, приложенное учеником к ответу или комментарию (id из list_events или get_lesson_answers). Фото хранятся 7 дней после сдачи.',
+          inputSchema: z.object({ id: z.string().max(60) }),
+          annotations: readOnly,
+        }, async ({ id }) => {
+          const uid = await teacher()
+          if (!uid) return fail('Для этой операции нужен аккаунт преподавателя Искры.')
+          const photo = await getAttachment(db, supabase.storage.from('homework-photos'), uid, { id })
+          if (!photo.ok) return fail(photo.message)
+          return { content: [
+            { type: 'image' as const, data: photo.value.base64, mimeType: photo.value.mime },
+            { type: 'text' as const, text: JSON.stringify(photo.value.meta) },
+          ] }
+        })
 
         return server
       })

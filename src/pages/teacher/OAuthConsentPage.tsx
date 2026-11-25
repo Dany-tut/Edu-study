@@ -1,6 +1,6 @@
 import OpticalText from '../../components/OpticalText'
 import { useEffect, useRef, useState } from 'react'
-import { Check, Lock, Sparkles, X } from '../../components/icons/appIcons'
+import { Lock, Sparkles, X } from '../../components/icons/appIcons'
 import IskraMark from '../../components/landing/IskraMark'
 import TeacherLoginPage from './TeacherLoginPage'
 import { supabase } from '../../lib/supabase'
@@ -8,6 +8,8 @@ import { useT } from '../../lib/i18n'
 import { useAsyncTask } from '../../lib/useAsyncTask'
 import { decideOAuthConsent } from '../../lib/oauthConsent'
 import ScrollFade from '../../components/ScrollFade'
+import Switch from '../../components/Switch'
+import { MCP_SCOPES, type McpScope, setMcpScopes } from '../../lib/mcpAccess'
 
 type ConsentDetails = {
   authorization_id: string
@@ -25,6 +27,8 @@ export default function OAuthConsentPage() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null)
   const [details, setDetails] = useState<ConsentDetails | null>(null)
   const [problem, setProblem] = useState('')
+  // Права выбирает учитель; по умолчанию — чтение без фото и без записи.
+  const [chosen, setChosen] = useState<Set<McpScope>>(() => new Set(MCP_SCOPES.filter(s => s.byDefault).map(s => s.id)))
 
   useEffect(() => {
     let alive = true
@@ -75,7 +79,17 @@ export default function OAuthConsentPage() {
   function decide(allow: boolean) {
     if (!authorizationId || busy) return
     setProblem('')
-    void action.run(signal => decideOAuthConsent(authorizationId, allow, owner.current ?? '', signal),
+    const clientId = details?.client.id
+    void action.run(async signal => {
+      // Сначала права в Искре, потом согласие: помощник не получит токен
+      // раньше, чем у него появятся выбранные (а не прежние) права.
+      if (allow) {
+        if (!clientId || !chosen.size) throw new Error('no_scopes')
+        await setMcpScopes(clientId, [...chosen])
+        signal.throwIfAborted()
+      }
+      return decideOAuthConsent(authorizationId, allow, owner.current ?? '', signal)
+    },
       redirectUrl => window.location.assign(redirectUrl), error => {
         setProblem(t(error instanceof Error && error.message === 'account_changed'
           ? 'Аккаунт изменился. Обновите страницу подключения.'
@@ -120,16 +134,21 @@ export default function OAuthConsentPage() {
             <p style={{ fontSize: 13, overflowWrap: 'anywhere' }}>{t('Вы вошли как')}: <strong>{account}</strong></p>
             <h1 style={{ fontSize: 23, lineHeight: 1.22, margin: '0 0 8px' }}>{t("Разрешить приложению работать в вашем кабинете?")}</h1>
             <p style={{ margin: '0 0 18px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-3)' }}>{t("Приложение получит доступ от вашего имени.")}</p>
-            <div style={{ padding: 16, display: 'grid', gap: 12, borderRadius: 18, background: 'var(--color-bg-3)' }}>
-              {[
-                'Просматривать курсы, созданные в вашем кабинете',
-                'Создавать курсы и уроки как черновики',
-                'Добавлять тесты к урокам черновых курсов',
-              ].map(item => <div key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, lineHeight: 1.4 }}><Check size={16} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: 1 }} />{t(item)}</div>)}
+            <div style={{ padding: '6px 16px', display: 'grid', borderRadius: 18, background: 'var(--color-bg-3)' }}>
+              {MCP_SCOPES.map((s, i) => <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: i ? '1px solid var(--color-border-medium)' : 0 }}>
+                <span style={{ flex: 1, minWidth: 0, display: 'grid', gap: 2 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>{t(s.label)}</span>
+                  <span style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-text-3)' }}>{t(s.hint)}</span>
+                </span>
+                <Switch checked={chosen.has(s.id)} disabled={busy} label={t(s.label)} onChange={v => setChosen(prev => {
+                  const next = new Set(prev); if (v) next.add(s.id); else next.delete(s.id); return next
+                })} />
+              </div>)}
             </div>
+            {!chosen.size && <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Выберите хотя бы одно право.')}</p>}
             <div className="oauth-consent-note" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '14px 0 18px', padding: 14, borderRadius: 16, background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}>
               <Lock size={16} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontSize: 12, lineHeight: 1.45 }}>{t("Инструменты MCP работают с вашими курсами и создают материалы как черновики. Проверьте их в Искре перед публикацией. Выданный приложению доступ можно отозвать в разделе «Интеграции».")}</span>
+              <span style={{ fontSize: 12, lineHeight: 1.45 }}>{t("Помощник — стороннее приложение: выбранные данные учеников (имя и учебные данные, без контактов и оплат) уйдут его поставщику. Черновики проверяйте в Искре перед публикацией. Права и журнал вызовов — в разделе «Интеграции», там же доступ отзывается сразу.")}</span>
             </div>
 
           </>
@@ -140,7 +159,7 @@ export default function OAuthConsentPage() {
             <button data-hover="layer" type="button" onClick={() => window.location.reload()} style={primaryButton}><OpticalText as="iskra-button-label">{t('Попробовать ещё раз')}</OpticalText></button>
             <button data-hover="layer" type="button" onClick={() => { window.location.href = '/#/teacher' }} style={{ ...primaryButton, marginTop: 6, background: 'var(--color-bg-3)', color: 'var(--color-text)' }}><OpticalText as="iskra-button-label">{t('Перейти в Искру')}</OpticalText></button>
           </> : <>
-            <button data-hover="layer" type="button" disabled={busy} onClick={() => decide(true)} style={{ ...primaryButton, opacity: busy ? 0.65 : 1 }}><OpticalText as="iskra-button-label">{busy ? t('Подключаем…') : t('Разрешить доступ')}</OpticalText></button>
+            <button data-hover="layer" type="button" disabled={busy || !chosen.size} onClick={() => decide(true)} style={{ ...primaryButton, opacity: busy || !chosen.size ? 0.65 : 1 }}><OpticalText as="iskra-button-label">{busy ? t('Подключаем…') : t('Разрешить доступ')}</OpticalText></button>
             <button data-hover="layer" type="button" disabled={busy} onClick={() => decide(false)} style={{ width: '100%', minHeight: 44, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 0, background: 'transparent', color: 'var(--color-text-3)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><X size={14} /><OpticalText as="iskra-button-label">{t('Не сейчас')}</OpticalText></button>
           </>}
         </footer>}

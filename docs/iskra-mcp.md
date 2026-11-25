@@ -47,6 +47,20 @@ Teachers review and publish changes in Искра. Open **Настройки →
 
 In the verified Claude client, use **Customize → Connectors → Add connector → Add custom connector**, choose **Sign in now** and **Register automatically**, then approve access in Iskra. The card links to the observed web form: https://claude.ai/customize/connectors/yours?modal=add-custom-connector .
 
+## v2, этап 1: права, журнал, лента событий (26.11.2026, ветка `claude/iskra-mcp-4371d8`)
+
+Проект: `docs/analysis/iskra-mcp-v2-2026-11-25.md`. Миграция `20261126090000_mcp_scopes_log_activity.sql` только добавляет.
+
+- **Права.** У Supabase OAuth нет своих scopes, поэтому права лежат в `mcp_grant_scopes (user_id, client_id)`. `client_id` берётся из подписанного JWT. Меняет права только учитель в Искре: `mcp_set_scopes` / `mcp_revoke` отказывают токену ИИ-клиента. Подключения, выданные до этапа 1 (строки нет), сохраняют прежние права: `courses:read`, `courses:write`, `students:read`, `progress:read`. События и фото открываются только новым согласием.
+- **Каждый запрос** проверяет `mcp_client_state()`. Отозванный клиент получает 401 сразу, а не когда истечёт access token. В `tools/list` попадают только инструменты с выданным правом (`TOOL_SCOPE` в `index.ts`).
+- **Каждый вызов** проходит через `mcp_gate` (права, отзыв, лимиты 60 в минуту, 2000 в сутки, 200 фото в сутки; строка журнала пишется до выполнения) и `mcp_finish` (статус, число записей, длительность). Журнал `mcp_call_log` хранит только id и даты из аргументов, без ответов и текстов учеников. Читает журнал сам учитель. Писать в таблицы напрямую нельзя никому.
+- **Лента** `student_activity` заполняется AFTER-триггером на `lesson_progress`: время серверное, id монотонный, черновики не попадают. Сбой ленты не мешает ученику сохранить работу. Курсор `evt_<id>`.
+- **Новые инструменты:** `list_events` (`events:read`), `get_lesson_answers` и `course_progress` (`progress:read`), `get_attachment` (`attachments:read`; фото отдаётся содержимым изображения через Storage под JWT учителя, внешние адреса не скачиваются).
+- **Тексты учеников** отдаются только как `{source, untrusted_text}`: невидимые и bidi-символы удаляются, длина до 2000 знаков. Пометка стоит в `instructions` сервера.
+- **Интерфейс.** «Интеграции → ИИ-помощники» (`ClaudeAccessCard.tsx`): права (снять можно здесь, добавить — только новым согласием), журнал, фильтр «Только отказы», отзыв. На телефонах карточка открывается в листе. На экране согласия права выбираются переключателями.
+- **Проверки:** `npm run check:iskra-mcp` (Deno-тесты и сторож «нет service role»), `npm run check:iskra-mcp-db` (29 проверок миграции на одноразовом Postgres в Docker), стенд на фикстурах `dev-ai-assistants.html?platform=pc|ipad|iphone|android&theme=light|dark&view=panel|consent|empty`.
+- **Не сделано на этапе 1:** токен только для MCP (`aud`, этап 2) — до него OAuth-токен годится и для прямого REST под RLS учителя. Действия панели не вынесены в капсулу iPad. Очистка журнала по сроку не настроена. Прежние 5 инструментов чтения не переведены на `untrusted_text`.
+
 ## Supabase Auth setup required for production
 
 This project uses a hosted Supabase project. In its dashboard:

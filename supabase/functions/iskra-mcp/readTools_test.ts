@@ -77,6 +77,7 @@ class FakeQuery implements Query {
   in(c: string, vs: readonly unknown[]) { this.filters.push(r => vs.includes(r[c])); return this }
   gte(c: string, v: unknown) { this.filters.push(r => String(r[c] ?? '') >= String(v)); return this }
   lt(c: string, v: unknown) { this.filters.push(r => String(r[c] ?? '') < String(v)); return this }
+  gt(c: string, v: unknown) { this.filters.push(r => typeof r[c] === 'number' ? (r[c] as number) > Number(v) : String(r[c] ?? '') > String(v)); return this }
   or(f: string) {
     const parts = [...f.matchAll(/(\w+)\.in\.\(([^)]*)\)/g)].map(m => [m[1], m[2].split(',')] as const)
     this.filters.push(r => parts.some(([c, vs]) => vs.includes(String(r[c]))))
