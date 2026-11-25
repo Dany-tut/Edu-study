@@ -26,7 +26,8 @@ import { textFadeLines, textFadeStyle } from '../../lib/textFades'
 import { Table as LoopUiTable } from '../../components/icons/appIcons'
 import { recordCourseAccessEdit, accessChangesForSave, acknowledgeCourseAccess, type CourseAccessChanges } from '../../lib/courseAccessChanges'
 import { planCourseSchedule, readGroupScheduleConflict, type CourseSlot } from '../../lib/courseScheduleSync'
-import { trackEvent } from '../../lib/analytics'
+import { trackEvent, trackNow } from '../../lib/analytics'
+import { conflictSummary, conflictDiscardedAgo, markConflictDiscarded, clearConflictDiscarded, type ConflictTabSource } from '../../lib/courseConflictTelemetry'
 import { courseSaveProbeMetrics } from '../../lib/courseSaveProbeMetrics'
 import { courseAtomicModules, courseAtomicRows, eligibleCourseAtomicModules } from '../../lib/courseAtomicRows'
 import { planLegacyLessonWrites, type StoredLessonMetadata } from '../../lib/courseLegacyLessonPreservation'
@@ -6257,7 +6258,7 @@ export default function TeacherCourseEditorPage() {
   const { groups, addIndividualCard } = useGroups()
   const allStudents = useAllStudents()
 
-  const [{ course, editRevision, recoveredDraft, recoveryIntent, needsHeavyFill }, setCourseState] = useState(() => {
+  const [{ course, editRevision, recoveredDraft, recoveryIntent, needsHeavyFill, tabSource }, setCourseState] = useState(() => {
     const base: CourseEdData = editingCourseJson
       ? JSON.parse(editingCourseJson) as CourseEdData
       : {
@@ -6268,8 +6269,17 @@ export default function TeacherCourseEditorPage() {
           lessons: [],
         }
     const draftKeyAtOpen = `coursed.${base.dbCourseId ?? base.id}.course`
-    const draft = readDraft<CourseDraft>(draftKeyAtOpen) ?? readDurableCourseDraft<CourseDraft>(draftKeyAtOpen)
-    return openCourseRecovery(base, draft)
+    const sessionDraft = readDraft<CourseDraft>(draftKeyAtOpen)
+    const durableDraft = sessionDraft ? null : readDurableCourseDraft<CourseDraft>(draftKeyAtOpen)
+    const draft = sessionDraft ?? durableDraft
+    const opened = openCourseRecovery(base, draft)
+    // Для аналитики окна сверки: откуда взялась версия вкладки (то же правило
+    // выбора, что в openCourseRecovery).
+    const baseRecovery = (base as CourseDraft).editorRecovery
+    const fromBase = !!baseRecovery && (!draft?.editorRecovery || baseRecovery.revision >= draft.editorRecovery.revision)
+    const tabSource: ConflictTabSource = !opened.recoveredDraft ? 'live'
+      : fromBase ? 'ce_session' : sessionDraft ? 'session_draft' : durableDraft ? 'durable_copy' : 'live'
+    return { ...opened, tabSource }
   })
   const setCourse = useCallback<React.Dispatch<React.SetStateAction<CourseEdData>>>(edit => {
     setCourseState(previous => {
@@ -6673,6 +6683,32 @@ export default function TeacherCourseEditorPage() {
   const reviewRead = useRef<AbortController | null>(null)
   const [applyingReview, setApplyingReview] = useState(false)
   useEffect(() => () => reviewRead.current?.abort(), [])
+  // Аналитика окна сверки: показ (один раз на окно) и повтор после «Взять из
+  // базы» — последний как operation_failed, чтобы попасть в монитор инцидентов.
+  const conflictShownAt = useRef(0)
+  const conflictCourseKey = course.dbCourseId ?? course.id
+  useEffect(() => {
+    if (!conflict) return
+    conflictShownAt.current = Date.now()
+    const summary = conflictSummary(conflict)
+    const repeatAgo = conflictDiscardedAgo(conflictCourseKey)
+    trackEvent('course_conflict_shown', { course: conflictCourseKey, tab_source: tabSource, ...summary,
+      ...(repeatAgo != null ? { after_discard_ms: repeatAgo } : {}) })
+    if (repeatAgo != null) {
+      trackEvent('operation_failed', { operation: 'course_conflict_repeat', course: conflictCourseKey,
+        tab_source: tabSource, after_discard_ms: repeatAgo, lessons_changed: summary.lessons_changed, fields: summary.fields })
+      clearConflictDiscarded(conflictCourseKey)
+    }
+    // Один раз на появление окна; сам объект сверки меняется при пересборке.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!conflict])
+  function conflictChoiceMeta(choice: 'database' | 'mine' | 'close') {
+    return { course: conflictCourseKey, choice, tab_source: tabSource,
+      open_ms: conflictShownAt.current ? Date.now() - conflictShownAt.current : null }
+  }
+  function trackConflictChoice(choice: 'mine' | 'close') {
+    trackEvent('course_conflict_resolved', conflictChoiceMeta(choice))
+  }
   function closeConflict() {
     reviewRead.current?.abort()
     reviewRead.current = null
@@ -8260,7 +8296,7 @@ export default function TeacherCourseEditorPage() {
           info={conflict}
           report={reportAction}
           applying={applyingReview}
-          onClose={closeConflict}
+          onClose={() => { trackConflictChoice('close'); closeConflict() }}
           // «Взять из базы» — перезагрузка: несохранённые правки этой вкладки
           // пропадут, зато версия станет ровно серверной. Черновик гасим, иначе
           // F5-восстановление вернёт ту же устаревшую копию.
@@ -8280,10 +8316,13 @@ export default function TeacherCourseEditorPage() {
             reporter.reset()
             clearDrafts(draftNs)
             discardDurableCourseDraft(draftKey)
+            markConflictDiscarded(conflictCourseKey)
             useTeacher.getState().openCourseEditor(JSON.stringify(fresh))
-            window.location.reload()
+            // Выбор отправляем до перезагрузки, но не дольше полутора секунд.
+            void Promise.race([trackNow('course_conflict_resolved', conflictChoiceMeta('database')), new Promise(resolve => setTimeout(resolve, 1500))])
+              .finally(() => window.location.reload())
           }}
-          onOverwrite={() => { void reporter.retry(() => applyReviewedConflict(conflict)) }}
+          onOverwrite={() => { trackConflictChoice('mine'); void reporter.retry(() => applyReviewedConflict(conflict)) }}
         />
       )}
 
