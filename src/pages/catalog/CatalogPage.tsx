@@ -16,7 +16,7 @@ import { rememberCabinet } from '../../lib/cabinetChoice'
 import { authErrorRu } from '../../lib/authErrors'
 import {
   CATALOG_CATEGORIES, categoryLabel, coverBackground, fetchCatalog, fetchCatalogCourse, enrollInCourse,
-  formatPrice, lessonsLabel, modulesLabel, catalogHref, CATALOG_DEMO, type CatalogCourse, type CatalogItem, type EnrollResult,
+  formatPrice, lessonsLabel, modulesLabel, catalogHref, checkedOnLabel, CATALOG_DEMO, type CatalogCourse, type CatalogItem, type EnrollResult,
 } from '../../lib/catalog'
 import FloatField from '../../components/FloatField'
 import Switch from '../../components/Switch'
@@ -278,12 +278,12 @@ function CourseView({ slug, user }: { slug: string; user: User | null | undefine
   const phone = SHELL === 'iphone' || SHELL === 'android'
   const buyBox = (
     <div className="cat-panel">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {(!phone || access !== 'none') && <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         {!phone && <span className="cat-price-big">{formatPrice(course.price_kopecks)}</span>}
         <span style={{ flex: 1 }} />
         {access === 'full' && <span className="cat-badge cat-badge-green">Курс открыт</span>}
         {access === 'preview' && <span className="cat-badge cat-badge-acc">Пробный доступ</span>}
-      </div>
+      </div>}
       {(SHELL === 'pc' || course.is_owner) && <button type="button" className="cat-btn cat-btn-pri" onClick={cta.onClick} disabled={cta.disabled}>{cta.label}</button>}
       {second && <button type="button" className="cat-btn cat-btn-sec" onClick={second.onClick}>{second.label}</button>}
       {actionError && <p className="cat-error" style={{ margin: 0, whiteSpace: 'pre-line' }}>{actionError}</p>}
@@ -321,6 +321,7 @@ function CourseView({ slug, user }: { slug: string; user: User | null | undefine
               <span className="cat-badge cat-badge-mut">{categoryLabel(course.category)}</span>
               {course.level_label && <span className="cat-badge cat-badge-mut">{course.level_label}</span>}
               {course.duration_label && <span className="cat-badge cat-badge-mut">{course.duration_label}</span>}
+              {course.content_checked_on && <span className="cat-badge cat-badge-green">Проверено на {checkedOnLabel(course.content_checked_on)}</span>}
               <span className="cat-muted">Автор: {course.author}</span>
             </div>
             {course.author_note && <p className="cat-muted" style={{ margin: 0 }}>{course.author_note}</p>}

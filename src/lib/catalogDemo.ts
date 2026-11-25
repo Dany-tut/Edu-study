@@ -17,11 +17,11 @@ const LESSONS: string[][] = [
 ]
 
 export const DEMO_ITEMS: CatalogItem[] = [
-  { slug: 'buhgalteriya-bez-rutiny', category: 'accounting', price_kopecks: 299000, subtitle: 'Excel, Power Query, 1С и нейросети — пошагово, на рабочих ситуациях', level_label: 'С нуля по автоматизации', duration_label: '~17 часов', cover_tone: 'green', cover_glyph: '=СУММ', published_at: '2026-11-25', title: 'Бухгалтерия без ручной рутины', subject: 'Бухгалтерия', author: 'Автор курса', module_count: 8, lesson_count: 34, has_preview: true },
-  { slug: 'power-query', category: 'data', price_kopecks: 199000, subtitle: 'Склеить десять выгрузок за минуту', level_label: 'Практик', duration_label: '~5 часов', cover_tone: 'amber', cover_glyph: 'PQ', published_at: '2026-11-20', title: 'Power Query за выходные', subject: null, author: 'Пример автора', module_count: 3, lesson_count: 9, has_preview: true },
-  { slug: 'himiya-ege-19-22', category: 'exams', price_kopecks: 149000, subtitle: 'Задания 19–22 без ошибок', level_label: '10–11 класс', duration_label: '', cover_tone: 'blue', cover_glyph: 'H₂O', published_at: '2026-11-18', title: 'Химия ЕГЭ: задания 19–22', subject: 'Химия', author: 'Искра · ХимБио', module_count: 4, lesson_count: 12, has_preview: false },
-  { slug: 'koreyskiy-hangyl', category: 'languages', price_kopecks: 0, subtitle: 'Алфавит за неделю', level_label: 'С нуля', duration_label: '', cover_tone: 'coral', cover_glyph: '한', published_at: '2026-11-10', title: 'Корейский с нуля: хангыль', subject: 'Корейский', author: 'Искра · Языки', module_count: 2, lesson_count: 20, has_preview: false },
-  { slug: 'figma-start', category: 'design', price_kopecks: 249000, subtitle: 'Интерфейс первого приложения', level_label: 'С нуля', duration_label: '~8 часов', cover_tone: 'violet', cover_glyph: 'UI', published_at: '2026-11-05', title: 'Дизайн интерфейсов в Figma', subject: null, author: 'Пример автора', module_count: 5, lesson_count: 15, has_preview: true },
+  { slug: 'buhgalteriya-bez-rutiny', category: 'accounting', price_kopecks: 299000, subtitle: 'Excel, Power Query, 1С и нейросети — пошагово, на рабочих ситуациях', level_label: 'С нуля по автоматизации', duration_label: '~17 часов', cover_tone: 'green', cover_glyph: '=СУММ', published_at: '2026-11-25', content_checked_on: '2026-11-25', title: 'Бухгалтерия без ручной рутины', subject: 'Бухгалтерия', author: 'Автор курса', module_count: 8, lesson_count: 34, has_preview: true },
+  { slug: 'power-query', category: 'data', price_kopecks: 199000, subtitle: 'Склеить десять выгрузок за минуту', level_label: 'Практик', duration_label: '~5 часов', cover_tone: 'amber', cover_glyph: 'PQ', published_at: '2026-11-20', content_checked_on: null, title: 'Power Query за выходные', subject: null, author: 'Пример автора', module_count: 3, lesson_count: 9, has_preview: true },
+  { slug: 'himiya-ege-19-22', category: 'exams', price_kopecks: 149000, subtitle: 'Задания 19–22 без ошибок', level_label: '10–11 класс', duration_label: '', cover_tone: 'blue', cover_glyph: 'H₂O', published_at: '2026-11-18', content_checked_on: null, title: 'Химия ЕГЭ: задания 19–22', subject: 'Химия', author: 'Искра · ХимБио', module_count: 4, lesson_count: 12, has_preview: false },
+  { slug: 'koreyskiy-hangyl', category: 'languages', price_kopecks: 0, subtitle: 'Алфавит за неделю', level_label: 'С нуля', duration_label: '', cover_tone: 'coral', cover_glyph: '한', published_at: '2026-11-10', content_checked_on: null, title: 'Корейский с нуля: хангыль', subject: 'Корейский', author: 'Искра · Языки', module_count: 2, lesson_count: 20, has_preview: false },
+  { slug: 'figma-start', category: 'design', price_kopecks: 249000, subtitle: 'Интерфейс первого приложения', level_label: 'С нуля', duration_label: '~8 часов', cover_tone: 'violet', cover_glyph: 'UI', published_at: '2026-11-05', content_checked_on: null, title: 'Дизайн интерфейсов в Figma', subject: null, author: 'Пример автора', module_count: 5, lesson_count: 15, has_preview: true },
 ]
 
 export function demoCourse(slug: string, access: 'none' | 'preview' | 'full' = 'none'): CatalogCourse | null {
@@ -35,6 +35,7 @@ export function demoCourse(slug: string, access: 'none' | 'preview' | 'full' = '
     outcomes: acc ? ['Чистить выгрузки из 1С и банка за минуты', 'Сверять платежи формулами, а не глазами', 'Собирать отчёт по численности сотрудников', 'Разбирать ошибки в 1С по шагам'] : ['Пример результата'],
     audience: acc ? 'Практикующий бухгалтер без технической подготовки. Знание бухучёта пригодится, программирование не нужно.' : '',
     level_label: item.level_label, duration_label: item.duration_label, cover_tone: item.cover_tone, cover_glyph: item.cover_glyph,
+    content_checked_on: acc ? '2026-11-25' : null,
     certificate_note: 'Сертификат Искры о прохождении. Не документ об образовании.', author_note: acc ? 'Бухгалтер-практик, ведёт 10 организаций' : '',
     author: item.author, is_owner: false,
     modules: acc ? MODS.map((label, i) => ({ id: 'm' + i, label, preview: i === 0, lessons: LESSONS[i] })) : [{ id: 'm0', label: 'Модуль 1', preview: item.has_preview, lessons: ['Урок 1', 'Урок 2'] }],
@@ -45,7 +46,7 @@ export function demoCourse(slug: string, access: 'none' | 'preview' | 'full' = '
 const listing = (course_id: string, over: Partial<Listing>): Listing => ({
   course_id, slug: 'buhgalteriya-bez-rutiny', status: 'published', category: 'accounting', price_kopecks: 299000, subtitle: '', description: '', outcomes: [],
   audience: '', level_label: '', duration_label: '', cover_tone: 'green', cover_glyph: '=СУММ', preview_module_ids: [], certificate_note: '', author_note: '',
-  reject_reason: null, published_at: '2026-11-25', ...over,
+  reject_reason: null, published_at: '2026-11-25', content_checked_on: '2026-11-25', ...over,
 })
 
 export const DEMO_OVERVIEW: AuthorOverview = {

@@ -160,7 +160,7 @@ try {
   const card = (await one(`select public.catalog_course('buhgalteriya') v`)).v
   check(card.modules.length === 2 && card.modules[0].preview && !card.modules[1].preview, 'program with preview flags')
   check(card.modules[1].lessons[0] === 'Сверка платежей' && card.viewer.signed_in === false, 'lesson titles only, guest viewer')
-  check(!JSON.stringify(card).includes('content'), 'no lesson content in card')
+  check(!/"(content|homework|materials|test_tasks)"/.test(JSON.stringify(card)), 'no lesson content in card')
   await expectError(as(null) + `select public.catalog_enroll('buhgalteriya','preview','pd-1');`, /permission denied|CATALOG_SIGN_IN_REQUIRED/, 'guest enroll')
   await expectError(as(B, { anonymous: true }) + `select public.catalog_enroll('buhgalteriya','preview','pd-1');`, /CATALOG_SIGN_IN_REQUIRED/, 'anonymous enroll')
   await expectError(as(A) + `select public.catalog_enroll('buhgalteriya','preview','pd-1');`, /CATALOG_OWN_COURSE/, 'owner enroll')

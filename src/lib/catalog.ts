@@ -66,6 +66,7 @@ export type CatalogItem = {
   cover_tone: string
   cover_glyph: string
   published_at: string | null
+  content_checked_on: string | null
   title: string
   subject: string | null
   author: string
@@ -96,6 +97,7 @@ export type CatalogCourse = {
   cover_glyph: string
   certificate_note: string
   author_note: string
+  content_checked_on: string | null
   author: string
   is_owner: boolean
   modules: { id: string; label: string; preview: boolean; lessons: string[] }[]
@@ -191,6 +193,7 @@ export type Listing = {
   preview_module_ids: string[]
   certificate_note: string
   author_note: string
+  content_checked_on: string | null
   reject_reason: string | null
   published_at: string | null
 }
@@ -233,6 +236,13 @@ export function slugFromTitle(title: string): string {
   const s = title.toLowerCase().split('').map(ch => map[ch] ?? ch).join('')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/, '')
   return s.length >= 3 ? s : `course-${Math.random().toString(36).slice(2, 8)}`
+}
+
+/** «25 ноября 2026» из даты ГГГГ-ММ-ДД. */
+export function checkedOnLabel(date: string | null | undefined): string {
+  if (!date) return ''
+  const d = new Date(date + 'T00:00:00')
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export const catalogHref = (slug?: string) => slug ? `#/catalog/${encodeURIComponent(slug)}` : '#/catalog'

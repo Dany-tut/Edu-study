@@ -235,6 +235,7 @@ function ListingEditor({ compact, isAdmin, courseId, title, current, onClose, on
   const [glyph, setGlyph] = useState(current?.cover_glyph ?? '')
   const [cert, setCert] = useState(current?.certificate_note ?? 'Сертификат Искры о прохождении. Не документ об образовании.')
   const [preview, setPreview] = useState<string[]>(current?.preview_module_ids ?? [])
+  const [checkedOn, setCheckedOn] = useState(current?.content_checked_on ?? '')
   const [reason, setReason] = useState('')
   const [modules, setModules] = useState<{ id: string; label: string }[]>([])
   const [busy, setBusy] = useState(false)
@@ -260,6 +261,7 @@ function ListingEditor({ compact, isAdmin, courseId, title, current, onClose, on
         audience: audience.trim(), level_label: level.trim(), duration_label: duration.trim(),
         cover_tone: tone, cover_glyph: glyph.trim().slice(0, 12), certificate_note: cert.trim(),
         preview_module_ids: preview,
+        content_checked_on: /^\d{4}-\d{2}-\d{2}$/.test(checkedOn) ? checkedOn : null,
         ...(next ? { status: next } : {}),
         ...(next === 'rejected' ? { reject_reason: reason.trim() || 'Нужна доработка' } : {}),
       })
@@ -333,6 +335,10 @@ function ListingEditor({ compact, isAdmin, courseId, title, current, onClose, on
           })}
         </div>
       )}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 220px' }}><FloatField label="Материал сверен с нормами на дату (ГГГГ-ММ-ДД)" value={checkedOn} onChange={setCheckedOn} inputMode="numeric" maxLength={10} hint="Видно покупателям на карточке. Для курсов, где меняются законы и формы" /></div>
+        <button type="button" className="cat-btn cat-btn-sec cat-btn-s" style={{ marginTop: 6 }} onClick={() => setCheckedOn(new Date().toISOString().slice(0, 10))}>Сверено сегодня</button>
+      </div>
       <FloatField label="Сертификат" value={cert} onChange={setCert} hint="Без лицензии нельзя называть его документом об образовании" />
       {isAdmin && status !== 'draft' && <FloatField label="Причина возврата на доработку" value={reason} onChange={setReason} />}
     </Overlay>

@@ -74,6 +74,9 @@ create table if not exists public.course_listings (
   cover_glyph text not null default '' check (length(cover_glyph) <= 12),
   preview_module_ids uuid[] not null default '{}',
   certificate_note text not null default '',
+  -- «Проверено на дату»: нормы (налоги, учёт) меняются, покупатель видит
+  -- актуальность материала. Ставит автор при сверке курса.
+  content_checked_on date,
   author_note text not null default '' check (length(author_note) <= 300),
   reject_reason text,
   moderated_by uuid,
@@ -286,7 +289,7 @@ create or replace function public.catalog_list()
 returns jsonb language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_agg(row_to_json(t)::jsonb order by t.published_at desc nulls last), '[]'::jsonb) from (
     select l.slug, l.category, l.price_kopecks, l.subtitle, l.level_label, l.duration_label,
-           l.cover_tone, l.cover_glyph, l.published_at,
+           l.cover_tone, l.cover_glyph, l.published_at, l.content_checked_on,
            c.title, c.subject, public._catalog_author_name(c.created_by) as author,
            (select count(*) from public.course_modules m where m.course_id = c.id) as module_count,
            (select count(*) from public.lessons x where x.course_id = c.id) as lesson_count,
@@ -321,7 +324,7 @@ begin
     'price_kopecks', l.price_kopecks, 'subtitle', l.subtitle, 'description', l.description,
     'outcomes', to_jsonb(l.outcomes), 'audience', l.audience, 'level_label', l.level_label,
     'duration_label', l.duration_label, 'cover_tone', l.cover_tone, 'cover_glyph', l.cover_glyph,
-    'certificate_note', l.certificate_note, 'author_note', l.author_note,
+    'certificate_note', l.certificate_note, 'author_note', l.author_note, 'content_checked_on', l.content_checked_on,
     'author', public._catalog_author_name(c.created_by),
     'is_owner', v_uid is not null and (c.created_by = v_uid or public.is_admin()),
     'modules', (select coalesce(jsonb_agg(jsonb_build_object(
