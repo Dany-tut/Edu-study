@@ -8273,8 +8273,13 @@ export default function TeacherCourseEditorPage() {
               metadataPending: true, heavyPending: true,
             }
             unsaved.current = false
+            // Отложенное автосохранение и запасная копия в localStorage тоже
+            // держат отброшенную версию: без этого F5 восстанавливал её снова,
+            // и окно сверки возвращалось сразу после «Взять из базы».
+            pendingAutosave.current = null
             reporter.reset()
             clearDrafts(draftNs)
+            clearDurableCourseDraft(draftKey)
             useTeacher.getState().openCourseEditor(JSON.stringify(fresh))
             window.location.reload()
           }}
