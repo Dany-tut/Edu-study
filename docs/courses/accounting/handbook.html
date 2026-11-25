@@ -1,0 +1,112 @@
+<title>Справочник бухгалтера Искры</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: одна колонка-рабочий инструмент — строка поиска сверху, карточки ответов ниже, фильтр модулей чипами. */
+:root {
+  --bg: #F6F7F9; --surface: #FFFFFF; --fg: #1B2230; --muted: #5E6878; --line: #DDE2EA;
+  --accent: #2E6FD8; --accent-soft: #E3EDFB; --code-bg: #F1F3F7; --ok: #127A4B; --warn: #B54708;
+  --f-body: 'Golos Text', 'Segoe UI', system-ui, sans-serif; --f-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161D; --surface: #1A2029; --fg: #E6EAF1; --muted: #98A2B3; --line: #2B3340;
+  --accent: #7FA8F0; --accent-soft: #1E2B42; --code-bg: #232B36; --ok: #5FD39A; --warn: #F2B064; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12161D; --surface: #1A2029; --fg: #E6EAF1; --muted: #98A2B3; --line: #2B3340;
+  --accent: #7FA8F0; --accent-soft: #1E2B42; --code-bg: #232B36; --ok: #5FD39A; --warn: #F2B064; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 16px; }
+h1 { font-size: 26px; line-height: 1.2; margin: 0; text-wrap: balance; font-weight: 700 }
+.lead { color: var(--muted); margin: 4px 0 0; max-width: 62ch }
+.search { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; display: grid; gap: 8px }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+#q { width: 100%; font: inherit; font-size: 17px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--fg) }
+#q:focus-visible { outline: 3px solid var(--accent-soft); border-color: var(--accent) }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface) }
+.chip:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+.meta { font-size: 13px; color: var(--muted) }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0 }
+.card h2 { font-size: 16px; margin: 0; line-height: 1.35 }
+.num { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; margin-right: 6px }
+.qs { display: flex; flex-wrap: wrap; gap: 4px }
+.qs span { font-size: 12.5px; background: var(--accent-soft); color: var(--fg); border-radius: 6px; padding: 2px 7px }
+.f { display: flex; gap: 8px; align-items: flex-start; min-width: 0 }
+.f code { flex: 1; min-width: 0; font-family: var(--f-mono); font-size: 13px; background: var(--code-bg); border-radius: 8px; padding: 7px 9px; white-space: pre-wrap; word-break: break-all }
+.f button { flex-shrink: 0; font: inherit; font-size: 12.5px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; min-height: 34px }
+.src { font-size: 12.5px; color: var(--muted) }
+.src a { color: var(--accent) }
+.sw { font-size: 12.5px; color: var(--muted) }
+.empty { color: var(--muted); padding: 20px 0 }
+mark { background: var(--accent-soft); color: var(--fg); border-radius: 3px }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Справочник бухгалтера</h1>
+    <p class="lead">Напишите рабочий вопрос как для Алисы — «убрать текст до запятой», «реестр не проводится», «сверить численность». Справочник покажет урок курса «Бухгалтерия» в Искре, готовые формулы и официальные источники.</p>
+  </header>
+  <div class="search">
+    <input id="q" type="search" placeholder="Например: реестр самозанятых не проводится" autocomplete="off" aria-label="Рабочий вопрос">
+    <div class="chips" id="mods" role="group" aria-label="Модули"></div>
+    <div class="meta" id="count"></div>
+  </div>
+  <main id="list" aria-live="polite"></main>
+</div>
+
+<script>
+(function () {
+  var data = [], mod = '';
+  var q = document.getElementById('q'), list = document.getElementById('list'), mods = document.getElementById('mods'), count = document.getElementById('count');
+  function norm(s) { return String(s).toLowerCase().replace(/ё/g, 'е') }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] }) }
+  function score(x, words) {
+    if (!words.length) return 1;
+    var hay = norm([x.title].concat(x.queries, x.topics, x.formulas, [x.module]).join(' '));
+    var s = 0;
+    for (var i = 0; i < words.length; i++) { if (hay.indexOf(words[i]) < 0) return 0; s += 1 }
+    for (var j = 0; j < x.queries.length; j++) if (norm(x.queries[j]).indexOf(words.join(' ')) >= 0) s += 5;
+    return s;
+  }
+  function render() {
+    var words = norm(q.value).split(/\s+/).filter(function (w) { return w.length > 1 });
+    var rows = data.filter(function (x) { return !mod || x.module === mod })
+      .map(function (x) { return { x: x, s: score(x, words) } })
+      .filter(function (r) { return r.s > 0 })
+      .sort(function (a, b) { return b.s - a.s || a.x.n - b.x.n }).slice(0, 60);
+    count.textContent = rows.length ? 'Найдено уроков: ' + rows.length : '';
+    if (!rows.length) { list.innerHTML = '<p class="empty">Ничего не нашлось. Попробуйте одно ключевое слово: «запятая», «ВПР», «реестр», «НДФЛ», «ФСБУ».</p>'; return }
+    list.innerHTML = rows.map(function (r) {
+      var x = r.x;
+      return '<article class="card"><div class="meta">' + esc(x.module) + '</div>' +
+        '<h2><span class="num">№' + x.n + '</span>' + esc(x.title) + '</h2>' +
+        '<div class="qs">' + x.queries.map(function (s) { return '<span>' + esc(s) + '</span>' }).join('') + '</div>' +
+        (x.software ? '<div class="sw">Программа: ' + esc(x.software) + '</div>' : '') +
+        (x.applies ? '<div class="sw">Применимость: ' + esc(x.applies) + '</div>' : '') +
+        x.formulas.slice(0, 4).map(function (f, i) { return '<div class="f"><code>' + esc(f) + '</code><button type="button" data-f="' + esc(f) + '">Копировать</button></div>' }).join('') +
+        (x.sources.length ? '<div class="src">Источники: ' + x.sources.slice(0, 4).map(function (s) { return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.publisher + ' — ' + s.title) + '</a>' }).join('; ') + '</div>' : '') +
+        '</article>';
+    }).join('');
+  }
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-f]'); if (!b) return;
+    var f = b.getAttribute('data-f');
+    try { navigator.clipboard.writeText(f).then(function () { b.textContent = 'Скопировано'; setTimeout(function () { b.textContent = 'Копировать' }, 1500) }, sel) } catch (_) { sel() }
+    function sel() { var r = document.createRange(); r.selectNodeContents(b.previousSibling); var s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Выделено — Ctrl+C' }
+  });
+  q.addEventListener('input', render);
+  fetch('handbook.json').then(function (r) { return r.json() }).then(function (d) {
+    data = d;
+    var names = [];
+    d.forEach(function (x) { if (names.indexOf(x.module) < 0) names.push(x.module) });
+    mods.innerHTML = '<button class="chip" type="button" aria-pressed="true" data-m="">Все</button>' + names.map(function (n) { return '<button class="chip" type="button" aria-pressed="false" data-m="' + esc(n) + '">' + esc(n) + '</button>' }).join('');
+    mods.addEventListener('click', function (e) {
+      var c = e.target.closest('.chip'); if (!c) return; mod = c.getAttribute('data-m');
+      Array.prototype.forEach.call(mods.children, function (b) { b.setAttribute('aria-pressed', String(b === c)) }); render();
+    });
+    q.value = 'реестр'; render();
+  }).catch(function () { list.innerHTML = '<p class="empty">Не удалось загрузить данные справочника. Обновите страницу.</p>' });
+})();
+</script>

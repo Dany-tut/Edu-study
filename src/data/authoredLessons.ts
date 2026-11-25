@@ -16,10 +16,11 @@
 import { AP_LESSON_CONTENT } from './apChemistryLessons'
 import { BIO_CELL_LESSON_CONTENT } from './bioCellLessons'
 import { BIO_PREU_LESSON_CONTENT } from './bioPreULessons'
+import { ACC_LESSON_CONTENT } from './accounting/accountingLessons'
 import type { AuthoredLessonContent } from './lessonAuthoring'
 
 /** Конспект и домашка урока, написанные в коде. undefined — урок не из этих курсов. */
 export function authoredLesson(shortId: string | null | undefined): AuthoredLessonContent | undefined {
   if (!shortId) return undefined
-  return AP_LESSON_CONTENT[shortId] ?? BIO_CELL_LESSON_CONTENT[shortId] ?? BIO_PREU_LESSON_CONTENT[shortId]
+  return AP_LESSON_CONTENT[shortId] ?? BIO_CELL_LESSON_CONTENT[shortId] ?? BIO_PREU_LESSON_CONTENT[shortId] ?? ACC_LESSON_CONTENT[shortId]
 }

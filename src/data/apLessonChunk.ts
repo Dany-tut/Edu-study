@@ -22,12 +22,14 @@
 import type { ApLessonContent } from './apChemistryLessons'
 
 let CONTENT: Record<string, ApLessonContent> = {}
-type LessonChunk = 'apchem' | 'biocell' | 'bioprep'
+type LessonChunk = 'apchem' | 'biocell' | 'bioprep' | 'acc'
 const requests = new Map<LessonChunk, Promise<void>>()
 const loaders: Record<LessonChunk, () => Promise<Record<string, ApLessonContent>>> = {
   apchem: () => import('./apChemistryLessons').then(m => m.AP_LESSON_CONTENT),
   biocell: () => import('./bioCellLessons').then(m => m.BIO_CELL_LESSON_CONTENT),
   bioprep: () => import('./bioPreULessons').then(m => m.BIO_PREU_LESSON_CONTENT),
+  // Курс «Бухгалтерия» (acc-ru-*): уроки собираются из модулей src/data/accounting.
+  acc: () => import('./accounting/accountingLessons').then(m => m.ACC_LESSON_CONTENT),
 }
 
 /** Запасной конспект урока. undefined — чанк ещё не доехал или урок не из
