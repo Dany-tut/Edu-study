@@ -20,6 +20,7 @@ import HomeworkFlow from './components/HomeworkFlow'
 import AnswerFlightLayer from './components/AnswerFlightLayer'
 import Prose from './components/Prose'
 import ImageZoom from './components/ImageZoom'
+import { NotesWithReveals } from './components/AnswerReveal'
 import { proseLines, proseWrap } from './lib/typography'
 import type { LessonHomework } from './data/lessonContent'
 import { ACC_LESSONS, ACC_COURSE_TITLE } from './data/accounting/accountingLessons'
@@ -60,6 +61,8 @@ function Stand() {
   }, [q])
 
   const cur = ACC_LESSONS[idx]
+  // Стенд без базы: «сдано» для разбора после сдачи — флажок ?submitted=1.
+  const standSubmitted = new URLSearchParams(location.search).get('submitted') === '1'
   const { lesson, module } = cur
   const files = filesOf(lesson.content.paragraphs.map(p => p.text).concat(lesson.practice))
   const homework: LessonHomework = {
@@ -122,7 +125,7 @@ function Stand() {
           {files.length > 0 && <div>⬇ Файлы: {files.map(f => <a key={f} href={`/courses/accounting/${f}`} download style={{ marginRight: 10 }}>{f}</a>)}</div>}
         </div>
         <article style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
-          {lesson.content.paragraphs.map(par => par.image ? (
+          <NotesWithReveals paragraphs={lesson.content.paragraphs} unlocked={standSubmitted} renderPara={par => par.image ? (
             <figure key={par.id} style={{ margin: 0 }}>
               <button type="button" onClick={() => setZoom({ src: par.image!, caption: par.text })} title="Открыть крупно" style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'none', cursor: 'zoom-in' }}>
                 <img src={par.image} alt={par.text} style={{ display: 'block', width: '100%', borderRadius: 12, border: '1px solid var(--color-border)', background: '#fff' }} />
@@ -133,7 +136,7 @@ function Stand() {
             <div key={par.id}>{proseLines(par.text).map(line => (
               <p key={line.key} style={{ fontSize: 15, lineHeight: 1.6, margin: 0, ...proseWrap, ...line.style }}><Prose text={line.text} /></p>
             ))}</div>
-          ))}
+          )} />
         </article>
         <ImageZoom src={zoom?.src ?? null} caption={zoom?.caption} onClose={() => setZoom(null)} />
         <div style={{ display: 'flex', gap: 8, margin: '14px 0' }}>

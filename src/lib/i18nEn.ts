@@ -6863,4 +6863,11 @@ export const EN: Record<string, string> = {
   "Увеличить схему": "Enlarge diagram",
   "Увеличить схему: ": "Enlarge diagram: ",
   "Разведите пальцы или коснитесь дважды": "Pinch out or double-tap to zoom",
+  // Свёрнутый эталон в конспекте (components/AnswerReveal).
+  "Эталон": "Answer key",
+  "Откроется после сдачи работы": "Opens after you submit your work",
+  "Работа сдана — сверьте со своим решением": "Work submitted — compare with your solution",
+  "Сначала решите сами": "Try it yourself first",
+  "Эталон для сверки": "Answer key to check against",
+  "После сдачи": "After submission",
 }

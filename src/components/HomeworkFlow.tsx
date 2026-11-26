@@ -2024,6 +2024,11 @@ export default function HomeworkFlow({
     const lesson = findLessonById(baseLessonRef(lessonId))
     return lesson ? getLessonDetail(lesson).paragraphs : []
   }, [lessonId])
+  // Сдана ли работа: тогда в шторке открыт «Разбор после сдачи» (lib/answerReveal).
+  // Без харда работа урока — сама базовая домашка.
+  const theoryAssessment = useDashboard(s => s.lessonAssessments[lessonId])
+  const theoryUnlocked = state.hardSubmitted || !!theoryAssessment?.hardStatus
+    || (!showHard && (state.basicSubmitted || !!theoryAssessment))
   // Следующий открытый урок того же курса — кнопка после сдачи, когда ни
   // ошибок, ни харда не осталось: ученику не нужно искать его в треке.
   const courseSubjects = useStudentData(s => s.subjects)
@@ -3253,6 +3258,8 @@ export default function HomeworkFlow({
       lessonId={lessonId}
       lessonTitle={lessonTitle}
       paragraphs={theoryParagraphs}
+      // «Разбор после сдачи» открывается, когда работа урока сдана.
+      unlocked={theoryUnlocked}
       accent={palette.accent}
       soft={palette.soft}
       // Правило разбирается по словам — тем же разбором, что и конспект урока:

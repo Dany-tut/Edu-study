@@ -1,4 +1,5 @@
 import OpticalText from '../components/OpticalText'
+import { NotesWithReveals } from '../components/AnswerReveal'
 import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
 import { RecapSummary, SelfCheck } from '../components/LessonRecapBlocks'
 import MarqueeText from '../components/MarqueeText'
@@ -723,6 +724,8 @@ export default function LessonPage() {
   // Тот же шаг для системной «Назад» (Android) — общий стек overlayStack.
   useScreenBack('lesson', closeLesson)
   const openHomework = useDashboard(s => s.openHomework)
+  // Сдана ли работа урока: по ней открывается «Разбор после сдачи» в конспекте.
+  const workAssessment = useDashboard(s => (currentLessonId ? s.lessonAssessments[currentLessonId] : undefined))
   const highlightReactionId = useDashboard(s => s.highlightReactionId)
   const clearHighlightReaction = useDashboard(s => s.clearHighlightReaction)
   // When the page is scrolled, the Back/title/date row docks onto the topbar
@@ -874,6 +877,8 @@ export default function LessonPage() {
   // Конспект и «Итоги занятия» из записи — разные блоки: у итогов таймкоды.
   const notes = detail.paragraphs.filter(p => p.origin !== 'recap')
   const recapParas = detail.paragraphs.filter(p => p.origin === 'recap')
+  // Итоговый проект сдают хардом; урок без харда — сдачей базовой домашки.
+  const workSubmitted = !!workAssessment?.hardStatus || (detail.homework?.hasHardLevel === false && !!workAssessment)
   const canSeek = !!detail.videoSource && ['file', 'youtube', 'rutube'].includes(detail.videoSource.kind)
   const seekTo = (sec: number) => { setVideoTime(sec); playerRef.current?.seekPaused(sec) }
   const montagePlan = lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? playbackPlan(lesson.transcript.montage) : undefined
@@ -1176,7 +1181,9 @@ export default function LessonPage() {
               <OpticalText as="iskra-button-label">{t('Крупный текст')}</OpticalText>
             </button>
           </div>
-          {notes.map(p => p.image ? (
+          {/* Эталон «Проверка себя» свёрнут до нажатия, «Разбор после сдачи» —
+              закрыт до сдачи работы (components/AnswerReveal, lib/answerReveal). */}
+          <NotesWithReveals paragraphs={notes} unlocked={workSubmitted} scale={scale} renderPara={p => p.image ? (
             <TheoryFigure key={p.id} src={p.image} caption={p.text} scale={scale} />
           ) : (
             <div
@@ -1221,7 +1228,7 @@ export default function LessonPage() {
                 </p>
               ))}
             </div>
-          ))}
+          )} />
         </section>
       )}
 

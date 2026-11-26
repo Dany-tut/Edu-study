@@ -1362,3 +1362,10 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   .fipi-exam-switch [aria-selected=false]:hover { --color-text-3: var(--color-text); }
   .fipi-exam-switch [aria-selected=false]:hover::after { opacity: 0; }
 }
+
+/* Свёрнутый эталон в конспекте (components/AnswerReveal). На узком телефоне
+   квадрат с иконкой отдаёт место подписи: «Проверка себя / эталон» и подсказка
+   остаются в одну строку, действие «Показать» — справа, как на ПК. */
+@media (max-width: 480px) {
+  .answer-reveal-icon { display: none !important; }
+}

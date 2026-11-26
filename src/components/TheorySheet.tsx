@@ -32,8 +32,9 @@ import GlossedText from './GlossedText'
 import { useNativeOverlay } from '../lib/nativeGlass'
 import { IS_IOS } from '../lib/platform'
 import SoftEdge from './SoftEdge'
+import { NotesWithReveals } from './AnswerReveal'
 
-export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject }: {
+export default function TheorySheet({ open, onClose, lessonId, lessonTitle, paragraphs, accent, soft, lang, glossSubject, unlocked = false }: {
   open: boolean
   onClose: () => void
   /** Урок, чей конспект показан: тот же id, что на странице урока. */
@@ -49,6 +50,8 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
   lang?: string
   /** Предмет для кнопки «В словарь» в разборе слова. */
   glossSubject?: string
+  /** Работа сдана: «Разбор после сдачи» в конспекте открыт (lib/answerReveal). */
+  unlocked?: boolean
 }) {
   const t = useT()
   const isDesktop = useIsDesktop()
@@ -286,7 +289,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
               className="flex flex-col flex-1"
               style={{ gap: 14, padding: '18px 20px 28px', overflowY: 'auto', minHeight: 0, overscrollBehavior: 'contain' }}
             >
-              {paragraphs.map(p => p.image && isModelRef(p.image) ? (
+              <NotesWithReveals paragraphs={paragraphs} unlocked={unlocked} renderPara={p => p.image && isModelRef(p.image) ? (
                 <Model3DFigure key={p.id} src={p.image} caption={p.text} />
               ) : p.image ? (
                 <figure key={p.id} style={{ margin: 0 }}>
@@ -337,7 +340,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                     <Prose text={line.text} />
                   </p>
                 ))}</Fragment>
-              ))}
+              )} />
             </div>
               {/* iPhone/iPad — мягкий край (размытие без цвета); Android/ПК — фейд. */}
               {IS_IOS ? <>
