@@ -86,6 +86,8 @@ try {
       access_mode text not null default 'custom', created_by uuid, position smallint, unique(course_id, student_id));
     create table course_shares(course_id uuid, teacher_id uuid);
     create table course_item_visibility(course_id uuid, item_kind text, item_key text, hidden boolean);
+    create table notifications(id uuid primary key default gen_random_uuid(), recipient_id uuid not null, recipient_role text not null, type text not null, title text not null, body text not null default '', link jsonb, read boolean default false, created_at timestamptz default now());
+    alter table auth.users add column raw_app_meta_data jsonb default '{}';
   `)
   // Боевые функции доступа (как в миграциях 0087 и 20261124*).
   await sql(`
@@ -147,6 +149,8 @@ try {
       ('${F}','00000000-0000-0000-0000-0000000000d3','f1','Первая формула',1);
   `)
   await sql(readFileSync('supabase/migrations/20261125200000_course_marketplace_foundation.sql', 'utf8'))
+  await sql(readFileSync('supabase/migrations/20261126090000_course_marketplace_notifications.sql', 'utf8'))
+  await sql(`update auth.users set raw_app_meta_data = '{"role":"admin"}' where id = '${X}'`)
   // Боевой лимит тарифа уже заменён миграцией — проверяем его на месте.
   await sql(`grant select on course_listings, course_orders, course_entitlements, user_consents to authenticated;`)
 
@@ -220,6 +224,16 @@ try {
   const free = (await one(as(B) + `select public.catalog_enroll('excel-za-vecher','full','pd-1') v`)).v
   check(free.access === 'full' && free.student.id === buyerRow.id, 'free course full, same learner row')
 
+  // 7б. Уведомления: админу — «на проверке», автору — заявка, покупателю — «курс открыт».
+  await sql(`reset role`)
+  const notes = await query(`select recipient_id, recipient_role, type, title, link from notifications order by created_at`)
+  const has = (rid, type, title) => notes.some(n => n.recipient_id === rid && n.type === type && n.title === title)
+  check(has(X, 'course_review', 'Курс ждёт проверки'), 'admin notified on review')
+  check(has(A, 'course_order', 'Новая заявка на курс'), 'author notified on order')
+  check(notes.filter(n => n.type === 'course_order').length === 1, 'repeat request does not re-notify')
+  check(has(buyerRow.id, 'course_access', 'Курс открыт'), 'buyer notified on paid')
+  check(has(A, 'course_review', 'Курс опубликован в каталоге'), 'author notified on publish')
+
   // 8. Лимит тарифа и курс репетитора не тронуты.
   await sql(`reset role; drop trigger students_enforce_limit on students;
     create trigger students_enforce_limit before insert on students for each row execute function public.enforce_student_limit();`)
@@ -228,7 +242,7 @@ try {
   check(plan.n === 1, 'buyers not counted in plan')
   check((await one(`reset role; select cardinality(student_ids) n from courses where id='${H}'`)).n === 0, 'tutor course untouched')
 
-  console.log('PASS: moderation, guest catalog without content, preview/full access via RLS, single open order, author-only decisions, paid access survives course saves, revoke keeps data, free course, plan limit excludes buyers')
+  console.log('PASS: moderation, guest catalog without content, preview/full access via RLS, single open order, author-only decisions, paid access survives course saves, revoke keeps data, free course, plan limit excludes buyers, notifications')
 } catch (e) {
   console.error(e.stderr?.toString() || e)
   process.exitCode = 1

@@ -1,7 +1,7 @@
 import OpticalText from './OpticalText'
 import StudentProfile, { type StudentProfileTab } from './StudentProfile'
 import { useDesktopFriends } from './../lib/desktopFriends'
-import { UserCircle, Users } from './icons/appIcons'
+import { ShoppingBag, UserCircle, Users } from './icons/appIcons'
 import FadeText from './FadeText'
 import { motion, AnimatePresence } from 'framer-motion'
 import CountBadge, { countBadgeInset } from './CountBadge'
@@ -665,6 +665,7 @@ export default function Sidebar() {
                     )}
                     <SettingsRow icon={UserCircle} label={t('Настройки профиля')} onClick={() => { closePicker(); setProfileTab('main') }} />
                     {showFriends && <SettingsRow icon={Users} label={t('Друзья')} onClick={() => { closePicker(); friends.setTab('contacts') }} />}
+                    <SettingsRow icon={ShoppingBag} label={t('Каталог курсов')} onClick={() => { closePicker(); window.location.hash = '#/catalog' }} />
                     <SettingsRow
                       icon={Settings}
                       label={t('Настройки')}

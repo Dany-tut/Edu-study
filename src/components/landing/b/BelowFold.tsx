@@ -6,6 +6,7 @@ import PainSection from './PainSection'
 import DaySection from './DaySection'
 import FeaturesSection from './FeaturesSection'
 import StudentSection from './StudentSection'
+import CatalogSection from './CatalogSection'
 import EcosystemSection from './EcosystemSection'
 import ModesSection from './ModesSection'
 import PlatformsSection from './PlatformsSection'
@@ -22,6 +23,7 @@ export default function BelowFold() {
       <DaySection />
       <FeaturesSection />
       <StudentSection />
+      <CatalogSection />
       <EcosystemSection />
       <ModesSection />
       <PlatformsSection />

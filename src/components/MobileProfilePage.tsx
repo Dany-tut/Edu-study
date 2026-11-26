@@ -390,6 +390,19 @@ export default function MobileProfilePage() {
                 </button>
               )}
 
+              {/* Каталог курсов площадки: готовые курсы авторов, не только от своего учителя. */}
+              <motion.button data-hover="layer"
+                whileTap={{ scale: 0.99 }}
+                onClick={() => { tactile(); window.location.hash = '#/catalog' }}
+                className="flex items-center justify-between cursor-pointer"
+                style={{ width: '100%', height: ROW_H, padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--color-border-soft)' }}
+              >
+                <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
+                  {t('Каталог курсов')}
+                </span>
+                <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+              </motion.button>
+
               {/* Цвет курса — глубина перекраски и личные цвета предметов */}
               {isAdmin && <motion.button data-hover="layer"
                 whileTap={{ scale: 0.99 }}

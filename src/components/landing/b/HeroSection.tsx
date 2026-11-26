@@ -64,7 +64,7 @@ export function LandingHeader({ onLogin }: Actions) {
     window.addEventListener('scroll', on, { passive: true })
     return () => window.removeEventListener('scroll', on)
   }, [])
-  const links: Array<[string, string]> = [['#how', 'Как работает'], ['#features', 'Возможности'], ['#student', 'Ученику'], ['#pricing', 'Тарифы'], ['#faq', 'Вопросы']]
+  const links: Array<[string, string]> = [['#how', 'Как работает'], ['#features', 'Возможности'], ['#student', 'Ученику'], ['#courses', 'Курсы'], ['#pricing', 'Тарифы'], ['#faq', 'Вопросы']]
   return (
     <header
       className={`fixed inset-x-0 top-0 z-30 transition-[padding] duration-300 ease-out ${scrolled ? 'px-4' : 'px-0'}`}
