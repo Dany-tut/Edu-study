@@ -21,6 +21,7 @@ const X = '00000000-0000-0000-0000-0000000000ad' // админ
 const C = '00000000-0000-0000-0000-0000000000c1' // курс автора (платный)
 const F = '00000000-0000-0000-0000-0000000000c2' // курс автора (бесплатный)
 const H = '00000000-0000-0000-0000-0000000000c3' // курс репетитора без витрины
+const GUARD = "CREATE OR REPLACE FUNCTION public.guard_course_access_snapshot()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nbegin\n  if current_user in ('postgres', 'service_role', 'supabase_admin')\n    or current_setting('iskra.course_access_edit', true) = 'on' then\n    if tg_op = 'DELETE' then return old; else return new; end if;\n  end if;\n  if tg_table_name = 'courses' then\n    if not (coalesce(new.student_ids, '{}') @> coalesce(old.student_ids, '{}'))\n      or not (coalesce(new.group_ids, '{}') @> coalesce(old.group_ids, '{}')) then\n      raise exception '\u0414\u043e\u0441\u0442\u0443\u043f \u043a \u043a\u0443\u0440\u0441\u0443 \u0438\u0437\u043c\u0435\u043d\u0438\u043b\u0441\u044f. \u041e\u0431\u043d\u043e\u0432\u0438\u0442\u0435 \u043a\u043e\u043d\u0441\u0442\u0440\u0443\u043a\u0442\u043e\u0440 \u043f\u0435\u0440\u0435\u0434 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435\u043c.' using errcode = '23514';\n    end if;\n  elsif tg_op = 'UPDATE' then\n    if new.access_mode is distinct from old.access_mode then\n      raise exception '\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u0435 \u043a\u043e\u043d\u0441\u0442\u0440\u0443\u043a\u0442\u043e\u0440 \u043f\u0435\u0440\u0435\u0434 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435\u043c \u0434\u043e\u0441\u0442\u0443\u043f\u0430.' using errcode = '23514';\n    end if;\n  elsif exists (\n    select 1 from public.courses c join public.students s on s.id::text = old.student_id\n    where c.id = old.course_id and (s.id = any(c.student_ids) or s.group_id = any(c.group_ids))\n  ) then\n    raise exception '\u0423\u0447\u0435\u043d\u0438\u043a \u0432\u0441\u0451 \u0435\u0449\u0451 \u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d \u043d\u0430 \u043a\u0443\u0440\u0441. \u041e\u0431\u043d\u043e\u0432\u0438\u0442\u0435 \u043a\u043e\u043d\u0441\u0442\u0440\u0443\u043a\u0442\u043e\u0440.' using errcode = '23514';\n  end if;\n  if tg_op = 'DELETE' then return old; else return new; end if;\nend;\n$function$;"
 const M1 = '00000000-0000-0000-0000-0000000000d1', M2 = '00000000-0000-0000-0000-0000000000d2'
 
 function as(uid, { admin = false, anonymous = false } = {}) {
@@ -122,6 +123,13 @@ try {
   // Политики видимости уроков — как в 20261124071634 (после создания функций).
   const visibility = readFileSync('supabase/migrations/20261124071634_rls_hidden_items_once.sql', 'utf8').match(/alter policy[\s\S]*$/)[0]
   await sql(visibility)
+
+  // Боевой сторож доступа (как на проде 26.11): снять ученика с курса можно
+  // только через save_course_access_changes (iskra.course_access_edit) или
+  // привилегированной ролью — функции площадки работают от владельца.
+  await sql(`${GUARD}
+    create trigger guard_course_access_snapshot before update of student_ids, group_ids on public.courses for each row execute function guard_course_access_snapshot();
+    create trigger guard_course_enrollment_snapshot before delete or update of access_mode on public.course_enrollments for each row execute function guard_course_access_snapshot();`)
 
   // Данные: автор A с учеником-репетиторским S0, платный курс C (2 модуля),
   // бесплатный F, курс репетитора H без витрины.
