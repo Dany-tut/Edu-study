@@ -731,6 +731,26 @@ export default function LessonPage() {
   // When the page is scrolled, the Back/title/date row docks onto the topbar
   // line (sticky), the title slides left next to Back, the date stays right.
   const docked = useDashboard(s => s.lessonScrolled)
+  // `lessonScrolled` ставит onScroll контейнера дашборда (scrollTop>64). На части
+  // мобильных браузеров (напр. Яндекс на Android) этот onScroll не срабатывает:
+  // потоковая пилюля с названием уезжает вверх, а фиксированный двойник не
+  // появляется — и урока сверху не видно. Дублируем триггер локально
+  // IntersectionObserver'ом по сентинелу у верха: он ловит прокрутку и окна, и
+  // контейнера, независимо от того, какой элемент реально скроллится. Глобальный
+  // lessonScrolled (сайдбар, ДЗ) НЕ трогаем — только шапка урока.
+  const [scrolledPast, setScrolledPast] = useState(false)
+  const headerSentinelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = headerSentinelRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      ([entry]) => setScrolledPast(!entry.isIntersecting),
+      { rootMargin: '-64px 0px 0px 0px', threshold: 0 },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const titleDocked = docked || scrolledPast
   // When the top bar is mini there's room for the full date + icon; when it's
   // expanded the row is tight, so the docked date collapses to just the day.
   const topBarCompact = useDashboard(s => s.topBarCompact)
@@ -833,13 +853,13 @@ export default function LessonPage() {
   // doesn't move when the width is clamped — the measurement converges in one
   // pass. Recomputed whenever the bar's box, title, or dock state changes.
   useLayoutEffect(() => {
-    if (!docked || !topBarBox) { setDockTitleMax(undefined); return }
+    if (!titleDocked || !topBarBox) { setDockTitleMax(undefined); return }
     const el = dockTitleRef.current
     if (!el) return
     const GAP = 10 // keep the truncated title ~10px clear of the expanded bar
     const left = el.getBoundingClientRect().left
     setDockTitleMax(Math.max(0, topBarBox.left - GAP - left))
-  }, [docked, topBarBox, topBarCompact, currentLessonId])
+  }, [titleDocked, topBarBox, topBarCompact, currentLessonId])
 
   // Досюда доходят только с найденным уроком: пока курсы едут из Supabase,
   // страницу вообще не монтируют (см. LessonLoading в DashboardPage). Так и
@@ -941,6 +961,9 @@ export default function LessonPage() {
     // paddingBottom — воздух под последним рядом карточек: чтобы страница
     // домотывалась с запасом и выпадающие списки плиток не упирались в край.
     <div className="flex flex-col" style={{ gap: 18, paddingBottom: isDesktop ? 72 : 24 }}>
+      {/* Сентинел дока шапки: уходит за верх окна при прокрутке — надёжный триггер,
+          даже если onScroll контейнера на мобильном браузере молчит. */}
+      <div ref={headerSentinelRef} aria-hidden style={{ height: 0 }} />
       {/* Новогодняя тема: лёгкий снег за страницей урока (pointer-events: none). */}
       {nySkin && <LessonSnow />}
       {/* Rest-state Back / title / date row — in the scroll flow below the
@@ -952,7 +975,7 @@ export default function LessonPage() {
         // страница не прокручена, видна именно она, а не докнутый двойник.
         data-swipe-pin="top"
         style={{ gap: 16 }}
-        animate={{ opacity: docked ? 0 : 1 }}
+        animate={{ opacity: titleDocked ? 0 : 1 }}
         transition={{ duration: 0.22, ease: 'easeOut' }}
       >
         <motion.button
@@ -1009,7 +1032,7 @@ export default function LessonPage() {
           Glass pills to match the topbar; fades / slides in on scroll. */}
       <div className="docked-pills-row" data-swipe-pin="top" style={{ position: 'fixed', top: isDesktop ? 30 : MOBILE_TOP_INSET, left: isDesktop ? 32 : 16, right: isDesktop ? 32 : 16, zIndex: 80, pointerEvents: 'none' }}>
       <AnimatePresence>
-        {docked && (
+        {titleDocked && (
           <motion.div
             key="lesson-dock"
             className="flex items-center"
