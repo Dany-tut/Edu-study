@@ -19,6 +19,7 @@ import { createRoot } from 'react-dom/client'
 import HomeworkFlow from './components/HomeworkFlow'
 import AnswerFlightLayer from './components/AnswerFlightLayer'
 import Prose from './components/Prose'
+import ImageZoom from './components/ImageZoom'
 import { proseLines, proseWrap } from './lib/typography'
 import type { LessonHomework } from './data/lessonContent'
 import { ACC_LESSONS, ACC_COURSE_TITLE } from './data/accounting/accountingLessons'
@@ -39,6 +40,7 @@ function Stand() {
   const [idx, setIdx] = useState(Number.isFinite(initial) ? Math.min(Math.max(initial, 0), ACC_LESSONS.length - 1) : 0)
   const [done, setDone] = useState<number[]>(() => read<number[]>(PROGRESS, []))
   const [q, setQ] = useState('')
+  const [zoom, setZoom] = useState<{ src: string; caption?: string } | null>(null)
   // На телефоне оглавление — сверху обычным блоком: липкая колонка налезала на урок.
   const wide = typeof window !== 'undefined' && window.innerWidth >= 900
   useEffect(() => {
@@ -122,9 +124,9 @@ function Stand() {
         <article style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
           {lesson.content.paragraphs.map(par => par.image ? (
             <figure key={par.id} style={{ margin: 0 }}>
-              <a href={par.image} target="_blank" rel="noreferrer" title="Открыть крупно">
+              <button type="button" onClick={() => setZoom({ src: par.image!, caption: par.text })} title="Открыть крупно" style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'none', cursor: 'zoom-in' }}>
                 <img src={par.image} alt={par.text} style={{ display: 'block', width: '100%', borderRadius: 12, border: '1px solid var(--color-border)', background: '#fff' }} />
-              </a>
+              </button>
               <figcaption style={{ marginTop: 6, fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}><Prose text={par.text} /></figcaption>
             </figure>
           ) : (
@@ -133,6 +135,7 @@ function Stand() {
             ))}</div>
           ))}
         </article>
+        <ImageZoom src={zoom?.src ?? null} caption={zoom?.caption} onClose={() => setZoom(null)} />
         <div style={{ display: 'flex', gap: 8, margin: '14px 0' }}>
           <button onClick={() => setIdx(Math.max(0, idx - 1))} disabled={idx === 0}>← Назад</button>
           <button onClick={toggleDone}>{done.includes(idx) ? 'Отметка снята? Нажмите ещё раз' : 'Урок пройден ✓'}</button>

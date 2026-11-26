@@ -27,6 +27,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useT } from '../lib/i18n'
 import { tidyProse, proseWrap, proseLines } from '../lib/typography'
 import Prose from './Prose'
+import ImageZoom from './ImageZoom'
 import GlossedText from './GlossedText'
 import { useNativeOverlay } from '../lib/nativeGlass'
 import { IS_IOS } from '../lib/platform'
@@ -51,6 +52,9 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
 }) {
   const t = useT()
   const isDesktop = useIsDesktop()
+  const [zoom, setZoom] = useState<{ src: string; caption?: string } | null>(null)
+  // Шторку закрыли — увеличенная схема уходит вместе с ней.
+  useEffect(() => { if (!open) setZoom(null) }, [open])
 
   // Фейды на краях прокрутки. Правило почти всегда длиннее шторки, а обрыв
   // текста ровно по краю панели читается как «здесь всё» — ученик не листает
@@ -186,7 +190,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
   // position: fixed трансформированный предок становится системой координат —
   // панель вставала не в правый край экрана, а в правый край этого предка и
   // уезжала за границу окна вместе с текстом.
-  return createPortal(
+  const sheet = createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -286,6 +290,15 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                 <Model3DFigure key={p.id} src={p.image} caption={p.text} />
               ) : p.image ? (
                 <figure key={p.id} style={{ margin: 0 }}>
+                  {/* Нажатие — на весь экран с масштабом: в шторке на телефоне
+                      лист 640 ужат до ширины экрана, подписи не прочесть. */}
+                  <button
+                    type="button"
+                    data-hover="layer"
+                    onClick={() => setZoom({ src: p.image!, caption: p.text })}
+                    aria-label={p.text ? t('Увеличить схему: ') + p.text : t('Увеличить схему')}
+                    style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'none', cursor: 'zoom-in', borderRadius: 14 }}
+                  >
                   <img
                     src={p.image}
                     alt=""
@@ -298,6 +311,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                       border: '1px solid var(--color-border)', background: '#fff',
                     }}
                   />
+                  </button>
                   {p.text && (
                     <figcaption style={{ marginTop: 6, fontSize: 12, color: 'var(--color-muted)', lineHeight: 1.45, ...proseWrap }}>
                       <Prose text={p.text} />
@@ -354,4 +368,5 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
     </AnimatePresence>,
     document.body,
   )
+  return <>{sheet}<ImageZoom src={zoom?.src ?? null} caption={zoom?.caption} onClose={() => setZoom(null)} /></>
 }

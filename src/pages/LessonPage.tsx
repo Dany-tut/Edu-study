@@ -42,6 +42,7 @@ import { EMOJI_STEPS } from '../components/homeworkSteps'
 import { useT, useTc } from '../lib/i18n'
 import { tidyProse, proseWrap, proseLines, balancedWrap } from '../lib/typography'
 import Prose from '../components/Prose'
+import ImageZoom from '../components/ImageZoom'
 import Model3DFigure from '../components/Model3DFigure'
 import { isModelRef } from '../lib/models3d/registry'
 import GlossedText from '../components/GlossedText'
@@ -150,10 +151,12 @@ const FIGURE_W = 680
  * тёмной теме её нельзя класть на прозрачный фон вплотную: получается яркое
  * пятно с рваным краем. Поэтому лист сидит в собственной рамке с полем.
  *
- * По клику открывается на весь экран: схемы письма и таблицы форм в ширину
- * колонки конспекта читаемы на мониторе, но не на телефоне.
+ * По нажатию открывается на весь экран с масштабом (ImageZoom): схемы письма и
+ * таблицы форм в ширину колонки конспекта читаемы на мониторе, но не на
+ * телефоне — там лист 640 ужимается до ~300 px и подписи до 5 px.
  */
 function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: string; scale?: number }) {
+  const t = useT()
   const [zoom, setZoom] = useState(false)
   // 3D-модель едет тем же маркером, что картинка, но рисуется своей сценой.
   if (isModelRef(src)) return <Model3DFigure src={src} caption={caption} scale={scale} maxWidth={FIGURE_W} />
@@ -162,6 +165,7 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
       <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button data-hover="layer"
           onClick={() => setZoom(true)}
+          aria-label={caption ? t('Увеличить схему: ') + caption : t('Увеличить схему')}
           style={{
             padding: 10, borderRadius: 16, cursor: 'zoom-in',
             border: '1px solid var(--color-border-soft)',
@@ -179,28 +183,7 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
           </figcaption>
         )}
       </figure>
-      <AnimatePresence>
-        {zoom && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setZoom(false)}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 400, cursor: 'zoom-out',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 20, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)',
-            }}
-          >
-            {/* Схема нарисована в 400–680 px и на весь экран сама не растянется:
-                без явной ширины «увеличение» показывало картинку мельче, чем в
-                колонке конспекта. */}
-            <img
-              src={src}
-              alt={caption ?? ''}
-              style={{ width: 'min(100%, 1000px)', maxHeight: '100%', objectFit: 'contain', borderRadius: 12, background: '#fff' }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ImageZoom src={zoom ? src : null} caption={caption} onClose={() => setZoom(false)} />
     </>
   )
 }

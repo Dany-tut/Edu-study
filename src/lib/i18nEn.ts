@@ -6855,4 +6855,12 @@ export const EN: Record<string, string> = {
   "Под фольгой — сотри, чтобы узнать": "Under the foil — scratch to find out",
   "Какой?": "Which one?",
   "Потом": "Later",
+  // Увеличение схем конспекта (ImageZoom)
+  "Увеличить": "Zoom in",
+  "Уменьшить": "Zoom out",
+  "Масштаб": "Zoom",
+  "Схема: ": "Diagram: ",
+  "Увеличить схему": "Enlarge diagram",
+  "Увеличить схему: ": "Enlarge diagram: ",
+  "Разведите пальцы или коснитесь дважды": "Pinch out or double-tap to zoom",
 }

@@ -1,0 +1,272 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Увеличение картинки конспекта (ImageZoom.tsx). Хром по платформе:
+   ПК — × и таблетка масштаба; iPad — капсула справа (platforms.md §1.1);
+   iPhone — граббер и стеклянная подпись; Android — граббер и подпись-таблетка
+   с заливкой, без iOS-стекла (§1.2).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.iz-root {
+  position: fixed;
+  inset: 0;
+  --iz-scrim: color-mix(in srgb, var(--color-bg) 94%, transparent);
+  --iz-sheet-ring: rgba(21, 18, 31, .08);
+  -webkit-user-select: none;
+  user-select: none;
+}
+[data-theme="dark"] .iz-root {
+  --iz-scrim: rgba(6, 6, 8, .94);
+  --iz-sheet-ring: rgba(255, 255, 255, .10);
+}
+
+.iz-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--iz-scrim);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.iz-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Щипок и сдвиг обрабатываем сами: браузер не должен ни масштабировать
+     страницу, ни прокручивать её под слоем. */
+  touch-action: none;
+}
+.iz-sheet-wrap {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 40%;
+}
+.iz-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  transform-origin: 0 0;
+  background: #fff;
+  will-change: transform;
+  -webkit-user-drag: none;
+  pointer-events: auto;
+}
+
+/* ── Общие кнопки ─────────────────────────────────────────────────────────── */
+.iz-close,
+.iz-tool,
+.iz-cell,
+.iz-primary {
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.iz-close:focus-visible,
+.iz-tool:focus-visible,
+.iz-cell:focus-visible,
+.iz-primary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.iz-tool:disabled,
+.iz-cell:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+/* ── ПК: × справа сверху, таблетка масштаба снизу ─────────────────────────── */
+.iz-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text-2);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-sm);
+  transition: background .15s, color .15s;
+}
+.iz-toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-md);
+}
+.iz-tool {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text);
+  transition: background .15s;
+}
+.iz-pct {
+  min-width: 56px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+}
+.iz-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--color-border-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .iz-close:hover { background: var(--color-bg-2); color: var(--color-text); }
+  .iz-tool:not(:disabled):hover { background: var(--color-bg-2); }
+}
+
+/* ── iPad: капсула у правого края + круг × под ней (§1.1) ─────────────────── */
+.iz-rail {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + 20px);
+  top: 50%;
+  transform: translateY(-44%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.iz-capsule {
+  width: 72px;
+  padding: 4px;
+  border-radius: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(var(--glass-rgb), .72);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--color-border-glass);
+  box-shadow: var(--shadow-pill);
+}
+[data-theme="dark"] .iz-capsule {
+  background: rgba(var(--glass-rgb), .86);
+  box-shadow: var(--shadow-pill), 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.iz-cell {
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+  background: none;
+  color: var(--color-text);
+  transition: background .15s;
+}
+.iz-cell:not(:disabled):active { background: var(--color-purple-soft); color: var(--color-accent); }
+.iz-cell-pct {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted);
+  padding: 2px 0 4px;
+}
+.iz-divider {
+  width: 32px;
+  height: 1px;
+  margin: 4px 0;
+  background: var(--color-border-soft);
+}
+.iz-primary {
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+  background: rgba(var(--glass-rgb), .72);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--color-border-glass);
+  box-shadow: var(--shadow-pill);
+  color: var(--color-text);
+  transition: transform .15s;
+}
+[data-theme="dark"] .iz-primary {
+  background: rgba(var(--glass-rgb), .86);
+  box-shadow: var(--shadow-pill), 0 0 0 1px rgba(255, 255, 255, .06);
+}
+.iz-primary:active { transform: scale(.94); }
+@media (hover: hover) and (pointer: fine) {
+  .iz-cell:not(:disabled):hover { background: var(--color-purple-soft); color: var(--color-accent); }
+}
+
+/* ── Телефоны: граббер сверху (SHEET-01 — без ×) ──────────────────────────── */
+.iz-grabber {
+  position: absolute;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  width: 40px;
+  height: 5px;
+  margin-left: -20px;
+  border-radius: 3px;
+  background: var(--color-muted);
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* ── Подпись ──────────────────────────────────────────────────────────────── */
+.iz-caption {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 88px;
+  max-width: min(720px, calc(100% - 32px));
+  padding: 8px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--color-text-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  pointer-events: none;
+}
+/* iPad: подпись внизу, левее капсулы. */
+.iz-root[data-platform="ipad"] .iz-caption {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  left: calc(50% - 48px);
+  max-width: min(640px, calc(100% - 160px));
+  background: rgba(var(--glass-rgb), .72);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border-color: var(--color-border-glass);
+  box-shadow: var(--shadow-pill);
+}
+/* iPhone: стеклянная подпись в зоне пальца. */
+.iz-root[data-platform="iphone"] .iz-caption {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  border-radius: 18px;
+  background: rgba(var(--glass-rgb), .72);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border-color: var(--color-border-glass);
+  box-shadow: var(--shadow-pill);
+}
+/* Android: таблетка с заливкой, без стекла (§1.2). */
+.iz-root[data-platform="android"] .iz-caption {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
+}
+
+.iz-hint {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.iz-caption > * + .iz-hint { margin-top: 2px; }
