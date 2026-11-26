@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ClipboardCheck, Clock, CheckCircle2,
   Circle, Users, AlertCircle, Send, ClipboardList, Check, RotateCcw, Star,
-  BookOpen,
+  BookOpen, Upload,
 } from '../../components/icons/appIcons'
 import {
   type HomeworkItem, type Group,
@@ -29,7 +29,7 @@ import GrowTextarea, { growMinHeight } from '../../components/GrowTextarea'
 import GroupStrip from '../../components/teacher/GroupStrip'
 import { expandToPerson } from '../../lib/personGroups'
 import { useGroups, useStudents } from '../../lib/useGroups'
-import { useHomework, useHardSubmissions, hardSubTimeline, type HardSub, type HardTimelineStep } from '../../lib/useHomework'
+import { useHomework, useHardSubmissions, hardSubTimeline, latestAnswerFiles, type HardSub, type HardTimelineStep } from '../../lib/useHomework'
 import { openLessonInCourseEditor } from '../../lib/teacherNav'
 import { useT, t as tGlobal, useTc } from '../../lib/i18n'
 import { btn } from '../../lib/pillStyles'
@@ -602,6 +602,7 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
   const date = sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : ''
   const initials = sub.studentName.split(' ').map((p: string) => p[0]).join('').slice(0, 2)
   const isPending = sub.status === 'submitted'
+  const fileCount = latestAnswerFiles(sub.taskBlocks).length
 
   return (
     <motion.div
@@ -632,6 +633,11 @@ function HardSubRow({ sub, isSelected, onClick }: { sub: HardSub; isSelected: bo
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        {fileCount > 0 && (
+          <span title={t('Файлы в решении')} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 7, background: 'var(--color-green-soft)', color: 'var(--color-green-text)' }}>
+            <Upload size={11} /> {fileCount}
+          </span>
+        )}
         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{date}</span>
         <span style={{
           fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 7,

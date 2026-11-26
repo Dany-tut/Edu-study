@@ -1,9 +1,14 @@
 import OpticalText from '../OpticalText'
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Send, Image as ImageIcon, PenLine, X, Check, RotateCcw, Star, MessageSquare,
+  Send, Image as ImageIcon, PenLine, X, Check, RotateCcw, Star, MessageSquare, Upload,
 } from '../icons/appIcons'
+import AnswerFileCard, { AnswerFileList } from './AnswerFileCard'
+import {
+  ANSWER_FILE_ACCEPT, MAX_ANSWER_FILES, AnswerFileError, validateAnswerFile, deleteAnswerFile,
+  type AnswerFile,
+} from '../../lib/answerFiles'
 import RichConditionEditor from './RichConditionEditor'
 import WhiteboardCanvas from './WhiteboardCanvas'
 import AnnotationLayer, { type Annotation } from './AnnotationLayer'
@@ -33,6 +38,11 @@ import PhotoGallery from '../PhotoGallery'
 // ученика / учителя) через колбэки. Один источник рендера для обеих сторон.
 
 export type HardTabVM = { key: string; title: string; statement?: string; image?: string | null }
+
+/** Решение ученика из composer'а. `files` уже загружены (пути в бакете). */
+export type SolutionPayload = { answer: string; photos: string[]; board: string | null; voice: string | null; files: AnswerFile[] }
+/** Загрузка файла ответа — даёт родитель: ему известна карточка ученика. */
+export type UploadAnswerFile = (file: File) => Promise<AnswerFile>
 
 export type ReviewPayload = {
   comment: string; photos: string[]; board: string | null
@@ -108,6 +118,7 @@ function SolutionCard({ ev, onZoomPhoto }: { ev: HardEvent & { kind: 'solution' 
           <AudioPlayer audioUrl={ev.voice} compact />
         </div>
       )}
+      <AnswerFileList files={ev.files} />
     </div>
   )
 }
@@ -185,10 +196,15 @@ function Timeline({ events, onZoomPhoto, onZoomSolutionPhoto }: {
 
 // ─── Student composer ─────────────────────────────────────────────────────────
 
-function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
+type DraftFile = { id: string; name: string; size: number; state: 'uploading' | 'error' | 'ready'; file?: File; uploaded?: AnswerFile; error?: string }
+
+function StudentComposer({ isFollowUp, busy, palette, onSubmit, uploadFile, filesKey }: {
   isFollowUp: boolean; busy?: boolean
   palette: { accent: string; soft: string; text: string; ring: string }
-  onSubmit: (payload: { answer: string; photos: string[]; board: string | null; voice: string | null }) => void
+  onSubmit: (payload: SolutionPayload) => void
+  uploadFile?: UploadAnswerFile
+  /** Ключ черновика файлов: загруженные пути переживают перезагрузку. */
+  filesKey: string
 }) {
   const t = useT()
   const [draft, setDraft] = useState('')
@@ -198,9 +214,54 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
   const [voice, setVoice] = useState<string | null>(null)
   const [showBoard, setShowBoard] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const docRef = useRef<HTMLInputElement>(null)
+  // Загруженные файлы — в черновик (их пути уже в бакете; без черновика
+  // перезагрузка оставила бы сиротами). Загружающиеся/упавшие — только в памяти.
+  const [savedFiles, setSavedFiles] = usePersistentState<AnswerFile[]>(filesKey, [])
+  const [files, setFiles] = useState<DraftFile[]>(() => savedFiles.map(f => ({ id: f.path, name: f.name, size: f.size, state: 'ready' as const, uploaded: f })))
+  const [fileError, setFileError] = useState<string | null>(null)
+  const ready = files.flatMap(f => f.uploaded ? [f.uploaded] : [])
+  const uploading = files.some(f => f.state === 'uploading')
+  const readyKey = ready.map(f => f.path).join('|')
+  useEffect(() => { setSavedFiles(ready) }, [readyKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const draftText = draft.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
-  const has = !!(draftText || /<img/i.test(draft) || photos.length || board || voice)
+  const has = !!(draftText || /<img/i.test(draft) || photos.length || board || voice || ready.length)
+  // Пока файл грузится, отправлять нельзя: решение ушло бы без него.
+  const can = has && !busy && !uploading
+
+  function patchFile(id: string, patch: Partial<DraftFile>) {
+    setFiles(list => list.map(f => f.id === id ? { ...f, ...patch } : f))
+  }
+
+  function startUpload(d: DraftFile) {
+    if (!uploadFile || !d.file) return
+    patchFile(d.id, { state: 'uploading', error: undefined })
+    uploadFile(d.file).then(
+      uploaded => patchFile(d.id, { state: 'ready', uploaded, file: undefined }),
+      (e: unknown) => patchFile(d.id, { state: 'error', error: e instanceof AnswerFileError ? e.message : t('Не загрузился — повторите') }),
+    )
+  }
+
+  function addFiles(list: FileList | null) {
+    if (!list) return
+    setFileError(null)
+    const room = MAX_ANSWER_FILES - files.length
+    const picked = Array.from(list)
+    if (picked.length > room) setFileError(`${t('Не больше')} ${MAX_ANSWER_FILES} ${t('файлов в одном решении — соберите остальные в ZIP')}`)
+    for (const file of picked.slice(0, Math.max(0, room))) {
+      const bad = validateAnswerFile(file)
+      if (bad) { setFileError(bad.message); continue }
+      const d: DraftFile = { id: crypto.randomUUID(), name: file.name, size: file.size, state: 'uploading', file }
+      setFiles(l => [...l, d])
+      startUpload(d)
+    }
+  }
+
+  function removeFile(d: DraftFile) {
+    setFiles(list => list.filter(f => f.id !== d.id))
+    if (d.uploaded) void deleteAnswerFile(d.uploaded.path)
+  }
 
   function addPhotos(files: FileList | null) {
     if (!files) return
@@ -238,24 +299,40 @@ function StudentComposer({ isFollowUp, busy, palette, onSubmit }: {
         </div>
       )}
       {photoError && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-peach-text)' }}>{photoError}</div>}
+      {files.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: 8 }}>
+          {files.map(d => (
+            <AnswerFileCard key={d.id} file={d.uploaded ?? d} state={d.state} error={d.error}
+              onRemove={() => removeFile(d)} onRetry={d.file ? () => startUpload(d) : undefined} />
+          ))}
+        </div>
+      )}
+      {fileError && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-peach-text)' }}>{fileError}</div>}
       {showBoard && <WhiteboardCanvas initialData={board ?? undefined} onSave={setBoard} />}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-2)' }}>{t('Голосовой ответ')}</span>
         <VoiceRecorder value={voice} onChange={setVoice} />
       </div>
       <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { addPhotos(e.target.files); e.target.value = '' }} />
+      {uploadFile && <input ref={docRef} type="file" accept={ANSWER_FILE_ACCEPT} multiple style={{ display: 'none' }} onChange={e => { addFiles(e.target.files); e.target.value = '' }} />}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           <button data-hover="layer" onClick={() => fileRef.current?.click()} style={btn('M', 'secondary')}>
             <ImageIcon size={16} /> <OpticalText as="iskra-button-label">{t('Фото')}</OpticalText>
           </button>
+          {uploadFile && (
+            <button data-hover="layer" onClick={() => docRef.current?.click()} disabled={files.length >= MAX_ANSWER_FILES}
+              title={t('XLSX, PDF, DOCX, CSV, ZIP — до 20 МБ, до 5 файлов')} style={btn('M', 'secondary', files.length >= MAX_ANSWER_FILES ? { opacity: 0.5, cursor: 'default' } : undefined)}>
+              <Upload size={16} /> <OpticalText as="iskra-button-label">{ready.length ? `${t('Файл')} · ${ready.length}` : t('Файл')}</OpticalText>
+            </button>
+          )}
           <button data-hover="layer" onClick={() => setShowBoard(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 14, border: `1px solid ${showBoard || board ? palette.accent : 'var(--color-border-medium)'}`, background: showBoard || board ? palette.soft : 'var(--color-bg-2)', color: showBoard || board ? palette.text : 'var(--color-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             <PenLine size={16} /> <OpticalText as="iskra-button-label">{board ? t('Доска ✓') : t('Доска')}</OpticalText>
           </button>
         </div>
-        <motion.button whileHover={{ y: has && !busy ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!has || busy} onClick={() => onSubmit({ answer: draft, photos, board, voice })}
-          style={{ padding: '12px 22px', borderRadius: 16, border: 'none', background: has && !busy ? palette.accent : 'var(--color-bg-5)', color: has && !busy ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: has && !busy ? 'pointer' : 'default', minWidth: 200, boxShadow: has && !busy ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <Send size={16} /> <OpticalText as="iskra-button-label">{busy ? t('Отправляю…') : t('Отправить решение')}</OpticalText>
+        <motion.button whileHover={{ y: can ? -1 : 0 }} whileTap={{ scale: 0.99 }} disabled={!can} onClick={() => onSubmit({ answer: draft, photos, board, voice, files: ready })}
+          style={{ padding: '12px 22px', borderRadius: 16, border: 'none', background: can ? palette.accent : 'var(--color-bg-5)', color: can ? getContrastColor(palette.accent) : 'var(--color-text-3)', fontSize: 14, fontWeight: 700, cursor: can ? 'pointer' : 'default', minWidth: 200, boxShadow: can ? `0 6px 16px ${palette.ring}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <Send size={16} /> <OpticalText as="iskra-button-label">{busy ? t('Отправляю…') : uploading ? t('Файл загружается…') : t('Отправить решение')}</OpticalText>
         </motion.button>
       </div>
     </div>
@@ -404,7 +481,7 @@ const DEFAULT_PALETTE = { accent: 'var(--color-accent)', soft: 'var(--color-purp
 
 export default function HardConversation({
   tabs, studentBlocks, reviewBlocks, role, activeKey, onSelectTab, onZoomPhoto,
-  onSubmitSolution, onReview, busy, palette = DEFAULT_PALETTE, draftScope, teacherGift, teacherGiftSelected,
+  onSubmitSolution, uploadAnswerFile, onReview, busy, palette = DEFAULT_PALETTE, draftScope, teacherGift, teacherGiftSelected,
 }: {
   tabs: HardTabVM[]
   studentBlocks: HardTaskStudentBlock[]
@@ -413,7 +490,9 @@ export default function HardConversation({
   activeKey: string
   onSelectTab: (key: string) => void
   onZoomPhoto?: (src: string) => void
-  onSubmitSolution?: (key: string, payload: { answer: string; photos: string[]; board: string | null; voice: string | null }) => void
+  onSubmitSolution?: (key: string, payload: SolutionPayload) => void
+  /** Есть — у ученика появляется «Файл» (XLSX, PDF…). */
+  uploadAnswerFile?: UploadAnswerFile
   onReview?: (key: string, payload: ReviewPayload) => void
   busy?: boolean
   palette?: { accent: string; soft: string; text: string; ring: string }
@@ -480,7 +559,8 @@ export default function HardConversation({
 
       {studentCanReply && (
         <div style={{ padding: 18, borderRadius: 20, background: 'rgba(var(--glass-rgb),0.96)', border: '1px solid var(--color-border-soft)' }}>
-          <StudentComposer key={tab.key + events.length} isFollowUp={events.length > 0} busy={busy} palette={palette} onSubmit={p => onSubmitSolution!(tab.key, p)} />
+          <StudentComposer key={tab.key + events.length} isFollowUp={events.length > 0} busy={busy} palette={palette} onSubmit={p => onSubmitSolution!(tab.key, p)}
+            uploadFile={uploadAnswerFile} filesKey={`hardFiles:${draftScope ?? 'hard'}:${tab.key}:${events.length}`} />
         </div>
       )}
 

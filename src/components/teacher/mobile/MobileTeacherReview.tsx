@@ -10,7 +10,8 @@ import { GlassPill } from '../../mobileChrome'
 import { PAIR } from '../../../lib/mobileTokens'
 import { tactile } from '../../../lib/feedback'
 import { sanitizeHtml } from '../../../lib/sanitizeHtml'
-import { useHardSubmissions, useHomework, type HardSub } from '../../../lib/useHomework'
+import { useHardSubmissions, useHomework, latestAnswerFiles, type HardSub } from '../../../lib/useHomework'
+import { AnswerFileList } from '../AnswerFileCard'
 import { optimizePhoto, ImageTooLargeError } from '../../../lib/imageOptim'
 import WhiteboardCanvas from '../WhiteboardCanvas'
 import { DEMO_HARD_SUBS, DEMO_HW, isDemoId } from '../../../data/teacherDevDemo'
@@ -131,6 +132,7 @@ function HardCard({ sub, onReviewed }: { sub: HardSub; onReviewed: (id: string, 
 
 
       {(photoCount > 0 || sub.attachments.board) && <AnswerBody photos={sub.attachments.photos} board={sub.attachments.board} onZoomPhoto={setZoomPhoto} />}
+      <AnswerFileList files={latestAnswerFiles(sub.taskBlocks)} />
       {zoomPhoto && <Modal title={t('Фото')} width={760} onClose={() => setZoomPhoto(null)}>
         <img src={zoomPhoto} alt={t('Фото')} style={{ width: '100%', display: 'block', objectFit: 'contain' }} />
       </Modal>}

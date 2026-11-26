@@ -3,6 +3,7 @@ import { withLoadFixture, fixtureHomework, fixtureHard } from './loadFixture'
 import { trackEvent } from './analytics'
 import { latestHomeworkSubmissions } from './mobileHomeworkReviewState'
 import type { HomeworkAttempt } from './homeworkResult'
+import type { AnswerFile } from './answerFiles'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import { getOwnerId } from './owner'
@@ -72,6 +73,9 @@ export type HardSolution = {
   photos: string[]
   board: string | null
   voice?: string | null  // путь в бакете task-media (5A) — голосовой ответ (speaking)
+  // Файлы ответа (XLSX, PDF, DOCX…) в бакете homework-answer-files — путь и
+  // подпись, не ссылка (lib/answerFiles.ts). Нет у старых решений.
+  files?: AnswerFile[]
 }
 
 // Один комментарий учителя (закрывает круг вердиктом).
@@ -135,6 +139,11 @@ export function studentSolutions(b?: HardTaskStudentBlock | null): HardSolution[
     return [{ id: 'legacy', at: '', answer: b.answer ?? '', photos: b.photos ?? [], board: b.board ?? null }]
   }
   return []
+}
+
+/** Файлы последних решений по всем заданиям сдачи — для значка в списке и мобильной проверки. */
+export function latestAnswerFiles(blocks: HardTaskStudentBlock[] | undefined): AnswerFile[] {
+  return (blocks ?? []).flatMap(b => studentSolutions(b).slice(-1)[0]?.files ?? [])
 }
 
 export function teacherComments(b?: HardTaskReviewBlock | null): HardComment[] {

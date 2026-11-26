@@ -33,7 +33,8 @@ import type {
 import { isNewHard, hardId, studentSolutions, legacyHardToBlocks, LEGACY_HARD_KEY } from '../lib/useHomework'
 import { optimizePhoto } from '../lib/imageOptim'
 import { storeSolutionImages } from '../lib/homeworkPhotos'
-import HardConversation, { type HardTabVM } from './teacher/HardConversation'
+import { uploadAnswerFile } from '../lib/answerFiles'
+import HardConversation, { type HardTabVM, type SolutionPayload } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import {
   initialQueue, restoreQueue, questionAt, isRepeatAt, requeue, lessonQueueEnabled, hardIds,
@@ -2491,7 +2492,7 @@ export default function HomeworkFlow({
 
   // Отправка решения по одной вкладке: дописываем НОВЫЙ круг в её историю,
   // сохраняя предыдущие решения и не трогая остальные задания / ревью учителя.
-  async function submitTabSolution(key: string, payload: { answer: string; photos: string[]; board: string | null; voice: string | null }, roundId = hardId('sol')) {
+  async function submitTabSolution(key: string, payload: SolutionPayload, roundId = hardId('sol')) {
     const session = getStudentSession()
     if (!session?.id) return
     if (hardSubmittingRef.current) return
@@ -2514,7 +2515,9 @@ export default function HomeworkFlow({
         setHardBusy(false)
         return
       }
-      const round: HardSolution = { id: roundId, at: new Date().toISOString(), ...stored }
+      // Файлы уже в бакете (загружены при выборе) — в JSONB только их пути.
+      const { files, ...rest } = stored
+      const round: HardSolution = { id: roundId, at: new Date().toISOString(), ...rest, ...(files.length ? { files } : {}) }
       // Read → append → write only if the row is unchanged since the read; a
       // concurrent round from another device is re-read, never overwritten.
       let error: { code?: string; message?: string } | null = null
@@ -4842,6 +4845,7 @@ export default function HomeworkFlow({
                     onSelectTab={setHardActiveKey}
                     onZoomPhoto={setLightbox}
                     onSubmitSolution={submitTabSolution}
+                    uploadAnswerFile={file => uploadAnswerFile(file, ownerStudentIdFor(subject))}
                     busy={hardBusy}
                     palette={{ accent: palette.accent, soft: palette.soft, text: palette.text, ring: palette.ring }}
                   />
