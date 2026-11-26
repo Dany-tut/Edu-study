@@ -97,6 +97,28 @@ export function withCompletion(w: VideoWatch): VideoWatch {
   return done === w.completed ? w : { ...w, completed: done }
 }
 
+/** Длительность, по которой можно считать покрытие: плеер её реально сообщил. */
+function durationReliable(w: VideoWatch): boolean {
+  return Number.isFinite(w.duration) && w.duration > 0
+}
+
+/**
+ * Ролик доигран до конца (событие `ended` нативного плеера).
+ *
+ * Когда длительность известна — доверяем обычному покрытию: перемотка в конец
+ * не должна давать зачёт, поэтому просто пересчитываем ratio. Но если плеер так
+ * и не сообщил длительность (`duration` 0 / не число — так бывает у части
+ * записей с Диска через прокси, у .mov с moov в конце файла и на мобильных),
+ * покрытие НИКОГДА не дойдёт до 0.9, сколько ни смотри. В этом случае сам факт
+ * конца ролика и есть самый надёжный признак просмотра — засчитываем по нему.
+ * Флаг только поднимается (как и в withCompletion), сбросить просмотр нельзя.
+ */
+export function withEndedReached(w: VideoWatch): VideoWatch {
+  if (w.completed) return w
+  if (durationReliable(w)) return withCompletion(w)
+  return { ...w, completed: true }
+}
+
 /** Native media keeps played ranges even while background JS timers are throttled.
  * Seeking, pauses and buffering do not fill gaps in this browser-owned history.
  */

@@ -46,7 +46,7 @@ import { trackEvent } from '../lib/analytics'
 import { clientDiagnostics } from '../lib/incidentTelemetry'
 import {
   addWatched, formatClock, hasResumePoint, MAX_STEP, watchedSeconds, watchRatio,
-  withCompletion, withNativePlayed, type VideoWatch,
+  withCompletion, withEndedReached, withNativePlayed, type VideoWatch,
 } from '../lib/videoProgress'
 
 const RATES = [0.75, 1, 1.25, 1.5, 1.75, 2]
@@ -1361,7 +1361,16 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
           }}
           onPlay={() => { reportBufferEnd(); pausedRef.current = false; setPaused(false); setEnded(false) }}
           onPause={() => { reportBufferEnd(); pausedRef.current = true; persist(); setPaused(true) }}
-          onEnded={() => { persist(); setPaused(true); setEnded(true) }}
+          onEnded={() => {
+            // Конец ролика — самый надёжный признак просмотра. Если длительность
+            // не прочиталась (duration 0/NaN — бывает у прокси Диска, .mov и на
+            // мобильных), обычное покрытие 0.9 недостижимо, и зачёт без этого
+            // фолбэка невозможен, сколько ни смотри. Ставим флаг на watchRef ДО
+            // persist: setWatch асинхронный, а persist читает ref синхронно.
+            watchRef.current = withEndedReached(watchRef.current)
+            setWatch(watchRef.current)
+            persist(); setPaused(true); setEnded(true)
+          }}
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: '#000' }}
         />
       )}
