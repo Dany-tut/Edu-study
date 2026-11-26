@@ -29,6 +29,8 @@ import type { Group, Student } from '../../../data/teacherMockData'
 import { wallDateTimeInTz } from '../../../lib/teacherTz'
 import { useNow } from '../../../lib/useNow'
 import { performanceDiagnostics, performanceStage } from '../../../lib/platformPerformance'
+import { PLATFORM } from '../../../lib/platform'
+import { useIpadScreenActions } from '../../../store/ipadRailActionsStore'
 import TestlyMark from '../../TestlyMark'
 import TeacherSelect from '../TeacherSelect'
 import { ArrowLeft, BookOpen, CalendarCheck, Check, ChevronRight, CircleAlert, ClipboardList, ClipboardPaste, LayoutGrid, Play, RefreshCw, RotateCcw, Search, SlidersHorizontal, X } from '../../icons/appIcons'
@@ -483,6 +485,15 @@ export function Matrix(props: MatrixProps) {
   const [reportHost, setReportHost] = useState<HTMLElement | null>(null)
   const [attention, setAttention] = useState(false)
   const [workView, setWorkView] = useState<'students' | 'assignments'>('students')
+  // iPad (platforms.md §1.1): «Перенос прошлого» и «Вставить» живут в капсуле
+  // справа, а не в тулбаре и не на плашке — без дублей.
+  const ipad = PLATFORM === 'ipad'
+  const toggleTransfer = () => { const next = !props.transfer; props.onTransfer?.(next); if (next) set({ tab: 'Посещаемость', workRef: '' }) }
+  const importScope = () => props.onImport?.(entries.map(e => e.student), props.slots.flatMap(s => s.lesson?.lesson ? [s.lesson] : []))
+  useIpadScreenActions(!ipad ? null : props.onTransfer && selected.tab !== 'Обзор' ? [
+    { id: 'journal-transfer', icon: RotateCcw, label: 'Перенос прошлого', pressed: !!props.transfer, onClick: toggleTransfer },
+    ...(props.transfer && props.onImport ? [{ id: 'journal-paste', icon: ClipboardPaste, label: 'Вставить из таблицы', onClick: importScope }] : []),
+  ] : [])
   const overview = selected.tab === 'Обзор'
   const entry = entries.find(e => e.student.id === selected.student)
   const drawerOpen = !!(reportHost && entry && overview)
@@ -512,17 +523,16 @@ export function Matrix(props: MatrixProps) {
     aria-label={'Журнал успеваемости · ' + groupLabel}>
     <div className="js-toolbar-slot"><MatrixTools selected={selected} set={v => {setReportHost(null); set(v)}} picker={picker}
       pendingCount={props.pendingAttendance?.length ?? 0} attentionCount={entries.filter(needsAttention).length} attention={!overview && attention} toggle={() => setAttention(v => !v)}
-      transferButton={props.onTransfer && selected.tab !== 'Обзор' && <button type="button" className="cj-button js-transfer-toggle" aria-pressed={!!props.transfer}
+      transferButton={!ipad && props.onTransfer && selected.tab !== 'Обзор' && <button type="button" className="cj-button js-transfer-toggle" aria-pressed={!!props.transfer}
         title="Перенос прошлых уроков: отметки без списания с баланса"
-        onClick={() => { const next = !props.transfer; props.onTransfer!(next); if (next) set({ tab: 'Посещаемость', workRef: '' }) }}>
+        onClick={toggleTransfer}>
         <RotateCcw size={15} /><span><OpticalText as="iskra-button-label">Перенос прошлого</OpticalText></span></button>}
       workViews={selected.tab === 'Работы' && props.onOpenAssignment && <div className="jh-work-views js-work-views" role="group" aria-label="Представление работ">
         <button data-hover="layer" type="button" aria-pressed={workView === 'students'} onClick={() => setWorkView('students')}><OpticalText as="iskra-button-label">По ученикам</OpticalText></button>
         <button data-hover="layer" type="button" aria-pressed={workView === 'assignments'} onClick={() => setWorkView('assignments')}><OpticalText as="iskra-button-label">По домашкам</OpticalText></button>
       </div>} /></div>
-    {props.transfer && selected.tab === 'Посещаемость' && <TransferBanner actions={<>
-      {props.onImport && <button type="button" className="cj-button" onClick={() => props.onImport!(
-        entries.map(e => e.student), props.slots.flatMap(s => s.lesson?.lesson ? [s.lesson] : []))}><ClipboardPaste size={15} /><OpticalText as="iskra-button-label">Вставить из таблицы</OpticalText></button>}
+    {props.transfer && selected.tab === 'Посещаемость' && <TransferBanner actions={ipad ? null : <>
+      {props.onImport && <button type="button" className="cj-button" onClick={importScope}><ClipboardPaste size={15} /><OpticalText as="iskra-button-label">Вставить из таблицы</OpticalText></button>}
       <button type="button" className="cj-button cj-primary" onClick={() => props.onTransfer?.(false)}><OpticalText as="iskra-button-label">Готово</OpticalText></button>
     </>} />}
     {selected.tab === 'Посещаемость' && !!props.pendingAttendance?.length && !props.transfer && <details className="js-pending-lessons">

@@ -14,12 +14,14 @@ import { applyStandReview, nativeHomeworkReviewId, type HomeworkEntry, type Revi
 
 import { addFullReviewExample, fullReviewExample, fullReviewAiExample, saveFullReviewExample, FULL_REVIEW_EXAMPLE_ID, FULL_REVIEW_EXAMPLE_TITLE } from './fullReviewExample'
 import { handoffHomeworkReview } from './homeworkReviewHandoff'
+import { PLATFORM } from '../../../lib/platform'
 import AttendanceEditor, { type AttendancePreset } from './AttendanceEditor'
 import JournalImport from '../JournalImport'
 import { LessonDateDialog } from './TransferTools'
 import { journalCell, type JournalCell, type JournalColumn } from '../../../lib/courseJournal'
 import type { Student } from '../../../data/teacherMockData'
 
+const TeacherIpadRail = lazy(() => import('../TeacherIpadRail'))
 const FullReviewEditor = lazy(() => import('../../../pages/teacher/TeacherHomeworkReviewPage').then(m => ({default:m.HomeworkReviewEditor})))
 const StudentWidgetsStand = lazy(() => import('./StudentWidgetsStand'))
 const ScheduleConceptStand = lazy(() => import('./ScheduleConceptStand'))
@@ -327,6 +329,8 @@ export default function ExampleGroups() {
         </>}
       </div>
       {homework.dialog}
+      {/* iPad (?ipad=1): капсула справа — действия журнала регистрируются в ней. */}
+      {PLATFORM === 'ipad' && <Suspense fallback={null}><TeacherIpadRail /></Suspense>}
       {editor && <AttendanceEditor cells={editor.cells} preset={editor.preset} transfer={transfer} data={data} onSaved={() => {}} onClose={() => setEditor(null)} />}
       {lessonDate && <LessonDateDialog data={data} column={lessonDate.column} students={lessonDate.students} today={today} onSaved={() => {}} onClose={() => setLessonDate(null)} />}
       {importScope && <JournalImport data={data} columns={importScope.columns} students={importScope.students}
