@@ -146,6 +146,8 @@
   color: #fff;
   box-shadow: 0 0 0 1.5px #fff;
 }
+.hs-tap[data-flip-x] > b { left: auto; right: 13px; }
+.hs-tap[data-flip-y] > b { top: 13px; }
 .hs-tap[data-tone="bad"] { border-color: #C4320A; }
 .hs-tap[data-tone="bad"] > b { background: #C4320A; }
 .hs-tap[data-tone="ok"] { border-color: #127A4B; }
