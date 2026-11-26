@@ -554,7 +554,7 @@ export function parseNumeric(s: unknown): number | null {
  * Пропуск считается проверяемым только если в эталонной строке для него есть
  * непустое значение: иначе сверять не с чем.
  */
-function fillableCellKeys(t: TaskPayload): string[] {
+export function fillableCellKeys(t: Pick<TaskPayload, 'table'>): string[] {
   const rows = t.table?.rows ?? []
   const empty = t.table?.emptyCells ?? {}
   return Object.keys(empty).filter(key => {
@@ -562,6 +562,27 @@ function fillableCellKeys(t: TaskPayload): string[] {
     const [r, c] = key.split(',').map(Number)
     return !!rows[r]?.[c]?.trim()
   })
+}
+
+/**
+ * Верна ли ячейка таблицы.
+ *
+ * Сверка по смыслу, а не по символам. Число в эталоне («120 000», «26400,5»)
+ * сравнивается значением — «120000» и «120 000 ₽» тоже верны. Номер счёта
+ * («90-9», «76.16») сверяется без оглядки на разделитель субсчёта: в 1С пишут
+ * через точку, в учебниках — через дефис, и ошибкой это не считается.
+ * Остальное — обычное «вписать ответ» (регистр, ё, лишние пробелы не в счёт).
+ */
+export function tableCellMatches(given: string | undefined, want: string): boolean {
+  if (!given?.trim() || !want.trim()) return false
+  if (sameAnswer(given, want)) return true
+  const acct = (s: string) => s.trim().replace(/\s+/g, '').replace(/[.,–—]/g, '-')
+  if (/^\d{2}(\s*[-.]\s*\d{1,2})*$/.test(want.trim())) return acct(given) === acct(want)
+  if (/^-?[\d\s  ]+([.,]\d+)?$/.test(want.trim())) {
+    const a = parseNumeric(given), b = parseNumeric(want)
+    return a !== null && b !== null && Math.abs(a - b) < 1e-9
+  }
+  return false
 }
 
 /** Заполненные подсказки кроссворда — только по ним считается сетка. */
@@ -981,7 +1002,7 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
       const correct = keys.every(key => {
         const [r, c] = key.split(',').map(Number)
         const want = rows[r]?.[c] ?? ''
-        return sameAnswer(given[key], want)
+        return tableCellMatches(given[key], want)
       })
       return { auto: true, correct }
     },

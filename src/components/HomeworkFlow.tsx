@@ -75,7 +75,7 @@ import { homeworkStorageKey } from '../lib/homeworkReset'
 import VoiceRecorder from './VoiceRecorder'
 import SpeechHeard from './SpeechHeard'
 import {
-  answerMap, charUnits, gapChoiceRows, parseNumeric, sentenceTokens, sortRows, tfRows, EMBED_DONE, testlyDoneAt, testlyCredit, testlyScoreOf,
+  answerMap, charUnits, fillableCellKeys, gapChoiceRows, parseNumeric, sentenceTokens, tableCellMatches, sortRows, tfRows, EMBED_DONE, testlyDoneAt, testlyCredit, testlyScoreOf,
 } from '../data/taskTypes'
 import TrueFalseSolver from './TrueFalseSolver'
 import DropdownGapSolver from './DropdownGapSolver'
@@ -966,6 +966,12 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   // Устное: отвечено, когда есть ЗАПИСЬ. Строка ответа непуста и между
   // попытками — она несёт счётчик, — но попытка без записи это не ответ.
   if (qType(q) === 'speaking' && ans !== NO_VOICE) return !!parseVoiceAnswer(ans).path
+  // Таблица с эталоном: отвечено, когда заполнена каждая проверяемая ячейка —
+  // иначе «Проверить» засчитал бы пустые клетки ошибками.
+  if (qType(q) === 'tableFill' && fillableCellKeys(q).length > 0) {
+    const given = tableAnswer(ans)
+    return fillableCellKeys(q).every(key => !!given[key]?.trim())
+  }
   // Сопоставление — то же правило: пара строк без пары не ответ.
   if (qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2) {
     return matchingIsComplete(parseMatchingCsv(ans, q.pairs!.length))
@@ -1086,7 +1092,9 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (tp === 'sequence') return (q.sequenceItems?.length ?? 0) >= 2
   // Сопоставление проверяется машиной: ответ — выбор пар, а не свободный текст.
   if (tp === 'matching') return (q.pairs?.length ?? 0) >= 2
-  // tableFill/whiteboard — teacher review only, not auto-graded.
+  // Таблица проверяется машиной, когда у пропусков есть эталон в строках
+  // (как TASK_TYPES.tableFill.grade); без эталона — к учителю. Доска — всегда учителю.
+  if (tp === 'tableFill') return fillableCellKeys(q).length > 0
   return false
 }
 
@@ -1278,6 +1286,13 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
     const got = parseNumeric(ans)
     if (want === null || got === null) return false
     return Math.abs(got - want) <= Math.abs(q.numTolerance ?? 0) + 1e-9
+  }
+  if (tp === 'tableFill') {
+    // Таблица верна целиком: проводка с одним неверным счётом — неверная проводка.
+    const keys = fillableCellKeys(q)
+    if (keys.length === 0) return false
+    const given = tableAnswer(ans)
+    return keys.every(key => tableCellMatches(given[key], tableReference(q, key)))
   }
   if (tp === 'sequence') {
     const items = q.sequenceItems ?? []
@@ -1537,16 +1552,40 @@ function VoiceAnswer({ value, maxSeconds, disabled, onChange, target, lang }: {
 // ─── Table solver ────────────────────────────────────────────────────────────
 // Renders the reference table; cells marked «пусто» become inputs the student
 // fills. Answers are stored as a JSON map "r,c" → value (teacher-reviewed).
-function TableSolver({ table, value, disabled, onChange }: {
+/** Ответ на таблицу — JSON «строка,столбец» → значение; битая строка = пусто. */
+function tableAnswer(ans: string | undefined): Record<string, string> {
+  if (!ans) return {}
+  try {
+    const v = JSON.parse(ans)
+    return v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, string> : {}
+  } catch { return {} }
+}
+
+/** Эталон ячейки: пропуск в таблице хранит своё верное значение в rows. */
+function tableReference(q: Pick<HomeworkQuizQuestion, 'table'>, key: string): string {
+  const [r, c] = key.split(',').map(Number)
+  return q.table?.rows[r]?.[c] ?? ''
+}
+
+function TableSolver({ table, value, disabled, showVerdict, onChange }: {
   table: NonNullable<HomeworkQuizQuestion['table']>
   value: string | undefined
   disabled: boolean
+  /** После проверки: каждая проверяемая ячейка — зелёная или красная. */
+  showVerdict?: boolean
   onChange: (v: string) => void
 }) {
   // Unified table renderer, interactive mode (fill-in cells → inputs). Same look
   // as the trainer / tests; on the phone it gets the fit ↔ zoom toggle for free.
   const isDesktop = useIsDesktop()
-  return <QuestionTable table={table} mobile={!isDesktop} interactive value={value} onChange={onChange} disabled={disabled} />
+  // Вердикт по ячейкам, а не только «неверно» на всё задание: в проводке из
+  // трёх строк ученик должен видеть, какой именно счёт он перепутал.
+  const checkable = showVerdict ? new Set(fillableCellKeys({ table })) : null
+  const given = tableAnswer(value)
+  const cellVerdict = checkable
+    ? (key: string) => checkable.has(key) ? tableCellMatches(given[key], tableReference({ table }, key)) : null
+    : undefined
+  return <QuestionTable table={table} mobile={!isDesktop} interactive value={value} onChange={onChange} disabled={disabled} cellVerdict={cellVerdict} />
 }
 
 /**
@@ -4157,6 +4196,7 @@ export default function HomeworkFlow({
                       table={question.table}
                       value={selectedAnswer}
                       disabled={locked}
+                      showVerdict={showVerdict}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
 
@@ -4444,6 +4484,16 @@ export default function HomeworkFlow({
                       />
                       {!!question.unit && (
                         <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-3)', flexShrink: 0 }}>{question.unit}</span>
+                      )}
+                      {/* Допуск виден ученику: «до копеек» и «± 1 ₽» — разные
+                          задания, и гадать, засчитают ли округление, не нужно. */}
+                      {Math.abs(question.numTolerance ?? 0) > 0 && (
+                        <span style={{
+                          fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 999, flexShrink: 0,
+                          color: 'var(--color-accent)', background: 'rgba(var(--accent-rgb), 0.12)',
+                        }}>
+                          {t('допуск ±')} {String(Math.abs(question.numTolerance ?? 0)).replace('.', ',')}{question.unit ? ` ${question.unit}` : ''}
+                        </span>
                       )}
                     </div>
                     ) : (

@@ -6706,6 +6706,7 @@ export const EN: Record<string, string> = {
   "Правильный ответ, число": "Correct answer, a number",
   "Правильный ответ, число…": "Correct answer, a number…",
   "Допуск ±": "Tolerance ±",
+  "допуск ±": "tolerance ±",
   "Единицы — покажем ученику": "Units — shown to the student",
   "Единицы измерения": "Units",
   "Знаков после запятой": "Decimal places",

@@ -67,8 +67,19 @@ export default function DropdownGapSolver({ text, gaps, value, disabled, showVer
     gridArea: '1 / 1', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
   }
 
+  // Формула Excel («=СУММЕСЛИМН(____;____;____)») набирается моноширинным
+  // шрифтом, как в строке формул: так видно каждую «;» и кавычку, а диапазоны
+  // в вариантах читаются столбиком. Обычное предложение — шрифтом кабинета.
+  const formula = text.trimStart().startsWith('=')
+
   return (
-    <div ref={hostRef} style={{ fontSize: 16, lineHeight: 2.2, color: 'var(--color-text)' }}>
+    <div ref={hostRef} style={{
+      fontSize: 16, lineHeight: 2.2, color: 'var(--color-text)',
+      ...(formula ? {
+        fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace',
+        padding: '6px 12px', borderRadius: 14, background: 'var(--color-bg-2)', overflowWrap: 'anywhere',
+      } : {}),
+    }}>
       {parts.map((chunk, i) => {
         const gap = gaps[i]
         const picked = given[String(i)]

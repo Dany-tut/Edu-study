@@ -29,7 +29,7 @@ export type QTable = {
 
 export default function QuestionTable({
   table, mobile = false, interactive = false, value, onChange, disabled = false,
-  cellValue, onCellChange, blankAsInput = false, accent,
+  cellValue, onCellChange, blankAsInput = false, accent, cellVerdict,
 }: {
   table: QTable
   mobile?: boolean
@@ -42,6 +42,8 @@ export default function QuestionTable({
   disabled?: boolean
   /** Цвет вписанного ответа и каретки — акцент теста/предмета; по умолчанию акцент кабинета. */
   accent?: string
+  /** После проверки: true — ячейка верна, false — нет, null — не проверяется. */
+  cellVerdict?: (key: string) => boolean | null
 }) {
   const t = useT()
   // Fill-in answers: JSON blob (value/onChange) or per-cell (cellValue/onCellChange).
@@ -63,6 +65,7 @@ export default function QuestionTable({
     const img = table.cellImages?.[key]
     const imgSize = table.cellImageSizes?.[key] ?? DEFAULT_IMAGE_SIZE
     const fillable = interactive && (isEmpty || (blankAsInput && isBlank))
+    const verdict = cellVerdict?.(key) ?? null
     if (fillable) {
       return (
         // Длинный ответ переносится и раздвигает строку, а не уезжает за край ячейки.
@@ -73,8 +76,9 @@ export default function QuestionTable({
           onChange={v => putVal(key, v.replace(/\n/g, ' '))}
           onKeyDown={e => { if (e.key === 'Enter') e.preventDefault() }}
           disabled={disabled}
+          aria-invalid={verdict === false ? true : undefined}
           placeholder={t('Впиши…')}
-          style={{ display: 'block', width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', paddingTop: `calc(${padY}px)`, paddingBottom: `calc(${padY}px)`, paddingLeft: padX, paddingRight: padX, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, lineHeight: 'inherit', color: accent ?? 'var(--color-accent)', caretColor: accent ?? 'var(--color-accent)', fontWeight: mobile ? 500 : 600 }}
+          style={{ display: 'block', width: '100%', minWidth: 84, boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', paddingTop: `calc(${padY}px)`, paddingBottom: `calc(${padY}px)`, paddingLeft: padX, paddingRight: padX, fontFamily: 'inherit', fontSize: mobile ? 16 : 13, lineHeight: 'inherit', color: verdict === false ? 'var(--color-red-text)' : verdict === true ? 'var(--color-green-text)' : (accent ?? 'var(--color-accent)'), caretColor: accent ?? 'var(--color-accent)', fontWeight: mobile ? 500 : 600 }}
         />
       )
     }
@@ -104,11 +108,13 @@ export default function QuestionTable({
               {row.map((cell, c) => {
                 const key = `${r},${c}`
                 const cellFillable = interactive && (table.emptyCells?.[key] || (blankAsInput && table.blankCells?.[key]))
+                const v = cellFillable ? (cellVerdict?.(key) ?? null) : null
                 return (
                   <td key={c} style={{
                     borderTop: '1px solid var(--color-border)', borderRight: c < row.length - 1 ? '1px solid var(--color-border)' : undefined,
                     padding: 0, verticalAlign: 'top', overflowWrap: 'break-word',
-                    background: cellFillable ? 'var(--color-bg-input)' : undefined,
+                    background: v === true ? 'var(--color-green-soft)' : v === false ? 'var(--color-red-soft)' : cellFillable ? 'var(--color-bg-input)' : undefined,
+                    boxShadow: v === true ? 'inset 0 0 0 1.5px var(--color-green-border)' : v === false ? 'inset 0 0 0 2px var(--color-red-border)' : undefined,
                     color: 'var(--color-text)',
                   }}>
                     {renderCell(cell, r, c)}

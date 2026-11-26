@@ -123,6 +123,67 @@ export const qfill = (
   explanation,
 })
 
+/** Ответ — число: сверка по значению (запятая и точка равны, пробелы разрядов
+ *  и единицы не в счёт), на телефоне цифровая клавиатура. `tol` — допуск ±,
+ *  его видит ученик; `unit` — подпись после поля («₽»). */
+export const qnum = (
+  id: string, prompt: string, value: string, explanation: string,
+  opts: { unit?: string; tol?: number } = {},
+): HomeworkQuizQuestion => ({
+  id,
+  prompt,
+  type: 'numeric',
+  options: [],
+  correctOptionId: '',
+  referenceAnswer: value,
+  ...(opts.unit ? { unit: opts.unit } : {}),
+  ...(opts.tol ? { numTolerance: opts.tol } : {}),
+  numpad: true,
+  decimal: true,
+  explanation,
+})
+
+/** Таблица с пропусками. rows — ЭТАЛОН целиком; ячейки из `blanks`
+ *  («строка,столбец») ученик заполняет сам, проверка — по ячейкам. */
+export const qtable = (
+  id: string, prompt: string, headers: string[], rows: string[][], blanks: string[], explanation: string,
+): HomeworkQuizQuestion => ({
+  id,
+  prompt,
+  type: 'tableFill',
+  options: [],
+  correctOptionId: '',
+  table: { headers, rows, emptyCells: Object.fromEntries(blanks.map(k => [k, true])) },
+  explanation,
+})
+
+/** Тренажёр проводок: строки «Дебет / Кредит / Сумма / Содержание», ученик
+ *  вписывает счета и сумму, содержание операции дано. */
+export const qentries = (
+  id: string, prompt: string, entries: Array<[debit: string, credit: string, amount: string, what: string]>, explanation: string,
+): HomeworkQuizQuestion => qtable(
+  id, prompt,
+  ['Дебет', 'Кредит', 'Сумма, ₽', 'Содержание операции'],
+  entries.map(([d, c, a, w]) => [d, c, a, w]),
+  entries.flatMap((_, r) => [`${r},0`, `${r},1`, `${r},2`]),
+  explanation,
+)
+
+/** Пропуски с выбором: в `text` места отмечены «____», на каждое — варианты
+ *  и индекс верного. Текст с «=» в начале рисуется как формула Excel. */
+export const qgap = (
+  id: string, prompt: string, text: string, gaps: Array<[options: string[], correct: number]>, explanation: string,
+): HomeworkQuizQuestion => ({
+  id,
+  prompt,
+  type: 'dropdownGap',
+  options: [],
+  correctOptionId: '',
+  gapText: text,
+  gapChoices: gaps.map(([options, correct]) => ({ options, correct })),
+  explanation,
+})
+
 // ─── Схемы конспекта ─────────────────────────────────────────────────────────
 
 /**
