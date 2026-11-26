@@ -10,6 +10,8 @@ export type ScoreMode = 'perOption' | 'criteria' | 'whole'
 
 export type AnswerType =
   | 'single' | 'multi' | 'fill' | 'matching' | 'sequence' | 'tableFill' | 'extended'
+  // Данные типа — в payload: hotspot у «Найди на экране», допуск и единицы у «Числа».
+  | 'screenHotspot' | 'numeric'
 
 export interface TaskChoice { id: string; text: string; correct: boolean; points?: number }
 export interface TaskAnswerKey { id: string; keyword: string; points: number }

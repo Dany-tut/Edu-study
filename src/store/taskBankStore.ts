@@ -86,6 +86,34 @@ function taskToDb(t: Partial<Task>) {
   }
 }
 
+// Частичная правка: в базу уходят только поля, которые есть в patch.
+//
+// taskToDb подставляет пустые значения во всё отсутствующее (payload {},
+// answer_type null, choices null…), и «Заменить в тренажёре» с patch из трёх
+// полей стирало у задания тип, варианты и данные типа (области «Найди на
+// экране», допуск «Числа»). Отсутствующее поле — не разрешение писать NULL.
+const DB_KEY: Record<keyof Omit<Task, 'id'>, string> = {
+  subject: 'subject', section: 'section', topic: 'topic', part: 'part', line: 'line',
+  source: 'source', question: 'question', answer: 'answer', solution: 'solution',
+  difficulty: 'difficulty', questionTable: 'question_table', questionImage: 'question_image',
+  questionImageSize: 'question_image_size', questionType: 'question_type', scoreMode: 'score_mode',
+  choices: 'choices', answerKeys: 'answer_keys', criteria: 'criteria',
+  criteriaVisibleOnCheck: 'criteria_visible_on_check', maxPoints: 'max_points',
+  answerType: 'answer_type', matchLeft: 'match_left', matchRight: 'match_right',
+  sequenceItems: 'sequence_items', allowPhoto: 'allow_photo', blockOrder: 'block_order',
+  payload: 'payload',
+}
+function patchToDb(patch: Partial<Task>) {
+  const full = taskToDb(patch) as Record<string, unknown>
+  const out: Record<string, unknown> = {}
+  for (const k of Object.keys(patch) as Array<keyof Task>) {
+    if (k === 'id') continue
+    const col = DB_KEY[k as keyof typeof DB_KEY]
+    if (col) out[col] = full[col]
+  }
+  return out
+}
+
 const DEV = import.meta.env.DEV
 const LS_KEY = 'dev-task-bank'
 
@@ -161,7 +189,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
     // иначе учитель видел «Заменено», а в базе оставалось старое.
     const { data, error } = await supabase
       .from('task_bank')
-      .update(taskToDb(patch))
+      .update(patchToDb(patch))
       .eq('id', id)
       .select('id')
     if (error) throw error

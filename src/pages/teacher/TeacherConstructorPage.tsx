@@ -26,7 +26,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { Alert, AlertStack } from '../../components/Alert'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptionsFor, subjectIcon, getSubject, isLanguageSubject, SUBJECTS, isMySubject, courseSubjectOptionsFor, teacherSubjectDefs, ICON_GAP } from '../../lib/subjects'
-import { taskTypesFor } from '../../data/taskTypes'
+import { taskTypesFor, parseNumeric } from '../../data/taskTypes'
 import { languageTaxonomy, tagsLabel, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
 import { levelOptions, matchesLevel, levelOptionsForSubject, levelBuckets, sortLevels } from '../../lib/courseLevels'
@@ -97,6 +97,10 @@ import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 import { alertMissingAnswers, breakAtDash, isDiagMissingAnswer } from '../../lib/answerCheck'
 import QuestionTable, { type QTable } from '../../components/QuestionTable'
 import BackCircle from '../../components/BackCircle'
+import Switch from '../../components/Switch'
+import { hotspotGradable, hotspotIssues, type HotspotSpec } from '../../lib/screenHotspot'
+// Тот же редактор областей, что в редакторе курса; холст тяжёлый — грузится по требованию.
+const ScreenHotspotEditor = lazy(() => import('../../components/teacher/ScreenHotspotEditor'))
 
 type NewBankTask = Omit<BankTask, 'id'>
 // Высота таблеток верхней строки Конструктора (вкладки, крестик режима
@@ -2262,7 +2266,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   )
 }
 
-function CreatorView({
+export function CreatorView({
   initialMode,
   editCourse,
   editTrainer,
@@ -2358,6 +2362,17 @@ function CreatorView({
       ? (editingTask.answer ?? '') : ''
   )
   const [tkAllowPhoto, setTkAllowPhoto] = usePersistentState(tkDraft + 'allowPhoto', editingTask?.allowPhoto ?? true)
+  // «Число» и «Найди на экране» — данные типа лежат в payload задания банка
+  // (как в курсе: numTolerance/unit/decimals/decimal/numpad и hotspot).
+  const editPayload = (editingTask?.payload ?? {}) as Record<string, unknown>
+  const [tkNumAnswer, setTkNumAnswer] = usePersistentState(tkDraft + 'numAnswer',
+    editingTask?.answerType === 'numeric' ? (editingTask.answer ?? '') : '')
+  const [tkNumTol, setTkNumTol] = usePersistentState<number | undefined>(tkDraft + 'numTol', editPayload.numTolerance as number | undefined)
+  const [tkNumUnit, setTkNumUnit] = usePersistentState<string>(tkDraft + 'numUnit', (editPayload.unit as string | undefined) ?? '')
+  const [tkNumDecimals, setTkNumDecimals] = usePersistentState<number | undefined>(tkDraft + 'numDecimals', editPayload.decimals as number | undefined)
+  const [tkNumDecimal, setTkNumDecimal] = usePersistentState<boolean>(tkDraft + 'numDecimal', (editPayload.decimal as boolean | undefined) ?? true)
+  const [tkNumpad, setTkNumpad] = usePersistentState<boolean>(tkDraft + 'numpad', (editPayload.numpad as boolean | undefined) ?? true)
+  const [tkHotspot, setTkHotspot] = usePersistentState<HotspotSpec | undefined>(tkDraft + 'hotspot', editPayload.hotspot as HotspotSpec | undefined)
   // matching — left prompts mapped to right options
   const [tkMatchLeft, setTkMatchLeft] = usePersistentState<string[]>(tkDraft + 'matchLeft', editingTask?.matchLeft ?? ['', ''])
   const [tkMatchRight, setTkMatchRight] = usePersistentState<string[]>(tkDraft + 'matchRight', editingTask?.matchRight ?? ['', ''])
@@ -2585,6 +2600,8 @@ function CreatorView({
     setTkMatchLeft(['', '']); setTkMatchRight(['', '']); setTkMatchMap([0, 1])
     setTkSeq(['', '']); setTkSolution('')
     setAnswerKeys([]); setCriteria([])
+    setTkNumAnswer(''); setTkNumTol(undefined); setTkNumUnit(''); setTkNumDecimals(undefined)
+    setTkNumDecimal(true); setTkNumpad(true); setTkHotspot(undefined)
   }
 
   const critTotal = criteria.reduce((s, c) => s + c.points, 0)
@@ -2644,14 +2661,27 @@ function CreatorView({
       part: tkPart, line: tkLine, source: tkSource,
       // Языковая разметка: уровень / навык / тема / формат экзамена.
       // Едет в payload, поэтому новый тип разметки не требует миграции.
-      ...(langTax ? {
-        payload: {
-          level: tkLevel || undefined,
-          skill: tkSkill || undefined,
-          topic: tkTopic || undefined,
-          examTask: tkExamTask || undefined,
-        },
-      } : {}),
+      //
+      // Прежний payload правки сохраняется целиком: в нём могут лежать поля,
+      // которых эта форма не знает. Данные «Числа» и «Найди на экране»
+      // кладутся только для своего типа, при смене типа — убираются.
+      payload: (() => {
+        const { numTolerance: _t, unit: _u, decimals: _d, decimal: _c, numpad: _n, hotspot: _h, ...keep } = editPayload
+        return {
+          ...keep,
+          ...(langTax ? {
+            level: tkLevel || undefined,
+            skill: tkSkill || undefined,
+            topic: tkTopic || undefined,
+            examTask: tkExamTask || undefined,
+          } : {}),
+          ...(tkAnswerType === 'numeric' ? {
+            numTolerance: tkNumTol, unit: tkNumUnit.trim() || undefined,
+            decimals: tkNumDecimals, decimal: tkNumDecimal, numpad: tkNumpad,
+          } : {}),
+          ...(tkAnswerType === 'screenHotspot' ? { hotspot: tkHotspot } : {}),
+        }
+      })(),
       question: tkQuestion, solution: tkSolution.trim(),  // preserve HTML formatting
       difficulty: tkDifficulty,
       answerType: tkAnswerType,
@@ -2693,6 +2723,16 @@ function CreatorView({
       if (!ans) return null
       return { ...base, questionType: 'free', answer: ans }
     }
+    if (tkAnswerType === 'numeric') {
+      const ans = tkNumAnswer.trim()
+      if (parseNumeric(ans) === null) return null
+      return { ...base, questionType: 'free', answer: ans }
+    }
+    if (tkAnswerType === 'screenHotspot') {
+      // Ответ — нажатия по областям; строки-эталона у задания нет.
+      if (!hotspotGradable(tkHotspot) || hotspotIssues(tkHotspot).length) return null
+      return { ...base, questionType: 'free', answer: '' }
+    }
     // fill / extended
     const ans = tkShortAnswer.trim()
     if (tkAnswerType === 'fill' && !ans) return null
@@ -2714,6 +2754,8 @@ function CreatorView({
     if (tkAnswerType === 'matching') return t('Заполните обе колонки сопоставления.')
     if (tkAnswerType === 'sequence') return t('Заполните все шаги последовательности.')
     if (tkAnswerType === 'tableFill' && !tkHasTable) return t('Добавьте таблицу и впишите ответ.')
+    if (tkAnswerType === 'numeric') return t('Впишите правильный ответ числом — например, 69,94.')
+    if (tkAnswerType === 'screenHotspot') return hotspotIssues(tkHotspot).map(x => t(x)).join(' ') || t('Отметьте хотя бы одну верную область.')
     return t('Впишите правильный ответ и сохраните ещё раз.')
   }
 
@@ -3310,6 +3352,42 @@ function CreatorView({
                     minHeight={growMinHeight(3, 13, 9, 0)} style={inputSt} />
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Ответ ученика сверяется без учёта регистра.')}</div>
                 </div>
+              )}
+
+              {/* numeric — эталон, допуск ±, единицы; подписи внутри полей, как в редакторе курса */}
+              {tkAnswerType === 'numeric' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input style={inputSt} inputMode="decimal" value={tkNumAnswer}
+                      onChange={e => setTkNumAnswer(e.target.value)}
+                      placeholder={t('Правильный ответ, число')} aria-label={t('Правильный ответ, число')} />
+                    <input style={inputSt} inputMode="decimal" value={tkNumTol ?? ''}
+                      onChange={e => { const v = e.target.value.replace(',', '.').trim(); setTkNumTol(v && !Number.isNaN(Number(v)) ? Number(v) : undefined) }}
+                      placeholder={t('Допуск ±')} aria-label={t('Допуск ±')} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input style={inputSt} value={tkNumUnit} onChange={e => setTkNumUnit(e.target.value)}
+                      placeholder={t('Единицы — покажем ученику')} aria-label={t('Единицы измерения')} />
+                    <input style={inputSt} inputMode="numeric" value={tkNumDecimals ?? ''}
+                      onChange={e => { const v = e.target.value.replace(/\D/g, ''); setTkNumDecimals(v ? Number(v) : undefined) }}
+                      placeholder={t('Знаков после запятой')} aria-label={t('Знаков после запятой')} />
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={tkNumDecimal} onChange={setTkNumDecimal} label={t('Десятичное число')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Десятичное число')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('принимать 69,94 и 69.94')}</span></span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={tkNumpad} onChange={setTkNumpad} label={t('Нампад на телефоне')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Нампад на телефоне')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('цифровая клавиатура у ученика')}</span></span>
+                  </label>
+                </div>
+              )}
+
+              {/* screenHotspot — картинка и области-ответы, тот же редактор, что в курсе */}
+              {tkAnswerType === 'screenHotspot' && (
+                <Suspense fallback={null}>
+                  <ScreenHotspotEditor value={tkHotspot} onChange={setTkHotspot} accent={cfg} />
+                </Suspense>
               )}
 
               {/* tableFill */}
