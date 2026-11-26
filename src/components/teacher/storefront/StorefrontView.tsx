@@ -10,6 +10,7 @@ import { getOwnerId } from '../../../lib/owner'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import { useTeacherAccess } from '../../../lib/teacherAccess'
 import { PLATFORM } from '../../../lib/platform'
+import { PAGE_WIDTH } from '../../../lib/pageWidth'
 import {
   CATALOG_CATEGORIES, CATALOG_DEMO, COVER_TONE_IDS, COVER_TONES, catalogHref, decideOrder, fetchAuthorOverview, formatPrice,
   revokeEntitlement, saveListing, slugFromTitle, type AuthorOverview, type Listing, type ListingStatus,
@@ -69,7 +70,8 @@ export default function StorefrontView({ compact = false }: { compact?: boolean 
 
   return (
     <div ref={rootRef} className="cat-root" data-layout={compact ? 'mobile' : 'desktop'} data-shell={PLATFORM} style={{ minHeight: 0, background: 'transparent' }}>
-      <div className="cat-wrap" style={{ padding: compact ? '0 0 40px' : '24px 32px 80px', maxWidth: 1120, margin: 0 }}>
+      {/* Ширина и поля — как у остальных страниц кабинета (PAGE_WIDTH), по центру. */}
+      <div className="cat-wrap" style={{ padding: compact ? '0 0 40px' : '28px clamp(16px, 3vw, 24px) 80px', maxWidth: compact ? undefined : PAGE_WIDTH.list, margin: compact ? 0 : '0 auto' }}>
         {!compact && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <h1 className="cat-h1" style={{ flex: 1, fontSize: 30 }}>Витрина</h1>
