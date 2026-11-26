@@ -149,7 +149,7 @@ try {
       ('${F}','00000000-0000-0000-0000-0000000000d3','f1','Первая формула',1);
   `)
   await sql(readFileSync('supabase/migrations/20261125200000_course_marketplace_foundation.sql', 'utf8'))
-  await sql(readFileSync('supabase/migrations/20261126090000_course_marketplace_notifications.sql', 'utf8'))
+  await sql(readFileSync('supabase/migrations/20261126090100_course_marketplace_notifications.sql', 'utf8'))
   await sql(`update auth.users set raw_app_meta_data = '{"role":"admin"}' where id = '${X}'`)
   // Боевой лимит тарифа уже заменён миграцией — проверяем его на месте.
   await sql(`grant select on course_listings, course_orders, course_entitlements, user_consents to authenticated;`)
