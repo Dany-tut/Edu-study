@@ -5750,7 +5750,7 @@
   "is_simulation": false,
   "alt_text": "Учебная схема: объединение из папки.",
   "path": "inline:acc-ru-181#steps-fig1",
-  "sha256": "2f383baad09a617ee836a63b119bac2071f6d84723340d9519c9c2db058ffea3",
+  "sha256": "2da553aaf9c44948161c37e8e4efd26dc95e9f2356d792b3a6565da2708bcee3",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -5763,7 +5763,7 @@
   "license_or_permission": "Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)",
   "is_simulation": true,
   "alt_text": "Учебная реконструкция листа «Сверка»: формула в C2.",
-  "path": "inline:acc-ru-182#steps-fig1",
+  "path": "inline:acc-ru-182#expect-fig1",
   "sha256": "004f664d7da3630ebd017abe32437f9bd74e41cbb9951df5fccb1a8ff9d74efb",
   "verification_status": "названия по документации, расположение условное"
  },
@@ -5791,7 +5791,7 @@
   "license_or_permission": "Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)",
   "is_simulation": false,
   "alt_text": "Учебная схема: четыре стадии диагностики реестра.",
-  "path": "inline:acc-ru-184#steps-fig1",
+  "path": "inline:acc-ru-184#expect-fig1",
   "sha256": "9c7d6c8468fa05bfc503a725aeaebe812931186755e49b102f6585fa51165b33",
   "verification_status": "схема по тексту урока"
  },
