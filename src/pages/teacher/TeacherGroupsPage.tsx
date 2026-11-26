@@ -666,8 +666,11 @@ function TrackFields({
 }
 
 // ─── Модалка добавления индивидуального ученика ──────────────────────────────
-function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
+export function AddIndividualStudentModal({ onClose, onPickExisting, onSave, initial }: {
   onClose: () => void
+  /** Предзаполнение, когда окно открыто не из «Групп» (например, из доступа
+   *  к курсу): имя из поиска, предмет и уровень курса. */
+  initial?: { name?: string; subject?: string; level?: string }
   /** Switch to picking an existing person instead of creating a fresh one. */
   onPickExisting?: () => void
   onSave: (s: {
@@ -697,6 +700,14 @@ function AddIndividualStudentModal({ onClose, onPickExisting, onSave }: {
   const [step, setStep] = useState<'form' | 'config' | 'link'>('form')
   const [newStudentId, setNewStudentId] = useState<string | null>(null)
   const [newGroupId, setNewGroupId] = useState<string | null>(null)
+  // Предзаполнение — один раз при открытии, поверх старого черновика формы.
+  useEffect(() => {
+    if (!initial) return
+    if (initial.name) setName(initial.name)
+    if (initial.subject) setSubject(initial.subject)
+    if (initial.level) setLevel(initial.level)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSave() {
     if (!name.trim()) return

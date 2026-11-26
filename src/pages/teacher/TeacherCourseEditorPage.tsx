@@ -57,7 +57,7 @@ import { handoutAttempt } from '../../lib/courseGroupHandout'
 import { useCourseVisibility, courseVisibilityReadyForCopy, flushCourseVisibility, loadCourseVisibility } from '../../lib/courseVisibility'
 import { courseModuleIdentitiesFor } from '../../lib/courseModuleIdentity'
 import { courseModuleWrites } from '../../lib/courseModuleWrites'
-import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, useSyncExternalStore } from 'react'
+import { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, useSyncExternalStore, lazy, Suspense } from 'react'
 import SaveStatusLine from '../../components/SaveStatusLine'
 import { getWriteActivity, subscribeWriteActivity } from '../../lib/sync/writeActivity'
 import { SAVE_RETRY_MS, shouldAutoRetry } from '../../lib/sync/saveStatus'
@@ -122,6 +122,9 @@ import { restoreSeedTheory } from '../../data/seedTheory'
 import { diffAgainstSeed, applySeedChanges, type SeedDiff } from '../../lib/seedSync'
 import SeedSyncDialog from '../../components/teacher/SeedSyncDialog'
 import ConflictDialog from '../../components/teacher/ConflictDialog'
+// Окно «Новый ученик» — то же, что в «Группах»: ученик создаётся одним путём
+// и сразу виден везде. Грузится по требованию вместе с чанком страницы групп.
+const AddIndividualStudentModal = lazy(() => import('./TeacherGroupsPage').then(m => ({ default: m.AddIndividualStudentModal })))
 import { compareCourseVersions, type CourseConflict } from '../../lib/courseConflictComparison'
 import {
   paragraphsToTheory, appendTheoryImage, removeTheoryImage, orderedTheoryImages,
@@ -671,9 +674,11 @@ function RemoveDot({ onClick, label }: { onClick: () => void; label: string }) {
 }
 
 function AssignPicker({
-  items, selectedIdOf, onToggle, onPickCard, onCreateCard, creatingId, pickHintId, wantSubject, kind,
+  items, selectedIdOf, onToggle, onPickCard, onCreateCard, creatingId, pickHintId, wantSubject, kind, onCreateNew,
 }: {
   items: AssignItem[]
+  /** Завести нового ученика прямо отсюда (то же окно, что в «Группах»). */
+  onCreateNew?: (name: string) => void
   /** Выбранная карточка элемента (для группы — её же id) либо null. */
   selectedIdOf: (item: AssignItem) => string | null
   onToggle: (item: AssignItem) => void
@@ -836,6 +841,21 @@ function AssignPicker({
             </div>
           )
         })}
+        {onCreateNew && (
+          <button data-hover="layer" type="button" onClick={() => onCreateNew(q.trim())} style={{
+            display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px',
+            borderRadius: 12, border: '1px dashed var(--color-border-medium)', background: 'transparent',
+            cursor: 'pointer', fontFamily: 'inherit', color: 'var(--color-green-text)', textAlign: 'left',
+          }}>
+            <span style={{
+              width: 26, height: 26, borderRadius: '50%', background: 'var(--color-green-soft)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}><Plus size={14} /></span>
+            <span style={{ fontSize: 13, fontWeight: 700, minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', ...textFadeStyle }}>
+              {q.trim() && shown.length === 0 ? `${t('Создать')} «${q.trim()}»` : t('Новый ученик')}
+            </span>
+          </button>
+        )}
         {shown.length === 0 && (
           <div style={{ fontSize: 12, color: 'var(--color-muted)', padding: '12px 0' }}>
             {items.length === 0
@@ -860,7 +880,7 @@ function AssignPicker({
 }
 
 function CenterCourseAccess({
-  course, setCourse, groups, allStudents, addIndividualCard, accessModes, onAccessModesChange,
+  course, setCourse, groups, allStudents, addIndividualCard, addIndividualStudent, accessModes, onAccessModesChange,
 }: {
   course: CourseEdData
   setCourse: React.Dispatch<React.SetStateAction<CourseEdData>>
@@ -868,6 +888,8 @@ function CenterCourseAccess({
   allStudents: Student[]
   /** Завести человеку ещё одно направление (карточку) — из useGroups. */
   addIndividualCard: ReturnType<typeof useGroups>['addIndividualCard']
+  /** Завести нового ученика (как «Новый ученик» в «Группах»). */
+  addIndividualStudent: ReturnType<typeof useGroups>['addIndividualStudent']
   accessModes: Record<string, AccessMode>
   onAccessModesChange: (changes: Record<string, AccessMode>) => void
 }) {
@@ -883,6 +905,8 @@ function CenterCourseAccess({
   const [freshCards, setFreshCards] = useState<Student[]>([])
   const [creatingKey, setCreatingKey] = useState<string | null>(null)
   const [createErr, setCreateErr] = useState<string | null>(null)
+  // Новый ученик прямо из «Кому дать доступ»: имя — из строки поиска.
+  const [newStudentName, setNewStudentName] = useState<string | null>(null)
   const students = useMemo(() => {
     if (!freshCards.length) return allStudents
     const known = new Set(allStudents.map(s => s.id))
@@ -1240,7 +1264,26 @@ function CenterCourseAccess({
               creatingId={creatingKey}
               pickHintId={pickHintKey}
               wantSubject={course.subject}
+              onCreateNew={name => setNewStudentName(name)}
             />
+          )}
+          {newStudentName !== null && (
+            <Suspense fallback={null}>
+              <AddIndividualStudentModal
+                initial={{ name: newStudentName, subject: course.subject, level: course.level }}
+                onClose={() => { setNewStudentName(null); clearDrafts('groups.addIndiv.') }}
+                onSave={async s => {
+                  const result = await addIndividualStudent(s as Parameters<typeof addIndividualStudent>[0])
+                  // Создан — сразу даём доступ к этому курсу. Остальное (группы,
+                  // журнал, выбор для ДЗ) он получает тем же путём, что из «Групп».
+                  if (result.studentId) {
+                    const id = result.studentId
+                    setCourse(c => c.studentIds.includes(id) ? c : { ...c, studentIds: [...c.studentIds, id] })
+                  }
+                  return { inviteToken: result.inviteToken, studentId: result.studentId ?? null, groupId: result.groupId ?? null, error: (result.error as { message?: string } | null)?.message ?? null }
+                }}
+              />
+            </Suspense>
           )}
           {createErr && (
             <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: 'var(--color-red-text)' }}>
@@ -6280,7 +6323,7 @@ export default function TeacherCourseEditorPage() {
   const setActivePage = useTeacher(s => s.setActivePage)
   const editingCourseJson = useTeacher(s => s.editingCourseJson)
   const setCourseEdited = useTeacher(s => s.setCourseEdited)
-  const { groups, addIndividualCard } = useGroups()
+  const { groups, addIndividualCard, addIndividualStudent } = useGroups()
   const allStudents = useAllStudents()
 
   const [{ course, editRevision, recoveredDraft, recoveryIntent, needsHeavyFill, tabSource }, setCourseState] = useState(() => {
@@ -8648,6 +8691,7 @@ export default function TeacherCourseEditorPage() {
                   course={course} setCourse={editCourseAccess}
                   groups={groups} allStudents={allStudents}
                   addIndividualCard={addIndividualCard}
+                  addIndividualStudent={addIndividualStudent}
                   accessModes={accessModes} onAccessModesChange={editAccessModes}
                 />
             ) : (
