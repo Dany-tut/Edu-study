@@ -5,7 +5,8 @@ import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../../lib/supabase'
 import { useT } from '../../lib/i18n'
 import { confirmDialog } from '../ConfirmHost'
 import { Alert } from '../Alert'
-import { Copy, ExternalLink, Filter, Sparkles } from '../icons/appIcons'
+import { Copy, ExternalLink, Filter, RefreshCw, Sparkles } from '../icons/appIcons'
+import { useIpadScreenActions } from '../../store/ipadRailActionsStore'
 import Switch from '../Switch'
 import ScrollFade from '../ScrollFade'
 import MobileSheet from '../MobileSheet'
@@ -24,6 +25,8 @@ import './profileIntegrations.css'
 type Grant = { owner: string; client: { id: string; name: string; uri?: string }; grantedAt: string }
 const endpoint = SUPABASE_URL + '/functions/v1/iskra-mcp'
 const phone = PLATFORM === 'iphone' || PLATFORM === 'android'
+// iPad: «скопировать», «обновить» и фильтр журнала — в капсуле справа, не на экране (без дублей).
+const ipad = PLATFORM === 'ipad'
 
 const fmtTime = (iso: string) => {
   const d = new Date(iso)
@@ -170,6 +173,12 @@ export default function ClaudeAccessCard() {
 
   const current = grants.find(g => g.client.id === selected) ?? null
 
+  useIpadScreenActions(ipad ? [
+    { id: 'copy', icon: Copy, label: 'Скопировать адрес', onClick: copy, disabled: acting },
+    { id: 'refresh', icon: RefreshCw, label: 'Обновить статус', onClick: () => { setNotice(''); void refresh() }, disabled: acting || status === 'loading' },
+    ...(grants.length ? [{ id: 'problems', icon: Filter, label: 'Только отказы', onClick: () => setOnlyProblems(v => !v), pressed: onlyProblems }] : []),
+  ] : null)
+
   const grantItem = (grant: Grant) => {
     const scopes = effectiveScopes(rows.get(grant.client.id))
     const last = lastCall.get(grant.client.id)
@@ -211,8 +220,8 @@ export default function ClaudeAccessCard() {
       <p className="ai-assist-hint">{t('Снять право можно здесь. Добавить — только новым согласием в самом помощнике.')}</p>
       <div className="ai-assist-section ai-assist-log-head">
         <span>{t('Журнал вызовов')}</span>
-        <button type="button" className="integration-action ai-assist-filter" data-primary={onlyProblems || undefined}
-          aria-pressed={onlyProblems} onClick={() => setOnlyProblems(v => !v)}><Filter size={14} /><OpticalText as="iskra-button-label">{t('Только отказы')}</OpticalText></button>
+{!ipad &&         <button type="button" className="integration-action ai-assist-filter" data-primary={onlyProblems || undefined}
+          aria-pressed={onlyProblems} onClick={() => setOnlyProblems(v => !v)}><Filter size={14} /><OpticalText as="iskra-button-label">{t('Только отказы')}</OpticalText></button>}
       </div>
       {entries.length ? <LogScroll>
         <ul className="ai-assist-log">
@@ -234,10 +243,10 @@ export default function ClaudeAccessCard() {
     <p>{t('Claude и другие приложения с поддержкой MCP читают данные ваших учеников от вашего имени и только в пределах выданных прав. Тексты учеников передаются как данные, а не как команды.')}</p>
     <code>{endpoint}</code>
     <div className="claude-access-actions">
-      <button type="button" className="integration-action" disabled={acting} onClick={copy}><Copy size={15} /><OpticalText as="iskra-button-label">{t('Скопировать адрес')}</OpticalText></button>
+      {!ipad && <button type="button" className="integration-action" disabled={acting} onClick={copy}><Copy size={15} /><OpticalText as="iskra-button-label">{t('Скопировать адрес')}</OpticalText></button>}
       <a href="https://claude.ai/customize/connectors/yours?modal=add-custom-connector" target="_blank" rel="noopener noreferrer"
         className="integration-action"><ExternalLink size={15} />{t('Открыть Claude')}</a>
-      <button type="button" className="integration-action" disabled={acting || status === 'loading'} onClick={() => { setNotice(''); void refresh() }}><OpticalText as="iskra-button-label">{t('Обновить статус')}</OpticalText></button>
+      {!ipad && <button type="button" className="integration-action" disabled={acting || status === 'loading'} onClick={() => { setNotice(''); void refresh() }}><OpticalText as="iskra-button-label">{t('Обновить статус')}</OpticalText></button>}
     </div>
     <div><strong>{t('Подключённые помощники')}</strong>
       <p role="status">{status === 'loading' && !grants.length ? t('Проверяем подключение…') : status === 'error' ? t('Не удалось проверить разрешения приложений.') : grants.length ? t('Имя помощник сообщает о себе сам — сверяйте адрес и id.') : t('Помощники не подключены. Скопируйте адрес и добавьте Искру в помощнике.')}</p>

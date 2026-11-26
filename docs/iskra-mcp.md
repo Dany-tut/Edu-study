@@ -59,7 +59,10 @@ In the verified Claude client, use **Customize → Connectors → Add connector 
 - **Тексты учеников** отдаются только как `{source, untrusted_text}`: невидимые и bidi-символы удаляются, длина до 2000 знаков. Пометка стоит в `instructions` сервера.
 - **Интерфейс.** «Интеграции → ИИ-помощники» (`ClaudeAccessCard.tsx`): права (снять можно здесь, добавить — только новым согласием), журнал, фильтр «Только отказы», отзыв. На телефонах карточка открывается в листе. На экране согласия права выбираются переключателями.
 - **Проверки:** `npm run check:iskra-mcp` (Deno-тесты и сторож «нет service role»), `npm run check:iskra-mcp-db` (29 проверок миграции на одноразовом Postgres в Docker), стенд на фикстурах `dev-ai-assistants.html?platform=pc|ipad|iphone|android&theme=light|dark&view=panel|consent|empty`.
-- **Не сделано на этапе 1:** токен только для MCP (`aud`, этап 2) — до него OAuth-токен годится и для прямого REST под RLS учителя. Действия панели не вынесены в капсулу iPad. Очистка журнала по сроку не настроена. Прежние 5 инструментов чтения не переведены на `untrusted_text`.
+- **Этап 2 (26.11.2026, в проде):** токен помощника работает с данными только через эту функцию. `public.mfa_ok()` для токена с `client_id` истинна только с заголовком `x-iskra-mcp-key` (секрет функции `ISKRA_MCP_GATE_KEY`, в базе sha256 в `private.mcp_gate_key`) — это закрывает REST, Storage и Realtime. Функции с сервисным ключом отклоняют токен помощника через `_shared/mfa.ts`. Подключение без прав, выданных в Искре, — `needs_consent`. Экран согласия показывает адрес возврата и id. Подробно: `docs/qa/mcp-v2-release/stage2.md`.
+- **iPad:** «Скопировать адрес», «Обновить статус» и «Только отказы» — в капсуле справа (`useIpadScreenActions`, `src/store/ipadRailActionsStore.ts`), на экране их нет.
+- **Журнал не чистится по сроку намеренно:** на `mcp_call_log` стоит история (`iskra_preserve_row`), удалённые строки переехали бы в `iskra_history.row_versions` — места это не освобождает. Объём мал (≈200 байт на вызов, лимит 2000 вызовов в сутки на подключение).
+- **Новая Edge Function**, которая после `auth.getUser()` действует сервисным ключом, обязана звать `mfaPending()` или `isAssistantToken()` из `_shared/mfa.ts`. При выкладке функций `verify_jwt` брать из `supabase/config.toml`.
 
 ## Supabase Auth setup required for production
 

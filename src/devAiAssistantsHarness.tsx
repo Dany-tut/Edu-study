@@ -40,6 +40,9 @@ const user = { id: 'aaaaaaaa-0000-4000-8000-000000000001', email: 'teacher@examp
 const session = { user, access_token: 'stand-token' }
 
 async function boot() {
+  // Цикл dashboardStore ↔ studentDataStore: в приложении вход — через studentDataStore,
+  // поэтому он грузится раньше всего остального.
+  if (platform === 'ipad') await import('./store/studentDataStore')
   const { supabase, SUPABASE_URL } = await import('./lib/supabase')
   const sb = supabase as unknown as Record<string, any>
   const ok = <T,>(data: T) => Promise.resolve({ data, error: null })
@@ -91,15 +94,17 @@ async function boot() {
   const { default: ClaudeAccessCard } = await import('./components/teacher/ClaudeAccessCard')
   const { default: ConfirmHost } = await import('./components/ConfirmHost')
   const { default: OAuthConsentPage } = await import('./pages/teacher/OAuthConsentPage')
+  const TeacherIpadRail = platform === 'ipad' ? (await import('./components/teacher/TeacherIpadRail')).default : () => null
   const view = params.get('view') ?? 'panel'
   if (view === 'consent') history.replaceState(null, '', location.pathname + location.search + '&authorization_id=stand')
   document.body.style.background = 'var(--color-bg)'
   createRoot(document.getElementById('root')!).render(view === 'consent' ? <><OAuthConsentPage /><ConfirmHost /></> : <>
-    <div style={{ maxWidth: platform === 'pc' || platform === 'ipad' ? 900 : undefined, margin: '0 auto', padding: 'max(16px, env(safe-area-inset-top)) 16px 24px', color: 'var(--color-text)' }}>
+    <div style={{ maxWidth: platform === 'pc' || platform === 'ipad' ? 900 : undefined, margin: '0 auto', padding: platform === 'ipad' ? '16px 112px 24px 16px' : 'max(16px, env(safe-area-inset-top)) 16px 24px', color: 'var(--color-text)' }}>
       <div style={{ fontSize: 22, fontWeight: 750, margin: '8px 0 4px' }}>Интеграции</div>
       <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>Стенд на фикстурах · {platform} · {document.documentElement.dataset.theme}</div>
       <ClaudeAccessCard />
     </div>
+    {platform === 'ipad' && <TeacherIpadRail />}
     <ConfirmHost />
   </>)
 }

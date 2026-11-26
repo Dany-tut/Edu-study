@@ -13,6 +13,7 @@ import FadeText from '../FadeText'
 import CountBadge from '../CountBadge'
 import { AvatarPhotoFill } from '../AvatarPhoto'
 import { useTeacher, type TeacherPage } from '../../store/teacherStore'
+import { useIpadRailActions } from '../../store/ipadRailActionsStore'
 import { useTeacherAccess, type TeacherTabId } from '../../lib/teacherAccess'
 import { useDeskStore } from '../../store/deskStore'
 import { useJournalPending } from '../../lib/useGroups'
@@ -65,6 +66,7 @@ export default function TeacherIpadRail() {
   const [pop, setPop] = useState<PopId>(null)
 
   const activePage = useTeacher(s => s.activePage)
+  const screenActions = useIpadRailActions(s => s.actions)
   const setActivePage = useTeacher(s => s.setActivePage)
   const openLessonEditor = useTeacher(s => s.openLessonEditor)
   const openHomeworkCreate = useTeacher(s => s.openHomeworkCreate)
@@ -239,6 +241,23 @@ export default function TeacherIpadRail() {
             </span>
             {pop === 'profile' && <FadeText className="tir-cell-label">{t('Профиль')}</FadeText>}
           </button>
+
+          {/* ЭКРАН — 0–3 действия текущего экрана (useIpadScreenActions) */}
+          {screenActions.length > 0 && <div className="tir-divider" />}
+          {screenActions.map(a => (
+            <button
+              key={a.id}
+              type="button"
+              className="tir-cell"
+              aria-label={t(a.label)}
+              aria-pressed={a.pressed === undefined ? undefined : a.pressed}
+              disabled={a.disabled}
+              onClick={() => { setPop(null); a.onClick() }}
+            >
+              <a.icon size={a.pressed ? 22 : 23} strokeWidth={a.pressed ? 2.2 : 1.8} />
+              {a.pressed && <FadeText className="tir-cell-label">{t(a.label)}</FadeText>}
+            </button>
+          ))}
         </div>
 
         {/* ГЛАВНОЕ — отдельный круг под капсулой */}

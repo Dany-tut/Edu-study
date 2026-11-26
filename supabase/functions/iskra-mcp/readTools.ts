@@ -12,6 +12,8 @@
 // Остальные таблицы (students, groups, lesson_attendance, lesson_progress,
 // homework_attempts, hw_ai_grades, homework) RLS закрывает владельцем.
 
+import { cleanText } from './untrusted.ts'
+
 export interface DbResult { data: unknown; error: unknown }
 export interface Query extends PromiseLike<DbResult> {
   select(columns: string): Query
@@ -44,7 +46,9 @@ const AI_DONE = new Set(['graded', 'confirmed', 'changed'])
 
 export const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 export const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
-const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
+// Свободный текст (комментарии проверки ИИ, формулировки, имена) — без невидимых
+// символов и не длиннее n: в нём может оказаться эхо ответа ученика (untrusted.ts).
+const clip = (s: string, n: number) => cleanText(s, n)
 const round1 = (n: number) => Math.round(n * 10) / 10
 const isoDate = (d: Date) => d.toISOString().slice(0, 10)
 
@@ -76,7 +80,7 @@ export async function ownStudents(db: Db, uid: string): Promise<Map<string, OwnS
   const out = new Map<string, OwnStudent>()
   for (const r of list) {
     if (r.created_by !== uid) continue // защита на случай расширения политики
-    out.set(str(r.id), { id: str(r.id), name: str(r.name), group_id: (r.group_id as string | null) ?? null })
+    out.set(str(r.id), { id: str(r.id), name: cleanText(str(r.name), 120), group_id: (r.group_id as string | null) ?? null })
   }
   return out
 }
@@ -87,7 +91,7 @@ async function ownGroups(db: Db, uid: string): Promise<Map<string, OwnGroup>> {
   for (const r of list) {
     if (r.created_by !== uid) continue
     out.set(str(r.id), {
-      id: str(r.id), name: str(r.name), subject: (r.subject as string | null) ?? null,
+      id: str(r.id), name: cleanText(str(r.name), 120), subject: (r.subject as string | null) ?? null,
       level: (r.level as string | null) ?? null, is_individual: r.is_individual === true,
     })
   }
