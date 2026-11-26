@@ -1,6 +1,6 @@
 # Реестр источников курса
 
-Всего записей: 399 (opened: 325, not-checked: 67, unreachable: 7). opened — страница открыта и сверена автором урока; unreachable — не открылась, утверждение смягчено или вынесено в открытые вопросы.
+Всего записей: 401 (opened: 327, not-checked: 68, unreachable: 6). opened — страница открыта и сверена автором урока; unreachable — не открылась, утверждение смягчено или вынесено в открытые вопросы.
 
 | Модуль | Источник | Издатель | Вид | Статус | Проверено | URL | Уроки №, примечание |
 |---|---|---|---|---|---|---|---|
@@ -294,10 +294,12 @@
 | EXP15 | Отправка квитанции на требование налоговой инспекции (подборка) | КонсультантПлюс | secondary | not-checked | 2026-11-25 | https://www.consultant.ru/law/podborki/otpravka_kvitancii_na_trebovanie_nalogovoj_inspekcii/ | 136 |
 | EXP15 | ФСБУ 9/2025 «Доходы» (приказ Минфина России от 16.05.2025 № 56н) | Минфин России | regulation | opened | 2026-11-25 | https://minfin.gov.ru/ru/document?id_4=313337 | 137 |
 | EXP15 | Минфин утвердил ФСБУ 10/2026 «Расходы» | БУХ.1С | secondary | opened | 2026-11-25 | https://buh.ru/news/minfin-utverdil-fsbu-10-2026-raskhody.html | 137 | Приказ № 53н от 24.04.2026; рег. № 87337 от 01.07.2026 — по выдаче поиска
-| EXP15 | Приказ Минфина России от 24.04.2026 № 53н — официальная публикация | Официальный интернет-портал правовой информации | regulation | unreachable | 2026-11-25 | https://publication.pravo.gov.ru/document/0001202607020007 | 137 |
+| EXP15 | Приказ Минфина России от 24.04.2026 № 53н — официальная публикация | Официальный интернет-портал правовой информации | regulation | opened | 2026-11-25 | https://publication.pravo.gov.ru/document/0001202607020007 | 137 | Страница и PDF открыты при сверке модуля EXP21 (25.11.2026): реквизиты, п. 2 приказа.
+| EXP15 | Приказ Минэкономразвития России от 21.10.2026 № 732 «Об установлении коэффициентов-дефляторов на 2027 год» | Официальный интернет-портал правовой информации | regulation | opened | 2026-11-25 | https://publication.pravo.gov.ru/document/0001202610300013 | 137 | УСН — 1,153; гл. 23 НК (НДФЛ) — 3,006. Опубликован 30.10.2026.
+| EXP15 | Утверждён порядок переноса выходных дней в 2026 году (постановление Правительства РФ от 24.09.2025 № 1466) | БУХ.1С | secondary | not-checked | 2026-11-25 | https://buh.ru/news/pravitelstvo-utverdilo-poryadok-perenosa-vykhodnykh-dney-v-2026-godu.html | 131 | По выдаче поиска 26.11.2026: выходной с 04.01 перенесён на 31.12.2026; последний рабочий день 2026 года — 30.12.
 | EXP15 | Федеральный закон от 26.07.2026 № 242-ФЗ | КонсультантПлюс | secondary | opened | 2026-11-25 | https://www.consultant.ru/document/cons_doc_LAW_540337/ | 137 | Изменения ст. 85, 102, 227.1 НК РФ с 01.01.2027; суть не раскрыта
 | EXP15 | Единая предельная величина базы для страховых взносов на 2027 год (проект) | БУХ.1С | secondary | opened | 2026-11-25 | https://buh.ru/news/biznesu-opredelili-edinuyu-predelnuyu-velichinu-bazy-dlya-strakhovykh-vznosov-na-2027-god.html | 137 | Проект: 3 311 000 руб.
-| EXP15 | Дефлятор для УСН на 2027 год предложили поднять до 1,153 (проект) | ppt.ru | secondary | opened | 2026-11-25 | https://ppt.ru/news/koeffitsient/deflyator-dlya-usn-na-2027-god-predlozhili-podnyat-do-1153 | 137 | Проект приказа Минэкономразвития
+| EXP15 | Дефлятор для УСН на 2027 год предложили поднять до 1,153 (проект) | ppt.ru | secondary | opened | 2026-11-25 | https://ppt.ru/news/koeffitsient/deflyator-dlya-usn-na-2027-god-predlozhili-podnyat-do-1153 |  | Проект приказа Минэкономразвития
 | EXP15 | С 1 января 2026 года МРОТ составит 27 093 рубля | БУХ.1С | secondary | opened | 2026-11-25 | https://buh.ru/news/s-1-yanvarya-2026-goda-mrot-sostavit-27-093-rublya.html | 137 | Закон от 28.11.2025 № 429-ФЗ
 | EXP15 | Функции Excel по категориям | Microsoft | vendor-doc | not-checked | 2026-11-25 | https://support.microsoft.com/ru-ru/excel/excel-functions-by-category | 133 | Ссылка из исходного пособия
 | EXP16 | НК РФ, ст. 164 «Налоговые ставки» (НДС 22% с 2026 г., 425-ФЗ) | КонсультантПлюс | secondary | opened | 2026-11-25 | https://www.consultant.ru/document/cons_doc_LAW_28165/ | 141, 143 | П. 3 в ред. 425-ФЗ от 28.11.2025.
