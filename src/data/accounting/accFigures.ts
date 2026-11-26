@@ -190,10 +190,8 @@ export function reconScreenBoxes(s: ReconScreen, opts: { bare?: boolean } = {}):
     // Excel), затем всё ужимается пропорционально под ширину окна. Равные
     // столбцы обрезали «ООО Альфа, Договор 15» ровно там, где урок о нём.
     const need = headers.map((h, c) => Math.max(22, textW(h, 11), ...rows.map(r => textW(r[c] ?? '', 11))) + 12)
-    // У листа Excel столбец номеров строк узкий и не растягивается.
-    const fixed0 = headers[0] === '' ? 36 : 0
-    const k = (ww - 12 - fixed0) / need.slice(fixed0 ? 1 : 0).reduce((a, b) => a + b, 0)
-    const cw = need.map((n, c) => (fixed0 && c === 0 ? fixed0 : n * k))
+    const k = (ww - 12) / need.reduce((a, b) => a + b, 0)
+    const cw = need.map(n => n * k)
     const cx = (c: number) => x0 + 6 + cw.slice(0, c).reduce((a, b) => a + b, 0)
     const rh = 22
     headers.forEach((h, c) => {
