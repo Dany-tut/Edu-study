@@ -153,4 +153,24 @@ const mrows = MODULES.map(m => {
   return `| ${m.id} | ${m.title} | ${ls.length} | ${q} | ${f} | ${bp ? `${cov}/${bp.topics.length}` : '—'} | ${st.opened ?? 0} / ${st['not-checked'] ?? 0} / ${st.unreachable ?? 0} | ${o} | ${orig || '—'} |`
 })
 writeFileSync(`${dir}/modules.md`, `# Сводка по модулям\n\n| Модуль | Название | Уроков | Вопросов | Схем | Темы ТЗ | Источники: сверено / не открыто / недоступно | Открытых вопросов | Исходные уроки пособия |\n|---|---|---|---|---|---|---|---|---|\n${mrows.join('\n')}\n`)
+// ── assets.json — манифест изображений (поля из ТЗ: visuals.asset_manifest_fields) ──
+const { createHash } = await import('node:crypto')
+const assets = ACC_LESSONS.flatMap(x => x.lesson.content.paragraphs.filter(p => p.image).map((p, i) => ({
+  id: `${x.shortId}-fig${i + 1}`,
+  lesson_id: x.shortId,
+  type: /реконструкц/i.test(p.text) ? 'reconstruction' : 'diagram',
+  source_url: null,
+  capture_date: null,
+  software_version: /реконструкц/i.test(p.text) ? (x.lesson.software || null) : null,
+  license_or_permission: 'Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)',
+  is_simulation: /реконструкц/i.test(p.text),
+  alt_text: p.text.replace(/\*\*/g, ''),
+  path: `inline:${x.shortId}#${p.id}`,
+  sha256: createHash('sha256').update(p.image).digest('hex'),
+  verification_status: /реконструкц/i.test(p.text) ? 'названия по документации, расположение условное' : 'схема по тексту урока',
+})))
+writeFileSync(`${dir}/assets.json`, JSON.stringify(assets, null, 1))
+const recon = assets.filter(a => a.is_simulation).length
+const unlabeled = assets.filter(a => !/^Учебная (схема|реконструкция)/.test(a.alt_text))
+writeFileSync(`${dir}/assets.md`, `# Манифест изображений курса\n\nВсего ${assets.length}: учебных реконструкций окон программ — ${recon}, схем — ${assets.length - recon}. Скриншотов реальных программ в курсе нет. Полный список с alt-текстом и SHA-256 — assets.json.\n\nПодписи не по шаблону «Учебная схема: … / Учебная реконструкция: …» (${unlabeled.length}):\n${unlabeled.map(a => `- ${a.id}: ${a.alt_text.slice(0, 90)}`).join('\n')}\n`)
 console.log(`Уроков ${ACC_LESSONS.length}; темы ${got}/${need}; источников ${srcRows.length}; открытых вопросов ${open.length}`)

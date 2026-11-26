@@ -5,6 +5,11 @@
   vygruzka_2026-01.xlsx, vygruzka_2026-02.xlsx, vygruzka_2026-03.xlsx — одинаковая структура
   (лист «Платежи», строка 1 — заголовки), вымышленные платежи Альфа/Бета/Гамма;
   README.txt — инструкция и эталон итогов (считается здесь же независимо от Excel).
+Папка «dop-fajly» (для уроков об импорте и ошибках; в основную папку выгрузок её НЕ кладут):
+  vygruzka_2026-04.csv — кодировка Windows-1251 (cp1251), разделитель «;», десятичная запятая;
+  vygruzka_2026-05_oshibka-struktury.xlsx — лишний столбец «Комментарий» и другое имя «Сумма руб»;
+  vygruzka_2026-06_nd-v-summe.xlsx — та же структура, но в одной ячейке «Сумма» текст «н/д».
+Старый XLS и PDF здесь не создаются (нет надёжной библиотеки): их ученик делает из своего файла по уроку.
 Запуск: python scripts/accounting/build_pq_folder.py
 """
 import io
@@ -67,6 +72,68 @@ def book_bytes(rows):
     return buf.getvalue()
 
 
+EXTRA_CSV = [
+    ("P2604-01", "Альфа", "Поставщик", "13000,00", OK),
+    ("P2604-02", "Бета", "Аренда", "8000,00", OK),
+    ("P2604-03", "Гамма", "Поставщик", "9500,50", NO),
+    ("P2604-04", "Альфа", "Аренда", "4000,00", OK),
+    ("P2604-05", "Бета", "Услуги", "2500,00", OK),
+    ("P2604-06", "Гамма", "Услуги", "3000,00", NO),
+]
+HEAD_ERR = ["ID платежа", "Организация", "Категория", "Сумма руб", "Статус", "Комментарий"]
+EXTRA_ERR = [
+    ("P2605-01", "Альфа", "Поставщик", 14000, OK, "по акту 5"),
+    ("P2605-02", "Бета", "Аренда", 8000, OK, ""),
+    ("P2605-03", "Гамма", "Услуги", 3500, NO, "ждём счёт"),
+    ("P2605-04", "Альфа", "Аренда", 4000, OK, ""),
+]
+EXTRA_ND = [
+    ("P2606-01", "Альфа", "Поставщик", 16000, OK),
+    ("P2606-02", "Бета", "Аренда", 8000, OK),
+    ("P2606-03", "Гамма", "Поставщик", "н/д", NO),
+    ("P2606-04", "Альфа", "Услуги", 2000, OK),
+]
+
+
+def csv_bytes():
+    lines = [";".join(HEAD)] + [";".join(str(x) for x in r) for r in EXTRA_CSV]
+    return ("\r\n".join(lines) + "\r\n").encode("cp1251")
+
+
+def book_generic(head, rows, widths):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Платежи"
+    ws.append(head)
+    for c in ws[1]:
+        c.font = Font(bold=True)
+    for r in rows:
+        ws.append(list(r))
+    for i, w in enumerate(widths):
+        ws.column_dimensions[chr(65 + i)].width = w
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
+def etalon_extra():
+    csv_sum = sum(float(r[3].replace(",", ".")) for r in EXTRA_CSV)
+    err_sum = sum(r[3] for r in EXTRA_ERR)
+    nd_sum = sum(r[3] for r in EXTRA_ND if isinstance(r[3], (int, float)))
+    L = ["", "ЭТАЛОН ДЛЯ ФАЙЛОВ ИЗ ПАПКИ dop-fajly (не кладите её в основную папку выгрузок)", ""]
+    L.append(f"vygruzka_2026-04.csv — {len(EXTRA_CSV)} строк, сумма " + f"{csv_sum:.2f}".replace(".", ","))
+    L.append("  Если при открытии вместо русских букв «кракозябры» — выберите кодировку 1251: Windows (кириллица), разделитель — точка с запятой.")
+    L.append("  Если в Сумме остался текст «13000,00» — укажите локаль «Русский» при изменении типа на число.")
+    L.append(f"vygruzka_2026-05_oshibka-struktury.xlsx — {len(EXTRA_ERR)} строк, сумма {err_sum}")
+    L.append("  Ошибка структуры: столбец называется «Сумма руб», а не «Сумма», и есть лишний «Комментарий».")
+    L.append("  При объединении с тремя основными файлами: в столбце «Сумма» у этих строк будет null, появятся новые столбцы «Сумма руб» и «Комментарий».")
+    L.append("  Общее число строк тогда: 21 (основные) + 4 = 25; сумма столбца «Сумма» остаётся 132500, а «Сумма руб» = 29500.")
+    L.append(f"vygruzka_2026-06_nd-v-summe.xlsx — {len(EXTRA_ND)} строк, в ячейке «Сумма» строки P2606-03 текст «н/д»")
+    L.append(f"  Сумма числовых значений {nd_sum}. После смены типа столбца на «Десятичное число» в этой ячейке будет Error (3 строки без ошибки).")
+    L.append("  Исправление: либо заменить «н/д» на пустое значение (null) ДО смены типа, либо удалить/заменить ошибки командами для ошибок в меню Power Query (названия сверьте в своей версии).")
+    return "\n".join(L)
+
+
 def etalon():
     lines = []
     per_file = {m: len(rows) for m, rows in DATA.items()}
@@ -91,7 +158,7 @@ def etalon():
     lines.append("Сумма по статусам (три файла):")
     for k in (OK, NO):
         lines.append(f"  {k} — {by_status[k]}")
-    return "\n".join(lines), len(allrows), sum(r[3] for r in allrows)
+    return "\n".join(lines) + "\n" + etalon_extra(), len(allrows), sum(r[3] for r in allrows)
 
 
 README_HEAD = """УЧЕБНАЯ ПАПКА ВЫГРУЗОК ДЛЯ POWER QUERY (курс «Бухгалтерия», Искра)
@@ -111,6 +178,12 @@ README_HEAD = """УЧЕБНАЯ ПАПКА ВЫГРУЗОК ДЛЯ POWER QUERY (
   5. Добавьте в папку файл за март, нажмите Данные → Обновить всё и сверьте снова.
   6. Итоговую книгу храните ВНЕ папки «Учебные выгрузки».
 
+Дополнительные файлы (папка dop-fajly, для уроков об импорте CSV и об ошибках структуры):
+  vygruzka_2026-04.csv — CSV в кодировке Windows-1251 с разделителем «;».
+  vygruzka_2026-05_oshibka-struktury.xlsx — файл с другой структурой (лишний столбец, другое имя столбца).
+  vygruzka_2026-06_nd-v-summe.xlsx — файл с текстом «н/д» в столбце «Сумма».
+  Старого XLS и PDF здесь нет: сохраните свой файл как «Книга Excel 97–2003 (*.xls)» и как PDF по уроку.
+
 """
 
 
@@ -122,6 +195,14 @@ def main():
             zi = zipfile.ZipInfo(f"vygruzki-dlya-power-query/vygruzka_{m}.xlsx", date_time=(2026, 11, 25, 0, 0, 0))
             zi.compress_type = zipfile.ZIP_DEFLATED
             z.writestr(zi, book_bytes(rows))
+        for name, data in (
+            ("vygruzka_2026-04.csv", csv_bytes()),
+            ("vygruzka_2026-05_oshibka-struktury.xlsx", book_generic(HEAD_ERR, EXTRA_ERR, (14, 14, 14, 12, 14, 16))),
+            ("vygruzka_2026-06_nd-v-summe.xlsx", book_generic(HEAD, EXTRA_ND, (14, 14, 14, 10, 14))),
+        ):
+            zi = zipfile.ZipInfo(f"vygruzki-dlya-power-query/dop-fajly/{name}", date_time=(2026, 11, 25, 0, 0, 0))
+            zi.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(zi, data)
         zi = zipfile.ZipInfo("vygruzki-dlya-power-query/README.txt", date_time=(2026, 11, 25, 0, 0, 0))
         zi.compress_type = zipfile.ZIP_DEFLATED
         z.writestr(zi, (README_HEAD + text + "\n").encode("utf-8"))
