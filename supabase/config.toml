@@ -51,3 +51,12 @@ verify_jwt = false
 # Страница по ссылке открывается без входа (только токен); cron — x-digest-secret;
 # JWT учителя проверяется внутри, доступ к функции — правилом базы.
 verify_jwt = false
+
+# На проде verify_jwt выключен (сверено 26.11.2026): вход Яндекс/VK открывается
+# без JWT, сводку зовёт cron по x-digest-secret. Без этих строк
+# `supabase functions deploy` включил бы проверку и сломал их.
+[functions.social-oauth]
+verify_jwt = false
+
+[functions.analytics-digest]
+verify_jwt = false
