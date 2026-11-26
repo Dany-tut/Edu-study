@@ -5,7 +5,9 @@ import StudentDetailsEditor from '../../components/teacher/StudentDetailsEditor'
 import { profileReadLifetime } from '../../lib/profileReadLifetime'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
-import { useState, useRef, useEffect, useCallback, useId, useMemo } from 'react'
+import { useState, useRef, useEffect, useCallback, useId, useMemo, Fragment } from 'react'
+import PinStar from '../../components/teacher/PinStar'
+import { usePinnedStudents, usePinDrag, splitPinned, mergeVisibleOrder } from '../../lib/pinnedStudents'
 import { useScrollFades } from '../../lib/useScrollFades'
 import { cardChip, btn } from '../../lib/pillStyles'
 import Tooltip from '../../components/Tooltip'
@@ -23,6 +25,7 @@ import {
   ChevronsUpDown, ExternalLink, Copy, Check,
   BarChart2, Target, BookOpen, XCircle, CheckCircle2, Layers,
   Search, Plus, Pencil,
+  Star,
 } from '../../components/icons/appIcons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import StudentSubjectsField from '../../components/teacher/StudentSubjectsField'
@@ -2624,6 +2627,13 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
       .filter(rosterPredicates[rosterFilter]),
     (!showPaymentColumns && (sortKey === 'lastPayment' || sortKey === 'debt')) || (!showAttendanceColumn && sortKey === 'attendance') || (!showHomeworkColumn && sortKey === 'hwScore') || (!showTestColumn && sortKey === 'testScore') || (!showTrialColumn && sortKey === 'trialScore') ? 'attention' : sortKey, sortDir, rosterHomeworkScore, getPaymentInfo,
   )
+  // Избранные — блоком сверху в порядке учителя; сортировка колонок действует на остальных.
+  const pins = usePinnedStudents()
+  const { pinned: pinnedRows, rest: restRows } = splitPinned(groupStudents, personKey, pins.keys)
+  const pinnedVisibleKeys = pinnedRows.map(personKey)
+  const pinDrag = usePinDrag(pinnedVisibleKeys, next => pins.reorder(mergeVisibleOrder(pins.keys, next)))
+  const pinDragOthers = pinDrag.drag ? pinnedVisibleKeys.filter(k => k !== pinDrag.drag!.key) : []
+  const rosterColCount = 2 + (showPaymentColumns ? 2 : 0) + Number(showAttendanceColumn) + Number(showHomeworkColumn) + Number(showTestColumn) + Number(showTrialColumn)
   const filterCounts: Record<RosterFilter, number> = {
     all: rosterAll.length,
     debtors: rosterAll.filter(rosterPredicates.debtors).length,
@@ -2966,12 +2976,26 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                       </tr>
                     </thead>
                     <tbody>
-                      {groupStudents.length === 0 && <tr><td colSpan={2 + (showPaymentColumns ? 2 : 0) + Number(showAttendanceColumn) + Number(showHomeworkColumn) + Number(showTestColumn) + Number(showTrialColumn)} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
+                      {groupStudents.length === 0 && <tr><td colSpan={rosterColCount} style={{ padding: 32, textAlign: 'center', color: 'var(--color-muted)' }}>
                         {rosterLoading ? <span role="status">{t('Загрузка…')}</span>
                           : searchQuery || rosterFilter !== 'all' ? t('Ничего не найдено')
                           : t('Учеников пока нет. Добавьте первого — нужны имя и предмет.')}
                       </td></tr>}
-                      {groupStudents.map(student => {
+                      {[...pinnedRows, ...restRows].map((student, rowIndex) => {
+                        const pinKey = personKey(student)
+                        const pinned = rowIndex < pinnedRows.length
+                        const dragging = pinDrag.drag?.key === pinKey
+                        const othersIndex = pinned && !dragging ? pinDragOthers.indexOf(pinKey) : -1
+                        const dropAt = pinDrag.drag && othersIndex >= 0
+                          ? othersIndex === pinDrag.drag.over ? 'before'
+                            : pinDrag.drag.over === pinDragOthers.length && othersIndex === pinDragOthers.length - 1 ? 'after' : undefined
+                          : undefined
+                        const sectionLabel = pinnedRows.length > 0 && (rowIndex === 0 || (rowIndex === pinnedRows.length && restRows.length > 0))
+                          ? <tr aria-hidden><td colSpan={rosterColCount} style={{ padding: '12px 12px 6px', borderBottom: '1px solid var(--color-border)' }}>
+                              <span className="pin-section-label">{rowIndex === 0 && <Star size={12} fill="var(--color-amber)" />}
+                                {rowIndex === 0 ? `${t('Закреплённые')} · ${pinnedRows.length}` : `${t('Все ученики')} · ${restRows.length}`}</span>
+                            </td></tr>
+                          : null
                         const financial = getPaymentInfo(student)
                         const studentHasAttendance = !rosterHasAttendance || rosterHasAttendance(student)
                         const initials = student.name.split(' ').map(p => p[0]).join('').slice(0, 2)
@@ -2982,11 +3006,16 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                         const colBg = (key: SortKey) =>
                           sortKey === key ? { background: 'color-mix(in srgb, var(--color-accent) 5%, transparent)' } : {}
                         return (
+                          <Fragment key={student.id}>
+                          {sectionLabel}
                           <tr
-                            key={student.id}
                             className={isDesktop ? 'roster-compact-row' : undefined}
-                            onClick={() => !isDesktop && onOpenStudent ? onOpenStudent(student) : setActiveStudentId(isSelected ? null : student.id)}
+                            data-pin-row={pinned || undefined}
+                            data-pin-dragging={dragging || undefined}
+                            data-pin-drop={dropAt}
+                            onClick={() => { if (pinDrag.swallowClick()) return; if (!isDesktop && onOpenStudent) onOpenStudent(student); else setActiveStudentId(isSelected ? null : student.id) }}
                             style={{
+                              ...(dragging ? { transform: `translateY(${pinDrag.drag!.dy}px)` } : {}),
                               cursor: 'pointer',
                               background: isSelected ? 'var(--color-purple-soft)' : 'transparent',
                               borderLeft: `3px solid ${isSelected ? 'var(--color-accent)' : 'transparent'}`,
@@ -2997,6 +3026,9 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                             {/* Name */}
                             <td style={{ padding: '12px 12px', borderBottom: '1px solid var(--color-border)', ...colBg('name') }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <div className="pin-avatar" data-pin-handle={pinned || undefined}
+                                  onPointerDown={pinned ? pinDrag.handle(pinKey) : undefined}
+                                  title={pinned ? t('Зажмите и перетащите, чтобы поменять порядок') : undefined}>
                                 <div style={{
                                   width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
                                   background: isDesktop ? 'color-mix(in srgb, var(--color-accent) 53%, var(--color-bg))' : activeGroup.color,
@@ -3004,6 +3036,8 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                                   fontSize: 11, fontWeight: 700, color: '#fff',
                                 }}>
                                   {initials}
+                                </div>
+                                <PinStar pinned={pinned} name={tn(student.name)} onToggle={() => pins.toggle(pinKey)} size={17} />
                                 </div>
                                 <div data-row-title style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
                                   <FadeText>{tn(student.name)}</FadeText>
@@ -3072,6 +3106,7 @@ export default function TeacherGroupsPage({ renderRoster, availableGroupIds, onO
                               )}
                             </td>}
                           </tr>
+                          </Fragment>
                         )
                       })}
                     </tbody>

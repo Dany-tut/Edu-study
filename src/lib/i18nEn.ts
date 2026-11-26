@@ -651,6 +651,8 @@ export const EN: Record<string, string> = {
   'Уровень': 'Level',
   'Свой вариант': 'Custom',
   'Свой уровень…': 'Custom level…',
+  'Закреплённые': 'Pinned',
+  'Зажмите и перетащите, чтобы поменять порядок': 'Hold and drag to reorder',
   'Нумерация уроков с': 'Lesson numbering starts at',
   'Разметка заданий': 'Task taxonomy',
   'Разметка': 'Taxonomy',
