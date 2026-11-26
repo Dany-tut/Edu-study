@@ -9,6 +9,8 @@ create or replace function auth.uid() returns uuid language sql stable as $$
 create or replace function public.is_staff() returns boolean language sql stable as $$
   select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') in ('teacher','admin') $$;
 grant execute on function public.is_staff() to authenticated;
+create table if not exists auth.mfa_factors (id uuid primary key default gen_random_uuid(), user_id uuid, status text);
+create or replace function public.mfa_ok() returns boolean language sql stable security definer set search_path to '' as $$ select true $$;
 grant usage on schema public to authenticated, anon;
 
 create table public.students (

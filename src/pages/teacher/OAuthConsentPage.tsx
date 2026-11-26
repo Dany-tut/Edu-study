@@ -13,8 +13,21 @@ import { MCP_SCOPES, type McpScope, setMcpScopes } from '../../lib/mcpAccess'
 
 type ConsentDetails = {
   authorization_id: string
+  redirect_uri?: string
   client: { id: string; name: string; uri?: string }
   scope: string
+}
+
+// Куда уйдёт доступ: хост адреса возврата. Имя приложения оно сообщает о себе
+// само при регистрации, поэтому учитель сверяет именно адрес.
+const KNOWN_HOSTS = ['claude.ai', 'claude.com', 'chatgpt.com']
+function redirectInfo(uri?: string): { host: string; known: boolean; local: boolean } {
+  try {
+    const u = new URL(uri ?? '')
+    const host = u.hostname
+    const local = host === 'localhost' || host === '127.0.0.1' || host === '[::1]'
+    return { host, known: KNOWN_HOSTS.some(h => host === h || host.endsWith('.' + h)), local }
+  } catch { return { host: '—', known: false, local: false } }
 }
 
 export default function OAuthConsentPage() {
@@ -128,9 +141,15 @@ export default function OAuthConsentPage() {
               <div style={{ width: 44, height: 44, borderRadius: 15, display: 'grid', placeItems: 'center', background: 'var(--color-purple-soft)', color: 'var(--color-purple-text)' }}><Sparkles size={22} /></div>
               <div>
                 <div style={{ fontWeight: 750, fontSize: 18, overflowWrap: 'anywhere' }}>{details.client.name}</div>
-                <div style={{ marginTop: 2, fontSize: 12, color: 'var(--color-text-3)' }}>{t("Запрашивает доступ к Искре")}</div>
+                <div style={{ marginTop: 2, fontSize: 12, color: 'var(--color-text-3)' }}>{t("Запрашивает доступ к Искре")} · {t("имя приложение сообщает само")}</div>
               </div>
             </div>
+            {(() => { const r = redirectInfo(details.redirect_uri); return (
+              <div style={{ display: 'grid', gap: 4, margin: '0 0 14px', padding: '10px 12px', borderRadius: 14, background: r.known || r.local ? 'var(--color-bg-3)' : 'var(--color-red-soft)', color: r.known || r.local ? 'var(--color-text)' : 'var(--color-red-text)', fontSize: 12, lineHeight: 1.45 }}>
+                <span>{t('Доступ получит адрес')}: <strong style={{ overflowWrap: 'anywhere' }}>{r.host}{r.local ? ` (${t('приложение на этом компьютере')})` : ''}</strong></span>
+                <span style={{ color: r.known || r.local ? 'var(--color-text-3)' : undefined, overflowWrap: 'anywhere' }}>id {details.client.id}{details.client.uri ? ` · ${details.client.uri}` : ''}</span>
+                {!r.known && !r.local && <span>{t('Незнакомый адрес. Разрешайте, только если вы сами начали подключение в этом приложении, а не перешли по присланной ссылке.')}</span>}
+              </div>) })()}
             <p style={{ fontSize: 13, overflowWrap: 'anywhere' }}>{t('Вы вошли как')}: <strong>{account}</strong></p>
             <h1 style={{ fontSize: 23, lineHeight: 1.22, margin: '0 0 8px' }}>{t("Разрешить приложению работать в вашем кабинете?")}</h1>
             <p style={{ margin: '0 0 18px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-text-3)' }}>{t("Приложение получит доступ от вашего имени.")}</p>

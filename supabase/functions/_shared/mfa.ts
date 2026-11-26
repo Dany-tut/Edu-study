@@ -7,14 +7,29 @@
 type FactorLike = { status?: string }
 type UserLike = { factors?: FactorLike[] | null } | null | undefined
 
-function tokenAal(authHeader: string) {
+function tokenClaims(authHeader: string): Record<string, unknown> | undefined {
   const token = authHeader.replace(/^Bearer\s+/i, '')
-  try { return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).aal as string | undefined }
+  try { return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) }
   catch { return undefined }
 }
+function tokenAal(authHeader: string) { return tokenClaims(authHeader)?.aal as string | undefined }
 
-/** true — вход ещё не подтверждён кодом, действие делать нельзя. */
+/**
+ * Токен ИИ-помощника (OAuth-клиент Supabase, есть client_id). Ему можно только
+ * в MCP-сервер Искры (iskra-mcp, docs/iskra-mcp.md, этап 2): функции, которые
+ * после проверки пользователя действуют сервисным ключом, его не принимают.
+ * Подпись здесь не проверяется — только отказ, поэтому подделка ничего не даёт.
+ */
+export function isAssistantToken(authHeader: string) {
+  const id = tokenClaims(authHeader)?.client_id
+  return typeof id === 'string' && id !== ''
+}
+
+export const ASSISTANT_TOKEN_REFUSED = { error: 'Доступ ИИ-помощника к Искре — только через MCP-сервер Искры', code: 'assistant_direct_access' }
+
+/** true — действие делать нельзя: вход ещё не подтверждён кодом или это токен ИИ-помощника. */
 export function mfaPending(user: UserLike, authHeader: string) {
+  if (isAssistantToken(authHeader)) return true
   const enrolled = (user?.factors ?? []).some(f => f.status === 'verified')
   return enrolled && tokenAal(authHeader) !== 'aal2'
 }

@@ -16,6 +16,7 @@
 
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { askFirstAvailable, modelList } from '../_shared/aiGateway.ts'
+import { ASSISTANT_TOKEN_REFUSED, isAssistantToken } from '../_shared/mfa.ts'
 import {
   buildClassifyPrompt, CLASSIFY_SYSTEM, DIGEST_SYSTEM, extractJson, parseDecisions, pickSentryIssues,
   type Correction, type KnownTopic, type PendingItem,
@@ -210,6 +211,7 @@ Deno.serve(async (req) => {
   if (!(cronSecret && secret && secret === cronSecret)) {
     const authHeader = req.headers.get('Authorization') ?? ''
     if (!authHeader) return json({ error: 'Не авторизован' }, 401)
+    if (isAssistantToken(authHeader)) return json(ASSISTANT_TOKEN_REFUSED, 403)
     const caller = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } })
     const { data: userData } = await caller.auth.getUser()
     if (!userData?.user) return json({ error: 'Не авторизован' }, 401)

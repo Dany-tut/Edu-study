@@ -197,7 +197,7 @@ export default function ClaudeAccessCard() {
           <small><code>{grant.client.id}</code>{hostOf(grant.client.uri) ? ` · ${hostOf(grant.client.uri)}` : ''}</small></div>
         {!phone && <button type="button" disabled={acting} onClick={() => revoke(grant)} className="integration-action integration-disconnect"><OpticalText as="iskra-button-label">{t('Отозвать доступ')}</OpticalText></button>}
       </div>
-      {!row && <p className="ai-assist-hint">{t('Подключён до выбора прав: действуют прежние права. Переподключите помощника, чтобы выбрать права и открыть ленту событий.')}</p>}
+      {!row && <p className="ai-assist-hint">{t('Права в Искре не выданы — помощник не получает данные. Отзовите доступ и подключите помощника заново, чтобы выбрать права.')}</p>}
       <div className="ai-assist-section">{t('Права')}</div>
       <div className="ai-assist-rights">
         {MCP_SCOPES.map(s => {

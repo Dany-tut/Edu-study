@@ -101,12 +101,11 @@ do $$ begin
   end;
 end $$;
 
--- 8. Старое подключение (строки нет) — прежние права, без событий и фото.
+-- 8. Подключение без строки прав (согласие в обход экрана Искры) — доступа нет (этап 2).
 begin;
 select pg_temp.claims(:A, 'c-legacy'); set local role authenticated;
-select pg_temp.expect((public.mcp_client_state() ->> 'legacy')::boolean, 'legacy client recognised');
-select pg_temp.expect((public.mcp_gate('list_my_students', 'students:read') ->> 'allowed')::boolean, 'legacy keeps students:read');
-select pg_temp.expect(public.mcp_gate('list_events', 'events:read') ->> 'reason' = 'insufficient_scope', 'legacy has no events:read');
+select pg_temp.expect(public.mcp_client_state() ->> 'state' = 'needs_consent', 'no scopes row → needs_consent');
+select pg_temp.expect(public.mcp_gate('list_my_students', 'students:read') ->> 'reason' = 'revoked', 'no scopes row → gate refuses');
 commit;
 
 -- 9. Отзыв: тот же токен клиента сразу получает revoked, и это в журнале.
@@ -165,3 +164,33 @@ insert into public.lesson_progress (student_id, lesson_ref, status) values (:SA,
 commit;
 alter table public.student_activity drop constraint t_fail;
 select pg_temp.expect(exists (select 1 from public.lesson_progress where lesson_ref = 'acc-ru-15'), 'student save survives activity failure');
+
+-- 13. Этап 2: mfa_ok() для токена помощника истинна только с секретом функции.
+insert into private.mcp_gate_key (key_hash) values (encode(sha256(convert_to('test-key', 'UTF8')), 'hex'));
+begin;
+select pg_temp.claims(:A, 'c1'); set local role authenticated;
+select pg_temp.expect(not public.mfa_ok(), 'assistant without key: mfa_ok false');
+select set_config('request.headers', '{"x-iskra-mcp-key":"wrong"}', true);
+select pg_temp.expect(not public.mfa_ok(), 'assistant with wrong key: mfa_ok false');
+select set_config('request.headers', '{"x-iskra-mcp-key":"test-key"}', true);
+select pg_temp.expect(public.mfa_ok(), 'assistant with function key: mfa_ok true');
+commit;
+begin;
+select pg_temp.claims(:A); set local role authenticated;
+select set_config('request.headers', '{}', true);
+select pg_temp.expect(public.mfa_ok(), 'plain session without factors: mfa_ok true (unchanged)');
+commit;
+insert into auth.mfa_factors (user_id, status) values (:A, 'verified');
+begin;
+select pg_temp.claims(:A); set local role authenticated;
+select pg_temp.expect(not public.mfa_ok(), 'plain aal1 session with MFA factor: mfa_ok false (unchanged)');
+commit;
+do $$ begin
+  perform set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-4000-8000-000000000001","role":"authenticated","client_id":"c1"}', true);
+  set local role authenticated;
+  begin
+    perform public.mfa_pre_request();
+    raise exception 'FAIL: pre-request let assistant through without key';
+  exception when sqlstate 'PT403' then raise notice 'ok: pre-request refuses assistant without key';
+  end;
+end $$;

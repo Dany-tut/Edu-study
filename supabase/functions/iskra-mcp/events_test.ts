@@ -216,3 +216,23 @@ Deno.test('countOf: число записей для журнала', () => {
   assert.equal(countOf({ content: [{ type: 'text', text: 'x' }], isError: true }), 0)
   assert.equal(countOf({ content: [{ type: 'image', data: '', mimeType: 'image/png' }] }), 1)
 })
+
+// ─── gateHeader.ts: секрет только к REST/Storage своего проекта ─────────────
+import { GATE_HEADER, withGateHeader } from './gateHeader.ts'
+
+Deno.test('gateHeader: секрет добавляется только к REST и Storage своего проекта', async () => {
+  const seen: [string, string | null][] = []
+  const base = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+    seen.push([url, new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined)).get(GATE_HEADER)])
+    return Promise.resolve(new Response('{}'))
+  }) as typeof fetch
+  const f = withGateHeader(base, 'https://p.supabase.co/', 'k1')
+  await f('https://p.supabase.co/rest/v1/students?select=id', { headers: { Authorization: 'Bearer t' } })
+  await f(new Request('https://p.supabase.co/storage/v1/object/x', { method: 'POST', body: 'b' }))
+  await f('https://p.supabase.co/auth/v1/user')
+  await f('https://evil.example/rest/v1/')
+  await f('https://p.supabase.co.evil.example/rest/v1/')
+  assert.deepEqual(seen.map(s => s[1]), ['k1', 'k1', null, null, null])
+  assert.equal(withGateHeader(base, 'https://p.supabase.co', ''), base)
+})

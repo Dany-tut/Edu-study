@@ -54,7 +54,7 @@
     "check:feed-release": "node scripts/checkFeedRelease.mjs",
     "check:diary-views": "node scripts/checkStudentDiaryViews.mjs",
     "check:student-journal": "node scripts/checkStudentWorkJournal.mjs",
-    "check:iskra-mcp": "! grep -rniE 'service_role|SERVICE_ROLE_KEY' supabase/functions/iskra-mcp --include=*.ts && cd supabase/functions/iskra-mcp && deno check index.ts readTools.ts events.ts access.ts untrusted.ts readTools_test.ts events_test.ts && deno test readTools_test.ts events_test.ts",
+    "check:iskra-mcp": "! grep -rniE 'service_role|SERVICE_ROLE_KEY' supabase/functions/iskra-mcp --include=*.ts && cd supabase/functions/iskra-mcp && deno check index.ts readTools.ts events.ts access.ts untrusted.ts gateHeader.ts readTools_test.ts events_test.ts && deno test readTools_test.ts events_test.ts",
     "check:iskra-mcp-db": "bash scripts/iskraMcp/run-db-test.sh",
     "check:parent-report": "deno test --no-lock supabase/functions/_shared/parentReport_test.ts",
     "check:drive-video": "deno test --no-lock --node-modules-dir=auto --allow-env supabase/functions/_shared/driveVideo_test.ts supabase/functions/drive-video/index_test.ts",

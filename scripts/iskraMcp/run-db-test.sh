@@ -12,5 +12,6 @@ sleep 3
 psql() { docker exec -i "$NAME" psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -q "$@"; }
 psql < scripts/iskraMcp/db-fixture.sql
 psql < supabase/migrations/20261126090000_mcp_scopes_log_activity.sql
+psql < supabase/migrations/20261126120000_mcp_request_gate.sql
 psql < scripts/iskraMcp/db-test.sql
 echo "OK: MCP v2 DB checks passed"

@@ -8,6 +8,10 @@ import { type Db, listMyGroups, listMyStudents, mistakesByTopic, studentSummary,
 import { clientState, guarded, type McpContent, type Scope } from './access.ts'
 import { courseProgress, EVENT_KINDS, getAttachment, getLessonAnswers, listEvents } from './events.ts'
 import { UNTRUSTED_NOTE } from './untrusted.ts'
+import { installGateHeader } from './gateHeader.ts'
+
+// До создания клиентов Supabase: запросы в REST/Storage несут секрет функции.
+installGateHeader()
 
 // Какое право нужно каждому инструменту. Инструмент без права в этом списке
 // не регистрируется вовсе — так новый инструмент нельзя выпустить «без права».
@@ -86,6 +90,7 @@ Deno.serve(
       const access = await clientState(supabase)
       if (access.state === 'revoked') return unauthorized('Доступ к Искре отозван учителем.')
       if (access.state === 'no_client') return unauthorized('Подключите Искру через OAuth в ИИ-помощнике.')
+      if (access.state === 'needs_consent') return unauthorized('Права помощнику не выданы в Искре. Подключите Искру заново и выберите права на экране Искры.')
       if (access.state !== 'active') return new Response('Искра временно недоступна.', { status: 503 })
       const granted = new Set<Scope>(access.scopes)
 

@@ -13,6 +13,7 @@
 // JWT пользователя — в Authorization; проверяется через auth.getUser().
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { ASSISTANT_TOKEN_REFUSED, isAssistantToken } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -57,6 +58,7 @@ Deno.serve(async req => {
   const authHeader = req.headers.get('Authorization') ?? ''
   const token = authHeader.replace(/^Bearer\s+/i, '')
   if (!token) return json({ error: 'Не авторизован' }, 401)
+  if (isAssistantToken(authHeader)) return json(ASSISTANT_TOKEN_REFUSED, 403)
 
   const caller = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } })
   const { data: userData, error: userErr } = await caller.auth.getUser(token)

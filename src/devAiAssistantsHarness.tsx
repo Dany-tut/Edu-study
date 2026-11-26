@@ -48,7 +48,7 @@ async function boot() {
   sb.auth.onAuthStateChange = (cb: (e: string, s: unknown) => void) => { setTimeout(() => cb('SIGNED_IN', session), 0); return { data: { subscription: { unsubscribe() {} } } } }
   sb.auth.oauth = {
     listGrants: () => ok(grants),
-    getAuthorizationDetails: () => ok({ authorization_id: 'stand', client: { id: CLAUDE, name: 'Claude', uri: 'https://claude.ai' }, scope: 'email' }),
+    getAuthorizationDetails: () => ok({ authorization_id: 'stand', redirect_uri: params.get('redirect') ?? 'https://claude.ai/api/mcp/auth_callback', client: { id: CLAUDE, name: 'Claude', uri: 'https://claude.ai' }, scope: 'email' }),
   }
   sb.rpc = (fn: string, args: Record<string, unknown>) => {
     if (fn === 'is_staff') return ok(true)

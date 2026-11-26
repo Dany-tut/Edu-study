@@ -16,9 +16,6 @@ export const MCP_SCOPES: { id: McpScope; label: string; hint: string; byDefault:
   { id: 'courses:write', label: 'Черновики курсов', hint: 'Создавать курсы, уроки и тесты как черновики', byDefault: false },
 ]
 
-/** Права подключений, выданных до появления выбора прав (строки ещё нет). */
-export const LEGACY_SCOPES: McpScope[] = ['courses:read', 'courses:write', 'students:read', 'progress:read']
-
 export const MCP_TOOL_LABEL: Record<string, string> = {
   list_events: 'Лента событий', get_lesson_answers: 'Ответы урока', get_attachment: 'Фото к ответу',
   course_progress: 'Прогресс курса', list_my_groups: 'Мои группы', list_my_students: 'Мои ученики',
@@ -44,10 +41,13 @@ export async function loadMcpAccess(signal?: AbortSignal): Promise<{ scopes: Map
   }
 }
 
-/** Действующие права подключения: отозвано → пусто; строки нет → прежние. */
+/**
+ * Действующие права подключения. Строки нет (подключили в обход экрана Искры
+ * или до появления выбора прав) или доступ отозван → прав нет: с этапа 2
+ * (26.11.2026) сервер такому помощнику отказывает.
+ */
 export function effectiveScopes(row: GrantScopesRow | undefined): McpScope[] {
-  if (!row) return LEGACY_SCOPES
-  if (row.revoked_at) return []
+  if (!row || row.revoked_at) return []
   return row.scopes
 }
 

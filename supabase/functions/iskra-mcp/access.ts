@@ -15,6 +15,7 @@ export interface Rpc { rpc(fn: string, args?: Record<string, unknown>): PromiseL
 export type ClientState =
   | { state: 'active'; legacy: boolean; scopes: Scope[] }
   | { state: 'revoked' }
+  | { state: 'needs_consent' }
   | { state: 'no_client' }
   | { state: 'error' }
 
@@ -23,6 +24,7 @@ export async function clientState(db: Rpc): Promise<ClientState> {
   if (error || !data || typeof data !== 'object') return { state: 'error' }
   const d = data as { state?: string; legacy?: boolean; scopes?: unknown }
   if (d.state === 'revoked') return { state: 'revoked' }
+  if (d.state === 'needs_consent') return { state: 'needs_consent' }
   if (d.state === 'no_client') return { state: 'no_client' }
   if (d.state !== 'active') return { state: 'error' }
   const scopes = Array.isArray(d.scopes) ? d.scopes.filter((s): s is Scope => (SCOPES as readonly string[]).includes(s as string)) : []

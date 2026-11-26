@@ -12,6 +12,7 @@
 // Секреты client_id/secret — только в env функции. Тест-режим SOCIAL_OAUTH_TEST_MODE=1.
 // РФ: функция проксируется api.iskra-study.ru.
 import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2'
+import { ASSISTANT_TOKEN_REFUSED, isAssistantToken } from '../_shared/mfa.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -156,6 +157,7 @@ async function confirmLink(req: Request, admin: SupabaseClient, ticketStr: strin
     // Непроверенный (VK): привязка ТОЛЬКО если вызывающий доказал владение —
     // вошёл в существующий аккаунт по коду на его email (его сессия == ticket.user_id).
     const authHeader = req.headers.get('Authorization') ?? ''
+    if (isAssistantToken(authHeader)) return json(ASSISTANT_TOKEN_REFUSED, 403)
     const caller = createClient(env('SUPABASE_URL'), env('SUPABASE_ANON_KEY'), { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } })
     const { data: { user } } = await caller.auth.getUser()
     if (!user || user.id !== ticket.user_id) return json({ error: 'ownership_required' }, 401)
