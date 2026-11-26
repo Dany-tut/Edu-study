@@ -6767,6 +6767,7 @@ export const EN: Record<string, string> = {
   "Ученики пока видят прежние — добавьте новые или": "Students still see the previous ones — add new files or",
   "верните прежние": "restore the previous ones",
   "Убрать у учеников": "Remove for students",
+  "Не удалось убрать файлы у учеников. Обновите страницу и попробуйте ещё раз.": "Couldn't remove the files for students. Refresh the page and try again.",
   "Нет сети — сохраню, когда появится": "Offline — will save when you're back online",
   "Курс не сохранился.": "The course wasn't saved.",
   "Уроки не сохранились.": "The lessons weren't saved.",
