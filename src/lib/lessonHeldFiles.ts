@@ -80,11 +80,12 @@ export function approvedFileClears(confirmedRows: readonly Row[], edited: readon
 // ─── Остальные защищённые поля урока ─────────────────────────────────────────
 // Та же схема, что у файлов: опустевшее в редакторе поле, которое у учеников
 // ещё заполнено, автосохранение пишет прежним значением; стереть его у учеников
-// можно только кнопкой «Убрать у учеников». Расшифровку не держим: редактор сам
-// отбрасывает её при смене видео, и тогда защита честно останавливает запись.
+// можно только кнопкой «Убрать у учеников». Расшифровку редактор сам отбрасывает
+// при смене видео — её держим флагом keepTranscript; ученику она не видна, пока
+// ссылка не совпадает с видео урока (LessonPage).
 
-export type HeldPart = 'timecodes' | 'test_tasks' | 'content.paragraphs' | 'content.selfCheck' | 'content.cardSetId' | 'content.cardGroupId'
-export const HELD_PARTS: readonly HeldPart[] = ['timecodes', 'test_tasks', 'content.paragraphs', 'content.selfCheck', 'content.cardSetId', 'content.cardGroupId']
+export type HeldPart = 'timecodes' | 'test_tasks' | 'content.paragraphs' | 'content.transcript' | 'content.selfCheck' | 'content.cardSetId' | 'content.cardGroupId'
+export const HELD_PARTS: readonly HeldPart[] = ['timecodes', 'test_tasks', 'content.paragraphs', 'content.transcript', 'content.selfCheck', 'content.cardSetId', 'content.cardGroupId']
 
 export const partClearPair = (shortId: string, part: HeldPart) => `${shortId}:${part}`
 
@@ -106,9 +107,11 @@ export function heldParts(shortId: string, editedRow: Row, confirmedRow: Row | u
 }
 
 /** Вернуть в урок редактора прежнее значение поля из подтверждённой строки. */
-export function restoreLessonPart(lesson: CELesson, part: HeldPart, confirmedRow: Row): CELesson {
+export function restoreLessonPart(lesson: CELesson, part: HeldPart, confirmedRow: Row, forSave = false): CELesson {
   const value = structuredClone(partValue(confirmedRow, part))
   switch (part) {
+    // В копии для записи — с флагом: сериализатор иначе отбросит расшифровку чужого видео.
+    case 'content.transcript': return { ...lesson, transcript: value as CELesson['transcript'], ...(forSave ? { keepTranscript: true } : {}) }
     case 'timecodes': return { ...lesson, timecodes: value as CELesson['timecodes'] }
     case 'test_tasks': return { ...lesson, testTasks: value as CELesson['testTasks'] }
     case 'content.selfCheck': return { ...lesson, selfCheck: value as CELesson['selfCheck'] }
@@ -144,7 +147,7 @@ export function withHeldLessonParts(c: CourseEdData, confirmedRows: readonly Row
     const held = heldParts(shortId, row, base, approved)
     if (!held.length) return lesson
     changed = true
-    return held.reduce((next, part) => restoreLessonPart(next, part, base), lesson)
+    return held.reduce((next, part) => restoreLessonPart(next, part, base, true), lesson)
   })
   return changed ? { ...c, lessons } : c
 }
@@ -196,4 +199,10 @@ export function pruneApprovedPartClears(approved: Set<string>, confirmedRows: re
     if (!HELD_PARTS.includes(part) || !confirmed.has(shortId)) continue
     if (isEmptyLessonValue(partValue(confirmed.get(shortId), part))) approved.delete(pair)
   }
+}
+
+/** Расшифровка на сервере сделана с той же записи, что сейчас в уроке, — её можно просто вернуть. */
+export function transcriptMatchesVideo(confirmedRow: Row | undefined, videoUrl: string | undefined): boolean {
+  const transcript = partValue(confirmedRow, 'content.transcript') as { source?: unknown } | undefined
+  return !!transcript && transcript.source === (videoUrl?.trim() || '')
 }

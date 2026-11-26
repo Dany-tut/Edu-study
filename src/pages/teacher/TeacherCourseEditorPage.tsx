@@ -36,7 +36,7 @@ import { compactFullLessons } from '../../lib/courseFullCompact'
 import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
 import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
 import { EXPLICIT_CLEAR_HEADER, explicitClearHeader, lessonExplicitClears } from '../../lib/lessonExplicitClears'
-import { approvedFileClears, approvedPartClears, confirmedLessonFiles, filesClearPair, heldLessonFiles, heldPartsByLesson, partClearPair, pruneApprovedFileClears, pruneApprovedPartClears, restoreLessonPart, withHeldLessonFiles, withHeldLessonParts, type HeldPart } from '../../lib/lessonHeldFiles'
+import { approvedFileClears, approvedPartClears, confirmedLessonFiles, filesClearPair, heldLessonFiles, heldPartsByLesson, partClearPair, pruneApprovedFileClears, pruneApprovedPartClears, restoreLessonPart, transcriptMatchesVideo, withHeldLessonFiles, withHeldLessonParts, type HeldPart } from '../../lib/lessonHeldFiles'
 import { courseSaveProvenance, courseSnapshotStamp } from '../../lib/courseSaveProvenance'
 import { createCourseSaveReport, type ReportContext } from '../../lib/courseSaveReport'
 import { submitCourseSaveReport } from '../../lib/submitCourseSaveReport'
@@ -181,6 +181,8 @@ import { lessonNumberShift } from '../../lib/lessonNumber'
 
 export interface CELesson {
   transcript?: LessonTranscript
+  /** Только в копии для записи: держать прежнюю расшифровку, даже если видео сменилось (lib/lessonHeldFiles). */
+  keepTranscript?: boolean
   id: string
   /** Authoritative lesson reference; copied courses may use a random short_id. */
   persistedShortId?: string
@@ -2257,6 +2259,7 @@ const HELD_PART_TITLE: Record<HeldPart, string> = {
   'timecodes': 'Главы записи убраны только в редакторе.',
   'test_tasks': 'Задания теста убраны только в редакторе.',
   'content.paragraphs': 'Конспект убран только в редакторе.',
+  'content.transcript': 'Расшифровка убрана только в редакторе.',
   'content.selfCheck': '«Проверь себя» убрано только в редакторе.',
   'content.cardSetId': 'Карточки к уроку убраны только в редакторе.',
   'content.cardGroupId': 'Группа карточек убрана только в редакторе.',
@@ -8818,7 +8821,13 @@ export default function TeacherCourseEditorPage() {
                 {/* Убранное только в редакторе: у учеников ещё прежнее (lib/lessonHeldFiles). */}
                 {(heldParts.get(selectedLesson.id)?.length ?? 0) > 0 && (
                   <div style={{ padding: '0 36px 12px' }}>
-                    <AlertStack items={heldParts.get(selectedLesson.id)!.map(part => ({
+                    <AlertStack items={heldParts.get(selectedLesson.id)!.map(part => (part === 'content.transcript' && !transcriptMatchesVideo(confirmedRowOf(selectedLesson).row, selectedLesson.videoUrl) ? {
+                      // Видео сменилось: прежняя расшифровка от другой записи, возвращать её некуда.
+                      id: part, tone: 'info' as const,
+                      title: t('Расшифровка осталась от прежней записи.'),
+                      text: t('Ученикам она не видна: видео урока другое.'),
+                      action: { label: t('Убрать у учеников'), onClick: () => clearHeldPart(selectedLesson, part) },
+                    } : {
                       id: part, tone: 'info' as const,
                       title: t(HELD_PART_TITLE[part]),
                       text: <>

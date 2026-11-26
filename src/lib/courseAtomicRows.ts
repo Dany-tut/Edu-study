@@ -44,7 +44,7 @@ export function courseAtomicRows(c: CourseEdData, courseDbId: string, editorModu
       // «Конспект» у ученика. Пустой конспект пишем как {}, чтобы не затирать
       // содержимое, заведённое другим путём, пустым массивом абзацев.
       content: {
-        ...(lesson.transcript && lesson.transcript.source === (lesson.videoUrl?.trim() || '') ? { transcript: lesson.transcript } : {}),
+        ...(lesson.transcript && (lesson.keepTranscript || lesson.transcript.source === (lesson.videoUrl?.trim() || '')) ? { transcript: lesson.transcript } : {}),
         ...(lesson.theory?.trim() || lesson.recapParagraphs?.length
         ? {
             paragraphs: [

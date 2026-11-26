@@ -2068,7 +2068,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   const loadedFromDb = useRef(false)
   // Что сейчас у учеников: опустевший здесь конспект или главы не стираем без
   // «Убрать у учеников» (lib/lessonHeldFiles, защита данных после 22.11).
-  const server = useRef<{ paragraphs: LessonParagraph[]; timecodes: LessonTimecodeRow[] }>({ paragraphs: [], timecodes: [] })
+  const server = useRef<{ paragraphs: LessonParagraph[]; timecodes: LessonTimecodeRow[]; transcript?: LessonContentData['transcript'] }>({ paragraphs: [], timecodes: [] })
 
   useEffect(() => {
     let alive = true
@@ -2081,6 +2081,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
       server.current = {
         paragraphs: Array.isArray(dbc?.paragraphs) ? dbc!.paragraphs : [],
         timecodes: Array.isArray(data?.timecodes) ? (data!.timecodes as LessonTimecodeRow[]) : [],
+        transcript: dbc?.transcript ?? undefined,
       }
       setTranscript(dbc?.transcript)
       // Запасной конспект из кода — по short_id урока (см. authoredLessons.ts).
@@ -2098,14 +2099,19 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
 
   const heldParas = loadedFromDb.current && !paras.some(p => p.text.trim()) && server.current.paragraphs.length > 0
   const heldCodes = loadedFromDb.current && !timecodes.some(c => c.time.trim() || c.label.trim()) && server.current.timecodes.length > 0
-  async function save(approve: Array<'content.paragraphs' | 'timecodes'> = []) {
+  // Расшифровку собираем только для текущего видео: сменили ссылку — у учеников
+  // остаётся прежняя (им она не видна), стереть — «Убрать у учеников».
+  const transcriptNow = transcript && transcript.source === videoUrl.trim() ? transcript : undefined
+  const heldTranscript = loadedFromDb.current && !transcriptNow && !!server.current.transcript
+  async function save(approve: Array<'content.paragraphs' | 'timecodes' | 'content.transcript'> = []) {
     // Пустой вопрос-заготовка не мешает, а вопрос с текстом без отмеченного варианта — мешает.
     const noAnswer = quiz.flatMap((q, i) => (q.prompt.trim() || q.options.some(o => o.text.trim())) && !q.options.find(o => o.id === q.correctOptionId)?.text.trim() ? [`${t('Вопрос')} ${i + 1}`] : [])
     if (alertMissingAnswers(noAnswer, t('Впишите вариант и отметьте его правильным.'))) return
     setSaving(true); setMsg('')
     const keepParas = heldParas && !approve.includes('content.paragraphs')
     const keepCodes = heldCodes && !approve.includes('timecodes')
-    const content: LessonContentData = { ...(transcript && transcript.source === videoUrl.trim() ? { transcript } : {}), paragraphs: keepParas ? server.current.paragraphs : paras.filter(p => p.text.trim()), quiz, hardTask }
+    const keepTranscript = heldTranscript && !approve.includes('content.transcript')
+    const content: LessonContentData = { ...(transcriptNow ? { transcript: transcriptNow } : keepTranscript ? { transcript: server.current.transcript } : {}), paragraphs: keepParas ? server.current.paragraphs : paras.filter(p => p.text.trim()), quiz, hardTask }
     const nextCodes = timecodes.filter(t => t.time.trim() || t.label.trim()).map(t => ({ ...t, seconds: parseSeconds(t.time) }))
     const patch: Record<string, unknown> = {
       content,
@@ -2121,7 +2127,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     if (error) setMsg(t('Ошибка: ') + (error.message))
     else if (!data || data.length === 0) setMsg(t('Не сохранено: нет прав. Войдите в аккаунт преподавателя заново.'))
     else {
-      server.current = { paragraphs: content.paragraphs ?? [], timecodes: keepCodes ? server.current.timecodes : nextCodes }
+      server.current = { paragraphs: content.paragraphs ?? [], timecodes: keepCodes ? server.current.timecodes : nextCodes, transcript: content.transcript }
       setMsg(t('✓ Сохранено — ученики увидят обновление'))
     }
   }
@@ -2155,14 +2161,17 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
         {/* CENTER — tabbed content */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           {/* Убранное только здесь: у учеников ещё прежнее. */}
-          {(heldParas || heldCodes) && (
+          {(heldParas || heldCodes || heldTranscript) && (
             <div style={{ padding: '14px 24px 0' }}>
               <AlertStack items={([
                 heldParas && { part: 'content.paragraphs' as const, title: t('Конспект убран только в редакторе.'), restore: () => setParas(server.current.paragraphs.map(p => ({ ...p }))) },
                 heldCodes && { part: 'timecodes' as const, title: t('Главы записи убраны только в редакторе.'), restore: () => setTimecodes(server.current.timecodes.map(c => ({ ...c }))) },
-              ].filter(Boolean) as Array<{ part: 'content.paragraphs' | 'timecodes'; title: string; restore: () => void }>).map(item => ({
+                heldTranscript && (server.current.transcript?.source === videoUrl.trim()
+                  ? { part: 'content.transcript' as const, title: t('Расшифровка убрана только в редакторе.'), restore: () => setTranscript(server.current.transcript) }
+                  : { part: 'content.transcript' as const, title: t('Расшифровка осталась от прежней записи.'), note: t('Ученикам она не видна: видео урока другое.') }),
+              ].filter(Boolean) as Array<{ part: 'content.paragraphs' | 'timecodes' | 'content.transcript'; title: string; restore?: () => void; note?: string }>).map(item => ({
                 id: item.part, tone: 'info' as const, title: item.title,
-                text: <>
+                text: item.note ?? <>
                   {t('Ученики пока видят прежнюю версию —')}{' '}
                   <button type="button" data-hover="layer" onClick={item.restore}
                     style={{ border: 'none', background: 'none', padding: 0, font: 'inherit', color: 'var(--color-purple-text)', textDecoration: 'underline', cursor: 'pointer' }}>
