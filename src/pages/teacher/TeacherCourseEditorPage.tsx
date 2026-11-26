@@ -1267,7 +1267,9 @@ function CenterCourseAccess({
               onCreateNew={name => setNewStudentName(name)}
             />
           )}
-          {newStudentName !== null && (
+          {/* В body, а не внутри центральной колонки: у колонки свой слой
+              прокрутки, и окно открывалось в ней — ниже шапки и обрезанным. */}
+          {newStudentName !== null && createPortal(
             <Suspense fallback={null}>
               <AddIndividualStudentModal
                 initial={{ name: newStudentName, subject: course.subject, level: course.level }}
@@ -1283,7 +1285,8 @@ function CenterCourseAccess({
                   return { inviteToken: result.inviteToken, studentId: result.studentId ?? null, groupId: result.groupId ?? null, error: (result.error as { message?: string } | null)?.message ?? null }
                 }}
               />
-            </Suspense>
+            </Suspense>,
+            document.body,
           )}
           {createErr && (
             <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: 'var(--color-red-text)' }}>
