@@ -452,6 +452,7 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
           <NewStudentConfig
             studentId={newStudentId}
             groupId={selectedGroup}
+            subjects={subjects}
             onDone={() => setStep('link')}
           />
         ) : step === 'link' ? (
@@ -573,13 +574,35 @@ const selectTriggerStyle: React.CSSProperties = {
 }
 const SUBJECT_ICONS = SUBJECT_ICON_MAP
 
+// Первые пять — прежние (индекс черновика формы указывает на них), дальше —
+// акценты предметной палитры (lib/subjects.ts): бирюза, роза, сирень, индиго,
+// охра, гранат — и графит. Двенадцать: ровно два ряда по шесть.
 const INDIV_COLORS = [
   { color: 'var(--color-purple)', soft: '#EFE0FF' },
   { color: '#3F8F6B', soft: '#D6EDE2' },
   { color: '#FF8F6D', soft: '#FFE8DF' },
   { color: '#6D9BFF', soft: '#DCE8FF' },
   { color: '#FFB96D', soft: '#FFF1DC' },
+  { color: '#0E9B9B', soft: '#D3F0F0' },
+  { color: '#E0567F', soft: '#FBE0E8' },
+  { color: '#A25AD4', soft: '#EFE2F8' },
+  { color: '#3F51B5', soft: '#E0E3F5' },
+  { color: '#C08A3E', soft: '#F5EAD9' },
+  { color: '#B3122B', soft: '#F6DCE0' },
+  { color: '#64748B', soft: '#E5E9EF' },
 ]
+
+/**
+ * Варианты уровня под предмет + уже выбранный, если его нет в стандартной
+ * шкале: «Практикующий бухгалтер» из курса или введённый учителем вручную.
+ * Без этого TeacherSelect не находит значение и рисует пустое поле.
+ */
+function levelSelectOptions(subject: string, current: string, t: (s: string) => string) {
+  const base = levelOptionsForSubject(subject)
+  return [...base, ...(current && !base.includes(current) ? [current] : [])].map(o => ({ value: o, label: t(o) }))
+}
+// Свой уровень: строка «Свой вариант» в списке. onChange вызывает сам селект.
+const noopAddLevel = () => {}
 
 // ─── Направления (предмет + уровень) с кнопкой «＋» ───────────────────────────
 // Первое направление — основное (subject/level колонки группы), остальные —
@@ -615,7 +638,7 @@ function TrackFields({
           />
         </div>
         <div style={{ flex: 1 }}>
-          <TeacherSelect value={level} onChange={onLevel} placeholder={t('Уровень')} options={levelOptionsForSubject(subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+          <TeacherSelect value={level} onChange={onLevel} placeholder={t('Уровень')} options={levelSelectOptions(subject, level, t)} onAddOption={noopAddLevel} addLabel={t('Свой вариант')} addPlaceholder={t('Свой уровень…')} triggerStyle={selectTriggerStyle} />
         </div>
       </div>
 
@@ -635,7 +658,7 @@ function TrackFields({
             />
           </div>
           <div style={{ flex: 1 }}>
-            <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={levelOptionsForSubject(tr.subject).map(o => ({ value: o, label: t(o) }))} triggerStyle={selectTriggerStyle} />
+            <TeacherSelect value={tr.level} onChange={v => setTrack(i, { level: v })} placeholder={t('Уровень')} options={levelSelectOptions(tr.subject, tr.level, t)} onAddOption={noopAddLevel} addLabel={t('Свой вариант')} addPlaceholder={t('Свой уровень…')} triggerStyle={selectTriggerStyle} />
           </div>
           <Tooltip label={t('Убрать направление')}><button data-hover="layer"
             type="button" onClick={() => removeTrack(i)}
@@ -782,6 +805,7 @@ export function AddIndividualStudentModal({ onClose, onPickExisting, onSave, ini
           <NewStudentConfig
             studentId={newStudentId}
             groupId={newGroupId}
+            subjects={[subject, ...tracks.map(tr => tr.subject)]}
             onDone={() => setStep('link')}
           />
         ) : step === 'link' ? (
@@ -841,9 +865,9 @@ export function AddIndividualStudentModal({ onClose, onPickExisting, onSave, ini
               />
               <div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 8 }}>{t('Цвет')}</div>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 28px)', gap: 12 }}>
                   {INDIV_COLORS.map((c, i) => (
-                    <div data-hover="layer" key={i} onClick={() => setColorIdx(i)} style={{
+                    <div data-hover="layer" key={i} role="button" aria-label={`${t('Цвет')} ${i + 1}`} onClick={() => setColorIdx(i)} style={{
                       width: 28, height: 28, borderRadius: '50%', background: c.color,
                       cursor: 'pointer', outline: colorIdx === i ? `3px solid ${c.color}` : 'none',
                       outlineOffset: 2,

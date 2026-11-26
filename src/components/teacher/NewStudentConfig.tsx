@@ -1,7 +1,8 @@
 import OpticalText from '../OpticalText'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Eye, EyeOff } from '../icons/appIcons'
 import { WIDGET_META } from '../../data/widgets'
+import { widgetsForSubjects } from '../../lib/widgetVisibility'
 import { fetchTeacherCourses, configureNewStudent, fetchGroupPreset, type TeacherCourseOption } from '../../lib/useGroups'
 import TeacherSelect from './TeacherSelect'
 import { useT, useTc } from '../../lib/i18n'
@@ -11,11 +12,15 @@ import { useT, useTc } from '../../lib/i18n'
 // assign an existing published course. Both are optional — "Продолжить" applies
 // whatever is set and reveals the link.
 export default function NewStudentConfig({
-  studentId, groupId, onDone,
+  studentId, groupId, onDone, subjects,
 }: {
   studentId: string
   groupId: string | null
   onDone: () => void
+  /** Предметы ученика (названия из формы). Задан — в списке только виджеты,
+   *  уместные этим предметам: «Реакции» в литературе или бухгалтерии ученик
+   *  всё равно не увидит, главная их прячет. Не задан — весь реестр. */
+  subjects?: ReadonlyArray<string | null | undefined>
 }) {
   const t = useT()
   const { tc } = useTc()
@@ -55,10 +60,18 @@ export default function NewStudentConfig({
   // Courses arrive async and grow the content — re-measure after every render pass.
   useEffect(syncFades)
 
-  const allHidden = hidden.size === WIDGET_META.length
+  const subjectsKey = subjects ? subjects.filter(Boolean).join('|') : null
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const widgets = useMemo(() => subjects ? widgetsForSubjects(subjects) : WIDGET_META, [subjectsKey])
+  const allHidden = widgets.every(w => hidden.has(w.id))
   const toggleAll = () => {
     touched.current = true
-    setHidden(allHidden ? new Set() : new Set(WIDGET_META.map(w => w.id)))
+    // Неуместные предмету виджеты в списке не видны — их отметки не трогаем.
+    setHidden(prev => {
+      const next = new Set(prev)
+      for (const w of widgets) { if (allHidden) next.delete(w.id); else next.add(w.id) }
+      return next
+    })
   }
 
   const toggle = (id: number) => { touched.current = true; setHidden(prev => {
@@ -115,7 +128,7 @@ export default function NewStudentConfig({
             <OpticalText as="iskra-button-label">{allHidden ? t('Показать все') : t('Скрыть все')}</OpticalText>
           </button>
         </div>
-        {WIDGET_META.map(w => {
+        {widgets.map(w => {
           const isHidden = hidden.has(w.id)
           return (
             <button data-hover="layer"

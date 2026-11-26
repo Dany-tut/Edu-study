@@ -31,7 +31,11 @@ export default function TeacherSelect({
   value, options, onChange, placeholder, triggerStyle, small = false,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)',
   onAddOption, onDeleteOption, clearable = true, menuZIndex = 2000, disabled = false, search,
+  addLabel, addPlaceholder,
 }: {
+  /** Подпись строки добавления (по умолчанию «Добавить») и подсказка в её поле. */
+  addLabel?: string
+  addPlaceholder?: string
   /** Поле поиска на открытом триггере. По умолчанию — при пяти вариантах и больше;
    *  false — подпись остаётся на месте (короткие списки внутри плотных строк). */
   search?: boolean
@@ -304,7 +308,7 @@ export default function TeacherSelect({
                         if (e.key === 'Enter') { e.preventDefault(); commitAdd() }
                         if (e.key === 'Escape') { e.preventDefault(); setAdding(false); setDraft('') }
                       }}
-                      placeholder={t('Название…')}
+                      placeholder={addPlaceholder ?? t('Название…')}
                       style={{
                         flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent',
                         fontSize: small ? 11 : 13, color: 'var(--color-text)', fontFamily: 'inherit',
@@ -332,7 +336,7 @@ export default function TeacherSelect({
                       background: 'transparent', color: accent, transition: 'background 0.15s',
                     }}
                   >
-                    <Plus size={small ? 12 : 14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{t('Добавить')}</OpticalText>
+                    <Plus size={small ? 12 : 14} strokeWidth={2.5} /> <OpticalText as="iskra-button-label">{addLabel ?? t('Добавить')}</OpticalText>
                   </button>
                 )
               )}

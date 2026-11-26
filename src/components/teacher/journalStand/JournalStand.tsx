@@ -439,7 +439,8 @@ function MatrixTools({ selected, set, picker, attention, toggle, pendingCount, a
       </div>
       <label className="js-search teacher-table-search" data-filtered={!!selected.search || undefined} title="Поиск ученика">
         <Search size={15} /><input aria-label="Поиск ученика" placeholder="Поиск ученика…" value={selected.search}
-          onChange={e => set({ search: e.target.value, student: '', workRef: '' })} />
+          onChange={e => set({ search: e.target.value, student: '', workRef: '' })}
+          onKeyDown={e => { if (e.key === 'Escape') e.currentTarget.blur() }} />
       </label>
     </div>
   )

@@ -28,6 +28,31 @@ import { useStudentData } from '../store/studentDataStore'
 import { useDashboard } from '../store/dashboardStore'
 import { isLanguageSubject } from './subjects'
 import { widgetSubjectScope } from './studentSubject'
+import { getSubject } from './subjects'
+
+type WidgetMeta = (typeof WIDGET_META)[number]
+
+/**
+ * Предметное правило без привязки к стору: уместен ли виджет при таком наборе
+ * предметов (слаги реестра). Пустой набор = предмета нет (свободный тег вроде
+ * «Бухгалтерии») — предметные и языковые виджеты не нужны.
+ */
+export function widgetFitsScope(meta: WidgetMeta, scope: ReadonlySet<string>, subjectless: boolean): boolean {
+  if (meta.subjects && (subjectless || (scope.size > 0 && !meta.subjects.some(s => scope.has(s))))) return false
+  // Языковой виджет — на любом языке и ни на одном экзаменационном предмете.
+  if (meta.languagesOnly && (subjectless || (scope.size > 0 && ![...scope].some(isLanguageSubject)))) return false
+  return true
+}
+
+/**
+ * Виджеты, которые имеет смысл предлагать ученику с такими предметами — для
+ * учителя на шаге «Настройка ученика». То же правило, что на главной: химии
+ * «Реакции», языку «Доза дня», бухгалтерии ни того ни другого.
+ */
+export function widgetsForSubjects(subjectNames: ReadonlyArray<string | null | undefined>): WidgetMeta[] {
+  const scope = new Set(subjectNames.flatMap(n => { const id = getSubject(n)?.id; return id ? [id] : [] }))
+  return WIDGET_META.filter(w => widgetFitsScope(w, scope, scope.size === 0))
+}
 
 /**
  * Предикат «показывать ли виджет с таким id».
@@ -63,9 +88,7 @@ export function useWidgetRelevance(subjectOverride?: string | null): (id: number
     // предметные виджеты прячем: «Реакции Zn + 2HCl» ученику без химии
     // не нужны. Нейтральные («Фокус», «Твои дела», вопрос дня) остаются.
     const subjectless = loaded && scope.size === 0
-    if (meta.subjects && (subjectless || (scope.size > 0 && !meta.subjects.some(s => scope.has(s))))) return false
-    // Языковой виджет — на любом языке и ни на одном экзаменационном предмете.
-    if (meta.languagesOnly && (subjectless || (scope.size > 0 && ![...scope].some(isLanguageSubject)))) return false
+    if (!widgetFitsScope(meta, scope, subjectless)) return false
     if (meta.content && loaded) {
       const count = { quiz, facts, memes, reactions }[meta.content]
       if (count === 0) return false

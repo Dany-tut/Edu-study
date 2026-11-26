@@ -161,6 +161,35 @@
   .js-toolbar:has(.js-work-views) .js-filter-items .js-scope :is(.js-scope-course, .js-scope-module) { width: auto; }
   .js-toolbar:has(.js-work-views) .js-search { width: 150px; }
 }
+/* «Перенос прошлого» — одна строка всегда, кнопка не сжимается в две. */
+.js-toolbar .js-transfer-toggle { flex: none; white-space: nowrap; }
+/* Ряд с «По ученикам / По домашкам» или «Перенос прошлого» целиком (~1525 px с
+   бейджем посещаемости) влезает не везде. Ступени, ничего не переносится:
+   1) ≤1560 — поиск сворачивается в круглую кнопку-лупу, курс и модуль уже;
+   2) ≤1300 / ≤1100 — курс и модуль уходят в «Фильтры» (правила выше);
+   3) ≤1040 — у «Перенос прошлого» остаётся иконка.
+   Лупа раскрывается в поле поверх соседей влево по нажатию/фокусу — своё место
+   в ряду (40 px) при этом не меняет, соседи не прыгают. */
+@container (min-width: 661px) and (max-width: 1560px) {
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-scope .js-scope-course { width: 200px; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-scope .js-scope-module { width: 160px; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-search {
+    position: relative; flex: none; width: 40px; padding: 0; justify-content: center; border-radius: 12px; cursor: pointer; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-search svg { flex: none; position: relative; z-index: 2; pointer-events: none; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-search input {
+    position: absolute; inset: 0; width: 100%; opacity: 0; padding: 0; cursor: pointer; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-search[data-filtered] { color: var(--color-accent); background: var(--color-purple-soft); border-color: transparent; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-search:focus-within { outline: 0; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-search:focus-within input {
+    inset: -1px -1px -1px auto; width: 240px; max-width: none; opacity: 1; z-index: 1; cursor: text; box-sizing: border-box;
+    padding: 0 12px 0 36px; border-radius: 12px; background: var(--color-bg-card); color: var(--color-text);
+    border: 1px solid var(--color-border-soft); box-shadow: var(--shadow-4); outline: 2px solid var(--color-accent); outline-offset: 1px; }
+  .js-toolbar:is(:has(.js-work-views), :has(.js-transfer-toggle)) .js-search:focus-within svg { position: absolute; left: calc(40px - 240px + 12px); top: 50%; translate: 0 -50%; color: var(--color-text-2); }
+}
+@container (min-width: 661px) and (max-width: 1040px) {
+  .js-toolbar .js-transfer-toggle { width: 38px; height: 38px; padding: 0; justify-content: center; }
+  .js-toolbar .js-transfer-toggle > span { display: none; }
+}
 @container (max-width: 660px) {
   .js-toolbar { gap: 6px; padding: 8px; }
   .js-tabs.cj-tabs { grid-template-columns: 44px 44px minmax(44px, max-content); }
