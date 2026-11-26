@@ -40,8 +40,15 @@ export interface ExtraTaskFields {
   testly?: TestlyRef
   /** testly: название теста дублируется в условие — его видно в шапке карточки. */
   question?: string
+  /** screenHotspot: картинка, области и ловушки. */
+  hotspot?: HotspotSpec
 }
+import { lazy, Suspense } from 'react'
+import type { HotspotSpec } from '../../lib/screenHotspot'
 import { parseEmbed, EMBED_HOST_LABELS } from '../../lib/embed'
+// Редактор «Найди на экране» тянет генераторы реконструкций — грузится только
+// у задания этого типа.
+const ScreenHotspotEditor = lazy(() => import('./ScreenHotspotEditor'))
 import TestlyTaskEditor from './TestlyTaskEditor'
 import { useT } from '../../lib/i18n'
 
@@ -90,6 +97,12 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
   const t = useT()
   return (
     <>
+              {/* screenHotspot — картинка и области-ответы. */}
+              {task.type === 'screenHotspot' && (
+                <Suspense fallback={null}>
+                  <ScreenHotspotEditor value={task.hotspot} onChange={hotspot => onUpdate({ ...task, hotspot })} accent={accent} />
+                </Suspense>
+              )}
               {/* trueFalse — утверждения к тексту. Сам текст берётся из
                   «отрывка для чтения» ниже: это то же поле passage, что у
                   вопросов по тексту, — второго места для текста заводить не

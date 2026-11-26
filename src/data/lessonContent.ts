@@ -3,6 +3,7 @@ import { normalizeTaskType, taskAlternativeAnswers, type CrosswordClue, type Dia
 import { useStudentData } from '../store/studentDataStore'
 import { apLessonContent } from './apLessonChunk'
 import type { ApLessonContent } from './apChemistryLessons'
+import type { HotspotSpec } from '../lib/screenHotspot'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
 import type { LessonFiles } from '../lib/lessonFiles'
 import { isChecklistParagraph } from '../lib/theoryChecklist'
@@ -89,6 +90,8 @@ export interface HomeworkQuizQuestion {
   embedUrl?: string
   /** testly — тест из Тестли: id для адреса и карточка (lib/testlyModule.ts). */
   testly?: TestlyRef
+  /** screenHotspot — картинка, области-ответы и ловушки (lib/screenHotspot.ts). */
+  hotspot?: HotspotSpec
   /** crossword — слова и подсказки; сетка считается по ним. */
   clues?: CrosswordClue[]
   /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
@@ -421,6 +424,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     sortItems: t.sortItems,
     embedUrl: t.embedUrl,
     testly: t.testly,
+    hotspot: tp === 'screenHotspot' ? t.hotspot : undefined,
     sentence: t.sentence,
     distractors: t.distractors,
     audioUrl: t.audioUrl,

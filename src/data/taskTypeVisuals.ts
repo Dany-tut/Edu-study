@@ -86,6 +86,8 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   columnSort:    { color: 'var(--color-rose-text)',      bg: 'var(--color-rose-soft)',      fill: 'var(--color-rose-fill)' },
   // Внешнее упражнение засчитывается прохождением — к видео, тот же синий.
   embed:         { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
+  // Найди на экране — выбор места вместо подписи: зелёный, как выбор ответа.
+  screenHotspot: { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',     fill: 'var(--color-green-fill)' },
   // Тест из Тестли — нейтральный, без своей семьи: узнаётся по знаку (TestlyTile),
   // а не по цвету. Текст — цвет темы, иначе чернила пропадают в тёмной.
   testly:        { color: 'var(--color-text)',           bg: 'var(--color-bg-3)',           fill: '#080F14' },

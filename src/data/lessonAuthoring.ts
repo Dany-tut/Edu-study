@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayOrder } from './taskTypes'
 import type { LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from './lessonContent'
+import type { HotspotSpec } from '../lib/screenHotspot'
 
 /** Общая форма авторского урока: конспект + база домашки + хард. */
 export interface AuthoredLessonContent {
@@ -181,6 +182,19 @@ export const qgap = (
   correctOptionId: '',
   gapText: text,
   gapChoices: gaps.map(([options, correct]) => ({ options, correct })),
+  explanation,
+})
+
+/** Найди на экране: нажать туда, куда нажали бы в программе (lib/screenHotspot). */
+export const qhot = (
+  id: string, prompt: string, hotspot: HotspotSpec, explanation: string,
+): HomeworkQuizQuestion => ({
+  id,
+  prompt,
+  type: 'screenHotspot',
+  options: [],
+  correctOptionId: '',
+  hotspot,
   explanation,
 })
 

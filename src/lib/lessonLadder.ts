@@ -51,6 +51,7 @@ const STAGE_BY_TYPE: Record<string, LadderStage> = {
   matching: 1,
   trueFalse: 1,
   dropdownGap: 1,
+  screenHotspot: 1,
   columnSort: 1,
   minimalPair: 1,
   videoWatch: 1,

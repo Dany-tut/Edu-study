@@ -22,7 +22,7 @@
 import type { ElementType } from 'react'
 import {
   AlignLeft, ArrowUpDown, CheckSquare, ChevronDown, Columns3, ExternalLink, Hash, Image as ImageIcon,
-  Images, Keyboard, Layers, LayoutGrid, ListChecks, Grid3x3, ListOrdered, MessagesSquare, Mic,
+  Images, Keyboard, Layers, LayoutGrid, ListChecks, Grid3x3, ListOrdered, MessagesSquare, Mic, MousePointerClick,
   PenLine, Play, Puzzle, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from '../components/icons/appIcons'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
@@ -34,6 +34,7 @@ import { chamoOf, composeKeys, isSyllable, keysOf } from './hangul'
 import { videoAnswerDone } from '../lib/videoAnswer'
 import { buildCrossword } from '../lib/crossword'
 import TestlyMark from '../components/TestlyMark'
+import { hotspotGradable, hotspotOutcome, type HotspotSpec } from '../lib/screenHotspot'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────
 
@@ -76,6 +77,7 @@ export type TaskTypeId =
   | 'dropdownGap'   // пропуски в предложении с выпадающими списками
   | 'columnSort'    // разложить предметы по именованным столбцам
   | 'embed'         // внешнее упражнение (Wordwall, Quizlet) в рамке
+  | 'screenHotspot' // найди на экране: нажать туда, куда нажал бы в программе
   // — подключаемые модули —
   | 'testly'        // тест из Тестли целиком (модуль в Профиль → Модули)
 
@@ -448,6 +450,10 @@ export interface TaskPayload {
   // — внешнее упражнение (embed) —
   /** Адрес встраивания. Открывается только с разрешённых площадок (lib/embed). */
   embedUrl?: string
+
+  // — найди на экране (screenHotspot) —
+  /** Картинка, области-ответы, ловушки и число попыток (lib/screenHotspot.ts). */
+  hotspot?: HotspotSpec
 
   // — тест из Тестли (testly) —
   /** Какой тест и что о нём показать. Вопросы и ключи живут в Тестли. */
@@ -1476,6 +1482,27 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     grade: (t, a) => {
       if (!TASK_TYPES.embed.isGradable(t)) return NOT_AUTO
       return { auto: true, correct: a === EMBED_DONE }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
+
+  /**
+   * Найди на экране — нажать на картинке туда, куда нажал бы в программе.
+   *
+   * ЗАЧЕМ. У ученика курса «Бухгалтерия» часто нет 1С под рукой, а «где
+   * открыть проводки?» — вопрос про место на экране, не про слово. Выбор из
+   * четырёх подписей превращает его в чтение названий; нажатие на учебной
+   * реконструкции окна — нет. Ответ — точки нажатий (lib/screenHotspot.ts).
+   */
+  screenHotspot: def({
+    id: 'screenHotspot', family: 'choice',
+    label: 'Найди на экране', hint: 'Нажать туда, куда нажали бы в программе',
+    Icon: MousePointerClick,
+    makeDefault: () => ({}),
+    isGradable: t => hotspotGradable(t.hotspot),
+    grade: (t, a) => {
+      if (!hotspotGradable(t.hotspot)) return NOT_AUTO
+      return { auto: true, correct: hotspotOutcome(t.hotspot, a).correct }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
   }),

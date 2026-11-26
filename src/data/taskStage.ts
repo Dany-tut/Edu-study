@@ -77,6 +77,7 @@ export function taskStage(t: AnyTask): Stage {
     // по строке и по тексту: между «показали» и «собери сам».
     case 'trueFalse':
     case 'dropdownGap':
+    case 'screenHotspot':
       return 2
 
     // Генерация с опорой: ответ собирается из выданных плиток.
@@ -143,6 +144,7 @@ const SECONDS: Record<string, number> = {
   matching: 45,
   trueFalse: 60,
   dropdownGap: 40,
+  screenHotspot: 30,
   embed: 120,
   testly: 1500,
   columnSort: 60,

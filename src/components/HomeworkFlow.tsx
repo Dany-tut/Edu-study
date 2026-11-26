@@ -79,6 +79,8 @@ import {
 } from '../data/taskTypes'
 import TrueFalseSolver from './TrueFalseSolver'
 import DropdownGapSolver from './DropdownGapSolver'
+import ScreenHotspotSolver from './ScreenHotspotSolver'
+import { hotspotGradable, hotspotOutcome } from '../lib/screenHotspot'
 import ColumnSortSolver from './ColumnSortSolver'
 import EmbedTask from './EmbedTask'
 import TestlyTask from './TestlyTask'
@@ -1002,6 +1004,11 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
     const given = answerMap(ans)
     return rows.every((_, i) => !!given[String(i)])
   }
+  // Найди на экране: отвечено, когда попал или кончились попытки. Промах с
+  // оставшейся попыткой — ещё не ответ: задание ждёт второго нажатия.
+  if (qType(q) === 'screenHotspot') {
+    return hotspotGradable(q.hotspot) ? hotspotOutcome(q.hotspot, ans).done : !!(ans && ans.trim())
+  }
   if (qType(q) === 'dropdownGap') {
     const gaps = gapChoiceRows(q)
     if (gaps.length === 0) return !!(ans && ans.trim())
@@ -1047,6 +1054,9 @@ function questionSelfChecks(q: HomeworkQuizQuestion) {
   // незачтённой попытке ещё и печатало бы «Пока мимо» там, где машина всего
   // лишь не расслышала. Ученику вместо этого предлагается сказать ещё раз.
   if (qType(q) === 'speaking') return !!q.targetText?.trim()
+  // Найди на экране отвечает само: нажатие и есть проверка, разбор — после
+  // последней попытки. «Проверить» здесь просило бы подтвердить уже увиденное.
+  if (qType(q) === 'screenHotspot') return hotspotGradable(q.hotspot)
   return qType(q) === 'matching' && (q.pairs?.length ?? 0) >= 2
 }
 function questionAutoGradable(q: HomeworkQuizQuestion) {
@@ -1077,6 +1087,7 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'trueFalse') return tfRows(q).length > 0
   if (langTp === 'dropdownGap') return gapChoiceRows(q).length > 0
   if (langTp === 'columnSort') return sortRows(q).length > 0 && namedColumns(q).length >= 2
+  if (langTp === 'screenHotspot') return hotspotGradable(q.hotspot)
   // Внешнее упражнение: проверяем ровно то, что можем, — отметку о прохождении.
   if (langTp === 'embed') return !!q.embedUrl?.trim()
   if (langTp === 'testly') return !!q.testly?.id
@@ -1132,6 +1143,7 @@ function taskBodyMissing(q: HomeworkQuizQuestion): boolean {
     case 'crossword': return crosswordRows(q).length < 2
     case 'trueFalse': return tfRows(q).length === 0
     case 'dropdownGap': return gapChoiceRows(q).length === 0 || !(q.gapText ?? '').trim()
+    case 'screenHotspot': return !hotspotGradable(q.hotspot)
     case 'columnSort': return sortRows(q).length === 0 || namedColumns(q).length < 2
     case 'embed': return !q.embedUrl?.trim()
     case 'testly': return !q.testly?.id
@@ -1256,6 +1268,9 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
       const given = answerMap(ans)
       return rows.every((row, i) => given[String(i)] === row.verdict)
     }
+    // Найди на экране: верно, если одно из первых `attempts` нажатий попало в
+    // верную область. Тот же расчёт видит преподаватель (lib/screenHotspot).
+    if (langTp === 'screenHotspot') return hotspotGradable(q.hotspot) && hotspotOutcome(q.hotspot, ans).correct
     if (langTp === 'dropdownGap') {
       const gaps = gapChoiceRows(q)
       if (gaps.length === 0) return false
@@ -2186,6 +2201,7 @@ export default function HomeworkFlow({
       // видел ученик, а не внутреннее представление.
       let answer = raw ?? ''
       let testly: BasicAnswerRow['testly']
+      let hotspot: BasicAnswerRow['hotspot']
       if (questionIsMulti(question)) {
         answer = parseIds(raw)
           .map(id => question.options.find(o => o.id === id)?.text ?? id)
@@ -2217,6 +2233,12 @@ export default function HomeworkFlow({
         answer = tfRows(question)
           .map((row, i) => `${i + 1}. ${TF_CAPTION[given[String(i)] ?? ''] ?? '—'}`)
           .join('; ')
+      } else if (tp === 'screenHotspot' && hotspotGradable(question.hotspot)) {
+        // Преподавателю — куда нажимал ученик, словами; картинку с отметками
+        // рисует BasicAnswersList по row.hotspot.
+        const o = hotspotOutcome(question.hotspot, raw)
+        answer = o.taps.map((_, i) => `${i + 1}. ${o.hits[i].area ? `«${o.hits[i].area!.label}»` : tStatic('мимо')}`).join('; ')
+        hotspot = { spec: question.hotspot, taps: raw ?? '' }
       } else if (tp === 'dropdownGap') {
         const given = answerMap(raw)
         answer = gapChoiceRows(question)
@@ -2267,6 +2289,8 @@ export default function HomeworkFlow({
         correct = (question.pairs ?? []).map(p => `${p.left} → ${p.right}`).join('; ')
       } else if (tp === 'trueFalse') {
         correct = tfRows(question).map((row, i) => `${i + 1}. ${TF_CAPTION[row.verdict]}`).join('; ')
+      } else if (tp === 'screenHotspot' && question.hotspot) {
+        correct = question.hotspot.targets.map(a => `«${a.label}»`).join(` ${tStatic('или')} `)
       } else if (tp === 'dropdownGap') {
         correct = gapChoiceRows(question).map(g => g.options[g.correct]).join(' · ')
       } else if (tp === 'columnSort') {
@@ -2310,6 +2334,7 @@ export default function HomeworkFlow({
         verdict,
         ...(voice ? { voice: true } : {}),
         ...(testly ? { testly } : {}),
+        ...(hotspot ? { hotspot } : {}),
         // Что услышала распознавалка — преподавателю в незачтённых: по нему
         // сразу видно, ученик сказал не то или машина не расслышала.
         ...(tp === 'speaking' && parseVoiceAnswer(raw).heard
@@ -4079,6 +4104,14 @@ export default function HomeworkFlow({
                       value={selectedAnswer}
                       disabled={locked}
                       showVerdict={showVerdict}
+                      onChange={v => setFreeAnswer(question.id, v)}
+                    />
+                    /* Найди на экране: нажатие на реконструкции окна и есть ответ. */
+                    ) : qType(question) === 'screenHotspot' && hotspotGradable(question.hotspot) ? (
+                    <ScreenHotspotSolver
+                      spec={question.hotspot}
+                      value={selectedAnswer}
+                      disabled={state.basicSubmitted}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
                     /* Пропуски со списками: форма выбирается прямо в строке. */

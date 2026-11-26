@@ -15,13 +15,19 @@
 // счёт виден всегда, записи — по требованию.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { CheckCircle2, ChevronDown, ChevronRight, CircleAlert, ExternalLink, Eye, MicOff, Minus, Send } from '../icons/appIcons'
 import type { BasicAnswerRow, BasicAnswersPayload, BasicAnswerVerdict } from '../../lib/basicAnswers'
 import { verdictLabel } from '../../lib/basicAnswers'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
 import AudioPlayer from '../AudioPlayer'
+// Картинка «Найди на экране» с нажатиями ученика. Лениво: генераторы
+// реконструкций нужны только там, где такое задание есть.
+const HotspotReview = lazy(() => import('../ScreenHotspotSolver').then(m => ({ default: m.HotspotReview })))
+const hotspotView = (row: BasicAnswerRow) => row.hotspot
+  ? <Suspense fallback={null}><HotspotReview spec={row.hotspot.spec} answer={row.hotspot.taps} /></Suspense>
+  : null
 import { btn } from '../../lib/pillStyles'
 import { fetchTestlyResults, plural, testlyPoints, testlyResultsUrl, type TestlyAttempt } from '../../lib/testlyModule'
 
@@ -119,6 +125,7 @@ function AnswerCard({ row, live, teacherReviewed }: { row: BasicAnswerRow; live?
         </div>
       )}
 
+      {row.hotspot && hotspotView(row)}
       {row.testly ? null : row.voice ? (
         <AudioPlayer audioUrl={row.answer} compact />
       ) : row.answer ? (
@@ -172,6 +179,7 @@ function ReviewAnswer({ row, live, teacherReviewed, passingScore }: { row: Basic
     {row.testly ? <div className="jh-external-answer"><span>{external?.submittedAt ? t('Сдан') + ' ' + new Date(external.submittedAt).toLocaleDateString('ru-RU', {day:'numeric',month:'short'}) : t('Результат теста из Тестли')}</span>
       <a data-hover="link" href={testlyResultsUrl(row.testly.testId)} target="_blank" rel="noopener noreferrer">{external?.pending ? t('Проверить в Тестли') : t('Разбор в Тестли')}<ExternalLink size={13}/></a></div>
       : <div className={'jh-answer-comparison' + (showReference ? ' jh-with-reference' : '')}><div><small>{t('Ответ ученика')}</small>
+        {row.hotspot && hotspotView(row)}
         {row.voice ? <AudioPlayer audioUrl={row.answer} compact/> : <p>{row.answer || t('Ответа нет.')}</p>}
         {row.heard && row.verdict !== 'correct' && <p className="jh-transcript">{t('Машина услышала')}: {row.heard}</p>}
       </div>{showReference && <div className="jh-reference-answer"><small>{t('Правильный ответ')}</small><p>{row.correct}</p></div>}</div>}

@@ -1,0 +1,392 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   «Найди на экране» (ScreenHotspotSolver.tsx). Реконструкция и плашка всегда
+   светлые — это «экран программы»; рамки ответа, вердикт, хром — токены темы.
+   ПК — таблетка масштаба; iPhone/iPad — стеклянная капсула у правого края
+   картинки и мягкий край; Android — таблетки с заливкой и фейды (SCROLL-01).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.hs-root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Плашка — одна палитра в обеих темах: она часть «экрана программы». */
+.hs-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  background: #FFF3CD;
+  color: #7A4D00;
+  border: 1px solid #F0D58C;
+}
+
+.hs-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hs-left {
+  font-size: 12px;
+  color: var(--color-text-3);
+}
+.hs-seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 12px;
+  background: var(--color-bg-2);
+  border: 1px solid var(--color-border-soft);
+}
+.hs-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hs-seg-btn[data-on] {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+.hs-root[data-platform="iphone"] .hs-seg-btn,
+.hs-root[data-platform="ipad"] .hs-seg-btn { min-height: 36px; }
+.hs-root[data-platform="android"] .hs-seg { border-radius: 999px; }
+.hs-root[data-platform="android"] .hs-seg-btn { min-height: 40px; border-radius: 999px; }
+
+.hs-seg-btn:focus-visible,
+.hs-vp:focus-visible,
+.hs-list-btn:focus-visible,
+.hs-pill:focus-visible,
+.hs-zoom button:focus-visible,
+.hs-zoombar button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ── Картинка ─────────────────────────────────────────────────────────────── */
+.hs-vp-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.hs-vp {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--color-border-soft);
+  /* Пока картинка «по ширине», вертикальный жест листает страницу; щипок и
+     касания обрабатываем сами. Увеличенная — целиком наша. */
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.hs-vp[data-zoomed] { touch-action: none; }
+.hs-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.hs-canvas img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* Нажатия: кольцо вокруг точки (подпись кнопки под ним видна) и номер в
+   кружке сбоку. Вердикт — цветом И номером; словами — в разборе. */
+.hs-tap {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 2.5px solid;
+  box-shadow: 0 0 0 1.5px #fff;
+}
+.hs-tap > b {
+  position: absolute;
+  left: 13px;
+  top: -12px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 0 0 1.5px #fff;
+}
+.hs-tap[data-tone="bad"] { border-color: #C4320A; }
+.hs-tap[data-tone="bad"] > b { background: #C4320A; }
+.hs-tap[data-tone="ok"] { border-color: #127A4B; }
+.hs-tap[data-tone="ok"] > b { background: #127A4B; }
+
+.hs-area {
+  position: absolute;
+  border-radius: 6px;
+  pointer-events: none;
+  border: 2px solid #127A4B;
+  background: rgba(18, 122, 75, .12);
+}
+.hs-area[data-tone="trap"] {
+  border: 2px dashed #C4320A;
+  background: rgba(196, 50, 10, .08);
+}
+.hs-area-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #127A4B;
+  color: #fff;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hs-vp .hs-area[data-tone="ok"] { animation: hs-pulse 1.6s ease-out 2; }
+}
+@keyframes hs-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(18, 122, 75, .45); }
+  100% { box-shadow: 0 0 0 10px rgba(18, 122, 75, 0); }
+}
+
+/* Края увеличенной картинки. Картинка всегда светлая — фейд в её белый. */
+.hs-fade {
+  position: absolute;
+  pointer-events: none;
+}
+.hs-fade-l { left: 0; top: 0; bottom: 0; width: 24px; background: linear-gradient(90deg, #fff, rgba(255,255,255,0)); }
+.hs-fade-r { right: 0; top: 0; bottom: 0; width: 24px; background: linear-gradient(270deg, #fff, rgba(255,255,255,0)); }
+.hs-fade-t { left: 0; right: 0; top: 0; height: 24px; background: linear-gradient(180deg, #fff, rgba(255,255,255,0)); }
+.hs-fade-b { left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(0deg, #fff, rgba(255,255,255,0)); }
+/* iOS — мягкий край: шире и легче. */
+.hs-root[data-platform="iphone"] .hs-fade-l, .hs-root[data-platform="ipad"] .hs-fade-l,
+.hs-root[data-platform="iphone"] .hs-fade-r, .hs-root[data-platform="ipad"] .hs-fade-r { width: 36px; opacity: .85; }
+.hs-root[data-platform="iphone"] .hs-fade-t, .hs-root[data-platform="ipad"] .hs-fade-t,
+.hs-root[data-platform="iphone"] .hs-fade-b, .hs-root[data-platform="ipad"] .hs-fade-b { height: 36px; opacity: .85; }
+
+/* Мини-карта: где мы на увеличенной картинке. */
+.hs-minimap {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(21, 18, 31, .25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  pointer-events: none;
+}
+.hs-minimap img { display: block; width: 100%; height: 100%; }
+.hs-minimap-frame {
+  position: absolute;
+  border: 2px solid var(--color-accent);
+  border-radius: 3px;
+  background: rgba(124, 92, 255, .12);
+}
+
+/* ── Масштаб под картинкой ────────────────────────────────────────────────── */
+.hs-zoombar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hs-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+}
+.hs-zoom button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  padding: 0;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.hs-zoom button:disabled { opacity: .35; cursor: default; }
+@media (hover: hover) and (pointer: fine) {
+  .hs-zoom button:not(:disabled):hover { background: var(--color-bg-2); }
+  .hs-seg-btn:not([data-on]):hover { color: var(--color-text); }
+  .hs-list-btn:not(:disabled):hover { border-color: var(--color-accent); }
+}
+/* iPhone/iPad — стеклянная капсула, кнопки 44 pt. */
+.hs-root[data-platform="iphone"] .hs-zoom,
+.hs-root[data-platform="ipad"] .hs-zoom,
+.hs-full[data-platform="iphone"] .hs-zoom,
+.hs-full[data-platform="ipad"] .hs-zoom {
+  border-radius: 26px;
+  background: rgba(var(--glass-rgb), .72);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--color-border-glass);
+  box-shadow: var(--shadow-pill);
+}
+.hs-root[data-platform="iphone"] .hs-zoom button,
+.hs-root[data-platform="ipad"] .hs-zoom button,
+.hs-full[data-platform="iphone"] .hs-zoom button,
+.hs-full[data-platform="ipad"] .hs-zoom button { width: 44px; height: 44px; border-radius: 22px; }
+/* Android — отдельные таблетки с заливкой, 48 dp, без стекла. */
+.hs-root[data-platform="android"] .hs-zoom,
+.hs-full[data-platform="android"] .hs-zoom { gap: 8px; padding: 0; background: none; border: 0; }
+.hs-root[data-platform="android"] .hs-zoom button,
+.hs-full[data-platform="android"] .hs-zoom button {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background: var(--color-purple-soft);
+  color: var(--color-accent);
+}
+.hs-root[data-platform="android"] .hs-sep,
+.hs-full[data-platform="android"] .hs-sep { display: none; }
+.hs-pct {
+  min-width: 48px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-3);
+}
+.hs-sep { width: 1px; height: 18px; margin: 0 4px; background: var(--color-border-soft); }
+.hs-pc-hint { font-size: 12px; color: var(--color-text-3); }
+
+.hs-gesture {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-3);
+}
+
+.hs-pill {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--color-purple-soft);
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* «На весь экран»: картинка вписана в окно, системная «Назад» сворачивает. */
+.hs-full {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  background: var(--color-bg);
+}
+.hs-full .hs-vp-wrap { flex: 1; }
+.hs-full .hs-vp { flex: 1; height: auto; }
+
+/* ── Режим «Списком» ──────────────────────────────────────────────────────── */
+.hs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hs-list-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-input);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.hs-root[data-platform="iphone"] .hs-list-btn,
+.hs-root[data-platform="ipad"] .hs-list-btn { min-height: 44px; }
+.hs-root[data-platform="android"] .hs-list-btn { min-height: 48px; border-radius: 999px; padding: 6px 16px; }
+.hs-list-btn:disabled { cursor: default; }
+.hs-list-btn[data-tone="ok"] { border-color: var(--color-green-border); background: var(--color-green-soft); color: var(--color-green-text); }
+.hs-list-btn[data-tone="bad"] { border-color: var(--color-red-border); background: var(--color-red-soft); color: var(--color-red-text); }
+
+/* ── Вердикт: значок + текст ──────────────────────────────────────────────── */
+.hs-verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.hs-verdict svg { flex-shrink: 0; margin-top: 1px; }
+.hs-verdict b { display: block; font-weight: 800; }
+.hs-verdict p { margin: 2px 0 0; color: var(--color-text-2); }
+.hs-verdict[data-tone="ok"] { background: var(--color-green-soft); color: var(--color-green-text); }
+.hs-verdict[data-tone="bad"] { background: var(--color-red-soft); color: var(--color-red-text); }
+.hs-verdict[data-tone="review"] { background: var(--color-purple-soft); color: var(--color-accent); }
+
+/* ── У преподавателя ──────────────────────────────────────────────────────── */
+.hs-review { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.hs-review-img {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--color-border-soft);
+}
+.hs-review-img img { display: block; width: 100%; height: 100%; }
+.hs-review figcaption { font-size: 12px; line-height: 1.45; color: var(--color-text-2); }

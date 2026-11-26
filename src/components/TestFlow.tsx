@@ -20,6 +20,8 @@ import BlockOrderSolver from './BlockOrderSolver'
 import JamoTypeSolver from './JamoTypeSolver'
 import WordDropSolver from './WordDropSolver'
 import TrueFalseSolver from './TrueFalseSolver'
+import ScreenHotspotSolver from './ScreenHotspotSolver'
+import { hotspotGradable } from '../lib/screenHotspot'
 import DropdownGapSolver from './DropdownGapSolver'
 import ColumnSortSolver from './ColumnSortSolver'
 import EmbedTask from './EmbedTask'
@@ -275,7 +277,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   || (tp === 'crossword' && crosswordClues(task).length < 2)
                   || (tp === 'trueFalse' && tfRows(task).length === 0)
                   || (tp === 'dropdownGap' && gapChoiceRows(task).length === 0)
-                  || (tp === 'columnSort' && sortRows(task).length === 0)) && (
+                  || (tp === 'columnSort' && sortRows(task).length === 0)
+                  || (tp === 'screenHotspot' && !hotspotGradable(task.hotspot))) && (
                   <div style={{ paddingLeft: 36, display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
@@ -410,6 +413,17 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                     <DropdownGapSolver
                       text={task.gapText ?? ''}
                       gaps={gapChoiceRows(task)}
+                      value={(answers[task.id] as string) ?? undefined}
+                      onChange={v => setAnswer(task.id, v)}
+                    />
+                  </div>
+                )}
+
+                {/* screenHotspot — нажать туда, куда нажали бы в программе */}
+                {tp === 'screenHotspot' && hotspotGradable(task.hotspot) && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <ScreenHotspotSolver
+                      spec={task.hotspot}
                       value={(answers[task.id] as string) ?? undefined}
                       onChange={v => setAnswer(task.id, v)}
                     />

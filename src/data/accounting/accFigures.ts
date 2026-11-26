@@ -58,6 +58,9 @@ export interface ReconScreen {
   /** Поля формы: подпись → значение. */
   fields?: Array<[string, string]>
   activeField?: number
+  /** Вкладки табличной части документа («Товары», «Услуги») — между реквизитами и таблицей. */
+  sheetTabs?: string[]
+  activeSheetTab?: number
   /** Табличная часть / лист. */
   grid?: { headers: string[]; rows: string[][]; hi?: [number, number] }
   /** Строка формул Excel (если задана — рисуется над сеткой). */
@@ -68,11 +71,48 @@ export interface ReconScreen {
   message?: string
 }
 
+/** Кликабельный элемент реконструкции — для задания «Найди на экране». */
+export interface ReconBox {
+  /** Стабильный адрес элемента: tab-0, btn-3, field-1, cell-0-2. */
+  id: string
+  kind: 'button' | 'field' | 'tab' | 'cell'
+  /** Подпись, как её прочтёт скринридер и режим «Списком». */
+  label: string
+  /** Рамка в натуральных координатах листа (ширина 640). */
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/** Реконструкция вместе с рамками её элементов. */
+export interface ReconFrame {
+  /** data:image/svg+xml — то же, что возвращает reconScreen. */
+  src: string
+  boxes: ReconBox[]
+  /** Натуральный размер листа. */
+  w: number
+  h: number
+}
+
 /**
  * Окно программы — учебная реконструкция с номерными метками.
  * Метки ставятся на активную вкладку, кнопку, поле и ячейку — в этом порядке.
  */
 export function reconScreen(s: ReconScreen): string {
+  return reconScreenBoxes(s).src
+}
+
+/**
+ * То же окно, но вместе с рамками вкладок, кнопок, полей и ячеек.
+ *
+ * ЗАЧЕМ. Задание «Найди на экране» проверяет, куда нажал ученик, а границы
+ * элементов знает только генератор: снимать их с картинки на глаз — значит
+ * получить зону, съехавшую на полкнопки. `bare` убирает примечание под окном —
+ * в задании его заменяет плашка над картинкой.
+ */
+export function reconScreenBoxes(s: ReconScreen, opts: { bare?: boolean } = {}): ReconFrame {
+  const boxes: ReconBox[] = []
   const parts: string[] = []
   let y = 44
   const x0 = 16, ww = W - 32
@@ -91,6 +131,7 @@ export function reconScreen(s: ReconScreen): string {
       parts.push(`<rect x="${x}" y="${y}" width="${w}" height="22" rx="5" fill="${active ? ACCENT_SOFT : TILE}" stroke="${active ? ACCENT : GRID}"/>`)
       parts.push(`<text x="${x + w / 2}" y="${y + 15}" text-anchor="middle" font-size="${fitFs(t, w - 8, fs)}" fill="${active ? ACCENT : INK}" font-weight="${active ? 700 : 400}">${esc(t)}</text>`)
       if (active) parts.push(badge(x + w - 2, y + 1, ++mark))
+      boxes.push({ id: `tab-${i}`, kind: 'tab', label: t, x, y, w, h: 22 })
       x += w + 6
     })
     y += 30
@@ -100,10 +141,13 @@ export function reconScreen(s: ReconScreen): string {
     const fs = 11.5
     s.buttons.forEach((b, i) => {
       const w = Math.min(textW(b, fs) + 20, 170)
+      // Не влезла в строку — переносим, как командная панель узкого окна.
+      if (x + w > x0 + ww - 6 && x > x0 + 6) { x = x0 + 6; y += 30 }
       const active = i === s.activeButton
       parts.push(`<rect x="${x}" y="${y}" width="${w}" height="24" rx="5" fill="${active ? ACCENT : '#fff'}" stroke="${active ? ACCENT : GRID}"/>`)
       parts.push(`<text x="${x + w / 2}" y="${y + 16}" text-anchor="middle" font-size="${fitFs(b, w - 8, fs)}" fill="${active ? '#fff' : INK}">${esc(b)}</text>`)
       if (active) parts.push(badge(x + w - 2, y + 1, ++mark))
+      boxes.push({ id: `btn-${i}`, kind: 'button', label: b, x, y, w, h: 24 })
       x += w + 6
     })
     y += 34
@@ -115,9 +159,23 @@ export function reconScreen(s: ReconScreen): string {
       parts.push(`<rect x="${x0 + 190}" y="${y}" width="${ww - 206}" height="22" rx="4" fill="#fff" stroke="${active ? ACCENT : GRID}" stroke-width="${active ? 2 : 1}"/>`)
       parts.push(`<text x="${x0 + 198}" y="${y + 15}" font-size="${fitFs(value, ww - 224, 11.5)}" fill="${INK}">${esc(value)}</text>`)
       if (active) parts.push(badge(x0 + ww - 18, y + 1, ++mark))
+      boxes.push({ id: `field-${i}`, kind: 'field', label, x: x0 + 190, y, w: ww - 206, h: 22 })
       y += 28
     })
     y += 4
+  }
+  if (s.sheetTabs?.length) {
+    let x = x0 + 12
+    const fs = 11.5
+    s.sheetTabs.forEach((tb, i) => {
+      const w = textW(tb, fs) + 16
+      const active = i === (s.activeSheetTab ?? 0)
+      if (active) parts.push(`<rect x="${x}" y="${y}" width="${w}" height="22" rx="5" fill="${TILE}" stroke="${GRID}"/>`)
+      parts.push(`<text x="${x + w / 2}" y="${y + 15}" text-anchor="middle" font-size="${fs}" fill="${active ? INK : MUTED}" font-weight="${active ? 700 : 400}">${esc(tb)}</text>`)
+      boxes.push({ id: `stab-${i}`, kind: 'tab', label: tb, x, y, w, h: 22 })
+      x += w + 8
+    })
+    y += 30
   }
   if (s.formulaBar !== undefined) {
     parts.push(`<rect x="${x0 + 6}" y="${y}" width="${ww - 12}" height="22" rx="4" fill="#fff" stroke="${GRID}"/>`)
@@ -132,8 +190,10 @@ export function reconScreen(s: ReconScreen): string {
     // Excel), затем всё ужимается пропорционально под ширину окна. Равные
     // столбцы обрезали «ООО Альфа, Договор 15» ровно там, где урок о нём.
     const need = headers.map((h, c) => Math.max(22, textW(h, 11), ...rows.map(r => textW(r[c] ?? '', 11))) + 12)
-    const k = (ww - 12) / need.reduce((a, b) => a + b, 0)
-    const cw = need.map(n => n * k)
+    // У листа Excel столбец номеров строк узкий и не растягивается.
+    const fixed0 = headers[0] === '' ? 36 : 0
+    const k = (ww - 12 - fixed0) / need.slice(fixed0 ? 1 : 0).reduce((a, b) => a + b, 0)
+    const cw = need.map((n, c) => (fixed0 && c === 0 ? fixed0 : n * k))
     const cx = (c: number) => x0 + 6 + cw.slice(0, c).reduce((a, b) => a + b, 0)
     const rh = 22
     headers.forEach((h, c) => {
@@ -147,6 +207,13 @@ export function reconScreen(s: ReconScreen): string {
         parts.push(`<rect x="${cx(c)}" y="${y}" width="${cw[c]}" height="${rh}" fill="${active ? ACCENT_SOFT : '#fff'}" stroke="${active ? ACCENT : GRID}" stroke-width="${active ? 2 : 1}"/>`)
         parts.push(`<text x="${cx(c) + 4}" y="${y + 15}" font-size="${fitFs(v, cw[c] - 8, 11, 7)}" fill="${INK}">${esc(v)}</text>`)
         if (active) parts.push(badge(cx(c) + cw[c] - 4, y + 2, ++mark))
+        // Лист Excel (первый заголовок пуст — там номера строк): подпись — адрес
+        // ячейки «A5: P01», столбец номеров строк не кликабелен.
+        const sheetLike = headers[0] === ''
+        if (!(sheetLike && c === 0)) {
+          const name = sheetLike ? `${headers[c]}${r[0]}` : headers[c] || `Столбец ${c + 1}`
+          boxes.push({ id: `cell-${ri}-${c}`, kind: 'cell', label: v ? `${name}: ${v}` : `${name}: пусто`, x: cx(c), y, w: cw[c], h: rh })
+        }
       })
       y += rh
     })
@@ -170,9 +237,15 @@ export function reconScreen(s: ReconScreen): string {
     })
     y += 4
   }
-  const n = noteLines(RECON, W, y + 8, WARN)
-  y += n.h + 14
-  return toDataUri(sheet(W, y, `Учебная реконструкция: ${s.window}`, parts.join('') + n.svg))
+  let note = ''
+  if (!opts.bare) {
+    const n = noteLines(RECON, W, y + 8, WARN)
+    note = n.svg
+    y += n.h + 14
+  } else {
+    y += 6
+  }
+  return { src: toDataUri(sheet(W, y, `Учебная реконструкция: ${s.window}`, parts.join('') + note)), boxes, w: W, h: y }
 }
 
 /** Проводки: Дт / Кт / сумма / содержание. Чтение строки: «Дт 60 Кт 51 — 12 000». */
@@ -224,11 +297,39 @@ export function diagFig(title: string, stages: DiagStage[], opts: { note?: strin
 }
 
 /** Лист Excel: буквы столбцов, номера строк, строка формул, выделенная ячейка. */
-export function excelSheet(title: string, rows: string[][], opts: { formula?: string; selected?: [number, number]; result?: Array<[number, number]>; note?: string; firstRow?: number } = {}): string {
+export interface ExcelSheetOpts { formula?: string; selected?: [number, number]; result?: Array<[number, number]>; note?: string; firstRow?: number }
+
+export function excelSheet(title: string, rows: string[][], opts: ExcelSheetOpts = {}): string {
+  return reconScreen(excelScreen(title, rows, opts))
+}
+
+/**
+ * Лист Excel с рамками ячеек: id `cell-<строка>-<столбец>` в координатах
+ * данных (без столбца номеров строк), подпись — адрес ячейки «B3».
+ */
+export function excelSheetBoxes(title: string, rows: string[][], opts: ExcelSheetOpts & { bare?: boolean } = {}): ReconFrame {
+  const f = reconScreenBoxes(excelScreen(title, rows, opts), { bare: opts.bare })
+  const first = opts.firstRow ?? 1
+  return {
+    ...f,
+    boxes: f.boxes.flatMap(b => {
+      const m = /^cell-(\d+)-(\d+)$/.exec(b.id)
+      if (!m) return [b]
+      const r = Number(m[1]), c = Number(m[2]) - 1
+      if (c < 0) return []
+      const v = rows[r]?.[c] ?? ''
+      const addr = `${String.fromCharCode(65 + c)}${first + r}`
+      return [{ ...b, id: `cell-${r}-${c}`, label: v ? `${addr}: ${v}` : addr }]
+    }),
+  }
+}
+
+/** Описание окна Excel для reconScreen — общее у excelSheet и excelSheetBoxes. */
+export function excelScreen(title: string, rows: string[][], opts: ExcelSheetOpts = {}): ReconScreen {
   const cols = Math.max(...rows.map(r => r.length))
   const letters = Array.from({ length: cols }, (_, i) => String.fromCharCode(65 + i))
   const cell = opts.selected ? `${letters[opts.selected[1]]}${(opts.firstRow ?? 1) + opts.selected[0]}` : ''
-  return reconScreen({
+  return {
     app: 'Excel',
     window: title,
     formulaBar: opts.formula !== undefined ? `${cell ? cell + '   ' : ''}${opts.formula}` : undefined,
@@ -238,5 +339,5 @@ export function excelSheet(title: string, rows: string[][], opts: { formula?: st
       hi: opts.selected ? [opts.selected[0], opts.selected[1] + 1] : undefined,
     },
     callouts: opts.note ? [opts.note] : undefined,
-  })
+  }
 }

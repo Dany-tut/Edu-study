@@ -389,6 +389,15 @@ export const TASK_TYPE_PREVIEWS: Record<TaskTypeId, TaskTypePreview> = {
     ],
   },
 
+  screenHotspot: {
+    teaches: 'Место на экране, а не название: нажать туда, куда нажали бы в 1С или Excel.',
+    blocks: [
+      { kind: 'prompt', text: 'Где открыть проводки этого документа?' },
+      { kind: 'tiles', label: 'Учебная реконструкция — не снимок экрана', items: [{ text: 'Провести' }, { text: 'Дт/Кт', state: 'correct' }, { text: 'Печать' }] },
+      { kind: 'verdict', text: 'Верно — с первой попытки', ok: true },
+    ],
+  },
+
   columnSort: {
     teaches: 'Признак, а не отдельное слово: десять предметов в три корзины показывают, работает ли правило.',
     blocks: [

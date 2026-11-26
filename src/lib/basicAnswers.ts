@@ -1,3 +1,4 @@
+import type { HotspotSpec } from './screenHotspot'
 /**
  * Ответы базового уровня домашки — снимок для преподавателя.
  *
@@ -56,6 +57,12 @@ export interface BasicAnswerRow {
    * ручной частью итог приходит после проверки в Тестли).
    */
   testly?: { testId: string; updatedAt?: string; got?: number; max?: number; pending?: boolean; submittedAt?: string; returned?: boolean; returnedAt?: string }
+  /**
+   * Найди на экране: задание (картинка — описанием реконструкции или ссылкой,
+   * не самим SVG) и сырая строка нажатий. Преподаватель видит ту же картинку с
+   * пронумерованными нажатиями, вердикт пересчитывается тем же hotspotOutcome.
+   */
+  hotspot?: { spec: HotspotSpec; taps: string }
 }
 
 export interface BasicAnswersPayload {
