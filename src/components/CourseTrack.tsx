@@ -231,6 +231,9 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
   const nodeCenter = (i: number) => nodeCount <= 1 ? padCenter : padCenter + (span * i) / (nodeCount - 1)
   const focusId = allLessons.some(l => l.id === highlightLessonId) ? highlightLessonId : resume.lessonId
   const focusIndex = allLessons.findIndex(l => l.id === focusId)
+  // Нажатие на уже выбранный модуль — «вернуться к текущему уроку»: раньше оно
+  // ничего не делало, и ученик жал повторно (rage-клик 26.11, телефон).
+  const [recenter, setRecenter] = useState(0)
   useLayoutEffect(() => {
     const el = scrollRef.current
     if (!el || !viewW) return
@@ -239,7 +242,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
     setScrollX(el.scrollLeft)
     setSelectedLessonId(null)
     setSelectedHardLessonId(null)
-  }, [subject.id, effectiveModuleId, focusId, viewW, nodeCount, span, padCenter, focusIndex])
+  }, [subject.id, effectiveModuleId, focusId, viewW, nodeCount, span, padCenter, focusIndex, recenter])
   const edges = { left: scrollX > 2, right: scrollX + viewportW < containerW - 2 }
   const trackColors = allLessons.map((lesson, i) => {
     const status = gradedTrackResult(lesson)?.status ?? statuses[i]
@@ -309,6 +312,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
               onOpenDebts={id => onOpenDebts?.(subject.id, id)}
               activeId={effectiveModuleId}
               onSelect={id => {
+                if (id === effectiveModuleId) { setRecenter(n => n + 1); return }
                 if (id === activeModuleId) return
                 playTransitionDrop()
                 setActiveModule(id)
