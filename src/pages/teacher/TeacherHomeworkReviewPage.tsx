@@ -1,3 +1,4 @@
+import { isSchoolStudent } from '../../lib/subjects'
 import OpticalText from '../../components/OpticalText'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useFeature } from '../../lib/teacherFeatures'
@@ -433,7 +434,7 @@ export function HomeworkReviewEditor({hw, group, submitters, submissions: rawSub
           </button>})}
           {!filteredStudents.length&&<p className="hr-muted">{t('Ученик не найден')}</p>}
         </HomeworkReviewScroll>
-        <div className="hr-student-summary"><h3>{t('Об ученике')}</h3><span>{t('ДЗ')}<b>{student.hwScore}%</b></span><span>{t('Тесты')}<b>{student.testScore}%</b></span><span>{t('Посещаемость')}<b>{student.attendance}%</b></span>{student.trialScore!==null&&<span>{t('Пробник')}<b>{student.trialScore}</b></span>}<span>{t('Желаемый балл')}<b>{student.desiredScore}</b></span></div>
+        <div className="hr-student-summary"><h3>{t('Об ученике')}</h3><span>{t('ДЗ')}<b>{student.hwScore}%</b></span><span>{t('Тесты')}<b>{student.testScore}%</b></span><span>{t('Посещаемость')}<b>{student.attendance}%</b></span>{student.trialScore!==null&&<span>{t('Пробник')}<b>{student.trialScore}</b></span>}{isSchoolStudent(student)&&<span>{t('Желаемый балл')}<b>{student.desiredScore}</b></span>}</div>
       </aside>
       <article className="hr-document" aria-label={t('Работа ученика')+' · '+tn(student.name)}>
         <div className="hr-document-top"><span className="hr-document-avatar">{initials(tn(student.name))}</span><div><h2>{tn(student.name)}</h2><p>{group.name}{hw.dueDate?' · '+t('Срок')+' '+new Date(hw.dueDate).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):''}</p></div><span className={'hr-status '+(reviewed?'hr-status-reviewed':'')}>{currentStatus}</span></div>

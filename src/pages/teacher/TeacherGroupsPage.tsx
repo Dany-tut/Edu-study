@@ -29,7 +29,7 @@ import {
 } from '../../components/icons/appIcons'
 import TeacherSelect from '../../components/teacher/TeacherSelect'
 import StudentSubjectsField from '../../components/teacher/StudentSubjectsField'
-import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP } from '../../lib/subjects'
+import { SUBJECT_ICON_MAP, mySubjectNames, ICON_GAP, hasSchoolContext, isSchoolStudent } from '../../lib/subjects'
 import { useTeacherAccess } from '../../lib/teacherAccess'
 import { defaultStudentSubject, normalizeStudentSubject, normalizeStudentSubjects } from '../../lib/studentSubject'
 import { levelOptionsForSubject } from '../../lib/courseLevels'
@@ -370,6 +370,8 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
   const [desiredScore, setDesiredScore] = usePersistentState('groups.addStudent.desiredScore', 0)
   const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addStudent.paymentAmount', 0)
   const [showDetails, setShowDetails] = useState(() => Boolean(phone || telegram || parent || desiredScore || paymentAmount))
+  // Взрослые курсы («Бухгалтерия») — без родителя и экзаменационного балла.
+  const schoolForm = hasSchoolContext(subjects) || !!parent || desiredScore > 0
   const [saving, setSaving] = useState(false)
   // Ошибка записи — текстом в окне. Раньше окно молча закрывалось, а форма стиралась.
   const [saveErr, setSaveErr] = useState<string | null>(null)
@@ -515,9 +517,9 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
               <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, ...studentFormLabelInset }}>{t('Контакты')}</div>
               <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={studentFormInputStyle} />
               <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={studentFormInputStyle} />
-              <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={studentFormInputStyle} />
-              <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, paddingTop: 4, ...studentFormLabelInset }}>{t('Цель и оплата')}</div>
-              <input
+              {schoolForm && <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={studentFormInputStyle} />}
+              <div style={{ fontSize: 11, color: 'var(--color-muted)', fontWeight: 600, paddingTop: 4, ...studentFormLabelInset }}>{t(schoolForm ? 'Цель и оплата' : 'Оплата')}</div>
+              {schoolForm && <input
                 type="number"
                 value={desiredScore === 0 ? '' : desiredScore}
                 onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
@@ -526,7 +528,7 @@ export function AddStudentModal({ onClose, onSave, groups, initialGroupId }: {
                 min={0}
                 max={100}
                 style={studentFormInputStyle}
-              />
+              />}
               <input
                 type="number"
                 value={paymentAmount === 0 ? '' : paymentAmount}
@@ -717,6 +719,7 @@ export function AddIndividualStudentModal({ onClose, onPickExisting, onSave, ini
   const [telegram, setTelegram] = usePersistentState('groups.addIndiv.telegram', '')
   const [parent, setParent] = usePersistentState('groups.addIndiv.parent', '')
   const [desiredScore, setDesiredScore] = usePersistentState('groups.addIndiv.desiredScore', 0)
+  const schoolIndiv = hasSchoolContext([subject, ...tracks.map(tr => tr.subject)]) || !!parent || desiredScore > 0
   const [paymentAmount, setPaymentAmount] = usePersistentState('groups.addIndiv.paymentAmount', 0)
   const [saving, setSaving] = useState(false)
   // Ошибка записи — текстом в окне. Раньше окно молча закрывалось, а форма стиралась.
@@ -849,8 +852,8 @@ export function AddIndividualStudentModal({ onClose, onPickExisting, onSave, ini
               />
               <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={t('Телефон')} style={inputStyle} />
               <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder={t('Telegram или VK (@ник или ссылка)')} style={inputStyle} />
-              <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={inputStyle} />
-              <input
+              {schoolIndiv && <input value={parent} onChange={e => setParent(e.target.value)} placeholder={t('Контакт родителя')} style={inputStyle} />}
+              {schoolIndiv && <input
                 type="number"
                 value={desiredScore === 0 ? '' : desiredScore}
                 onChange={e => setDesiredScore(e.target.value === '' ? 0 : Number(e.target.value))}
@@ -859,7 +862,7 @@ export function AddIndividualStudentModal({ onClose, onPickExisting, onSave, ini
                 min={0}
                 max={100}
                 style={inputStyle}
-              />
+              />}
               <input
                 type="number"
                 value={paymentAmount === 0 ? '' : paymentAmount}
@@ -1785,7 +1788,7 @@ function StudentFullCard({ student, group, onClose }: { student: Student; group:
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 10 }}>{t('Прочее')}</div>
                     <InfoRow label={t('Начал(а)')} value={student.startedAt} />
                     <InfoRow label={t('Последний вход')} value={student.lastVisit} />
-                    <InfoRow label={t('Целевой балл')} value={`${student.desiredScore} ${t('баллов')}`} />
+                    {isSchoolStudent(student) && <InfoRow label={t('Целевой балл')} value={`${student.desiredScore} ${t('баллов')}`} />}
                   </section>
                 </div>
                 {/* Right col */}
@@ -2278,7 +2281,8 @@ function StudentPanel({
         {/* Active courses */}
         <StudentCoursesSection student={student} group={group} />
 
-        {/* Goal */}
+        {/* Goal — экзаменационный балл, только школьникам */}
+        {isSchoolStudent(student) && <>
         <section>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.05em', marginBottom: 8, textTransform: 'uppercase' }}>
             {t('Цель')}
@@ -2297,6 +2301,7 @@ function StudentPanel({
             <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-amber-text)' }}>{student.desiredScore}</span>
           </div>
         </section>
+        </>}
 
         {/* Info */}
         <section>

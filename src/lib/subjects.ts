@@ -437,3 +437,18 @@ export function courseSubjectOptionsFor(allowed: string[] | null | undefined, ke
 export function isLanguageSubject(idOrName: string | undefined): boolean {
   return !!getSubject(idOrName)?.isLanguage
 }
+
+/**
+ * Школьный контекст ученика: показывать ли «Класс», «Контакт родителя» и
+ * целевой балл экзамена. Искра — не только репетиторство: взрослый на курсе
+ * «Бухгалтерия» не в классе и без родителей (замечание Дани 26.11.2026).
+ * Правило: хотя бы один предмет из реестра (школьные и языки) — да; предметы
+ * не указаны — да, как раньше; все предметы свои («Бухгалтерия», «Экономика»)
+ * — нет. Заполненное поле вызывающий код показывает всегда, данные не прячем.
+ */
+export function hasSchoolContext(subjects: Array<string | null | undefined>): boolean {
+  const known = subjects.map(s => (s ?? '').trim()).filter(Boolean)
+  return known.length === 0 || known.some(s => !!getSubject(s))
+}
+export const isSchoolStudent = (s: { subject?: string | null; subjects?: string[] | null } | null | undefined): boolean =>
+  hasSchoolContext([...(s?.subjects ?? []), s?.subject])

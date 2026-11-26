@@ -3,7 +3,7 @@ import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../icons/SubjectMark'
 import { useRef, useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { cardChip, cardChipTone } from '../../lib/pillStyles'
-import { ICON_GAP } from '../../lib/subjects'
+import { isSchoolStudent, ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, User, Plus, Layers } from '../icons/appIcons'
 import type { Group } from '../../data/teacherMockData'
@@ -292,7 +292,7 @@ function IndividualCard({
       <div style={{ display: 'flex', gap: 6, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--color-border-soft)' }}>
         <MetricCell label={t('Посещ.')} value={stu ? `${stu.attendance}%` : '—'} color={stu ? attColor(stu.attendance) : 'var(--color-text-4)'} />
         <MetricCell label={t('ДЗ')} value={stu ? `${stu.hwScore}` : '—'} color={stu ? hwColor(stu.hwScore) : 'var(--color-text-4)'} divider />
-        <MetricCell label={t('Цель')} value={stu?.desiredScore ? `${stu.desiredScore}` : '—'} color="var(--color-accent)" divider />
+        {isSchoolStudent(stu ?? { subject: group.subject }) && <MetricCell label={t('Цель')} value={stu?.desiredScore ? `${stu.desiredScore}` : '—'} color="var(--color-accent)" divider />}
       </div>
     </motion.div>
   )
