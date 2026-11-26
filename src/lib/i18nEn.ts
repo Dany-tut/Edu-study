@@ -4479,6 +4479,7 @@ export const EN: Record<string, string> = {
   'Группами': 'Grouped',
   'Изменён': 'Changed',
   'Общий курс — только для чтения': 'A shared course — read-only',
+  'Готовый курс — отметить можно после сохранения': 'A ready-made course — save it first to select it',
   'Пробник (ЕГЭ)': 'Mock exam',
   'Дедлайн (необязательно)': 'Deadline (optional)',
 

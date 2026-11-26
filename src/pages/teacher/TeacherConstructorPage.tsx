@@ -8381,8 +8381,10 @@ export default function TeacherConstructorPage() {
   const [courseStudent, setCourseStudent] = usePersistentState('ctor.courseStudent', '')
   // Готовые курсы стоят в общем списке обычными плитками — отдельной секции нет.
   // Отличие только внутреннее: курса ещё нет в БД, он соберётся из сида при
-  // открытии и станет настоящим после «Сохранить». Поэтому их нет в режиме
-  // редактирования (удалять и дублировать нечего) и под фильтром «Опубликован».
+  // открытии и станет настоящим после «Сохранить». Под фильтром «Опубликован»
+  // их нет, а в режиме правки они СТОЯТ НА СВОИХ МЕСТАХ неактивными (удалять и
+  // дублировать нечего, отметить нельзя). Раньше карандаш их прятал — витрина
+  // сдвигалась на число готовых курсов, счётчик падал, «порядок скакал».
   //
   // Видит их ТОЛЬКО админ-босс: базовый контент заводится у него, а учителям
   // раздаётся дальше — копией или шарой через карточку учителя в Админке. Пока
@@ -8404,7 +8406,7 @@ export default function TeacherConstructorPage() {
     const map = new Map<string, CourseSeed>()
     // Пока свои курсы не приехали, плиток сидов нет: иначе витрина на секунду
     // состоит из чужих готовых курсов, а настоящие подставляются под них позже.
-    if (!accessLoaded || !isAdmin || editMode || dbLoading) return map
+    if (!accessLoaded || !isAdmin || dbLoading) return map
     // ЗАНЯТО — ЭТО ПО КЛЮЧУ СИДА, А НЕ ПО ПОЛНОМУ id. id несёт хвост владельца
     // (`seed-ensp-84fe210b`), а он берётся из ownerId, который приезжает своим
     // запросом. Пока его нет, id выходил коротким (`seed-ensp`), совпадения с
@@ -8423,7 +8425,7 @@ export default function TeacherConstructorPage() {
       if (!taken.has(s.key)) map.set(seedCourseId(s, ownerId), s)
     }
     return map
-  }, [courses, ownerId, isAdmin, accessLoaded, editMode, dbLoading])
+  }, [courses, ownerId, isAdmin, accessLoaded, dbLoading])
   // Всё, что вообще показывается на вкладке: свои курсы + плитки сидов. Из этого
   // же списка собираются опции фильтров, поэтому пустых вариантов не бывает.
   const allCourses = useMemo(
@@ -9880,20 +9882,29 @@ export default function TeacherConstructorPage() {
                 style={{ display: (activeTab === 'trainer' || activeTab === 'widget' || activeTab === 'decks') ? 'none' : 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: DIAG_GRID_GAP, position: 'relative' }}>
                 {activeTab === 'course' && coursesLoading &&
                   Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={`sk-${i}`} />)}
-                {activeTab === 'course' && filteredCourses.map(c => (
+                {activeTab === 'course' && filteredCourses.map(c => {
+                  const isSeed = seedById.has(c.id)
+                  // Отметить нельзя ни общий курс, ни готовый (его ещё нет в БД).
+                  // В режиме правки такие плитки остаются на месте, но гаснут —
+                  // набор и порядок витрины от карандаша не меняются.
+                  const locked = editMode && (c.shared || isSeed)
+                  return (
                   <div key={c.id} className={flashId === c.id ? 'constructor-card-flash' : undefined}
                     // В футере теперь часы, поэтому дата правки живёт в подсказке.
-                    title={seedById.has(c.id) ? seedTooltip(seedById.get(c.id)!) : c.lastEdited ? `${t('Изменён')} ${c.lastEdited}` : undefined}
+                    title={locked && isSeed ? t('Готовый курс — отметить можно после сохранения')
+                      : isSeed ? seedTooltip(seedById.get(c.id)!) : c.lastEdited ? `${t('Изменён')} ${c.lastEdited}` : undefined}
                     style={{ position: 'relative' }}>
+                    <div style={{ height: '100%', opacity: locked ? 0.45 : 1, transition: 'opacity 0.15s', pointerEvents: locked ? 'none' : undefined }}>
                     <CourseCard course={c} isSelected={false}
                       students={enrollmentByCourse[c.id]}
                       access={accessByCourse[c.id]}
                       // Готовый курс собирается из сида, а не читается из БД, — у него
                       // своя дорога в редактор.
                       onClick={() => editMode
-                        ? (c.shared ? undefined : toggleCheck(c.id))
+                        ? (locked ? undefined : toggleCheck(c.id))
                         : void openCourseCard(c)}
                       actions={undefined} />
+                    </div>
                     {openingId === c.id && (
                       <div style={{
                         position: 'absolute', inset: 0, borderRadius: 20, zIndex: 6,
@@ -9906,8 +9917,8 @@ export default function TeacherConstructorPage() {
                         {t('Открываем…')}
                       </div>
                     )}
-                    {editMode && c.shared && (
-                      <div title={t("Общий курс — только для чтения")} style={{
+                    {locked && (
+                      <div title={isSeed ? t('Готовый курс — отметить можно после сохранения') : t("Общий курс — только для чтения")} style={{
                         position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
                         border: '1px solid var(--color-border-medium)', background: 'var(--color-bg-5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5,
@@ -9916,7 +9927,7 @@ export default function TeacherConstructorPage() {
                         <Lock size={12} strokeWidth={2} />
                       </div>
                     )}
-                    {editMode && !c.shared && (
+                    {editMode && !locked && (
                       <>
                         <div data-hover="layer" onClick={() => toggleCheck(c.id)} style={{
                           position: 'absolute', top: 12, left: 12, width: 22, height: 22, borderRadius: 7,
@@ -9937,7 +9948,8 @@ export default function TeacherConstructorPage() {
                       </>
                     )}
                   </div>
-                ))}
+                  )
+                })}
                 {/* layout у каждой клетки: раскрытая серия раздвигает соседей, а не
                     перескакивает — плитки доезжают до новых мест. */}
                 {activeTab === 'testing' && testCells.map(cell => cell.kind === 'stack' ? (
