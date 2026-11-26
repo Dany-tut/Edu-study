@@ -36,7 +36,7 @@ import { compactFullLessons } from '../../lib/courseFullCompact'
 import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
 import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
 import { EXPLICIT_CLEAR_HEADER, explicitClearHeader, lessonExplicitClears } from '../../lib/lessonExplicitClears'
-import { approvedFileClears, confirmedLessonFiles, filesClearPair, heldLessonFiles, pruneApprovedFileClears, withHeldLessonFiles } from '../../lib/lessonHeldFiles'
+import { approvedFileClears, approvedPartClears, confirmedLessonFiles, filesClearPair, heldLessonFiles, heldPartsByLesson, partClearPair, pruneApprovedFileClears, pruneApprovedPartClears, restoreLessonPart, withHeldLessonFiles, withHeldLessonParts, type HeldPart } from '../../lib/lessonHeldFiles'
 import { courseSaveProvenance, courseSnapshotStamp } from '../../lib/courseSaveProvenance'
 import { createCourseSaveReport, type ReportContext } from '../../lib/courseSaveReport'
 import { submitCourseSaveReport } from '../../lib/submitCourseSaveReport'
@@ -2251,6 +2251,16 @@ export function CenterRecording({
 // ─── CENTER: Lesson content tab ───────────────────────────────────────────────
 
 type FileSlot = 'workbook' | 'notebook' | 'materials'
+
+/** Заголовки алертов «убрано только в редакторе» (lib/lessonHeldFiles). */
+const HELD_PART_TITLE: Record<HeldPart, string> = {
+  'timecodes': 'Главы записи убраны только в редакторе.',
+  'test_tasks': 'Задания теста убраны только в редакторе.',
+  'content.paragraphs': 'Конспект убран только в редакторе.',
+  'content.selfCheck': '«Проверь себя» убрано только в редакторе.',
+  'content.cardSetId': 'Карточки к уроку убраны только в редакторе.',
+  'content.cardGroupId': 'Группа карточек убрана только в редакторе.',
+}
 
 const FILE_CARDS: Array<{ slot: FileSlot; Icon: React.ElementType; label: string; multiple?: boolean }> = [
   { slot: 'workbook',  Icon: NotebookPen, label: 'Рабочая тетрадь' },
@@ -7042,7 +7052,7 @@ export default function TeacherCourseEditorPage() {
     !selectedLesson ? 'meta' : selectedLesson.kind === 'test' ? 'test' : 'lesson'
 
   // Файлы урока, убранные только в редакторе (lib/lessonHeldFiles).
-  const [, setHeldTick] = useState(0)
+  const [heldTick, setHeldTick] = useState(0)
   function heldFilesFor(lesson: CELesson) {
     const shortId = lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons)[lesson.id]
     return heldLessonFiles(shortId, lesson.files, confirmedLessonFiles(confirmedContent.current?.serialized.lessons), approvedFileClearsRef.current)
@@ -7053,6 +7063,28 @@ export default function TeacherCourseEditorPage() {
     const ids = lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons)
     return course.lessons.some(l => heldLessonFiles(ids[l.id], l.files, confirmed, approvedFileClearsRef.current))
   })()
+  // Остальные удержанные поля (lib/lessonHeldFiles: HeldPart) — алерты над вкладками урока.
+  const heldParts = useMemo(
+    () => heldPartsByLesson(course, confirmedContent.current?.serialized.lessons, approvedFileClearsRef.current),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- снимок в ref, меняется вместе с сохранением
+    [course, heldTick, lastSavedAt],
+  )
+  const anyHeld = anyHeldFiles || heldParts.size > 0
+  function confirmedRowOf(lesson: CELesson) {
+    const shortId = lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons)[lesson.id]
+    return { shortId, row: confirmedContent.current?.serialized.lessons.find(r => r.short_id === shortId) }
+  }
+  function restoreHeldPart(lesson: CELesson, part: HeldPart) {
+    const { row } = confirmedRowOf(lesson)
+    if (row) updateLesson(restoreLessonPart(lesson, part, row))
+  }
+  function clearHeldPart(lesson: CELesson, part: HeldPart) {
+    const { shortId } = confirmedRowOf(lesson)
+    if (!shortId) return
+    approvedFileClearsRef.current.add(partClearPair(shortId, part))
+    setHeldTick(n => n + 1)
+    void Promise.resolve(retrySave()).finally(() => setHeldTick(n => n + 1))
+  }
   function clearHeldFiles(lesson: CELesson) {
     const shortId = lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons)[lesson.id]
     if (!shortId) return
@@ -7293,7 +7325,10 @@ export default function TeacherCourseEditorPage() {
     // прежние, подтверждённые сервером, пока учитель не нажмёт «Убрать у учеников».
     const confirmedFiles = confirmedLessonFiles(confirmedContent.current?.serialized.lessons)
     pruneApprovedFileClears(approvedFileClearsRef.current, confirmedFiles)
-    let c = withHeldLessonFiles(edited, confirmedFiles, approvedFileClearsRef.current)
+    // То же для глав записи, заданий теста, конспекта, «Проверь себя» и карточек.
+    const confirmedRows = confirmedContent.current?.serialized.lessons
+    pruneApprovedPartClears(approvedFileClearsRef.current, confirmedRows)
+    let c = withHeldLessonParts(withHeldLessonFiles(edited, confirmedFiles, approvedFileClearsRef.current), confirmedRows, approvedFileClearsRef.current)
     saveIssue.current = null
     failureDetail.current = { stage: 'unknown' }
     // A client-side guard has no database error code. Keep its specific
@@ -7564,6 +7599,7 @@ export default function TeacherCourseEditorPage() {
       ? explicitClearHeader([
         ...lessonExplicitClears(contentBase.serialized.lessons, ordinaryCanonical.lessons),
         ...approvedFileClears(contentBase.serialized.lessons, ordinaryCanonical.lessons, approvedFileClearsRef.current),
+        ...approvedPartClears(contentBase.serialized.lessons, ordinaryCanonical.lessons, approvedFileClearsRef.current),
       ])
       : null
     const withExplicitClear = <Q extends { setHeader(name: string, value: string): Q }>(query: Q): Q =>
@@ -8357,7 +8393,7 @@ export default function TeacherCourseEditorPage() {
             pendingChanges={unsaved.current || (!chapterProjection.current.has(course) && autosaveEditRevision.current !== editRevision)}
             persisted={!!course.dbCourseId && !recoveredDraft}
             requireCurrentAck
-            savedExcept={anyHeldFiles ? t('кроме файлов') : undefined}
+            savedExcept={anyHeld ? (heldParts.size ? t('кроме убранного') : t('кроме файлов')) : undefined}
           />
         </div>
         <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -8778,6 +8814,24 @@ export default function TeacherCourseEditorPage() {
                     })}
                   </div>
                 </div>
+
+                {/* Убранное только в редакторе: у учеников ещё прежнее (lib/lessonHeldFiles). */}
+                {(heldParts.get(selectedLesson.id)?.length ?? 0) > 0 && (
+                  <div style={{ padding: '0 36px 12px' }}>
+                    <AlertStack items={heldParts.get(selectedLesson.id)!.map(part => ({
+                      id: part, tone: 'info' as const,
+                      title: t(HELD_PART_TITLE[part]),
+                      text: <>
+                        {t('Ученики пока видят прежнюю версию —')}{' '}
+                        <button type="button" data-hover="layer" onClick={() => restoreHeldPart(selectedLesson, part)}
+                          style={{ border: 'none', background: 'none', padding: 0, font: 'inherit', color: 'var(--color-purple-text)', textDecoration: 'underline', cursor: 'pointer' }}>
+                          {t('верните её')}
+                        </button>.
+                      </>,
+                      action: { label: t('Убрать у учеников'), onClick: () => clearHeldPart(selectedLesson, part) },
+                    }))} />
+                  </div>
+                )}
 
                 {/* Tab content — ремоунт по ключу вкладки, без AnimatePresence:
                     вкладки жмут чаще всего, и залипший цикл выхода тут выел бы

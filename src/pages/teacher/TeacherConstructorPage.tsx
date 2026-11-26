@@ -48,6 +48,7 @@ import { copyToClipboard } from '../../lib/clipboard'
 import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
 import { patchExplicitClears, withExplicitClears } from '../../lib/lessonExplicitClears'
+import { partClearPair } from '../../lib/lessonHeldFiles'
 import { subscribeTeacherDataChanges } from '../../lib/teacherDataRealtime'
 import { isCourseResetRef } from '../../lib/homeworkReset'
 import { runCourseCopy } from '../../lib/courseCopyRequest'
@@ -2065,6 +2066,9 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   // Урок прочитан из базы: только тогда пустое поле при сохранении — стёртое
   // учителем, а не незагруженное (защита данных, X-Iskra-Explicit-Clear).
   const loadedFromDb = useRef(false)
+  // Что сейчас у учеников: опустевший здесь конспект или главы не стираем без
+  // «Убрать у учеников» (lib/lessonHeldFiles, защита данных после 22.11).
+  const server = useRef<{ paragraphs: LessonParagraph[]; timecodes: LessonTimecodeRow[] }>({ paragraphs: [], timecodes: [] })
 
   useEffect(() => {
     let alive = true
@@ -2074,6 +2078,10 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
       if (!alive) return
       loadedFromDb.current = !!data
       const dbc = (data?.content ?? undefined) as LessonContentData | undefined
+      server.current = {
+        paragraphs: Array.isArray(dbc?.paragraphs) ? dbc!.paragraphs : [],
+        timecodes: Array.isArray(data?.timecodes) ? (data!.timecodes as LessonTimecodeRow[]) : [],
+      }
       setTranscript(dbc?.transcript)
       // Запасной конспект из кода — по short_id урока (см. authoredLessons.ts).
       const src = (dbc && dbc.paragraphs?.length) ? dbc : authoredLesson(shortId)
@@ -2088,26 +2096,34 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     return () => { alive = false }
   }, [shortId])
 
-  async function save() {
+  const heldParas = loadedFromDb.current && !paras.some(p => p.text.trim()) && server.current.paragraphs.length > 0
+  const heldCodes = loadedFromDb.current && !timecodes.some(c => c.time.trim() || c.label.trim()) && server.current.timecodes.length > 0
+  async function save(approve: Array<'content.paragraphs' | 'timecodes'> = []) {
     // Пустой вопрос-заготовка не мешает, а вопрос с текстом без отмеченного варианта — мешает.
     const noAnswer = quiz.flatMap((q, i) => (q.prompt.trim() || q.options.some(o => o.text.trim())) && !q.options.find(o => o.id === q.correctOptionId)?.text.trim() ? [`${t('Вопрос')} ${i + 1}`] : [])
     if (alertMissingAnswers(noAnswer, t('Впишите вариант и отметьте его правильным.'))) return
     setSaving(true); setMsg('')
-    const content: LessonContentData = { ...(transcript && transcript.source === videoUrl.trim() ? { transcript } : {}), paragraphs: paras.filter(p => p.text.trim()), quiz, hardTask }
-    const patch = {
+    const keepParas = heldParas && !approve.includes('content.paragraphs')
+    const keepCodes = heldCodes && !approve.includes('timecodes')
+    const content: LessonContentData = { ...(transcript && transcript.source === videoUrl.trim() ? { transcript } : {}), paragraphs: keepParas ? server.current.paragraphs : paras.filter(p => p.text.trim()), quiz, hardTask }
+    const nextCodes = timecodes.filter(t => t.time.trim() || t.label.trim()).map(t => ({ ...t, seconds: parseSeconds(t.time) }))
+    const patch: Record<string, unknown> = {
       content,
       youtube_url: videoUrl.trim() || null,
       description: description.trim() || null,
-      timecodes: timecodes.filter(t => t.time.trim() || t.label.trim()).map(t => ({ ...t, seconds: parseSeconds(t.time) })),
+      ...(keepCodes ? {} : { timecodes: nextCodes }),
     }
+    const clears = loadedFromDb.current ? [...patchExplicitClears(shortId, patch), ...approve.map(part => partClearPair(shortId, part))] : []
     // .select() returns affected rows — an empty array means RLS blocked the write
     // (e.g. the teacher session expired); Postgres reports that without an error.
-    const { data, error } = await withExplicitClears(supabase.from('lessons').update(patch),
-      loadedFromDb.current ? patchExplicitClears(shortId, patch) : []).eq('short_id', shortId).select('short_id')
+    const { data, error } = await withExplicitClears(supabase.from('lessons').update(patch), clears).eq('short_id', shortId).select('short_id')
     setSaving(false)
     if (error) setMsg(t('Ошибка: ') + (error.message))
     else if (!data || data.length === 0) setMsg(t('Не сохранено: нет прав. Войдите в аккаунт преподавателя заново.'))
-    else setMsg(t('✓ Сохранено — ученики увидят обновление'))
+    else {
+      server.current = { paragraphs: content.paragraphs ?? [], timecodes: keepCodes ? server.current.timecodes : nextCodes }
+      setMsg(t('✓ Сохранено — ученики увидят обновление'))
+    }
   }
 
   const setPara = (id: string, text: string) => setParas(prev => prev.map(p => p.id === id ? { ...p, text } : p))
@@ -2129,7 +2145,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Связано с базой ·')} {shortId}</div>
         </div>
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
-        <button data-hover="layer" onClick={save} disabled={saving || loading}
+        <button data-hover="layer" onClick={() => void save()} disabled={saving || loading}
           style={{ padding: '10px 18px', borderRadius: 999, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           <OpticalText as="iskra-button-label">{saving ? t('Сохраняю…') : t('Сохранить в базу')}</OpticalText>
         </button>
@@ -2138,6 +2154,25 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         {/* CENTER — tabbed content */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* Убранное только здесь: у учеников ещё прежнее. */}
+          {(heldParas || heldCodes) && (
+            <div style={{ padding: '14px 24px 0' }}>
+              <AlertStack items={([
+                heldParas && { part: 'content.paragraphs' as const, title: t('Конспект убран только в редакторе.'), restore: () => setParas(server.current.paragraphs.map(p => ({ ...p }))) },
+                heldCodes && { part: 'timecodes' as const, title: t('Главы записи убраны только в редакторе.'), restore: () => setTimecodes(server.current.timecodes.map(c => ({ ...c }))) },
+              ].filter(Boolean) as Array<{ part: 'content.paragraphs' | 'timecodes'; title: string; restore: () => void }>).map(item => ({
+                id: item.part, tone: 'info' as const, title: item.title,
+                text: <>
+                  {t('Ученики пока видят прежнюю версию —')}{' '}
+                  <button type="button" data-hover="layer" onClick={item.restore}
+                    style={{ border: 'none', background: 'none', padding: 0, font: 'inherit', color: 'var(--color-purple-text)', textDecoration: 'underline', cursor: 'pointer' }}>
+                    {t('верните её')}
+                  </button>.
+                </>,
+                action: { label: t('Убрать у учеников'), onClick: () => { void save([item.part]) } },
+              }))} />
+            </div>
+          )}
           {/* tabs */}
           <div style={{ display: 'flex', gap: 6, padding: '14px 24px 0' }}>
             {([['lesson', t('Урок')], ['record', t('Запись')]] as const).map(([k, label]) => (
