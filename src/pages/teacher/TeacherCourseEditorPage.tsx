@@ -36,6 +36,7 @@ import { compactFullLessons } from '../../lib/courseFullCompact'
 import { prepareFullPreservedSnapshot } from '../../lib/courseFullPreservation'
 import { ordinaryContentPlan, noCourseAccessIntents, type OrdinaryContentPlan } from '../../lib/courseOrdinaryDelta'
 import { EXPLICIT_CLEAR_HEADER, explicitClearHeader, lessonExplicitClears } from '../../lib/lessonExplicitClears'
+import { approvedFileClears, confirmedLessonFiles, filesClearPair, heldLessonFiles, pruneApprovedFileClears, withHeldLessonFiles } from '../../lib/lessonHeldFiles'
 import { courseSaveProvenance, courseSnapshotStamp } from '../../lib/courseSaveProvenance'
 import { createCourseSaveReport, type ReportContext } from '../../lib/courseSaveReport'
 import { submitCourseSaveReport } from '../../lib/submitCourseSaveReport'
@@ -62,7 +63,7 @@ import { getWriteActivity, subscribeWriteActivity } from '../../lib/sync/writeAc
 import { SAVE_RETRY_MS, shouldAutoRetry } from '../../lib/sync/saveStatus'
 import { FIELD } from '../../lib/fieldStyle'
 import { ModalClose } from '../../components/Modal'
-import { AlertStack } from '../../components/Alert'
+import { Alert, AlertStack } from '../../components/Alert'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -2615,11 +2616,15 @@ function RecapInLesson({ lesson, onUpdate }: { lesson: CELesson; onUpdate: (upda
 }
 
 function CenterLesson({
-  lesson, onUpdate, subject,
+  lesson, onUpdate, subject, heldFiles, onClearHeldFiles,
 }: {
   lesson: CELesson
   onUpdate: (updated: CELesson) => void
   subject?: string
+  /** Файлы, которые убраны только здесь: у учеников они ещё есть (lib/lessonHeldFiles). */
+  heldFiles?: LessonFiles | null
+  /** «Убрать у учеников» — очистить файлы урока и на сервере. */
+  onClearHeldFiles?: () => void
 }) {
   const t = useT()
   const refWorkbook = useRef<HTMLInputElement>(null)
@@ -2830,6 +2835,23 @@ function CenterLesson({
             )
           })}
         </div>
+
+        {/* Все файлы убраны, но у учеников ещё прежние: автосохранение их не
+            стирает (защита данных). Новый файл снимает алерт сам. */}
+        {heldFiles && (
+          <Alert
+            tone="info"
+            title={t('Файлы убраны только в редакторе.')}
+            text={<>
+              {t('Ученики пока видят прежние — добавьте новые или')}{' '}
+              <button type="button" data-hover="layer" onClick={() => onUpdate({ ...lesson, files: structuredClone(heldFiles) })}
+                style={{ border: 'none', background: 'none', padding: 0, font: 'inherit', color: 'var(--color-purple-text)', textDecoration: 'underline', cursor: 'pointer' }}>
+                {t('верните прежние')}
+              </button>.
+            </>}
+            action={onClearHeldFiles ? { label: t('Убрать у учеников'), onClick: onClearHeldFiles } : undefined}
+          />
+        )}
 
         {/* Широкое поле ссылки на всю строку — ниже карточек, не в тесной колонке. */}
         {linkSlot && (
@@ -6308,6 +6330,8 @@ export default function TeacherCourseEditorPage() {
   const metadataRead = useRef<EditorMetadataRead | null>(null)
   const reviewedContentOverwrite = useRef(false)
   const confirmedContent = useRef<ConfirmedBaseline<CourseContentSnapshot> | null>(null)
+  // «Убрать у учеников»: пары «short_id:materials», которые учитель разрешил очистить (lib/lessonHeldFiles).
+  const approvedFileClearsRef = useRef<Set<string>>(new Set())
   const activeRead = useRef<ReadToken | null>(null)
   const readScope = useRef<Scope>({ authEpoch: 0, ownerId: '' })
   const readSequence = useRef(0)
@@ -6971,6 +6995,25 @@ export default function TeacherCourseEditorPage() {
   const railVariant: 'meta' | 'lesson' | 'test' =
     !selectedLesson ? 'meta' : selectedLesson.kind === 'test' ? 'test' : 'lesson'
 
+  // Файлы урока, убранные только в редакторе (lib/lessonHeldFiles).
+  const [, setHeldTick] = useState(0)
+  function heldFilesFor(lesson: CELesson) {
+    const shortId = lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons)[lesson.id]
+    return heldLessonFiles(shortId, lesson.files, confirmedLessonFiles(confirmedContent.current?.serialized.lessons), approvedFileClearsRef.current)
+  }
+  const anyHeldFiles = (() => {
+    const confirmed = confirmedLessonFiles(confirmedContent.current?.serialized.lessons)
+    if (!confirmed.size) return false
+    const ids = lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons)
+    return course.lessons.some(l => heldLessonFiles(ids[l.id], l.files, confirmed, approvedFileClearsRef.current))
+  })()
+  function clearHeldFiles(lesson: CELesson) {
+    const shortId = lessonShortIdMap(course.dbCourseId ?? course.id, course.lessons)[lesson.id]
+    if (!shortId) return
+    approvedFileClearsRef.current.add(filesClearPair(shortId))
+    setHeldTick(n => n + 1)
+    void Promise.resolve(retrySave()).finally(() => setHeldTick(n => n + 1))
+  }
   function updateLesson(updated: CELesson) {
     setCourse(c => ({ ...c, lessons: c.lessons.map(l => l.id === updated.id ? updated : l) }))
   }
@@ -7199,7 +7242,12 @@ export default function TeacherCourseEditorPage() {
     return run
   }
 
-  async function syncCourseNow(c: CourseEdData): Promise<boolean> {
+  async function syncCourseNow(edited: CourseEdData): Promise<boolean> {
+    // Убранные только в редакторе файлы урока не стираем у учеников: пишем
+    // прежние, подтверждённые сервером, пока учитель не нажмёт «Убрать у учеников».
+    const confirmedFiles = confirmedLessonFiles(confirmedContent.current?.serialized.lessons)
+    pruneApprovedFileClears(approvedFileClearsRef.current, confirmedFiles)
+    let c = withHeldLessonFiles(edited, confirmedFiles, approvedFileClearsRef.current)
     saveIssue.current = null
     failureDetail.current = { stage: 'unknown' }
     // A client-side guard has no database error code. Keep its specific
@@ -7467,7 +7515,10 @@ export default function TeacherCourseEditorPage() {
     const explicitClear = ordinaryScope && contentBase && ordinaryCanonical && draftSource.current
       && !recovering.current && !recoveryBlocked.current && !reviewedContentOverwrite.current
       && baselineCanDriveDelta(contentBase, { courseShortId: shortId, baselineStamp: baselineStamp.current, scope: readScope.current })
-      ? explicitClearHeader(lessonExplicitClears(contentBase.serialized.lessons, ordinaryCanonical.lessons))
+      ? explicitClearHeader([
+        ...lessonExplicitClears(contentBase.serialized.lessons, ordinaryCanonical.lessons),
+        ...approvedFileClears(contentBase.serialized.lessons, ordinaryCanonical.lessons, approvedFileClearsRef.current),
+      ])
       : null
     const withExplicitClear = <Q extends { setHeader(name: string, value: string): Q }>(query: Q): Q =>
       explicitClear ? query.setHeader(EXPLICIT_CLEAR_HEADER, explicitClear) : query
@@ -8260,6 +8311,7 @@ export default function TeacherCourseEditorPage() {
             pendingChanges={unsaved.current || (!chapterProjection.current.has(course) && autosaveEditRevision.current !== editRevision)}
             persisted={!!course.dbCourseId && !recoveredDraft}
             requireCurrentAck
+            savedExcept={anyHeldFiles ? t('кроме файлов') : undefined}
           />
         </div>
         <div ref={headRightRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -8723,7 +8775,8 @@ export default function TeacherCourseEditorPage() {
                       />
                     )}
                     {lessonMode === 'lesson' && (
-                      <CenterLesson key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} subject={course.subject} />
+                      <CenterLesson key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} subject={course.subject}
+                        heldFiles={heldFilesFor(selectedLesson)} onClearHeldFiles={() => clearHeldFiles(selectedLesson)} />
                     )}
                     {lessonMode === 'homework' && (
                       <CenterHomework key={selectedLesson.id} lesson={selectedLesson} onUpdate={updateLesson} onTaskPhotoChange={updateTaskPhoto} hwTab={hwTab} />

@@ -10,13 +10,15 @@ import { clockTime, nextStatusChangeIn, saveStatusView } from '../lib/sync/saveS
  * «Нет сети — сохраню, когда появится», «Не сохранено». Не исчезает и не мигает.
  * Подробности ошибки и «Повторить» — в Alert экрана, здесь только статус.
  */
-export default function SaveStatusLine({ saving, lastSavedAt, failed, pendingChanges, persisted, requireCurrentAck = false, style }: {
+export default function SaveStatusLine({ saving, lastSavedAt, failed, pendingChanges, persisted, requireCurrentAck = false, savedExcept, style }: {
   saving: boolean
   lastSavedAt: number | null
   failed: boolean
   pendingChanges: boolean
   persisted: boolean
   requireCurrentAck?: boolean
+  /** Что сознательно не записано («кроме файлов»): «Сохранено · кроме файлов». */
+  savedExcept?: string
   style?: CSSProperties
 }) {
   const t = useT()
@@ -54,7 +56,8 @@ export default function SaveStatusLine({ saving, lastSavedAt, failed, pendingCha
   } else if (view.kind === 'error') {
     content = <><AlertCircle size={12} /> {t('Не сохранено')}</>
   } else if (view.kind === 'saved') {
-    const text = view.at === null ? t('Сохранено')
+    const text = savedExcept ? `${t('Сохранено')} · ${savedExcept}`
+      : view.at === null ? t('Сохранено')
       : view.justNow ? t('Сохранено · только что')
       : `${t('Сохранено · в')} ${clockTime(view.at)}`
     content = <><CircleCheck size={12} /> {text}</>
