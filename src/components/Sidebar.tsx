@@ -14,7 +14,7 @@ import {
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
-import SubjectSwitcher from './SubjectSwitcher'
+import SubjectSwitcher, { prefetchSubjectCards } from './SubjectSwitcher'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
 import { playTransitionDrop } from '../lib/sound'
@@ -244,6 +244,8 @@ export default function Sidebar() {
   // «Оплата» есть, только если у учителя включена функция оплат.
   const paymentAvailable = useMyPayment(s => !!session && s.studentId === session.id && s.info !== null)
   useEffect(() => { if (session?.id) void useMyPayment.getState().load(session.id) }, [session?.id])
+  // Список курсов для меню профиля — заранее, чтобы меню открывалось уже собранным.
+  useEffect(() => { if (session?.id) prefetchSubjectCards() }, [session?.id])
   const paymentKnown = useMyPayment(s => !!session && s.studentId === session.id && s.loaded)
   const [adminAnswer, setAdminAnswer] = useState<boolean | null>(null)
   useEffect(() => {

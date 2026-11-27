@@ -61,6 +61,53 @@ function writeCachedCards(id: string, cards: Card[]) {
   try { localStorage.setItem(cacheKey(id), JSON.stringify(cards)) } catch { /* приватный режим */ }
 }
 
+// Один запрос на человека за раз: меню профиля и предзагрузка при входе в
+// кабинет делят его, ответ сразу ложится в запомненный список.
+let inflight: { id: string; promise: Promise<Card[] | null> } | null = null
+function fetchSubjectCards(session: { id: string; name: string }): Promise<Card[] | null> {
+  if (inflight?.id === session.id) return inflight.promise
+  const promise = (async () => {
+    // Prefer the auth account (all sibling cards share auth_user_id). Fall back
+    // to name-matching for legacy temp_password logins with no linked auth user.
+    const authUser = await getSessionUser()
+    let query = supabase
+      .from('students')
+      .select('id, group_id, name, groups(name, subject, level, icon, color, is_individual)')
+    query = authUser
+      ? query.eq('auth_user_id', authUser.id)
+      : query.eq('name', session.name)
+    const { data } = await query
+    if (!data) return null
+    // Every card the person belongs to — their 1:1 subject groups AND any
+    // regular group they were later enrolled into (e.g. bought a group course).
+    // Each switch re-points the session to that group so its course/lessons load.
+    const mapped = (data as any[])
+      .filter(r => r.groups)
+      .map(r => ({
+        id: r.id,
+        groupId: r.group_id,
+        subject: r.groups?.subject ?? '',
+        level: r.groups?.level ?? '',
+        icon: r.groups?.icon ?? '📚',
+        color: r.groups?.color ?? 'var(--color-accent)',
+        groupName: r.groups?.name ?? '',
+        individual: !!r.groups?.is_individual,
+      }))
+    const next = withNotes(mapped, session.name)
+    writeCachedCards(session.id, next)
+    return next
+  })().catch(() => null).finally(() => { if (inflight?.promise === promise) inflight = null })
+  inflight = { id: session.id, promise }
+  return promise
+}
+
+// Зовёт кабинет ученика при входе: к первому открытию меню список уже
+// запомнен — и с несколькими курсами, и с одним, — заглушка не нужна.
+export function prefetchSubjectCards() {
+  const session = getStudentSession()
+  if (session && readCachedCards(session.id) === null) void fetchSubjectCards(session)
+}
+
 export function useSubjectCards() {
   const session = getStudentSession()
   const [cached] = useState(() => readCachedCards(session?.id))
@@ -70,41 +117,13 @@ export function useSubjectCards() {
   const [loading, setLoading] = useState(() => !!session && cached === null)
 
   useEffect(() => {
+    if (!session) return
     let cancelled = false
-    ;(async () => {
-      if (!session) return
-      // Prefer the auth account (all sibling cards share auth_user_id). Fall back
-      // to name-matching for legacy temp_password logins with no linked auth user.
-      const authUser = await getSessionUser()
-      let query = supabase
-        .from('students')
-        .select('id, group_id, name, groups(name, subject, level, icon, color, is_individual)')
-      query = authUser
-        ? query.eq('auth_user_id', authUser.id)
-        : query.eq('name', session.name)
-      const { data } = await query
+    void fetchSubjectCards(session).then(next => {
       if (cancelled) return
       setLoading(false)
-      if (!data) return
-      // Every card the person belongs to — their 1:1 subject groups AND any
-      // regular group they were later enrolled into (e.g. bought a group course).
-      // Each switch re-points the session to that group so its course/lessons load.
-      const mapped = (data as any[])
-        .filter(r => r.groups)
-        .map(r => ({
-          id: r.id,
-          groupId: r.group_id,
-          subject: r.groups?.subject ?? '',
-          level: r.groups?.level ?? '',
-          icon: r.groups?.icon ?? '📚',
-          color: r.groups?.color ?? 'var(--color-accent)',
-          groupName: r.groups?.name ?? '',
-          individual: !!r.groups?.is_individual,
-        }))
-      const next = withNotes(mapped, session.name)
-      writeCachedCards(session.id, next)
-      setCards(next)
-    })().catch(() => { if (!cancelled) setLoading(false) })
+      if (next) setCards(next)
+    })
     return () => { cancelled = true }
   }, [session?.id])
 
