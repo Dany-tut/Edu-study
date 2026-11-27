@@ -49,6 +49,10 @@ import { isModelRef } from '../lib/models3d/registry'
 import { isLabRef } from '../lib/excelLab/embed'
 // Живые блоки курса «Бухгалтерия» — отдельным чанком: нужны только там, где они есть.
 const ExcelLabFigure = lazy(() => import('../components/excelLab/ExcelLabFigure'))
+// Окно «Какой у вас Excel?» в первом уроке курса «Бухгалтерия» (концепт Figma стр. 28).
+const FirstLessonExcelPrompt = lazy(() => import('../components/excelLab/ExcelVersion').then(m => ({ default: m.FirstLessonExcelPrompt })))
+/** Первый урок курса «Бухгалтерия»: в нём один раз спрашиваем версию Excel. */
+const FIRST_ACC_LESSON = 'acc-ru-0'
 import GlossedText from '../components/GlossedText'
 import { setVoiceScene, clearVoiceScene } from '../lib/speech'
 import { resolveSubjectPalette } from '../lib/subjects'
@@ -970,6 +974,7 @@ export default function LessonPage() {
       {/* Сентинел дока шапки: уходит за верх окна при прокрутке — надёжный триггер,
           даже если onScroll контейнера на мобильном браузере молчит. */}
       <div ref={headerSentinelRef} aria-hidden style={{ height: 0 }} />
+      {lesson.id === FIRST_ACC_LESSON && <Suspense fallback={null}><FirstLessonExcelPrompt /></Suspense>}
       {/* Новогодняя тема: лёгкий снег за страницей урока (pointer-events: none). */}
       {nySkin && <LessonSnow />}
       {/* Rest-state Back / title / date row — in the scroll flow below the

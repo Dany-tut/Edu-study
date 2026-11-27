@@ -12,7 +12,13 @@ import { availableIn, type ExcelVersion } from '../../data/accounting/excelCompa
 import type { MethodId, MethodSpec, MethodsSpec } from './spec'
 
 export type ExcelChoice = ExcelVersion | 'unknown'
-export interface ExcelPrefs { version: ExcelChoice | null; macros: boolean | null; updatedAt?: string }
+export interface ExcelPrefs {
+  version: ExcelChoice | null
+  macros: boolean | null
+  updatedAt?: string
+  /** «Пока пропустить» в окне первого урока: окно больше не навязываем. Только на устройстве. */
+  skipped?: boolean
+}
 
 export const EXCEL_CHOICES: { id: ExcelChoice; label: string }[] = [
   { id: '2007', label: '2007' }, { id: '2010', label: '2010' }, { id: '2013', label: '2013' },
@@ -26,7 +32,7 @@ let state: ExcelPrefs = read()
 const subs = new Set<() => void>()
 
 function read(): ExcelPrefs {
-  try { const v = JSON.parse(localStorage.getItem(KEY) ?? 'null'); if (v && typeof v === 'object') return { version: v.version ?? null, macros: v.macros ?? null, updatedAt: v.updatedAt } } catch { /* приватное окно */ }
+  try { const v = JSON.parse(localStorage.getItem(KEY) ?? 'null'); if (v && typeof v === 'object') return { version: v.version ?? null, macros: v.macros ?? null, updatedAt: v.updatedAt, skipped: !!v.skipped } } catch { /* приватное окно */ }
   return { version: null, macros: null }
 }
 function publish(next: ExcelPrefs) {
@@ -34,6 +40,9 @@ function publish(next: ExcelPrefs) {
   try { localStorage.setItem(KEY, JSON.stringify(next)) } catch { /* без хранилища — только в памяти */ }
   subs.forEach(f => f())
 }
+
+/** Текущий выбор без подписки (для одноразовых решений). */
+export function readExcelPrefs(): ExcelPrefs { return state }
 
 export function useExcelPrefs(): ExcelPrefs {
   return useSyncExternalStore(f => { subs.add(f); return () => subs.delete(f) }, () => state, () => state)
@@ -50,11 +59,14 @@ export async function loadExcelPrefs(): Promise<void> {
     if (!s?.id) return
     const { data } = await supabase.from('students').select('preferences').eq('id', s.id).single()
     const remote = (data as { preferences?: { excel?: ExcelPrefs } } | null)?.preferences?.excel
-    if (remote?.version && (!state.updatedAt || (remote.updatedAt ?? '') > state.updatedAt)) publish({ version: remote.version, macros: remote.macros ?? null, updatedAt: remote.updatedAt })
+    if (remote?.version && (!state.updatedAt || (remote.updatedAt ?? '') > state.updatedAt)) publish({ ...state, version: remote.version, macros: remote.macros ?? null, updatedAt: remote.updatedAt })
   } catch { /* офлайн или нет сессии ученика — остаётся локальная версия */ }
 }
 
 /** Сохранить выбор: сразу локально, потом в профиль. Ошибка базы выбор не откатывает. */
+/** Окно «Какой у вас Excel?» отложено: версия не нужна, пока ученик сам не захочет. */
+export function skipExcelPrompt(): void { publish({ ...state, skipped: true }) }
+
 export async function saveExcelPrefs(patch: Partial<ExcelPrefs>): Promise<'saved' | 'local'> {
   const next = { ...state, ...patch, updatedAt: new Date().toISOString() }
   publish(next)
@@ -62,7 +74,8 @@ export async function saveExcelPrefs(patch: Partial<ExcelPrefs>): Promise<'saved
     const [{ supabase }, { getStudentSession }] = await Promise.all([import('../supabase'), import('../studentSession')])
     const s = getStudentSession()
     if (!s?.id) return 'local'
-    const { error } = await supabase.rpc('save_student_excel', { p_student: s.id, p_excel: next })
+    // В базу — только разрешённые функцией ключи; «пропустить» живёт на устройстве.
+    const { error } = await supabase.rpc('save_student_excel', { p_student: s.id, p_excel: { version: next.version, macros: next.macros, updatedAt: next.updatedAt } })
     return error ? 'local' : 'saved'
   } catch { return 'local' }
 }
@@ -117,3 +130,12 @@ export function pickMethod(spec: MethodsSpec, prefs: ExcelPrefs): MethodId | nul
 export const METHOD_TITLES: Record<MethodId, string> = {
   simple: 'Простой', formulas: 'Формулы', powerQuery: 'Power Query', vba: 'VBA', modern: 'Современный',
 }
+
+/** Способы для экрана «Настройки обучения»: что вообще меняет версия в уроках. */
+export const GENERAL_METHODS: MethodSpec[] = [
+  { id: 'simple', steps: ['Мышкой: меню, фильтр, Автосумма, мастер функций'] },
+  { id: 'formulas', requires: ['sumifs', 'iferror'], steps: ['СУММЕСЛИМН, ИНДЕКС + ПОИСКПОЗ, ЕСЛИОШИБКА'] },
+  { id: 'powerQuery', requires: ['power-query'], steps: ['Регулярные отчёты обновляются одной кнопкой'] },
+  { id: 'vba', requires: ['vba'], steps: ['Макросы — только если на компьютере их разрешили'] },
+  { id: 'modern', requires: ['xlookup', 'filter'], steps: ['ПРОСМОТРX, ФИЛЬТР и динамические массивы'] },
+]

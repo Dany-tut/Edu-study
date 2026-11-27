@@ -6,7 +6,9 @@
 //   ?view=trainer&q=0..5 — наборы EXT02 в конспекте (своя кнопка «Проверить»);
 //   ?view=flow — домашка целиком (HomeworkFlow) с заданиями excelTrainer;
 //   ?view=methods&task=automation|oneoff — способы решения и выбор версии;
-//   ?view=editor — редактор задания у учителя.
+//   ?view=editor — редактор задания у учителя;
+//   ?view=prompt — окно «Какой у вас Excel?» первого урока (сбрасывает выбор в браузере);
+//   ?view=settings — «Настройки обучения» на странице; ?view=settingsBtn — кнопка с окном.
 // ?p=pc|ipad|iphone|android — хром версии; ?theme=dark; ?iphone=1/?ipad=1 — детект версии в dev.
 import './lib/platform'
 import './store/studentDataStore'
@@ -14,6 +16,7 @@ import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PLATFORM, type Platform } from './lib/platform'
 import ExcelLabFigure from './components/excelLab/ExcelLabFigure'
+import { ExcelSettingsPanel, FirstLessonExcelPrompt, ExcelSettingsButton } from './components/excelLab/ExcelVersion'
 import ExcelTrainerEditor from './components/teacher/ExcelTrainerEditor'
 import HomeworkFlow from './components/HomeworkFlow'
 import { EXT02_TRAINERS } from './data/accounting/excelLabSets'
@@ -94,6 +97,9 @@ createRoot(document.getElementById('root')!).render(
       {view === 'trainer' && <ExcelLabFigure key={q.get('q')} src={trainerFig(sets[Number(q.get('q') ?? 0) % sets.length])} caption="Тренажёр · отчёт численности" />}
       {view === 'methods' && <ExcelLabFigure src={methodsSrc} caption="Способы решения" />}
       {view === 'editor' && <Editor />}
+      {view === 'prompt' && <><div className="xl-muted">Урок 1 · Знакомство с курсом</div><FirstLessonExcelPrompt /></>}
+      {view === 'settings' && <ExcelSettingsPanel onDone={() => {}} />}
+      {view === 'settingsBtn' && <ExcelSettingsButton courseTitle="Бухгалтерия" />}
       {view === 'flow' && <HomeworkFlow lessonId="xl-stand" lessonTitle="Тренажёр Excel" subject="Бухгалтерия" homework={homework} onBack={() => {}} />}
     </div>
   </div>,

@@ -6,7 +6,7 @@ import LessonWatchStatus from './LessonWatchStatus'
 import TrackHomeworkButton from './TrackHomeworkButton'
 import LessonSelfAssessment from './LessonSelfAssessment'
 import { gradedTrackResult } from '../lib/homeworkResult'
-import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo, Suspense, lazy } from 'react'
 import CourseTrackSkeleton from './CourseTrackSkeleton'
 import { TRACK_NODE_SIZE as NODE_SIZE, TRACK_SIDE_PADDING, TRACK_GLOW_PAD as GLOW_PAD, TRACK_ROW_HEIGHT } from './courseTrackLayout'
 import { useWheelHScroll } from '../lib/useWheelHScroll'
@@ -38,6 +38,9 @@ import { homeModuleDebts } from '../lib/studentHomeWork'
 import { confirmWaveReady, markWaveSeen, preloadConfirmWave, WAVE_PALETTES, waveSeen } from '../lib/confirmWave'
 import { useConfirmWave } from '../lib/confirmWave/useConfirmWave'
 import { lessonNo } from '../lib/lessonNumber'
+// «Настройки обучения» курса «Бухгалтерия»: версия Excel и способы решения (Figma стр. 28).
+const ExcelSettingsButton = lazy(() => import('./excelLab/ExcelVersion').then(m => ({ default: m.ExcelSettingsButton })))
+const ACC_COURSE = 'acc-ru'
 
 type HomeWorkProps = { homeWorks?: readonly StudentDiaryEntry[]; today?: string; onOpenDebts?: (course: string, module: number) => void }
 
@@ -303,6 +306,7 @@ function TrackForSubject({ subject, courseSlot, homeWorks, today, onOpenDebts }:
       <div ref={moduleRowRef} style={{ flexShrink: 0, position: 'relative', zIndex: 2, margin: `-${ROW_SHADOW_TOP}px 0 -${ROW_SHADOW_BOTTOM}px` }}>
       <HScrollFade fadeMode="mask" padX={32} padTop={ROW_SHADOW_TOP} padBottom={ROW_SHADOW_BOTTOM} gap={14} fadeWidth={44} scrollStyle={{ alignItems: 'center' }}>
         {courseSlot}
+        {subject.id === ACC_COURSE && <Suspense fallback={null}><ExcelSettingsButton courseTitle={subject.name} /></Suspense>}
         {!(subject.modules.length === 1 && subject.modules[0].loose && activeModule) && (
           <>
             {courseSlot && <span aria-hidden style={{ width: 1, height: 22, background: 'var(--color-text-4)', flexShrink: 0 }} />}

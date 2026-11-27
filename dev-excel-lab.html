@@ -7,6 +7,8 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- ?view=prompt: сбросить выбор версии до загрузки модулей (хранилище читается при импорте). -->
+    <script>if (/[?&]view=prompt\b/.test(location.search)) { try { localStorage.removeItem('iskra.excel') } catch (e) {} }</script>
     <script type="module" src="/src/devExcelLabHarness.tsx"></script>
   </body>
 </html>

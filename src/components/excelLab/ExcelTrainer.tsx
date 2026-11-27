@@ -11,6 +11,7 @@ import { display, isErr, parse, tokenize, unsupportedIn, FormulaSyntaxError, typ
 import { checkFix, editableSet, fixTargets, goalsMet, parseTrainerAnswer, placeFormula, trainerBook, type TrainerAnswer, type TrainerSpec } from '../../lib/excelLab/spec'
 import MiniSheet, { cellKey, markRefs, type CellMark } from './MiniSheet'
 import { Check, Info, Lightbulb } from '../icons/appIcons'
+import { ExcelVersionPill } from './ExcelVersion'
 import './excelLab.css'
 
 /** Формула цветом: функции по порядку, ссылки, константы. */
@@ -122,7 +123,7 @@ export default function ExcelTrainer({ spec, value, onChange, disabled, selfChec
             <button type="button" role="tab" aria-selected={mode === 'fix'} onClick={() => setMode('fix')}>Исправьте формулу</button>
           </div>
         ) : <span />}
-        <span className="xl-honest"><Info size={14} aria-hidden /> Учебный тренажёр, не Excel</span>
+        <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><ExcelVersionPill /><span className="xl-honest"><Info size={14} aria-hidden /> Учебный тренажёр, не Excel</span></span>
       </div>
 
       {spec.title && <div className="xl-title" style={{ fontSize: 16 }}>{spec.title}</div>}

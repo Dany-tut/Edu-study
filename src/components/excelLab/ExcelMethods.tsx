@@ -1,73 +1,16 @@
 // Выбор версии Excel и способы решения (Figma «Искра» стр. 28, раздел 1).
 // Блок конспекта: вкладки способов с пометкой «ваш вариант» и причинами
 // недоступности. Версия спрашивается в первом блоке, где она нужна, и меняется
-// пилюлей «Excel 2016 · изменить»: на телефонах — шторкой, на ПК и iPad — на месте.
+// пилюлей «Excel 2016 · изменить» (ExcelVersion.tsx): на телефонах — шторкой, на ПК и iPad — окном.
 
 import { useEffect, useMemo, useState } from 'react'
-import MobileSheet from '../MobileSheet'
 import HScrollFade from '../HScrollFade'
-import { PLATFORM } from '../../lib/platform'
-import { EXCEL_CHOICES, METHOD_TITLES, STATUS_TEXT, loadExcelPrefs, methodStatus, pickMethod, saveExcelPrefs, useExcelPrefs, versionLabel, type ExcelChoice } from '../../lib/excelLab/excelVersion'
+import { METHOD_TITLES, STATUS_TEXT, loadExcelPrefs, methodStatus, pickMethod, useExcelPrefs, versionLabel } from '../../lib/excelLab/excelVersion'
+import { ExcelOverlay, ExcelVersionPicker } from './ExcelVersion'
 import type { MethodsSpec } from '../../lib/excelLab/spec'
 import { ColoredFormula } from './ExcelTrainer'
-import { AlertTriangle, Check, ChevronRight, HelpCircle, Lock } from '../icons/appIcons'
+import { AlertTriangle, Lock } from '../icons/appIcons'
 import './excelLab.css'
-
-const PHONE = PLATFORM === 'iphone' || PLATFORM === 'android'
-
-export function ExcelVersionPicker({ onDone }: { onDone?: () => void }) {
-  const prefs = useExcelPrefs()
-  const [help, setHelp] = useState(prefs.version === 'unknown')
-  const [saved, setSaved] = useState<null | 'saved' | 'local'>(null)
-  async function choose(v: ExcelChoice) {
-    setSaved(await saveExcelPrefs({ version: v }))
-    if (v !== 'unknown') onDone?.()
-  }
-  return (
-    <div className="xl-root" data-kind="version">
-      <div className="xl-title" style={{ fontSize: 18 }}>Какой у вас Excel?</div>
-      <div className="xl-muted" style={{ fontSize: 14 }}>Покажем способы решения, которые сработают именно у вас. Поменять можно в любой момент.</div>
-      <div className="xl-versions" role="radiogroup" aria-label="Версия Excel">
-        {EXCEL_CHOICES.map(c => (
-          <button key={c.id} type="button" role="radio" aria-checked={prefs.version === c.id} onClick={() => { setHelp(false); void choose(c.id) }}>
-            {prefs.version === c.id && <Check size={16} aria-hidden />}{c.label}
-          </button>
-        ))}
-        <button type="button" role="radio" aria-checked={prefs.version === 'unknown'} onClick={() => { setHelp(true); void choose('unknown') }}>
-          <HelpCircle size={16} aria-hidden /> Не знаю — помогите определить
-        </button>
-      </div>
-      {help && (
-        <div className="xl-card" style={{ background: 'var(--color-accent-soft)' }}>
-          <div className="xl-title">Как узнать версию за минуту</div>
-          <div style={{ fontSize: 14 }}>Откройте Excel и пройдите:</div>
-          <div className="xl-path"><b>Файл</b><ChevronRight size={14} aria-hidden /><b>Учётная запись</b><ChevronRight size={14} aria-hidden /><b>О программе Excel</b></div>
-          <div className="xl-muted" style={{ color: 'var(--color-text-2)' }}>
-            В первой строке окна — «Microsoft Excel 2016», «… 2021» или «Microsoft 365»: нажмите эту версию выше.
-            Нет пункта «Учётная запись» — у вас 2010: Файл → Справка. Нет меню «Файл», а слева вверху круглая кнопка — это 2007.
-          </div>
-          <div className="xl-muted">Пока версия не выбрана, считаем, что у вас 2016 или новее, а функции 2021+ помечаем «проверьте в своей версии».</div>
-        </div>
-      )}
-      <MacrosToggle />
-      {saved === 'local' && <div className="xl-muted">Сохранили на этом устройстве. В профиль сохраним, когда будет связь.</div>}
-    </div>
-  )
-}
-
-function MacrosToggle() {
-  const prefs = useExcelPrefs()
-  return (
-    <div className="xl-card" style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14 }}>На моём компьютере разрешены макросы</div>
-        <div className="xl-muted" style={{ fontSize: 12 }}>Не уверены — оставьте выключенным: способ VBA будет виден с пометкой «нужно разрешение».</div>
-      </div>
-      <button type="button" role="switch" aria-checked={prefs.macros === true} aria-label="Разрешены макросы" className="xl-toggle"
-        onClick={() => void saveExcelPrefs({ macros: prefs.macros !== true })} />
-    </div>
-  )
-}
 
 export default function ExcelMethods({ spec }: { spec: MethodsSpec }) {
   const prefs = useExcelPrefs()
@@ -78,25 +21,25 @@ export default function ExcelMethods({ spec }: { spec: MethodsSpec }) {
   const cur = spec.methods.find(m => m.id === (active ?? mine)) ?? spec.methods[0]
   const status = cur ? methodStatus(cur, prefs) : 'ok'
 
-  const pickerBody = <ExcelVersionPicker onDone={() => setPicker(false)} />
 
   return (
     <div className="xl-root" data-kind="methods">
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'space-between' }}>
         <span className="xl-kicker">{spec.title ?? 'Способы решения'}</span>
-        <button type="button" className="xl-pill" onClick={() => setPicker(p => !p)} aria-expanded={picker}>
+        <button type="button" className="xl-pill" onClick={() => setPicker(true)} aria-haspopup="dialog">
           {versionLabel(prefs.version)} <em>{prefs.version ? 'изменить' : 'выбрать'}</em>
         </button>
       </div>
 
-      {!prefs.version && !picker && (
+      {!prefs.version && (
         <div className="xl-card" style={{ background: 'var(--color-accent-soft)' }}>
           <div style={{ fontSize: 14 }}>Укажите версию Excel — первым откроется способ, который точно сработает у вас.</div>
           <div><button type="button" className="xl-btn" data-primary="" onClick={() => setPicker(true)}>Выбрать версию</button></div>
         </div>
       )}
-      {picker && !PHONE && <div className="xl-card">{pickerBody}</div>}
-      {PHONE && <MobileSheet open={picker} onClose={() => setPicker(false)} title="Версия Excel" softEdge>{pickerBody}</MobileSheet>}
+      <ExcelOverlay open={picker} onClose={() => setPicker(false)} title="Версия Excel">
+        <ExcelVersionPicker macros onDone={() => setPicker(false)} />
+      </ExcelOverlay>
 
       <HScrollFade padTop={0} padBottom={0} fadeWidth={28}>
       <div className="xl-tabs" role="tablist" aria-label="Способы решения" style={{ minWidth: '100%' }}>
