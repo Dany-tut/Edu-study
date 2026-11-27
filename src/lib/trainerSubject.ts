@@ -252,6 +252,8 @@ export function useTrainerSubject(): TrainerSubjectState {
       const decks = cardSubjects.get(def.id) ?? 0
       const cardsOnly = !def.isLanguage && !def.hasBank
       if (cardsOnly && !(def.trainer?.includes('cards') && decks > 0)) continue
+      const bankTaskCount = def.hasBank ? tasks.filter(t => t.subject === def.id).length : 0
+      if (def.hasBank && bankTaskCount === 0 && decks === 0) continue
       add(def, def.isLanguage ? 'lang' : cardsOnly ? 'cards' : 'bank', def.isLanguage
         // Тексты вместе со сценами — столько же, сколько показывает «Чтение» в
         // самом тренажёре. Разные числа в меню предметов и в меню режимов

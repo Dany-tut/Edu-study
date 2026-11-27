@@ -5,6 +5,8 @@ import { DEV_SEED_TASKS } from '../data/devTaskSeed'
 
 type NewTask = Omit<Task, 'id'>
 
+export type FipiIndexRow = Pick<Task, 'id' | 'part' | 'line' | 'kes'>
+
 type TaskBankStore = {
   tasks: Task[]
   loaded: boolean
@@ -24,6 +26,12 @@ type TaskBankStore = {
   fipiSetsComplete: Record<string, true>
   /** Сколько заданий в наборе ФИПИ (count без строк) — счётчики видны сразу, до догрузки. */
   fipiCounts: Record<string, number>
+  /**
+   * Лёгкий индекс всего набора ФИПИ (id, часть, линия, КЭС) — по нему считаются
+   * счётчики фильтров и «Линий КИМ», пока сами задания догружаются порциями.
+   * Иначе «Часть 1 1010 / Часть 2 —» прыгали вслед за подгрузкой.
+   */
+  fipiIndex: Record<string, FipiIndexRow[]>
   /** Счётчики обоих экзаменов предмета — для ЕГЭ/ОГЭ в рейле. */
   loadFipiCounts: (subject: string) => Promise<void>
   addTask: (t: NewTask) => Promise<number>
@@ -164,6 +172,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   fipiSetsReady: {},
   fipiSetsComplete: {},
   fipiCounts: {},
+  fipiIndex: {},
   recentlyEditedId: null,
   clearRecentlyEdited: () => set({ recentlyEditedId: null }),
 
@@ -217,6 +226,19 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       console.error('[task_bank] loadFipiSet', error)
     }
     const FIRST = 10, CHUNK = 500
+    // Индекс — параллельно с первой порцией, в фоне: только числа для счётчиков.
+    void (async () => {
+      const idx: FipiIndexRow[] = []
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase.from('task_bank').select('id, part, line, kes')
+          .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
+          .order('id').range(from, from + 999)
+        if (error) { console.error('[task_bank] fipi index', error); return }
+        for (const r of data ?? []) idx.push({ id: r.id as number, part: r.part as Task['part'], line: r.line as number, kes: (r.kes as string[] | null) ?? [] })
+        if (!data || data.length < 1000) break
+      }
+      set(s => ({ fipiIndex: { ...s.fipiIndex, [key]: idx } }))
+    })()
     const first = await page(0, FIRST - 1)
     if (first.error) return fail(first.error)
     put(first.data ?? [], { fipiSetsReady: { ...get().fipiSetsReady, [key]: true } })
