@@ -170,14 +170,14 @@ export const EXCEL_FEATURES: ExcelFeature[] = [
     id: "maxifs", ru: "МАКСЕСЛИ (на ru-странице: «МАКСЕСЛИМН»)", en: "MAXIFS", kind: "function",
     since: { '2007': 'no', '2010': 'no', '2013': 'no', '2016': 'no', '2019': 'yes', '2021': 'yes', '2024': 'yes', '365': 'yes', 'mac': 'partial', 'web': 'partial' },
     note: "Маркер (2019). В брифе была «МАКСЕСЛИ» — на странице «МАКСЕСЛИМН». Mac: функции с маркером года есть в Mac-версии того же года и новее (Microsoft: Applies To включает 2021/2024 для Mac и Microsoft 365 для Mac); точную сборку Mac проверять по «О программе».",
-    fallback: "МАКС(ЕСЛИ(...)) массивной формулой Ctrl+Shift+Enter или СУММПРОИЗВ/АГРЕГАТ(14;6;…)",
+    fallback: "МАКС(ЕСЛИ(...)) массивной формулой Ctrl+Shift+Enter или СУММПРОИЗВ; АГРЕГАТ(14;6;…) — только с Excel 2010",
     source: "https://support.microsoft.com/ru-ru/office/%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8-excel-%D0%BF%D0%BE-%D0%B0%D0%BB%D1%84%D0%B0%D0%B2%D0%B8%D1%82%D1%83-b3944572-255d-4efb-bb96-c6d90033e188", checked: "doc",
   },
   {
     id: "minifs", ru: "МИНЕСЛИ (на ru-странице: «МИНЕСЛИМН»)", en: "MINIFS", kind: "function",
     since: { '2007': 'no', '2010': 'no', '2013': 'no', '2016': 'no', '2019': 'yes', '2021': 'yes', '2024': 'yes', '365': 'yes', 'mac': 'partial', 'web': 'partial' },
     note: "Маркер (2019). Mac: функции с маркером года есть в Mac-версии того же года и новее (Microsoft: Applies To включает 2021/2024 для Mac и Microsoft 365 для Mac); точную сборку Mac проверять по «О программе».",
-    fallback: "МИН(ЕСЛИ(...)) массивной или АГРЕГАТ(15;6;…)",
+    fallback: "МИН(ЕСЛИ(...)) массивной; АГРЕГАТ(15;6;…) — только с Excel 2010",
     source: "https://support.microsoft.com/ru-ru/office/%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8-excel-%D0%BF%D0%BE-%D0%B0%D0%BB%D1%84%D0%B0%D0%B2%D0%B8%D1%82%D1%83-b3944572-255d-4efb-bb96-c6d90033e188", checked: "doc",
   },
   {

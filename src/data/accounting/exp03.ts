@@ -179,7 +179,7 @@ const L5: AccLesson = {
   origin: ['L06'],
   minutes: 15,
   practice: 'Практикум, лист «Текст», C2:C5 → G2:G5',
-  software: XL + '. ЧЗНАЧ — Excel 2016 и новее',
+  software: XL + '. ЧЗНАЧ — начиная с Excel 2013; в 2007/2010 — ЗНАЧЕН(ПОДСТАВИТЬ(…))',
   sources: ['xl-numbervalue', 'xl-text-nums'],
   queries: ['число хранится как текст', 'преобразовать текст в число excel', 'сумма не считается', 'убрать пробел из числа'],
   content: {
