@@ -4528,6 +4528,7 @@ export const EN: Record<string, string> = {
   'Как читать': 'How to read it',
   'Как смотреть': 'How to watch it',
   'Загрузка тренажёра': 'Loading the trainer',
+  'Загрузка заданий': 'Loading tasks',
 
   // ——— Лендинг ———
   'Как работает': 'How it works',

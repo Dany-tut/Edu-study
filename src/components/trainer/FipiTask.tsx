@@ -20,6 +20,7 @@ import OpticalText from '../OpticalText'
 import { useT } from '../../lib/i18n'
 import { tactile } from '../../lib/feedback'
 import { sanitizeHtml } from '../../lib/sanitizeHtml'
+import { cleanFipiHtml } from '../../lib/fipiHtml'
 import { bindShortWordsHtml } from '../../lib/typography'
 import type { Task } from '../../data/taskBankData'
 import { fipiOf, gradeFipi, type FipiPayload } from '../../lib/fipiGrade'
@@ -62,8 +63,8 @@ function GroupText({ html, mobile }: { html: string; mobile?: boolean }) {
     <div style={{ borderRadius: 16, background: 'var(--color-bg-input)', padding: mobile ? '10px 12px' : '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.3 }}>{t('Текст к заданию')}</div>
       <div className="fipi-html" style={{ fontSize: mobile ? 14 : 15, lineHeight: 1.5, maxHeight: open ? 'none' : 160, overflow: 'hidden', maskImage: open ? undefined : 'linear-gradient(to bottom, #000 70%, transparent)', WebkitMaskImage: open ? undefined : 'linear-gradient(to bottom, #000 70%, transparent)' }}
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
-      <button data-hover="layer" onClick={() => setOpen(o => !o)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', cursor: 'pointer' }}>
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(cleanFipiHtml(html)) }} />
+      <button data-hover="layer" onClick={() => setOpen(o => !o)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: '6px 10px', margin: '-6px -10px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', cursor: 'pointer' }}>
         <OpticalText as="iskra-button-label">{open ? t('Свернуть') : t('Показать текст целиком')}</OpticalText>
       </button>
     </div>

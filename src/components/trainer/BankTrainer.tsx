@@ -41,8 +41,9 @@ import { useDashboard } from '../../store/dashboardStore'
 import { useStudentData } from '../../store/studentDataStore'
 import { useTrainerProgress, useTrainerEngaged } from '../../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../../lib/theme'
-import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../../lib/subjects'
-import TrainerSkeleton from './TrainerSkeleton'
+import { getSubject, BANK_SUBJECT_IDS, subjectIcon, hexToRgba } from '../../lib/subjects'
+import TrainerSkeleton, { TaskListSkeleton } from './TrainerSkeleton'
+import { cleanFipiHtml } from '../../lib/fipiHtml'
 import CardDeck, { type DeckSource } from '../CardDeck'
 import { captureMistake, deckOwner, type ReviewCard } from '../../data/reviewDeck'
 import { getContrastColor } from '../../lib/utils'
@@ -457,7 +458,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
       <div lang="ru" className={fipi ? 'fipi-html' : undefined} style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 500 : 500, color: 'var(--color-text)', textAlign: mobile || fipi ? (fipi ? undefined : 'justify') : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4, overflowX: fipi ? 'auto' : undefined }}
-        dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(task.question)) }} />
+        dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(fipi ? cleanFipiHtml(task.question) : task.question)) }} />
 
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
@@ -765,7 +766,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
 
       {/* Question */}
       <div style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0,  ...textFadeLines(3),  overflow: 'hidden' }}
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.question) }} />
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.fipiId ? cleanFipiHtml(task.question) : task.question) }} />
 
       {/* Topic */}
       <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 'auto' }}>{task.topic}</span>
@@ -1566,6 +1567,8 @@ export default function BankTrainer({ subjectState }: {
   const examCatalog = useMemo(() => catalogFor(exam, subjectName, kimYear), [exam, subjectName, kimYear])
   const kesKey = `${exam}_${subject}`
   const kes = FIPI_KES[kesKey]
+  /** Банк ФИПИ этого экзамена ещё едет: вместо «Заданий не найдено» — плашки. */
+  const fipiLoading = useTaskBank(s => bankOn && !!kes && !s.fipiSetsReady[`${subject}:${exam}`])
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
   const [parts, setParts]       = useState<string[]>([])
@@ -1658,6 +1661,11 @@ export default function BankTrainer({ subjectState }: {
   }
 
   const palette      = subjectTheme(subject, dark)
+  // Подложка выбранного в рейле и фильтрах. У химии и биологии тёмная `soft` —
+  // непрозрачный почти чёрный (#201336 / #0D2B1E): на карточке рейла выходило
+  // тёмное пятно с фиолетовой надписью, которого нет больше нигде. У остальных
+  // предметов (и у языкового тренажёра) это цвет предмета на 20 % — берём так же.
+  const railSoft     = dark && palette.soft.startsWith('#') ? hexToRgba(palette.accent, 0.2) : palette.soft
   const curriculumVersion = useCurriculum(s => s.version) // re-render when the teacher edits the taxonomy
   const lineNames    = useMemo(() => examCatalog
     ? Object.fromEntries(examCatalog.lines.map(l => [l.number, l.title])) as Record<number, string>
@@ -1940,6 +1948,8 @@ export default function BankTrainer({ subjectState }: {
           ) : view === 'lines' ? (
             <LinesGrid lines={examCatalog?.lines ?? []} tasks={subjectTasks} answered={answered} part2={part2Lines} accent={palette.accent} mobile
               onPick={label => { setLines([label]); setParts([]); setView('list') }} />
+          ) : fipiLoading && filtered.length === 0 ? (
+            <TaskListSkeleton rows={5} />
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
@@ -2132,10 +2142,10 @@ export default function BankTrainer({ subjectState }: {
             {bankOn && examCatalog && (<>
               <RailSegment
                 options={(['ege', 'oge'] as ExamCode[]).map(e => ({ value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ', badge: tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length || undefined }))}
-                value={exam} onChange={v => v && setExam(v as ExamCode)} accent={palette.accent} soft={palette.soft} clearable={false} />
+                value={exam} onChange={v => v && setExam(v as ExamCode)} accent={palette.accent} soft={railSoft} clearable={false} />
               <RailSegment
                 options={[{ value: '2026', label: 'КИМ 2026' }, { value: '2027', label: '2027 · проект' }]}
-                value={String(kimYear)} onChange={v => v && pickYear(Number(v) as ExamYear)} accent={palette.accent} soft={palette.soft} clearable={false} />
+                value={String(kimYear)} onChange={v => v && pickYear(Number(v) as ExamYear)} accent={palette.accent} soft={railSoft} clearable={false} />
             </>)}
             {fipiSet ? (<>
               <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.label)} values={kesSectionOpts.filter(o => sections.includes(o.value)).map(o => o.label)}
@@ -2335,7 +2345,7 @@ export default function BankTrainer({ subjectState }: {
               value={view}
               onChange={v => setView(v)}
               accent={palette.accent}
-              soft={palette.soft}
+              soft={railSoft}
             />
           </RailCard>
         )}
@@ -2351,7 +2361,7 @@ export default function BankTrainer({ subjectState }: {
               value={exam}
               onChange={v => v && setExam(v as ExamCode)}
               accent={palette.accent}
-              soft={palette.soft}
+              soft={railSoft}
               clearable={false}
             />
             <RailSegment
@@ -2359,7 +2369,7 @@ export default function BankTrainer({ subjectState }: {
               value={String(kimYear)}
               onChange={v => v && pickYear(Number(v) as ExamYear)}
               accent={palette.accent}
-              soft={palette.soft}
+              soft={railSoft}
               clearable={false}
             />
             <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)' }}>
@@ -2419,13 +2429,13 @@ export default function BankTrainer({ subjectState }: {
               Тематика» у языкового тренажёра: раздел и тема кодификатора (КЭС),
               часть, линия КИМ. Счётчик справа — сколько заданий под пунктом. */}
           {fipiSet && view !== 'lines' && (<>
-            <FilterMenu label="Раздел" options={kesSectionOpts} value={sections} onChange={setSections} accent={palette.accent} soft={palette.soft} />
-            <FilterMenu label="Тема" options={kesTopicOpts} value={topics} onChange={setTopics} accent={palette.accent} soft={palette.soft} />
+            <FilterMenu label="Раздел" options={kesSectionOpts} value={sections} onChange={setSections} accent={palette.accent} soft={railSoft} />
+            <FilterMenu label="Тема" options={kesTopicOpts} value={topics} onChange={setTopics} accent={palette.accent} soft={railSoft} />
             <FilterMenu label="Часть" options={[
               { value: '1', label: 'Часть 1', count: subjectTasks.filter(x => x.part === 1).length },
               { value: '2', label: 'Часть 2', count: subjectTasks.filter(x => x.part === 2).length },
-            ]} value={parts} onChange={setParts} accent={palette.accent} soft={palette.soft} />
-            <FilterMenu label="Линия" options={lineOpts.map(o => ({ ...o, value: o.label }))} value={lines} onChange={setLines} accent={palette.accent} soft={palette.soft} />
+            ]} value={parts} onChange={setParts} accent={palette.accent} soft={railSoft} />
+            <FilterMenu label="Линия" options={lineOpts.map(o => ({ ...o, value: o.label }))} value={lines} onChange={setLines} accent={palette.accent} soft={railSoft} />
           </>)}
           {/* Статус и сортировка — общие со скелетом (components/trainer).
               Своих копий у банка больше нет: расходились бы при первой правке. */}
@@ -2445,7 +2455,7 @@ export default function BankTrainer({ subjectState }: {
             value={sortMode}
             onChange={v => setSortMode(v as SortMode)}
             accent={palette.accent}
-            soft={palette.soft}
+            soft={railSoft}
           />
 
           <button data-hover="layer" onClick={() => setShowFavOnly(f => !f)}
@@ -2477,6 +2487,8 @@ export default function BankTrainer({ subjectState }: {
       ) : view === 'lines' ? (
         <LinesGrid lines={examCatalog?.lines ?? []} tasks={subjectTasks} answered={answered} part2={part2Lines} accent={palette.accent}
           onPick={label => { setLines([label]); setParts([]); setView('list') }} />
+      ) : fipiLoading && filtered.length === 0 ? (
+        <TaskListSkeleton rows={3} />
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>

@@ -18,6 +18,8 @@ type TaskBankStore = {
    */
   loadFipiSet: (subject: string, exam: 'ege' | 'oge') => Promise<void>
   fipiSetsLoaded: Record<string, true>
+  /** Набор ФИПИ дочитан (или упал) — до этого тренажёр показывает скелетон. */
+  fipiSetsReady: Record<string, true>
   addTask: (t: NewTask) => Promise<number>
   replaceTask: (id: number, patch: Partial<Task>) => Promise<void>
   removeTask: (id: number) => Promise<void>
@@ -153,6 +155,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   tasks: [],
   loaded: false,
   fipiSetsLoaded: {},
+  fipiSetsReady: {},
   recentlyEditedId: null,
   clearRecentlyEdited: () => set({ recentlyEditedId: null }),
 
@@ -187,7 +190,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       const { DEV_FIPI_TASKS } = await import('../data/devFipiSample')
       const add = DEV_FIPI_TASKS.filter(t => t.subject === subject && t.exam === exam)
       const ids = new Set(add.map(t => t.id))
-      set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add] }))
+      set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add], fipiSetsReady: { ...s.fipiSetsReady, [key]: true } }))
       return
     }
     const rows: Record<string, unknown>[] = []
@@ -197,7 +200,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
         .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
         .order('line').order('id').range(from, from + 999)
       if (error) {
-        set(s => { const m = { ...s.fipiSetsLoaded }; delete m[key]; return { fipiSetsLoaded: m } })
+        set(s => { const m = { ...s.fipiSetsLoaded }; delete m[key]; return { fipiSetsLoaded: m, fipiSetsReady: { ...s.fipiSetsReady, [key]: true } } })
         console.error('[task_bank] loadFipiSet', error)
         return
       }
@@ -206,7 +209,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
     }
     const add = rows.map(dbToTask)
     const ids = new Set(add.map(t => t.id))
-    set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add] }))
+    set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add], fipiSetsReady: { ...s.fipiSetsReady, [key]: true } }))
   },
 
   addTask: async (t) => {

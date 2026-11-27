@@ -13,13 +13,15 @@ import { createRoot } from 'react-dom/client'
 import BankTrainer from './components/trainer/BankTrainer'
 import { useStudentData } from './store/studentDataStore'
 import { useTaskBank } from './store/taskBankStore'
+import { useTheme } from './store/themeStore'
 import { getSubject } from './lib/subjects'
 import { PLATFORM, type Platform } from './lib/platform'
 import type { TrainerSubjectState } from './lib/trainerSubject'
 import './index.css'
 
 const q = new URLSearchParams(location.search)
-if (q.get('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark')
+// Тема и через хранилище: палитра предмета берёт `dark` из useTheme, не из атрибута.
+if ((q.get('theme') === 'dark') !== useTheme.getState().dark) useTheme.getState().toggle()
 const platform = (q.get('p') as Platform | null) ?? PLATFORM
 document.documentElement.dataset.platform = platform
 try { localStorage.removeItem('dev-task-bank') } catch { /* приватный режим */ }
