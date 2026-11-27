@@ -7,7 +7,7 @@
 // ставит поток ДЗ/теста; в конспекте (selfCheck) кнопка «Проверить» своя.
 
 import { useMemo, useState, type ReactNode } from 'react'
-import { display, isErr, parse, tokenize, unsupportedIn, FormulaSyntaxError, type Val, type XlValue } from '../../lib/excelLab/formula'
+import { display, formatValue, isErr, parse, tokenize, unsupportedIn, FormulaSyntaxError, type Val, type XlValue } from '../../lib/excelLab/formula'
 import { checkFix, editableSet, fixTargets, goalsMet, parseTrainerAnswer, placeFormula, trainerBook, type TrainerAnswer, type TrainerSpec } from '../../lib/excelLab/spec'
 import MiniSheet, { cellKey, markRefs, type CellMark } from './MiniSheet'
 import { Check, Info, Lightbulb } from '../icons/appIcons'
@@ -157,12 +157,14 @@ export default function ExcelTrainer({ spec, value, onChange, disabled, selfChec
         <div className="xl-watch" aria-live="polite">
           {spec.watch!.map(w => {
             const now = book.get(w), was = base.get(w)
+            const [wsh, wa] = splitKey(w, main)
+            const f = book.formatOf(wsh, wa)
             const changed = display(now) !== display(was)
             return (
               <div key={w} className="xl-res" data-changed={changed || undefined}>
                 <span className="k">{shortRef(w, main)}</span>
-                <span className="v">{display(now) || 'пусто'}</span>
-                {changed && <span className="was">было {display(was) || 'пусто'}</span>}
+                <span className="v">{formatValue(now, f) || 'пусто'}</span>
+                {changed && <span className="was">было {formatValue(was, f) || 'пусто'}</span>}
                 {isErr(now) && now.why && <span className="was">{now.why}</span>}
               </div>
             )

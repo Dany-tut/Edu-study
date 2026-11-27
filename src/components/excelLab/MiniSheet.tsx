@@ -60,7 +60,8 @@ export default function MiniSheet({
       const raw = wb.raw(sheet, a)
       const isFormula = typeof raw === 'string' && raw.startsWith('=')
       const val = isFormula ? wb.value(sheet, a) : raw
-      const shown = display(val)
+      const fmt = wb.formatOf(sheet, a)
+      const shown = wb.shown(sheet, a)
       const m = marks?.get(key)
       const cls = m?.color ? `xl-cell xl-c${m.color} xl-b${m.color}` : 'xl-cell'
       const canEdit = !!editable?.has(key) && !!onEdit
@@ -76,8 +77,8 @@ export default function MiniSheet({
           {canEdit ? (
             <input
               aria-label={`Ячейка ${sheet === wb.main ? '' : sheet + '!'}${a}`}
-              inputMode={typeof raw === 'number' || raw === null ? 'decimal' : 'text'}
-              value={draft[key] ?? (raw === null ? '' : typeof raw === 'number' ? display(raw).replace(/ /g, '') : String(raw))}
+              inputMode={fmt === 'date' ? 'text' : typeof raw === 'number' || raw === null ? 'decimal' : 'text'}
+              value={draft[key] ?? (raw === null ? '' : typeof raw === 'number' ? (fmt === 'date' ? shown : display(raw).replace(/ /g, '')) : String(raw))}
               onChange={e => setDraft(d => ({ ...d, [key]: e.target.value }))}
               onBlur={e => { commit(key, e.target.value); setDraft(d => { const n = { ...d }; delete n[key]; return n }) }}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}

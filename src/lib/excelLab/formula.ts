@@ -22,7 +22,12 @@ export interface XlRange { kind: 'range'; sheet: string; c1: number; r1: number;
 export type Val = XlScalar | XlError | XlRange
 
 /** Лист: несмежные блоки данных, `at` — левый верхний угол блока. */
-export interface XlSheet { name: string; blocks: { at: string; rows: XlValue[][] }[] }
+/**
+ * Лист: несмежные блоки данных, `at` — левый верхний угол блока.
+ * `formats` — формат показа ячеек: 'date' или маска ТЕКСТ («0,00», «# ##0», «0%», «ДД.ММ.ГГГГ»).
+ * Текст вида «27.11.2026» в данных становится датой (серийным числом 1900) сам.
+ */
+export interface XlSheet { name: string; blocks: { at: string; rows: XlValue[][] }[]; formats?: Record<string, string> }
 
 export const isErr = (v: unknown): v is XlError => !!v && typeof v === 'object' && 'err' in (v as object)
 const isRange = (v: unknown): v is XlRange => !!v && typeof v === 'object' && (v as XlRange).kind === 'range'
@@ -71,6 +76,8 @@ export class Workbook {
   /** sheet → 'D14' → значение (формулы — строкой с «=»). */
   readonly cells = new Map<string, Map<string, XlValue>>()
   readonly order: string[] = []
+  /** sheet → 'D14' → формат показа ('date' или маска ТЕКСТ). */
+  readonly fmt = new Map<string, Map<string, string>>()
   private memo = new Map<string, Val>()
   private busy = new Set<string>()
 
@@ -81,16 +88,42 @@ export class Workbook {
       for (const b of sh.blocks) {
         const o = parseAddr(b.at)
         if (!o) continue
-        b.rows.forEach((row, i) => row.forEach((v, j) => { if (v !== null && v !== undefined && v !== '') m.set(addr(o.c + j, o.r + i), v) }))
+        b.rows.forEach((row, i) => row.forEach((v, j) => { if (v !== null && v !== undefined && v !== '') this.put(sh.name, addr(o.c + j, o.r + i), v) }))
       }
+      for (const [a, f] of Object.entries(sh.formats ?? {})) this.fmtMap(sh.name).set(a.replace(/\$/g, '').toUpperCase(), f)
     }
   }
 
   get main(): string { return this.order[0] }
 
+  private fmtMap(sheet: string) { let f = this.fmt.get(sheet); if (!f) { f = new Map(); this.fmt.set(sheet, f) } return f }
+
+  /** Положить значение; «27.11.2026» → дата (серийное число) с форматом 'date'. */
+  private put(sheet: string, a: string, v: XlValue) {
+    const m = this.cells.get(sheet)!
+    if (typeof v === 'string' && !v.startsWith('=')) {
+      const d = parseDateText(v)
+      if (d !== null) { m.set(a, d); if (!this.fmtMap(sheet).has(a)) this.fmtMap(sheet).set(a, 'date'); return }
+    }
+    m.set(a, v)
+  }
+
+  /** Формат ячейки: заданный автором, у дат из данных — 'date', у формул — по смыслу (ДАТА, КОНМЕСЯЦА, ссылка на дату ± дни). */
+  formatOf(sheet: string, a: string, depth = 0): string | undefined {
+    const own = this.fmt.get(sheet)?.get(a)
+    if (own) return own
+    const raw = this.raw(sheet, a)
+    if (depth > 8 || typeof raw !== 'string' || !raw.startsWith('=')) return undefined
+    try { return inferFormat(parse(raw), this, sheet, depth + 1) } catch { return undefined }
+  }
+
+  /** Как ячейка выглядит в таблице: с форматом даты или маской. */
+  shown(sheet: string, a: string): string { return formatValue(this.value(sheet, a), this.formatOf(sheet, a)) }
+
   clone(): Workbook {
     const w = new Workbook([])
     for (const n of this.order) { w.order.push(n); w.cells.set(n, new Map(this.cells.get(n))) }
+    for (const [n, f] of this.fmt) w.fmt.set(n, new Map(f))
     return w
   }
 
@@ -100,7 +133,7 @@ export class Workbook {
       const { sheet, a } = splitRef(k, this.main)
       const m = this.cells.get(sheet)
       if (!m) continue
-      if (v === null || v === undefined || v === '') m.delete(a); else m.set(a, v)
+      if (v === null || v === undefined || v === '') m.delete(a); else this.put(sheet, a, v)
     }
     this.memo.clear()
     return this
@@ -124,7 +157,7 @@ export class Workbook {
     if (this.busy.has(key)) return err('#ЦИКЛ!', 'Формула ссылается сама на себя')
     this.busy.add(key)
     let out: Val
-    try { out = evaluate(v, this, sheet) } finally { this.busy.delete(key) }
+    try { out = ev(parse(v), { wb: this, sheet, cell: parseAddr(a) ?? undefined }) } finally { this.busy.delete(key) }
     if (isRange(out)) out = err('#ЗНАЧ!', 'В ячейке получился диапазон, а нужно одно значение')
     this.memo.set(key, out)
     return out
@@ -285,6 +318,8 @@ function toNum(v: Val): number | XlError {
   return n === null ? err('#ЗНАЧ!', `«${v}» — текст, а не число`) : n
 }
 function parseNumText(s: string): number | null {
+  const d = parseDateText(s)
+  if (d !== null) return d
   const t = s.replace(/[\s\u00a0]/g, '').replace(',', '.')
   return t !== '' && /^[-+]?\d*\.?\d+(e[-+]?\d+)?%?$/i.test(t) ? (t.endsWith('%') ? Number(t.slice(0, -1)) / 100 : Number(t)) : null
 }
@@ -376,7 +411,7 @@ function criterion(c: Val): ((v: Val) => boolean) | XlError {
 
 // ─── Вычисление ──────────────────────────────────────────────────────────────
 
-type Ctx = { wb: Workbook; sheet: string; onFn?: (n: Extract<Node, { t: 'fn' }>, v: Val) => void }
+type Ctx = { wb: Workbook; sheet: string; cell?: { c: number; r: number }; onFn?: (n: Extract<Node, { t: 'fn' }>, v: Val) => void }
 
 function refVal(n: Extract<Node, { t: 'ref' }>, ctx: Ctx): Val {
   const r = parseRangeRef(n.ref, ctx.sheet)
@@ -393,7 +428,19 @@ function scalar(v: Val, ctx: Ctx): Val {
   return err('#ЗНАЧ!', 'Здесь нужно одно значение, а стоит диапазон')
 }
 
-export const FUNCTIONS = ['СУММ', 'СУММЕСЛИ', 'СУММЕСЛИМН', 'СЧЁТЕСЛИ', 'СЧЁТЕСЛИМН', 'ЕСЛИ', 'И', 'ИЛИ', 'ЕСЛИОШИБКА', 'ВПР', 'ИНДЕКС', 'ПОИСКПОЗ', 'МАКС', 'МИН', 'ОКРУГЛ', 'ЕЧИСЛО'] as const
+export const FUNCTIONS = [
+  'СУММ', 'СУММЕСЛИ', 'СУММЕСЛИМН', 'СЧЁТЕСЛИ', 'СЧЁТЕСЛИМН', 'ЕСЛИ', 'И', 'ИЛИ', 'ЕСЛИОШИБКА', 'ВПР', 'ИНДЕКС', 'ПОИСКПОЗ', 'МАКС', 'МИН', 'ОКРУГЛ', 'ЕЧИСЛО',
+  // счёт и логика
+  'СЧЁТ', 'СЧЁТЗ', 'СЧИТАТЬПУСТОТЫ', 'СРЗНАЧ', 'СРЗНАЧЕСЛИ', 'СРЗНАЧЕСЛИМН', 'ЕСЛИМН', 'ЕСНД', 'ЕПУСТО', 'ЕОШИБКА', 'ЕТЕКСТ', 'НЕ',
+  // числа
+  'ABS', 'ОКРУГЛВВЕРХ', 'ОКРУГЛВНИЗ', 'ЦЕЛОЕ', 'ОТБР', 'ОСТАТ', 'СУММПРОИЗВ',
+  // текст
+  'ЛЕВСИМВ', 'ПРАВСИМВ', 'ПСТР', 'ДЛСТР', 'СЖПРОБЕЛЫ', 'ПРОПИСН', 'СТРОЧН', 'ПОДСТАВИТЬ', 'НАЙТИ', 'ПОИСК', 'СЦЕП', 'СЦЕПИТЬ', 'ЗНАЧЕН', 'ТЕКСТ',
+  // даты (серийные числа системы 1900)
+  'ДАТА', 'ГОД', 'МЕСЯЦ', 'ДЕНЬ', 'КОНМЕСЯЦА', 'ДАТАМЕС', 'ДЕНЬНЕД', 'РАЗНДАТ', 'РАБДЕНЬ', 'ЧИСТРАБДНИ',
+  // поиск и ссылки
+  'ПРОСМОТРX', 'ПОИСКПОЗX', 'ВЫБОР', 'СТРОКА', 'СТОЛБЕЦ',
+] as const
 const norm = (n: string) => n.replace(/Ё/g, 'Е')
 
 function nums(args: Val[], ctx: Ctx): number[] | XlError {
@@ -553,6 +600,8 @@ function callFn(n: Extract<Node, { t: 'fn' }>, ctx: Ctx): Val {
       return ctx.wb.value(rg.sheet, addr(rg.c1 + Math.max(col, 1) - 1, rg.r1 + row - 1))
     }
   }
+  const more = callMore(name, n, ctx, A, argc, need)
+  if (more !== undefined) return more
   return { err: '#ИМЯ?', why: `В учебном тренажёре этой функции нет: ${n.name}`, unsupported: n.name }
 }
 
@@ -596,8 +645,8 @@ function normErr(s: string): XlErrorCode {
 }
 
 /** Посчитать формулу так, будто она стоит на листе `sheet`. Синтаксическая ошибка — исключение FormulaSyntaxError. */
-export function evaluate(formula: string, wb: Workbook, sheet = wb.main): Val {
-  return ev(parse(formula), { wb, sheet })
+export function evaluate(formula: string, wb: Workbook, sheet = wb.main, cell?: string): Val {
+  return ev(parse(formula), { wb, sheet, cell: cell ? parseAddr(cell) ?? undefined : undefined })
 }
 
 /** Шаги «Вычислить формулу»: каждая функция по порядку вычисления (самая вложенная — первой). */
@@ -669,4 +718,396 @@ export function unsupportedIn(formula: string): string[] {
     const known = new Set(FUNCTIONS.map(norm))
     return [...new Set(tokenize(formula).filter(t => t.k === 'fn').map(t => String(t.v)).filter(n => !known.has(norm(n))))]
   } catch { return [] }
+}
+
+// ─── Даты: серийные числа системы 1900 ───────────────────────────────────────
+// Как в Excel для Windows: 1 = 01.01.1900, 60 = несуществующее 29.02.1900
+// (ошибка Lotus, которую Excel сохраняет), 61 = 01.03.1900.
+
+const DAY = 864e5
+const BASE = Date.UTC(1899, 11, 30)
+
+export function dateToSerial(y: number, m: number, d: number): number {
+  const days = Math.round((Date.UTC(y, m - 1, d) - BASE) / DAY)
+  return days <= 60 ? days - 1 : days
+}
+export function serialToDate(n: number): { y: number; m: number; d: number } {
+  const s = Math.floor(n)
+  if (s === 60) return { y: 1900, m: 2, d: 29 }
+  const t = new Date(BASE + (s < 60 ? s + 1 : s) * DAY)
+  return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() }
+}
+/** «27.11.2026», «7.1.2026», «2026-11-27» → серийное число; иначе null. */
+export function parseDateText(s: string): number | null {
+  let m = /^\s*(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/.exec(s)
+  if (m) { const d = +m[1], mo = +m[2], y = +m[3]; return mo >= 1 && mo <= 12 && d >= 1 && d <= daysIn(y, mo) ? dateToSerial(y, mo, d) : null }
+  m = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(s)
+  if (m) { const y = +m[1], mo = +m[2], d = +m[3]; return mo >= 1 && mo <= 12 && d >= 1 && d <= daysIn(y, mo) ? dateToSerial(y, mo, d) : null }
+  return null
+}
+function daysIn(y: number, m: number): number { return new Date(Date.UTC(y, m, 0)).getUTCDate() }
+const weekday = (serial: number) => new Date(BASE + Math.floor(serial) * DAY).getUTCDay() // 0 — воскресенье
+
+const pad = (n: number, w = 2) => String(n).padStart(w, '0')
+
+/** Маска ТЕКСТ: «0», «0,00», «# ##0», «# ##0,00», «0%», «ДД.ММ.ГГГГ», «ДД.ММ.ГГ», «ММ.ГГГГ», «ГГГГ». */
+export function textFormat(v: number, mask: string): string {
+  const fmt = mask.replace(/"([^"]*)"/g, '\u0001$1\u0002')
+  if (/[ДдГгDdYy]/.test(fmt.replace(/\u0001[^\u0002]*\u0002/g, '')) || /^М{2}\.Г/i.test(fmt)) {
+    const { y, m, d } = serialToDate(v)
+    return fmt
+      .replace(/ГГГГ|гггг|YYYY|yyyy/g, String(y)).replace(/ГГ|гг|YY|yy/g, pad(y % 100))
+      .replace(/ММ|мм|MM|mm/g, pad(m)).replace(/ДД|дд|DD|dd/g, pad(d))
+      .replace(/\u0001([^\u0002]*)\u0002/g, '$1')
+  }
+  const lit = (x: string) => x.replace(/\u0001([^\u0002]*)\u0002/g, '$1')
+  const m = /^([^#0]*)([#0][#0  ]*)(?:,([#0]+))?(%?)(.*)$/.exec(fmt)
+  if (!m) return lit(fmt)
+  const [, pre, intPart, dec = '', pct, post] = m
+  let x = pct ? v * 100 : v
+  const k = Math.pow(10, dec.length)
+  x = Math.sign(x) * Math.round(Math.abs(x) * k + 1e-9) / k
+  const [ip, fp = ''] = Math.abs(x).toFixed(dec.length).split('.')
+  const minInt = (intPart.match(/0/g) ?? []).length
+  let i = ip.padStart(minInt, '0')
+  if (minInt === 0 && i === '0') i = ''
+  if (/[  ]/.test(intPart)) i = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  return lit(pre) + (x < 0 ? '-' : '') + i + (dec ? ',' + fp : '') + pct + lit(post)
+}
+
+/** Значение с форматом ячейки. */
+export function formatValue(v: Val, fmt?: string): string {
+  if (typeof v === 'number' && fmt && isFinite(v)) {
+    if (fmt === 'date') { const { y, m, d } = serialToDate(v); return `${pad(d)}.${pad(m)}.${y}` }
+    return textFormat(v, fmt)
+  }
+  return display(v)
+}
+
+const DATE_FNS = new Set(['ДАТА', 'КОНМЕСЯЦА', 'ДАТАМЕС', 'РАБДЕНЬ'])
+function inferFormat(n: Node, wb: Workbook, sheet: string, depth: number): string | undefined {
+  if (n.t === 'fn') {
+    const nm = norm(n.name)
+    if (DATE_FNS.has(nm)) return 'date'
+    if (nm === 'ЕСЛИ' || nm === 'ЕСЛИОШИБКА' || nm === 'ЕСНД') { for (const a of n.args.slice(1)) { const f = inferFormat(a, wb, sheet, depth); if (f) return f } }
+    if (nm === 'МАКС' || nm === 'МИН') { for (const a of n.args) { const f = inferFormat(a, wb, sheet, depth); if (f === 'date') return f } }
+    return undefined
+  }
+  if (n.t === 'ref') {
+    const r = parseRangeRef(n.ref, sheet)
+    return r ? wb.formatOf(r.sheet, addr(r.c1, r.r1), depth) : undefined
+  }
+  if (n.t === 'bin' && (n.op === '+' || n.op === '-')) {
+    const l = inferFormat(n.l, wb, sheet, depth) === 'date', r = inferFormat(n.r, wb, sheet, depth) === 'date'
+    if (l !== r) return 'date'
+  }
+  return undefined
+}
+
+// ─── Массивы для СУММПРОИЗВ ──────────────────────────────────────────────────
+// Только внутри СУММПРОИЗВ: диапазоны поэлементно, сравнения дают ИСТИНА/ЛОЖЬ,
+// арифметика превращает их в 1/0. Как в Excel, ИСТИНА/ЛОЖЬ без арифметики
+// СУММПРОИЗВ считает нулями — отсюда учебная ошибка без «--».
+type Arr = XlScalar[]
+function evArr(n: Node, ctx: Ctx): Arr | XlError {
+  if (n.t === 'ref') {
+    const r = parseRangeRef(n.ref, ctx.sheet)
+    if (!r) return err('#ССЫЛКА!')
+    const c = cellsOf(ctx.wb, r); if (isErr(c)) return c
+    for (const v of c.vals) if (isErr(v)) return v
+    return c.vals as XlScalar[]
+  }
+  if (n.t === 'neg') { const x = evArr(n.x, ctx); if (isErr(x)) return x; const out: Arr = []; for (const v of x) { const k = toNum(v); if (isErr(k)) return k; out.push(-k) } return out }
+  if (n.t === 'bin' && n.op !== '&') {
+    const a = evArr(n.l, ctx), b = evArr(n.r, ctx)
+    if (isErr(a)) return a
+    if (isErr(b)) return b
+    const len = Math.max(a.length, b.length)
+    if (a.length !== b.length && a.length !== 1 && b.length !== 1) return err('#ЗНАЧ!', 'Массивы разного размера')
+    const out: Arr = []
+    for (let i = 0; i < len; i++) {
+      const x = a.length === 1 ? a[0] : a[i], y = b.length === 1 ? b[0] : b[i]
+      if (['=', '<>', '<', '>', '<=', '>='].includes(n.op)) {
+        const c = cmp(x, y)
+        out.push(n.op === '=' ? c === 0 : n.op === '<>' ? c !== 0 : n.op === '<' ? c < 0 : n.op === '>' ? c > 0 : n.op === '<=' ? c <= 0 : c >= 0)
+        continue
+      }
+      const p = toNum(x), q = toNum(y)
+      if (isErr(p)) return p
+      if (isErr(q)) return q
+      out.push(n.op === '+' ? p + q : n.op === '-' ? p - q : n.op === '*' ? p * q : n.op === '/' ? (q === 0 ? NaN : p / q) : Math.pow(p, q))
+    }
+    if (out.some(v => typeof v === 'number' && isNaN(v))) return err('#ДЕЛ/0!', 'Деление на ноль')
+    return out
+  }
+  const v = scalar(ev(n, ctx), ctx)
+  return isErr(v) ? v : [v as XlScalar]
+}
+
+// ─── Остальные функции учебного набора ───────────────────────────────────────
+
+function refRange(n: Node | undefined, ctx: Ctx): XlRange | null {
+  return n && n.t === 'ref' ? parseRangeRef(n.ref, ctx.sheet) : null
+}
+function flat(args: Val[], ctx: Ctx): Val[] | XlError {
+  const out: Val[] = []
+  for (const a of args) {
+    if (isErr(a)) return a
+    if (isRange(a)) { const c = cellsOf(ctx.wb, a); if (isErr(c)) return c; out.push(...c.vals) } else out.push(a)
+  }
+  return out
+}
+const TRUNC = (x: number, n: number) => { const k = Math.pow(10, n); return Math.trunc(x * k + Math.sign(x) * 1e-9) / k }
+
+function callMore(name: string, n: Extract<Node, { t: 'fn' }>, ctx: Ctx, A: (i: number) => Val, argc: number, need: (lo: number, hi?: number) => XlError | null): Val | undefined {
+  const S = (i: number) => scalar(A(i), ctx)
+  const N = (i: number) => toNum(S(i))
+  const T = (i: number) => toText(S(i))
+  const all = () => n.args.map((_, i) => A(i))
+  switch (name) {
+    // ── счёт и логика ──
+    case 'СЧЕТ': {
+      let k = 0
+      for (let i = 0; i < argc; i++) {
+        const v = A(i)
+        if (isRange(v)) { const c = cellsOf(ctx.wb, v); if (isErr(c)) return c; k += c.vals.filter(x => typeof x === 'number').length }
+        else if (typeof v === 'number' || (typeof v === 'string' && parseNumText(v) !== null) || typeof v === 'boolean') k++
+      }
+      return k
+    }
+    case 'СЧЕТЗ': { let k = 0; for (let i = 0; i < argc; i++) { const v = A(i); if (isRange(v)) { const c = cellsOf(ctx.wb, v); if (isErr(c)) return c; k += c.vals.filter(x => x !== null).length } else if (v !== null) k++ } return k }
+    case 'СЧИТАТЬПУСТОТЫ': { const bad = need(1); if (bad) return bad; const v = A(0); if (!isRange(v)) return v === null || v === '' ? 1 : 0; const c = cellsOf(ctx.wb, v); if (isErr(c)) return c; return c.vals.filter(x => x === null || x === '').length }
+    case 'СРЗНАЧ': { const x = nums(all(), ctx); if (isErr(x)) return x; return x.length ? x.reduce((a, b) => a + b, 0) / x.length : err('#ДЕЛ/0!', 'Нет ни одного числа') }
+    case 'СРЗНАЧЕСЛИ': {
+      const bad = need(2, 3); if (bad) return bad
+      const rg = A(0); if (!isRange(rg)) return isErr(rg) ? rg : err('#ЗНАЧ!', 'Первый аргумент — диапазон')
+      const f = criterion(S(1)); if (isErr(f)) return f
+      const c = cellsOf(ctx.wb, rg); if (isErr(c)) return c
+      let avgR = rg
+      if (argc > 2) { const a = A(2); if (!isRange(a)) return isErr(a) ? a : err('#ЗНАЧ!'); avgR = { ...a, r2: a.r1 + c.rows - 1, c2: a.c1 + c.cols - 1 } }
+      const av = cellsOf(ctx.wb, avgR); if (isErr(av)) return av
+      const pick = av.vals.filter((v, i) => f(c.vals[i]) && typeof v === 'number') as number[]
+      return pick.length ? pick.reduce((a, b) => a + b, 0) / pick.length : err('#ДЕЛ/0!', 'Ни одна строка не подошла под условие')
+    }
+    case 'СРЗНАЧЕСЛИМН': {
+      if (argc < 3 || argc % 2 === 0) return err('#ЗНАЧ!', 'СРЗНАЧЕСЛИМН: диапазон усреднения и пары «диапазон; условие»')
+      const base = A(0); if (!isRange(base)) return isErr(base) ? base : err('#ЗНАЧ!')
+      const r = ifsCore(n.args.slice(1).map((_, i) => A(i + 1)), ctx, base); if (isErr(r)) return r
+      const sv = cellsOf(ctx.wb, base); if (isErr(sv)) return sv
+      const pick = sv.vals.filter((v, i) => r.hits[i] && typeof v === 'number') as number[]
+      return pick.length ? pick.reduce((a, b) => a + b, 0) / pick.length : err('#ДЕЛ/0!', 'Ни одна строка не подошла под условия')
+    }
+    case 'ЕСЛИМН': {
+      if (argc < 2 || argc % 2) return err('#ЗНАЧ!', 'ЕСЛИМН: пары «условие; значение»')
+      for (let i = 0; i < argc; i += 2) { const c = toBool(S(i)); if (isErr(c)) return c; if (c) return S(i + 1) }
+      return err('#Н/Д', 'Ни одно условие ЕСЛИМН не выполнилось')
+    }
+    case 'ЕСНД': { const bad = need(2); if (bad) return bad; const v = S(0); return isErr(v) && v.err === '#Н/Д' ? S(1) : v }
+    case 'ЕПУСТО': { const bad = need(1); if (bad) return bad; return S(0) === null }
+    case 'ЕОШИБКА': { const bad = need(1); if (bad) return bad; return isErr(S(0)) }
+    case 'ЕТЕКСТ': { const bad = need(1); if (bad) return bad; return typeof S(0) === 'string' }
+    case 'НЕ': { const bad = need(1); if (bad) return bad; const b = toBool(S(0)); return isErr(b) ? b : !b }
+
+    // ── числа ──
+    case 'ABS': { const bad = need(1); if (bad) return bad; const x = N(0); return isErr(x) ? x : Math.abs(x) }
+    case 'ОКРУГЛВВЕРХ': case 'ОКРУГЛВНИЗ': {
+      const bad = need(2); if (bad) return bad
+      const x = N(0), d = N(1); if (isErr(x)) return x; if (isErr(d)) return d
+      const k = Math.pow(10, Math.trunc(d)), a = Math.abs(x) * k
+      return Math.sign(x) * (name === 'ОКРУГЛВВЕРХ' ? Math.ceil(a - 1e-9) : Math.floor(a + 1e-9)) / k
+    }
+    case 'ЦЕЛОЕ': { const bad = need(1); if (bad) return bad; const x = N(0); return isErr(x) ? x : Math.floor(x + 1e-12) }
+    case 'ОТБР': { const bad = need(1, 2); if (bad) return bad; const x = N(0), d = argc > 1 ? N(1) : 0; if (isErr(x)) return x; if (isErr(d)) return d; return TRUNC(x, Math.trunc(d)) }
+    case 'ОСТАТ': { const bad = need(2); if (bad) return bad; const x = N(0), d = N(1); if (isErr(x)) return x; if (isErr(d)) return d; if (d === 0) return err('#ДЕЛ/0!', 'Делитель ОСТАТ — ноль'); return x - d * Math.floor(x / d) }
+    case 'СУММПРОИЗВ': {
+      if (!argc) return err('#ЗНАЧ!')
+      const arrs: Arr[] = []
+      for (const a of n.args) { const x = evArr(a, ctx); if (isErr(x)) return x; arrs.push(x) }
+      const len = arrs[0].length
+      if (arrs.some(x => x.length !== len)) return err('#ЗНАЧ!', 'Диапазоны СУММПРОИЗВ разного размера')
+      let total = 0
+      for (let i = 0; i < len; i++) { let p = 1; for (const x of arrs) p *= typeof x[i] === 'number' ? x[i] as number : 0; total += p }
+      return total
+    }
+
+    // ── текст ──
+    case 'ЛЕВСИМВ': case 'ПРАВСИМВ': {
+      const bad = need(1, 2); if (bad) return bad
+      const t = T(0); if (isErr(t)) return t
+      const k = argc > 1 ? N(1) : 1; if (isErr(k)) return k
+      if (k < 0) return err('#ЗНАЧ!', 'Число знаков отрицательное')
+      const c = Math.trunc(k)
+      return name === 'ЛЕВСИМВ' ? t.slice(0, c) : (c === 0 ? '' : t.slice(-c))
+    }
+    case 'ПСТР': {
+      const bad = need(3); if (bad) return bad
+      const t = T(0), st = N(1), k = N(2); if (isErr(t)) return t; if (isErr(st)) return st; if (isErr(k)) return k
+      if (st < 1 || k < 0) return err('#ЗНАЧ!', 'Начало меньше 1 или число знаков отрицательное')
+      return t.substr(Math.trunc(st) - 1, Math.trunc(k))
+    }
+    case 'ДЛСТР': { const bad = need(1); if (bad) return bad; const t = T(0); return isErr(t) ? t : t.length }
+    case 'СЖПРОБЕЛЫ': { const bad = need(1); if (bad) return bad; const t = T(0); return isErr(t) ? t : t.replace(/ +/g, ' ').trim() }
+    case 'ПРОПИСН': { const bad = need(1); if (bad) return bad; const t = T(0); return isErr(t) ? t : t.toUpperCase() }
+    case 'СТРОЧН': { const bad = need(1); if (bad) return bad; const t = T(0); return isErr(t) ? t : t.toLowerCase() }
+    case 'ПОДСТАВИТЬ': {
+      const bad = need(3, 4); if (bad) return bad
+      const t = T(0), a = T(1), b = T(2); if (isErr(t)) return t; if (isErr(a)) return a; if (isErr(b)) return b
+      if (!a) return t
+      if (argc < 4) return t.split(a).join(b)
+      const k = N(3); if (isErr(k)) return k
+      if (k < 1) return err('#ЗНАЧ!', 'Номер вхождения меньше 1')
+      let idx = -1
+      for (let i = 0; i < k; i++) { idx = t.indexOf(a, idx + 1); if (idx < 0) return t }
+      return t.slice(0, idx) + b + t.slice(idx + a.length)
+    }
+    case 'НАЙТИ': case 'ПОИСК': {
+      const bad = need(2, 3); if (bad) return bad
+      const f = T(0), w = T(1); if (isErr(f)) return f; if (isErr(w)) return w
+      const st = argc > 2 ? N(2) : 1; if (isErr(st)) return st
+      if (st < 1 || st > w.length + 1) return err('#ЗНАЧ!', 'Начальная позиция вне текста')
+      const from = Math.trunc(st) - 1
+      if (name === 'НАЙТИ') { const i = w.indexOf(f, from); return i < 0 ? err('#ЗНАЧ!', `«${f}» не найдено (НАЙТИ различает регистр)`) : i + 1 }
+      const re = new RegExp(wildRe(f).source.slice(1, -1), 'i')
+      const m = re.exec(w.slice(from))
+      return m ? from + m.index + 1 : err('#ЗНАЧ!', `«${f}» не найдено`)
+    }
+    case 'СЦЕП': case 'СЦЕПИТЬ': {
+      const vs = flat(all(), ctx); if (isErr(vs)) return vs
+      let out = ''
+      for (const v of vs) { const t = toText(v); if (isErr(t)) return t; out += t }
+      return out
+    }
+    case 'ЗНАЧЕН': {
+      const bad = need(1); if (bad) return bad
+      const v = S(0); if (isErr(v)) return v
+      if (typeof v === 'number') return v
+      const k = typeof v === 'string' ? parseNumText(v) : null
+      return k === null ? err('#ЗНАЧ!', `«${String(v)}» не похоже на число или дату`) : k
+    }
+    case 'ТЕКСТ': {
+      const bad = need(2); if (bad) return bad
+      const v = S(0), f = T(1); if (isErr(v)) return v; if (isErr(f)) return f
+      if (typeof v === 'string' && parseNumText(v) === null) return v
+      const x = toNum(v); if (isErr(x)) return x
+      return textFormat(x, f)
+    }
+
+    // ── даты ──
+    case 'ДАТА': {
+      const bad = need(3); if (bad) return bad
+      const y = N(0), m = N(1), d = N(2); if (isErr(y)) return y; if (isErr(m)) return m; if (isErr(d)) return d
+      const yy = Math.trunc(y) < 1900 ? Math.trunc(y) + 1900 : Math.trunc(y)
+      const s = dateToSerial(yy, Math.trunc(m), Math.trunc(d))
+      return s < 0 ? err('#ЧИСЛО!', 'Дата раньше 1900 года') : s
+    }
+    case 'ГОД': case 'МЕСЯЦ': case 'ДЕНЬ': {
+      const bad = need(1); if (bad) return bad
+      const x = N(0); if (isErr(x)) return x
+      if (x < 0) return err('#ЧИСЛО!')
+      const p = serialToDate(x)
+      return name === 'ГОД' ? p.y : name === 'МЕСЯЦ' ? p.m : p.d
+    }
+    case 'КОНМЕСЯЦА': case 'ДАТАМЕС': {
+      const bad = need(2); if (bad) return bad
+      const x = N(0), k = N(1); if (isErr(x)) return x; if (isErr(k)) return k
+      const p = serialToDate(x)
+      const total = p.y * 12 + (p.m - 1) + Math.trunc(k)
+      const y = Math.floor(total / 12), m = total - y * 12 + 1
+      return name === 'КОНМЕСЯЦА' ? dateToSerial(y, m, daysIn(y, m)) : dateToSerial(y, m, Math.min(p.d, daysIn(y, m)))
+    }
+    case 'ДЕНЬНЕД': {
+      const bad = need(1, 2); if (bad) return bad
+      const x = N(0), t = argc > 1 ? N(1) : 1; if (isErr(x)) return x; if (isErr(t)) return t
+      const w = weekday(x)
+      return t === 1 ? w + 1 : t === 2 ? ((w + 6) % 7) + 1 : t === 3 ? (w + 6) % 7 : err('#ЧИСЛО!', 'Тип ДЕНЬНЕД в тренажёре — 1, 2 или 3')
+    }
+    case 'РАЗНДАТ': {
+      const bad = need(3); if (bad) return bad
+      const a = N(0), b = N(1), u = T(2); if (isErr(a)) return a; if (isErr(b)) return b; if (isErr(u)) return u
+      if (a > b) return err('#ЧИСЛО!', 'Начальная дата позже конечной')
+      const p = serialToDate(a), q = serialToDate(b)
+      let months = (q.y - p.y) * 12 + (q.m - p.m)
+      if (q.d < p.d) months--
+      switch (u.toLowerCase()) {
+        case 'd': return Math.floor(b) - Math.floor(a)
+        case 'm': return months
+        case 'y': return Math.floor(months / 12)
+        case 'ym': return months % 12
+        case 'md': { const prev = q.d >= p.d ? q.d - p.d : daysIn(q.m === 1 ? q.y - 1 : q.y, q.m === 1 ? 12 : q.m - 1) - p.d + q.d; return prev }
+        case 'yd': { let s = dateToSerial(q.y, p.m, Math.min(p.d, daysIn(q.y, p.m))); if (s > Math.floor(b)) s = dateToSerial(q.y - 1, p.m, Math.min(p.d, daysIn(q.y - 1, p.m))); return Math.floor(b) - s }
+      }
+      return err('#ЧИСЛО!', 'Единица РАЗНДАТ: "y", "m", "d", "ym", "yd" или "md"')
+    }
+    case 'РАБДЕНЬ': case 'ЧИСТРАБДНИ': {
+      const bad = need(2, 3); if (bad) return bad
+      const a = N(0), b = N(1); if (isErr(a)) return a; if (isErr(b)) return b
+      const hol = new Set<number>()
+      if (argc > 2) { const h = flat([A(2)], ctx); if (isErr(h)) return h; for (const v of h) { const k = v === null ? null : toNum(v); if (k !== null && !isErr(k)) hol.add(Math.floor(k)) } }
+      const work = (s: number) => { const w = weekday(s); return w !== 0 && w !== 6 && !hol.has(s) }
+      if (name === 'РАБДЕНЬ') {
+        let s = Math.floor(a), left = Math.trunc(b)
+        const step = left >= 0 ? 1 : -1
+        while (left !== 0) { s += step; if (work(s)) left -= step }
+        return s
+      }
+      const lo = Math.floor(Math.min(a, b)), hi = Math.floor(Math.max(a, b))
+      let k = 0
+      for (let s = lo; s <= hi; s++) if (work(s)) k++
+      return a <= b ? k : -k
+    }
+
+    // ── поиск и ссылки ──
+    case 'ПРОСМОТРX': case 'ПОИСКПОЗX': {
+      const isX = name === 'ПРОСМОТРX'
+      const bad = isX ? need(3, 6) : need(2, 4); if (bad) return bad
+      const key = S(0); if (isErr(key)) return key
+      const lr = A(1); if (!isRange(lr)) return isErr(lr) ? lr : err('#ЗНАЧ!', 'Второй аргумент — диапазон поиска')
+      if (lr.r1 !== lr.r2 && lr.c1 !== lr.c2) return err('#ЗНАЧ!', 'Диапазон поиска — одна строка или один столбец')
+      const lc = cellsOf(ctx.wb, lr); if (isErr(lc)) return lc
+      const mi = isX ? 4 : 2, si = isX ? 5 : 3
+      const mode = argc > mi && n.args[mi].t !== 'str' ? N(mi) : 0
+      const srch = argc > si ? N(si) : 1
+      if (isErr(mode)) return mode
+      if (isErr(srch)) return srch
+      const order = [...lc.vals.keys()]
+      if (srch < 0) order.reverse()
+      let hit = -1
+      if (mode === 0 || mode === 2) {
+        const re = mode === 2 && typeof key === 'string' ? wildRe(key) : null
+        hit = order.find(i => { const v = lc.vals[i]; return !isErr(v) && !isRange(v) && v !== null && (re ? typeof v === 'string' && re.test(v) : cmp(v, key as XlScalar) === 0 && typeof v === typeof key) }) ?? -1
+      } else {
+        let best = -1
+        for (const i of order) {
+          const v = lc.vals[i]
+          if (isErr(v) || isRange(v) || v === null || typeof v !== typeof key) continue
+          const c = cmp(v, key as XlScalar)
+          if (c === 0) { best = i; break }
+          if (mode < 0 ? c < 0 && (best < 0 || cmp(v, lc.vals[best] as XlScalar) > 0) : c > 0 && (best < 0 || cmp(v, lc.vals[best] as XlScalar) < 0)) best = i
+        }
+        hit = best
+      }
+      if (!isX) return hit < 0 ? err('#Н/Д', 'Значение не найдено') : hit + 1
+      if (hit < 0) return argc > 3 && !(n.args[3].t === 'str' && n.args[3].v === '' && n.args[3].s === n.args[3].e) ? S(3) : err('#Н/Д', 'Значение не найдено, а «если не найдено» не задано')
+      const rr = A(2); if (!isRange(rr)) return isErr(rr) ? rr : err('#ЗНАЧ!', 'Третий аргумент — диапазон ответа')
+      const vertical = lr.r1 !== lr.r2 || lr.c1 === lr.c2
+      if (vertical ? rr.c1 !== rr.c2 : rr.r1 !== rr.r2) return err('#ЗНАЧ!', 'Учебный тренажёр возвращает одно значение: диапазон ответа — один столбец')
+      return vertical ? ctx.wb.value(rr.sheet, addr(rr.c1, rr.r1 + hit)) : ctx.wb.value(rr.sheet, addr(rr.c1 + hit, rr.r1))
+    }
+    case 'ВЫБОР': {
+      if (argc < 2) return err('#ЗНАЧ!')
+      const i = N(0); if (isErr(i)) return i
+      const k = Math.trunc(i)
+      if (k < 1 || k >= argc) return err('#ЗНАЧ!', `Номер ВЫБОР — от 1 до ${argc - 1}`)
+      return A(k)
+    }
+    case 'СТРОКА': case 'СТОЛБЕЦ': {
+      const bad = need(0, 1); if (bad) return bad
+      const r = argc ? refRange(n.args[0], ctx) : null
+      if (argc && !r) return err('#ЗНАЧ!', 'Аргумент — ссылка на ячейку')
+      const at = r ? { c: r.c1, r: r.r1 } : ctx.cell
+      if (!at) return err('#ЗНАЧ!', 'Неизвестно, в какой ячейке стоит формула')
+      return name === 'СТРОКА' ? at.r : at.c
+    }
+  }
+  return undefined
 }
