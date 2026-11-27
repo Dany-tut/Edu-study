@@ -5,7 +5,7 @@
 // ВНИМАНИЕ: порядок задаёт short_id уроков (acc-ru-N). После заведения курса в
 // базу менять его нельзя без переноса lessons.content (см. accountingLessons.ts).
 // Новые модули — ТОЛЬКО в конец списка (EXT01 добавлен 25.11.2026 после заведения
-// курса в базу): так уже заведённые short_id не сдвигаются.
+// курса в базу; EXP22…EXT05…EXP25 — 27.11.2026): так уже заведённые short_id не сдвигаются.
 import type { AccModule } from './types'
 import { EXP00 } from './exp00'
 import { EXP01 } from './exp01'
@@ -30,5 +30,17 @@ import { EXP19 } from './exp19'
 import { EXP20 } from './exp20'
 import { EXP21 } from './exp21'
 import { EXT01 } from './ext01'
+import { EXP22 } from './exp22'
+import { EXT06 } from './ext06'
+import { EXT02 } from './ext02'
+import { EXT07 } from './ext07'
+import { EXT03 } from './ext03'
+import { EXT04 } from './ext04'
+import { EXT05 } from './ext05'
+import { EXP23 } from './exp23'
+import { EXP24 } from './exp24'
+import { EXP25 } from './exp25'
 
-export const MODULES: AccModule[] = [EXP00, EXP01, EXP02, EXP03, EXP04, EXP05, EXP06, EXP07, EXP08, EXP09, EXP10, EXP11, EXP12, EXP13, EXP14, EXP15, EXP16, EXP21, EXP17, EXP18, EXP19, EXP20, EXT01]
+export const MODULES: AccModule[] = [EXP00, EXP01, EXP02, EXP03, EXP04, EXP05, EXP06, EXP07, EXP08, EXP09, EXP10, EXP11, EXP12, EXP13, EXP14, EXP15, EXP16, EXP21, EXP17, EXP18, EXP19, EXP20, EXT01,
+  // v9 (27.11.2026): версия Excel → Power Query → численность → рецепты → энциклопедия функций → отраслевые проекты
+  EXP22, EXT06, EXT02, EXT07, EXT03, EXT04, EXT05, EXP23, EXP24, EXP25]
