@@ -68,7 +68,7 @@ import MobileBell from '../MobileBell'
 import { glassCircle, MOBILE_TOP_GAP, MOBILE_DOCK_EDGE, SAFE_TOP } from '../../lib/mobileTokens'
 import { tactile } from '../../lib/feedback'
 import { useT } from '../../lib/i18n'
-import { DEFAULT_IMAGE_SIZE, parseNumeric, fillableCellKeys, answerMap, type GapChoice } from '../../data/taskTypes'
+import { DEFAULT_IMAGE_SIZE, parseNumeric, fillableCellKeys, answerMap, type GapChoice, type TaskTable } from '../../data/taskTypes'
 import { hotspotOutcome, type HotspotSpec } from '../../lib/screenHotspot'
 import { btn } from '../../lib/pillStyles'
 
@@ -598,15 +598,15 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* numeric hint: tolerance + unit */}
       {task.answerType === 'numeric' && (Number(payload.numTolerance) > 0 || payload.unit) && (
         <div style={{ fontSize: 12, color: 'var(--color-text-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {Number(payload.numTolerance) > 0 && <span>{t('Допуск')} ±{payload.numTolerance}</span>}
-          {payload.unit && <span>{t('Единицы')}: {String(payload.unit)}</span>}
+          {Number(payload.numTolerance) > 0 && <span>{t('Допуск')} ±{String(payload.numTolerance)}</span>}
+          {payload.unit ? <span>{t('Единицы')}: {String(payload.unit)}</span> : null}
           {typeof payload.decimals === 'number' && <span>{payload.decimals} {t('зн. после запятой')}</span>}
         </div>
       )}
 
       {/* tableFill: editable cells in the question table */}
       {task.answerType === 'tableFill' && task.questionTable && (() => {
-        const keys = fillableCellKeys({ table: task.questionTable as { rows: string[][]; emptyCells?: Record<string, boolean> } })
+        const keys = fillableCellKeys({ table: task.questionTable as TaskTable })
         if (keys.length === 0) return null
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
