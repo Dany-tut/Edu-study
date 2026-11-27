@@ -104,7 +104,7 @@ for (const [id, s] of Object.entries(EXT02_TRAINERS)) {
 }
 // Достижимость мини-заданий: правки, которые их выполняют.
 const reach = {
-  yearTable: [{ D197: 118, F197: 3 }, { D197: 120, F197: 11 }],
+  yearTable: [{ D197: 11 }, { I197: 3 }],
   oneCategory: [{ M3: 0 }],
   higherRates: [{ D4: 2 }],
   mainOrSecond: [{ D2: 2 }],
