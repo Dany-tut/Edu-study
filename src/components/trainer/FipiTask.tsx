@@ -242,12 +242,14 @@ function SelfCheck({ task, f, state, onAnswer, palette, mobile }: {
         placeholder={t('Запишите решение: уравнения, расчёты, ответ')}
         style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', padding: '12px 14px', borderRadius: 16, fontSize: mobile ? 16 : 14, lineHeight: 1.5, outline: 'none', fontFamily: 'inherit',
           background: 'var(--color-bg-input)', border: '1px solid var(--color-border-medium)', color: 'var(--color-text)' }} />
-      {!open ? (
+      {/* Эталон и критерии — только после своего решения: кнопка появляется,
+          когда в поле что-то написано (как «Проверить» у части 1). */}
+      {!open ? (text.trim() ? (
         <button data-hover="layer" onClick={() => { tactile(); setOpen(true) }}
           style={{ alignSelf: mobile ? 'stretch' : 'flex-start', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 20px', borderRadius: 999, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 14px ${palette.ring}` }}>
           <Eye size={15} /><OpticalText as="iskra-button-label">{t('Сверить с эталоном')}</OpticalText>
         </button>
-      ) : (
+      ) : null) : (
         <>
           <div style={{ padding: '12px 16px', borderRadius: 16, background: 'var(--color-green-soft)', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-green-text)', textTransform: 'uppercase', letterSpacing: 0.3 }}>{t('Элементы ответа')}</div>
@@ -298,7 +300,12 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
   const [showSolution, setShowSolution] = useState(false)
   const checked = state !== undefined && state.correct !== null && state.value === value && !!value
   const result = useMemo(() => (checked ? gradeFipi(task, value) : null), [checked, task, value])
-  const peeked = state?.correct === null && f.kind !== 'extended'
+  // Решение (правильный ответ и пояснение) — только после своей попытки:
+  // «пока ученик не даст свой ответ — решение не показываем» (Дани, 27.11).
+  // Подсматривать до ответа больше нельзя; старые «подсмотренные» записи
+  // (correct: null) поле не запирают.
+  const attempted = state !== undefined && state.correct !== null
+  const peeked = false
   const complete = f.kind === 'select' ? value.replace(/\s/g, '').length === (f.cells?.length ?? 0) : !!value.trim()
 
   function check() {
@@ -308,7 +315,6 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
   }
   function peek() {
     tactile()
-    if (state === undefined) onAnswer(value, null)
     setShowSolution(s => !s)
   }
 
@@ -358,11 +364,13 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
                 <OpticalText as="iskra-button-label">{t('Ещё раз')}</OpticalText>
               </button>
             )}
+            {attempted && (
             <button data-hover="layer" onClick={peek}
               style={{ display: 'flex', alignItems: 'center', gap: 6, height: mobile ? 48 : 42, padding: '0 16px', borderRadius: 16, cursor: 'pointer', fontSize: 13, fontWeight: 600,
                 background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)', border: `1.5px solid ${showSolution ? 'transparent' : 'var(--color-border-medium)'}`, color: showSolution ? palette.text : 'var(--color-muted)' }}>
               {showSolution ? <Eye size={14} /> : <EyeOff size={14} />}<OpticalText alignment="ink">{t('Решение')}</OpticalText>
             </button>
+            )}
           </div>
         </div>
       )}
@@ -375,7 +383,7 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
         </div>
       )}
 
-      {showSolution && f.kind !== 'extended' && (
+      {showSolution && attempted && f.kind !== 'extended' && (
         <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>{t('Правильный ответ')}</p>
           <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', letterSpacing: f.kind === 'text' ? 0 : 2 }}>{f.kind === 'check' ? [...task.answer].join(', ') : task.answer.split('|')[0]}</p>

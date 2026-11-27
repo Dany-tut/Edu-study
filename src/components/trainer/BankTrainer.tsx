@@ -354,10 +354,12 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
    * нейтральные (correct: null): не решено, но и не ошибка — в тренажёре
    * подглядывание это способ научиться, а не провал.
    */
-  const peeked = state?.correct === null
+  // Решение — только после своей попытки (Дани, 27.11): до ответа кнопки нет.
+  // Старые «подсмотренные» записи (correct: null) поле больше не запирают.
+  const attempted = state !== undefined && state.correct !== null
+  const peeked = false
   function peek() {
     tap()
-    if (state === undefined) onAnswer(task.id, inputVal, null)
     setShowSolution(s => !s)
   }
   function share() {
@@ -418,7 +420,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               <Eye size={16} />
               {t('Подсказка')}
             </div>
-          ) : state !== undefined && (
+          ) : attempted && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
               {isCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
               {isCorrect ? t('Верно') : t('Неверно')}
@@ -627,6 +629,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                 )}
               </AnimatePresence>
               <AnimatePresence mode="popLayout" initial={false}>
+                  {attempted && (
                   <motion.button data-hover="layer"
                     layout
                     key="solution-btn"
@@ -687,13 +690,14 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
                     </span>
                     <OpticalText alignment="ink">{t('Решение')}</OpticalText>
                   </motion.button>
+                  )}
               </AnimatePresence>
         </div>
       </div>
 
       {/* Solution block */}
       <AnimatePresence>
-        {showSolution && (
+        {showSolution && attempted && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
             <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>{t('Правильный ответ')}</p>
@@ -744,8 +748,9 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
   function check() {
     onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
   }
+  // Ответ — только после своей попытки, как в большой карточке.
+  const attempted = state !== undefined && state.correct !== null
   function peek() {
-    if (state === undefined) onAnswer(task.id, inputVal, null)
     setShowSolution(s => !s)
   }
 
@@ -791,13 +796,12 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
           color: inputVal.trim() ? palette.onAccent : 'var(--color-text-3)',
           cursor: inputVal.trim() ? 'pointer' : 'default', flexShrink: 0,
         }}><LoopTextIcon icon={LoopMarkCheck}>✓</LoopTextIcon></button>
-        {/* Тот же глазок, что и в большой карточке: работает и до ответа,
-            подсмотренное задание уходит в нейтральные. */}
-        <button data-hover="layer" onClick={peek} aria-label={t('Показать ответ')} style={{
+        {/* Тот же глазок, что и в большой карточке: только после ответа. */}
+        {attempted && <button data-hover="layer" onClick={peek} aria-label={t('Показать ответ')} style={{
           padding: '8px 8px', borderRadius: 10, border: `1px solid ${showSolution ? palette.accent : 'var(--color-border-medium)'}`,
           background: showSolution ? palette.soft : 'transparent', cursor: 'pointer', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>
+        }}><Eye size={12} color={showSolution ? palette.text : 'var(--color-text-3)'} /></button>}
         <button data-hover="layer" onClick={() => onFavorite(task.id)} style={{
           padding: '8px 8px', borderRadius: 10, border: `1px solid ${isFav ? 'var(--color-yellow-border)' : 'var(--color-border-medium)'}`,
           background: isFav ? 'var(--color-yellow-soft)' : 'transparent', cursor: 'pointer', flexShrink: 0,
@@ -807,7 +811,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
 
       {/* Solution */}
       <AnimatePresence>
-        {showSolution && (
+        {showSolution && attempted && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
             <div style={{ padding: '10px 12px', background: palette.soft, borderRadius: 12, fontSize: 12, color: 'var(--color-text-2)', lineHeight: 1.5 }}>
               <strong style={{ color: palette.text }}>{t('Ответ: ')}</strong>{task.answer}
@@ -1548,19 +1552,17 @@ export default function BankTrainer({ subjectState }: {
   const [exam, setExamState] = useState<ExamCode>(() => {
     try { return (localStorage.getItem(`trainer_exam_${subject}`) as ExamCode) || 'ege' } catch { return 'ege' }
   })
-  const [kimYear, setKimYear] = useState<ExamYear>(() => {
-    try { return Number(localStorage.getItem('trainer_kim_year')) === 2027 ? 2027 : 2026 } catch { return 2026 }
-  })
+  // Год КИМ — всегда база 2026. Переключатель «КИМ 2026 / 2027 · проект»
+  // убран по решению Дани (27.11): проект 2027 пока не показываем. Выбор,
+  // сохранённый раньше, сбрасываем, чтобы никто не застрял на проекте.
+  const kimYear: ExamYear = 2026
+  useEffect(() => { try { localStorage.removeItem('trainer_kim_year') } catch { /* приватный режим */ } }, [])
   useEffect(() => {
     try { setExamState((localStorage.getItem(`trainer_exam_${subject}`) as ExamCode) || 'ege') } catch { /* приватный режим */ }
   }, [subject])
   const setExam = (e: ExamCode) => {
     setExamState(e)
     try { localStorage.setItem(`trainer_exam_${subject}`, e) } catch { /* приватный режим */ }
-  }
-  const pickYear = (y: ExamYear) => {
-    setKimYear(y)
-    try { localStorage.setItem('trainer_kim_year', String(y)) } catch { /* приватный режим */ }
   }
   const loadFipiSet = useTaskBank(s => s.loadFipiSet)
   useEffect(() => { if (bankOn) void loadFipiSet(subject, exam) }, [subject, exam, bankOn, loadFipiSet])
@@ -2165,9 +2167,6 @@ export default function BankTrainer({ subjectState }: {
               <RailSegment
                 options={(['ege', 'oge'] as ExamCode[]).map(e => ({ value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ', badge: Math.max(tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length, fipiCounts[`${subject}:${e}`] ?? 0) || undefined }))}
                 value={exam} onChange={v => v && setExam(v as ExamCode)} accent={palette.accent} soft={railSoft} clearable={false} />
-              <RailSegment
-                options={[{ value: '2026', label: 'КИМ 2026' }, { value: '2027', label: '2027 · проект' }]}
-                value={String(kimYear)} onChange={v => v && pickYear(Number(v) as ExamYear)} accent={palette.accent} soft={railSoft} clearable={false} />
             </>)}
             {fipiSet ? (<>
               <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.label)} values={kesSectionOpts.filter(o => sections.includes(o.value)).map(o => o.label)}
@@ -2372,7 +2371,7 @@ export default function BankTrainer({ subjectState }: {
           </RailCard>
         )}
 
-        {/* ЭКЗАМЕН — по образцу «Что читаем»: ЕГЭ/ОГЭ со счётчиками и год КИМ. */}
+        {/* ЭКЗАМЕН — по образцу «Что читаем»: ЕГЭ/ОГЭ со счётчиками. Год КИМ — база 2026, без переключателя. */}
         {bankOn && view !== 'decks' && examCatalog && (
           <RailCard icon={<Target size={15} />} title="Экзамен" accent={palette.accent}>
             <RailSegment
@@ -2386,19 +2385,6 @@ export default function BankTrainer({ subjectState }: {
               soft={railSoft}
               clearable={false}
             />
-            <RailSegment
-              options={[{ value: '2026', label: 'КИМ 2026' }, { value: '2027', label: '2027 · проект' }]}
-              value={String(kimYear)}
-              onChange={v => v && pickYear(Number(v) as ExamYear)}
-              accent={palette.accent}
-              soft={railSoft}
-              clearable={false}
-            />
-            {kimYear === 2027 && (
-              <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)' }}>
-                {t('Проект ФИПИ 2027: структура как в 2026, у части линий другие баллы.')}
-              </p>
-            )}
           </RailCard>
         )}
 

@@ -605,6 +605,10 @@ html:has(.teacher-dashboard-root) { scrollbar-gutter: auto; }
      min-content floor, so the wider schedule pill mounting on the right grows
      its track and shoves the centered topbar sideways (visible jitter). */
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  /* Шапка ученика сдвигает бар влево, когда по центру рядом с пилюлей виджета
+     не помещается полное имя (Sidebar ставит --topbar-left). Без переменной —
+     обычное центрирование; учительская шапка её не ставит. */
+  grid-template-columns: minmax(0, var(--topbar-left, 1fr)) auto minmax(0, 1fr);
   align-items: flex-start;
   /* Sits at a comfortable inset (the "widgets" level), NOT glued to the top
      edge — the floating bar reads as a pill with breathing room above it. */
