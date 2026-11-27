@@ -39,5 +39,5 @@ export function useHomeworkColumnVars(ref: RefObject<HTMLElement | null>, enable
 export const HW_COLUMN_LEFT = `var(${CENTER}, 50%)`
 /** Ширина полосы: не шире колонки задания (без неё — окна) минус поля. */
 export const hwColumnWidth = (max: number, gutter: number) => `min(${max}px, calc(var(${WIDTH}, 100vw) - ${gutter}px))`
-/** Отступ слева у полосы во всю ширину окна, чтобы её середина встала на центр колонки. */
-export const HW_COLUMN_PAD_LEFT = `max(0px, calc(2 * var(${CENTER}, 50vw) - 100vw))`
+/** Ширина полосы во всю колонку (без колонки — во всю ширину окна). */
+export const HW_COLUMN_FULL_WIDTH = `var(${WIDTH}, 100%)`

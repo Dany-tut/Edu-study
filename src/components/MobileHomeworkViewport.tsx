@@ -23,7 +23,11 @@ export function HomeworkViewportChrome({
   bottom?: boolean
 }) {
   const viewport = useContext(HomeworkViewportContext)
-  return viewport
+  // Нижние полосы — в body и на ПК/айпаде: внутри домашки есть предки с
+  // transform (вход y: 12 → 0, переходы страниц), а fixed внутри transform
+  // считается от предка, не от окна. Полоса, выровненная по колонке задания
+  // (lib/homeworkColumn), тогда стояла бы со сдвигом и прыгала в конце анимации.
+  return viewport || bottom
     ? createPortal(
         <div
           data-homework-chrome={bottom ? 'bottom' : 'overlay'}

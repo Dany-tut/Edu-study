@@ -712,9 +712,13 @@ const lastCourseKey = (studentId: string) => `iskra:last-course:${studentId}`
 function readLastCourse(studentId: string): string | null {
   try { return localStorage.getItem(lastCourseKey(studentId)) } catch { return null }
 }
-useDashboard.subscribe((state, prev) => {
+// dashboardStore и этот модуль импортируют друг друга. Если первым грузится
+// dashboardStore (стенд dev-flow, будущие ленивые чанки), подписка при загрузке
+// модуля падала «Cannot access 'useDashboard' before initialization».
+// Микрозадача выполняется после того, как весь граф модулей инициализирован.
+queueMicrotask(() => useDashboard.subscribe((state, prev) => {
   if (state.activeSubjectId === prev.activeSubjectId || !state.activeSubjectId) return
   const session = getStudentSession()
   if (!session || !useStudentData.getState().subjects.some(s => s.id === state.activeSubjectId)) return
   try { localStorage.setItem(lastCourseKey(session.id), state.activeSubjectId) } catch { /* private mode */ }
-})
+}))
