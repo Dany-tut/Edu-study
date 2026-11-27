@@ -15,6 +15,9 @@ import { confirmAiGrade } from '../../../lib/useAiGrades'
 import { AiReviewSummary, AiTaskFeedback, AiCommentDraft } from './AiReviewConcept'
 import { WAVE_PALETTES } from '../../../lib/confirmWave'
 import { useConfirmWave } from '../../../lib/confirmWave/useConfirmWave'
+import { TestlyBreakdownView, TestlyQuestionBar } from './TestlyBreakdownView'
+import { fetchTestlyBreakdown } from '../../../lib/testlyModule'
+import type { TestlyBreakdownSnapshot } from '../../../lib/testlyBreakdown'
 import './homeworkHub.css'
 import './homeworkReview.css'
 
@@ -107,6 +110,8 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [search, setSearch] = useState('')
   const wave = useConfirmWave<HTMLElement>(), submitRef = useRef<HTMLButtonElement>(null)
   const [answerFilter, setAnswerFilter] = useState<'all' | 'manual' | 'errors'>('all')
+  const [breakdown, setBreakdown] = useState<TestlyBreakdownSnapshot | null>(null)
+  const [breakdownLoading, setBreakdownLoading] = useState(false)
   const body = useRef<HTMLDivElement>(null)
   const documentArea = useRef<HTMLDivElement>(null)
   const stack = target ? target.keys.flatMap(key => {const e = items.find(e => e.key === key);return e ? [e] : []}) : []
@@ -136,7 +141,19 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
     return () => {dialog?.removeEventListener('keydown', trap);if(trigger?.isConnected)trigger.focus({preventScroll:true})}
   }, [active])
   useEffect(() => {setSearch('')}, [target?.title])
-  useEffect(() => {setError('');setAnswerFilter('all');documentArea.current?.scrollTo({top:0})}, [target?.selected])
+  useEffect(() => {setError('');setAnswerFilter('all');setBreakdown(null);documentArea.current?.scrollTo({top:0})}, [target?.selected])
+  const testlyRow = payload?.rows.find(r => r.type === 'testly' && r.testly?.testId)
+  const isTestlyWork = !!testlyRow && entry?.work.source === 'Тестли'
+  useEffect(() => {
+    if (!isTestlyWork || !testlyRow?.testly?.testId || !row?.student_id) return
+    let cancelled = false
+    setBreakdownLoading(true)
+    fetchTestlyBreakdown(testlyRow.testly.testId, row.student_id, payload?.testlyKey)
+      .then(data => { if (!cancelled) setBreakdown({ ...data, attemptNumber: (entry?.work.attempts?.length ?? 1), questions: (data.questions ?? []) as import('../../../lib/testlyBreakdown').TestlyQuestionBreakdown[] }) })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setBreakdownLoading(false) })
+    return () => { cancelled = true }
+  }, [isTestlyWork, testlyRow?.testly?.testId, row?.student_id, payload?.testlyKey])
   if (!target || !data) return null
   const autoPercent = payload && payload.gradable > 0 && Number.isFinite(payload.correct) ? Math.max(0, Math.min(100, Math.round(payload.correct / payload.gradable * 100))) : null
   const draftKey = entry ? entry.key + ':' + (payload?.attemptId ?? row?.updated_at ?? '') : ''
@@ -217,11 +234,23 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
               <span className={'jh-document-status '+(pending?'jh-status-pending':entry.work.status==='Зачтено'?'jh-status-passed':'')}>{entry.work.status}</span>
             </div>
             {target.keys.length>1 && <label className="jh-mobile-student">Ученик<select aria-label="Выбрать ученика в стопке" disabled={busy} value={entry.key} onChange={e=>setTarget({...target,selected:e.target.value})}>{stack.map(e=><option key={e.key} value={e.key}>{e.student.name} · {e.work.status}</option>)}</select></label>}
-            <div className="jh-document-tools" role="group" aria-label="Фильтр ответов"><button data-hover="layer" type="button" aria-pressed={answerFilter==='all'} onClick={()=>setAnswerFilter('all')}><OpticalText as="iskra-button-label">Все задания </OpticalText><span>{payload?.rows.length??0}</span></button>
-              {pending && <button data-hover="layer" type="button" aria-pressed={answerFilter==='manual'} disabled={!manual.length} onClick={()=>setAnswerFilter('manual')}><OpticalText as="iskra-button-label">На проверку </OpticalText><span>{manual.length}</span></button>}
-              <button data-hover="layer" type="button" aria-pressed={answerFilter==='errors'} disabled={!errors.length} onClick={()=>setAnswerFilter('errors')}><OpticalText as="iskra-button-label">Ошибки </OpticalText><span>{errors.length}</span></button></div>
+            <div className="jh-document-tools" role="group" aria-label="Фильтр ответов"><button data-hover="layer" type="button" aria-pressed={answerFilter==='all'} onClick={()=>setAnswerFilter('all')}><OpticalText as="iskra-button-label">Все задания </OpticalText><span>{breakdown ? breakdown.questions.length : payload?.rows.length??0}</span></button>
+              {pending && !isTestlyWork && <button data-hover="layer" type="button" aria-pressed={answerFilter==='manual'} disabled={!manual.length} onClick={()=>setAnswerFilter('manual')}><OpticalText as="iskra-button-label">На проверку </OpticalText><span>{manual.length}</span></button>}
+              <button data-hover="layer" type="button" aria-pressed={answerFilter==='errors'} disabled={breakdown ? !breakdown.questions.some(q => q.status !== 'correct') : !errors.length} onClick={()=>setAnswerFilter('errors')}><OpticalText as="iskra-button-label">Ошибки </OpticalText><span>{breakdown ? breakdown.questions.filter(q => q.status !== 'correct').length : errors.length}</span></button></div>
             <div className="jh-document-scroll" ref={documentArea}>
-              {entry.work.submitted ? shownPayload?.rows.length ? shownPayload.rows.map(answer => {
+              {entry.work.submitted ? isTestlyWork && (breakdown || breakdownLoading) ? (
+                breakdown ? <TestlyBreakdownView
+                  testId={testlyRow!.testly!.testId}
+                  testTitle={testlyRow!.prompt ?? ''}
+                  studentId={row!.student_id}
+                  attemptKey={payload?.testlyKey}
+                  submittedAt={testlyRow!.testly!.submittedAt}
+                  attemptNumber={entry.work.attempts?.length}
+                  got={testlyRow!.testly!.got}
+                  max={testlyRow!.testly!.max}
+                  filter={answerFilter === 'errors' ? 'errors' : 'all'}
+                /> : <div className="tb-loading">Загружаем разбор из Тестли…</div>
+              ) : shownPayload?.rows.length ? shownPayload.rows.map(answer => {
                 const feedback = ai.grade?.tasks.find(task => task.n === answer.n)
                 return <div key={answer.n} className="aic-answer-block">
                   <BasicAnswersList payload={{...shownPayload,rows:[answer]}} studentId={data.demo?undefined:row?.student_id} teacherReviewed={row?.status==='completed'} appearance="review" showSummary={false} passingScore={entry.work.threshold}/>
@@ -247,6 +276,7 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
             </form> : <>
               <div className="jh-inspector-heading"><h3>{(entry.work.attempts?.length??0)>1?'Лучший итог':'Результат работы'}</h3><p>{entry.work.source}</p></div><div className="jh-inspector-scroll" key={draftKey}>{aiSummary}<div className="jh-inspector-result"><div className={'jh-final-result '+(entry.work.status==='Зачтено'?'jh-result-passed':entry.work.status==='Ниже порога'?'jh-result-low':'')}><strong>{entry.work.score===null||['На доработке','Пересдача'].includes(entry.work.status)?'—':entry.work.score}<small>{entry.work.score!==null&&!['На доработке','Пересдача'].includes(entry.work.status)?'%':''}</small></strong><span>{entry.work.status}</span></div>
                 {payload && <div className="jh-score-context">{entry.work.source!=='Тестли'&&autoPercent!==null&&<span>Автопроверка <b>{autoPercent}%</b></span>}<span>Порог зачёта <b>{entry.work.threshold}%</b></span></div>}
+                {breakdown && <TestlyQuestionBar questions={breakdown.questions} />}
                 {row?.review_comment&&<div className="jh-inspector-comment"><h4>Комментарий преподавателя</h4><p>{row.review_comment}</p></div>}
               </div>{history}</div>
             </>}

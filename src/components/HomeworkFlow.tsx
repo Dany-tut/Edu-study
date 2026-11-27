@@ -100,7 +100,8 @@ import HomeworkFlowBar from './HomeworkFlowBar'
 import { HW_COLUMN_LEFT, hwColumnWidth, useHomeworkColumnVars } from '../lib/homeworkColumn'
 import { HomeworkViewportChrome } from './MobileHomeworkViewport'
 import HomeworkResultActions from './HomeworkResultActions'
-import { testlyReviewUrl } from '../lib/testlyModule'
+import { testlyReviewUrl, TESTLY_SITE } from '../lib/testlyModule'
+import TestlyMistakesPanel from './TestlyMistakesPanel'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
 import { getSubject, isLanguageSubject } from '../lib/subjects'
@@ -3640,6 +3641,23 @@ export default function HomeworkFlow({
                     if (draft.attemptId) setState(current => enterDraft(current, draft.attemptId!))
                     await useStudentData.getState().load()
                   }} />
+                {onlyTestly && testlyReview && !testlyReview.pending && basicQuestions[0]?.testly?.id && (
+                  <TestlyMistakesPanel
+                    testId={basicQuestions[0].testly.id}
+                    testTitle={basicQuestions[0].prompt ?? ''}
+                    owner={basicQuestions[0].testly.owner}
+                    attemptKey={basicProgress?.result?.testlyKey}
+                    submittedAt={testlyDoneAt(state.basicAnswers[basicQuestions[0].id]) ?? undefined}
+                    attemptNumber={basicProgress?.result?.attempts?.length}
+                    got={testlyReview.got}
+                    max={testlyReview.max}
+                    retakeCount={(basicProgress?.result?.attempts?.length ?? 1) - 1}
+                    onRetakeStarted={url => {
+                      syncedTestly.current = ''
+                      window.open(url, '_blank')
+                    }}
+                  />
+                )}
               </section>}
 
               {/* Знакомство со словами — до заданий, а не после них. Карточки

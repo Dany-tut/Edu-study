@@ -10,6 +10,7 @@
 //   { action: 'tests' }          → { tests: TestlyTest[] }
 //   { action: 'disconnect' }     → { ok }
 //   { action: 'results', items: [{ testId, studentId }] } → { items }   балл учеников этого учителя (studentId — students.id)
+//   { action: 'breakdown', testId, studentId } → { questions }  разбор попытки по вопросам (для учителя ученика)
 //
 // Ученик (JWT ученика) — тест из Тестли в своей домашке:
 //   { action: 'start', testId, owner? }  → { path, status }  личная ссылка /t/<id>?i=<token>
@@ -337,6 +338,68 @@ Deno.serve(async (req) => {
           if (student && !viewing) await persistResult([student.studentId], student.testId, x, student.key)
         }
         return json({ items: got.map(x => ({ ...x, studentId: asked.find(a => a.testId === x.testId && a.key === x.key)?.studentId })) })
+      }
+      case 'breakdown': {
+        if (viewing) return json({ error: 'view_only' }, 403)
+        const token = await tokenOf()
+        if (!token) return json({ error: 'not_connected' }, 409)
+        const studentId = String(body.studentId ?? '')
+        const testId = String(body.testId ?? '')
+        const attemptKey = body.attemptKey ? String(body.attemptKey) : undefined
+        if (!studentId || !testId) return json({ error: 'bad_request' }, 400)
+        // Verify teacher owns this student
+        const { data: sRows } = await admin.from('students').select('id, auth_user_id, created_by, group_id').eq('id', studentId)
+        const student = sRows?.[0]
+        let owns = student?.created_by === teacher
+        if (!owns && student?.group_id) {
+          const { data: g } = await admin.from('groups').select('created_by').eq('id', student.group_id).maybeSingle()
+          owns = g?.created_by === teacher
+        }
+        if (!owns || !student?.auth_user_id) return json({ error: 'forbidden' }, 403)
+        const key = attemptKey ?? `iskra:${student.auth_user_id}`
+        const r = await testly({ action: 'breakdown', token, testId, key })
+        if (r.status === 401) return json({ error: 'revoked' }, 409)
+        if (!r.ok) return json({ error: 'testly' }, 502)
+        return json(r.data)
+      }
+      case 'student_breakdown': {
+        // Student: own breakdown without correct answers
+        const { owners, studentIds } = await ownersOfStudent(body.owner)
+        if (!owners.length) return json({ error: 'not_student' }, 403)
+        const testId = String(body.testId ?? '')
+        const attemptKey = body.attemptKey ? String(body.attemptKey) : studentKey
+        if (!testId) return json({ error: 'bad_request' }, 400)
+        for (const owner of owners) {
+          const token = await tokenFor(owner)
+          if (!token) continue
+          const r = await testly({ action: 'breakdown', token, testId, key: attemptKey })
+          if (r.status === 404 || r.status === 401) continue
+          if (!r.ok) return json({ error: 'testly' }, 502)
+          // Strip correct answers for student view
+          const questions = Array.isArray(r.data.questions) ? r.data.questions.map((q: any) => ({
+            n: q.n, prompt: q.prompt, answer: q.answer, got: q.got, max: q.max, status: q.status,
+          })) : []
+          return json({ ...r.data, questions })
+        }
+        return json({ error: 'not_connected' }, 409)
+      }
+      case 'retake_mistakes': {
+        // Student: start a retake with only the wrong/unanswered questions
+        const { owners, studentIds } = await ownersOfStudent(body.owner)
+        if (!owners.length) return json({ error: 'not_student' }, 403)
+        const testId = String(body.testId ?? '')
+        const attemptKey = body.attemptKey ? String(body.attemptKey) : studentKey
+        const questionNs = Array.isArray(body.questionNs) ? body.questionNs.map(Number).filter(Number.isFinite) : []
+        if (!testId || !questionNs.length) return json({ error: 'bad_request' }, 400)
+        for (const owner of owners) {
+          const token = await tokenFor(owner)
+          if (!token) continue
+          const r = await testly({ action: 'retake_subset', token, testId, key: attemptKey, questionNs })
+          if (r.status === 404 || r.status === 401) continue
+          if (!r.ok) return json({ error: 'testly' }, 502)
+          return json(r.data)
+        }
+        return json({ error: 'not_connected' }, 409)
       }
       case 'connect': {
         const r = await testly({ action: 'exchange', code: String(body.code ?? ''), iskraEmail })

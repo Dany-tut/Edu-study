@@ -174,3 +174,24 @@ export function testlyMeta(x: { questions: number; points: number; minutes: numb
 export function returnTestlyHomework(progressId: string, comment = '', expectedAttemptId?: string): Promise<{ ok: boolean }> {
   return bridge({ action: 'return_homework', progressId, comment, expectedAttemptId })
 }
+
+/** Teacher: per-question breakdown of a student's Testly attempt. */
+export async function fetchTestlyBreakdown(testId: string, studentId: string, attemptKey?: string): Promise<{
+  testId: string; testTitle: string; got: number; max: number; submittedAt: string
+  questions: { n: number; prompt: string; answer: string; correct: string; got: number; max: number; status: 'correct' | 'partial' | 'wrong' | 'unanswered'; image?: string; explanation?: string }[]
+}> {
+  return bridge({ action: 'breakdown', testId, studentId, ...(attemptKey ? { attemptKey } : {}) })
+}
+
+/** Student: own breakdown (correct answers stripped by the bridge). */
+export async function fetchStudentBreakdown(testId: string, owner?: string, attemptKey?: string): Promise<{
+  testId: string; testTitle: string; got: number; max: number; submittedAt: string
+  questions: { n: number; prompt: string; answer: string; got: number; max: number; status: string }[]
+}> {
+  return bridge({ action: 'student_breakdown', testId, ...(owner ? { owner } : {}), ...(attemptKey ? { attemptKey } : {}) })
+}
+
+/** Student: start a retake with only wrong/unanswered questions. */
+export async function startTestlyRetake(testId: string, questionNs: number[], owner?: string, attemptKey?: string): Promise<{ path: string }> {
+  return bridge({ action: 'retake_mistakes', testId, questionNs, ...(owner ? { owner } : {}), ...(attemptKey ? { attemptKey } : {}) })
+}
