@@ -4,6 +4,7 @@ import type { Student } from '../../data/teacherMockData'
 import { useT } from '../../lib/i18n'
 import { btn } from '../../lib/pillStyles'
 import { saveStudentFields } from '../../lib/useGroups'
+import { isSchoolStudent } from '../../lib/subjects'
 import { Alert } from '../Alert'
 import FloatField from '../FloatField'
 import Modal from '../Modal'
@@ -54,6 +55,9 @@ export default function StudentDetailsEditor({ student, onClose }: {
     }
   }
 
+  // Класс и родитель — только школьникам (или если уже заполнены).
+  const school = isSchoolStudent(student)
+  const visible = fields.filter(f => school || (f.key !== 'schoolClass' && f.key !== 'parentContact') || !!(student[f.key] ?? '').trim())
   const close = () => { if (!saving) onClose() }
   return <Modal title={t('Редактировать ученика')} onClose={close} width={560}
     footer={<div className="student-details-actions">
@@ -61,7 +65,7 @@ export default function StudentDetailsEditor({ student, onClose }: {
       <button data-hover="layer" type="submit" form={formId} disabled={saving || !draft.name.trim()} style={btn('M', 'primary')}><OpticalText as="iskra-button-label">{t(saving ? 'Сохранение…' : 'Сохранить')}</OpticalText></button>
     </div>}>
     <form id={formId} onSubmit={save} className="student-details-fields">
-      {fields.map(({ key, label, maxLength }) => {
+      {visible.map(({ key, label, maxLength }) => {
         const props = {
           label: t(label), value: draft[key], maxLength, disabled: saving,
           onChange: (value: string) => setDraft(prev => ({ ...prev, [key]: value })),

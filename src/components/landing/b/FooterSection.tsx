@@ -13,7 +13,7 @@ export default function FooterSection() {
   return (
     <Section className="pt-12 pb-8 sm:pt-[60px] sm:pb-10">
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-3">
-        <a href="#/" className="iskra-host flex items-center gap-4" aria-label="Искра">
+        <a href="#/" className="iskra-host flex items-center gap-4" aria-label={t('Искра')}>
           <IskraMark size={24} />
           <span className="text-[15px] font-bold text-[var(--color-text)]">{t('Искра')}</span>
         </a>

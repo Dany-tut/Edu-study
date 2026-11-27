@@ -32,14 +32,18 @@ import { trackEvent } from '../../lib/analytics'
 // Дедуп trainer_open: dual-layout монтирует банк дважды.
 let lastTrainerOpen = 0
 import { useCurriculum } from '../../store/curriculumStore'
+import FipiTaskBody, { FipiVerdict, LinesGrid, type FipiState } from './FipiTask'
+import { fipiOf } from '../../lib/fipiGrade'
+import { kesSectionLabel, kesTopicLabel } from '../../data/fipiKes'
 import { useTaskBank } from '../../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import { useDashboard } from '../../store/dashboardStore'
 import { useStudentData } from '../../store/studentDataStore'
 import { useTrainerProgress, useTrainerEngaged } from '../../store/trainerProgressStore'
 import { subjectTheme, PURPLE } from '../../lib/theme'
-import { getSubject, BANK_SUBJECT_IDS, subjectIcon } from '../../lib/subjects'
-import TrainerSkeleton from './TrainerSkeleton'
+import { getSubject, BANK_SUBJECT_IDS, subjectIcon, hexToRgba } from '../../lib/subjects'
+import TrainerSkeleton, { TaskListSkeleton } from './TrainerSkeleton'
+import { cleanFipiHtml } from '../../lib/fipiHtml'
 import CardDeck, { type DeckSource } from '../CardDeck'
 import { captureMistake, deckOwner, type ReviewCard } from '../../data/reviewDeck'
 import { getContrastColor } from '../../lib/utils'
@@ -51,7 +55,9 @@ import { useNavCollapse } from '../../lib/useNavCollapse'
 import { useKeyboardInset } from '../../lib/useKeyboardInset'
 import MobileScreen from '../MobileScreen'
 import SubjectCards from './SubjectCards'
-import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS } from './TrainerShell'
+import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS, RailCard, RailModes, RailSegment, FilterMenu, TileGrid, Tile, TileMeter } from './TrainerShell'
+import { catalogFor, type ExamCode, type ExamYear } from '../../data/examPresets'
+import { FIPI_KES } from '../../data/fipiKes'
 import { SubjectHero, SubjectPill } from './SubjectSwitch'
 import type { TrainerSubjectState } from '../../lib/trainerSubject'
 import MobileBottomNav from '../MobileBottomNav'
@@ -292,8 +298,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   task: Task; index: number; palette: ReturnType<typeof subjectTheme>
   lineNames: Record<number, string>
   favorites: Set<number>; onFavorite: (id: number) => void
-  answered: Map<number, { value: string; correct: boolean | null }>
-  onAnswer: (id: number, value: string, correct: boolean | null) => void
+  answered: Map<number, FipiState>
+  onAnswer: (id: number, value: string, correct: boolean | null, got?: number, max?: number) => void
   onCopyId: () => void
   mobile?: boolean
 }) {
@@ -309,6 +315,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   const [copied, setCopied] = useState(false)
   const [reported, setReported] = useState(false)
   const state = answered.get(task.id)
+  const fipi = fipiOf(task)
   const isFav = favorites.has(task.id)
   const isCorrect = state?.correct === true
   const isWrong   = state?.correct === false
@@ -396,14 +403,16 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           </div>
           {mobile && task.topic && (
             <div style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.3, marginTop: -1 }}>
-              <span style={{ fontWeight: 600 }}>{t('Тема:')}</span> {task.topic}
+              <span style={{ fontWeight: 600 }}>{t('Тема:')}</span> {fipi ? kesTopicLabel(`${task.exam}_${task.subject}`, task.topic) : task.topic}
             </div>
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {/* Подсказка — свой значок, а не «Неверно»: ответа не было, ошибки
               тоже. Плашка держит тот же размер, что вердикт. */}
-          {peeked ? (
+          {fipi && state?.got !== undefined ? (
+            <FipiVerdict state={state} self={fipi.kind === 'extended'} />
+          ) : peeked ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', fontSize: 13, fontWeight: 700 }}>
               <Eye size={16} />
               {t('Подсказка')}
@@ -448,8 +457,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div lang="ru" style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 500 : 500, color: 'var(--color-text)', textAlign: mobile ? 'justify' : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4 }}
-        dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(task.question)) }} />
+      <div lang="ru" className={fipi ? 'fipi-html' : undefined} style={{ fontSize: mobile ? 14 : 16, lineHeight: fipi ? 1.4 : mobile ? 1.45 : 1.5, fontWeight: mobile ? 500 : 500, color: 'var(--color-text)', textAlign: mobile || fipi ? (fipi ? undefined : 'justify') : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4, overflowX: fipi ? 'auto' : undefined }}
+        dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(fipi ? cleanFipiHtml(task.question) : task.question)) }} />
 
       {/* Image / table blocks in teacher-configured order */}
       {(task.blockOrder ?? ['image', 'table']).map(blockKey => {
@@ -462,6 +471,10 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         return null
       })}
 
+      {fipi ? (
+        <FipiTaskBody task={task} state={state} palette={palette} mobile={mobile}
+          onAnswer={(v, c, got, max) => onAnswer(task.id, v, c, got, max)} />
+      ) : (<>
       {/* Choice options */}
       {task.choices && task.choices.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -690,11 +703,15 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         )}
       </AnimatePresence>
 
+      </>)}
+
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingTop: 2, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
         {mobile
           ? <span style={{ flex: 1 }} />
-          : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>}
+          : fipi
+            ? <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{kesSectionLabel(`${task.exam}_${task.subject}`, task.topic || task.section)} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {kesTopicLabel(`${task.exam}_${task.subject}`, task.topic)} · {t('ФИПИ')} {task.fipiId}</span>
+            : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>}
         <button data-hover="layer" onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
           <AlertTriangle size={12} /><OpticalText as="iskra-button-label">{reported ? t('Отправлено') : t('Ошибка')}</OpticalText>
         </button>
@@ -749,7 +766,7 @@ function CompactCard({ task, palette, favorites, onFavorite, answered, onAnswer,
 
       {/* Question */}
       <div style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 600, color: 'var(--color-text)', margin: 0,  ...textFadeLines(3),  overflow: 'hidden' }}
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.question) }} />
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.fipiId ? cleanFipiHtml(task.question) : task.question) }} />
 
       {/* Topic */}
       <span style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 'auto' }}>{task.topic}</span>
@@ -850,9 +867,9 @@ function MobileStatusTabs({ value, onChange, accent }: {
 // продолжают работать, меняется только подача. Десктопный переключатель — общий
 // StatusTabs скелета с иконками; здесь остался мобильный, в ряд с фильтрами.
 function MobileViewTabs({ value, onChange, accent, items }: {
-  value: 'list' | 'cards' | 'decks'; onChange: (v: 'list' | 'cards' | 'decks') => void; accent?: string
+  value: 'list' | 'cards' | 'lines' | 'decks'; onChange: (v: 'list' | 'cards' | 'lines' | 'decks') => void; accent?: string
   /** Сегменты по возможностям предмета: у истории «Списка» и «Стопки» нет. */
-  items: ['list' | 'cards' | 'decks', string, typeof List][]
+  items: ['list' | 'cards' | 'lines' | 'decks', string, typeof List][]
 }) {
   const t = useT()
   const acc = accent ?? 'var(--color-accent)'
@@ -1449,7 +1466,7 @@ export default function BankTrainer({ subjectState }: {
   const kbInset = useKeyboardInset()
   // Тот же нижний отступ, что у навигации (lib/mobileTokens.ts): сырой
   // env() врёт вверх, и док стоял выше, чем на соседних экранах.
-  const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | null>(null)
+  const [sheet, setSheet] = useState<'filters' | 'sort' | 'search' | 'mode' | null>(null)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const tasks         = useTaskBank(s => s.tasks)
   const loadTasks     = useTaskBank(s => s.load)
@@ -1522,6 +1539,36 @@ export default function BankTrainer({ subjectState }: {
   // чужие наборы.
   const cardsSubject = langSubject?.id ?? subject
   const setSubjectPersist = (s: Subject) => subjectState.pick(s)
+
+  // ── Экзамен и год КИМ (банк ФИПИ) ─────────────────────────────────────────
+  // Концепт: Figma «Искра», стр. 27. Экзамен запоминается на предмет: у ученика
+  // химия на ЕГЭ и биология на ОГЭ — нормальное сочетание. Год — КИМ ФИПИ:
+  // 2026 действующий, 2027 — проект (структура та же, меняются баллы части линий).
+  const [exam, setExamState] = useState<ExamCode>(() => {
+    try { return (localStorage.getItem(`trainer_exam_${subject}`) as ExamCode) || 'ege' } catch { return 'ege' }
+  })
+  const [kimYear, setKimYear] = useState<ExamYear>(() => {
+    try { return Number(localStorage.getItem('trainer_kim_year')) === 2027 ? 2027 : 2026 } catch { return 2026 }
+  })
+  useEffect(() => {
+    try { setExamState((localStorage.getItem(`trainer_exam_${subject}`) as ExamCode) || 'ege') } catch { /* приватный режим */ }
+  }, [subject])
+  const setExam = (e: ExamCode) => {
+    setExamState(e)
+    try { localStorage.setItem(`trainer_exam_${subject}`, e) } catch { /* приватный режим */ }
+  }
+  const pickYear = (y: ExamYear) => {
+    setKimYear(y)
+    try { localStorage.setItem('trainer_kim_year', String(y)) } catch { /* приватный режим */ }
+  }
+  const loadFipiSet = useTaskBank(s => s.loadFipiSet)
+  useEffect(() => { if (bankOn) void loadFipiSet(subject, exam) }, [subject, exam, bankOn, loadFipiSet])
+  const subjectName = langSubject?.name ?? (subject === 'chemistry' ? 'Химия' : subject === 'biology' ? 'Биология' : subject)
+  const examCatalog = useMemo(() => catalogFor(exam, subjectName, kimYear), [exam, subjectName, kimYear])
+  const kesKey = `${exam}_${subject}`
+  const kes = FIPI_KES[kesKey]
+  /** Банк ФИПИ этого экзамена ещё едет: вместо «Заданий не найдено» — плашки. */
+  const fipiLoading = useTaskBank(s => bankOn && !!kes && !s.fipiSetsReady[`${subject}:${exam}`])
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
   const [parts, setParts]       = useState<string[]>([])
@@ -1576,9 +1623,9 @@ export default function BankTrainer({ subjectState }: {
   const [favorites, setFavorites]       = useState<Set<number>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem(LS_FAVORITES) || '[]') as number[]) } catch { return new Set() }
   })
-  const [answered, setAnswered] = useState<Map<number, { value: string; correct: boolean | null; date?: string }>>(() => {
+  const [answered, setAnswered] = useState<Map<number, FipiState>>(() => {
     try {
-      const raw = JSON.parse(localStorage.getItem(LS_ANSWERED) || '{}') as Record<string, { value: string; correct: boolean | null; date?: string }>
+      const raw = JSON.parse(localStorage.getItem(LS_ANSWERED) || '{}') as Record<string, FipiState>
       return new Map(Object.entries(raw).map(([k, v]) => [Number(k), v]))
     } catch { return new Map() }
   })
@@ -1597,7 +1644,7 @@ export default function BankTrainer({ subjectState }: {
 
   // ── Persist trainer progress ──────────────────────────────────────────────
   useEffect(() => {
-    const obj: Record<number, { value: string; correct: boolean | null; date?: string }> = {}
+    const obj: Record<number, FipiState> = {}
     answered.forEach((v, k) => { obj[k] = v })
     try { localStorage.setItem(LS_ANSWERED, JSON.stringify(obj)) } catch {}
   }, [answered])
@@ -1614,10 +1661,21 @@ export default function BankTrainer({ subjectState }: {
   }
 
   const palette      = subjectTheme(subject, dark)
+  // Подложка выбранного в рейле и фильтрах. У химии и биологии тёмная `soft` —
+  // непрозрачный почти чёрный (#201336 / #0D2B1E): на карточке рейла выходило
+  // тёмное пятно с фиолетовой надписью, которого нет больше нигде. У остальных
+  // предметов (и у языкового тренажёра) это цвет предмета на 20 % — берём так же.
+  const railSoft     = dark && palette.soft.startsWith('#') ? hexToRgba(palette.accent, 0.2) : palette.soft
   const curriculumVersion = useCurriculum(s => s.version) // re-render when the teacher edits the taxonomy
-  const lineNames    = useMemo(() => lineNamesForSubject(subject), [subject, curriculumVersion])
+  const lineNames    = useMemo(() => examCatalog
+    ? Object.fromEntries(examCatalog.lines.map(l => [l.number, l.title])) as Record<number, string>
+    : lineNamesForSubject(subject), [subject, examCatalog, curriculumVersion])
+  /** Номера линий части 2 по каталогу ФИПИ: развёрнутый ответ. */
+  const part2Lines = useMemo(() => new Set((examCatalog?.lines ?? []).filter(l => l.subtypes.some(st => st.type === 'extended')).map(l => l.number)), [examCatalog])
   const merge        = useOptionMerger()
-  const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject), [tasks, subject])
+  const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject && (t.exam ?? 'ege') === exam), [tasks, subject, exam])
+  /** Набор размечен по кодификатору ФИПИ — фильтры строятся по КЭС, а не по программе учителя. */
+  const fipiSet = !!kes && subjectTasks.some(t => t.fipiId)
   // Options mirror the teacher's PROGRAM (curriculum), not just the tasks that
   // happen to exist — so the student sees every раздел/тема/линия/часть the
   // teacher defined. Picking Часть N then narrows them via the curriculum map.
@@ -1627,6 +1685,19 @@ export default function BankTrainer({ subjectState }: {
     const inPart = new Set(sectionsForParts(subject, parts))
     return all.filter(s => inPart.has(s)).sort()
   }, [subject, subjectTasks, parts, curriculumVersion])
+  // Набор ФИПИ: разделы и темы — коды кодификатора с названиями («2 · Основы
+  // неорганической химии», «2.4 Генетическая связь…»), счётчики — по заданиям.
+  const kesSectionOpts = useMemo(() => !fipiSet || !kes ? [] : Object.entries(kes.sections).map(([code, name]) => ({
+    value: code, label: `${code} · ${name}`, count: subjectTasks.filter(t => (t.kes ?? []).some(k => k.split('.')[0] === code)).length,
+  })).filter(o => o.count > 0), [fipiSet, kes, subjectTasks])
+  const kesTopicOpts = useMemo(() => !fipiSet || !kes ? [] : Object.entries(kes.topics)
+    .filter(([code]) => !sections.length || sections.includes(code.split('.')[0]))
+    .map(([code, name]) => ({ value: code, label: `${code} ${name}`, count: subjectTasks.filter(t => (t.kes ?? []).includes(code)).length }))
+    .filter(o => o.count > 0), [fipiSet, kes, subjectTasks, sections])
+  const lineOpts = useMemo(() => (examCatalog?.lines ?? [])
+    .filter(l => !parts.length || parts.includes(part2Lines.has(l.number) ? '2' : '1'))
+    .map(l => ({ value: String(l.number), label: `${l.number} · ${l.title}`, count: subjectTasks.filter(t => t.line === l.number).length })),
+    [examCatalog, parts, part2Lines, subjectTasks])
   const sectionOptions = merge(baseSections, sectionScope(subject))
   const baseTopics   = useMemo(() => {
     const taskTopics = (sections.length ? subjectTasks.filter(t => sections.includes(t.section)) : subjectTasks).map(t => t.topic).filter(Boolean)
@@ -1652,18 +1723,24 @@ export default function BankTrainer({ subjectState }: {
   function toggleFav(id: number) {
     setFavorites(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
-  function setAnswer(id: number, value: string, correct: boolean | null) {
+  function setAnswer(id: number, value: string, correct: boolean | null, got?: number, max?: number) {
     const date = new Date().toISOString().slice(0, 10)
-    setAnswered(prev => new Map(prev).set(id, { value, correct, date }))
+    setAnswered(prev => new Map(prev).set(id, { value, correct, date, ...(got !== undefined ? { got, max } : {}) }))
   }
 
   const filtered = useMemo(() => {
     // When searching, go global (all subjects); otherwise stay on the active tab
     let list = search
-      ? tasks
-      : tasks.filter(t => t.subject === subject)
-    if (!search && sections.length) list = list.filter(t => sections.includes(t.section))
-    if (!search && topics.length)   list = list.filter(t => topics.includes(t.topic))
+      ? tasks.filter(t => (t.exam ?? 'ege') === exam)
+      : subjectTasks
+    if (fipiSet) {
+      // Кодификатор: задание проверяет несколько элементов (КЭС), раздел — первая цифра кода.
+      if (!search && sections.length) list = list.filter(t => (t.kes ?? []).some(k => sections.includes(k.split('.')[0])))
+      if (!search && topics.length)   list = list.filter(t => (t.kes ?? []).some(k => topics.includes(k)))
+    } else {
+      if (!search && sections.length) list = list.filter(t => sections.includes(t.section))
+      if (!search && topics.length)   list = list.filter(t => topics.includes(t.topic))
+    }
     if (!search && parts.length)    list = list.filter(t => parts.includes(String(t.part)))
     if (!search && lines.length) {
       const lineNums = new Set(lines.map(l => Number(l.split(' · ')[0])))
@@ -1672,7 +1749,7 @@ export default function BankTrainer({ subjectState }: {
     if (!search && source)  list = list.filter(t => t.source === source)
     if (search) {
       const q = search.toLowerCase().replace(/^№/, '')
-      list = list.filter(t => t.question.replace(/<[^>]*>/g, '').toLowerCase().includes(q) || String(t.id).includes(q) || t.topic.toLowerCase().includes(q))
+      list = list.filter(t => t.question.replace(/<[^>]*>/g, '').toLowerCase().includes(q) || String(t.id).includes(q) || t.topic.toLowerCase().includes(q) || (t.fipiId ?? '').toLowerCase() === q)
     }
     if (statusFilter === 'done')   list = list.filter(t => answered.get(t.id)?.correct === true)
     if (statusFilter === 'undone') list = list.filter(t => !answered.get(t.id))
@@ -1686,10 +1763,11 @@ export default function BankTrainer({ subjectState }: {
         case 'hard':       return b.part - a.part || b.id - a.id
         case 'subject':    return a.subject.localeCompare(b.subject) || a.id - b.id
         case 'line':       return a.line - b.line || a.id - b.id
-        default:           return b.id - a.id  // newest
+        // Банк ФИПИ: «новые» внутри одного импорта не значат ничего — порядок КИМ.
+        default:           return fipiSet ? (a.line - b.line || a.id - b.id) : b.id - a.id  // newest
       }
     })
-  }, [tasks, subject, sections, topics, parts, lines, source, search, statusFilter, showFavOnly, showWrongOnly, wrongSimilarLines, answered, favorites, sortMode])
+  }, [tasks, subjectTasks, exam, fipiSet, subject, sections, topics, parts, lines, source, search, statusFilter, showFavOnly, showWrongOnly, wrongSimilarLines, answered, favorites, sortMode])
 
   // ── Карточки ────────────────────────────────────────────────────────────────
   //
@@ -1701,17 +1779,22 @@ export default function BankTrainer({ subjectState }: {
   // (одни и те же задания списком или колодой), а «Карточки» — другой материал:
   // наборы «термин — значение», которые учитель собрал по этому предмету.
   // Поэтому сегмент третий, а не вместо: стопка заданий никуда не делась.
-  const [view, setView] = useState<'list' | 'cards' | 'decks'>(bankOn ? 'list' : 'decks')
+  const [view, setView] = useState<'list' | 'cards' | 'lines' | 'decks'>(bankOn ? 'list' : 'decks')
+  // Список длинный (тысячи заданий ФИПИ) — рисуем порциями.
+  const PAGE = 30
+  const [shown, setShown] = useState(PAGE)
+  useEffect(() => { setShown(PAGE) }, [subject, exam, sections, topics, parts, lines, search, statusFilter, showFavOnly, sortMode])
 
   // Сегменты собираются из возможностей: «Список» и «Стопка» — два взгляда на
   // задания банка, «Карточки» — другой материал. Предмет без банка получает
   // один сегмент, и переключать ему нечего.
   const viewTabItems = useMemo(() => {
-    const out: ['list' | 'cards' | 'decks', string, typeof List][] = []
+    const out: ['list' | 'cards' | 'lines' | 'decks', string, typeof List][] = []
     if (bankOn) { out.push(['list', 'Список', List], ['cards', 'Стопка', Layers]) }
+    if (bankOn && examCatalog) out.push(['lines', 'Линии КИМ', LayoutGrid])
     if (cardsOn) out.push(['decks', 'Карточки', BookOpen])
     return out
-  }, [bankOn, cardsOn])
+  }, [bankOn, cardsOn, examCatalog])
 
   const viewOptions = useMemo(
     () => viewTabItems.map(([value, label, Icon]) => ({ value, label, Icon })),
@@ -1747,9 +1830,9 @@ export default function BankTrainer({ subjectState }: {
     }
   }, [search, filtered])
 
-  const doneCount  = tasks.filter(t => t.subject === subject && answered.get(t.id)?.correct === true).length
-  const wrongCount = tasks.filter(t => t.subject === subject && answered.get(t.id)?.correct === false).length
-  const totalCount = tasks.filter(t => t.subject === subject).length
+  const doneCount  = subjectTasks.filter(t => answered.get(t.id)?.correct === true).length
+  const wrongCount = subjectTasks.filter(t => answered.get(t.id)?.correct === false).length
+  const totalCount = subjectTasks.length
   const today = new Date().toISOString().slice(0, 10)
   const todayCorrect = useMemo(() => subjectTasks.filter(task => answered.get(task.id)?.correct === true && answered.get(task.id)?.date === today).length, [subjectTasks, answered, today])
   const todayWrong   = useMemo(() => subjectTasks.filter(task => answered.get(task.id)?.correct === false && answered.get(task.id)?.date === today).length, [subjectTasks, answered, today])
@@ -1774,19 +1857,20 @@ export default function BankTrainer({ subjectState }: {
 
   const hasFilters = !!(sections.length || topics.length || parts.length || lines.length || source)
   const clearFilters = () => { setSections([]); setTopics([]); setParts([]); setLines([]); setSource('') }
-  const resetOnSubject = () => { setSections([]); setTopics([]); setLines([]) }
+  const resetOnSubject = () => { setSections([]); setTopics([]); setLines([]); setParts([]) }
 
   // Сменился предмет — фильтры прежнего к новому не подходят: разделы, темы и
   // линии у каждого свои, и «Генетика» в химии просто не существует. Раньше
   // сброс висел на самой кнопке-переключателе; теперь переключатель общий на
   // оба тренажёра и про фильтры банка ничего не знает, поэтому реагируем на
   // факт смены, а не на клик.
-  const prevSubject = useRef(subject)
+  const prevSubject = useRef(`${subject}:${exam}`)
   useEffect(() => {
-    if (prevSubject.current === subject) return
-    prevSubject.current = subject
+    // Сменился предмет ИЛИ экзамен — линии и кодификатор у ОГЭ свои.
+    if (prevSubject.current === `${subject}:${exam}`) return
+    prevSubject.current = `${subject}:${exam}`
     resetOnSubject()
-  }, [subject])
+  }, [subject, exam])
 
   // ── Скелетон ────────────────────────────────────────────────────────────────
   // Строго ПЕРЕД развилкой и после всех хуков. Общая геометрия обоих тренажёров,
@@ -1847,33 +1931,13 @@ export default function BankTrainer({ subjectState }: {
           onSimilarTasks={lines => { setWrongSimilarLines(new Set(lines)); setShowWrongOnly(false); setSections([]); setLines([]); setShowProgressModal(false) }}
         />
 
+        {/* ВЕРХ ПУСТОЙ — как у языкового тренажёра: предмет, экзамен и вид
+            живут внизу, у большого пальца (док → шторки «Режим» и «Фильтры»).
+            Концепт: Figma «Искра», стр. 27. */}
         <MobileScreen
-          topPad={74}
+          topPad={18}
           scrollKey={subject}
-          topZone={
-            <div className="flex items-center justify-between" style={{ gap: 8 }}>
-              {/* Тот же переключатель, что в рейле десктопа: пилюля со списком
-                  предметов. Была кнопка-тумблер на жёсткую пару предметов —
-                  третий в неё не влезал, а языки не показывались вовсе. */}
-              <SubjectPill state={subjectState} palette={palette} />
-              <div className="flex items-center" style={{ gap: 8 }}>
-                <GlassPill>
-                  <BookOpen size={14} style={{ color: 'var(--color-accent)' }} />
-                  {filtered.length}
-                </GlassPill>
-                <MobileBell />
-              </div>
-            </div>
-          }
         >
-          {/* Переключатель вида — в потоке контента, а не в доке: док собран из
-              трёх кружков с рассчитанной анимацией, четвёртый её ломает. */}
-          {viewTabItems.length > 1 && (
-            <div style={{ display: 'flex', marginBottom: 14 }}>
-              <MobileViewTabs value={view} onChange={setView} accent={palette.accent} items={viewTabItems} />
-            </div>
-          )}
-
           {view === 'decks' ? (
             <SubjectCards subjectId={cardsSubject} accent={palette.accent} soft={palette.soft} />
           ) : view === 'cards' ? (
@@ -1881,6 +1945,11 @@ export default function BankTrainer({ subjectState }: {
               <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
               <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
             </div>
+          ) : view === 'lines' ? (
+            <LinesGrid lines={examCatalog?.lines ?? []} tasks={subjectTasks} answered={answered} part2={part2Lines} accent={palette.accent} mobile
+              onPick={label => { setLines([label]); setParts([]); setView('list') }} />
+          ) : fipiLoading && filtered.length === 0 ? (
+            <TaskListSkeleton rows={5} />
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
@@ -1891,13 +1960,18 @@ export default function BankTrainer({ subjectState }: {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {filtered.map((task, i) => (
+              {filtered.slice(0, shown).map((task, i) => (
                 <TaskCard key={task.id} task={task} index={i} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
                   answered={answered} onAnswer={setAnswer}
                   onCopyId={handleCopyId} lineNames={lineNames} mobile
                 />
               ))}
+              {filtered.length > shown && (
+                <button data-hover="layer" onClick={() => { tactile(); setShown(n => n + PAGE) }} style={{ ...btn('M', 'secondary'), alignSelf: 'center' }}>
+                  <OpticalText as="iskra-button-label">{`${t('Показать ещё')} · ${Math.min(PAGE, filtered.length - shown)}`}</OpticalText>
+                </button>
+              )}
             </div>
           )}
         </MobileScreen>
@@ -1912,7 +1986,9 @@ export default function BankTrainer({ subjectState }: {
             и четыре круга над ним обещали отбор, которого не существует. На
             большом экране эти же кнопки уже спрятаны — док был последним
             местом, где они оставались. */}
-        {view !== 'decks' && (
+        {/* Док есть и на карточках — там в нём один «Режим»: иначе с карточек
+            не вернуться к заданиям (вид живёт в доке, а не сверху). */}
+        {(
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: MOBILE_DOCK_EDGE, zIndex: 65, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
           <motion.div
             ref={dockRef}
@@ -1927,15 +2003,17 @@ export default function BankTrainer({ subjectState }: {
             {/* Invisible spacer holding the search slot; the always-mounted pill
                 (below) renders the visuals so opacity is never animated on a
                 blurred element — the backdrop-blur never blinks off. */}
-            <div style={{ width: 46, height: 46, flexShrink: 0, pointerEvents: 'none' }} />
+            {view !== 'decks' && <div style={{ width: 46, height: 46, flexShrink: 0, pointerEvents: 'none' }} />}
 
             {/* Filter / sort / fav — on expand they scale down, blur and drift
                 right while fading, staggered left→right. */}
             {[
+              // «Режим» — на месте сортировки (сортировка ушла в шторку фильтров):
+              // кружков по-прежнему три, рассчитанная анимация дока не ломается.
+              { k: 'mode', icon: view === 'lines' ? <LayoutGrid size={20} /> : view === 'cards' ? <Layers size={20} /> : view === 'decks' ? <BookOpen size={20} /> : <List size={20} />, onClick: () => setSheet('mode'), opts: { label: t('Режим'), active: true } },
               { k: 'filter', icon: <Filter size={20} />, onClick: () => setSheet('filters'), opts: { label: t('Фильтры'), badge: activeFilters } },
-              { k: 'sort', icon: <ArrowUpDown size={20} />, onClick: () => setSheet('sort'), opts: { label: t('Сортировка') } },
               { k: 'fav', icon: <Star size={20} fill={showFavOnly ? 'currentColor' : 'none'} />, onClick: () => setShowFavOnly(f => !f), opts: { label: t('Избранное'), active: showFavOnly } },
-            ].map((c, idx) => (
+            ].filter(c => view !== 'decks' || c.k === 'mode').map((c, idx) => (
               <motion.div
                 key={c.k}
                 initial={false}
@@ -1974,6 +2052,7 @@ export default function BankTrainer({ subjectState }: {
               </motion.div>
             ))}
 
+            {view !== 'decks' && (<>
             {/* Search control — ALWAYS mounted at opacity 1; only its WIDTH
                 morphs (circle → full dock). Fixed opacity means Chromium never
                 suspends the backdrop-filter, so the frosted blur stays put
@@ -2028,15 +2107,55 @@ export default function BankTrainer({ subjectState }: {
                 </button>
               )}
             </motion.div>
+            </>)}
           </motion.div>
         </div>
         )}
 
+        {/* Шторка «Режим» — плитки в две колонки, как у языкового тренажёра. */}
+        <MobileSheet open={sheet === 'mode'} onClose={() => setSheet(null)} title={t('Режим')}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {viewTabItems.map(([id, label, Icon]) => {
+              const on = id === view
+              const count = id === 'list' ? subjectTasks.length : id === 'cards' ? cardTasks.length : id === 'lines' ? examCatalog?.lines.length : undefined
+              return (
+                <button key={id} data-hover="layer" onClick={() => { tactile(); setView(id); setSheet(null) }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, padding: 12, borderRadius: 16, cursor: 'pointer', textAlign: 'left',
+                    border: on ? `1px solid ${palette.accent}` : '1px solid var(--color-border-soft)', background: on ? `${palette.accent}1f` : 'var(--color-bg-2)', color: on ? palette.accent : 'var(--color-text)' }}>
+                  <Icon size={18} />
+                  <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontSize: 14, fontWeight: on ? 700 : 600 }}>{t(label)}</span>
+                    {count !== undefined && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)' }}>{count}</span>}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </MobileSheet>
+
         {/* Filters sheet */}
         <MobileSheet open={sheet === 'filters'} onClose={() => setSheet(null)} title={t('Фильтры')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Предмет и экзамен — первыми, как рейл на ПК: карточка предмета,
+                ЕГЭ/ОГЭ и год КИМ. Сверху экрана их больше нет. */}
+            <SubjectPill state={subjectState} palette={palette} />
+            {bankOn && examCatalog && (<>
+              <RailSegment
+                options={(['ege', 'oge'] as ExamCode[]).map(e => ({ value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ', badge: tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length || undefined }))}
+                value={exam} onChange={v => v && setExam(v as ExamCode)} accent={palette.accent} soft={railSoft} clearable={false} />
+              <RailSegment
+                options={[{ value: '2026', label: 'КИМ 2026' }, { value: '2027', label: '2027 · проект' }]}
+                value={String(kimYear)} onChange={v => v && pickYear(Number(v) as ExamYear)} accent={palette.accent} soft={railSoft} clearable={false} />
+            </>)}
+            {fipiSet ? (<>
+              <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.label)} values={kesSectionOpts.filter(o => sections.includes(o.value)).map(o => o.label)}
+                onChange={v => setSections(v.map(l => l.split(' · ')[0]))} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
+              <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.label)} values={kesTopicOpts.filter(o => topics.includes(o.value)).map(o => o.label)}
+                onChange={v => setTopics(v.map(l => l.split(' ')[0]))} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
+            </>) : (<>
             <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
+            </>)}
             <div style={{ display: 'flex', gap: 8 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
@@ -2053,9 +2172,15 @@ export default function BankTrainer({ subjectState }: {
                 </button>
               )})}
             </div>
-            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
-            <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />
+            <MultiSelectField label={t('Линия')} options={fipiSet ? lineOpts.map(o => o.label) : allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
+            {!fipiSet && <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />}
             <MobileStatusTabs value={statusFilter} onChange={setStatusFilter} accent={palette.accent} />
+            {/* Сортировка — здесь же: в доке её место занял «Режим». */}
+            <button data-hover="layer" onClick={() => { tactile(); setSheet('sort') }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 13, border: 'none', background: 'var(--color-bg-input)', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ArrowUpDown size={16} />{t('Сортировка')}</span>
+              <span style={{ color: 'var(--color-text-3)' }}>{t(SORT_OPTIONS.find(([m]) => m === sortMode)?.[1] ?? '')}</span>
+            </button>
             {/* Always reserve the button's slot so toggling filters doesn't
                 change the sheet height (grabber would otherwise jump). */}
             <button data-hover="layer" onClick={() => { if (!hasFilters) return; tactile(); clearFilters() }}
@@ -2207,46 +2332,82 @@ export default function BankTrainer({ subjectState }: {
             : t('Карточки предмета')}
         />
 
-        {/* Фильтры — это фильтры ЗАДАНИЙ: раздел, линия, часть. На карточках они
-            не сужают ничего, а занимают весь рейл и врут, что сужают. */}
-        {bankOn && view !== 'decks' && (
+        {/* РЕЖИМ — карточкой в рейле, как у языкового тренажёра (RailModes):
+            «Список · Стопка · Линии КИМ · Карточки». Раньше вид стоял таблеткой
+            в строке управления, и банк выглядел другим экраном. */}
+        {viewTabItems.length > 1 && (
+          <RailCard icon={<Layers size={15} />} title="Режим" accent={palette.accent}>
+            <RailModes
+              items={viewTabItems.map(([id, label, Icon]) => ({
+                id, label, Icon,
+                count: id === 'list' ? subjectTasks.length : id === 'cards' ? cardTasks.length : id === 'lines' ? examCatalog?.lines.length : undefined,
+              }))}
+              value={view}
+              onChange={v => setView(v)}
+              accent={palette.accent}
+              soft={railSoft}
+            />
+          </RailCard>
+        )}
+
+        {/* ЭКЗАМЕН — по образцу «Что читаем»: ЕГЭ/ОГЭ со счётчиками и год КИМ. */}
+        {bankOn && view !== 'decks' && examCatalog && (
+          <RailCard icon={<Target size={15} />} title="Экзамен" accent={palette.accent}>
+            <RailSegment
+              options={(['ege', 'oge'] as ExamCode[]).map(e => ({
+                value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ',
+                badge: tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length || undefined,
+              }))}
+              value={exam}
+              onChange={v => v && setExam(v as ExamCode)}
+              accent={palette.accent}
+              soft={railSoft}
+              clearable={false}
+            />
+            <RailSegment
+              options={[{ value: '2026', label: 'КИМ 2026' }, { value: '2027', label: '2027 · проект' }]}
+              value={String(kimYear)}
+              onChange={v => v && pickYear(Number(v) as ExamYear)}
+              accent={palette.accent}
+              soft={railSoft}
+              clearable={false}
+            />
+            <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)' }}>
+              {kimYear === 2027
+                ? t('Проект ФИПИ 2027: структура как в 2026, у части линий другие баллы.')
+                : t('Линии и кодификатор — по спецификации ФИПИ. Задания — из открытого банка ФИПИ.')}
+            </p>
+          </RailCard>
+        )}
+
+        {/* ФИЛЬТРЫ — карточкой в рейле, как было у банка. У набора ФИПИ —
+            раздел и тема кодификатора (КЭС), часть, линия КИМ; у своих заданий
+            учителя — прежние фильтры по программе. На «Линиях КИМ» не нужны:
+            там сетка всех линий. */}
+        {bankOn && view !== 'decks' && !(fipiSet && view === 'lines') && (
         <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-3)', gap: 12 }}>
           <div className="flex items-center" style={{ gap: 8 }}>
             <Filter size={16} style={{ color: palette.text }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {fipiSet ? (<>
+              <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.label)} values={kesSectionOpts.filter(o => sections.includes(o.value)).map(o => o.label)}
+                onChange={v => setSections(v.map(l => l.split(' · ')[0]))} accent={palette.accent} accentBg={railSoft} lockScroll />
+              <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.label)} values={kesTopicOpts.filter(o => topics.includes(o.value)).map(o => o.label)}
+                onChange={v => setTopics(v.map(l => l.split(' ')[0]))} accent={palette.accent} accentBg={railSoft} lockScroll />
+              <RailSegment
+                options={[1, 2].map(p => ({ value: String(p), label: `${t('Часть')} ${p}`, badge: subjectTasks.filter(x => x.part === p).length || undefined }))}
+                value={parts.length === 1 ? parts[0] : ''}
+                onChange={v => setParts(v ? [v] : [])}
+                accent={palette.accent} soft={railSoft} />
+              <MultiSelectField label={t('Линия')} options={lineOpts.map(o => o.label)} values={lines} onChange={setLines} accent={palette.accent} accentBg={railSoft} lockScroll />
+            </>) : (<>
             <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
-            <AnimatePresence>
-              {sections.length > 0 && subject === 'biology' && (
-                <SuggestBox
-                  section={sections[sections.length - 1]}
-                  lineNames={lineNames}
-                  onPickLine={v => { setLines(prev => prev.includes(v) ? prev : [...prev, v]) }}
-                  accent={palette.accent}
-                />
-              )}
-            </AnimatePresence>
             <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
-            <div style={{ display: 'flex', gap: 6 }}>
-              {['1', '2'].map(p => {
-                const active = parts.includes(p)
-                const avail = availableParts.includes(p as '1' | '2')
-                return (
-                <button data-hover="layer" key={p} disabled={!avail} onClick={() => setParts(active ? parts.filter(x => x !== p) : [...parts, p])} style={{
-                  flex: 1, padding: '10px 12px', borderRadius: 13, fontSize: 13, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
-                  background: active ? `${palette.accent}22` : 'var(--color-bg-input)',
-                  border: 'none',
-                  color: active ? palette.accent : 'var(--color-muted)',
-                  opacity: avail ? 1 : 0.4,
-                  transition: 'background-color, color, border-color, box-shadow, opacity, transform 0.15s ease',
-                }}>
-                  <OpticalText as="iskra-button-label">{t('Часть')} {p}</OpticalText>
-                </button>
-              )})}
-            </div>
             <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
+            </>)}
           </div>
           {hasFilters && (
             <button data-hover="layer" onClick={clearFilters}
@@ -2280,7 +2441,7 @@ export default function BankTrainer({ subjectState }: {
             />
             {search && <button data-hover="layer" aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}><X size={14} strokeWidth={2.5} /></button>}
           </div>
-          {/* Статус, вид и сортировка — общие со скелетом (components/trainer).
+          {/* Статус и сортировка — общие со скелетом (components/trainer).
               Своих копий у банка больше нет: расходились бы при первой правке. */}
           <ShellStatusTabs
             options={STATUS_OPTIONS.map(([value, label]) => ({ value, label }))}
@@ -2289,16 +2450,8 @@ export default function BankTrainer({ subjectState }: {
           />
           </>)}
 
-          {/* Один сегмент — не выбор: у предмета с одними карточками переключать
-              нечего, и таблетка стояла бы как подпись, притворяющаяся кнопкой. */}
-          {viewOptions.length > 1 && (
-            <ShellStatusTabs
-              options={viewOptions}
-              value={view}
-              onChange={v => setView(v as 'list' | 'cards' | 'decks')}
-              accent={palette.accent}
-            />
-          )}
+          {/* Вид (Список · Стопка · Линии · Карточки) переехал в рейл — карточкой
+              «Режим», как у языкового тренажёра. */}
 
           {view !== 'decks' && (<>
           <SortMenu
@@ -2306,7 +2459,7 @@ export default function BankTrainer({ subjectState }: {
             value={sortMode}
             onChange={v => setSortMode(v as SortMode)}
             accent={palette.accent}
-            soft={palette.soft}
+            soft={railSoft}
           />
 
           <button data-hover="layer" onClick={() => setShowFavOnly(f => !f)}
@@ -2317,7 +2470,7 @@ export default function BankTrainer({ subjectState }: {
 
 
           <span style={{ marginLeft: 'auto', fontSize: 12, color: dark ? 'var(--color-text-3)' : 'var(--color-text-2)' }}>
-            {t('Всего:')} {filtered.length}
+            {view === 'lines' ? `${examCatalog?.lines.length ?? 0} ${t('линий')}` : `${filtered.length} ${t('заданий')}`}
           </span>
           </>)}
 
@@ -2335,6 +2488,11 @@ export default function BankTrainer({ subjectState }: {
           <CardDeck key={`deck-${subject}-${cardTasks.length}`} accent={palette.accent} source={deckSource} />
           <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
         </div>
+      ) : view === 'lines' ? (
+        <LinesGrid lines={examCatalog?.lines ?? []} tasks={subjectTasks} answered={answered} part2={part2Lines} accent={palette.accent}
+          onPick={label => { setLines([label]); setParts([]); setView('list') }} />
+      ) : fipiLoading && filtered.length === 0 ? (
+        <TaskListSkeleton rows={3} />
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
@@ -2345,13 +2503,18 @@ export default function BankTrainer({ subjectState }: {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {filtered.map((task, i) => (
+          {filtered.slice(0, shown).map((task, i) => (
             <TaskCard key={task.id} task={task} index={i} palette={palette}
               favorites={favorites} onFavorite={toggleFav}
               answered={answered} onAnswer={setAnswer}
               onCopyId={handleCopyId} lineNames={lineNames}
             />
           ))}
+          {filtered.length > shown && (
+            <button data-hover="layer" onClick={() => setShown(n => n + PAGE)} style={{ ...btn('M', 'secondary'), alignSelf: 'center' }}>
+              <OpticalText as="iskra-button-label">{`${t('Показать ещё')} · ${Math.min(PAGE, filtered.length - shown)} ${t('из')} ${filtered.length - shown}`}</OpticalText>
+            </button>
+          )}
         </div>
       )}
       </TrainerShell>

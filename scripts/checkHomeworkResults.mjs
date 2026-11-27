@@ -56,6 +56,13 @@ assert.equal(isStoredTestlySubmission(retryDraft, { ...trusted, attachments: { .
 assert.equal(isStoredTestlySubmission(retryDraft, { ...trusted, status: 'returned' }), false)
 assert.equal(isStoredTestlySubmission(retryDraft, { ...trusted, attachments: retryDraft }), false)
 assert.equal(isStoredTestlySubmission({ ...retryDraft, attemptId: 'stale' }, trusted), false)
+// The status poll persisted the result under the server's attempt id first:
+// same Testly submission time → the same work, not a failed submit.
+const doneRows = trusted.attachments.rows
+assert.equal(isStoredTestlySubmission({ ...retryDraft, draft: false, attemptId: 'browser', rows: doneRows.map(row => ({ ...row })) }, trusted), true)
+assert.equal(isStoredTestlySubmission({ ...retryDraft, draft: false, attemptId: 'browser', rows: doneRows.map(row => ({ ...row, testly: { ...row.testly, submittedAt: '2026-10-01T00:00:00Z' } })) }, trusted), false)
+const isoZ = new Date(doneRows[0].testly.submittedAt).toISOString()
+assert.equal(isStoredTestlySubmission({ ...retryDraft, draft: false, attemptId: 'browser', rows: doneRows.map(row => ({ ...row, testly: { ...row.testly, submittedAt: isoZ } })) }, trusted), true)
 assert.equal(isStoredTestlySubmission({ ...retryDraft, rows: [...retryDraft.rows, { type: 'single' }] }, trusted), false)
 assert.equal(isStoredTestlySubmission({ ...retryDraft, rows: [{ ...retryDraft.rows[0], testly: { testId: 'other' } }] }, trusted), false)
 console.log('PASS: webhook/browser completion race, zero result accepted, returned/draft/stale/mixed work rejected')

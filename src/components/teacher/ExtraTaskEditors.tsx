@@ -42,9 +42,14 @@ export interface ExtraTaskFields {
   question?: string
   /** screenHotspot: картинка, области и ловушки. */
   hotspot?: HotspotSpec
+  /** excelTrainer: таблица, мини-задания, «исправь формулу». */
+  trainer?: TrainerSpec
 }
 import { lazy, Suspense } from 'react'
 import type { HotspotSpec } from '../../lib/screenHotspot'
+import type { TrainerSpec } from '../../lib/excelLab/spec'
+// Редактор тренажёра Excel тянет вычислитель — грузится только у этого типа.
+const ExcelTrainerEditor = lazy(() => import('./ExcelTrainerEditor'))
 import { parseEmbed, EMBED_HOST_LABELS } from '../../lib/embed'
 // Редактор «Найди на экране» тянет генераторы реконструкций — грузится только
 // у задания этого типа.
@@ -101,6 +106,12 @@ export default function ExtraTaskEditors<T extends ExtraTaskFields>({ task, onUp
               {task.type === 'screenHotspot' && (
                 <Suspense fallback={null}>
                   <ScreenHotspotEditor value={task.hotspot} onChange={hotspot => onUpdate({ ...task, hotspot })} accent={accent} />
+                </Suspense>
+              )}
+              {/* excelTrainer — данные тренажёра JSON с проверкой и предпросмотром. */}
+              {task.type === 'excelTrainer' && (
+                <Suspense fallback={null}>
+                  <ExcelTrainerEditor value={task.trainer} onChange={trainer => onUpdate({ ...task, trainer })} accent={accent} />
                 </Suspense>
               )}
               {/* trueFalse — утверждения к тексту. Сам текст берётся из

@@ -5,7 +5,7 @@ import { profileReadLifetime } from '../../lib/profileReadLifetime'
 import { textFadeStyle } from '../../lib/textFades'
 import { SubjectMark } from '../../components/icons/SubjectMark'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { ICON_GAP } from '../../lib/subjects'
+import { isSchoolStudent, ICON_GAP } from '../../lib/subjects'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Phone, Send, User, TrendingUp, ClipboardCheck, Clock,
@@ -544,7 +544,7 @@ export function StudentDashboardReport({ student: initialStudent, group: assigne
       <div id="student-dashboard-print" style={{ display: 'none', fontFamily: 'system-ui, sans-serif', color: '#111' }}>
         <h1 style={{ fontSize: 24, marginBottom: 4 }}>{tn(student.name)}</h1>
         {workPanel}
-        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · <SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)} · {t('Цель:')} {student.desiredScore} {t('баллов')}</p>
+        <p style={{ color: '#666', marginBottom: 16 }}>{t('Группа:')} {group.name} · <SubjectMark subject={group.subject} size={14} />{ICON_GAP}{tc(group.subject)}{isSchoolStudent(student) && <> · {t('Цель:')} {student.desiredScore} {t('баллов')}</>}</p>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
           <tbody>
             {[
@@ -631,7 +631,7 @@ export function StudentDashboardReport({ student: initialStudent, group: assigne
                 <div className="student-profile-meta">
                   {student.startedAt && <span>{t('c')} {student.startedAt}</span>}
                   {student.lastVisit && <span>{t('Последний вход')}: {student.lastVisit}</span>}
-                  {!workPanel && <span>{t('Цель:')} <b>{student.desiredScore > 0 ? student.desiredScore + ' ' + t('б.') : t('Не задана')}</b></span>}
+                  {!workPanel && isSchoolStudent(student) && <span>{t('Цель:')} <b>{student.desiredScore > 0 ? student.desiredScore + ' ' + t('б.') : t('Не задана')}</b></span>}
                 </div>
               </div>
             </div>

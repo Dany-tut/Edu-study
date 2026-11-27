@@ -2,7 +2,7 @@ import OpticalText from './OpticalText'
 import HomeworkAttemptPanel from './HomeworkAttemptPanel'
 import HomeworkAttemptHistorySection from './HomeworkAttemptHistorySection'
 import { isHomeworkSubmissionStatus, type HomeworkResult } from '../lib/homeworkResult'
-import { useRef, useState } from 'react'
+import { Suspense, lazy, useRef, useState } from 'react'
 import { CheckboxMark } from './Checkbox'
 import BackCircle from './BackCircle'
 import { usePersistentState, clearDraft } from '../lib/useDraft'
@@ -22,6 +22,8 @@ import WordDropSolver from './WordDropSolver'
 import TrueFalseSolver from './TrueFalseSolver'
 import ScreenHotspotSolver from './ScreenHotspotSolver'
 import { hotspotGradable } from '../lib/screenHotspot'
+import { trainerGradable } from '../lib/excelLab/spec'
+const ExcelTrainer = lazy(() => import('./excelLab/ExcelTrainer'))
 import DropdownGapSolver from './DropdownGapSolver'
 import ColumnSortSolver from './ColumnSortSolver'
 import EmbedTask from './EmbedTask'
@@ -278,7 +280,8 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                   || (tp === 'trueFalse' && tfRows(task).length === 0)
                   || (tp === 'dropdownGap' && gapChoiceRows(task).length === 0)
                   || (tp === 'columnSort' && sortRows(task).length === 0)
-                  || (tp === 'screenHotspot' && !hotspotGradable(task.hotspot))) && (
+                  || (tp === 'screenHotspot' && !hotspotGradable(task.hotspot))
+                  || (tp === 'excelTrainer' && !trainerGradable(task.trainer))) && (
                   <div style={{ paddingLeft: 36, display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <GrowTextarea
                       value={(answers[task.id] as string) ?? ''}
@@ -427,6 +430,19 @@ export default function TestFlow({ lesson, onBack }: { lesson: Lesson; onBack: (
                       value={(answers[task.id] as string) ?? undefined}
                       onChange={v => setAnswer(task.id, v)}
                     />
+                  </div>
+                )}
+
+                {/* excelTrainer — таблица пересчитывается, «исправь формулу» */}
+                {tp === 'excelTrainer' && trainerGradable(task.trainer) && (
+                  <div style={{ paddingLeft: 36 }}>
+                    <Suspense fallback={null}>
+                      <ExcelTrainer
+                        spec={task.trainer}
+                        value={(answers[task.id] as string) ?? undefined}
+                        onChange={v => setAnswer(task.id, v)}
+                      />
+                    </Suspense>
                   </div>
                 )}
 

@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef, type ReactNode, type CSSPropertie
 import EmptyState from '../../EmptyState'
 import { ICON_GAP } from '../../../lib/subjects'
 import { motion } from 'framer-motion'
-import { Users, ChevronRight, ChevronDown, Phone, Send, Wallet, CalendarCheck, Check, X } from '../../icons/appIcons'
+import { Star, Users, ChevronRight, ChevronDown, Phone, Send, Wallet, CalendarCheck, Check, X } from '../../icons/appIcons'
 import MobileScreen from '../../MobileScreen'
 import MobileSheet from '../../MobileSheet'
 import Skeleton from '../../Skeleton'
@@ -27,6 +27,8 @@ import { GLASS, glassMenu, useGlassBar, type GlassBar } from '../../../lib/nativ
 import { PLATFORM } from '../../../lib/platform'
 import { useKeyboardInset } from '../../../lib/useKeyboardInset'
 import { tactile } from '../../../lib/feedback'
+import PinStar from '../PinStar'
+import { usePinnedStudents, usePinDrag, splitPinned, mergeVisibleOrder } from '../../../lib/pinnedStudents'
 import { normalizeStudentSubjects, defaultStudentSubject } from '../../../lib/studentSubject'
 import type { Group, Student } from '../../../data/teacherMockData'
 import { DEMO_GROUPS, DEMO_STUDENTS_BY_GROUP, demoStudentsFor } from '../../../data/teacherDevDemo'
@@ -70,20 +72,37 @@ function SignalChip({ signal }: { signal: Signal }) {
 // Unified person row — one visual language for a student everywhere (group roster
 // and the individuals list). Avatar with initials (never a placeholder silhouette),
 // name, subject + ДЗ + посещаемость, and the smart-mix signal on the right.
-function PersonRow({ student, subject, onClick }: { student: Student; subject?: string; onClick: () => void }) {
+type PinProps = {
+  pinned: boolean
+  onTogglePin: () => void
+  /** pointerdown аватара закреплённой строки — долгое нажатие и перетаскивание. */
+  onHandleDown?: (e: React.PointerEvent<HTMLElement>) => void
+  dragging?: { dy: number } | null
+  drop?: 'before' | 'after'
+}
+
+function PersonRow({ student, subject, onClick, pin }: { student: Student; subject?: string; onClick: () => void; pin?: PinProps }) {
   const t = useT()
   const { tc, tn } = useTc()
   const signal = studentSignal(student, t)
   return (
     <motion.button type="button" data-hover={IPHONE_GLASS ? undefined : 'layer'}
-      whileTap={IPHONE_GLASS ? undefined : { scale: 0.98 }}
+      whileTap={IPHONE_GLASS || pin?.dragging ? undefined : { scale: 0.98 }}
       onClick={onClick}
       className="cursor-pointer"
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%' }}
+      data-pin-row={pin?.pinned || undefined}
+      data-pin-dragging={pin?.dragging ? true : undefined}
+      data-pin-drop={pin?.drop}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 24, background: 'var(--color-bg-3)', border: '1px solid var(--color-border-soft)', textAlign: 'left', width: '100%',
+        ...(pin?.dragging ? { transform: `translateY(${pin.dragging.dy}px)` } : {}) }}
     >
-      <div style={{ position: 'relative', width: 40, height: 40, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div className={pin ? 'pin-avatar' : undefined} data-pin-handle={pin?.pinned || undefined} onPointerDown={pin?.pinned ? pin.onHandleDown : undefined}
+        style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
+      <div style={{ position: 'relative', width: 40, height: 40, borderRadius: 999, background: 'var(--color-avatar-bg)', color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
         {initials(tn(student.name))}
         <AvatarPhotoFill path={student.avatarPath} />
+      </div>
+      {pin && <PinStar inButton pinned={pin.pinned} name={tn(student.name)} onToggle={() => { tactile(); pin.onTogglePin() }} size={20} />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <FadeText style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text)' }}>{tn(student.name)}</FadeText>
@@ -405,6 +424,26 @@ export default function MobileTeacherStudents() {
     if (statusFilter === 'review') return (pendingByGroup.get(s.groupId) ?? 0) > 0
     return true
   })
+  // Избранные — блоком над «Все ученики», по одной строке на человека.
+  const pins = usePinnedStudents()
+  const splitIndividuals = splitPinned(individuals, personKey, pins.keys)
+  const pinnedIndividuals = [...new Map(splitIndividuals.pinned.map(s => [personKey(s), s])).values()]
+  const restIndividuals = splitIndividuals.rest
+  const pinnedVisibleKeys = pinnedIndividuals.map(personKey)
+  const pinDrag = usePinDrag(pinnedVisibleKeys, next => { tactile(); pins.reorder(mergeVisibleOrder(pins.keys, next)) }, () => tactile())
+  const pinOthers = pinDrag.drag ? pinnedVisibleKeys.filter(k => k !== pinDrag.drag!.key) : []
+  const pinPropsFor = (s: Student, pinned: boolean): PinProps => {
+    const key = personKey(s)
+    const dragging = pinDrag.drag?.key === key
+    const oi = pinned && !dragging ? pinOthers.indexOf(key) : -1
+    return {
+      pinned,
+      onTogglePin: () => pins.toggle(key),
+      onHandleDown: pinDrag.handle(key),
+      dragging: dragging ? { dy: pinDrag.drag!.dy } : null,
+      drop: pinDrag.drag && oi >= 0 ? (oi === pinDrag.drag.over ? 'before' : pinDrag.drag.over === pinOthers.length && oi === pinOthers.length - 1 ? 'after' : undefined) : undefined,
+    }
+  }
   const showGroups = filter === 'all' || filter === 'groups'
   const showIndividuals = filter === 'all' || filter === 'individual'
 
@@ -569,9 +608,14 @@ export default function MobileTeacherStudents() {
 
           {showIndividuals && individuals.length > 0 && (
             <>
-              {filter === 'all' && <SectionLabel>{t('Все ученики')}</SectionLabel>}
-              {individuals.map(s => (
-                <PersonRow key={s.id} student={s} subject={s.subjects?.join(' · ') || s.subject} onClick={() => openStudent(s)} />
+              {pinnedIndividuals.length > 0 && <SectionLabel><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={12} fill="var(--color-amber)" style={{ color: 'var(--color-amber)' }} aria-hidden />{t('Закреплённые')}</span></SectionLabel>}
+              {pinnedIndividuals.map(s => (
+                <PersonRow key={s.id} student={s} subject={s.subjects?.join(' · ') || s.subject} pin={pinPropsFor(s, true)}
+                  onClick={() => { if (!pinDrag.swallowClick()) openStudent(s) }} />
+              ))}
+              {restIndividuals.length > 0 && (filter === 'all' || pinnedIndividuals.length > 0) && <SectionLabel>{t('Все ученики')}</SectionLabel>}
+              {restIndividuals.map(s => (
+                <PersonRow key={s.id} student={s} subject={s.subjects?.join(' · ') || s.subject} pin={pinPropsFor(s, false)} onClick={() => openStudent(s)} />
               ))}
             </>
           )}

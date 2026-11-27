@@ -81,7 +81,7 @@ function CaptionText({ p }: { p: Product }) {
   return (
     <>
       <ProductIcon id={p.id} />
-      <span className="whitespace-nowrap text-[15px] font-bold text-[var(--color-text)]">{p.id === 'iskra' ? t(p.name) : p.name}</span>
+      <span className="whitespace-nowrap text-[15px] font-bold text-[var(--color-text)]">{t(p.name)}</span>
       <span className="whitespace-nowrap text-[13px] text-[var(--color-muted)]">{t(p.caption)}</span>
     </>
   )
@@ -100,7 +100,7 @@ function PreviewBody({ p }: { p: Product }) {
       />
       <div className="flex items-center gap-3 pl-1.5 pr-1">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-fade text-[17px] font-bold text-[var(--color-text)]">{p.name}</span>
+          <span className="text-fade text-[17px] font-bold text-[var(--color-text)]">{t(p.name)}</span>
           <span className="text-[13px] leading-[1.3] text-[var(--color-muted)]">{t(p.preview!.tagline)}</span>
         </div>
         <span
@@ -116,13 +116,14 @@ function PreviewBody({ p }: { p: Product }) {
 
 /** Одна форма с хвостиком: тень (drop-shadow) ложится на коробку и хвост вместе. */
 function Popover({ p, onEnter, onLeave }: { p: Product; onEnter: () => void; onLeave: () => void }) {
+  const t = useT()
   const left = Math.min(Math.max(p.cx - POP_W / 2, 24), STAGE_W - 26 - POP_W)
   const tail = p.cx - left
   return (
     <div
       id={`eco-pop-${p.id}`}
       role="dialog"
-      aria-label={p.name}
+      aria-label={t(p.name)}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       className="eco-pop absolute z-30"
@@ -291,7 +292,7 @@ function Sheet({ p, onClose }: { p: Product; onClose: () => void }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-[200] flex items-end" role="dialog" aria-modal="true" aria-label={p.name}>
+    <div className="fixed inset-0 z-[200] flex items-end" role="dialog" aria-modal="true" aria-label={t(p.name)}>
       <button type="button" aria-label={t('Закрыть')} tabIndex={-1} onClick={onClose} className="absolute inset-0 bg-black/30" />
       <div
         className="relative flex w-full flex-col gap-3 rounded-t-[24px] bg-[var(--color-bg-card)] px-3 pt-2 shadow-[0_-12px_40px_rgba(41,31,102,0.18)]"

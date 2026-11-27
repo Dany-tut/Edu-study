@@ -68,7 +68,22 @@ export default function TrainerSkeleton() {
               <Bar w="34%" h={13} />
             </div>
           )}
-          {Array.from({ length: rows }, (_, i) => i).map(i => (
+          <SkeletonRows rows={rows} />
+        </div>
+      </TrainerShell>
+    </div>
+  )
+}
+
+/**
+ * Плашки карточек заданий — общие для заглушки всего тренажёра и для списка,
+ * пока догружается банк ФИПИ выбранного экзамена (тысячи строк, секунды):
+ * без них на это время стояло «Заданий не найдено — измените фильтры».
+ */
+export function SkeletonRows({ rows = 3 }: { rows?: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }, (_, i) => i).map(i => (
             <div
               key={i}
               style={{
@@ -86,8 +101,16 @@ export default function TrainerSkeleton() {
               <Bar w={`${64 - (i % 3) * 9}%`} h={17} />
             </div>
           ))}
-        </div>
-      </TrainerShell>
+    </>
+  )
+}
+
+/** Список заданий на время загрузки набора: те же плашки в колонке. */
+export function TaskListSkeleton({ rows = 3 }: { rows?: number }) {
+  const t = useT()
+  return (
+    <div role="status" aria-busy="true" aria-label={t('Загрузка заданий')} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <SkeletonRows rows={rows} />
     </div>
   )
 }

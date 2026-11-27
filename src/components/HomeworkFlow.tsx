@@ -10,7 +10,7 @@ import { LoopTextIcon } from './icons/LoopIcon'
 import { Check as LoopMarkCheck, X as LoopMarkX } from './icons/appIcons'
 import { EMOJI_STEPS } from './homeworkSteps'
 import { saveLessonSelfAssessment } from '../lib/saveLessonSelfAssessment'
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import {
   CheckCircle2, ChevronLeft, CircleAlert, Clock, GraduationCap, BookOpen,
@@ -81,6 +81,9 @@ import TrueFalseSolver from './TrueFalseSolver'
 import DropdownGapSolver from './DropdownGapSolver'
 import ScreenHotspotSolver from './ScreenHotspotSolver'
 import { hotspotGradable, hotspotOutcome } from '../lib/screenHotspot'
+import { trainerAnswered, trainerCorrect, trainerGradable, parseTrainerAnswer } from '../lib/excelLab/spec'
+// Тренажёр Excel тянет учебный вычислитель и таблицу — отдельным чанком.
+const ExcelTrainer = lazy(() => import('./excelLab/ExcelTrainer'))
 import ColumnSortSolver from './ColumnSortSolver'
 import EmbedTask from './EmbedTask'
 import TestlyTask from './TestlyTask'
@@ -97,9 +100,11 @@ import { reviewSlots, buildReviewTasks, gradeFor, type ReviewTask } from '../lib
 import VocabIntro from './VocabIntro'
 import LessonReview from './LessonReview'
 import HomeworkFlowBar from './HomeworkFlowBar'
+import { HW_COLUMN_LEFT, hwColumnWidth, useHomeworkColumnVars } from '../lib/homeworkColumn'
 import { HomeworkViewportChrome } from './MobileHomeworkViewport'
 import HomeworkResultActions from './HomeworkResultActions'
-import { testlyReviewUrl } from '../lib/testlyModule'
+import { testlyReviewUrl, TESTLY_SITE } from '../lib/testlyModule'
+import TestlyMistakesPanel from './TestlyMistakesPanel'
 import ChamoTrace from './ChamoTrace'
 import SyllableBuilder from './SyllableBuilder'
 import { getSubject, isLanguageSubject } from '../lib/subjects'
@@ -1009,6 +1014,9 @@ function questionAnswered(q: HomeworkQuizQuestion, ans: string | undefined) {
   if (qType(q) === 'screenHotspot') {
     return hotspotGradable(q.hotspot) ? hotspotOutcome(q.hotspot, ans).done : !!(ans && ans.trim())
   }
+  // Тренажёр Excel: отвечено, когда формула исправлена (что-то введено) или
+  // в «меняйте значения» тронута хоть одна ячейка.
+  if (qType(q) === 'excelTrainer') return trainerGradable(q.trainer) ? trainerAnswered(q.trainer, ans) : !!(ans && ans.trim())
   if (qType(q) === 'dropdownGap') {
     const gaps = gapChoiceRows(q)
     if (gaps.length === 0) return !!(ans && ans.trim())
@@ -1088,6 +1096,7 @@ function questionAutoGradable(q: HomeworkQuizQuestion) {
   if (langTp === 'dropdownGap') return gapChoiceRows(q).length > 0
   if (langTp === 'columnSort') return sortRows(q).length > 0 && namedColumns(q).length >= 2
   if (langTp === 'screenHotspot') return hotspotGradable(q.hotspot)
+  if (langTp === 'excelTrainer') return trainerGradable(q.trainer)
   // Внешнее упражнение: проверяем ровно то, что можем, — отметку о прохождении.
   if (langTp === 'embed') return !!q.embedUrl?.trim()
   if (langTp === 'testly') return !!q.testly?.id
@@ -1144,6 +1153,7 @@ function taskBodyMissing(q: HomeworkQuizQuestion): boolean {
     case 'trueFalse': return tfRows(q).length === 0
     case 'dropdownGap': return gapChoiceRows(q).length === 0 || !(q.gapText ?? '').trim()
     case 'screenHotspot': return !hotspotGradable(q.hotspot)
+    case 'excelTrainer': return !trainerGradable(q.trainer)
     case 'columnSort': return sortRows(q).length === 0 || namedColumns(q).length < 2
     case 'embed': return !q.embedUrl?.trim()
     case 'testly': return !q.testly?.id
@@ -1271,6 +1281,8 @@ function questionCorrect(q: HomeworkQuizQuestion, ans: string | undefined) {
     // Найди на экране: верно, если одно из первых `attempts` нажатий попало в
     // верную область. Тот же расчёт видит преподаватель (lib/screenHotspot).
     if (langTp === 'screenHotspot') return hotspotGradable(q.hotspot) && hotspotOutcome(q.hotspot, ans).correct
+    // Тренажёр Excel: «исправь» — по результату на скрытых наборах; иначе — все мини-задания.
+    if (langTp === 'excelTrainer') return trainerGradable(q.trainer) && trainerCorrect(q.trainer, ans)
     if (langTp === 'dropdownGap') {
       const gaps = gapChoiceRows(q)
       if (gaps.length === 0) return false
@@ -1819,6 +1831,9 @@ export default function HomeworkFlow({
 }: HomeworkFlowProps) {
   const t = useT()
   const isMobile = !useIsDesktop()
+  // Нижние полосы центруются по колонке задания, а не по окну (рейл слева).
+  const columnRef = useRef<HTMLElement>(null)
+  useHomeworkColumnVars(columnRef, !isMobile)
   // «Доп 2 · <урок>» — заголовок доп. домашки (без «Домашка по теме «…»»).
   const extraTitle = homework.title.match(EXTRA_TITLE_RE)
   const { dark } = useTheme()
@@ -2239,6 +2254,11 @@ export default function HomeworkFlow({
         const o = hotspotOutcome(question.hotspot, raw)
         answer = o.taps.map((_, i) => `${i + 1}. ${o.hits[i].area ? `«${o.hits[i].area!.label}»` : tStatic('мимо')}`).join('; ')
         hotspot = { spec: question.hotspot, taps: raw ?? '' }
+      } else if (tp === 'excelTrainer' && trainerGradable(question.trainer)) {
+        // Преподавателю — формула ученика или его правки ячеек, текстом.
+        const a = parseTrainerAnswer(raw)
+        answer = question.trainer.fix ? (a.formula ?? '—') + (a.hints ? ` (${tStatic('подсказок')}: ${a.hints})` : '')
+          : Object.entries(a.cells ?? {}).map(([k, v]) => `${k} = ${v ?? ''}`).join('; ') || '—'
       } else if (tp === 'dropdownGap') {
         const given = answerMap(raw)
         answer = gapChoiceRows(question)
@@ -2291,6 +2311,8 @@ export default function HomeworkFlow({
         correct = tfRows(question).map((row, i) => `${i + 1}. ${TF_CAPTION[row.verdict]}`).join('; ')
       } else if (tp === 'screenHotspot' && question.hotspot) {
         correct = question.hotspot.targets.map(a => `«${a.label}»`).join(` ${tStatic('или')} `)
+      } else if (tp === 'excelTrainer' && question.trainer) {
+        correct = question.trainer.fix?.answer ?? (question.trainer.goals ?? []).map(g => g.text).join('; ')
       } else if (tp === 'dropdownGap') {
         correct = gapChoiceRows(question).map(g => g.options[g.correct]).join(' · ')
       } else if (tp === 'columnSort') {
@@ -3564,6 +3586,7 @@ export default function HomeworkFlow({
         {/* Полоса режима одного экрана выше точек прогресса (в ней вердикт и
             кнопка во всю ширину), поэтому и запас под ней больше. */}
         <main
+          ref={columnRef}
           className="flex flex-col"
           style={{ gap: 16, paddingBottom: state.basicSubmitted ? `calc(${resultActionsHeight + (isMobile ? 136 : 48)}px + env(safe-area-inset-bottom, 0px))` : (flowMode && !flowFinished) ? 210 : 100 }}
         >
@@ -3635,6 +3658,23 @@ export default function HomeworkFlow({
                     if (draft.attemptId) setState(current => enterDraft(current, draft.attemptId!))
                     await useStudentData.getState().load()
                   }} />
+                {onlyTestly && testlyReview && !testlyReview.pending && basicQuestions[0]?.testly?.id && (
+                  <TestlyMistakesPanel
+                    testId={basicQuestions[0].testly.id}
+                    testTitle={basicQuestions[0].prompt ?? ''}
+                    owner={basicQuestions[0].testly.owner}
+                    attemptKey={basicProgress?.result?.testlyKey}
+                    submittedAt={testlyDoneAt(state.basicAnswers[basicQuestions[0].id]) ?? undefined}
+                    attemptNumber={basicProgress?.result?.attempts?.length}
+                    got={testlyReview.got}
+                    max={testlyReview.max}
+                    retakeCount={(basicProgress?.result?.attempts?.length ?? 1) - 1}
+                    onRetakeStarted={url => {
+                      syncedTestly.current = ''
+                      window.open(url, '_blank')
+                    }}
+                  />
+                )}
               </section>}
 
               {/* Знакомство со словами — до заданий, а не после них. Карточки
@@ -4114,6 +4154,16 @@ export default function HomeworkFlow({
                       disabled={state.basicSubmitted}
                       onChange={v => setFreeAnswer(question.id, v)}
                     />
+                    /* Тренажёр Excel: таблица пересчитывается на глазах. */
+                    ) : qType(question) === 'excelTrainer' && trainerGradable(question.trainer) ? (
+                    <Suspense fallback={null}>
+                      <ExcelTrainer
+                        spec={question.trainer}
+                        value={selectedAnswer}
+                        disabled={state.basicSubmitted}
+                        onChange={v => setFreeAnswer(question.id, v)}
+                      />
+                    </Suspense>
                     /* Пропуски со списками: форма выбирается прямо в строке. */
                     ) : qType(question) === 'dropdownGap' && gapChoiceRows(question).length > 0 ? (
                     <DropdownGapSolver
@@ -4848,8 +4898,8 @@ export default function HomeworkFlow({
                   // env() safe-area is folded into the animated `bottom` via marginBottom
                   // so framer can tween the numeric part while the inset stays applied.
                   marginBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : 0,
-                  left: '50%', x: '-50%', transformOrigin: 'bottom center',
-                  zIndex: 100, width: 'min(560px, calc(100vw - 48px))',
+                  left: HW_COLUMN_LEFT, x: '-50%', transformOrigin: 'bottom center',
+                  zIndex: 100, width: hwColumnWidth(560, 48),
                 }}
               >
                 <BottomProgressBar

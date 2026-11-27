@@ -147,7 +147,7 @@ export default function ScreenHotspotSolver({ spec, value, disabled = false, onC
             </button>
           )}
           {platform !== 'pc' && !locked && (
-            <p className="hs-gesture">{t('Сведите пальцы, чтобы приблизить, двойной тап — 100 %. Касание без сдвига — это ответ.')}</p>
+            <p className="hs-gesture">{t('Разведите пальцы, чтобы приблизить, двойной тап — 100\u00a0%. Касание без сдвига — это ответ.')}</p>
           )}
         </>
       ) : (
@@ -463,6 +463,9 @@ function HotspotViewport({ spec, src, natural, alt, outcome, locked, platform, f
               key={i}
               className="hs-tap"
               data-tone={ok ? 'ok' : 'bad'}
+              // Номер — с той стороны, где есть место: у края картинки он обрезался.
+              data-flip-x={view.x + tp.x * natural.w * T > W - 30 || undefined}
+              data-flip-y={view.y + tp.y * natural.h * T < 16 || undefined}
               style={{ left: view.x + tp.x * natural.w * T, top: view.y + tp.y * natural.h * T }}
               aria-hidden
             ><b>{i + 1}</b></span>
@@ -570,7 +573,7 @@ export function HotspotReview({ spec, answer }: { spec: HotspotSpec; answer: str
           <span key={a.id} className="hs-area" data-tone="trap" style={{ left: pc(a.x), top: pc(a.y), width: pc(a.w), height: pc(a.h) }} />
         ))}
         {out.taps.map((tp, i) => (
-          <span key={i} className="hs-tap" data-tone={out.hits[i]?.kind === 'target' ? 'ok' : 'bad'} style={{ left: pc(tp.x), top: pc(tp.y) }}><b>{i + 1}</b></span>
+          <span key={i} className="hs-tap" data-tone={out.hits[i]?.kind === 'target' ? 'ok' : 'bad'} data-flip-x={tp.x > 0.94 || undefined} data-flip-y={tp.y < 0.05 || undefined} style={{ left: pc(tp.x), top: pc(tp.y) }}><b>{i + 1}</b></span>
         ))}
       </div>
       <figcaption>

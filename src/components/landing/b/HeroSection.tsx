@@ -6,6 +6,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { useT } from '../../../lib/i18n'
 import ThemeToggleBtn from '../../ThemeToggleBtn'
+import LandingLangToggle from './LandingLangToggle'
 import IskraMark from '../IskraMark'
 import { asset, PrimaryButton, SecondaryButton } from './kit'
 import './landing-motion.css'
@@ -81,7 +82,7 @@ export function LandingHeader({ onLogin }: Actions) {
       >
         <a href="#top" className="iskra-host flex shrink-0 items-center gap-[10px] text-[20px] font-bold text-[var(--color-text)]">
           <IskraMark size={30} />
-          Искра
+          {t('Искра')}
         </a>
         <nav className="hidden items-center gap-[22px] text-[14px] font-medium text-[var(--color-muted)] lg:flex">
           {links.map(([href, label]) => (
@@ -89,6 +90,7 @@ export function LandingHeader({ onLogin }: Actions) {
           ))}
         </nav>
         <div className="ml-auto flex min-w-0 items-center gap-2.5">
+          <LandingLangToggle />
           <ThemeToggleBtn />
           <SecondaryButton size="sm" onClick={onLogin} className="h-[46px]">
             <span className="hidden sm:inline">{t('Личный кабинет')}</span>

@@ -16,9 +16,12 @@
 // «краткого правила» не заводим, иначе учителю пришлось бы писать текст дважды.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Model3DFigure from './Model3DFigure'
 import { isModelRef } from '../lib/models3d/registry'
+import { isLabRef } from '../lib/excelLab/embed'
+// Живые блоки курса «Бухгалтерия» — отдельным чанком: нужны только там, где они есть.
+const ExcelLabFigure = lazy(() => import('./excelLab/ExcelLabFigure'))
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useMotionValue, animate } from 'framer-motion'
 import { BookOpen, X } from './icons/appIcons'
@@ -291,6 +294,8 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
             >
               <NotesWithReveals paragraphs={paragraphs} unlocked={unlocked} renderPara={p => p.image && isModelRef(p.image) ? (
                 <Model3DFigure key={p.id} src={p.image} caption={p.text} />
+              ) : p.image && isLabRef(p.image) ? (
+                <Suspense key={p.id} fallback={null}><ExcelLabFigure src={p.image} caption={p.text} /></Suspense>
               ) : p.image ? (
                 <figure key={p.id} style={{ margin: 0 }}>
                   {/* Нажатие — на весь экран с масштабом: в шторке на телефоне

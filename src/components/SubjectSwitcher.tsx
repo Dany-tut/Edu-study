@@ -44,9 +44,25 @@ function withNotes(cards: (Card & { groupName: string; individual: boolean })[],
 // Карточки человека + переход между ними. Хук, а не только компонент: оболочек
 // две — выпадашка в сайдбаре (десктоп) и шторка из шапки профиля (телефон), а
 // список карточек и перезагрузка при переходе у них одни.
+// Последний известный список карточек — чтобы строка выбора курса в меню
+// профиля стояла сразу, а не выпрыгивала после ответа базы (меню иначе
+// меняет высоту при каждом открытии). Свежий список всё равно грузим.
+const cacheKey = (id: string) => `subject_cards_v1_${id}`
+function readCachedCards(id: string | undefined): Card[] {
+  if (!id) return []
+  try {
+    const raw = localStorage.getItem(cacheKey(id))
+    const parsed = raw ? JSON.parse(raw) : null
+    return Array.isArray(parsed) ? parsed as Card[] : []
+  } catch { return [] }
+}
+function writeCachedCards(id: string, cards: Card[]) {
+  try { localStorage.setItem(cacheKey(id), JSON.stringify(cards)) } catch { /* приватный режим */ }
+}
+
 export function useSubjectCards() {
   const session = getStudentSession()
-  const [cards, setCards] = useState<Card[]>([])
+  const [cards, setCards] = useState<Card[]>(() => readCachedCards(session?.id))
 
   useEffect(() => {
     let cancelled = false
@@ -78,7 +94,9 @@ export function useSubjectCards() {
           groupName: r.groups?.name ?? '',
           individual: !!r.groups?.is_individual,
         }))
-      setCards(withNotes(mapped, session.name))
+      const next = withNotes(mapped, session.name)
+      writeCachedCards(session.id, next)
+      setCards(next)
     })()
     return () => { cancelled = true }
   }, [session?.id])

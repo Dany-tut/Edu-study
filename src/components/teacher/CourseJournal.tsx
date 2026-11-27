@@ -1,10 +1,12 @@
 import OpticalText from '../OpticalText'
 import { useEffect, useMemo, useRef, useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, RotateCcw, Search, Users, X, Filter, BarChart2 } from '../icons/appIcons'
+import { BookOpen, Check, ChevronRight, CircleAlert, Download, Plus, RefreshCw, RotateCcw, ClipboardPaste, Search, Users, X, Filter, BarChart2 } from '../icons/appIcons'
 import AttendanceEditor from './journalStand/AttendanceEditor'
 import MobileJournalTransfer from './MobileJournalTransfer'
 import { isRecordingColumn } from '../../lib/journalTransfer'
+import { PLATFORM } from '../../lib/platform'
+import { useIpadScreenActions } from '../../store/ipadRailActionsStore'
 import JournalSkeleton from './JournalSkeleton'
 import Modal from '../Modal'
 import MobileSheet from '../MobileSheet'
@@ -209,6 +211,16 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
   const [transfer, setTransfer] = useState(false)
   const [transferBar, setTransferBar] = useState<{ dirty: number; busy: boolean }>({ dirty: 0, busy: false })
   const transferActions = useRef<{ save: () => void; paste: () => void }>({ save: () => {}, paste: () => {} })
+  // iPad-портрет (platforms.md §1.1): перенос, вставка и «Сохранить/Готово» — в капсуле справа.
+  const ipadRail = PLATFORM === 'ipad' && mobile
+  useIpadScreenActions(!ipadRail ? null : data && !data.demo ? [
+    { id: 'journal-transfer', icon: RotateCcw, label: t(transfer ? 'Выйти из переноса' : 'Перенос прошлого'), pressed: transfer, onClick: () => setTransfer(v => !v) },
+    ...(transfer ? [
+      { id: 'journal-paste', icon: ClipboardPaste, label: t('Вставить из таблицы'), onClick: () => transferActions.current.paste() },
+      { id: 'journal-save', icon: Check, label: transferBar.busy ? t('Сохранение…') : transferBar.dirty ? `${t('Сохранить')} · ${transferBar.dirty}` : t('Готово'),
+        disabled: transferBar.busy, onClick: () => { if (transferBar.dirty) transferActions.current.save(); else setTransfer(false) } },
+    ] : []),
+  ] : [])
   const [demoPresent, setDemoPresent] = useState<Record<string, boolean | null>>({})
   const pendingId = useTeacher(s => s.pendingGradebookLessonId)
   const clearPending = useTeacher(s => s.clearPendingGradebookLesson)
@@ -369,7 +381,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
             <Filter size={18} />{activeMobileFilters > 0 && <span className="cj-mobile-filter-count">{activeMobileFilters}</span>}
           </button>
         </section>
-        <div className="cj-mobile-search-row">{studentSearch}{!data.demo && <button className="cj-icon-button" type="button" aria-label={t('Перенос прошлого')} aria-pressed={transfer} onClick={() => setTransfer(v => !v)}><RotateCcw size={18} /></button>}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
+        <div className="cj-mobile-search-row">{studentSearch}{!data.demo && !ipadRail && <button className="cj-icon-button" type="button" aria-label={t('Перенос прошлого')} aria-pressed={transfer} onClick={() => setTransfer(v => !v)}><RotateCcw size={18} /></button>}<button className="cj-icon-button" type="button" aria-label={t('Результаты')} aria-haspopup="dialog" aria-expanded={mobileSummaryOpen} onClick={() => setMobileSummaryOpen(true)}><BarChart2 size={18} /></button></div>
       </>}
       <MobileSheet open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} title={t('Фильтры')} footer={<button className="cj-button cj-primary cj-mobile-panel-done" type="button" onClick={() => setMobileFiltersOpen(false)}><OpticalText as="iskra-button-label">{t('Готово')}</OpticalText></button>}>
         <div className="course-journal cj-mobile cj-mobile-filter-panel">
@@ -398,7 +410,7 @@ export default function CourseJournal({ mobile = false, nativeIphone = false }: 
     {onlyAttention && <div className="cj-active-filter"><CircleAlert size={14} /><span>{t('Показаны ученики, которым нужно внимание')}</span><button data-hover="layer" type="button" onClick={() => setOnlyAttention(false)}><OpticalText as="iskra-button-label">{t('Сбросить')}</OpticalText></button></div>}
     {pendingEvents.length > 0 && !(mobile && transfer) && <div className="cj-pending-alert"><CircleAlert size={17} /><span>{t('Есть незаполненные занятия')}: {pendingEvents.length}</span><button data-hover="layer" type="button" onClick={() => openMark(pendingEvents[0].id)}><OpticalText as="iskra-button-label">{t('Заполнить')}</OpticalText><ChevronRight size={13} /></button></div>}
     {mobile && transfer && index && !data.demo ? <MobileJournalTransfer key={courseId} data={data} index={index} students={filteredRoster} columns={allColumns}
-      today={today} time={now.time} nativeIphone={nativeIphone} onExit={() => setTransfer(false)} onCommitted={commitAttendance} onSaved={reload}
+      today={today} time={now.time} nativeIphone={nativeIphone || ipadRail} onExit={() => setTransfer(false)} onCommitted={commitAttendance} onSaved={reload}
       onBar={bar => {
         transferActions.current = { save: bar.save, paste: bar.paste }
         if (bar.dirty !== transferBar.dirty || bar.busy !== transferBar.busy) setTransferBar({ dirty: bar.dirty, busy: bar.busy })

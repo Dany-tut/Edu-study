@@ -80,6 +80,10 @@ export function taskStage(t: AnyTask): Stage {
     case 'screenHotspot':
       return 2
 
+    // Тренажёр Excel: менять значения и чинить формулу — применение с опорой на таблицу.
+    case 'excelTrainer':
+      return 3
+
     // Генерация с опорой: ответ собирается из выданных плиток.
     case 'buildSyllable':
     case 'wordBank':
@@ -145,6 +149,7 @@ const SECONDS: Record<string, number> = {
   trueFalse: 60,
   dropdownGap: 40,
   screenHotspot: 30,
+  excelTrainer: 120,
   embed: 120,
   testly: 1500,
   columnSort: 60,

@@ -10,6 +10,8 @@ export type ScoreMode = 'perOption' | 'criteria' | 'whole'
 
 export type AnswerType =
   | 'single' | 'multi' | 'fill' | 'matching' | 'sequence' | 'tableFill' | 'extended'
+  // Данные типа — в payload: hotspot у «Найди на экране», допуск и единицы у «Числа».
+  | 'screenHotspot' | 'numeric'
 
 export interface TaskChoice { id: string; text: string; correct: boolean; points?: number }
 export interface TaskAnswerKey { id: string; keyword: string; points: number }
@@ -49,6 +51,19 @@ export interface Task {
    * больше не требует миграции схемы (см. 0051_task_bank_payload).
    */
   payload?: Record<string, unknown>
+  /** Экзамен: ЕГЭ или ОГЭ (миграция 20261127200000). Старые строки — 'ege'. */
+  exam?: 'ege' | 'oge'
+  /** Год КИМ ФИПИ, по которому размечено задание; null — вне КИМ. */
+  kimYear?: number | null
+  /** Коды кодификатора ФИПИ (КЭС), например ['2.2', '2.3']. */
+  kes?: string[]
+  /** Номер задания в открытом банке ФИПИ (6 hex). */
+  fipiId?: string | null
+  /**
+   * Правило баллов — названия как в Тестли (lib/tests.ts): всё или ничего,
+   * балл за элемент, «ЕГЭ: одна ошибка — минус балл», по критериям.
+   */
+  scoring?: 'all_or_nothing' | 'per_item' | 'ege_minus_one' | 'one_error_minus_one' | 'criteria' | 'none' | null
 }
 
 // ── Chemistry (ЕГЭ 2026) ─────────────────────────────────────────────────────

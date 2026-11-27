@@ -68,6 +68,8 @@ const GROUP_DEFS = [
   { name: 'Хим ЕГЭ 2027 · Б', subject: 'Химия', level: 'ЕГЭ', icon: '⚗️', color: '#5B8DEF', colorSoft: '#E7EFFD' },
   { name: 'Био ЕГЭ 2027', subject: 'Биология', level: 'ЕГЭ', icon: '🧬', color: '#3FCC8A', colorSoft: '#E3F7EE' },
   { name: 'Био ОГЭ 2027 интенсив', subject: 'Биология', level: 'ОГЭ', icon: '🧬', color: '#F59E0B', colorSoft: '#FDF1DC' },
+  // Взрослая группа без школьного контекста (?groups=5): без класса, родителя и балла ЕГЭ.
+  { name: 'Бухгалтерия · практики', subject: 'Бухгалтерия', level: 'Взрослые', icon: '📊', color: '#2FA862', colorSoft: '#E3F5EA' },
 ] as const
 const FIRST = ['Алиса', 'Максим', 'София', 'Артём', 'Ева', 'Михаил', 'Варвара', 'Тимофей', 'Полина', 'Лев', 'Анна', 'Марк', 'Виктория', 'Даниил', 'Ульяна', 'Егор', 'Мирослава', 'Константин', 'Александра', 'Святослав']
 const LAST = ['Иванова', 'Смирнов', 'Кузнецова', 'Попов', 'Васильева', 'Петров', 'Соколова', 'Михайлов', 'Новикова', 'Фёдоров', 'Морозова', 'Волков', 'Алексеева', 'Лебедев', 'Семёнова', 'Егоров', 'Павлова', 'Козлов', 'Степанова-Огородникова', 'Николаев']
@@ -80,7 +82,7 @@ function roster(k: Knobs) {
   const groups: Group[] = Array.from({ length: k.groups }, (_, i) => {
     const d = GROUP_DEFS[i % GROUP_DEFS.length]
     return { id: id('grp', i), name: i < GROUP_DEFS.length ? d.name : `${d.name} (${Math.floor(i / GROUP_DEFS.length) + 1})`,
-      subject: d.subject, icon: d.icon, level: d.level, color: d.color, colorSoft: d.colorSoft,
+      subject: d.subject as Group['subject'], icon: d.icon, level: d.level, color: d.color, colorSoft: d.colorSoft,
       startDate: '2026-09-01', studentCount: k.size, lessonsCompleted: 18, totalLessons: 64, isIndividual: false, tracks: [] }
   })
   const students: Student[] = []

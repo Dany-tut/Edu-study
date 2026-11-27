@@ -26,7 +26,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { Alert, AlertStack } from '../../components/Alert'
 import { typeVisual } from '../../data/taskTypeVisuals'
 import { bankSubjectOptionsFor, subjectIcon, getSubject, isLanguageSubject, SUBJECTS, isMySubject, courseSubjectOptionsFor, teacherSubjectDefs, ICON_GAP } from '../../lib/subjects'
-import { taskTypesFor } from '../../data/taskTypes'
+import { taskTypesFor, parseNumeric } from '../../data/taskTypes'
 import { languageTaxonomy, tagsLabel, type TaskLanguageTags } from '../../data/languageTaxonomy'
 import { diagShareUrl } from '../../lib/diagShareUrl'
 import { levelOptions, matchesLevel, levelOptionsForSubject, levelBuckets, sortLevels } from '../../lib/courseLevels'
@@ -48,6 +48,7 @@ import { copyToClipboard } from '../../lib/clipboard'
 import { trackEvent } from '../../lib/analytics'
 import { supabase } from '../../lib/supabase'
 import { patchExplicitClears, withExplicitClears } from '../../lib/lessonExplicitClears'
+import { partClearPair } from '../../lib/lessonHeldFiles'
 import { subscribeTeacherDataChanges } from '../../lib/teacherDataRealtime'
 import { isCourseResetRef } from '../../lib/homeworkReset'
 import { runCourseCopy } from '../../lib/courseCopyRequest'
@@ -97,6 +98,10 @@ import { confirmDialog, alertDialog } from '../../components/ConfirmHost'
 import { alertMissingAnswers, breakAtDash, isDiagMissingAnswer } from '../../lib/answerCheck'
 import QuestionTable, { type QTable } from '../../components/QuestionTable'
 import BackCircle from '../../components/BackCircle'
+import Switch from '../../components/Switch'
+import { hotspotGradable, hotspotIssues, type HotspotSpec } from '../../lib/screenHotspot'
+// Тот же редактор областей, что в редакторе курса; холст тяжёлый — грузится по требованию.
+const ScreenHotspotEditor = lazy(() => import('../../components/teacher/ScreenHotspotEditor'))
 
 type NewBankTask = Omit<BankTask, 'id'>
 // Высота таблеток верхней строки Конструктора (вкладки, крестик режима
@@ -2061,6 +2066,9 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   // Урок прочитан из базы: только тогда пустое поле при сохранении — стёртое
   // учителем, а не незагруженное (защита данных, X-Iskra-Explicit-Clear).
   const loadedFromDb = useRef(false)
+  // Что сейчас у учеников: опустевший здесь конспект или главы не стираем без
+  // «Убрать у учеников» (lib/lessonHeldFiles, защита данных после 22.11).
+  const server = useRef<{ paragraphs: LessonParagraph[]; timecodes: LessonTimecodeRow[]; transcript?: LessonContentData['transcript'] }>({ paragraphs: [], timecodes: [] })
 
   useEffect(() => {
     let alive = true
@@ -2070,6 +2078,11 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
       if (!alive) return
       loadedFromDb.current = !!data
       const dbc = (data?.content ?? undefined) as LessonContentData | undefined
+      server.current = {
+        paragraphs: Array.isArray(dbc?.paragraphs) ? dbc!.paragraphs : [],
+        timecodes: Array.isArray(data?.timecodes) ? (data!.timecodes as LessonTimecodeRow[]) : [],
+        transcript: dbc?.transcript ?? undefined,
+      }
       setTranscript(dbc?.transcript)
       // Запасной конспект из кода — по short_id урока (см. authoredLessons.ts).
       const src = (dbc && dbc.paragraphs?.length) ? dbc : authoredLesson(shortId)
@@ -2084,26 +2097,39 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
     return () => { alive = false }
   }, [shortId])
 
-  async function save() {
+  const heldParas = loadedFromDb.current && !paras.some(p => p.text.trim()) && server.current.paragraphs.length > 0
+  const heldCodes = loadedFromDb.current && !timecodes.some(c => c.time.trim() || c.label.trim()) && server.current.timecodes.length > 0
+  // Расшифровку собираем только для текущего видео: сменили ссылку — у учеников
+  // остаётся прежняя (им она не видна), стереть — «Убрать у учеников».
+  const transcriptNow = transcript && transcript.source === videoUrl.trim() ? transcript : undefined
+  const heldTranscript = loadedFromDb.current && !transcriptNow && !!server.current.transcript
+  async function save(approve: Array<'content.paragraphs' | 'timecodes' | 'content.transcript'> = []) {
     // Пустой вопрос-заготовка не мешает, а вопрос с текстом без отмеченного варианта — мешает.
     const noAnswer = quiz.flatMap((q, i) => (q.prompt.trim() || q.options.some(o => o.text.trim())) && !q.options.find(o => o.id === q.correctOptionId)?.text.trim() ? [`${t('Вопрос')} ${i + 1}`] : [])
     if (alertMissingAnswers(noAnswer, t('Впишите вариант и отметьте его правильным.'))) return
     setSaving(true); setMsg('')
-    const content: LessonContentData = { ...(transcript && transcript.source === videoUrl.trim() ? { transcript } : {}), paragraphs: paras.filter(p => p.text.trim()), quiz, hardTask }
-    const patch = {
+    const keepParas = heldParas && !approve.includes('content.paragraphs')
+    const keepCodes = heldCodes && !approve.includes('timecodes')
+    const keepTranscript = heldTranscript && !approve.includes('content.transcript')
+    const content: LessonContentData = { ...(transcriptNow ? { transcript: transcriptNow } : keepTranscript ? { transcript: server.current.transcript } : {}), paragraphs: keepParas ? server.current.paragraphs : paras.filter(p => p.text.trim()), quiz, hardTask }
+    const nextCodes = timecodes.filter(t => t.time.trim() || t.label.trim()).map(t => ({ ...t, seconds: parseSeconds(t.time) }))
+    const patch: Record<string, unknown> = {
       content,
       youtube_url: videoUrl.trim() || null,
       description: description.trim() || null,
-      timecodes: timecodes.filter(t => t.time.trim() || t.label.trim()).map(t => ({ ...t, seconds: parseSeconds(t.time) })),
+      ...(keepCodes ? {} : { timecodes: nextCodes }),
     }
+    const clears = loadedFromDb.current ? [...patchExplicitClears(shortId, patch), ...approve.map(part => partClearPair(shortId, part))] : []
     // .select() returns affected rows — an empty array means RLS blocked the write
     // (e.g. the teacher session expired); Postgres reports that without an error.
-    const { data, error } = await withExplicitClears(supabase.from('lessons').update(patch),
-      loadedFromDb.current ? patchExplicitClears(shortId, patch) : []).eq('short_id', shortId).select('short_id')
+    const { data, error } = await withExplicitClears(supabase.from('lessons').update(patch), clears).eq('short_id', shortId).select('short_id')
     setSaving(false)
     if (error) setMsg(t('Ошибка: ') + (error.message))
     else if (!data || data.length === 0) setMsg(t('Не сохранено: нет прав. Войдите в аккаунт преподавателя заново.'))
-    else setMsg(t('✓ Сохранено — ученики увидят обновление'))
+    else {
+      server.current = { paragraphs: content.paragraphs ?? [], timecodes: keepCodes ? server.current.timecodes : nextCodes, transcript: content.transcript }
+      setMsg(t('✓ Сохранено — ученики увидят обновление'))
+    }
   }
 
   const setPara = (id: string, text: string) => setParas(prev => prev.map(p => p.id === id ? { ...p, text } : p))
@@ -2125,7 +2151,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
           <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('Связано с базой ·')} {shortId}</div>
         </div>
         {msg && <span style={{ fontSize: 12, fontWeight: 600, color: msg.startsWith('✓') ? 'var(--color-green-text)' : 'var(--color-red-text)' }}>{msg}</span>}
-        <button data-hover="layer" onClick={save} disabled={saving || loading}
+        <button data-hover="layer" onClick={() => void save()} disabled={saving || loading}
           style={{ padding: '10px 18px', borderRadius: 999, border: 'none', background: 'var(--color-purple-soft)', color: 'var(--color-accent)', fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
           <OpticalText as="iskra-button-label">{saving ? t('Сохраняю…') : t('Сохранить в базу')}</OpticalText>
         </button>
@@ -2134,6 +2160,28 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         {/* CENTER — tabbed content */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* Убранное только здесь: у учеников ещё прежнее. */}
+          {(heldParas || heldCodes || heldTranscript) && (
+            <div style={{ padding: '14px 24px 0' }}>
+              <AlertStack items={([
+                heldParas && { part: 'content.paragraphs' as const, title: t('Конспект убран только в редакторе.'), restore: () => setParas(server.current.paragraphs.map(p => ({ ...p }))) },
+                heldCodes && { part: 'timecodes' as const, title: t('Главы записи убраны только в редакторе.'), restore: () => setTimecodes(server.current.timecodes.map(c => ({ ...c }))) },
+                heldTranscript && (server.current.transcript?.source === videoUrl.trim()
+                  ? { part: 'content.transcript' as const, title: t('Расшифровка убрана только в редакторе.'), restore: () => setTranscript(server.current.transcript) }
+                  : { part: 'content.transcript' as const, title: t('Расшифровка осталась от прежней записи.'), note: t('Ученикам она не видна: видео урока другое.') }),
+              ].filter(Boolean) as Array<{ part: 'content.paragraphs' | 'timecodes' | 'content.transcript'; title: string; restore?: () => void; note?: string }>).map(item => ({
+                id: item.part, tone: 'info' as const, title: item.title,
+                text: item.note ?? <>
+                  {t('Ученики пока видят прежнюю версию —')}{' '}
+                  <button type="button" data-hover="layer" onClick={item.restore}
+                    style={{ border: 'none', background: 'none', padding: 0, font: 'inherit', color: 'var(--color-purple-text)', textDecoration: 'underline', cursor: 'pointer' }}>
+                    {t('верните её')}
+                  </button>.
+                </>,
+                action: { label: t('Убрать у учеников'), onClick: () => { void save([item.part]) } },
+              }))} />
+            </div>
+          )}
           {/* tabs */}
           <div style={{ display: 'flex', gap: 6, padding: '14px 24px 0' }}>
             {([['lesson', t('Урок')], ['record', t('Запись')]] as const).map(([k, label]) => (
@@ -2262,7 +2310,7 @@ function LessonFullEditor({ dbCourseId, lessons, lessonIndex, onSwitch, onClose 
   )
 }
 
-function CreatorView({
+export function CreatorView({
   initialMode,
   editCourse,
   editTrainer,
@@ -2358,6 +2406,17 @@ function CreatorView({
       ? (editingTask.answer ?? '') : ''
   )
   const [tkAllowPhoto, setTkAllowPhoto] = usePersistentState(tkDraft + 'allowPhoto', editingTask?.allowPhoto ?? true)
+  // «Число» и «Найди на экране» — данные типа лежат в payload задания банка
+  // (как в курсе: numTolerance/unit/decimals/decimal/numpad и hotspot).
+  const editPayload = (editingTask?.payload ?? {}) as Record<string, unknown>
+  const [tkNumAnswer, setTkNumAnswer] = usePersistentState(tkDraft + 'numAnswer',
+    editingTask?.answerType === 'numeric' ? (editingTask.answer ?? '') : '')
+  const [tkNumTol, setTkNumTol] = usePersistentState<number | undefined>(tkDraft + 'numTol', editPayload.numTolerance as number | undefined)
+  const [tkNumUnit, setTkNumUnit] = usePersistentState<string>(tkDraft + 'numUnit', (editPayload.unit as string | undefined) ?? '')
+  const [tkNumDecimals, setTkNumDecimals] = usePersistentState<number | undefined>(tkDraft + 'numDecimals', editPayload.decimals as number | undefined)
+  const [tkNumDecimal, setTkNumDecimal] = usePersistentState<boolean>(tkDraft + 'numDecimal', (editPayload.decimal as boolean | undefined) ?? true)
+  const [tkNumpad, setTkNumpad] = usePersistentState<boolean>(tkDraft + 'numpad', (editPayload.numpad as boolean | undefined) ?? true)
+  const [tkHotspot, setTkHotspot] = usePersistentState<HotspotSpec | undefined>(tkDraft + 'hotspot', editPayload.hotspot as HotspotSpec | undefined)
   // matching — left prompts mapped to right options
   const [tkMatchLeft, setTkMatchLeft] = usePersistentState<string[]>(tkDraft + 'matchLeft', editingTask?.matchLeft ?? ['', ''])
   const [tkMatchRight, setTkMatchRight] = usePersistentState<string[]>(tkDraft + 'matchRight', editingTask?.matchRight ?? ['', ''])
@@ -2585,6 +2644,8 @@ function CreatorView({
     setTkMatchLeft(['', '']); setTkMatchRight(['', '']); setTkMatchMap([0, 1])
     setTkSeq(['', '']); setTkSolution('')
     setAnswerKeys([]); setCriteria([])
+    setTkNumAnswer(''); setTkNumTol(undefined); setTkNumUnit(''); setTkNumDecimals(undefined)
+    setTkNumDecimal(true); setTkNumpad(true); setTkHotspot(undefined)
   }
 
   const critTotal = criteria.reduce((s, c) => s + c.points, 0)
@@ -2644,14 +2705,27 @@ function CreatorView({
       part: tkPart, line: tkLine, source: tkSource,
       // Языковая разметка: уровень / навык / тема / формат экзамена.
       // Едет в payload, поэтому новый тип разметки не требует миграции.
-      ...(langTax ? {
-        payload: {
-          level: tkLevel || undefined,
-          skill: tkSkill || undefined,
-          topic: tkTopic || undefined,
-          examTask: tkExamTask || undefined,
-        },
-      } : {}),
+      //
+      // Прежний payload правки сохраняется целиком: в нём могут лежать поля,
+      // которых эта форма не знает. Данные «Числа» и «Найди на экране»
+      // кладутся только для своего типа, при смене типа — убираются.
+      payload: (() => {
+        const { numTolerance: _t, unit: _u, decimals: _d, decimal: _c, numpad: _n, hotspot: _h, ...keep } = editPayload
+        return {
+          ...keep,
+          ...(langTax ? {
+            level: tkLevel || undefined,
+            skill: tkSkill || undefined,
+            topic: tkTopic || undefined,
+            examTask: tkExamTask || undefined,
+          } : {}),
+          ...(tkAnswerType === 'numeric' ? {
+            numTolerance: tkNumTol, unit: tkNumUnit.trim() || undefined,
+            decimals: tkNumDecimals, decimal: tkNumDecimal, numpad: tkNumpad,
+          } : {}),
+          ...(tkAnswerType === 'screenHotspot' ? { hotspot: tkHotspot } : {}),
+        }
+      })(),
       question: tkQuestion, solution: tkSolution.trim(),  // preserve HTML formatting
       difficulty: tkDifficulty,
       answerType: tkAnswerType,
@@ -2693,6 +2767,16 @@ function CreatorView({
       if (!ans) return null
       return { ...base, questionType: 'free', answer: ans }
     }
+    if (tkAnswerType === 'numeric') {
+      const ans = tkNumAnswer.trim()
+      if (parseNumeric(ans) === null) return null
+      return { ...base, questionType: 'free', answer: ans }
+    }
+    if (tkAnswerType === 'screenHotspot') {
+      // Ответ — нажатия по областям; строки-эталона у задания нет.
+      if (!hotspotGradable(tkHotspot) || hotspotIssues(tkHotspot).length) return null
+      return { ...base, questionType: 'free', answer: '' }
+    }
     // fill / extended
     const ans = tkShortAnswer.trim()
     if (tkAnswerType === 'fill' && !ans) return null
@@ -2714,6 +2798,8 @@ function CreatorView({
     if (tkAnswerType === 'matching') return t('Заполните обе колонки сопоставления.')
     if (tkAnswerType === 'sequence') return t('Заполните все шаги последовательности.')
     if (tkAnswerType === 'tableFill' && !tkHasTable) return t('Добавьте таблицу и впишите ответ.')
+    if (tkAnswerType === 'numeric') return t('Впишите правильный ответ числом — например, 69,94.')
+    if (tkAnswerType === 'screenHotspot') return hotspotIssues(tkHotspot).map(x => t(x)).join(' ') || t('Отметьте хотя бы одну верную область.')
     return t('Впишите правильный ответ и сохраните ещё раз.')
   }
 
@@ -3310,6 +3396,42 @@ function CreatorView({
                     minHeight={growMinHeight(3, 13, 9, 0)} style={inputSt} />
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 6 }}>{t('Ответ ученика сверяется без учёта регистра.')}</div>
                 </div>
+              )}
+
+              {/* numeric — эталон, допуск ±, единицы; подписи внутри полей, как в редакторе курса */}
+              {tkAnswerType === 'numeric' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input style={inputSt} inputMode="decimal" value={tkNumAnswer}
+                      onChange={e => setTkNumAnswer(e.target.value)}
+                      placeholder={t('Правильный ответ, число')} aria-label={t('Правильный ответ, число')} />
+                    <input style={inputSt} inputMode="decimal" value={tkNumTol ?? ''}
+                      onChange={e => { const v = e.target.value.replace(',', '.').trim(); setTkNumTol(v && !Number.isNaN(Number(v)) ? Number(v) : undefined) }}
+                      placeholder={t('Допуск ±')} aria-label={t('Допуск ±')} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input style={inputSt} value={tkNumUnit} onChange={e => setTkNumUnit(e.target.value)}
+                      placeholder={t('Единицы — покажем ученику')} aria-label={t('Единицы измерения')} />
+                    <input style={inputSt} inputMode="numeric" value={tkNumDecimals ?? ''}
+                      onChange={e => { const v = e.target.value.replace(/\D/g, ''); setTkNumDecimals(v ? Number(v) : undefined) }}
+                      placeholder={t('Знаков после запятой')} aria-label={t('Знаков после запятой')} />
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={tkNumDecimal} onChange={setTkNumDecimal} label={t('Десятичное число')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Десятичное число')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('принимать 69,94 и 69.94')}</span></span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={tkNumpad} onChange={setTkNumpad} label={t('Нампад на телефоне')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Нампад на телефоне')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('цифровая клавиатура у ученика')}</span></span>
+                  </label>
+                </div>
+              )}
+
+              {/* screenHotspot — картинка и области-ответы, тот же редактор, что в курсе */}
+              {tkAnswerType === 'screenHotspot' && (
+                <Suspense fallback={null}>
+                  <ScreenHotspotEditor value={tkHotspot} onChange={setTkHotspot} accent={cfg} />
+                </Suspense>
               )}
 
               {/* tableFill */}

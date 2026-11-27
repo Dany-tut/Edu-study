@@ -373,6 +373,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   const playbackRequestedAt = useRef<number | null>(null)
   const lastFrameQuality = useRef<{ dropped: number; decoded: number } | null>(null)
   const lastDroppedFrameReport = useRef(0)
+  const noPictureReported = useRef(false)
   /** Начало непрерывно отсматриваемого куска — от него растёт текущий отрезок. */
   const segStart = useRef<number | null>(null)
   /** Последняя секунда, отданная наружу. */
@@ -510,6 +511,7 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   }, [])
   useEffect(() => {
     if (!started || source.kind === 'youtube' || source.kind === 'rutube') return
+    noPictureReported.current = false
     const timer = window.setInterval(() => {
       const video = videoRef.current
       if (!video || video.paused || video.ended) return
@@ -517,6 +519,13 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
       const dropped = quality?.droppedVideoFrames ?? (video as HTMLVideoElement & { webkitDroppedFrameCount?: number }).webkitDroppedFrameCount
       const decoded = quality?.totalVideoFrames ?? (video as HTMLVideoElement & { webkitDecodedFrameCount?: number }).webkitDecodedFrameCount
       if (typeof dropped !== 'number' || typeof decoded !== 'number') return
+      // Чёрный экран при идущем таймлайне: видеодорожка не декодируется (HEVC/H.265
+      // на Android, который браузер не умеет) — звук/прогресс идут, а кадров
+      // декодировано 0. Ловим ОДИН раз за ролик, чтобы такое было видно явно.
+      if (!noPictureReported.current && video.currentTime > 3 && video.readyState >= 2 && decoded === 0) {
+        noPictureReported.current = true
+        trackEvent('video_no_picture', playerMeta({ reason: 'no-frames-decoded' }))
+      }
       const previous = lastFrameQuality.current
       lastFrameQuality.current = { dropped, decoded }
       if (!previous) return
@@ -989,15 +998,59 @@ const LessonVideoPlayerInner = forwardRef<LessonVideoHandle, Props>(function Les
   }, [paused, started, wake])
 
   // ── Полный экран ──────────────────────────────────────────────────────────
+  // iPhone Safari НЕ поддерживает Element.requestFullscreen — только нативный
+  // webkitEnterFullscreen на самом <video>. Без этого фолбэка кнопка «на весь
+  // экран» на айфоне молча ничего не делала (тихий провал, в телеметрию ничего
+  // не летело). Теперь: пробуем стандартный API, падаем в нативный, и в ЛЮБОМ
+  // случае пишем событие — попытка/открыли/закрыли/не смогли.
+  const enterWebkitVideoFullscreen = useCallback((via: string) => {
+    const video = videoRef.current as (HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void; webkitSupportsFullscreen?: boolean
+    }) | null
+    if (!video?.webkitEnterFullscreen || video.webkitSupportsFullscreen === false) {
+      trackEvent('video_fullscreen_failed', playerMeta({ method: 'none', via, message: 'no fullscreen API' }))
+      return false
+    }
+    trackEvent('video_fullscreen', playerMeta({ action: 'enter', method: 'webkit-video', via }))
+    const onBegin = () => { setFullscreen(true); trackEvent('video_fullscreen', playerMeta({ action: 'opened', method: 'webkit-video' })) }
+    const onEnd = () => {
+      setFullscreen(false); trackEvent('video_fullscreen', playerMeta({ action: 'closed', method: 'webkit-video' }))
+      video.removeEventListener('webkitbeginfullscreen', onBegin)
+      video.removeEventListener('webkitendfullscreen', onEnd)
+    }
+    video.addEventListener('webkitbeginfullscreen', onBegin, { once: true })
+    video.addEventListener('webkitendfullscreen', onEnd, { once: true })
+    try { video.webkitEnterFullscreen(); return true } catch (e) {
+      video.removeEventListener('webkitbeginfullscreen', onBegin)
+      video.removeEventListener('webkitendfullscreen', onEnd)
+      trackEvent('video_fullscreen_failed', playerMeta({ method: 'webkit-video', via, message: String((e as Error)?.message ?? e) }))
+      return false
+    }
+  }, [])
+
   const toggleFullscreen = useCallback(() => {
     cancelFrameTap()
     const el = boxRef.current
     if (!el) return
-    if (document.fullscreenElement) document.exitFullscreen()
-    else el.requestFullscreen?.()
-  }, [cancelFrameTap])
+    if (document.fullscreenElement) { void document.exitFullscreen(); return }
+    // Стандартный Fullscreen API: десктоп, Android, iPad-Safari.
+    if (el.requestFullscreen) {
+      trackEvent('video_fullscreen', playerMeta({ action: 'enter', method: 'element' }))
+      el.requestFullscreen().catch((e: unknown) => {
+        trackEvent('video_fullscreen_failed', playerMeta({ method: 'element', message: String((e as Error)?.message ?? e) }))
+        enterWebkitVideoFullscreen('element-rejected')
+      })
+      return
+    }
+    // iPhone Safari: стандартного API нет — сразу нативный на <video>.
+    enterWebkitVideoFullscreen('no-element-api')
+  }, [cancelFrameTap, enterWebkitVideoFullscreen])
   useEffect(() => {
-    const onFs = () => setFullscreen(document.fullscreenElement === boxRef.current)
+    const onFs = () => {
+      const open = document.fullscreenElement === boxRef.current
+      setFullscreen(open)
+      trackEvent('video_fullscreen', playerMeta({ action: open ? 'opened' : 'closed', method: 'element' }))
+    }
     document.addEventListener('fullscreenchange', onFs)
     return () => document.removeEventListener('fullscreenchange', onFs)
   }, [])

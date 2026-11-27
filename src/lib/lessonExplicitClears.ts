@@ -46,8 +46,8 @@ export function lessonExplicitClears(confirmed: readonly LessonRow[], edited: re
 
 /** Значение заголовка или null, если очищать нечего. */
 export function explicitClearHeader(clears: readonly string[]): string | null {
-  // materials попадает сюда только по кнопке «Убрать у учеников» (lib/lessonHeldFiles).
-  const safe = clears.filter(pair => /^[A-Za-z0-9_-]+:(description|youtube_url|materials)$/.test(pair))
+  // materials, timecodes, test_tasks и части content — только по кнопке «Убрать у учеников» (lib/lessonHeldFiles).
+  const safe = clears.filter(pair => /^[A-Za-z0-9_-]+:(description|youtube_url|materials|timecodes|test_tasks|content|content\.(paragraphs|transcript|selfCheck|cardSetId|cardGroupId))$/.test(pair))
   return safe.length ? safe.join(',') : null
 }
 

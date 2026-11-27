@@ -1369,3 +1369,23 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 @media (max-width: 480px) {
   .answer-reveal-icon { display: none !important; }
 }
+
+/* ── Условия банка ФИПИ (тренажёр, FipiTask) ─────────────────────────────────
+   HTML ФИПИ приходит из Word: таблицы-раскладки (ячейки с формулами, столбцы
+   соответствия), картинки схем, пустые абзацы. Класс новый и узкий — общие
+   стили текста не трогает. */
+.fipi-html p { margin: 0 0 2px; }
+.fipi-html p:empty { display: none; }
+/* Таблицы — как QuestionTable Искры: скруглённая внешняя рамка, внутренние
+   линии только между ячейками, чётные строки чуть подсвечены. separate, а не
+   collapse: иначе border-radius у таблицы не работает. */
+.fipi-html table { border-collapse: separate; border-spacing: 0; margin: 6px 0; max-width: 100%; border: 1px solid var(--color-border-medium); border-radius: 16px; overflow: hidden; }
+.fipi-html td, .fipi-html th { padding: 8px 12px; vertical-align: top; border: 0; border-right: 1px solid var(--color-border-medium); border-bottom: 1px solid var(--color-border-medium); }
+.fipi-html tr > :last-child { border-right: 0; }
+.fipi-html tr:last-child > td, .fipi-html tr:last-child > th { border-bottom: 0; }
+.fipi-html tr:nth-child(even) > td { background: var(--color-bg-2); }
+.fipi-html th { font-weight: 700; background: var(--color-table-header-bg); text-align: left; }
+.fipi-html img { max-width: 100%; height: auto; border-radius: 10px; vertical-align: middle; }
+.fipi-html sup.fipi-over { font-size: 0.7em; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fipi-html img { background: #fff; padding: 4px; } }
+:root[data-theme="dark"] .fipi-html img { background: #fff; padding: 4px; }

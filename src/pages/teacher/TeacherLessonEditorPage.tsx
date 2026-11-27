@@ -19,6 +19,7 @@ import type { Group, Student, ScheduleItem } from '../../data/teacherMockData'
 import { useGroups, useAllStudents } from '../../lib/useGroups'
 import { supabase } from '../../lib/supabase'
 import { patchExplicitClears, withExplicitClears } from '../../lib/lessonExplicitClears'
+import { filesClearPair, heldLessonFiles, partClearPair } from '../../lib/lessonHeldFiles'
 import ScrollFade from '../../components/ScrollFade'
 import { useT, t as tGlobal, useTc, tc, tn } from '../../lib/i18n'
 import { useStickyLift } from '../../lib/useStickyLift'
@@ -31,7 +32,7 @@ import { readScheduleChapters, patchScheduleMaterials, patchScheduleChapters, ty
 import { scheduleMove } from '../../lib/teacherSchedule'
 import BackCircle from '../../components/BackCircle'
 import { confirmDialog } from '../../components/ConfirmHost'
-import { AlertStack } from '../../components/Alert'
+import { Alert, AlertStack } from '../../components/Alert'
 import { btn } from '../../lib/pillStyles'
 
 // ─── Style helpers ─────────────────────────────────────────────────────────────
@@ -1105,6 +1106,36 @@ export default function TeacherLessonEditorPage() {
   const [loaded, setLoaded] = useState<{
     id: string; shortId: string; stamp: string; materials: unknown; variants: unknown; publishedCodes: unknown; recording: string
   } | null>(null)
+  // Файлы, которые убраны только здесь: у учеников они ещё есть (lib/lessonHeldFiles).
+  const heldFiles = loaded ? heldLessonFiles(loaded.shortId, files, new Map([[loaded.shortId, loaded.materials]]), new Set()) : null
+  // Главы записи убраны все, а у учеников они есть — та же схема, что у файлов.
+  const heldTimecodes = !!loaded && timecodes.length === 0 && Array.isArray(loaded.publishedCodes) && loaded.publishedCodes.length > 0
+  async function clearHeldTimecodes() {
+    if (!loaded || !lessonRowId) return
+    let patch: Record<string, unknown>
+    try { patch = patchScheduleChapters([], loaded.variants, loaded.publishedCodes, loaded.recording.trim()) } catch (error) {
+      setPublishErr({ tone: 'danger', text: t(error instanceof Error ? error.message : 'Проверьте содержимое урока.') })
+      return
+    }
+    const result = await withExplicitClears(supabase.from('lessons').update(patch), [partClearPair(loaded.shortId, 'timecodes')])
+      .eq('id', lessonRowId).eq('updated_at', loaded.stamp).select('updated_at, chapter_variants, timecodes').maybeSingle()
+    if (result.error || !result.data?.updated_at) {
+      setPublishErr({ tone: 'danger', text: t('Не удалось убрать главы у учеников. Обновите страницу и попробуйте ещё раз.') })
+      return
+    }
+    setLoaded(previous => previous && { ...previous, stamp: result.data!.updated_at, variants: result.data!.chapter_variants, publishedCodes: result.data!.timecodes })
+  }
+  async function clearHeldFiles() {
+    if (!loaded || !lessonRowId) return
+    // Одно поле одного урока, с проверкой версии; прежняя строка — в iskra_history.
+    const result = await withExplicitClears(supabase.from('lessons').update({ materials: {} }), [filesClearPair(loaded.shortId)])
+      .eq('id', lessonRowId).eq('updated_at', loaded.stamp).select('updated_at, materials').maybeSingle()
+    if (result.error || !result.data?.updated_at) {
+      setPublishErr({ tone: 'danger', text: t('Не удалось убрать файлы у учеников. Обновите страницу и попробуйте ещё раз.') })
+      return
+    }
+    setLoaded(previous => previous && { ...previous, stamp: result.data!.updated_at, materials: result.data!.materials })
+  }
   const legacy = useRef({
     videoUrl: readDraft<string>(`${draftNs}.videoUrl`),
     timecodes: readDraft<Timecode[]>(`${draftNs}.timecodes`),
@@ -1249,8 +1280,10 @@ export default function TeacherLessonEditorPage() {
       if (fields.includes('videoUrl')) patch.youtube_url = videoUrl.trim() || null
       if (fields.includes('description')) patch.description = description.trim() || null
       try {
-        if (fields.includes('files')) patch.materials = patchScheduleMaterials(loaded.materials, parseLessonFiles(loaded.materials), files)
-        if (fields.includes('timecodes')) Object.assign(patch, patchScheduleChapters(timecodes, loaded.variants, loaded.publishedCodes, fields.includes('videoUrl') ? videoUrl.trim() : loaded.recording.trim()))
+        // Все файлы убраны, а у учеников они есть: не стираем — это делает только
+        // «Убрать у учеников» (lib/lessonHeldFiles, концепт Figma «Искра», стр. 23).
+        if (fields.includes('files') && !heldFiles) patch.materials = patchScheduleMaterials(loaded.materials, parseLessonFiles(loaded.materials), files)
+        if (fields.includes('timecodes') && !heldTimecodes) Object.assign(patch, patchScheduleChapters(timecodes, loaded.variants, loaded.publishedCodes, fields.includes('videoUrl') ? videoUrl.trim() : loaded.recording.trim()))
       } catch (error) {
         setPublishErr({ tone: 'danger', text: t(error instanceof Error ? error.message : 'Проверьте содержимое урока.') })
         return
@@ -1468,6 +1501,36 @@ export default function TeacherLessonEditorPage() {
                   <UploadTile icon={FolderOpen} label={t('Материалы')} slot="materials" files={files} onChange={value => { mark('files'); setFiles(value) }} />
                   <HomeworkCard hw={lessonHw} onOpen={openInCourse} />
                 </div>
+
+                {heldTimecodes && (
+                  <Alert
+                    tone="info"
+                    title={t('Главы записи убраны только в редакторе.')}
+                    text={<>
+                      {t('Ученики пока видят прежнюю версию —')}{' '}
+                      <button type="button" data-hover="layer" onClick={() => loaded && setTimecodes(readScheduleChapters(loaded.variants, loaded.publishedCodes, loaded.recording.trim()))}
+                        style={{ border: 'none', background: 'none', padding: 0, font: 'inherit', color: 'var(--color-purple-text)', textDecoration: 'underline', cursor: 'pointer' }}>
+                        {t('верните её')}
+                      </button>.
+                    </>}
+                    action={{ label: t('Убрать у учеников'), onClick: () => { void clearHeldTimecodes() } }}
+                  />
+                )}
+
+                {heldFiles && (
+                  <Alert
+                    tone="info"
+                    title={t('Файлы убраны только в редакторе.')}
+                    text={<>
+                      {t('Ученики пока видят прежние — добавьте новые или')}{' '}
+                      <button type="button" data-hover="layer" onClick={() => setFiles(structuredClone(heldFiles))}
+                        style={{ border: 'none', background: 'none', padding: 0, font: 'inherit', color: 'var(--color-purple-text)', textDecoration: 'underline', cursor: 'pointer' }}>
+                        {t('верните прежние')}
+                      </button>.
+                    </>}
+                    action={{ label: t('Убрать у учеников'), onClick: () => { void clearHeldFiles() } }}
+                  />
+                )}
 
                 {/* Description */}
                 <section style={{

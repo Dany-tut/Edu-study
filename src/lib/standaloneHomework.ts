@@ -46,6 +46,8 @@ interface DbBankTask {
   question_table: AuthoredHomeworkTask['table'] | null
   question_image: string | null
   question_image_size: number | null
+  answer_type: string | null
+  payload: Record<string, unknown> | null
 }
 
 /** Имя предмета группы — для заголовка трека-таблетки «Домашка». */
@@ -99,7 +101,7 @@ async function fetchBankTasks(ids: number[]): Promise<Map<number, DbBankTask>> {
   if (uniq.length === 0) return map
   const { data, error } = await supabase
     .from('task_bank')
-    .select('id, question, question_type, choices, answer, sequence_items, match_left, match_right, question_table, question_image, question_image_size')
+    .select('id, question, question_type, choices, answer, sequence_items, match_left, match_right, question_table, question_image, question_image_size, answer_type, payload')
     .in('id', uniq)
   if (error || !data) return map
   for (const row of data as DbBankTask[]) map.set(row.id, row)
@@ -117,6 +119,15 @@ function bankTaskToAuthored(t: DbBankTask): AuthoredHomeworkTask {
     question: t.question ?? '',
     image: t.question_image ?? undefined,
     imageSize: t.question_image_size ?? undefined,
+  }
+  // «Число» и «Найди на экране»: данные типа лежат в payload (допуск/единицы,
+  // области). Без них задание доезжало бы до ученика пустым полем текста.
+  if (t.answer_type === 'numeric') {
+    const { numTolerance, unit, decimals, decimal, numpad } = (t.payload ?? {}) as Partial<AuthoredHomeworkTask>
+    return { ...base, type: 'numeric', answer: t.answer ?? undefined, numTolerance, unit, decimals, decimal, numpad }
+  }
+  if (t.answer_type === 'screenHotspot' && t.payload?.hotspot) {
+    return { ...base, type: 'screenHotspot', hotspot: t.payload.hotspot as AuthoredHomeworkTask['hotspot'] }
   }
   if (t.question_type === 'choice' && Array.isArray(t.choices) && t.choices.length > 0) {
     return {

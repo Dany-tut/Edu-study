@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, ChevronUp, ExternalLink, RotateCcw } from './i
 import { useT } from '../lib/i18n'
 import { btn } from '../lib/pillStyles'
 import { IS_IOS } from '../lib/platform'
+import { HW_COLUMN_LEFT, hwColumnWidth } from '../lib/homeworkColumn'
 
 /** Портал держит панель у окна даже внутри анимированного контейнера урока. */
 export default function HomeworkResultActions({ isMobile, navCollapsed, onSummary, onBack, onReview, reviewUrl, onHard, onNext, onHeightChange }: {
@@ -35,8 +36,8 @@ export default function HomeworkResultActions({ isMobile, navCollapsed, onSummar
   return createPortal(
     <nav ref={panelRef} data-homework-bottom={isMobile ? '' : undefined} aria-label={t('Действия после сдачи')} style={{
       boxSizing: 'border-box', position: 'fixed', bottom: isMobile ? (navCollapsed ? 92 : 104) : 24,
-      marginBottom: 'env(safe-area-inset-bottom, 0px)', left: '50%', transform: 'translateX(-50%)',
-      zIndex: 100, width: 'min(620px, calc(100vw - 24px))', display: 'flex', flexWrap: 'wrap', gap: 6,
+      marginBottom: 'env(safe-area-inset-bottom, 0px)', left: HW_COLUMN_LEFT, transform: 'translateX(-50%)',
+      zIndex: 100, width: hwColumnWidth(620, 24), display: 'flex', flexWrap: 'wrap', gap: 6,
       padding: 8, borderRadius: 24,
       // iPhone/iPad — стекло, как у остальной плавающей хромировки; Android/ПК — плашка.
       ...(IS_IOS ? {
