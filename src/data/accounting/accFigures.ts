@@ -14,6 +14,8 @@
 import { toDataUri, esc, sheet, textW, fitFs, wrapLines, INK, MUTED, GRID, TILE, ACCENT, ACCENT_SOFT } from '../svgSheet'
 import { formTable } from '../lessonFigures'
 import { flowFigure, type FlowStep } from '../bioFigures'
+import { withLab } from '../../lib/excelLab/embed'
+import type { FormulaPart as LabFormulaPart, FormulaStep, XlSheet } from '../../lib/excelLab/spec'
 
 const W = 640
 const RECON = 'Учебная реконструкция — не снимок экрана. Расположение элементов условное, проверяйте названия в своём релизе.'
@@ -347,14 +349,10 @@ export function excelScreen(title: string, rows: string[][], opts: ExcelSheetOpt
 // пока интерактивный разбор не утверждён концептом.
 const PART_COLORS = ['#2E6FD8', '#C2410C', '#127A4B', '#7C3AED', '#B42318', '#0E7490', '#A16207']
 
-export interface FormulaPart {
-  /** Кусок формулы ровно как в ячейке; куски подряд дают всю формулу. */
-  text: string
-  /** Подпись: что это за часть. Пусто — служебный кусок (скобки, «;»), рисуется серым. */
-  label?: string
-}
+/** Кусок формулы ровно как в ячейке; label — подпись части (пусто — служебный кусок), refs — что подсветить в мини-таблице. */
+export type FormulaPart = LabFormulaPart
 
-export function formulaFig(title: string, parts: FormulaPart[], steps: Array<[string, string]> = [], opts: { note?: string } = {}): string {
+export function formulaFig(title: string, parts: FormulaPart[], steps: FormulaStep[] = [], opts: { note?: string; sample?: XlSheet | XlSheet[]; headers?: Record<string, string> } = {}): string {
   const fs = 15, mono = "Menlo, Consolas, 'Courier New', monospace"
   const charW = fs * 0.62
   const maxW = W - 48
@@ -405,5 +403,6 @@ export function formulaFig(title: string, parts: FormulaPart[], steps: Array<[st
     lines.forEach((ln, i) => out.push(`<text x="${W / 2}" y="${y + 14 + i * 15}" text-anchor="middle" font-size="11" fill="${MUTED}">${esc(ln)}</text>`))
     y += lines.length * 15 + 8
   }
-  return toDataUri(sheet(W, y + 16, title, out.join('')))
+  // Картинка — для старых сборок и печати; новая сборка рисует по тем же данным живой разбор.
+  return withLab(toDataUri(sheet(W, y + 16, title, out.join(''))), { kind: 'formula', title, parts, steps, ...opts })
 }

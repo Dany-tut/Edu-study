@@ -4392,7 +4392,7 @@
   "is_simulation": false,
   "alt_text": "Учебная схема: формула G2 по частям — сколько у этого ID ставок выше.",
   "path": "inline:acc-ru-113#f-fig1",
-  "sha256": "23aaae96de9dc1a12f4e22ccc11f76f9e0c5faa90a71edc746b06ff54286fc86",
+  "sha256": "bdd0410b10b5234462fbfbcfb9025c0173efec38bc6be9e4ed0f1d66bb385a74",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7038,7 +7038,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 4. Формула H: из всех строк вычитаем декрет и совместителей",
   "path": "inline:acc-ru-223#f-fig1",
-  "sha256": "8bc13fbf28d17329ca73eb524668f249595522801233f2d128707a9be360fb5d",
+  "sha256": "4a8eac1b34b0a0d3ec9751964648c4dd70a4615b85b5e28aee7807982322ecc2",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7052,7 +7052,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 2 из 4. Формула K: ОСН без декрета плюс ручное «без оф.»",
   "path": "inline:acc-ru-223#f-fig2",
-  "sha256": "1c74ef0e7fbb773c4b3d02a743e0c9fe3b9cb4de7569bcfd70909334999bc2a7",
+  "sha256": "108d4b0057bdc569069cf9b344e16cf55d4a1667effd16e7f11475fb1206f4dd",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7066,7 +7066,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 3 из 4. Формула L: октябрь минус сентябрь в общем итоге",
   "path": "inline:acc-ru-223#f-fig3",
-  "sha256": "acd86e20ffe50eb6f26ca6e1be3a90e501aaaaa13850d23885384bb630c53e4e",
+  "sha256": "46978f7e3d7bb99faaca9c8f98b6629bab9c0be71c5675d89611f132e7c26099",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7094,7 +7094,21 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. Проверка «1 минус» по частям",
   "path": "inline:acc-ru-224#f-fig1",
-  "sha256": "1b981d1c525f5efe54c04aff12e41e040492888e3fbc6f0dae801f4cd4b4a640",
+  "sha256": "17f8fa6546c13164d9536b3b7cedee2a84bd2743beb137be5987ddd62a155c47",
+  "verification_status": "схема по тексту урока"
+ },
+ {
+  "id": "acc-ru-224-fig3",
+  "lesson_id": "acc-ru-224",
+  "type": "diagram",
+  "source_url": null,
+  "capture_date": null,
+  "software_version": null,
+  "license_or_permission": "Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)",
+  "is_simulation": false,
+  "alt_text": "Тренажёр: поменяйте значения и посмотрите, как меняется результат (без оценки)",
+  "path": "inline:acc-ru-224#check-fig1",
+  "sha256": "b08c904a4b948b43e842b8bfc1bcfc523254d763280534a113f4c5889b58b445",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7122,7 +7136,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. СЧЁТЕСЛИ по частям",
   "path": "inline:acc-ru-225#f-fig1",
-  "sha256": "c09e9b69f2a71ca76bdf8d1b05f8955dd3679025757e994513fe32f7ae189483",
+  "sha256": "4d153d69eb95001e590f11a4ca2186d210e70d49ab4fa28b5c6ce8a5f0c03535",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7150,7 +7164,21 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. СЧЁТЕСЛИМН со склейкой условия",
   "path": "inline:acc-ru-226#f-fig1",
-  "sha256": "0197d03c405795b8146aee929259469e423ee71e848ebcdefc7ca411a97f3a9a",
+  "sha256": "f5d9ff18feb7d2a6ebed72f3acea70131e5896cdd790bfaa855b5b4c234a379d",
+  "verification_status": "схема по тексту урока"
+ },
+ {
+  "id": "acc-ru-226-fig3",
+  "lesson_id": "acc-ru-226",
+  "type": "diagram",
+  "source_url": null,
+  "capture_date": null,
+  "software_version": null,
+  "license_or_permission": "Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)",
+  "is_simulation": false,
+  "alt_text": "Тренажёр: поменяйте значения и посмотрите, как меняется результат (без оценки)",
+  "path": "inline:acc-ru-226#check-fig1",
+  "sha256": "8b0083eec3e276cb631edfe9b4d46bb8b376befa01fd5bebf7e59d208ef72302",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7178,7 +7206,21 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. СУММЕСЛИ по частям",
   "path": "inline:acc-ru-227#f-fig1",
-  "sha256": "25f8d7f9b18dc37cc790c114be878d37178f20d941bb5f596d6b286095e3e7c1",
+  "sha256": "f13454f6d5313d09ef65f8638020da8008280d91db7939e9477bdbcc00fa9c51",
+  "verification_status": "схема по тексту урока"
+ },
+ {
+  "id": "acc-ru-227-fig3",
+  "lesson_id": "acc-ru-227",
+  "type": "diagram",
+  "source_url": null,
+  "capture_date": null,
+  "software_version": null,
+  "license_or_permission": "Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)",
+  "is_simulation": false,
+  "alt_text": "Тренажёр: поменяйте значения и посмотрите, как меняется результат (без оценки)",
+  "path": "inline:acc-ru-227#check-fig1",
+  "sha256": "48ca29138e2acfe70b546079834608e0f9edc750143f65454babeec7b3f25822",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7206,7 +7248,21 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. ЕСЛИ с двумя условиями",
   "path": "inline:acc-ru-228#f-fig1",
-  "sha256": "35ae79844003eb6d679b703e0bf95b26bf3132c164812e1978703e69a1739b92",
+  "sha256": "8199b8c76016d4a10dfc357238651a13c69d34f69ba6a987ab7f569c26385b34",
+  "verification_status": "схема по тексту урока"
+ },
+ {
+  "id": "acc-ru-228-fig3",
+  "lesson_id": "acc-ru-228",
+  "type": "diagram",
+  "source_url": null,
+  "capture_date": null,
+  "software_version": null,
+  "license_or_permission": "Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)",
+  "is_simulation": false,
+  "alt_text": "Тренажёр: поменяйте значения и посмотрите, как меняется результат (без оценки)",
+  "path": "inline:acc-ru-228#check-fig1",
+  "sha256": "aa82842ff0c9a9423a6e4973fc8c1f66503baf8d0fc864895d499666252dd234",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7234,7 +7290,21 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. ЕСЛИОШИБКА вокруг ВПР",
   "path": "inline:acc-ru-229#f-fig1",
-  "sha256": "26a7272a38b095eb2d71182dc6b079301e1ca7b0116c0a6f33cf2343b33a272a",
+  "sha256": "43d87755c8976c95db874fe68548b3ed4ebbd1da0b3aae08381745d142205315",
+  "verification_status": "схема по тексту урока"
+ },
+ {
+  "id": "acc-ru-229-fig3",
+  "lesson_id": "acc-ru-229",
+  "type": "diagram",
+  "source_url": null,
+  "capture_date": null,
+  "software_version": null,
+  "license_or_permission": "Авторская векторная схема курса (генератор src/data/accounting/accFigures.ts)",
+  "is_simulation": false,
+  "alt_text": "Тренажёр: поменяйте значения и посмотрите, как меняется результат (без оценки)",
+  "path": "inline:acc-ru-229#check-fig1",
+  "sha256": "09f8cac0dfdf7f70aeaf04ca3f27cf28c9142dcd4704b1fca74592a48ffee028",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7262,7 +7332,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. Полная формула строки по частям",
   "path": "inline:acc-ru-230#f-fig1",
-  "sha256": "9ae42e86ca41f1f0d910f5065ba216169a7da0b45f540fb6004419ea54062ba1",
+  "sha256": "d089cc7c65464b613ca12c5621519b7030d13a73e45ba1d70cebf5166fb47b1b",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7276,7 +7346,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. Ключ ФИО по частям",
   "path": "inline:acc-ru-231#f-fig1",
-  "sha256": "0ac7e267a0f4d986038228fc4f00c4863c1c26c0bb9102a0eedc5d083be566ad",
+  "sha256": "d8b22fe25d84092a68f4cadce4286d355556ef947b85cbb6b2717e8606b0beb2",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7290,7 +7360,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 2 из 2. Ставка «1/2» → 0,5",
   "path": "inline:acc-ru-231#f2-fig1",
-  "sha256": "3551e50ed3ade332d4ba1a8aa13708c6b0924b4954d3125f7508e298ec05ef62",
+  "sha256": "0c74326b4a66a4e1474c0d0c5f85f263e14c22e760bb66b6738d8136b3a2f0cc",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7318,7 +7388,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. Номер столбца по заголовку",
   "path": "inline:acc-ru-232#f-fig1",
-  "sha256": "a443eea168be029a8ea7ddb3711948e29d9f41bab2f9f296148a5bde12b34a8f",
+  "sha256": "9f3284e90fe17c14fceeeb2e4d7f9eb07c4014c5bf12c4d36c9b4c8f3ff7d54b",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7346,7 +7416,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. Лучшая строка человека по всему столбцу",
   "path": "inline:acc-ru-233#f-fig1",
-  "sha256": "9365c592f2ff04cec7f836c90e5b29ba68846660bd0bcd494c53f43f83c771f2",
+  "sha256": "fab317d75a90b7be7b30f7ddfb8213de951ca710e61072e5fde75d178a50f6b1",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7416,7 +7486,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 1. МАКСЕСЛИ по частям",
   "path": "inline:acc-ru-238#f-fig1",
-  "sha256": "61de75c4e894328828ecafe1b9ef025d6f6c919c52ae98123662b5a15241448a",
+  "sha256": "bba89a7366fcb9ec0198005d0706a9e2396a5e1a6e596735d5ddb3ff937219c4",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7458,7 +7528,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 2 из 2. Два разных числа",
   "path": "inline:acc-ru-242#two-fig1",
-  "sha256": "2c4ecdea8d6b259687cc79b0713198c0480325865ef40f36e3b14166587f3abf",
+  "sha256": "142468df98927e35712190795c440d99ebfa5325c3fb730b9dd534cacf729d27",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7486,7 +7556,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. СУММЕСЛИМН: сумма первой, условия парами. Подошли две строки — обе сложены.",
   "path": "inline:acc-ru-244#fig1",
-  "sha256": "5e30d5db857b9d0567944b23a41ea1e64fbcd9daa5a15d4682f433d2e4b8dca8",
+  "sha256": "29c4b6dd912ca0ac4780ee0adae90aab6c112042faa1bcdc3ab5310bac6f542a",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7500,7 +7570,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Смешанные ссылки: при протягивании вправо меняется статья, вниз — организация, период — никогда.",
   "path": "inline:acc-ru-244#fig2",
-  "sha256": "d4816df6cddacbac49766235ba4b6af578322a4305fe26708d5d7420581d0d95",
+  "sha256": "6684629b904cc4efcd1cf278e136f89da78df156a5601e9ffad41c214b0e700d",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7514,7 +7584,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Ключ через &: одна строка-условие вместо трёх. Подстановка по ключу берёт первое совпадение, сумма — все.",
   "path": "inline:acc-ru-244#fig3",
-  "sha256": "ab89b4b3488316e388e974e68cad223ff314d17a3891b8fcee5ab053b611c275",
+  "sha256": "5884b091d20e1777f24347f76ff3a65809fa9731d8cc0a21f0e12a79f07ac8bd",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7528,7 +7598,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Контроль «до = после»: исходник и сборка должны совпасть.",
   "path": "inline:acc-ru-244#fig4",
-  "sha256": "2ebdccb7187ae5a9c65b146de02eea2c1b3aacc40f8713b0845a100a959ed6b6",
+  "sha256": "daab807b667a2782754577cf24b5d1b4163207d97f26bc484e2f23ec09dbea2e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7542,7 +7612,7 @@
   "is_simulation": false,
   "alt_text": "Схема 6. ПОЛУЧИТЬ.ДАННЫЕ.СВОДНОЙ.ТАБЛИЦЫ ищет по подписям. Адрес $A$3 — где стоит сводная у вас.",
   "path": "inline:acc-ru-244#fig5",
-  "sha256": "4f70ac9419dea2a9b22e2bf2f838703a769afcb68cb64d8621f61802878f64f6",
+  "sha256": "ed447902959c1b65d691b0efc644c52374cf9328bdecbb8fa3609e8af5d636a3",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7570,7 +7640,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Матрица ВГО: все внутригрупповые продажи в одной таблице; сумма матрицы равна исходнику.",
   "path": "inline:acc-ru-245#fig1",
-  "sha256": "b71a3149426069c39d7aa8425a35c99d2758ca6379591775badf9a96b626e423",
+  "sha256": "bb8bac302747647279c541d8f91e41fed6d7d0820a4e98493729eead9e2bac58",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7584,7 +7654,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Встречная сумма: та же пара, но ищем «наоборот» — во второй таблице сначала покупатель.",
   "path": "inline:acc-ru-245#fig2",
-  "sha256": "1b721eea9b1595ef9343605f395cff58123055c71d24587ff200b7a3b0280002",
+  "sha256": "279e92b36023980c2eba66d616d1c98ce0bfa4f5b975a8d02c35aa28839125be",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7598,7 +7668,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Вложенная ЕСЛИ: сначала «есть ли пара», потом «сходится ли». Порядок проверок важен.",
   "path": "inline:acc-ru-245#fig3",
-  "sha256": "157b4270f140daa01cd6b1965b7d2955989927193b629e11a91b771ce7ca33c5",
+  "sha256": "d494eb8a0b836109c1d610c9b7606222d25968945ad5cfacf0bcc42aedfa64c7",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7612,7 +7682,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Итог сверки: что исключаем, что разбираем, и проверка, что ничего не потерялось.",
   "path": "inline:acc-ru-245#fig4",
-  "sha256": "cddbd52fd4661824c78edb1c4ee5f1f962f244516d26c33796344fd074e29006",
+  "sha256": "aaac47fdc10025855ff8cbc357ce27bfa00e3b83dac1e5752b8e0ca13c461364",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7640,7 +7710,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Доля: делим на закреплённый итог.",
   "path": "inline:acc-ru-246#fig1",
-  "sha256": "a5c28921b28c234c3d6d58dcd9006429b289d366525834d0e6c013452742cede",
+  "sha256": "eb2941221684f622d5f5af9c0483051e69cf7ebf5f2115241ca16142cf2264f8",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7654,7 +7724,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Семь округлений — семь маленьких ошибок; вместе они дали лишнюю копейку.",
   "path": "inline:acc-ru-246#fig2",
-  "sha256": "08e62b93f013a662b4415ef473f74215d7feaa1bd4884953fb3b67fc68c51409",
+  "sha256": "0b286f5d806410c317af2bde96bf44752fd769bdfed7f39361e37331e7df1f8c",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7668,7 +7738,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Две вспомогательные ячейки: сколько поправить и где.",
   "path": "inline:acc-ru-246#fig3",
-  "sha256": "9ce75a262a2d27cae60dad8c68f064cc92290e2982280c568fd39277613dbcb8",
+  "sha256": "d249c1946bd816d69eb3773f5ab9638463864dffc24e9e98a41a984932d2bce4",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7682,7 +7752,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Копейка разницы ушла в крупнейшую строку, итог сошёлся.",
   "path": "inline:acc-ru-246#fig4",
-  "sha256": "a11cd31b802cecf2dcfa9188903de9e61316261b8dfb10195ebbdfa5aeb7e484",
+  "sha256": "6d9e743b1f4d18d08ae9877fe71617048bdf84b1171bf31ff09e51e29607c3b3",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7696,7 +7766,7 @@
   "is_simulation": false,
   "alt_text": "Схема 6. Мостик в одну строку; на практике в нём ещё строки «наценка в запасах», «корректировки» — урок о мостике в модуле по группе.",
   "path": "inline:acc-ru-246#fig5",
-  "sha256": "6faf6f838cae78fe4a11f587b21aad5e03d31ec043dc57971bf2ff3d79ba74f1",
+  "sha256": "85f687adcdc10cf026dc64f07a006e5dc41b0d0c9c59dcf3652bb9d70f6ecaae",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7724,7 +7794,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Затраты по строкам — база любой калькуляции.",
   "path": "inline:acc-ru-247#fig1",
-  "sha256": "d69bb7fcd1f281156feaf1b0f00dbd852f8a3cfe78d1a074f16938e2f9938fb6",
+  "sha256": "b3ddf904e0b4d8f5a478e6e60ae39f2a0b3a14c0ff3f51e64d1703f79c076373",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7738,7 +7808,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. СУММПРОИЗВ = сумма построчных произведений.",
   "path": "inline:acc-ru-247#fig2",
-  "sha256": "e4683dddb504fbcd6b54fb632a8ed71580d145b2aa75121a984152f28c80252d",
+  "sha256": "9dc275c4e4cf7bfeed51e7ddd45a9cac98156d3a78ecdbe94398dece641342c9",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7752,7 +7822,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Цена на дату: «последняя дата не позже». Даты обязательно по возрастанию.",
   "path": "inline:acc-ru-247#fig3",
-  "sha256": "86aba3bda0b04232bfe3c48c87488e6cc37b4b8e78b0d357cb698f18fe0e479d",
+  "sha256": "10529aa0f8b4933bf41ed644558cf19f2487e5302deea4dd9bdd9670ffc1fc40",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7766,7 +7836,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. НДС через параметр: 22/122 и ×1,22 получаются сами, ставка не вписана в формулу.",
   "path": "inline:acc-ru-247#fig4",
-  "sha256": "09f3ed27775c4fd846c5fb31bbe8425e7c85fc59ccd600804737b52c4babac20",
+  "sha256": "0273ddd735a4475e93e610def1e0cb3f7ab8317a2fde0579708d4780e5d78724",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7780,7 +7850,7 @@
   "is_simulation": false,
   "alt_text": "Схема 6. Партия: единица × объём; все исходные — в ячейках.",
   "path": "inline:acc-ru-247#fig5",
-  "sha256": "8b178d0e8eff78d4da0fb83089db5878e37348c99659aa3841ac420e63343bf1",
+  "sha256": "0bbdbde77f9b88e74cd90715db66956b6f993d69461974db9daca90154ccaba6",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7808,7 +7878,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Защита от нулевого выпуска: сначала условие, потом деление.",
   "path": "inline:acc-ru-248#fig1",
-  "sha256": "a7c47518270a74e4de2e0b3ac90fa333c85a97b9d1aee78522535298524bedec",
+  "sha256": "ffa73f15459831413be5eaf884e78d506679e1f81987fdecef31ae3f115e5daf",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7822,7 +7892,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Наценка 25 % от себестоимости = маржа 20 % от цены.",
   "path": "inline:acc-ru-248#fig2",
-  "sha256": "897a1ef9ddc5e59041cfeaa4a68c9fe93f74d9e487246ae66261d388ff27e404",
+  "sha256": "16b17f970c7e92bbb7861de30af8d1954d71af935847346e448e5658846746f1",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7836,7 +7906,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Цена по марже — деление, а не умножение.",
   "path": "inline:acc-ru-248#fig3",
-  "sha256": "d1fd9737d3026d51487db1036403b73abbf5429d0a9afe5390446b9ba89c5ac8",
+  "sha256": "b16dbaf63c3a01835df165669707acd87cbaa0b40969ab314160bfb8e8eec772",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7850,7 +7920,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. ОКРВВЕРХ — округление вверх до кратного; маржа после него чуть выше 25 %.",
   "path": "inline:acc-ru-248#fig4",
-  "sha256": "de5444b0298c5d9710b2612f8485e7174275f35fc9f5769e1d3a88ae1b5e9154",
+  "sha256": "e4df855cb9c01a96678b268ad2241c125e3acd929249bec35ce4412f969d0acb",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7878,7 +7948,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ОКРВВЕРХ: неполный рейс — всё равно рейс.",
   "path": "inline:acc-ru-249#fig1",
-  "sha256": "8d6b3e37ec12a8138f867f8cb7be5678240d5303d4bd6b40baa5aa32cf0b13b3",
+  "sha256": "9cdde670100984894e4e8ec39d2818255520a97a00fd39594dc6f083c6bb5ee7",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7892,7 +7962,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. В учебном файле литры (B8) и рубли (B10) — отдельными ячейками, чтобы видеть промежуточный итог.",
   "path": "inline:acc-ru-249#fig2",
-  "sha256": "cc0b8d20f6419d25671b14cda8dacd45a4a36c03df6c4b8a0f8b6fac0843aba4",
+  "sha256": "29344aa5ff561448c11652ba02f824b8e21688ebbfd3d31d354058c1920e0893",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7906,7 +7976,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Тариф по часам: сначала округление часов по договору, потом умножение.",
   "path": "inline:acc-ru-249#fig3",
-  "sha256": "2c1fbdf664c6962bde77760fee550f727bc60e42728f3ed4843cf41d1c16c551",
+  "sha256": "99256abddd88bd26b741ce220b2cbe4f51628c0117942be0d577c706fe577446",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7920,7 +7990,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Сравнение тарифов и стоимость перевозки 1 т.",
   "path": "inline:acc-ru-249#fig4",
-  "sha256": "821b7c0ce98c53e1d67a7641f637adea06d192349081febcfbcbd97838ec9c0e",
+  "sha256": "d65f56db9eabe608298dceca92fe52e06116f0ae633a83860fb543557775f939",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7948,7 +8018,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. КОНМЕСЯЦА знает длину каждого месяца. Формат ячейки — «Дата».",
   "path": "inline:acc-ru-250#fig1",
-  "sha256": "7c33f659373d3c966f62d8417be7c857e930998ed28e37dbd9c1e7f768405c14",
+  "sha256": "c37099adb40537c92f8061d69553ae49ee1bd866186add57d0fb8369bdb8dd05",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7962,7 +8032,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Квартал из даты — вложенная формула: сначала МЕСЯЦ, потом деление, потом округление вверх.",
   "path": "inline:acc-ru-250#fig2",
-  "sha256": "df9ceb46f47f1e5157bbf60e3e5daea0035d407bec8c0e63bd59e8b4dbc3890f",
+  "sha256": "b4bc8716dd50639c98b3de67f5baa2a099666a00504c0aea32de22cd5e26fedf",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7976,7 +8046,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Метка периода: склейка через & — независима от языка Excel; ТЕКСТ — короче, но коды формата языковые.",
   "path": "inline:acc-ru-250#fig3",
-  "sha256": "3893b45a5feb888d0fb8b7efcab4d6113bd53b34385be18b0ec264bf987d3002",
+  "sha256": "1c9328dcbbdd439ece0788d61b1d668a6734eba13046207b53f31c06c1549bc6",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -7990,7 +8060,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. ДАТАМЕС: календарный сдвиг без «перепрыгивания» месяца.",
   "path": "inline:acc-ru-250#fig4",
-  "sha256": "6337f1b35c1ff1796982c8dbc6ffe5d5be29ea6186b5ce69057af1076167d8ec",
+  "sha256": "a99c10537b8522f4a622ddfcfc72ae86a1ecaed59f6218be65389262d99199ad",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8004,7 +8074,7 @@
   "is_simulation": false,
   "alt_text": "Схема 6. РАБДЕНЬ с праздниками: срок в выходной переносится на ближайший рабочий день.",
   "path": "inline:acc-ru-250#fig5",
-  "sha256": "151a05b48a0c5862e193ba753ec51626f13d5adc90053fa24b5d719f9f346581",
+  "sha256": "6756be3474c50c8a92b96815c07f4dab8f1017cd175828bf85c4b3e6044ec6ab",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8032,7 +8102,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Условие «между датами»: два условия на один столбец; оператор — текстом в кавычках, дата — ссылкой через &.",
   "path": "inline:acc-ru-251#fig1",
-  "sha256": "4b0f959bbc45a132e6bfd2096948dd2a7c9239d3908258a5c8004ff571bc694d",
+  "sha256": "eec340dbe9ee9336a11aa24bed6b6257316a7cf1d01382f622ef7040184737f2",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8046,7 +8116,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Те же условия — другой вопрос: «сколько строк» и «среднее».",
   "path": "inline:acc-ru-251#fig2",
-  "sha256": "9db158db2c766d62d7480ac25d53e6c3c04238e81d0dfd86acb979fb39785597",
+  "sha256": "9f8f354d6107f03120b92d0d9a562861053028a14c13e9ca85135109df64ab3b",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8060,7 +8130,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Средняя зарплата: деление в два шага; округляем только итог.",
   "path": "inline:acc-ru-251#fig3",
-  "sha256": "b9a80124db9c48285fe67f88891c61232850dcd72575b9c432133a307d7fe484",
+  "sha256": "ab0993443d75710b8d042c21a2e9ff13f87c87ef23c510d79e678a78afec8a11",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8074,7 +8144,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Сверка с исходником — обязательная последняя ступень любого ответа ведомству.",
   "path": "inline:acc-ru-251#fig4",
-  "sha256": "10c562b60991a9d330d9867dafde5096863ae4a154642de0ad7464ed75ec6526",
+  "sha256": "47d0e03c2c7c69a70f67e804262def770d38e549aa7a67f2e5b374ff559a2c25",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8102,7 +8172,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Дни в году — формулой, а не числом 365.",
   "path": "inline:acc-ru-252#fig1",
-  "sha256": "417ca58e9189cd20b371d72cd9c61e367a6953b477247ba8b063b83c0c27f381",
+  "sha256": "46129328d93553c05a4280a0c04d5b4e0c5633bb5582ce989e3609bac7bea396",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8116,7 +8186,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Проценты по дням. ДОЛЯГОДА с базисом 1 внутри одного года даёт ту же долю.",
   "path": "inline:acc-ru-252#fig2",
-  "sha256": "ec6a30be302c35964f35ac8ca698dfa21a2e2e63fcc6d3c688e579724abe9d69",
+  "sha256": "5ae06c1c4d026e070a4802f0f71dd8f8f2e0531d945b8b5c33f4a5e35f683e37",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8130,7 +8200,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. ПЛТ: период ставки и число платежей должны быть в одних единицах (месяцы).",
   "path": "inline:acc-ru-252#fig3",
-  "sha256": "65401c189ce899308361ff57a07ad99c0f0eb228c9e5810109706f1fae40baa1",
+  "sha256": "fbf035e1ca22fd4db3f10d150ddbdb7311b232ad8f86867762ed0c8441dcae72",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8144,7 +8214,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. ЧПС: платёж сегодня в расчёт не включают, его прибавляют отдельно.",
   "path": "inline:acc-ru-252#fig4",
-  "sha256": "1cb8ccb9bfd478664b12b994cf69143af2e53bc36d64cec516f7d46d07986c3a",
+  "sha256": "c6c48930c3c334c400b3d76b1e7531eed6a3d4e50afc01411ce869a6902acdf8",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8172,7 +8242,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Ключ сверки: два поля в одну строку, без пробелов и без зависимости от формата суммы.",
   "path": "inline:acc-ru-253#fig1",
-  "sha256": "b5a5c2c0b21e25a3dd064824e363685871f191835c5b2fa8d4fdc45d6cd12e26",
+  "sha256": "d4bdbc8cde5461fe5c5e52410bee71e41baa876999823173ca2ac10abacfda0b",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8186,7 +8256,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Растущий диапазон: помечается только повтор, оригинал остаётся.",
   "path": "inline:acc-ru-253#fig2",
-  "sha256": "5cdbb57eb1e6b8289b19d961e279f660c087198074e6788974559dba409d69e1",
+  "sha256": "f4e9748f1876830fb9b8e564290d1b1ff011555ab023ce0c3adc02761d7fac6a",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8200,7 +8270,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Совпадение по ключу; несовпадение суммы видно как «нет».",
   "path": "inline:acc-ru-253#fig3",
-  "sha256": "ee9702427ee02c32ef40be432eb13648373a6ad0dfd299295071f5be1e300073",
+  "sha256": "c56f49eeda06f77733652cb1fd6b8e0b9d35d27a22715e2d44c87b777c0d5193",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8214,7 +8284,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Корзины: порядок проверок от малого к большому; дубль не входит в сумму.",
   "path": "inline:acc-ru-253#fig4",
-  "sha256": "94e8b07714d501b8b2b81219f92688b129c988fab11afffb3fc42fbd2947cf18",
+  "sha256": "d2684efe3fac142855b3345cef25096cc0578d4653b6f438322e6a705a2ce36d",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8242,7 +8312,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Флаг сверки: ABS разницы против допуска.",
   "path": "inline:acc-ru-254#fig1",
-  "sha256": "ec826863819582741cf62f33552c0f8d337da9ba9372cf6ba457f36a993bbe9d",
+  "sha256": "72d06d2912ba276b284652da748062e969dd8e3547775efdd9afc9e86fc639f1",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8256,7 +8326,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Две функции счёта: разница = проблемные ячейки.",
   "path": "inline:acc-ru-254#fig2",
-  "sha256": "d67d5b44ddcd418da83fc8efb13c4cf60a9e9a97058ac04641c0126ff33d18c1",
+  "sha256": "4462237a4656479d98e191e4c27acebbd59f400ac52a053d9075706711a82254",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8270,7 +8340,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. ЕЧИСЛО — построчная проверка типа.",
   "path": "inline:acc-ru-254#fig3",
-  "sha256": "182ec724e8da8fb032d37f0fc7f834333f304236957bb13fc2c085b93d4de754",
+  "sha256": "97076dfca36b31d48f28e8ecbe61f47f1bd85d4285f50ac2ae8eec8e24ed4474",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8284,7 +8354,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Лечение формулой: исходник не трогаем, считаем по чистому столбцу.",
   "path": "inline:acc-ru-254#fig4",
-  "sha256": "90f4229be35b35642b22e0d85867631e00618567658158277be5b90eefb91c2f",
+  "sha256": "c2c18ebeadfad1cf6ec68433e466b3cb3ea030dd4da5e9e6599cdc9bf9b5b3d2",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8298,7 +8368,7 @@
   "is_simulation": false,
   "alt_text": "Схема 6. ЕФОРМУЛА — с Excel 2013/2016; в учебном файле этот столбец помечен зелёным как современный вариант.",
   "path": "inline:acc-ru-254#fig5",
-  "sha256": "b6b3645629bbca463f52de0f00e0d403dc0750d275c5dbced8dd768e5f0392ed",
+  "sha256": "b584a91693b8ceaaaefaf593e9c6244ecd22e586734abfccae411f9f37ee1683",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8326,7 +8396,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Сначала регистр — тогда дальше заменять придётся только заглавную Ё.",
   "path": "inline:acc-ru-255#fig1",
-  "sha256": "c1046c25330e26a42ec3031103869c197a4ee71545adb824d03d6d3198e01f79",
+  "sha256": "f38f8300b08e11ed48237477bf96b905573cd8dcf472d3463a345b1d31e329fd",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8340,7 +8410,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Порядок вложения: внутренняя функция выполняется первой.",
   "path": "inline:acc-ru-255#fig2",
-  "sha256": "77619ac4eee3a58a95691109d591e27b5d7f4094bff0a54c76058f80f77058c2",
+  "sha256": "5318e682328bf5acd2d8459608bf97b88bc0eae7264e7700fcf896254301090c",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8354,7 +8424,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Полная нормализация: регистр → Ё → код 160 → пробелы. ДЛСТР до и после показывает, что убрано.",
   "path": "inline:acc-ru-255#fig3",
-  "sha256": "6a754db2579ec850b90c5809e34595110e2d793c9652fbfff74662cf9425b8f6",
+  "sha256": "fb197fb535a655e21eefba3f94211baf28c8736c587e7a6ac86f1028ba1f7bf4",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8368,7 +8438,7 @@
   "is_simulation": false,
   "alt_text": "Схема 5. Одинаковое ФИО при разных табельных — сигнал проверить, а не склеить.",
   "path": "inline:acc-ru-255#fig4",
-  "sha256": "de1efe7d10b72faf39d241a371c8462c649fe5f71c49562c2518286f04690aaf",
+  "sha256": "beb0758938fffe922d441ae4673cae107c59e0a21c641e00d2b5975bd67af3c5",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8382,7 +8452,7 @@
   "is_simulation": false,
   "alt_text": "Схема 6. Та же беда в числах: код 160 мешает и ключам, и суммам.",
   "path": "inline:acc-ru-255#fig5",
-  "sha256": "3240982bf0e1f8b5615d750d117852622929e03553c6af50a33b852b99ac6870",
+  "sha256": "6160548b82a7ec6e6c12cd8e246f4b8a5b35fbb2c97faa327fcda795dbf3788e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8396,7 +8466,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Две части формулы доли: подвижная ссылка на платёж и закреплённая на итог.",
   "path": "inline:acc-ru-256#formula-fig1",
-  "sha256": "9ba2df3b3d7a3b3035eac95fe825e376236c6bdbcb31835e3d18ff0cfe63a9d9",
+  "sha256": "f12b720fc366c141eb6b53bed61deadc04f8fff25d78486e32bc5fac78f361df",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8410,7 +8480,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Нарастающий итог: у диапазона закреплён только левый край.",
   "path": "inline:acc-ru-256#formula-fig2",
-  "sha256": "185dbca6cf48fa318d44cda2648e62bdd033457855f526face0364e10119b3d1",
+  "sha256": "fe1b3084c34737a0376efea4eddc07f0f92fbe127ec815aed35cc3f5eedc0f9f",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8438,7 +8508,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Скобки заставляют Excel сначала собрать коэффициент 1,2, а потом умножить.",
   "path": "inline:acc-ru-257#formula-fig1",
-  "sha256": "d29f9f1ec22e176be5d564efc3ecb2b2ace957a1d8407f22d11aa6e813bbf990",
+  "sha256": "7c83efecfe7d4e0dd25dee7628faf701457344244a202647590f2521a071e266",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8452,7 +8522,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Три шага: сравнение, превращение в 1/0, попарное умножение с суммами.",
   "path": "inline:acc-ru-257#formula-fig2",
-  "sha256": "46bea506b11540903c5b79c3481984f094df5c701b63aa5e189a8088eac5d989",
+  "sha256": "6465800126b49109152067e812938c33c2e83ba4ae532508fbd661bb2358740b",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8480,7 +8550,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Excel сначала считает деление в скобках аргумента, потом округляет результат.",
   "path": "inline:acc-ru-258#formula-fig1",
-  "sha256": "c8dd352d5cfed4a03ea9e7d40d9ddf7819f42aa5498211f8bfdd5ba2e08e542c",
+  "sha256": "1fc81daff14f0fd8c7ece84b3d356e966e8ec474d2b423fe4f2de033838d2cab",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8494,7 +8564,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Меняется запись, не смысл: имя функции и разделитель.",
   "path": "inline:acc-ru-258#formula-fig2",
-  "sha256": "30cb45c879abef07af3f8e2c4eb0f09c4af725bb4e684f6bc46daf09f4df279d",
+  "sha256": "e34e3b3953a3b30fff04dc596f52023ae681e498b1d09bc93ce02f9051b17ea3",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8522,7 +8592,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Один и тот же диапазон — две суммы: без фильтра и с фильтром.",
   "path": "inline:acc-ru-259#formula-fig1",
-  "sha256": "fe996c47034d736dffd90d4ae0564148c8f33a5f0d2396c832cbf4228dc67b9b",
+  "sha256": "c58c24d99231da5b59587fd8f81879f9110a528a9cc6d09bbb325e9e0230d484",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8536,7 +8606,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Массивы перемножаются попарно, потом складываются.",
   "path": "inline:acc-ru-259#formula-fig2",
-  "sha256": "34f2fe675822c533d4f78477e0d063f2205c62caca8b953a58bb4c585c802a7f",
+  "sha256": "8887b1e383a8658625faaa35bd8b5855310f9e0def15c4199296498cc3ca2dbe",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8564,7 +8634,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Условие проверяется в одном столбце, суммируется другой.",
   "path": "inline:acc-ru-260#formula-fig1",
-  "sha256": "8c1c8e848d1acfca099cd79c276d3a2ba5f17a4c7eead63ce278248316f97f31",
+  "sha256": "3ab875448744a5cfe891c48edf16ca51bcd2ad5660347454e2d5e6804b70c3f0",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8578,7 +8648,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Условия складываются через «и»: остаются строки, где подходят обе пары.",
   "path": "inline:acc-ru-260#formula-fig2",
-  "sha256": "d6decf73d62b6c9ebfa1273cf06708ef6c7a4b368e97a28397575a22b1cfaa2b",
+  "sha256": "09cd82c405ce5db54e69b41d105847c2541347b1ab4041aad9e56c413f324f76",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8606,7 +8676,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Условие отбирает строки, максимум берётся только из них.",
   "path": "inline:acc-ru-261#formula-fig1",
-  "sha256": "b51ff5515f2abeac2ef3173956012786e720a85b6efb1d2611529e3ad432ae94",
+  "sha256": "42fd04197b393ca4120f84e3a46f6cdecb2e4c42c5b8b8532abcf9b235e8148a",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8620,7 +8690,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Массивная формула вводится Ctrl+Shift+Enter; скобки `{ }` ставит Excel.",
   "path": "inline:acc-ru-261#formula-fig2",
-  "sha256": "1e58b6e5fcd638a282aff5fa575dba4b66a28f4fe11d19b185978afebe80a351",
+  "sha256": "c7b678e3728c3419e6cec1d2e48c111c6974020f7e2f492410b612352d545fd6",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8648,7 +8718,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Пять ячеек, три разных ответа — по назначению функции.",
   "path": "inline:acc-ru-262#formula-fig1",
-  "sha256": "a3cd3f463986f7372781fb6f3aed1897fb0c62f331507dac1cd5d16bd851a45c",
+  "sha256": "c2cb7e6b85110c62f7fd5d3f241822b7b2ea1178fb2fc7f2c38d8109d36155cc",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8662,7 +8732,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Пустая и текстовая ячейки в среднем не участвуют.",
   "path": "inline:acc-ru-262#formula-fig2",
-  "sha256": "a46a75dfaabdc46d7b2f36ef3e715423c04d1b14485ad7115ce0e3a71437c4b9",
+  "sha256": "a504717627c316558b94690fa3856c3f776fa9b637caad4dc877849eac5eebbb",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8690,7 +8760,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Функция сама упорядочивает числа и берёт k-е.",
   "path": "inline:acc-ru-263#formula-fig1",
-  "sha256": "435985c43431078be4d1cfe5bb7862d74661385d53d1ae9168292ddd9b272ffa",
+  "sha256": "84d7352e9e413aa03a135a2276964153d90c67276e0134f70b1934a386c0dac5",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8704,7 +8774,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Ранг по убыванию — это «сколько больших чисел» плюс один.",
   "path": "inline:acc-ru-263#formula-fig2",
-  "sha256": "4607835c80619937bfc123ffb0ce371fcc4517d99aad2daca692bd8ed26806e3",
+  "sha256": "b98d079fa5303d511244738d33123c9e35436756d94fd8b3a8b81ad7811fa5c0",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8732,7 +8802,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Число разрядов задаёт, до какого знака округляем: 2 — копейки, 0 — рубли, отрицательное — до десятков и тысяч.",
   "path": "inline:acc-ru-264#formula-fig1",
-  "sha256": "1bf7b5626e92850f64d49e40209d2860b66237bb857dd4efe2fcf428bcc69e1c",
+  "sha256": "e226e32142bca388aed034eba918980ba60c74bdfe1dc0a79ff5986e3a8167f5",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8746,7 +8816,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Округление каждой строки и округление итога дают разный НДС на копейку.",
   "path": "inline:acc-ru-264#formula-fig2",
-  "sha256": "5b5bb4b2e64786f5a852dfd701c9333772d99b9b48806ba6cc34fe0f8a452051",
+  "sha256": "7fe474bdb88b1ede227b394627c9a832f80d2e385804dfa7aadb5e978cb789df",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8774,7 +8844,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Функция поднимает число до ближайшего кратного.",
   "path": "inline:acc-ru-265#formula-fig1",
-  "sha256": "917a9857d38024fdf86fd2adccc49d139640ff7094132b8e159fe223f0fcd11b",
+  "sha256": "e2586e90e7d6620c6cc45163ada7ba23a440ffbe99bcc4143382fb0c83dba41e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8788,7 +8858,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Без `АБС` отрицательное расхождение всегда «меньше» допуска и скрывает проблему.",
   "path": "inline:acc-ru-265#formula-fig2",
-  "sha256": "3c14b115be8d5d07dad5dd7419385894999ffbe1e4df4913e82fdd40ba6195ae",
+  "sha256": "119571aab6f60a9e6ae360017304d950593202a92743c3b66e24bdf781a1c212",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8816,7 +8886,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Первая ложь передаёт решение внутреннему ЕСЛИ.",
   "path": "inline:acc-ru-266#formula-fig1",
-  "sha256": "8271b949af8db63ba761197833a5c8e21b57662423961626ed7f81df371304f0",
+  "sha256": "f792625cee07f07c2880a83099745d5222e715a463520b57b03e279a4b79671f",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8830,7 +8900,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Порядок условий важен: сначала самое строгое.",
   "path": "inline:acc-ru-266#formula-fig2",
-  "sha256": "1306954a6d9dfe1e5fdf79e35c352cfde72612e2c6ec4514e32d0d0b9a736a25",
+  "sha256": "3c7b6e33af9248d83403a2dfd2122dd3706b1eb1f0c10194a4c75eabbb825d64",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8858,7 +8928,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Если хотя бы одно условие ложно, результат — «нет».",
   "path": "inline:acc-ru-267#formula-fig1",
-  "sha256": "4387fd2f72d57fc05ce7cbbcb28086364212c6e0d6f5e7793c9a2484418e1fe1",
+  "sha256": "c3c7e99b5afefa9751b8400cd5a9ebac72ff7625ac95f9b67217d9917e071463",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8872,7 +8942,7 @@
   "is_simulation": false,
   "alt_text": "Схема. В массивах «и» — умножение, «или» — сложение.",
   "path": "inline:acc-ru-267#formula-fig2",
-  "sha256": "fd06b359a9854aef2bde38fe280d8e860a1c05b49b33afeab0ad071f8b110e9f",
+  "sha256": "2973f50314721482ff0ade2ef123ce66ced33ef978a578ed398a5fd8b9233f7f",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8900,7 +8970,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Ошибка превращается в 0, и расхождение 4 000 видно в столбце «Разница».",
   "path": "inline:acc-ru-268#formula-fig1",
-  "sha256": "737bfecf35d5345d4d0f974f0730b2508818445d22174349046d87fe9f1b18f5",
+  "sha256": "750aa4bf51d0dd04cbd31d48c4da933210f5db8d6e73738cd4811994e7e484da",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8914,7 +8984,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Именно поэтому `ЕСНД` безопаснее: она не маскирует ошибки формулы.",
   "path": "inline:acc-ru-268#formula-fig2",
-  "sha256": "c8c129c134f7abf2651dde13bcaa6ac93c94a6906556890b8ea21ab76b4d5bb6",
+  "sha256": "7639c196e7eb1db4c17c1d711e7b996a7a13ab9a4c44a09536ec73c5c09b64c1",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8942,7 +9012,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Ячейка выглядит как число, но функции видят текст.",
   "path": "inline:acc-ru-269#formula-fig1",
-  "sha256": "f6f3f97d3ffa02b45995c99541c4a4023f2cec76e46f0f82a74ec005c9332653",
+  "sha256": "9507baca0f27b7163e60ac07a80161bd86c6c0012601eb329f8cc7a0e5478c8a",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8956,7 +9026,7 @@
   "is_simulation": false,
   "alt_text": "Схема. Недосчитанные 8 000 — число-текст.",
   "path": "inline:acc-ru-269#formula-fig2",
-  "sha256": "dbc2dfafdf16e70fc900609c9e3ef63c14afbcfb15c594d05a075d58dc1c3d25",
+  "sha256": "c7b265afa9ed299b84376f1080c880d0cf37e13c2d00851e7363b528ac812622",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8984,7 +9054,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 3. ВПР по частям: цветом выделены ключ, таблица, номер столбца и точный поиск",
   "path": "inline:acc-ru-270#syn3-fig1",
-  "sha256": "55b6de8b7e6c7f67c0cf85538abd6b182334dbff821b5520116621907689d4e1",
+  "sha256": "557a339830b9c1bc96fc7031200cdd223be0b19cfd4bd091bd03205fd1aac030",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -8998,7 +9068,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 2 из 3. ПРОСМОТРX: столбец поиска и столбец ответа указаны отдельно",
   "path": "inline:acc-ru-270#syn3-fig2",
-  "sha256": "c0e2c9befa78bd54b96bb5006c06852d3b915b55161d76a911a5ebef0067946f",
+  "sha256": "30a6fc99392aa7e68664274b9575c664eafe5321de36ea43abbd2826dc88d536",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9040,7 +9110,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. Поиск по двум ключам по частям",
   "path": "inline:acc-ru-271#formula-fig1",
-  "sha256": "1e98e07b94aefcbcba1a86e06a316d3e2ac08e3bc7d655f60650bfc5d3c7f095",
+  "sha256": "ea8d9b51113f2853be3d7475f7181af4147b0f0a92d593965dea946adf672fe8",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9054,7 +9124,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. ДВССЫЛ по частям: сначала текст-адрес, потом ссылка",
   "path": "inline:acc-ru-272#syn3-fig1",
-  "sha256": "45af2d074086931131eeff60f22d7193a434ea558eec15749f1cb568cdde9d54",
+  "sha256": "7009ee7565a51e06e3c588d356b824900e47c272fa24e8ad5bc18a6cd8e307cf",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9082,7 +9152,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. Структурная ссылка по частям",
   "path": "inline:acc-ru-273#syn4-fig1",
-  "sha256": "9d445497fe55febaa26fe32062dcace23616d13421b965cd942a17c9a074161e",
+  "sha256": "011ce4ee046d27888421aa8a7d31010573680b20b89f6d37d58a57f6ccda9ab5",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9110,7 +9180,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 3. ФИЛЬТР по частям: условие превращается в столбец ИСТИНА и ЛОЖЬ",
   "path": "inline:acc-ru-274#syn3-fig1",
-  "sha256": "3aae36b43c2271a408fdd3f03f3d3d30f212486a29057e2d62f737a33feb3e97",
+  "sha256": "33eae077e62c45f0a20b5b24388b021952a9f3cf4d9aea96b51b36265b25b6e9",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9124,7 +9194,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 2 из 3. СОРТПО: порядок задан суммами, а в результате — ID",
   "path": "inline:acc-ru-274#syn3-fig2",
-  "sha256": "2996c471f1f0af53558132489a82f2e585f1eda02603b824fd51ebb29a3c4049",
+  "sha256": "fe819b7eabb45b1936012a2b2ff6bec0defc4b7aed733f8123cb072774f136a6",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9152,7 +9222,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. ВЗЯТЬ и СОРТ: сначала порядок, потом отрезаем три строки",
   "path": "inline:acc-ru-275#syn3-fig1",
-  "sha256": "54799c62f4ccd95aa566aed95e456cdddd523d4ab0b787851593b80360769d65",
+  "sha256": "a9ab51ed42ced434e9df7f5fab0896941a0ec80c325ce43b42b59f772d205b97",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9180,7 +9250,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. LET по частям: имена объясняют шаги",
   "path": "inline:acc-ru-276#syn2-fig1",
-  "sha256": "560b6359a765cc710742d85a7261ae8e8b7b3550b91ecc6474c26ff35537903e",
+  "sha256": "fb87de3c2bb3c79de2ff9eeb9a08f227cbd20c56f35e42a3b66158f4cefe8545",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9194,7 +9264,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 2 из 2. ЛЯМБДА: функция с собственным именем",
   "path": "inline:acc-ru-276#syn2-fig2",
-  "sha256": "4af79e1cf66a17d0aa5565755428dc41048c77a6bf915a5edacb4bfc28b1b7e3",
+  "sha256": "c61a52cd99b299ca6a5e8662fef7b2882f7c4b03f82bbf2be2332fbbaa080e85",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9208,7 +9278,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. ПОЛУЧИТЬ.ДАННЫЕ.СВОДНОЙ.ТАБЛИЦЫ по частям",
   "path": "inline:acc-ru-277#syn3-fig1",
-  "sha256": "414c275fbaa2dff1d82718f8f103c133666181b04d9c109821bae06728fc1134",
+  "sha256": "8248c02aa7ba164c7b936ee81f17c350a1ce991b5a607a741a5daa183ae51bb3",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9250,7 +9320,7 @@
   "is_simulation": false,
   "alt_text": "Рис. 1 из 2. QUERY по частям: фильтр, группировка, сумма",
   "path": "inline:acc-ru-278#ex-fig1",
-  "sha256": "6c608dc17001f973713a113b3af027afbfad1dd0ca9f992e27b9ff54562af183",
+  "sha256": "cea2e1a3cb3f48e52bb6ad1a06be37d312321cc46f62a26f167500f8a908d7a6",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9264,7 +9334,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. ДЛСТР внутри ЕСЛИ: считаем знаки в ИНН «770123456» — их 9, значит, не хватает одной цифры. Это проверка длины, не контрольной суммы.",
   "path": "inline:acc-ru-279#fig1",
-  "sha256": "ed35c240904a0d18c68725416591b9498b0e25d747aa85d65a41d6e858d5c32a",
+  "sha256": "a683db6171d0f5ed94f795a1a5e421a7f73750418b4a7ee6581af2f7461a4168",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9278,7 +9348,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. НАЙТИ возвращает номер знака: «Договор » занимает 8 знаков, поэтому № — девятый.",
   "path": "inline:acc-ru-279#fig2",
-  "sha256": "ecd9bb79c8aded8706bf734536157baaea5a402a58011b8c41d0aac527bfec0e",
+  "sha256": "2b6cd75bba103637f253b6befa2f6f30d3b784ce63c074766a77c425ee17e21e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9292,7 +9362,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Один и тот же поиск: ПОИСК находит «от» на 14-й позиции, НАЙТИ с заглавными «ОТ» не находит ничего.",
   "path": "inline:acc-ru-279#fig3",
-  "sha256": "61129490d98f535648c33f142f8478caaf7b6cb6d7ec927801e6ac2c99780a5a",
+  "sha256": "c78235bc2c4ecc8d8bd6289f0ed45657675391c8edbfe11d2f3304e67c6b7bb0",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9320,7 +9390,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. Первые пять знаков 20-значного номера — балансовый счёт «40702».",
   "path": "inline:acc-ru-280#fig1",
-  "sha256": "2286c7663d8a746232458292934889c72e92d38b5921b3d10f883327ec453d21",
+  "sha256": "31bf55aacf419482bfcb1a03e18dc8b087824437068e8425e03ad24904cd9fce",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9334,7 +9404,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Последние четыре знака — порядковый номер «0415». Это текст: ведущий ноль сохранён.",
   "path": "inline:acc-ru-280#fig2",
-  "sha256": "e312cfe8c04181b50a6238e03a9bfbcbc2856baa142914701e08695ebcd7f0e4",
+  "sha256": "30aaad64b8f4ccab8b4a945f2d71c0cff801c1a5bb3400d772310fb6cbc900a5",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9348,7 +9418,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. ПСТР берёт «810» с 6-й позиции; тот же приём достаёт год «2027» из номера документа.",
   "path": "inline:acc-ru-280#fig3",
-  "sha256": "8382c20424ba8b8c75f1317231e335a1478d0acf7db2b342601d572ea8505048",
+  "sha256": "3f3891bd524963cabbc1e8ac15bb8aa0076243bde874ae98d5a328106e9784f7",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9376,7 +9446,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. Все обычные пробелы заменены на пустоту — остаётся «1250000,50».",
   "path": "inline:acc-ru-281#fig1",
-  "sha256": "136259bda5da64e5cf60ee570c5ddc622b2fd5440caf181765e476384ad1a62f",
+  "sha256": "adca3b72ba1284e28fe02a4735d56424d3349d5cdb815e13f93ec4060c848c3f",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9390,7 +9460,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ЗАМЕНИТЬ режет по номерам знаков, а не по их значению.",
   "path": "inline:acc-ru-281#fig2",
-  "sha256": "cb9a6ef197c9e635aba2c6c25216ae232b6509f16228ef85f7b0de619eed3c35",
+  "sha256": "3d6a6cc291c9c69860ed7f1e300d73d404b09be289fdba80647335399f84f43e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9404,7 +9474,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Оператор «=» регистр не различает, СОВПАД различает.",
   "path": "inline:acc-ru-281#fig3",
-  "sha256": "486e81f50770d1ba4063130e99d1ee818f793df44bd454f99f6870379042d049",
+  "sha256": "95f68129f88140c7e9e94c98ddbdc2d18bd9bcfa9f97d2f2e445fcda8d61d216",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9432,7 +9502,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. СЖПРОБЕЛЫ убирает пробелы по краям и сводит двойные к одному.",
   "path": "inline:acc-ru-282#fig1",
-  "sha256": "e59458c790d856545f4fab0baa2edbb24639c66249dd99928c754b079b64f812",
+  "sha256": "85185dd488e076bafb340cc06bbb5347294f215539d872e11351f9e7f0fb876f",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9446,7 +9516,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Знак 160 «слипается» с цифрами: СЖПРОБЕЛЫ его не удаляет, ПОДСТАВИТЬ с СИМВОЛ(160) удаляет.",
   "path": "inline:acc-ru-282#fig2",
-  "sha256": "9d14889d7e0f6304b5acaebdabf6e1e2cfb493321fcd8ad557961f2a1c79b8ad",
+  "sha256": "0eb8278cee5ad57036ec219a08975a2641e5730fe45d2dc1b1c1529c112c4a53",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9460,7 +9530,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. ПЕЧСИМВ убирает перевод строки (код 10), из-за которого текст «разрывается» в ячейке.",
   "path": "inline:acc-ru-282#fig3",
-  "sha256": "bab81bf8424e6546d4eaf3cb74918bcb0e7fc3f89b5904aa7ee74d3a3393336f",
+  "sha256": "b557c0b293cbd4a95b45a2b828528890aa8e0862005ac248c2eee2c840110764",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9474,7 +9544,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. КОДСИМВ показывает код: 160 вместо 32 — значит, пробел неразрывный.",
   "path": "inline:acc-ru-282#fig4",
-  "sha256": "1ade9928320c3824c1555c90a5cd79390c701ef2cbd80bfc787c32159b859c5a",
+  "sha256": "367710bb27e57d76524c8f209600e26b3e2b9e6b158e8ed7bb11dc0dab071b10",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9502,7 +9572,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. Ключ для сравнения: СЖПРОБЕЛЫ, затем СТРОЧН — оба списка приводятся к одному виду.",
   "path": "inline:acc-ru-283#fig1",
-  "sha256": "617fe4444b0d3ecfe3ed75fe3db6d24e271df833c5e9facac3ba50dfc1cc4033",
+  "sha256": "76b0c121972f0dd56313f38723606abbbfa7cc81cf61c87b46dfcd6c1a89aaed",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9516,7 +9586,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ПРОПИСН делает все буквы заглавными: «АВ-15».",
   "path": "inline:acc-ru-283#fig2",
-  "sha256": "795fe2f4abaad2684dbf44de242b222158f665cc4220868871816cd5cc77f72e",
+  "sha256": "e2116ba89fa599b536abc076a6ee855f015d8af33e7e9cff209c09aee4aa6eb4",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9530,7 +9600,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. ПРОПНАЧ хорош для ФИО, но портит аббревиатуры («ООО» → «Ооо»).",
   "path": "inline:acc-ru-283#fig3",
-  "sha256": "357fd23e841d3573305e44c0d2ebf3dbab8d44d49fd4ce5d5763af14550809f0",
+  "sha256": "9a788e858228ff8fc3148d413d2069f01b2b24bc7ef43bd677511ce4b1f35d58",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9558,7 +9628,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. Оператор & — основа склейки: сами значения и разделитель в кавычках.",
   "path": "inline:acc-ru-284#fig1",
-  "sha256": "24e3946ac732acae2f9282f622bf6867d34b256a692642d60d79b36988ff9dab",
+  "sha256": "870041d5601d2c6b6cd3e1049514cadeea7f07d6c2544e157214c6dc814a4ddd",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9572,7 +9642,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ОБЪЕДИНИТЬ с ИСТИНА не оставляет «хвост» из разделителя, если отчества нет.",
   "path": "inline:acc-ru-284#fig2",
-  "sha256": "8b85dd5cf36ddbce3fb6aa48233fb07f20f1ff53dd7e562b7b8f6fac29f7436a",
+  "sha256": "96fc456a841dd32afedd502363b27d5abf94c4c3367b29e389273bcacaf04357",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9586,7 +9656,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. ПОВТОР делает нужное число нулей, & приклеивает номер.",
   "path": "inline:acc-ru-284#fig3",
-  "sha256": "d77054e27b3406e242fef18cb611d853a8aaeb6c5bee33ee1240c54c6ea1d9d4",
+  "sha256": "4f3e330dca2e7b7c62ef22fb41505a7bb0b608c414c0afa27022263be720d9f0",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9614,7 +9684,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. ТЕКСТДО отдаёт всё слева от первой запятой.",
   "path": "inline:acc-ru-285#fig1",
-  "sha256": "baadc824e25a40e55932cf0a1622857a519ec7b8179cc14f8f38089e6d14e535",
+  "sha256": "354e184baa11c70679e95086bd9dd4acba2954c403f280120da79ad5c5e47230",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9628,7 +9698,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ТЕКСТПОСЛЕ отдаёт хвост; третий аргумент выбирает, после какого по счёту разделителя.",
   "path": "inline:acc-ru-285#fig2",
-  "sha256": "b645a6f74c019208a4353fd0561fad5ca384b46f3804c01b0c887e6a36511f9e",
+  "sha256": "4cf1a0c0ba26cfc4dc349936896f3f85073fa3deb64bbd2f5b6f76535de94584",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9642,7 +9712,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. То же, что ТЕКСТДО, в любой версии: ищем запятую и берём слева на один знак меньше.",
   "path": "inline:acc-ru-285#fig3",
-  "sha256": "7cfc3a92d47ac3de325d3dc22a590af4ab36efae94d0eadf524a0690f31f0df8",
+  "sha256": "a803e7cd8207927d03c96e10da49ae9a40e775c1f4fade06a4b2f273d4252f8a",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9656,7 +9726,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Хвост через ПСТР: длину берём «с запасом» — ДЛСТР всего текста, лишнее ПСТР отбросит.",
   "path": "inline:acc-ru-285#fig4",
-  "sha256": "dd4258f792baee24af655bb56e7d8e658c1d9e563b9b1650331ce4f79bf004fe",
+  "sha256": "501e1c5fac3583d3a45f49cf64f84e7cbf991df54ef96bc085e5cbe0a0865cc5",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9684,7 +9754,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. ЗНАЧЕН превращает «1250,50» в число; теперь с ним можно считать.",
   "path": "inline:acc-ru-286#fig1",
-  "sha256": "01d228f3e7f6c4418673c10d20676dc9dde17cf38c1fb09d505972c30f8ecacd",
+  "sha256": "823ca9e5cdb2ec53bd6f0b0460d429858f4397ecc2c9ff000220fd375836fdee",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9698,7 +9768,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ЧЗНАЧ не зависит от региональных настроек — подходит для выгрузок из разных систем.",
   "path": "inline:acc-ru-286#fig2",
-  "sha256": "0d825d3cdfc44251069e069d693362b80aef6971e6825d837fe6fd8a54da69f1",
+  "sha256": "05f6739cb82c2a93af80719dbb80223b56234ad0965a6d6896da75554a10b921",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9712,7 +9782,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. Ч приводит значение к числу; текст даже вида «5» превращается в 0 — это не ЗНАЧЕН.",
   "path": "inline:acc-ru-286#fig3",
-  "sha256": "2c1e3473626a01dded3b68a608dd3c248d475887b729e6c709d326b179cf088c",
+  "sha256": "1a19849017080cc7e5a6605630f045bd8d0e051e89ee0abb6407474d3b5d7df2",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9726,7 +9796,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. ТЕКСТ нужен, чтобы дата и сумма в строке выглядели так, как вы хотите.",
   "path": "inline:acc-ru-286#fig4",
-  "sha256": "ef80c45554c1b6795630e572b4622f82c70243772d0a49381de5a69393050fb9",
+  "sha256": "54adc359dc04355215c6301797fd63ff418e58521e542c987c23ac883c71c91e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9754,7 +9824,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. ДАТА принимает «лишние» месяцы и дни и переносит их в соседние периоды.",
   "path": "inline:acc-ru-287#fig1",
-  "sha256": "0181ba1783071e19c8cba355e77041d46a86e5cccb85eef5b773548b73a08e39",
+  "sha256": "c872cbf492bd6bfeb18a5e49140b204b36a91c68f9d0951f9df23de90ea0511d",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9768,7 +9838,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Три функции по одной дате: год, месяц и день — числа.",
   "path": "inline:acc-ru-287#fig2",
-  "sha256": "8e6df9725100d16072322225922b88f4b1c6d2e21620ce8fb474fb5a45a3f8b7",
+  "sha256": "f58589dab965cc5acdf200977789b98c8730fe956566e893fe0d2790ddef456b",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9782,7 +9852,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. «Тот же день в следующем месяце» ломается на 31-м числе — для этого есть ДАТАМЕС (урок 11).",
   "path": "inline:acc-ru-287#fig3",
-  "sha256": "e3c46bc44795ad88f68e0b02e3c5623f6bd7cb4e66c854a9c9ed509635e352d6",
+  "sha256": "9ef862f9d3bf654c5b7d3a9eb105d898c80399dd1043555a3722157209977645",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9810,7 +9880,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. Разность двух дат — число дней. Завтра результат будет уже 8, потому что СЕГОДНЯ изменится.",
   "path": "inline:acc-ru-288#fig1",
-  "sha256": "438d53d942479e60c63467a57a41772f9cdba6e35f9d74474eea052270191175",
+  "sha256": "cb17af62c0d56333305f6fee6878184d38a8a7e8cd3753a8aeb9c261f40488f2",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9824,7 +9894,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. С типом 2 пятница — 5; без типа та же пятница — 6. Тип определяет нумерацию.",
   "path": "inline:acc-ru-288#fig2",
-  "sha256": "6578bfb49716a43de360a7206afc4cd4850f7545f0d071acc09727b00dfe0c08",
+  "sha256": "fe09c2097e92d371004d73c85048a27fbb0e50e4910cd0d339941215bc7805cc",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9838,7 +9908,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. ДАТАЗНАЧ возвращает число-дату; чтобы увидеть дату, задайте формат «Дата».",
   "path": "inline:acc-ru-288#fig3",
-  "sha256": "0639b76060f4574708ab02d60195bdcfca501d30c7e30dd757193bab4f19ba0b",
+  "sha256": "9d0daa90540e0dbb8c2eb68a8c4805374b888234d810f1dc1c29babf89ef4d80",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9866,7 +9936,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. КОНМЕСЯЦА знает, сколько дней в месяце, включая високосный февраль.",
   "path": "inline:acc-ru-289#fig1",
-  "sha256": "a76eb6dd06233b47b64e4869414592b9da4c56925ba439c3177a7a19fe14d76d",
+  "sha256": "d7a36dacd06b814631cd760adb73d812d21bad2f0d5a1839396186a2ac74fafe",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9880,7 +9950,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ДАТАМЕС не «перепрыгивает» через месяц: возвращает последний день месяца.",
   "path": "inline:acc-ru-289#fig2",
-  "sha256": "e4fb577c745d8629e0176d60e7160f409cd76780a074dfbe9a08d02a73705ec6",
+  "sha256": "16bd9969e6fce8bd30d9194b2f3c35598818023d0698dfdb64f3605499466055",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9894,7 +9964,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. РАЗНДАТ считает только полные периоды: 37 месяцев = 3 года и 1 месяц.",
   "path": "inline:acc-ru-289#fig3",
-  "sha256": "5ef13bda9c1e0c23f33f73da6874b9685017517dd67960131cecd812d2364194",
+  "sha256": "ba81ae5ade1957b15f2577e17ebb97364eecfc5194e9617e2b0351621acda95e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9908,7 +9978,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Базис меняет результат: фактические 181/365 или условные 180/360.",
   "path": "inline:acc-ru-289#fig4",
-  "sha256": "3422b737b25ed140642597ff1c8dd29508a4dff69531636560267737375a7fa8",
+  "sha256": "da334c94a80c52d5a60eabb9d6e79820a9da25eea746f2ce95932a547d313011",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9936,7 +10006,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. С праздниками срок — 26.02.2027; без них получили бы 24.02.2027, на два дня раньше.",
   "path": "inline:acc-ru-290#fig1",
-  "sha256": "409305c52be03d63bbb308388fb3aab779a5846876923163f9cba4304175e890",
+  "sha256": "7ceed0dba5a435d38d9763d3b657662737ba958b7d329e70b736ad17705f4a41",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9950,7 +10020,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. В феврале 2027 — 20 рабочих по календарю недели и 18 с учётом праздников 22 и 23 февраля.",
   "path": "inline:acc-ru-290#fig2",
-  "sha256": "a748eea8ae22ca0ec2ec61d06083f63f5a80180522254953998e0f0906584fef",
+  "sha256": "a0531546d4688b193571a312ce6eecda3e98fe6f8a67e7ac4dce52be3e293fe9",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9964,7 +10034,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. С шестидневкой суббота рабочая, поэтому срок наступает раньше, чем при пятидневке.",
   "path": "inline:acc-ru-290#fig3",
-  "sha256": "eb91f4d59190bd7956b8562b9ac677156780f63806d337ba06362bb1b6506593",
+  "sha256": "7e36bd4a6357fc35e62769a19b0d0ca77d81a52037743d67b1ce33b9b063a96b",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -9992,7 +10062,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. Платёж 106 618,55 ₽ в месяц: ставка делится на 12, число периодов — месяцы.",
   "path": "inline:acc-ru-291#fig1",
-  "sha256": "174c2b604c4178ccbe3fbd7f767501f044d4638ed2a9eefd78b66a7643983640",
+  "sha256": "e314673b1090b93273e0a1b48a1bfe4165ed3b294285b59b09fc726583034c05",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10006,7 +10076,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Платёж 1 210 000 через два года при 10 % годовых «стоит» сегодня 1 000 000 — как в уроке №149 «Скидки, бонусы, отсрочка и рассрочка: оценка выручки и расходов».",
   "path": "inline:acc-ru-291#fig2",
-  "sha256": "10515630b1ecad700cb19fb84549f4850fb9bd9701e8a700136b850af20ebbd0",
+  "sha256": "194cceaa18befa25ef99799af8c604b13527064d5e84e0b69692df49e74fe949",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10020,7 +10090,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. ЧИСТНЗ считает по реальным дням: итог −261,09, а не 0, как дал бы ЧПС: високосный 2028 год добавил день.",
   "path": "inline:acc-ru-291#fig3",
-  "sha256": "edabff4bea4e1213ce067216cbb3981b57a406b129db028d67c83bcd4e599941",
+  "sha256": "17f9c0104b56e20f845967eb6a96da79422adef06cdce5bd0e3a9937188810c1",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10048,7 +10118,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. АПЛ делит (стоимость − ликвидационная) на срок: 10 000 ₽ в месяц.",
   "path": "inline:acc-ru-292#fig1",
-  "sha256": "459b2587c8b1a23f38a4974966fc0d113776e398ab26143468a0f2a76c7be46a",
+  "sha256": "f5d502c0e133d159b7c2c047d59f6964e0827e71b2c08c421700e3a0f72c2844",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10062,7 +10132,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. ДДОБ: в первом месяце 20 400, во втором 19 720 — суммы убывают.",
   "path": "inline:acc-ru-292#fig2",
-  "sha256": "4c90762fbfd395cdfaf83855847751ef3edd8cf07c20ab4318a0b5712006c9f6",
+  "sha256": "8261b684cae10e4911d0f46fc6cace83dbb34e14e99f69c3a4601c87aa5744c8",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10090,7 +10160,7 @@
   "is_simulation": false,
   "alt_text": "Схема 1. QUERY читает таблицу как базу: всего оплачено 31 000, как в уроке №70 «QUERY: запрос к таблице как к базе».",
   "path": "inline:acc-ru-293#fig1",
-  "sha256": "25b6df7a9f4f60cf89a7b10b78a6e801925fc4d1c5fbc57e83b985b3f514000d",
+  "sha256": "35f97a4c6094d46597def80b2b553958630c021468cd5d5343806c90ff724124",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10104,7 +10174,7 @@
   "is_simulation": false,
   "alt_text": "Схема 2. Одна формула вместо шести: НДС «внутри суммы» по ставке 22 % (как в уроке №91 «Авансы, возвраты и корректировки — без НДС и с НДС (22/122)»).",
   "path": "inline:acc-ru-293#fig2",
-  "sha256": "c4755a50ef7dc52f2bd15349ae49e8e996dfe5d230e904e580a484dd17dc68aa",
+  "sha256": "3dab07aa8d46d01013b27724995d3de72d19e426feabf570e17a3f3be4b9d59e",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10118,7 +10188,7 @@
   "is_simulation": false,
   "alt_text": "Схема 3. SPLIT делит строку по запятой с пробелом — это аналог ТЕКСТРАЗД из урока 7.",
   "path": "inline:acc-ru-293#fig3",
-  "sha256": "f5b875db02d76fcfdc80f6e00beda6f9cb20808968fbb9e9187511d6e6edc014",
+  "sha256": "94fdaa352d6a4b06bdf28592f4a4b7da750b5bd86edd4453a80c873560133bd6",
   "verification_status": "схема по тексту урока"
  },
  {
@@ -10132,7 +10202,7 @@
   "is_simulation": false,
   "alt_text": "Схема 4. Скобки в шаблоне выбирают только нужную часть — номер «15».",
   "path": "inline:acc-ru-293#fig4",
-  "sha256": "ae0ebb2aefb5fcf265bac791138142e5b4d8428a537e345101c30362237f5c2b",
+  "sha256": "1cbdd33e08c89d875c8470dca50139534b7c8b775e03f16d6e676adb40cf1bf2",
   "verification_status": "схема по тексту урока"
  },
  {
