@@ -31,7 +31,7 @@
 .tb-q-num.tb-q-wrong,.tb-q-num.tb-q-partial { background:var(--color-red-soft); color:var(--color-red-text); }
 .tb-q-num.tb-q-unanswered { background:var(--color-bg-3); color:var(--color-text-3); }
 .tb-q-body { flex:1; min-width:0; }
-.tb-q-prompt { margin:1px 0 0; font-size:12px; line-height:1.6; color:var(--color-text-2); overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.tb-q-prompt { margin:1px 0 0; font-size:12px; line-height:1.6; color:var(--color-text-2); overflow-wrap:anywhere; display:block; max-height:2lh; overflow:hidden; --iskra-text-fade-lines:2; }
 .tb-q-answers { margin:4px 0 0; font-size:11px; line-height:1.5; color:var(--color-text-3); overflow-wrap:anywhere; }
 .tb-q-label { font-weight:500; }
 .tb-q-correct-label { color:var(--color-green-text); }
