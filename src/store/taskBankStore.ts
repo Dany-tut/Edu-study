@@ -18,8 +18,14 @@ type TaskBankStore = {
    */
   loadFipiSet: (subject: string, exam: 'ege' | 'oge') => Promise<void>
   fipiSetsLoaded: Record<string, true>
-  /** Набор ФИПИ дочитан (или упал) — до этого тренажёр показывает скелетон. */
+  /** Первая порция набора ФИПИ пришла (или запрос упал) — до этого тренажёр показывает скелетон. */
   fipiSetsReady: Record<string, true>
+  /** Набор ФИПИ дочитан целиком — до этого остальное подгружается порциями. */
+  fipiSetsComplete: Record<string, true>
+  /** Сколько заданий в наборе ФИПИ (count без строк) — счётчики видны сразу, до догрузки. */
+  fipiCounts: Record<string, number>
+  /** Счётчики обоих экзаменов предмета — для ЕГЭ/ОГЭ в рейле. */
+  loadFipiCounts: (subject: string) => Promise<void>
   addTask: (t: NewTask) => Promise<number>
   replaceTask: (id: number, patch: Partial<Task>) => Promise<void>
   removeTask: (id: number) => Promise<void>
@@ -156,6 +162,8 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   loaded: false,
   fipiSetsLoaded: {},
   fipiSetsReady: {},
+  fipiSetsComplete: {},
+  fipiCounts: {},
   recentlyEditedId: null,
   clearRecentlyEdited: () => set({ recentlyEditedId: null }),
 
@@ -190,26 +198,50 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       const { DEV_FIPI_TASKS } = await import('../data/devFipiSample')
       const add = DEV_FIPI_TASKS.filter(t => t.subject === subject && t.exam === exam)
       const ids = new Set(add.map(t => t.id))
-      set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add], fipiSetsReady: { ...s.fipiSetsReady, [key]: true } }))
+      set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add], fipiSetsReady: { ...s.fipiSetsReady, [key]: true }, fipiSetsComplete: { ...s.fipiSetsComplete, [key]: true } }))
       return
     }
-    const rows: Record<string, unknown>[] = []
-    // Порциями по 1000 — потолок PostgREST на один ответ.
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase.from('task_bank').select('*')
-        .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
-        .order('line').order('id').range(from, from + 999)
-      if (error) {
-        set(s => { const m = { ...s.fipiSetsLoaded }; delete m[key]; return { fipiSetsLoaded: m, fipiSetsReady: { ...s.fipiSetsReady, [key]: true } } })
-        console.error('[task_bank] loadFipiSet', error)
-        return
-      }
-      rows.push(...(data ?? []))
-      if (!data || data.length < 1000) break
+    // Сначала 10 заданий — список появляется сразу; остальное догружается
+    // порциями по 500 в фоне. Раньше набор (до 2,8 тыс. строк с HTML) читался
+    // целиком, и всё это время тренажёр стоял на скелетоне.
+    const page = (from: number, to: number) => supabase.from('task_bank').select('*')
+      .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
+      .order('line').order('id').range(from, to)
+    const put = (rows: Record<string, unknown>[], extra: Partial<TaskBankStore> = {}) => {
+      const add = rows.map(dbToTask)
+      const ids = new Set(add.map(t => t.id))
+      set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add], ...extra }))
     }
-    const add = rows.map(dbToTask)
-    const ids = new Set(add.map(t => t.id))
-    set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add], fipiSetsReady: { ...s.fipiSetsReady, [key]: true } }))
+    const fail = (error: unknown) => {
+      set(s => { const m = { ...s.fipiSetsLoaded }; delete m[key]; return { fipiSetsLoaded: m, fipiSetsReady: { ...s.fipiSetsReady, [key]: true } } })
+      console.error('[task_bank] loadFipiSet', error)
+    }
+    const FIRST = 10, CHUNK = 500
+    const first = await page(0, FIRST - 1)
+    if (first.error) return fail(first.error)
+    put(first.data ?? [], { fipiSetsReady: { ...get().fipiSetsReady, [key]: true } })
+    if ((first.data ?? []).length < FIRST) {
+      set(s => ({ fipiSetsComplete: { ...s.fipiSetsComplete, [key]: true } }))
+      return
+    }
+    for (let from = FIRST; ; from += CHUNK) {
+      const { data, error } = await page(from, from + CHUNK - 1)
+      if (error) { console.error('[task_bank] loadFipiSet chunk', error); return }
+      put(data ?? [])
+      if (!data || data.length < CHUNK) break
+    }
+    set(s => ({ fipiSetsComplete: { ...s.fipiSetsComplete, [key]: true } }))
+  },
+
+  loadFipiCounts: async (subject) => {
+    if (DEV) return
+    await Promise.all((['ege', 'oge'] as const).map(async exam => {
+      const key = `${subject}:${exam}`
+      if (get().fipiCounts[key] !== undefined) return
+      const { count, error } = await supabase.from('task_bank').select('id', { count: 'exact', head: true })
+        .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
+      if (!error && count != null) set(s => ({ fipiCounts: { ...s.fipiCounts, [key]: count } }))
+    }))
   },
 
   addTask: async (t) => {

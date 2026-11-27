@@ -343,7 +343,12 @@ export default function Sidebar() {
   // Cap the name's width to whatever's left; if that's narrower than the name,
   // max-width bounds the text so only the overflowing end fades.
   useLayoutEffect(() => {
-    const PILL = 320, GAP = 20, ROW_PAD = 32 // mirror DashboardPage / .topbar-row
+    // PILL — не полные 320 px пилюли виджета, а её нижний предел в тесноте
+    // (как PILL_SOFT_MIN у шапки учителя): пилюля сжимается сама
+    // (`.topbar-widget-slot [data-widget-pill] { max-width: 100% }`, подписи
+    // гаснут фейдом), и имя ученика обрезается, только когда уступать ей уже
+    // нечего. Раньше резерв под все 320 px резал «Макаренко» при свободном месте.
+    const PILL = 272, GAP = 20, ROW_PAD = 32 // mirror DashboardPage / .topbar-row
     const apply = () => {
       const bar = barRef.current, nameWrap = nameWrapRef.current
       const nav = navRef.current, profile = avatarRef.current
