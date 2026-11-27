@@ -7,6 +7,7 @@
 // scripts/accounting/build_formuly.py → public/courses/accounting/formuly-dlya-raboty.xlsx (лист «Проверка»,
 // 249 проверок). В самом Excel не проверялось: Excel у автора курса нет. Данные вымышленные.
 import { p, qq, qtf, qnum, qtable, qgap, qmatch, hard } from '../lessonAuthoring'
+import { methodsFig } from '../../lib/excelLab/figures'
 import type { HomeworkQuizQuestion } from '../lessonContent'
 import { excelSheet, formulaFig } from './accFigures'
 import type { FormulaPart, ExcelSheetOpts } from './accFigures'
@@ -45,7 +46,19 @@ function lesson(s: Spec): AccLesson {
     ]),
     p('why', `**Почему работает.** ${s.why}`),
     p('was', `**Было → стало.** ${s.was}`),
-    p('route', `**Какой маршрут выбрать.**\n— Основной (Excel 2016 и новее): ${s.route.main}\n— Запасной (Excel 2007/2010): ${s.route.old}\n— Современный (Excel 2021, 2024, Microsoft 365 — проверьте в своей версии): ${s.route.modern}${s.route.pq ? `\n— Power Query (Excel 2016+, если разрешено на работе): ${s.route.pq}` : ''}`),
+    {
+      id: 'route',
+      text: 'Какой маршрут выбрать: ваш вариант подсвечен по версии Excel — её можно поменять в пилюле над способами.',
+      image: methodsFig({
+        title: 'Способы решения',
+        task: 'oneoff',
+        methods: [
+          { id: 'formulas', steps: [`Excel 2016 и новее: ${s.route.main}`, `Excel 2007/2010: ${s.route.old}`] },
+          { id: 'modern', requires: ['dynamic-arrays'], steps: [`Excel 2021, 2024, Microsoft 365 — проверьте в своей версии: ${s.route.modern}`] },
+          ...(s.route.pq ? [{ id: 'powerQuery' as const, requires: ['power-query'], steps: [`Excel 2016 и новее, если разрешено на работе: ${s.route.pq}`] }] : []),
+        ],
+      }),
+    },
     p('trainer', `**Поменяйте и проверьте.** ${s.trainer}`),
     p('mist', `**Типичные ошибки.**\n${lines(s.mistakes)}`),
     p('more', `**Где подробнее в курсе.** ${s.more}`),

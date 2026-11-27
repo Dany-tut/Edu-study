@@ -5,6 +5,7 @@
 import { p, qq, qmulti, qtf, qnum, qtable, qseq, qsort, qmatch, hard } from '../lessonAuthoring'
 import { accFlow, accTable, excelSheet, formulaFig, reconScreen } from './accFigures'
 import type { AccLesson } from './types'
+import { methodsFig } from '../../lib/excelLab/figures'
 
 const PQV = 'Power Query: Excel 2016, 2019, 2021, 2024, Microsoft 365 для Windows — встроен («Данные → Получить данные»); 2010/2013 — надстройка; 2007 — нет (по матрице совместимости курса). У учащейся — Excel 2016 или новее на Windows 11, точный номер не прочитан'
 const XLF = 'Шаблон на формулах: Excel 2007 и новее (СЧЁТЕСЛИМН, СУММЕСЛИ, ЕСЛИОШИБКА, ИНДЕКС/ПОИСКПОЗ), без макросов'
@@ -14,9 +15,24 @@ const NOTE = 'Числа проверены программно (Python), в Ex
 const SRC = (list: string) => `Источники: ${list}. ${NOTE}`
 const cap = (n: number, m: number, t: string) => `Рис. ${n} из ${m}. ${t}`
 
-/** Сравнение способов: самый простой, формулы, Power Query, VBA, Microsoft 365 — и что выбрать. */
-const methods = (simple: string, formulas: string, pq: string, vba: string, m365: string, pick: string) =>
-  p('methods', `**Какой способ выбрать на этом шаге.**\n— **Самый простой (руками, фильтр).** ${simple}\n— **Формулы Excel 2007+ (шаблон).** ${formulas}\n— **Power Query.** ${pq}\n— **VBA.** ${vba}\n— **Microsoft 365 (ФИЛЬТР, УНИК, СОРТ).** ${m365}\n**Что выбрать:** ${pick}`)
+/** Сравнение способов: самый простой, формулы, Power Query, VBA, Microsoft 365 — и что выбрать.
+ *  Живой блок «Способы решения» (Excel-лаборатория): вкладки способов, «ваш вариант» по версии Excel ученика,
+ *  выбор версии из пилюли. Картинка — для старых сборок и печати; подпись — вывод «что выбрать». */
+const methods = (simple: string, formulas: string, pq: string, vba: string, m365: string, pick: string) => ({
+  id: 'methods',
+  text: `Какой способ выбрать на этом шаге: ${pick}`,
+  image: methodsFig({
+    title: 'Способы решения',
+    task: 'automation',
+    methods: [
+      { id: 'simple', steps: [simple] },
+      { id: 'formulas', steps: [`Шаблон на формулах: ${formulas}`] },
+      { id: 'powerQuery', requires: ['power-query'], steps: [pq] },
+      { id: 'vba', requires: ['vba'], steps: [vba] },
+      { id: 'modern', requires: ['filter', 'unique', 'sort'], steps: [`Microsoft 365 (ФИЛЬТР, УНИК, СОРТ): ${m365}`] },
+    ],
+  }),
+})
 
 export const EXT02B_FIGS: Record<string, Array<{ after: string; caption: string; src: string }>> = {}
 
