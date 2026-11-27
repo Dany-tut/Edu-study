@@ -55,7 +55,6 @@ import { useNavCollapse } from '../../lib/useNavCollapse'
 import { useKeyboardInset } from '../../lib/useKeyboardInset'
 import MobileScreen from '../MobileScreen'
 import SubjectCards from './SubjectCards'
-import { fetchCardGroups } from '../../lib/cardGroups'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS, RailCard, RailModes, RailSegment, FilterMenu, TileGrid, Tile, TileMeter } from './TrainerShell'
 import { catalogFor, type ExamCode, type ExamYear } from '../../data/examPresets'
 import { FIPI_KES } from '../../data/fipiKes'
@@ -1890,20 +1889,10 @@ export default function BankTrainer({ subjectState }: {
   // Сегменты собираются из возможностей: «Список» и «Стопка» — два взгляда на
   // задания банка, «Карточки» — другой материал. Предмет без банка получает
   // один сегмент, и переключать ему нечего.
-  // «Карточки» — наборы, которые собирает учитель. У предмета с банком, где
-  // наборов нет, пункт вёл в пустую полку («пока нет — их собирает учитель»):
-  // показываем его, только когда наборы есть. Без банка полка — единственный
-  // экран и остаётся всегда.
-  const [hasDecks, setHasDecks] = useState(false)
-  useEffect(() => {
-    if (!bankOn || !cardsOn) return
-    let alive = true
-    setHasDecks(false)
-    fetchCardGroups(cardsSubject, deckOwner().studentId)
-      .then(gs => { if (alive) setHasDecks(gs.some(g => g.sets.length > 0)) })
-      .catch(() => {})
-    return () => { alive = false }
-  }, [bankOn, cardsOn, cardsSubject])
+  // «Карточки» у предметов с банком заданий пока скрыты (решение Дани 27.11):
+  // учительские наборы (например «Разделы биологии») в базе остаются, но в
+  // тренажёре пункта нет. Без банка полка — единственный экран и остаётся.
+  const hasDecks = false
   const viewTabItems = useMemo(() => {
     const out: ['list' | 'cards' | 'lines' | 'decks', string, typeof List][] = []
     if (bankOn) { out.push(['list', 'Список', List], ['cards', 'Стопка', Layers]) }
@@ -1911,7 +1900,7 @@ export default function BankTrainer({ subjectState }: {
     if (cardsOn && (!bankOn || hasDecks)) out.push(['decks', 'Карточки', BookOpen])
     return out
   }, [bankOn, cardsOn, examCatalog, hasDecks])
-  // Открытый экран карточек, а наборов у предмета не оказалось, — в список.
+  // Сохранённый экран карточек у предмета с банком — в список.
   useEffect(() => { if (view === 'decks' && bankOn && !hasDecks) setView('list') }, [view, bankOn, hasDecks])
 
   const viewOptions = useMemo(
