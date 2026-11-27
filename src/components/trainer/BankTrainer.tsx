@@ -8,7 +8,7 @@ import { Check as LoopMarkCheck, X as LoopMarkX } from '../icons/appIcons'
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
-import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useMemo, useRef, useEffect, lazy, Suspense, type ReactNode } from 'react'
 import CountBadge from '../CountBadge'
 import ScrollFade from '../ScrollFade'
 import QuestionTable from '../QuestionTable'
@@ -68,8 +68,12 @@ import MobileBell from '../MobileBell'
 import { glassCircle, MOBILE_TOP_GAP, MOBILE_DOCK_EDGE, SAFE_TOP } from '../../lib/mobileTokens'
 import { tactile } from '../../lib/feedback'
 import { useT } from '../../lib/i18n'
-import { DEFAULT_IMAGE_SIZE } from '../../data/taskTypes'
+import { DEFAULT_IMAGE_SIZE, parseNumeric, fillableCellKeys, answerMap, type GapChoice } from '../../data/taskTypes'
+import { hotspotOutcome, type HotspotSpec } from '../../lib/screenHotspot'
 import { btn } from '../../lib/pillStyles'
+
+const LazyDropdownGapSolver = lazy(() => import('../DropdownGapSolver'))
+const LazyScreenHotspotSolver = lazy(() => import('../ScreenHotspotSolver'))
 
 type StatusFilter = 'all' | 'done' | 'undone'
 type SortMode = 'newest' | 'oldest' | 'easy' | 'hard' | 'subject' | 'line'
@@ -341,9 +345,17 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
   // Tactility is mobile-only — desktop trainer shouldn't blip/vibrate on every click.
   const tap = () => { if (mobile) tactile() }
+  const payload = (task.payload ?? {}) as Record<string, unknown>
   function check() {
     tap()
-    onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
+    if (task.answerType === 'numeric') {
+      const want = parseNumeric(task.answer)
+      const got = parseNumeric(inputVal)
+      const tol = Number(payload.numTolerance) || 0
+      onAnswer(task.id, inputVal, want !== null && got !== null && Math.abs(got - want) <= tol + 1e-9)
+    } else {
+      onAnswer(task.id, inputVal, inputVal.trim().toLowerCase() === task.answer.toLowerCase())
+    }
   }
   /**
    * Подсмотреть решение, не отвечая.
@@ -477,7 +489,56 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {fipi ? (
         <FipiTaskBody task={task} state={state} palette={palette} mobile={mobile}
           onAnswer={(v, c, got, max) => onAnswer(task.id, v, c, got, max)} />
-      ) : (<>
+      ) : task.answerType === 'screenHotspot' && payload.hotspot ? (
+        <Suspense fallback={null}>
+          <LazyScreenHotspotSolver
+            spec={payload.hotspot as HotspotSpec}
+            value={state?.value}
+            disabled={state !== undefined}
+            onChange={v => {
+              const out = hotspotOutcome(payload.hotspot as HotspotSpec, v)
+              onAnswer(task.id, v, out.correct)
+            }}
+          />
+        </Suspense>
+      ) : task.answerType === 'dropdownGap' && payload.gapText && Array.isArray(payload.gapChoices) ? (<>
+        <Suspense fallback={null}>
+          <LazyDropdownGapSolver
+            text={String(payload.gapText)}
+            gaps={payload.gapChoices as GapChoice[]}
+            value={state?.value}
+            disabled={state !== undefined}
+            showVerdict={state !== undefined}
+            onChange={v => {
+              const given = answerMap(v)
+              const gaps = payload.gapChoices as GapChoice[]
+              const allCorrect = gaps.every((g, i) => given[i] !== undefined && Number(given[i]) === g.correct)
+              onAnswer(task.id, v, allCorrect)
+            }}
+          />
+        </Suspense>
+        {/* Solution block for dropdownGap */}
+        <button data-hover="layer" onClick={peek} style={{
+          display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+          padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600,
+          background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
+          border: `1.5px solid ${showSolution ? 'transparent' : 'var(--color-border-medium)'}`,
+          color: showSolution ? palette.text : 'var(--color-muted)', cursor: 'pointer',
+        }}>
+          {showSolution ? <Eye size={14} /> : <EyeOff size={14} />}
+          <OpticalText alignment="ink">{t('Решение')}</OpticalText>
+        </button>
+        <AnimatePresence>
+          {showSolution && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
+              <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>{t('Правильный ответ')}</p>
+                <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-2)', whiteSpace: 'pre-wrap' }}>{task.solution}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>) : (<>
       {/* Choice options */}
       {task.choices && task.choices.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -534,6 +595,26 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         </div>
       )}
 
+      {/* numeric hint: tolerance + unit */}
+      {task.answerType === 'numeric' && (Number(payload.numTolerance) > 0 || payload.unit) && (
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {Number(payload.numTolerance) > 0 && <span>{t('Допуск')} ±{payload.numTolerance}</span>}
+          {payload.unit && <span>{t('Единицы')}: {String(payload.unit)}</span>}
+          {typeof payload.decimals === 'number' && <span>{payload.decimals} {t('зн. после запятой')}</span>}
+        </div>
+      )}
+
+      {/* tableFill: editable cells in the question table */}
+      {task.answerType === 'tableFill' && task.questionTable && (() => {
+        const keys = fillableCellKeys({ table: task.questionTable as { rows: string[][]; emptyCells?: Record<string, boolean> } })
+        if (keys.length === 0) return null
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Заполните пустые ячейки')}</div>
+          </div>
+        )
+      })()}
+
       {/* Answer + action buttons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: mobile ? 'nowrap' : 'wrap' }}>
         {/* `layout` tweens the field's width as the Проверить button enters /
@@ -542,6 +623,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           <input
             ref={inputRef}
             value={inputVal}
+            inputMode={task.answerType === 'numeric' ? 'decimal' : undefined}
             // Locked once checked: erasing/editing a checked answer used to
             // bring "Проверить" straight back (inputVal !== state.value), so a
             // stray backspace could silently un-submit the answer. readOnly
