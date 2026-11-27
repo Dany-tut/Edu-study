@@ -11,6 +11,11 @@
 // Запуск: npm run check:excel-lab
 
 import { buildSync } from 'esbuild'
+import { existsSync, readdirSync } from 'node:fs'
+
+// Наборы тренажёров курса: src/data/accounting/trainers/*.ts — каждый экспорт с sheets проверяется.
+const TRAINER_DIR = 'src/data/accounting/trainers'
+const trainerFiles = existsSync(TRAINER_DIR) ? readdirSync(TRAINER_DIR).filter(f => /\.ts$/.test(f) && !f.endsWith('.d.ts')) : []
 
 // Бандл пишется в node_modules/.cache, а не в data:-URL: уроки курса тянут
 // пакеты (lucide-react и др.), их нужно разрешать из node_modules.
@@ -23,6 +28,7 @@ buildSync({
       export * from './src/lib/excelLab/embed'
       export { EXT02_TRAINERS } from './src/data/accounting/excelLabSets'
       export { ACC_LESSONS } from './src/data/accounting/accountingLessons'
+      ${trainerFiles.map((f, i) => `export * as TRAINER_FILE_${i} from './${TRAINER_DIR}/${f.replace(/\.ts$/, '')}'`).join('\n')}
     `,
     resolveDir: process.cwd(), loader: 'ts',
   },
@@ -94,6 +100,8 @@ const cases2 = [
   ['=ЧИСТРАБДНИ("23.11.2026";"29.11.2026")', '5'], ['=ЧИСТРАБДНИ("23.11.2026";"29.11.2026";C1)', '4'], ['=ТЕКСТ(РАБДЕНЬ(C1;1);"ДД.ММ.ГГГГ")', '30.11.2026'], ['=ТЕКСТ(РАБДЕНЬ(C1;-5);"ДД.ММ.ГГГГ")', '20.11.2026'],
   ['=ПРОСМОТРX("z";A3:A6;B3:B6)', '40'], ['=ПРОСМОТРX("q";A3:A6;B3:B6;"нет")', 'нет'], ['=ПРОСМОТРX("q";A3:A6;B3:B6)', '#Н/Д'], ['=ПРОСМОТРX("x";A3:A6;B3:B6;;0;-1)', '30'],
   ['=ПРОСМОТРX(25;B3:B6;A3:A6;;-1)', 'y'], ['=ПРОСМОТРX(25;B3:B6;A3:A6;;1)', 'x'], ['=ПОИСКПОЗX("z";A3:A6)', '4'],
+  ['=СЧЁТЕСЛИ($A$3:A3;A3)', '1'], ['=СЧЁТЕСЛИ($A$3:A5;A5)', '2'], ['=ЕСЛИ(СЧЁТЕСЛИ($A$3:A3;A3)=1;1;0)', '1'], ['=СУММ(B3:B3)', '10'], ['=B3:B3+1', '11'],
+  ['=СУММ(ИНДЕКС(A3:B6;0;2))', '100'], ['=СЧЁТЕСЛИ(ИНДЕКС(A3:B6;0;1);"x")', '2'], ['=ПОИСКПОЗ("z";ИНДЕКС(A3:B6;0;1);0)', '4'], ['=СУММ(ИНДЕКС(A3:B6;3;0))', '30'],
   ['=ВЫБОР(2;"a";"b";"c")', 'b'], ['=СУММ(ВЫБОР(1;B3:B4;B5:B6))', '30'], ['=СТРОКА(B5)', '5'], ['=СТОЛБЕЦ(D1)', '4'],
 ]
 for (const [f, want] of cases2) {
@@ -105,6 +113,9 @@ ok(wb2.formatOf('T', 'C1') === 'date' && wb2.shown('T', 'C1') === '27.11.2026', 
 const wb3 = new Workbook([{ name: 'T', blocks: [{ at: 'A1', rows: [['27.11.2026', '=A1+3', '=ДАТА(2026;1;31)', '=A1-B1']] }] }])
 ok(wb3.shown('T', 'B1') === '30.11.2026' && wb3.shown('T', 'C1') === '31.01.2026' && wb3.shown('T', 'D1') === '−3', 'формат даты у формул: ' + ['B1', 'C1', 'D1'].map(a => wb3.shown('T', a)).join(' '))
 ok(new Workbook([{ name: 'T', blocks: [{ at: 'A1', rows: [['=СТРОКА()']] }] }]).shown('T', 'A1') === '1', 'СТРОКА() без аргумента — строка формулы')
+// Растущий диапазон, протянутый вниз: первая строка — 1, повтор — 0.
+const grow = new Workbook([{ name: 'T', blocks: [{ at: 'A2', rows: [['П-01', '=ЕСЛИ(СЧЁТЕСЛИ($A$2:A2;A2)=1;1;0)'], ['П-02', '=ЕСЛИ(СЧЁТЕСЛИ($A$2:A3;A3)=1;1;0)'], ['П-01', '=ЕСЛИ(СЧЁТЕСЛИ($A$2:A4;A4)=1;1;0)']] }] }])
+ok(['B2', 'B3', 'B4'].map(a => grow.shown('T', a)).join() === '1,1,0', 'растущий диапазон $A$2:A2: ' + ['B2', 'B3', 'B4'].map(a => grow.shown('T', a)).join())
 for (const bad of ['=СУММ(A1,A2)', '=СУММ(A1', '=1+', '=СУММ(A1))']) {
   let threw = false; try { evaluate(bad, wb) } catch { threw = true }
   ok(threw, `${bad} должна дать синтаксическую ошибку`)
@@ -212,6 +223,17 @@ for (const { shortId, lesson } of ACC_LESSONS) {
     }
   })
 }
+let fileTrainers = 0
+trainerFiles.forEach((f, i) => {
+  const mod = M[`TRAINER_FILE_${i}`] ?? {}
+  const visit = (x, name) => {
+    if (!x || typeof x !== 'object') return
+    if (Array.isArray(x.sheets) && Array.isArray(x.editable)) { fileTrainers++; return checkTrainer(x, `${TRAINER_DIR}/${f} ${name}`) }
+    for (const [k, v] of Object.entries(x)) visit(v, `${name}.${k}`)
+  }
+  for (const [k, v] of Object.entries(mod)) visit(v, k)
+})
+console.log(`Наборы ${TRAINER_DIR}: файлов ${trainerFiles.length}, тренажёров ${fileTrainers}`)
 console.log(`Курс: ${courseTrainers} тренажёров, ${courseFormulas} разборов формул, ${courseMethods} блоков способов`)
 
 if (fails) { console.error(`\n${fails} ошибок в Excel-лаборатории.`); process.exit(1) }

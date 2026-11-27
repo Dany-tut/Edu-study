@@ -150,7 +150,7 @@ export default function FormulaBreakdown({ spec }: { spec: FormulaSpec }) {
               {whatIf.supported && !whatIf.problem && (
                 <>
                   {whatIf.steps.map((st, i) => (
-                    <div key={i} className="xl-mono" style={{ fontSize: 13, color: 'var(--color-text-2)', overflowWrap: 'anywhere' }}>{st.expr} → <b>{formatValue(st.value) || 'пусто'}</b></div>
+                    <div key={i} className="xl-mono" style={{ fontSize: 13, color: 'var(--color-text-2)', overflowWrap: 'anywhere' }}>{st.expr} <ArrowRight size={12} aria-hidden style={{ verticalAlign: 'middle' }} /> <b>{formatValue(st.value) || 'пусто'}</b></div>
                   ))}
                   <div style={{ fontSize: 15 }}>Результат: <b>{formatValue(whatIf.value ?? null) || 'пусто'}</b></div>
                 </>

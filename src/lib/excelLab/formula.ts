@@ -158,7 +158,7 @@ export class Workbook {
     this.busy.add(key)
     let out: Val
     try { out = ev(parse(v), { wb: this, sheet, cell: parseAddr(a) ?? undefined }) } finally { this.busy.delete(key) }
-    if (isRange(out)) out = err('#ЗНАЧ!', 'В ячейке получился диапазон, а нужно одно значение')
+    if (isRange(out)) out = out.c1 === out.c2 && out.r1 === out.r2 && out.r2 !== MAX_ROW ? this.value(out.sheet, addr(out.c1, out.r1)) : err('#ЗНАЧ!', 'В ячейке получился диапазон, а нужно одно значение')
     this.memo.set(key, out)
     return out
   }
@@ -417,7 +417,9 @@ function refVal(n: Extract<Node, { t: 'ref' }>, ctx: Ctx): Val {
   const r = parseRangeRef(n.ref, ctx.sheet)
   if (!r) return err('#ССЫЛКА!', `Непонятная ссылка ${n.ref}`)
   if (!ctx.wb.cells.has(r.sheet)) return err('#ССЫЛКА!', `Листа «${r.sheet}» в этом примере нет`)
-  if (r.c1 === r.c2 && r.r1 === r.r2) return ctx.wb.value(r.sheet, addr(r.c1, r.r1))
+  // «A2» — значение ячейки; «$A$2:A2» — диапазон, даже из одной ячейки: так
+  // растущий диапазон СЧЁТЕСЛИ($A$2:A2;A2) работает уже в первой строке.
+  if (r.c1 === r.c2 && r.r1 === r.r2 && !n.ref.includes(':')) return ctx.wb.value(r.sheet, addr(r.c1, r.r1))
   return r
 }
 
@@ -596,7 +598,10 @@ function callFn(n: Extract<Node, { t: 'fn' }>, ctx: Ctx): Val {
       if (row < 0 || col < 0) return err('#ЗНАЧ!', 'Номер строки или столбца отрицательный')
       const h = rg.r2 - rg.r1 + 1, w = rg.c2 - rg.c1 + 1
       if (row > h || col > w) return err('#ССЫЛКА!', 'Номер строки или столбца за пределами диапазона')
-      if (row === 0 || (col === 0 && w > 1)) return err('#ЗНАЧ!', 'Учебный тренажёр не возвращает целую строку или столбец')
+      // 0 — вся строка или весь столбец: годится внутри СУММ, СЧЁТЕСЛИ, ПОИСКПОЗ.
+      if (row === 0 && col === 0) return rg
+      if (row === 0) return { ...rg, c1: rg.c1 + Math.max(col, 1) - 1, c2: rg.c1 + Math.max(col, 1) - 1 }
+      if (col === 0 && w > 1) return { ...rg, r1: rg.r1 + row - 1, r2: rg.r1 + row - 1 }
       return ctx.wb.value(rg.sheet, addr(rg.c1 + Math.max(col, 1) - 1, rg.r1 + row - 1))
     }
   }
