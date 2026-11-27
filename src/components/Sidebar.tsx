@@ -14,7 +14,7 @@ import {
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { clearStudentSession, getStudentSession } from '../lib/studentSession'
-import SubjectSwitcher from './SubjectSwitcher'
+import SubjectSwitcher, { prefetchSubjectCards } from './SubjectSwitcher'
 import { supabase } from '../lib/supabase'
 import { trackNow } from '../lib/analytics'
 import { playTransitionDrop } from '../lib/sound'
@@ -228,6 +228,8 @@ export default function Sidebar() {
   // Max width for the name when a widget pill shares the top-bar row; undefined
   // means "no cap" (home page, or when there's room for the full name).
   const [nameMaxWidth, setNameMaxWidth] = useState<number | undefined>(undefined)
+  /** Ширина левой колонки ряда, когда бар сдвинут влево (null — по центру). */
+  const [barLeft, setBarLeft] = useState<number | null>(null)
   const snapMountRef = useRef(false)
   // Viewport coords for the portaled popover, measured from the avatar.
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null)
@@ -244,6 +246,8 @@ export default function Sidebar() {
   // «Оплата» есть, только если у учителя включена функция оплат.
   const paymentAvailable = useMyPayment(s => !!session && s.studentId === session.id && s.info !== null)
   useEffect(() => { if (session?.id) void useMyPayment.getState().load(session.id) }, [session?.id])
+  // Список курсов для меню профиля — заранее, чтобы меню открывалось уже собранным.
+  useEffect(() => { if (session?.id) prefetchSubjectCards() }, [session?.id])
   const paymentKnown = useMyPayment(s => !!session && s.studentId === session.id && s.loaded)
   const [adminAnswer, setAdminAnswer] = useState<boolean | null>(null)
   useEffect(() => {
@@ -295,7 +299,15 @@ export default function Sidebar() {
   useLayoutEffect(() => {
     const text = nameTextRef.current
     if (!text) return
-    const measure = () => setNameWidth(text.getBoundingClientRect().width + 18)
+    // Плюс поля обёртки имени (10 + 14 px, см. разметку ниже). Раньше
+    // прибавлялось 18 — на 6 px меньше полей, и FadeText гасил последнюю букву
+    // («Макаренк») при любой ширине окна.
+    const pad = () => {
+      const box = text.closest('button')?.firstElementChild as HTMLElement | null
+      const css = box ? getComputedStyle(box) : null
+      return css ? parseFloat(css.paddingLeft) + parseFloat(css.paddingRight) : 24
+    }
+    const measure = () => setNameWidth(Math.ceil(text.getBoundingClientRect().width + pad()))
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(text)
@@ -336,24 +348,23 @@ export default function Sidebar() {
     return () => clearTimeout(id)
   }, [autoCompact])
 
-  // Keep the expanded bar + the widget pill within the viewport. On any
-  // non-home page a 320px pill sits 20px to the right of the bar (see
-  // DashboardPage), and the bar is centred — so space reserved for the pill on
-  // the right must be mirrored on the left, hence reserving 2× its footprint.
-  // Cap the name's width to whatever's left; if that's narrower than the name,
-  // max-width bounds the text so only the overflowing end fades.
+  // Бар и пилюля виджета в одном ряду (.topbar-row: левая колонка · бар ·
+  // правая колонка с пилюлей). Раньше бар стоял строго по центру, а под
+  // пилюлю резервировалось место и справа, и зеркально слева: на окне ~1000 px
+  // это съедало всё, и имя ученика резалось при пустой левой половине.
+  // Теперь по порядку: 1) бар по центру, если рядом влезает пилюля целиком;
+  // 2) иначе левая колонка сужается (--topbar-left) и бар уходит влево, давая
+  // пилюле её 320 px; 3) когда слева пусто, пилюля сжимается до PILL_MIN
+  // (max-width: 100%, подписи гаснут фейдом); 4) только потом режется имя.
   useLayoutEffect(() => {
-    // PILL — не полные 320 px пилюли виджета, а её нижний предел в тесноте
-    // (как PILL_SOFT_MIN у шапки учителя): пилюля сжимается сама
-    // (`.topbar-widget-slot [data-widget-pill] { max-width: 100% }`, подписи
-    // гаснут фейдом), и имя ученика обрезается, только когда уступать ей уже
-    // нечего. Раньше резерв под все 320 px резал «Макаренко» при свободном месте.
-    const PILL = 272, GAP = 20, ROW_PAD = 32 // mirror DashboardPage / .topbar-row
+    const PILL = 320, PILL_MIN = 272, GAP = 20 // .topbar-widget-slot: margin-left 20
+    const row = barRef.current?.closest('.topbar-row') as HTMLElement | null
+    const reset = () => { row?.style.removeProperty('--topbar-left'); setBarLeft(null) }
     const apply = () => {
       const bar = barRef.current, nameWrap = nameWrapRef.current
       const nav = navRef.current, profile = avatarRef.current
-      if (!bar || !nameWrap || !nav || !profile) return
-      if (isCompact || activePage === 'home') { setNameMaxWidth(undefined); return }
+      if (!bar || !nameWrap || !nav || !profile || !row) return
+      if (isCompact || activePage === 'home') { reset(); setNameMaxWidth(undefined); return }
       // Reserve the EXPANDED navigation, not its current animated width.
       // Otherwise every frame changes the name's target and restarts its
       // animation, leaving a second, slower resize after the bar opens.
@@ -377,14 +388,27 @@ export default function Sidebar() {
       }, parseFloat(outer.paddingLeft) + parseFloat(outer.paddingRight)
         + parseFloat(outer.borderLeftWidth) + parseFloat(outer.borderRightWidth)
         + Math.max(0, bar.childElementCount - 1) * parseFloat(outer.columnGap))
-      const maxBar = window.innerWidth - 2 * (PILL + GAP + ROW_PAD)
-      setNameMaxWidth(Math.max(0, maxBar - rest))
+      const rowCss = getComputedStyle(row)
+      const inner = row.clientWidth - parseFloat(rowCss.paddingLeft) - parseFloat(rowCss.paddingRight)
+      const name = nameWrap.firstElementChild
+        ? Math.ceil((nameTextRef.current?.getBoundingClientRect().width ?? 0) + parseFloat(getComputedStyle(nameWrap.firstElementChild).paddingLeft) + parseFloat(getComputedStyle(nameWrap.firstElementChild).paddingRight))
+        : 0
+      const free = inner - rest - name // всё, что остаётся колонкам по бокам бара
+      if (free >= 2 * (PILL + GAP)) { reset(); setNameMaxWidth(undefined); return }
+      // Левая колонка отдаёт ровно столько, чтобы справа влезла пилюля целиком.
+      const left = Math.max(0, free - (PILL + GAP))
+      row.style.setProperty('--topbar-left', `${Math.floor(left)}px`)
+      setBarLeft(Math.floor(left))
+      // Слева пусто — имя получает всё, кроме сжатой до PILL_MIN пилюли.
+      setNameMaxWidth(left > 0 ? undefined : Math.max(0, inner - rest - (PILL_MIN + GAP)))
     }
     apply()
     const ro = new ResizeObserver(apply)
     if (barRef.current) ro.observe(barRef.current)
+    if (row) ro.observe(row)
+    if (nameTextRef.current) ro.observe(nameTextRef.current)
     window.addEventListener('resize', apply)
-    return () => { ro.disconnect(); window.removeEventListener('resize', apply) }
+    return () => { ro.disconnect(); window.removeEventListener('resize', apply); reset() }
   }, [isCompact, activePage, activeItem, lang])
 
   // Report the centred bar's viewport left/right edges so the docked lesson
@@ -409,7 +433,7 @@ export default function Sidebar() {
     if (barRef.current) ro.observe(barRef.current)
     window.addEventListener('resize', apply)
     return () => { clearTimeout(settle); ro.disconnect(); window.removeEventListener('resize', apply) }
-  }, [setTopBarBox, isCompact, activePage, nameMaxWidth])
+  }, [setTopBarBox, isCompact, activePage, nameMaxWidth, barLeft])
 
   // Keep the nav highlight in sync when the page changes from elsewhere
   // (e.g. an "Открыть урок" button jumps straight to Courses).
