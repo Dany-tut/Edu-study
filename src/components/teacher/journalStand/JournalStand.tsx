@@ -891,7 +891,7 @@ export default function JournalStand({ owner, user, production = false }: { owne
     handoffHomeworkReview(id, entry.student.id, draft)
     useTeacher.getState().openHomeworkReview(id,entry.student.id,page)
     return true
-  }, index)
+  }, index, entry => !!(isDesktop && data && !data.demo && entry.work.submission && nativeHomeworkReviewId(data, entry)))
   const entries = useMemo(
     () =>
       !index || !data

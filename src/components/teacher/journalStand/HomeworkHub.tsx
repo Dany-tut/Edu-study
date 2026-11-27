@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Modal from '../../Modal'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import BasicAnswersList from '../BasicAnswersList'
-import { ArrowLeft, ArrowRight, Check, ChevronRight, ClipboardList, Home, Maximize2, Minimize as Minimize2, Search, X } from '../../icons/appIcons'
+import { ArrowLeft, ArrowRight, Check, ChevronRight, ClipboardList, Home, Maximize2, Search, X } from '../../icons/appIcons'
 import type { CourseJournalData, JournalAttempt } from '../../../lib/courseJournal'
 import { parseBasicAnswers } from '../../../lib/basicAnswers'
 import { sameLearner, type StandIndex } from './studentWorks'
@@ -48,7 +48,8 @@ function HomeworkHistory({ attempts }: { attempts: JournalAttempt[] }) {
 }
 
 export function useHomeworkHub(data: CourseJournalData | null, today: string, onSave: SaveReview, onLocate?: (entry: HomeworkEntry) => void,
-  onFullReview?: (entry: HomeworkEntry, draft: ReviewHandoff) => boolean, index?: StandIndex | null) {
+  onFullReview?: (entry: HomeworkEntry, draft: ReviewHandoff) => boolean, index?: StandIndex | null,
+  canFullReview?: (entry: HomeworkEntry) => boolean) {
   const items = useMemo(() => data ? homeworkEntries(data, today, index ?? undefined) : [], [data, today, index])
   const queue = useMemo(() => reviewQueue(items), [items])
   const [target, setTarget] = useState<Target | null>(null)
@@ -64,7 +65,7 @@ export function useHomeworkHub(data: CourseJournalData | null, today: string, on
     if (first) setTarget({ keys: stack.map(e => e.key), selected: first.key, title: first.work.slot.title })
   }
   return { items, queue, openStudent, openAssignment,
-    dialog: <HomeworkDialog data={data} items={items} target={target} setTarget={setTarget} onSave={onSave} onLocate={onLocate} onFullReview={onFullReview} /> }
+    dialog: <HomeworkDialog data={data} items={items} target={target} setTarget={setTarget} onSave={onSave} onLocate={onLocate} onFullReview={onFullReview} canFullReview={canFullReview} /> }
 }
 
 export function HomeworkNavigation({ page, onChange }: { page: HomeworkPage; onChange: (page: HomeworkPage) => void }) {
@@ -96,14 +97,15 @@ export function HomeworkTasks({ queue, groups, onQueue }: {
   </section>
 }
 
-function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFullReview }: {
+function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFullReview, canFullReview }: {
   data: CourseJournalData | null; items: HomeworkEntry[]; target: Target | null; setTarget: React.Dispatch<React.SetStateAction<Target | null>>; onSave: SaveReview; onLocate?: (entry: HomeworkEntry) => void
   onFullReview?: (entry: HomeworkEntry, draft: ReviewHandoff) => boolean
+  /** Есть ли у работы страница полной проверки (доска, оценки по заданиям, фото). */
+  canFullReview?: (entry: HomeworkEntry) => boolean
 }) {
   const [drafts, setDrafts] = useState<Record<string, { score: string; comment: string }>>({})
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [search, setSearch] = useState('')
   const wave = useConfirmWave<HTMLElement>(), submitRef = useRef<HTMLButtonElement>(null)
-  const [expanded, setExpanded] = useState(false)
   const [answerFilter, setAnswerFilter] = useState<'all' | 'manual' | 'errors'>('all')
   const body = useRef<HTMLDivElement>(null)
   const documentArea = useRef<HTMLDivElement>(null)
@@ -133,7 +135,7 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
     dialog?.addEventListener('keydown', trap)
     return () => {dialog?.removeEventListener('keydown', trap);if(trigger?.isConnected)trigger.focus({preventScroll:true})}
   }, [active])
-  useEffect(() => {setSearch('');setExpanded(false)}, [target?.title])
+  useEffect(() => {setSearch('')}, [target?.title])
   useEffect(() => {setError('');setAnswerFilter('all');documentArea.current?.scrollTo({top:0})}, [target?.selected])
   if (!target || !data) return null
   const autoPercent = payload && payload.gradable > 0 && Number.isFinite(payload.correct) ? Math.max(0, Math.min(100, Math.round(payload.correct / payload.gradable * 100))) : null
@@ -181,23 +183,24 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
     loading={ai.loading} requestError={ai.error} onRequest={pending ? ai.request : undefined}
     onApply={pending && ai.grade?.score != null ? () => updateDraft({score:String(ai.grade!.score)}) : undefined}
     onDetails={showAiDetails}/>
+  // Кнопка ведёт только на страницу полной проверки. Раньше без неё окно
+  // растягивалось на весь экран — содержимое то же, пользы ноль (Дани, 27.11.2026).
+  const fullReviewAvailable = !!entry && !!canFullReview?.(entry)
   function fullReview() {
     if (!entry || busy) return
-    if (!expanded && onFullReview?.(entry, {...draft,edited:!!drafts[draftKey]})) {
+    if (onFullReview?.(entry, {...draft,edited:!!drafts[draftKey]})) {
       // The full editor now owns this draft. An older quick-review copy must not overwrite it on return.
       setDrafts(previous => {const {[draftKey]: _handedOff, ...rest} = previous;return rest})
-      setTarget(null);return
+      setTarget(null)
     }
-    if (!expanded && target?.keys.length === 1) showAll()
-    setExpanded(v => !v)
   }
   const history = entry && !!entry.work.attempts?.length && <HomeworkHistory key={entry.key} attempts={entry.work.attempts}/>
-  return <Modal width={expanded ? 1800 : target.keys.length > 1 ? 1320 : 1100} padding={0}
-    cardStyle={{height:expanded ? 'calc(100dvh - 32px)' : !pending && target.keys.length===1 ? 'min(580px, calc(100dvh - 64px))' : 'min(780px, calc(100dvh - 64px))', ...(expanded ? {maxHeight:'calc(100dvh - 32px)'} : {}), borderRadius:24}}
+  return <Modal width={target.keys.length > 1 ? 1320 : 1100} padding={0}
+    cardStyle={{height:!pending && target.keys.length===1 ? 'min(580px, calc(100dvh - 64px))' : 'min(780px, calc(100dvh - 64px))', borderRadius:24}}
     bodyStyle={{overflow:'hidden',display:'flex',flexDirection:'column'}} onClose={() => {if(!busy)setTarget(null)}}>
-    <div className={'course-journal jh-review-shell' + (target.keys.length > 1 ? ' jh-shell-has-stack' : '') + (expanded ? ' jh-shell-expanded' : '') + (aiEnabled ? ' jh-has-ai' : '')} ref={body}>
+    <div className={'course-journal jh-review-shell' + (target.keys.length > 1 ? ' jh-shell-has-stack' : '') + (aiEnabled ? ' jh-has-ai' : '')} ref={body}>
       <header className="jh-review-top"><div className="jh-review-emblem"><ClipboardList size={20}/></div><div className="jh-review-title"><span>{'Домашняя работа'}</span><h2 title={target.title}>{target.title}</h2></div>
-        <button type="button" className="jh-full-review" aria-label={expanded?'Свернуть':'Открыть полную проверку'} disabled={busy || !entry} onClick={fullReview}>{expanded ? <Minimize2 size={15}/> : <Maximize2 size={15}/>}<span>{expanded ? 'Свернуть' : 'Открыть полную проверку'}</span></button>
+        {fullReviewAvailable && <button type="button" className="jh-full-review" aria-label="Открыть полную проверку" disabled={busy} onClick={fullReview}><Maximize2 size={15}/><span>Открыть полную проверку</span></button>}
         <button data-hover="layer" type="button" className="jh-review-close" disabled={busy} aria-label="Закрыть" onClick={() => setTarget(null)}><X size={19}/></button>
       </header>
       <div className="jh-review-body">

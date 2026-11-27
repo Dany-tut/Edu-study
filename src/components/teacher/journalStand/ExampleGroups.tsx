@@ -192,7 +192,7 @@ export default function ExampleGroups() {
     setReviewReturn(page === 'home' ? page : 'journal')
     navigate('full-review', entry.student.id)
     return true
-  })
+  }, undefined, entry => entry.work.slot.ref === 'hw-' + FULL_REVIEW_EXAMPLE_ID && nativeHomeworkReviewId(data, entry) === FULL_REVIEW_EXAMPLE_ID)
   function navigate(next: ExamplePage, studentId = reviewStudent) {
     setPage(next)
     const hash = next === 'full-review' ? '#/teacher/homework-review?student=' + encodeURIComponent(studentId) : next === 'diary' ? '#/student/diary' : next === 'schedule' ? '#/student/schedule' : next === 'widgets' ? '#/student/widgets' : next === 'home' ? '#/teacher' : '#/teacher/gradebook'
