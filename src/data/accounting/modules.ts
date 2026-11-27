@@ -40,7 +40,8 @@ import { EXT05 } from './ext05'
 import { EXP23 } from './exp23'
 import { EXP24 } from './exp24'
 import { EXP25 } from './exp25'
+import { EXP26 } from './exp26'
 
 export const MODULES: AccModule[] = [EXP00, EXP01, EXP02, EXP03, EXP04, EXP05, EXP06, EXP07, EXP08, EXP09, EXP10, EXP11, EXP12, EXP13, EXP14, EXP15, EXP16, EXP21, EXP17, EXP18, EXP19, EXP20, EXT01,
   // v9 (27.11.2026): версия Excel → Power Query → численность → рецепты → энциклопедия функций → отраслевые проекты
-  EXP22, EXT06, EXT02, EXT07, EXT03, EXT04, EXT05, EXP23, EXP24, EXP25]
+  EXP22, EXT06, EXT02, EXT07, EXT03, EXT04, EXT05, EXP23, EXP24, EXP25, EXP26]
