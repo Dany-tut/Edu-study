@@ -55,6 +55,7 @@ import { useNavCollapse } from '../../lib/useNavCollapse'
 import { useKeyboardInset } from '../../lib/useKeyboardInset'
 import MobileScreen from '../MobileScreen'
 import SubjectCards from './SubjectCards'
+import { fetchCardGroups } from '../../lib/cardGroups'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS, RailCard, RailModes, RailSegment, FilterMenu, TileGrid, Tile, TileMeter } from './TrainerShell'
 import { catalogFor, type ExamCode, type ExamYear } from '../../data/examPresets'
 import { FIPI_KES } from '../../data/fipiKes'
@@ -1569,6 +1570,11 @@ export default function BankTrainer({ subjectState }: {
   const kes = FIPI_KES[kesKey]
   /** Банк ФИПИ этого экзамена ещё едет: вместо «Заданий не найдено» — плашки. */
   const fipiLoading = useTaskBank(s => bankOn && !!kes && !s.fipiSetsReady[`${subject}:${exam}`])
+  /** Набор ещё догружается порциями — счётчики берём из count, а не из пришедшего. */
+  const fipiPartial = useTaskBank(s => bankOn && !!kes && !s.fipiSetsComplete[`${subject}:${exam}`])
+  const fipiCounts = useTaskBank(s => s.fipiCounts)
+  const loadFipiCounts = useTaskBank(s => s.loadFipiCounts)
+  useEffect(() => { if (bankOn) void loadFipiCounts(subject) }, [subject, bankOn, loadFipiCounts])
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
   const [parts, setParts]       = useState<string[]>([])
@@ -1788,13 +1794,29 @@ export default function BankTrainer({ subjectState }: {
   // Сегменты собираются из возможностей: «Список» и «Стопка» — два взгляда на
   // задания банка, «Карточки» — другой материал. Предмет без банка получает
   // один сегмент, и переключать ему нечего.
+  // «Карточки» — наборы, которые собирает учитель. У предмета с банком, где
+  // наборов нет, пункт вёл в пустую полку («пока нет — их собирает учитель»):
+  // показываем его, только когда наборы есть. Без банка полка — единственный
+  // экран и остаётся всегда.
+  const [hasDecks, setHasDecks] = useState(false)
+  useEffect(() => {
+    if (!bankOn || !cardsOn) return
+    let alive = true
+    setHasDecks(false)
+    fetchCardGroups(cardsSubject, deckOwner().studentId)
+      .then(gs => { if (alive) setHasDecks(gs.some(g => g.sets.length > 0)) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [bankOn, cardsOn, cardsSubject])
   const viewTabItems = useMemo(() => {
     const out: ['list' | 'cards' | 'lines' | 'decks', string, typeof List][] = []
     if (bankOn) { out.push(['list', 'Список', List], ['cards', 'Стопка', Layers]) }
     if (bankOn && examCatalog) out.push(['lines', 'Линии КИМ', LayoutGrid])
-    if (cardsOn) out.push(['decks', 'Карточки', BookOpen])
+    if (cardsOn && (!bankOn || hasDecks)) out.push(['decks', 'Карточки', BookOpen])
     return out
-  }, [bankOn, cardsOn, examCatalog])
+  }, [bankOn, cardsOn, examCatalog, hasDecks])
+  // Открытый экран карточек, а наборов у предмета не оказалось, — в список.
+  useEffect(() => { if (view === 'decks' && bankOn && !hasDecks) setView('list') }, [view, bankOn, hasDecks])
 
   const viewOptions = useMemo(
     () => viewTabItems.map(([value, label, Icon]) => ({ value, label, Icon })),
@@ -1832,7 +1854,7 @@ export default function BankTrainer({ subjectState }: {
 
   const doneCount  = subjectTasks.filter(t => answered.get(t.id)?.correct === true).length
   const wrongCount = subjectTasks.filter(t => answered.get(t.id)?.correct === false).length
-  const totalCount = subjectTasks.length
+  const totalCount = Math.max(subjectTasks.length, fipiCounts[`${subject}:${exam}`] ?? 0)
   const today = new Date().toISOString().slice(0, 10)
   const todayCorrect = useMemo(() => subjectTasks.filter(task => answered.get(task.id)?.correct === true && answered.get(task.id)?.date === today).length, [subjectTasks, answered, today])
   const todayWrong   = useMemo(() => subjectTasks.filter(task => answered.get(task.id)?.correct === false && answered.get(task.id)?.date === today).length, [subjectTasks, answered, today])
@@ -2117,7 +2139,7 @@ export default function BankTrainer({ subjectState }: {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {viewTabItems.map(([id, label, Icon]) => {
               const on = id === view
-              const count = id === 'list' ? subjectTasks.length : id === 'cards' ? cardTasks.length : id === 'lines' ? examCatalog?.lines.length : undefined
+              const count = id === 'list' ? totalCount : id === 'cards' ? cardTasks.length : id === 'lines' ? examCatalog?.lines.length : undefined
               return (
                 <button key={id} data-hover="layer" onClick={() => { tactile(); setView(id); setSheet(null) }}
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, padding: 12, borderRadius: 16, cursor: 'pointer', textAlign: 'left',
@@ -2141,7 +2163,7 @@ export default function BankTrainer({ subjectState }: {
             <SubjectPill state={subjectState} palette={palette} />
             {bankOn && examCatalog && (<>
               <RailSegment
-                options={(['ege', 'oge'] as ExamCode[]).map(e => ({ value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ', badge: tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length || undefined }))}
+                options={(['ege', 'oge'] as ExamCode[]).map(e => ({ value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ', badge: Math.max(tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length, fipiCounts[`${subject}:${e}`] ?? 0) || undefined }))}
                 value={exam} onChange={v => v && setExam(v as ExamCode)} accent={palette.accent} soft={railSoft} clearable={false} />
               <RailSegment
                 options={[{ value: '2026', label: 'КИМ 2026' }, { value: '2027', label: '2027 · проект' }]}
@@ -2340,7 +2362,7 @@ export default function BankTrainer({ subjectState }: {
             <RailModes
               items={viewTabItems.map(([id, label, Icon]) => ({
                 id, label, Icon,
-                count: id === 'list' ? subjectTasks.length : id === 'cards' ? cardTasks.length : id === 'lines' ? examCatalog?.lines.length : undefined,
+                count: id === 'list' ? totalCount : id === 'cards' ? cardTasks.length : id === 'lines' ? examCatalog?.lines.length : undefined,
               }))}
               value={view}
               onChange={v => setView(v)}
@@ -2356,7 +2378,7 @@ export default function BankTrainer({ subjectState }: {
             <RailSegment
               options={(['ege', 'oge'] as ExamCode[]).map(e => ({
                 value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ',
-                badge: tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length || undefined,
+                badge: Math.max(tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length, fipiCounts[`${subject}:${e}`] ?? 0) || undefined,
               }))}
               value={exam}
               onChange={v => v && setExam(v as ExamCode)}
@@ -2372,11 +2394,11 @@ export default function BankTrainer({ subjectState }: {
               soft={railSoft}
               clearable={false}
             />
-            <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)' }}>
-              {kimYear === 2027
-                ? t('Проект ФИПИ 2027: структура как в 2026, у части линий другие баллы.')
-                : t('Линии и кодификатор — по спецификации ФИПИ. Задания — из открытого банка ФИПИ.')}
-            </p>
+            {kimYear === 2027 && (
+              <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-text-3)' }}>
+                {t('Проект ФИПИ 2027: структура как в 2026, у части линий другие баллы.')}
+              </p>
+            )}
           </RailCard>
         )}
 
@@ -2470,7 +2492,7 @@ export default function BankTrainer({ subjectState }: {
 
 
           <span style={{ marginLeft: 'auto', fontSize: 12, color: dark ? 'var(--color-text-3)' : 'var(--color-text-2)' }}>
-            {view === 'lines' ? `${examCatalog?.lines.length ?? 0} ${t('линий')}` : `${filtered.length} ${t('заданий')}`}
+            {view === 'lines' ? `${examCatalog?.lines.length ?? 0} ${t('линий')}` : `${fipiPartial && !hasFilters && !search && statusFilter === 'all' && !showFavOnly ? totalCount : filtered.length} ${t('заданий')}`}
           </span>
           </>)}
 

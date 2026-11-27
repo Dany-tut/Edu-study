@@ -48,13 +48,14 @@ function withNotes(cards: (Card & { groupName: string; individual: boolean })[],
 // профиля стояла сразу, а не выпрыгивала после ответа базы (меню иначе
 // меняет высоту при каждом открытии). Свежий список всё равно грузим.
 const cacheKey = (id: string) => `subject_cards_v1_${id}`
-function readCachedCards(id: string | undefined): Card[] {
-  if (!id) return []
+// null — списка ещё не запоминали (первое открытие на этом устройстве).
+function readCachedCards(id: string | undefined): Card[] | null {
+  if (!id) return null
   try {
     const raw = localStorage.getItem(cacheKey(id))
     const parsed = raw ? JSON.parse(raw) : null
-    return Array.isArray(parsed) ? parsed as Card[] : []
-  } catch { return [] }
+    return Array.isArray(parsed) ? parsed as Card[] : null
+  } catch { return null }
 }
 function writeCachedCards(id: string, cards: Card[]) {
   try { localStorage.setItem(cacheKey(id), JSON.stringify(cards)) } catch { /* приватный режим */ }
@@ -62,7 +63,11 @@ function writeCachedCards(id: string, cards: Card[]) {
 
 export function useSubjectCards() {
   const session = getStudentSession()
-  const [cards, setCards] = useState<Card[]>(() => readCachedCards(session?.id))
+  const [cached] = useState(() => readCachedCards(session?.id))
+  const [cards, setCards] = useState<Card[]>(() => cached ?? [])
+  // Первое открытие: запомненного списка нет, база ещё не ответила — сколько
+  // карточек, неизвестно. Оболочка ставит заглушку высотой со строку курса.
+  const [loading, setLoading] = useState(() => !!session && cached === null)
 
   useEffect(() => {
     let cancelled = false
@@ -78,7 +83,9 @@ export function useSubjectCards() {
         ? query.eq('auth_user_id', authUser.id)
         : query.eq('name', session.name)
       const { data } = await query
-      if (cancelled || !data) return
+      if (cancelled) return
+      setLoading(false)
+      if (!data) return
       // Every card the person belongs to — their 1:1 subject groups AND any
       // regular group they were later enrolled into (e.g. bought a group course).
       // Each switch re-points the session to that group so its course/lessons load.
@@ -97,7 +104,7 @@ export function useSubjectCards() {
       const next = withNotes(mapped, session.name)
       writeCachedCards(session.id, next)
       setCards(next)
-    })()
+    })().catch(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [session?.id])
 
@@ -118,11 +125,11 @@ export function useSubjectCards() {
   }
 
   // Переключать нечего, пока карточка одна.
-  return { cards, current, switchTo, hasChoice: !!session && cards.length > 1 }
+  return { cards, current, switchTo, hasChoice: !!session && cards.length > 1, loading }
 }
 
 export default function SubjectSwitcher({ compact = false, style }: { compact?: boolean; style?: React.CSSProperties }) {
-  const { cards, current, switchTo, hasChoice } = useSubjectCards()
+  const { cards, current, switchTo, hasChoice, loading } = useSubjectCards()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -133,6 +140,23 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
+
+  if (loading) {
+    // Та же коробка, что у кнопки ниже (отступы, рамка, шрифт), — высота
+    // строки совпадает, и меню не прыгает, когда список придёт.
+    return (
+      <div style={{ width: compact ? 'auto' : '100%', ...style }} aria-hidden>
+        <div className="skeleton" style={{
+          display: 'flex', alignItems: 'center', gap: 8, width: compact ? 120 : '100%',
+          padding: compact ? '8px 12px' : '12px 14px', borderRadius: 12,
+          border: '1px solid transparent', fontSize: 14, fontWeight: 600, boxSizing: 'border-box',
+        }}>
+          <span style={{ width: 16, height: 16, flexShrink: 0 }} />
+          <span style={{ visibility: 'hidden' }}>{'\u00a0'}</span>
+        </div>
+      </div>
+    )
+  }
 
   if (!hasChoice || !current) return null
 
