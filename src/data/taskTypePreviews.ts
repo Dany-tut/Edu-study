@@ -398,6 +398,15 @@ export const TASK_TYPE_PREVIEWS: Record<TaskTypeId, TaskTypePreview> = {
     ],
   },
 
+  excelTrainer: {
+    teaches: 'Функция на живой таблице: поменял ставку — видно, кто стал ОСН; формула чинится до верного результата на любых данных.',
+    blocks: [
+      { kind: 'prompt', text: '=СЧЁТЕСЛИМН(D2:D4;">"&D2) протянули вниз — исправьте' },
+      { kind: 'tiles', label: 'Учебный тренажёр, не Excel', items: [{ text: 'D2:D4' }, { text: '$D$2:$D$4', state: 'correct' }, { text: '">D2"' }] },
+      { kind: 'verdict', text: 'Верно — и на других данных', ok: true },
+    ],
+  },
+
   columnSort: {
     teaches: 'Признак, а не отдельное слово: десять предметов в три корзины показывают, работает ли правило.',
     blocks: [

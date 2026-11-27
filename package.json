@@ -20,6 +20,7 @@
     "check:scenes": "node scripts/checkScenes.mjs",
     "check:i18n": "node scripts/checkI18n.mjs",
     "check:cards": "node scripts/checkCardParsing.mjs",
+    "check:excel-lab": "node scripts/checkExcelLab.mjs",
     "preview": "vite preview",
     "build:feed": "node scripts/buildFeed.mjs",
     "check:feed": "node scripts/checkFeed.mjs",

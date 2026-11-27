@@ -1,0 +1,215 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Excel-лаборатория курса «Бухгалтерия»: разбор формулы, тренажёр, способы
+   решения, выбор версии Excel. Концепт — Figma «Искра», стр. 28.
+   Цвета частей формулы — iskra/acc/f1…f6 (коллекция «Искра · Бухгалтерия ·
+   Excel»), в двух темах. Остальное — токены темы.
+   ПК — колонки, без действий только по наведению; iPhone/iPad — мягкие края и
+   стеклянные кнопки; Android — таблетки с заливкой, фейды SCROLL-01.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.xl-root {
+  --xl-f1: #6D4AE0; --xl-f1s: #EEE9FF;
+  --xl-f2: #2160D8; --xl-f2s: #E3ECFF;
+  --xl-f3: #0B7D5C; --xl-f3s: #DDF4EB;
+  --xl-f4: #A65F00; --xl-f4s: #FFEFD6;
+  --xl-f5: #B8325E; --xl-f5s: #FCE4EC;
+  --xl-f6: #00779C; --xl-f6s: #DAF2FA;
+  --xl-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  color: var(--color-text);
+}
+[data-theme="dark"] .xl-root {
+  --xl-f1: #B9A6FF; --xl-f1s: #2E2650;
+  --xl-f2: #8DB3FF; --xl-f2s: #1C2B48;
+  --xl-f3: #5FD6AE; --xl-f3s: #163B31;
+  --xl-f4: #FFBE5C; --xl-f4s: #40301A;
+  --xl-f5: #FF93B5; --xl-f5s: #45212F;
+  --xl-f6: #62CFF0; --xl-f6s: #133A47;
+}
+
+.xl-card { border-radius: 16px; background: var(--color-bg-2); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.xl-muted { color: var(--color-muted); font-size: 13px; line-height: 1.45; }
+.xl-kicker { color: var(--color-accent); font-size: 13px; font-weight: 600; }
+.xl-title { font-size: 15px; font-weight: 600; }
+.xl-mono { font-family: var(--xl-mono); }
+
+/* Честная подпись тренажёра — одна и та же в обеих темах по смыслу, цвет темы. */
+.xl-honest {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: var(--color-amber-soft); color: var(--color-amber-text);
+}
+
+/* ── Формула ─────────────────────────────────────────────────────────────── */
+.xl-fbar {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px;
+  border-radius: 14px; background: var(--color-bg-input); border: 1px solid var(--color-border);
+  min-width: 0;
+}
+.xl-fx { font-family: var(--xl-mono); font-weight: 700; color: var(--color-muted); font-size: 14px; line-height: 28px; flex: none; }
+/* Перенос, а не горизонтальная прокрутка: части переносятся целиком. */
+.xl-tokens { display: flex; flex-wrap: wrap; align-items: center; row-gap: 4px; min-width: 0; font-family: var(--xl-mono); font-size: 17px; line-height: 24px; }
+.xl-tok {
+  border: 0; background: none; padding: 2px 1px; margin: 0; border-radius: 5px;
+  font: inherit; color: inherit; cursor: pointer; position: relative; overflow-wrap: anywhere; text-align: left;
+  min-height: 28px;
+}
+.xl-tok[data-plain] { cursor: default; color: var(--color-muted); }
+.xl-tok[aria-pressed="true"] { font-weight: 700; box-shadow: inset 0 -2px 0 currentColor; }
+.xl-tok sup { font-family: -apple-system, system-ui, sans-serif; font-size: 9px; font-weight: 700; margin-left: 1px; opacity: .8; }
+.xl-tok:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+@media (min-width: 1024px) { .xl-tokens { font-size: 19px; line-height: 28px; } }
+
+.xl-c1 { color: var(--xl-f1); } .xl-b1 { background: var(--xl-f1s); }
+.xl-c2 { color: var(--xl-f2); } .xl-b2 { background: var(--xl-f2s); }
+.xl-c3 { color: var(--xl-f3); } .xl-b3 { background: var(--xl-f3s); }
+.xl-c4 { color: var(--xl-f4); } .xl-b4 { background: var(--xl-f4s); }
+.xl-c5 { color: var(--xl-f5); } .xl-b5 { background: var(--xl-f5s); }
+.xl-c6 { color: var(--xl-f6); } .xl-b6 { background: var(--xl-f6s); }
+
+.xl-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.xl-legend button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 0; font-size: 13px; color: var(--color-text-2); cursor: pointer; min-height: 32px; text-align: left; }
+.xl-legend .dot { width: 18px; height: 18px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex: none; }
+.xl-legend button[aria-pressed="true"] { color: var(--color-text); font-weight: 600; }
+
+/* ── Шаги ────────────────────────────────────────────────────────────────── */
+.xl-steps { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.xl-step {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 12px; border-radius: 12px; border: 1px solid var(--color-border-soft);
+  background: transparent; color: var(--color-muted); font: inherit; cursor: pointer; min-height: 44px;
+}
+.xl-step[data-state="done"] { background: var(--color-bg-2); border-color: transparent; color: var(--color-text); }
+.xl-step[data-state="cur"] { background: var(--color-bg-card, var(--color-surface)); border: 2px solid var(--color-accent); color: var(--color-text); }
+.xl-step .num { flex: none; min-width: 22px; height: 22px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: var(--color-bg-3); color: var(--color-muted); }
+.xl-step[data-state="cur"] .num { background: var(--color-accent); color: #fff; }
+.xl-step[data-state="done"] .num { background: var(--color-green-soft); color: var(--color-green-text); }
+.xl-step .expr { flex: 1; min-width: 0; font-family: var(--xl-mono); font-size: 14px; overflow-wrap: anywhere; }
+.xl-step .res { flex: none; font-family: var(--xl-mono); font-weight: 700; font-size: 14px; padding: 2px 9px; border-radius: 8px; background: var(--color-accent-soft); color: var(--color-accent); max-width: 45%; overflow-wrap: anywhere; }
+.xl-step[data-state="next"] .res { background: var(--color-bg-3); color: var(--color-muted); }
+
+.xl-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.xl-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 40px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--color-border);
+  background: var(--color-bg-card, var(--color-surface)); color: var(--color-text); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.xl-btn[data-primary] { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.xl-btn:disabled { opacity: .45; cursor: default; }
+html[data-platform="iphone"] .xl-btn, html[data-platform="ipad"] .xl-btn, html[data-platform="android"] .xl-btn { min-height: 44px; border-radius: 999px; }
+html[data-platform="android"] .xl-btn { min-height: 48px; }
+/* iOS — стеклянные кнопки на светлом и тёмном фоне. */
+html[data-platform="iphone"] .xl-btn:not([data-primary]), html[data-platform="ipad"] .xl-btn:not([data-primary]) {
+  background: rgba(var(--glass-rgb, 255,255,255), .72); border-color: var(--color-border-glass, var(--color-border));
+  backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+}
+
+/* ── Мини-таблица ───────────────────────────────────────────────────────── */
+.xl-sheet-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.xl-sheet-tabs button { border: 1px solid var(--color-border); background: transparent; border-radius: 999px; padding: 0 12px; min-height: 32px; font-size: 13px; color: var(--color-text-2); cursor: pointer; }
+.xl-sheet-tabs button[aria-selected="true"] { background: var(--color-accent-soft); color: var(--color-accent); border-color: transparent; font-weight: 600; }
+html[data-platform="iphone"] .xl-sheet-tabs button, html[data-platform="ipad"] .xl-sheet-tabs button, html[data-platform="android"] .xl-sheet-tabs button { min-height: 44px; }
+
+.xl-grid { width: max-content; border-collapse: separate; border-spacing: 0; font-size: 14px; border: 1px solid var(--color-border); border-radius: 10px; overflow: hidden; background: var(--color-bg-card, var(--color-surface)); }
+.xl-grid th, .xl-grid td { border-right: 1px solid var(--color-border-soft); border-bottom: 1px solid var(--color-border-soft); padding: 0; height: 34px; }
+.xl-grid tr > :last-child { border-right: 0; }
+.xl-grid tbody tr:last-child > * { border-bottom: 0; }
+.xl-grid thead th { background: var(--color-table-header-bg, var(--color-bg-2)); color: var(--color-muted); font-size: 11px; font-weight: 600; height: 24px; padding: 0 6px; text-align: center; }
+.xl-grid thead th span { display: block; font-size: 11px; font-weight: 500; color: var(--color-text-2); }
+.xl-grid .rn { background: var(--color-table-header-bg, var(--color-bg-2)); color: var(--color-muted); font-size: 11px; text-align: center; width: 34px; min-width: 34px; }
+.xl-grid .gap { background: var(--color-bg-2); color: var(--color-muted); text-align: center; font-size: 11px; width: 22px; min-width: 22px; }
+.xl-grid .xl-cell { padding: 6px 9px; min-width: 56px; line-height: 1.3; }
+/* Ширина текста в ячейке ограничена блоком: max-width у самой ячейки таблица игнорирует. */
+.xl-cell .t { display: block; max-width: 128px; width: max-content; overflow-wrap: break-word; }
+.xl-cell[data-num] .t { margin-left: auto; }
+.xl-cell[data-num] { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.xl-cell[data-formula] { color: var(--color-text); }
+.xl-cell[data-hl] { font-weight: 600; box-shadow: inset 0 0 0 2px currentColor; }
+.xl-cell[data-tint] { box-shadow: none; font-weight: 500; }
+.xl-cell[data-match] { background: var(--color-green-soft); }
+.xl-cell[data-err] { color: var(--color-red-text); font-weight: 600; }
+.xl-cell[data-changed] { box-shadow: inset 0 0 0 2px var(--color-accent); }
+.xl-cell input {
+  width: 100%; min-width: 64px; border: 0; background: var(--color-bg-input); color: var(--color-text);
+  font: inherit; font-size: 16px; padding: 4px 6px; border-radius: 6px; text-align: inherit;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+.xl-cell input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--color-accent); }
+.xl-note { display: block; font-size: 10px; color: var(--color-muted); font-weight: 400; }
+
+/* ── Тренажёр ────────────────────────────────────────────────────────────── */
+.xl-modes { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--color-bg-2); align-self: flex-start; max-width: 100%; }
+.xl-modes button { border: 0; background: transparent; border-radius: 10px; padding: 0 14px; min-height: 36px; font-size: 14px; color: var(--color-muted); cursor: pointer; font-weight: 500; }
+.xl-modes button[aria-selected="true"] { background: var(--color-bg-card, var(--color-surface)); color: var(--color-text); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+html[data-platform="iphone"] .xl-modes button, html[data-platform="ipad"] .xl-modes button { min-height: 44px; border-radius: 999px; }
+html[data-platform="iphone"] .xl-modes, html[data-platform="ipad"] .xl-modes { border-radius: 999px; }
+html[data-platform="android"] .xl-modes button { min-height: 48px; }
+
+.xl-watch { display: flex; flex-wrap: wrap; gap: 8px; }
+.xl-res { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 14px; background: var(--xl-f2s); min-width: 120px; }
+.xl-res .k { font-size: 12px; color: var(--xl-f2); font-weight: 600; }
+.xl-res .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.xl-res .was { font-size: 12px; color: var(--color-muted); }
+.xl-res[data-changed] .v { color: var(--color-accent); }
+.xl-goals { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.xl-goals li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.xl-goals li[data-done] { color: var(--color-muted); }
+.xl-goals .box { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--color-border-strong, var(--color-border)); margin-top: 1px; display: inline-flex; align-items: center; justify-content: center; }
+.xl-goals li[data-done] .box { background: var(--color-green-text); border-color: var(--color-green-text); color: #fff; }
+
+.xl-input {
+  width: 100%; min-height: 48px; border-radius: 14px; border: 2px solid var(--color-accent);
+  background: var(--color-bg-card, var(--color-surface)); color: var(--color-text);
+  font-family: var(--xl-mono); font-size: 16px; padding: 10px 12px; resize: vertical;
+}
+.xl-input:disabled { border-color: var(--color-border); opacity: .9; }
+.xl-verdict { border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.45; display: flex; flex-direction: column; gap: 4px; }
+.xl-verdict[data-ok] { background: var(--color-green-soft); color: var(--color-text); }
+.xl-verdict[data-ok] b { color: var(--color-green-text); }
+.xl-verdict[data-bad] { background: var(--color-red-soft); }
+.xl-verdict[data-bad] b { color: var(--color-red-text); }
+.xl-verdict[data-info] { background: var(--color-bg-2); }
+
+/* ── Способы решения и версия Excel ─────────────────────────────────────── */
+.xl-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: var(--color-bg-2); }
+.xl-tabs button {
+  flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  border: 0; background: transparent; border-radius: 12px; padding: 8px 12px; min-height: 48px; cursor: pointer; color: var(--color-text);
+}
+.xl-tabs button[aria-selected="true"] { background: var(--color-bg-card, var(--color-surface)); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.xl-tabs .nm { font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.xl-tabs .st { font-size: 11px; color: var(--color-muted); white-space: nowrap; }
+.xl-tabs [data-status="no"] .nm { color: var(--color-muted); }
+.xl-tabs [data-status="addin"] .st, .xl-tabs [data-status="check"] .st { color: var(--color-amber-text); }
+.xl-mine { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--color-accent); color: #fff; white-space: nowrap; }
+.xl-pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; min-height: 32px; border-radius: 999px;
+  border: 1px solid var(--color-border); background: var(--color-bg-input); color: var(--color-text); font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.xl-pill em { font-style: normal; color: var(--color-accent); font-weight: 500; }
+html[data-platform="iphone"] .xl-pill, html[data-platform="ipad"] .xl-pill, html[data-platform="android"] .xl-pill { min-height: 44px; }
+
+.xl-versions { display: flex; flex-wrap: wrap; gap: 8px; }
+.xl-versions button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 12px;
+  border: 1px solid var(--color-border); background: var(--color-bg-input); color: var(--color-text); font-size: 15px; font-weight: 500; cursor: pointer;
+}
+.xl-versions button[aria-checked="true"] { border: 2px solid var(--color-accent); background: var(--color-accent-soft); color: var(--color-accent); font-weight: 600; }
+.xl-path { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.xl-path b { padding: 3px 9px; border-radius: 8px; background: var(--color-bg-card, var(--color-surface)); border: 1px solid var(--color-border); font-size: 14px; }
+.xl-routes { display: flex; flex-direction: column; gap: 8px; }
+.xl-route { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--color-border-soft); }
+.xl-route[data-mine] { border-color: var(--color-accent); background: var(--color-accent-soft); }
+.xl-route .ic { flex: none; width: 20px; height: 20px; margin-top: 1px; }
+.xl-toggle { width: 44px; height: 26px; border-radius: 999px; border: 0; background: var(--color-border-strong, var(--color-border)); position: relative; cursor: pointer; flex: none; }
+.xl-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .15s ease; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.xl-toggle[aria-checked="true"] { background: var(--color-accent); }
+.xl-toggle[aria-checked="true"]::after { transform: translateX(18px); }
+
+.xl-cols { display: grid; grid-template-columns: 1fr; gap: 16px; min-width: 0; }
+@media (min-width: 1024px) { .xl-cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; } }
+
+/* Тёмная тема: акцент светлый — белый текст на нём не читается. */
+[data-theme="dark"] .xl-root .xl-btn[data-primary],
+[data-theme="dark"] .xl-root .xl-mine,
+[data-theme="dark"] .xl-root .xl-step[data-state="cur"] .num { color: #16131F; }

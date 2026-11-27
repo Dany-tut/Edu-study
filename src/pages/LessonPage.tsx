@@ -9,7 +9,7 @@ import { textFadeStyle } from '../lib/textFades'
 import { homeworkNeedsVideo, homeworkTimeLocked } from '../lib/homeworkAccess'
 import { publishVideoWatch } from '../store/studentDataStore'
 import { SubjectMark } from '../components/icons/SubjectMark'
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Play, NotebookPen, FileText,
@@ -46,6 +46,9 @@ import Prose from '../components/Prose'
 import ImageZoom from '../components/ImageZoom'
 import Model3DFigure from '../components/Model3DFigure'
 import { isModelRef } from '../lib/models3d/registry'
+import { isLabRef } from '../lib/excelLab/embed'
+// Живые блоки курса «Бухгалтерия» — отдельным чанком: нужны только там, где они есть.
+const ExcelLabFigure = lazy(() => import('../components/excelLab/ExcelLabFigure'))
 import GlossedText from '../components/GlossedText'
 import { setVoiceScene, clearVoiceScene } from '../lib/speech'
 import { resolveSubjectPalette } from '../lib/subjects'
@@ -161,6 +164,9 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
   const [zoom, setZoom] = useState(false)
   // 3D-модель едет тем же маркером, что картинка, но рисуется своей сценой.
   if (isModelRef(src)) return <Model3DFigure src={src} caption={caption} scale={scale} maxWidth={FIGURE_W} />
+  // Живой блок курса «Бухгалтерия» (разбор формулы, тренажёр, способы решения):
+  // данные лежат внутри той же картинки, старые сборки видят просто схему.
+  if (isLabRef(src)) return <Suspense fallback={null}><ExcelLabFigure src={src} caption={caption} /></Suspense>
   return (
     <>
       <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>

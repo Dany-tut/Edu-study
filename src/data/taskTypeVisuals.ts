@@ -87,6 +87,8 @@ export const TYPE_VISUALS: Record<string, TypeVisual> = {
   // Внешнее упражнение засчитывается прохождением — к видео, тот же синий.
   embed:         { color: 'var(--color-blue-pill-text)', bg: 'var(--color-blue-pill-bg)',   fill: 'var(--color-blue-fill)' },
   // Найди на экране — выбор места вместо подписи: зелёный, как выбор ответа.
+  // Тренажёр Excel — производство (формула): фиолетовый, как свободный ввод.
+  excelTrainer: { color: 'var(--color-purple-text)', bg: 'var(--color-purple-soft)', fill: 'var(--color-purple-fill, var(--color-purple))' },
   screenHotspot: { color: 'var(--color-green-text)',     bg: 'var(--color-green-soft)',     fill: 'var(--color-green-fill)' },
   // Тест из Тестли — нейтральный, без своей семьи: узнаётся по знаку (TestlyTile),
   // а не по цвету. Текст — цвет темы, иначе чернила пропадают в тёмной.

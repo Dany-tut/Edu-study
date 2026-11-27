@@ -22,7 +22,7 @@
 import type { ElementType } from 'react'
 import {
   AlignLeft, ArrowUpDown, CheckSquare, ChevronDown, Columns3, ExternalLink, Hash, Image as ImageIcon,
-  Images, Keyboard, Layers, LayoutGrid, ListChecks, Grid3x3, ListOrdered, MessagesSquare, Mic, MousePointerClick,
+  Images, Keyboard, Layers, LayoutGrid, ListChecks, Grid3x3, ListOrdered, MessagesSquare, Mic, MousePointerClick, Sigma,
   PenLine, Play, Puzzle, Repeat, Shuffle, SpellCheck, Table as TableIcon, Type, Volume2,
 } from '../components/icons/appIcons'
 import { typeVisual, normalizeTaskType as normalizeRaw, type TypeVisual } from './taskTypeVisuals'
@@ -35,6 +35,7 @@ import { videoAnswerDone } from '../lib/videoAnswer'
 import { buildCrossword } from '../lib/crossword'
 import TestlyMark from '../components/TestlyMark'
 import { hotspotGradable, hotspotOutcome, type HotspotSpec } from '../lib/screenHotspot'
+import { trainerCorrect, trainerGradable, type TrainerSpec } from '../lib/excelLab/spec'
 
 // ─── Идентификаторы ──────────────────────────────────────────────────────────
 
@@ -78,6 +79,7 @@ export type TaskTypeId =
   | 'columnSort'    // разложить предметы по именованным столбцам
   | 'embed'         // внешнее упражнение (Wordwall, Quizlet) в рамке
   | 'screenHotspot' // найди на экране: нажать туда, куда нажал бы в программе
+  | 'excelTrainer'  // тренажёр функции Excel: менять значения или исправить формулу
   // — подключаемые модули —
   | 'testly'        // тест из Тестли целиком (модуль в Профиль → Модули)
 
@@ -454,6 +456,10 @@ export interface TaskPayload {
   // — найди на экране (screenHotspot) —
   /** Картинка, области-ответы, ловушки и число попыток (lib/screenHotspot.ts). */
   hotspot?: HotspotSpec
+
+  // — тренажёр функции Excel (excelTrainer) —
+  /** Таблица, редактируемые ячейки, мини-задания, режим «исправь формулу» (lib/excelLab/spec.ts). */
+  trainer?: TrainerSpec
 
   // — тест из Тестли (testly) —
   /** Какой тест и что о нём показать. Вопросы и ключи живут в Тестли. */
@@ -1503,6 +1509,30 @@ export const TASK_TYPES: Record<TaskTypeId, TaskTypeDef> = {
     grade: (t, a) => {
       if (!hotspotGradable(t.hotspot)) return NOT_AUTO
       return { auto: true, correct: hotspotOutcome(t.hotspot, a).correct }
+    },
+    needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
+  }),
+
+  /**
+   * Тренажёр функции Excel — маленькая таблица, где формула пересчитывается на
+   * глазах, и режим «исправь формулу».
+   *
+   * ЗАЧЕМ. Бухгалтер учит функцию не по определению, а по тому, как меняется
+   * результат: поменял ставку — строка стала ОСН. «Исправь формулу» проверяется
+   * по результату на 2–3 скрытых наборах данных, а не по тексту: любая верная
+   * формула засчитывается, а забытая $ видна, потому что формула «протянута».
+   * Считает учебный вычислитель (lib/excelLab/formula.ts), не Excel. Ответ —
+   * строка JSON {cells, formula, hints}.
+   */
+  excelTrainer: def({
+    id: 'excelTrainer', family: 'production',
+    label: 'Тренажёр Excel', hint: 'Менять значения или исправить формулу',
+    Icon: Sigma,
+    makeDefault: () => ({}),
+    isGradable: t => trainerGradable(t.trainer),
+    grade: (t, a) => {
+      if (!trainerGradable(t.trainer)) return NOT_AUTO
+      return { auto: true, correct: trainerCorrect(t.trainer, typeof a === 'string' ? a : null) }
     },
     needsTeacherReview: false, needsAudio: false, allowedAsHard: false, languageOnly: false,
   }),

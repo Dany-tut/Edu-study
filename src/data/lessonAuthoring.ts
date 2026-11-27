@@ -19,6 +19,7 @@
 import { displayOrder } from './taskTypes'
 import type { LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from './lessonContent'
 import type { HotspotSpec } from '../lib/screenHotspot'
+import type { TrainerSpec } from '../lib/excelLab/spec'
 
 /** Общая форма авторского урока: конспект + база домашки + хард. */
 export interface AuthoredLessonContent {
@@ -182,6 +183,19 @@ export const qgap = (
   correctOptionId: '',
   gapText: text,
   gapChoices: gaps.map(([options, correct]) => ({ options, correct })),
+  explanation,
+})
+
+/** Тренажёр Excel: менять значения или исправить формулу (lib/excelLab/spec, наборы — data/accounting/excelLabSets). */
+export const qxl = (
+  id: string, prompt: string, trainer: TrainerSpec, explanation: string,
+): HomeworkQuizQuestion => ({
+  id,
+  prompt,
+  type: 'excelTrainer',
+  options: [],
+  correctOptionId: '',
+  trainer,
   explanation,
 })
 

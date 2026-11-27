@@ -4,6 +4,7 @@ import { useStudentData } from '../store/studentDataStore'
 import { apLessonContent } from './apLessonChunk'
 import type { ApLessonContent } from './apChemistryLessons'
 import type { HotspotSpec } from '../lib/screenHotspot'
+import type { TrainerSpec } from '../lib/excelLab/spec'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
 import type { LessonFiles } from '../lib/lessonFiles'
 import { isChecklistParagraph } from '../lib/theoryChecklist'
@@ -92,6 +93,8 @@ export interface HomeworkQuizQuestion {
   testly?: TestlyRef
   /** screenHotspot — картинка, области-ответы и ловушки (lib/screenHotspot.ts). */
   hotspot?: HotspotSpec
+  /** excelTrainer — таблица, мини-задания, «исправь формулу» (lib/excelLab/spec.ts). */
+  trainer?: TrainerSpec
   /** crossword — слова и подсказки; сетка считается по ним. */
   clues?: CrosswordClue[]
   /** wordBank / listenBank — эталонное предложение (режется на плитки по пробелам). */
@@ -425,6 +428,7 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     embedUrl: t.embedUrl,
     testly: t.testly,
     hotspot: tp === 'screenHotspot' ? t.hotspot : undefined,
+    trainer: tp === 'excelTrainer' ? t.trainer : undefined,
     sentence: t.sentence,
     distractors: t.distractors,
     audioUrl: t.audioUrl,
