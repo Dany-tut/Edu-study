@@ -299,12 +299,13 @@ function NumberBadge({ id, onCopied, icon }: { id: number; onCopied: () => void;
 }
 
 // ── Task card — same visual language as HomeworkFlow questions ───────────────
-function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer, onCopyId, lineNames, mobile }: {
+function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAnswer, onReveal, onCopyId, lineNames, mobile }: {
   task: Task; index: number; palette: ReturnType<typeof subjectTheme>
   lineNames: Record<number, string>
   favorites: Set<number>; onFavorite: (id: number) => void
   answered: Map<number, FipiState>
   onAnswer: (id: number, value: string, correct: boolean | null, got?: number, max?: number) => void
+  onReveal: (id: number) => void
   onCopyId: () => void
   mobile?: boolean
 }) {
@@ -328,7 +329,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   // the field + "Решение" remain. Editing the answer afterwards (inputVal no
   // longer matches what was checked) brings "Проверить" back so it can be
   // re-submitted, instead of leaving the student with no way to recheck.
-  const alreadyChecked = state !== undefined && inputVal === state.value
+  // Старые «подсмотренные» записи (correct: null) не запирают поле — это не попытка.
+  const alreadyChecked = state !== undefined && state.correct !== null && inputVal === state.value
 
   // ── Golden rules for option/match/sequence rows on the phone ──────────────
   // Tighter box (less padding, smaller letter chip, lower min-height) and a
@@ -369,9 +371,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   // Решение — только после своей попытки (Дани, 27.11): до ответа кнопки нет.
   // Старые «подсмотренные» записи (correct: null) поле больше не запирают.
   const attempted = state !== undefined && state.correct !== null
-  const peeked = false
   function peek() {
     tap()
+    onReveal(task.id)
     setShowSolution(s => !s)
   }
   function share() {
@@ -423,15 +425,11 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          {/* Подсказка — свой значок, а не «Неверно»: ответа не было, ошибки
-              тоже. Плашка держит тот же размер, что вердикт. */}
+          {/* Вердикт — только после своей попытки. Жёлтой «Подсказки» больше нет:
+              решение до ответа не открывается, а старые «подсмотренные»
+              записи (correct: null) показываются как нерешённые. */}
           {fipi && state?.got !== undefined ? (
             <FipiVerdict state={state} self={fipi.kind === 'extended'} />
-          ) : peeked ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: 'var(--color-yellow-soft)', color: 'var(--color-yellow-text)', fontSize: 13, fontWeight: 700 }}>
-              <Eye size={16} />
-              {t('Подсказка')}
-            </div>
           ) : attempted && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
               {isCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
@@ -488,7 +486,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
 
       {fipi ? (
         <FipiTaskBody task={task} state={state} palette={palette} mobile={mobile}
-          onAnswer={(v, c, got, max) => onAnswer(task.id, v, c, got, max)} />
+          onAnswer={(v, c, got, max) => onAnswer(task.id, v, c, got, max)} onReveal={() => onReveal(task.id)} />
       ) : task.answerType === 'screenHotspot' && payload.hotspot ? (
         <Suspense fallback={null}>
           <LazyScreenHotspotSolver
@@ -517,8 +515,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             }}
           />
         </Suspense>
-        {/* Solution block for dropdownGap */}
-        <button data-hover="layer" onClick={peek} style={{
+        {/* Solution block for dropdownGap — только после своей попытки. */}
+        {attempted && <button data-hover="layer" onClick={peek} style={{
           display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
           padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600,
           background: showSolution ? palette.soft : 'rgba(var(--glass-rgb), 0.88)',
@@ -527,9 +525,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         }}>
           {showSolution ? <Eye size={14} /> : <EyeOff size={14} />}
           <OpticalText alignment="ink">{t('Решение')}</OpticalText>
-        </button>
+        </button>}
         <AnimatePresence>
-          {showSolution && (
+          {showSolution && attempted && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.15 }} style={{ overflow: 'hidden' }}>
               <div style={{ padding: '14px 18px', background: palette.soft, borderRadius: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <p style={{ fontSize: 12, fontWeight: 700, color: palette.text }}>{t('Правильный ответ')}</p>
@@ -638,7 +636,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
             onKeyDown={e => e.key === 'Enter' && inputVal.trim() && check()}
             // После подсказки поле только для чтения — «Введите ответ» в нём
             // зовёт печатать туда, где печатать уже нельзя.
-            placeholder={peeked ? t('Ответ открыт') : t('Введите ответ')}
+            placeholder={t('Введите ответ')}
             style={{
               width: '100%', boxSizing: 'border-box', height: answerH,
               padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 14, outline: 'none',
@@ -1816,7 +1814,16 @@ export default function BankTrainer({ subjectState }: {
   }
   function setAnswer(id: number, value: string, correct: boolean | null, got?: number, max?: number) {
     const date = new Date().toISOString().slice(0, 10)
-    setAnswered(prev => new Map(prev).set(id, { value, correct, date, ...(got !== undefined ? { got, max } : {}) }))
+    // Открытое решение (revealed) не снимается новой записью — задание заперто.
+    setAnswered(prev => new Map(prev).set(id, { value, correct, date, ...(got !== undefined ? { got, max } : {}), ...(prev.get(id)?.revealed ? { revealed: true } : {}) }))
+  }
+  /** Ученик открыл решение: задание запирается, засчитан результат до этого. Переживает F5 (LS_ANSWERED). */
+  function revealAnswer(id: number) {
+    setAnswered(prev => {
+      const cur = prev.get(id)
+      if (!cur || cur.revealed) return prev
+      return new Map(prev).set(id, { ...cur, revealed: true })
+    })
   }
 
   const filtered = useMemo(() => {
@@ -2070,7 +2077,7 @@ export default function BankTrainer({ subjectState }: {
               {filtered.slice(0, shown).map((task, i) => (
                 <TaskCard key={task.id} task={task} index={i} palette={palette}
                   favorites={favorites} onFavorite={toggleFav}
-                  answered={answered} onAnswer={setAnswer}
+                  answered={answered} onAnswer={setAnswer} onReveal={revealAnswer}
                   onCopyId={handleCopyId} lineNames={lineNames} mobile
                 />
               ))}
@@ -2597,7 +2604,7 @@ export default function BankTrainer({ subjectState }: {
           {filtered.slice(0, shown).map((task, i) => (
             <TaskCard key={task.id} task={task} index={i} palette={palette}
               favorites={favorites} onFavorite={toggleFav}
-              answered={answered} onAnswer={setAnswer}
+              answered={answered} onAnswer={setAnswer} onReveal={revealAnswer}
               onCopyId={handleCopyId} lineNames={lineNames}
             />
           ))}

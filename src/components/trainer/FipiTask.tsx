@@ -25,7 +25,8 @@ import { bindShortWordsHtml } from '../../lib/typography'
 import type { Task } from '../../data/taskBankData'
 import { fipiOf, gradeFipi, type FipiPayload } from '../../lib/fipiGrade'
 
-export type FipiState = { value: string; correct: boolean | null; got?: number; max?: number; date?: string }
+/** revealed — ученик открыл решение (эталон): задание заперто, перерешать нельзя (Дани, 27.11). */
+export type FipiState = { value: string; correct: boolean | null; got?: number; max?: number; date?: string; revealed?: boolean }
 
 type Palette = { accent: string; soft: string; text: string; onAccent: string; ring: string }
 
@@ -225,8 +226,8 @@ function Choice({ options, n, value, onChange, locked, wrong, checked, mobile }:
 }
 
 /** Часть 2: ответ на экране → эталон и критерии → самооценка. */
-function SelfCheck({ task, f, state, onAnswer, palette, mobile }: {
-  task: Task; f: FipiPayload; state?: FipiState; onAnswer: (value: string, correct: boolean | null, got?: number, max?: number) => void; palette: Palette; mobile?: boolean
+function SelfCheck({ task, f, state, onAnswer, onReveal, palette, mobile }: {
+  task: Task; f: FipiPayload; state?: FipiState; onAnswer: (value: string, correct: boolean | null, got?: number, max?: number) => void; onReveal?: () => void; palette: Palette; mobile?: boolean
 }) {
   const t = useT()
   const saved = useMemo(() => { try { return JSON.parse(state?.value || '{}') as { text?: string; marks?: number[] } } catch { return {} } }, [state?.value])
@@ -245,7 +246,10 @@ function SelfCheck({ task, f, state, onAnswer, palette, mobile }: {
       {/* Эталон и критерии — только после своего решения: кнопка появляется,
           когда в поле что-то написано (как «Проверить» у части 1). */}
       {!open ? (text.trim() ? (
-        <button data-hover="layer" onClick={() => { tactile(); setOpen(true) }}
+        <button data-hover="layer" onClick={() => {
+          // Сверка с эталоном = открытое решение: ответ сохраняется и запирается.
+          tactile(); onAnswer(JSON.stringify({ text, marks }), null); onReveal?.(); setOpen(true)
+        }}
           style={{ alignSelf: mobile ? 'stretch' : 'flex-start', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 20px', borderRadius: 999, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 14px ${palette.ring}` }}>
           <Eye size={15} /><OpticalText as="iskra-button-label">{t('Сверить с эталоном')}</OpticalText>
         </button>
@@ -275,9 +279,7 @@ function SelfCheck({ task, f, state, onAnswer, palette, mobile }: {
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 999, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               <CheckCircle2 size={15} /><OpticalText as="iskra-button-label">{`${t('Сохранить самооценку')} · ${got} ${t('из')} ${max}`}</OpticalText>
             </button>
-            <button data-hover="layer" onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)', cursor: 'pointer' }}>
-              <OpticalText as="iskra-button-label">{t('Изменить решение')}</OpticalText>
-            </button>
+
             <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Учитель сможет перепроверить')}</span>
           </div>
         </>
@@ -287,16 +289,19 @@ function SelfCheck({ task, f, state, onAnswer, palette, mobile }: {
 }
 
 /** Тело задания ФИПИ: текст группы, варианты, бланк, проверка, решение. */
-export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }: {
+export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette, mobile }: {
   task: Task
   state?: FipiState
   onAnswer: (value: string, correct: boolean | null, got?: number, max?: number) => void
+  /** Ученик открыл решение — задание запирается насовсем (хранится в state.revealed). */
+  onReveal?: () => void
   palette: Palette
   mobile?: boolean
 }) {
   const t = useT()
   const f = fipiOf(task)!
   const [value, setValue] = useState(state && f.kind !== 'extended' ? state.value : '')
+  const revealed = !!state?.revealed
   const [showSolution, setShowSolution] = useState(false)
   const checked = state !== undefined && state.correct !== null && state.value === value && !!value
   const result = useMemo(() => (checked ? gradeFipi(task, value) : null), [checked, task, value])
@@ -305,7 +310,8 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
   // Подсматривать до ответа больше нельзя; старые «подсмотренные» записи
   // (correct: null) поле не запирают.
   const attempted = state !== undefined && state.correct !== null
-  const peeked = false
+  // Открытое решение запирает бланк — как подсмотренный ответ в старой логике.
+  const peeked = revealed
   const complete = f.kind === 'select' ? value.replace(/\s/g, '').length === (f.cells?.length ?? 0) : !!value.trim()
 
   function check() {
@@ -315,6 +321,8 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
   }
   function peek() {
     tactile()
+    // Первое открытие решения запирает задание: засчитан результат до него.
+    if (!revealed) onReveal?.()
     setShowSolution(s => !s)
   }
 
@@ -325,7 +333,7 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
       {f.kind === 'check' && <Choice options={f.options ?? []} n={f.n ?? 5} value={value} onChange={setValue} locked={checked || peeked} wrong={result?.wrong ?? []} checked={checked} mobile={mobile} />}
 
       {f.kind === 'extended' ? (
-        <SelfCheck task={task} f={f} state={state} onAnswer={onAnswer} palette={palette} mobile={mobile} />
+        <SelfCheck task={task} f={f} state={state} onAnswer={onAnswer} onReveal={onReveal} palette={palette} mobile={mobile} />
       ) : (
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
           {f.kind === 'select' && !!f.options?.length && (
@@ -358,7 +366,7 @@ export default function FipiTaskBody({ task, state, onAnswer, palette, mobile }:
                 <CheckCircle2 size={14} /><OpticalText as="iskra-button-label">{t('Проверить')}</OpticalText>
               </button>
             )}
-            {checked && result && !result.full && (
+            {checked && result && !result.full && !revealed && (
               <button data-hover="layer" onClick={() => { setValue(''); onAnswer('', false, result.got, result.max) }}
                 style={{ height: mobile ? 48 : 42, padding: '0 16px', borderRadius: 16, border: '1.5px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb),0.88)', fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', cursor: 'pointer' }}>
                 <OpticalText as="iskra-button-label">{t('Ещё раз')}</OpticalText>

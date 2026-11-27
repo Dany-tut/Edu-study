@@ -972,7 +972,9 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
                 // освободившееся место, но при нехватке ширины должна
                 // обрезаться многоточием, а не ломаться пополам («Шэдо/уинг»).
                 <span style={{ lineHeight: 1.2, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle, minWidth: 0 }}>
-                  {t(o.label)}
+                  {/* Подпись и счётчик разного кегля: каждый ставится по своему
+                      оптическому центру (ink), иначе «ЕГЭ  2061» сидят на разной высоте. */}
+                  <OpticalText alignment="ink">{t(o.label)}</OpticalText>
                 </span>
               )}
             {/* Бейдж прячется у активной только в режиме idleIcon: там имя
@@ -987,7 +989,7 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
                 fontSize: 11, fontWeight: 700, color: on ? accent : 'var(--color-text-3)',
                 fontVariantNumeric: 'tabular-nums',
               }}>
-                {o.badge}
+                <OpticalText alignment="ink">{o.badge}</OpticalText>
               </span>
             )}
           </button>
