@@ -38,6 +38,7 @@
     "check:choicepos": "esbuild scripts/checkChoicePos.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkChoicePos.mjs --log-level=error --define:import.meta.env='{\"VITE_SUPABASE_URL\":\"http://stub.local\",\"VITE_SUPABASE_PUBLISHABLE_KEY\":\"stub\"}' && node node_modules/.cache/checkChoicePos.mjs",
     "check:light": "esbuild scripts/checkLightData.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkLightData.mjs --log-level=error && node node_modules/.cache/checkLightData.mjs",
     "check:exams": "node scripts/checkExamClaims.mjs",
+    "check:fipi": "esbuild scripts/checkFipiGrade.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkFipiGrade.mjs --log-level=error && node node_modules/.cache/checkFipiGrade.mjs",
     "check:teacher-view": "node scripts/checkTeacherView.mjs && node scripts/checkTeacherToday.mjs && esbuild scripts/checkWorkspaceRoute.mjs --bundle --platform=node --format=esm --outfile=node_modules/.cache/checkWorkspaceRoute.mjs --log-level=error && node node_modules/.cache/checkWorkspaceRoute.mjs",
     "check:standalone-homework": "node scripts/checkStandaloneHomeworkRecovery.mjs",
     "check:testly-sync": "node scripts/checkTestlySync.mjs",

@@ -12,6 +12,12 @@ type TaskBankStore = {
   // and flashes it for ~3s when the teacher returns. Cleared by clearRecentlyEdited.
   recentlyEditedId: number | null
   load: (force?: boolean) => Promise<void>
+  /**
+   * Задания банка ФИПИ одного набора (предмет × экзамен). Их тысячи, поэтому
+   * общий load() их НЕ тянет — каждый набор подгружается, когда его открыли.
+   */
+  loadFipiSet: (subject: string, exam: 'ege' | 'oge') => Promise<void>
+  fipiSetsLoaded: Record<string, true>
   addTask: (t: NewTask) => Promise<number>
   replaceTask: (id: number, patch: Partial<Task>) => Promise<void>
   removeTask: (id: number) => Promise<void>
@@ -51,6 +57,11 @@ function dbToTask(row: Record<string, unknown>): Task {
     // (уровень/навык/тема). Одна колонка вместо колонки на каждый тип —
     // см. миграцию 0051.
     payload: (row.payload as Task['payload']) ?? undefined,
+    exam: (row.exam as Task['exam']) ?? 'ege',
+    kimYear: (row.kim_year as number | null) ?? null,
+    kes: (row.kes as string[] | null) ?? [],
+    fipiId: (row.fipi_id as string | null) ?? null,
+    scoring: (row.scoring as Task['scoring']) ?? null,
   }
 }
 
@@ -83,6 +94,10 @@ function taskToDb(t: Partial<Task>) {
     allow_photo: t.allowPhoto ?? false,
     block_order: t.blockOrder ?? null,
     payload: t.payload ?? {},
+    exam: t.exam ?? 'ege',
+    kim_year: t.kimYear ?? null,
+    kes: t.kes ?? [],
+    scoring: t.scoring ?? null,
   }
 }
 
@@ -101,6 +116,7 @@ const DB_KEY: Record<keyof Omit<Task, 'id'>, string> = {
   criteriaVisibleOnCheck: 'criteria_visible_on_check', maxPoints: 'max_points',
   answerType: 'answer_type', matchLeft: 'match_left', matchRight: 'match_right',
   sequenceItems: 'sequence_items', allowPhoto: 'allow_photo', blockOrder: 'block_order',
+  exam: 'exam', kimYear: 'kim_year', kes: 'kes', fipiId: 'fipi_id', scoring: 'scoring',
   payload: 'payload',
 }
 function patchToDb(patch: Partial<Task>) {
@@ -136,6 +152,7 @@ if (DEV && typeof window !== 'undefined') {
 export const useTaskBank = create<TaskBankStore>((set, get) => ({
   tasks: [],
   loaded: false,
+  fipiSetsLoaded: {},
   recentlyEditedId: null,
   clearRecentlyEdited: () => set({ recentlyEditedId: null }),
 
@@ -152,10 +169,44 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       set({ tasks: DEV_SEED_TASKS, loaded: true })
       return
     }
-    const { data } = await supabase.from('task_bank').select('*').order('id')
+    // Банк ФИПИ — тысячи строк на набор: в общий список не берём (см. loadFipiSet).
+    const { data } = await supabase.from('task_bank').select('*').is('fipi_guid', null).order('id')
     if (data) {
-      set({ tasks: data.map(dbToTask), loaded: true })
+      const own = data.map(dbToTask)
+      // Уже открытые наборы ФИПИ не теряем при перезагрузке своих заданий.
+      set(s => ({ tasks: [...own, ...s.tasks.filter(t => t.fipiId)], loaded: true }))
     }
+  },
+
+  loadFipiSet: async (subject, exam) => {
+    const key = `${subject}:${exam}`
+    if (get().fipiSetsLoaded[key]) return
+    set(s => ({ fipiSetsLoaded: { ...s.fipiSetsLoaded, [key]: true } }))
+    if (DEV) {
+      // Локально — фикстура из нескольких заданий ФИПИ (ленивый чанк, в прод не попадает).
+      const { DEV_FIPI_TASKS } = await import('../data/devFipiSample')
+      const add = DEV_FIPI_TASKS.filter(t => t.subject === subject && t.exam === exam)
+      const ids = new Set(add.map(t => t.id))
+      set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add] }))
+      return
+    }
+    const rows: Record<string, unknown>[] = []
+    // Порциями по 1000 — потолок PostgREST на один ответ.
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await supabase.from('task_bank').select('*')
+        .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
+        .order('line').order('id').range(from, from + 999)
+      if (error) {
+        set(s => { const m = { ...s.fipiSetsLoaded }; delete m[key]; return { fipiSetsLoaded: m } })
+        console.error('[task_bank] loadFipiSet', error)
+        return
+      }
+      rows.push(...(data ?? []))
+      if (!data || data.length < 1000) break
+    }
+    const add = rows.map(dbToTask)
+    const ids = new Set(add.map(t => t.id))
+    set(s => ({ tasks: [...s.tasks.filter(t => !ids.has(t.id)), ...add] }))
   },
 
   addTask: async (t) => {
