@@ -981,10 +981,10 @@ export function RailSegment({ options, value, onChange, accent, soft, clearable 
                 меняла ширину и соседка прыгала следом. */}
             {o.badge !== undefined && o.badge > 0 && !(idleIcon && on) && (
               <span style={{
-                padding: '1px 6px', borderRadius: 999, fontSize: 11, fontWeight: 800,
-                // На выбранной кнопке фон уже мягкий — бейдж того же цвета там
-                // растворялся; берём цвет поля, число читается впадиной.
-                background: on ? 'var(--color-bg-input)' : soft, color: accent,
+                // Простое число, как счётчик у RailModes («Список 2649»): своя
+                // таблетка вокруг числа на мягкой заливке давала тёмную «впадину»,
+                // которой больше нигде нет.
+                fontSize: 11, fontWeight: 700, color: on ? accent : 'var(--color-text-3)',
                 fontVariantNumeric: 'tabular-nums',
               }}>
                 {o.badge}

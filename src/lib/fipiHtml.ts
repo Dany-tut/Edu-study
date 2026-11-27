@@ -37,6 +37,15 @@ export function cleanFipiHtml(html: string): string {
     while (cells[0].firstChild) box.appendChild(cells[0].firstChild)
     tb.replaceWith(box)
   }
+  // Перенос строки посреди предложения — вёрстка под ширину сайта ФИПИ
+  // («для каждого из которых <br> характерно…»). Если после него текст идёт
+  // со строчной буквы, это не новая строка, а продолжение: ставим пробел.
+  root.querySelectorAll('br').forEach(br => {
+    let n = br.nextSibling
+    while (n && n.nodeType === 3 && isBlank(n.textContent ?? '')) n = n.nextSibling
+    const next = n?.textContent?.replace(/^[\s\u00a0]+/, '') ?? ''
+    if (/^[a-zа-яё(]/u.test(next)) br.replaceWith(doc.createTextNode(' '))
+  })
   // Пустые обёртки и хвостовые переносы, оставшиеся от формы.
   root.querySelectorAll('div, p, td, tr, tbody').forEach(n => {
     if (!n.querySelector('img, svg, math, table') && isBlank(n.textContent ?? '') && n.childElementCount === n.querySelectorAll('br').length) n.remove()

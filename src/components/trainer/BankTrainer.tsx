@@ -457,7 +457,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
       {/* Question spans the full card width below the header row so the result
           badge (Верно/Неверно) never squeezes it into a narrower column — its
           appearance must not reflow / "push" the wrapped lines. */}
-      <div lang="ru" className={fipi ? 'fipi-html' : undefined} style={{ fontSize: mobile ? 14 : 16, lineHeight: mobile ? 1.45 : 1.5, fontWeight: mobile ? 500 : 500, color: 'var(--color-text)', textAlign: mobile || fipi ? (fipi ? undefined : 'justify') : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4, overflowX: fipi ? 'auto' : undefined }}
+      <div lang="ru" className={fipi ? 'fipi-html' : undefined} style={{ fontSize: mobile ? 14 : 16, lineHeight: fipi ? 1.4 : mobile ? 1.45 : 1.5, fontWeight: mobile ? 500 : 500, color: 'var(--color-text)', textAlign: mobile || fipi ? (fipi ? undefined : 'justify') : undefined, overflowWrap: 'break-word', marginTop: mobile ? -6 : -4, overflowX: fipi ? 'auto' : undefined }}
         dangerouslySetInnerHTML={{ __html: bindShortWordsHtml(sanitizeHtml(fipi ? cleanFipiHtml(task.question) : task.question)) }} />
 
       {/* Image / table blocks in teacher-configured order */}
@@ -2380,18 +2380,34 @@ export default function BankTrainer({ subjectState }: {
           </RailCard>
         )}
 
-        {/* Свои задания учителя без разметки ФИПИ — прежние фильтры по программе. */}
-        {bankOn && view !== 'decks' && !fipiSet && (
+        {/* ФИЛЬТРЫ — карточкой в рейле, как было у банка. У набора ФИПИ —
+            раздел и тема кодификатора (КЭС), часть, линия КИМ; у своих заданий
+            учителя — прежние фильтры по программе. На «Линиях КИМ» не нужны:
+            там сетка всех линий. */}
+        {bankOn && view !== 'decks' && !(fipiSet && view === 'lines') && (
         <div className="flex flex-col" style={{ padding: 16, borderRadius: 16, background: 'rgba(var(--glass-rgb), 0.94)', border: '1px solid var(--color-border-soft)', boxShadow: 'var(--shadow-3)', gap: 12 }}>
           <div className="flex items-center" style={{ gap: 8 }}>
             <Filter size={16} style={{ color: palette.text }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{t('Фильтры')}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {fipiSet ? (<>
+              <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.label)} values={kesSectionOpts.filter(o => sections.includes(o.value)).map(o => o.label)}
+                onChange={v => setSections(v.map(l => l.split(' · ')[0]))} accent={palette.accent} accentBg={railSoft} lockScroll />
+              <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.label)} values={kesTopicOpts.filter(o => topics.includes(o.value)).map(o => o.label)}
+                onChange={v => setTopics(v.map(l => l.split(' ')[0]))} accent={palette.accent} accentBg={railSoft} lockScroll />
+              <RailSegment
+                options={[1, 2].map(p => ({ value: String(p), label: `${t('Часть')} ${p}`, badge: subjectTasks.filter(x => x.part === p).length || undefined }))}
+                value={parts.length === 1 ? parts[0] : ''}
+                onChange={v => setParts(v ? [v] : [])}
+                accent={palette.accent} soft={railSoft} />
+              <MultiSelectField label={t('Линия')} options={lineOpts.map(o => o.label)} values={lines} onChange={setLines} accent={palette.accent} accentBg={railSoft} lockScroll />
+            </>) : (<>
             <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
+            </>)}
           </div>
           {hasFilters && (
             <button data-hover="layer" onClick={clearFilters}
@@ -2425,18 +2441,6 @@ export default function BankTrainer({ subjectState }: {
             />
             {search && <button data-hover="layer" aria-label={t('Очистить')} onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-3)', fontSize: 15, lineHeight: 1, flexShrink: 0 }}><X size={14} strokeWidth={2.5} /></button>}
           </div>
-          {/* Фильтры банка ФИПИ — выпадающими таблетками в строке, как «Уровень /
-              Тематика» у языкового тренажёра: раздел и тема кодификатора (КЭС),
-              часть, линия КИМ. Счётчик справа — сколько заданий под пунктом. */}
-          {fipiSet && view !== 'lines' && (<>
-            <FilterMenu label="Раздел" options={kesSectionOpts} value={sections} onChange={setSections} accent={palette.accent} soft={railSoft} />
-            <FilterMenu label="Тема" options={kesTopicOpts} value={topics} onChange={setTopics} accent={palette.accent} soft={railSoft} />
-            <FilterMenu label="Часть" options={[
-              { value: '1', label: 'Часть 1', count: subjectTasks.filter(x => x.part === 1).length },
-              { value: '2', label: 'Часть 2', count: subjectTasks.filter(x => x.part === 2).length },
-            ]} value={parts} onChange={setParts} accent={palette.accent} soft={railSoft} />
-            <FilterMenu label="Линия" options={lineOpts.map(o => ({ ...o, value: o.label }))} value={lines} onChange={setLines} accent={palette.accent} soft={railSoft} />
-          </>)}
           {/* Статус и сортировка — общие со скелетом (components/trainer).
               Своих копий у банка больше нет: расходились бы при первой правке. */}
           <ShellStatusTabs

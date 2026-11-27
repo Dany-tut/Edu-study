@@ -14,7 +14,7 @@
 // Логика клеток бланка (автопереход, вставка «4543», стрелки, Backspace) —
 // порт CorrespondenceAnswer из Тестли (web/src/ui/CorrespondenceAnswer.tsx).
 
-import { useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle2, Eye, EyeOff, X } from '../icons/appIcons'
 import OpticalText from '../OpticalText'
 import { useT } from '../../lib/i18n'
@@ -59,17 +59,35 @@ export function FipiVerdict({ state, self }: { state?: FipiState; self?: boolean
 function GroupText({ html, mobile }: { html: string; mobile?: boolean }) {
   const t = useT()
   const [open, setOpen] = useState(false)
+  // Кнопка нужна, только если текст правда не влез в свёрнутые 160 px: у
+  // короткого ряда элементов «Показать целиком» ничего не показывало.
+  const box = useRef<HTMLDivElement>(null)
+  const [overflows, setOverflows] = useState(false)
+  useLayoutEffect(() => {
+    const el = box.current
+    if (!el) return
+    const check = () => setOverflows(el.scrollHeight > COLLAPSED_H + 4)
+    check()
+    const ro = new ResizeObserver(check)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [html])
+  const clip = overflows && !open
   return (
     <div style={{ borderRadius: 16, background: 'var(--color-bg-input)', padding: mobile ? '10px 12px' : '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 0.3 }}>{t('Текст к заданию')}</div>
-      <div className="fipi-html" style={{ fontSize: mobile ? 14 : 15, lineHeight: 1.5, maxHeight: open ? 'none' : 160, overflow: 'hidden', maskImage: open ? undefined : 'linear-gradient(to bottom, #000 70%, transparent)', WebkitMaskImage: open ? undefined : 'linear-gradient(to bottom, #000 70%, transparent)' }}
+      <div ref={box} className="fipi-html" style={{ fontSize: mobile ? 14 : 15, lineHeight: 1.4, maxHeight: open ? 'none' : COLLAPSED_H, overflow: 'hidden', maskImage: clip ? 'linear-gradient(to bottom, #000 70%, transparent)' : undefined, WebkitMaskImage: clip ? 'linear-gradient(to bottom, #000 70%, transparent)' : undefined }}
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(cleanFipiHtml(html)) }} />
-      <button data-hover="layer" onClick={() => setOpen(o => !o)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: '6px 10px', margin: '-6px -10px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', cursor: 'pointer' }}>
-        <OpticalText as="iskra-button-label">{open ? t('Свернуть') : t('Показать текст целиком')}</OpticalText>
-      </button>
+      {(overflows || open) && (
+        <button data-hover="layer" onClick={() => setOpen(o => !o)} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: '6px 10px', margin: '-6px -10px', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', cursor: 'pointer' }}>
+          <OpticalText as="iskra-button-label">{open ? t('Свернуть') : t('Показать текст целиком')}</OpticalText>
+        </button>
+      )}
     </div>
   )
 }
+
+const COLLAPSED_H = 160
 
 /** Бланк: клетка под каждой буквой. Порт CorrespondenceAnswer из Тестли. */
 function Blank({ labels, value, onChange, locked, wrong, checked, mobile, digits }: {
