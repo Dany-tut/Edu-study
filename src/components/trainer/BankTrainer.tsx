@@ -2287,8 +2287,8 @@ export default function BankTrainer({ subjectState }: {
                 </button>
               )})}
             </div>}
-            <MultiSelectField label={t('Линия')} options={fipiSet ? lineOpts.map(o => o.label) : allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
-            {!fipiSet && <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />}
+            {hasExamCatalog && <MultiSelectField label={t('Линия')} options={fipiSet ? lineOpts.map(o => o.label) : allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />}
+            {hasExamCatalog && !fipiSet && <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />}
             <MobileStatusTabs value={statusFilter} onChange={setStatusFilter} accent={palette.accent} />
             {/* Сортировка — здесь же: в доке её место занял «Режим». */}
             <button data-hover="layer" onClick={() => { tactile(); setSheet('sort') }}
@@ -2507,8 +2507,8 @@ export default function BankTrainer({ subjectState }: {
             </>) : (<>
             <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
-            <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
-            <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />
+            {hasExamCatalog && <MultiSelectField label={t('Линия')} options={allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />}
+            {hasExamCatalog && <FilterField label={t('Источник')} options={allSources}  value={source}  onChange={setSource} accent={palette.accent} />}
             </>)}
           </div>
           {hasFilters && (
