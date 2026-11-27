@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Send, X, GraduationCap, User, Check } from '../components/icons/appIcons'
 import { PLAN_TIERS, planPrice } from '../lib/plan'
 import { submitLead } from '../lib/leads'
-import { useLang, useT } from '../lib/i18n'
+import { useLang, useT, hasSavedLang, browserLang } from '../lib/i18n'
 import { Alert } from '../components/Alert'
 import HeroSection, { LandingHeader } from '../components/landing/b/HeroSection'
 
@@ -13,6 +13,11 @@ import HeroSection, { LandingHeader } from '../components/landing/b/HeroSection'
 // Первый экран — в главном куске, всё ниже — лениво (BelowFold): заголовок и
 // Огонёк не ждут картинок устройств и постеров.
 const BelowFold = lazy(() => retryImport(() => import('../components/landing/b/BelowFold')))
+
+// Первый заход на лендинг без выбранного языка: берём язык браузера и
+// запоминаем (как явный выбор). Только здесь, а не в кабинете: ученикам,
+// которые уже пользуются Искрой, язык сам не меняется.
+if (!hasSavedLang() && browserLang() === 'en') useLang.getState().setLang('en')
 
 const ACCENT = '#786AD7'          // фирменный фиолетовый (как в кабинете)
 const ACCENT_2 = '#6F3FBF'        // глубокий фиолет для градиента

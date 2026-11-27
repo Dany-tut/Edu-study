@@ -5937,6 +5937,10 @@ export const EN: Record<string, string> = {
   'Опубликовано': 'Published',
   'Остались задания без ответа': 'Some tasks are still unanswered',
   'Искра': 'Iskra',
+  // Лендинг: соседние продукты экосистемы и знак на карточке каталога.
+  'Таскли': 'Taskli',
+  'Финансли': 'Finansly',
+  '=СУММ': '=SUM',
   '← Выбрать роль': '← Choose your role',
   'Не удалось загрузить курсы': 'Could not load courses',
   'Ответов': 'Answers',

@@ -49,8 +49,26 @@ function apply(lang: Lang) {
   try { (window as unknown as { __syncAppTitle?: () => void }).__syncAppTitle?.() } catch {}
 }
 
+// Был ли язык выбран ДО этого захода: apply() ниже сразу пишет 'ru' в
+// localStorage, и после него отличить «не выбирали» уже нельзя.
+const _hadSaved = (() => {
+  try { const v = localStorage.getItem('lang'); return v === 'ru' || v === 'en' } catch { return true }
+})()
 const _initial = getSaved()
 apply(_initial)
+
+/** Язык ещё ни разу не выбирали (ни руками, ни автоматически). */
+export function hasSavedLang(): boolean {
+  return _hadSaved || useLang.getState().lang !== _initial
+}
+
+/** Язык по браузеру: русский для ru/uk/be/kk, остальным английский. */
+export function browserLang(): Lang {
+  try {
+    const b = (navigator.languages && navigator.languages[0]) || navigator.language || ''
+    return /^(ru|uk|be|kk)\b/i.test(b) ? 'ru' : 'en'
+  } catch { return 'ru' }
+}
 
 interface LangStore {
   lang: Lang

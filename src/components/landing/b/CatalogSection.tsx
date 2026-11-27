@@ -56,7 +56,7 @@ export default function CatalogSection() {
             <a key={d.category} href={catalogHref()} data-hover="layer"
               className="relative flex min-h-[200px] flex-col justify-end gap-1 overflow-hidden rounded-[24px] p-6 text-white transition-transform hover:-translate-y-1"
               style={{ background: coverBackground('', d.category) }}>
-              <span aria-hidden className="pointer-events-none absolute right-4 top-2 font-mono text-[56px] font-extrabold text-white/25">{d.glyph}</span>
+              <span aria-hidden className="pointer-events-none absolute right-4 top-2 font-mono text-[56px] font-extrabold text-white/25">{t(d.glyph)}</span>
               <span className="text-[20px] font-bold leading-tight">{t(d.title)}</span>
               <span className="text-[15px] text-white/85">{t(d.text)}</span>
             </a>
