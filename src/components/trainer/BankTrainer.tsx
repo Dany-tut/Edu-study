@@ -35,7 +35,7 @@ import { useCurriculum } from '../../store/curriculumStore'
 import FipiTaskBody, { FipiVerdict, LinesGrid, type FipiState } from './FipiTask'
 import { fipiOf } from '../../lib/fipiGrade'
 import { kesSectionLabel, kesTopicLabel } from '../../data/fipiKes'
-import { useTaskBank } from '../../store/taskBankStore'
+import { useTaskBank, type FipiIndexRow } from '../../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import { useDashboard } from '../../store/dashboardStore'
 import { useStudentData } from '../../store/studentDataStore'
@@ -1776,17 +1776,21 @@ export default function BankTrainer({ subjectState }: {
   }, [subject, subjectTasks, parts, curriculumVersion])
   // Набор ФИПИ: разделы и темы — коды кодификатора с названиями («2 · Основы
   // неорганической химии», «2.4 Генетическая связь…»), счётчики — по заданиям.
+  // Счётчики фильтров и «Линий КИМ» — по индексу всего набора (taskBankStore.fipiIndex),
+  // а не по уже пришедшим порциям: иначе числа росли вслед за догрузкой.
+  const fipiIndex = useTaskBank(s => s.fipiIndex[`${subject}:${exam}`])
+  const countBase: FipiIndexRow[] = fipiIndex ?? subjectTasks
   const kesSectionOpts = useMemo(() => !fipiSet || !kes ? [] : Object.entries(kes.sections).map(([code, name]) => ({
-    value: code, label: `${code} · ${name}`, count: subjectTasks.filter(t => (t.kes ?? []).some(k => k.split('.')[0] === code)).length,
-  })).filter(o => o.count > 0), [fipiSet, kes, subjectTasks])
+    value: code, label: `${code} · ${name}`, count: countBase.filter(t => (t.kes ?? []).some(k => k.split('.')[0] === code)).length,
+  })).filter(o => o.count > 0), [fipiSet, kes, countBase])
   const kesTopicOpts = useMemo(() => !fipiSet || !kes ? [] : Object.entries(kes.topics)
     .filter(([code]) => !sections.length || sections.includes(code.split('.')[0]))
-    .map(([code, name]) => ({ value: code, label: `${code} ${name}`, count: subjectTasks.filter(t => (t.kes ?? []).includes(code)).length }))
-    .filter(o => o.count > 0), [fipiSet, kes, subjectTasks, sections])
+    .map(([code, name]) => ({ value: code, label: `${code} ${name}`, count: countBase.filter(t => (t.kes ?? []).includes(code)).length }))
+    .filter(o => o.count > 0), [fipiSet, kes, countBase, sections])
   const lineOpts = useMemo(() => (examCatalog?.lines ?? [])
     .filter(l => !parts.length || parts.includes(part2Lines.has(l.number) ? '2' : '1'))
-    .map(l => ({ value: String(l.number), label: `${l.number} · ${l.title}`, count: subjectTasks.filter(t => t.line === l.number).length })),
-    [examCatalog, parts, part2Lines, subjectTasks])
+    .map(l => ({ value: String(l.number), label: `${l.number} · ${l.title}`, count: countBase.filter(t => t.line === l.number).length })),
+    [examCatalog, parts, part2Lines, countBase])
   const sectionOptions = merge(baseSections, sectionScope(subject))
   const baseTopics   = useMemo(() => {
     const taskTopics = (sections.length ? subjectTasks.filter(t => sections.includes(t.section)) : subjectTasks).map(t => t.topic).filter(Boolean)
@@ -2060,7 +2064,7 @@ export default function BankTrainer({ subjectState }: {
               <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
             </div>
           ) : view === 'lines' ? (
-            <LinesGrid lines={examCatalog?.lines ?? []} tasks={subjectTasks} answered={answered} part2={part2Lines} accent={palette.accent} mobile
+            <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent} mobile
               onPick={label => { setLines([label]); setParts([]); setView('list') }} />
           ) : fipiLoading && filtered.length === 0 ? (
             <TaskListSkeleton rows={5} />
@@ -2495,7 +2499,7 @@ export default function BankTrainer({ subjectState }: {
               <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.label)} values={kesTopicOpts.filter(o => topics.includes(o.value)).map(o => o.label)}
                 onChange={v => setTopics(v.map(l => l.split(' ')[0]))} accent={palette.accent} accentBg={railSoft} lockScroll />
               <RailSegment
-                options={[1, 2].map(p => ({ value: String(p), label: `${t('Часть')} ${p}`, badge: subjectTasks.filter(x => x.part === p).length || undefined }))}
+                options={[1, 2].map(p => ({ value: String(p), label: `${t('Часть')} ${p}`, badge: countBase.filter(x => x.part === p).length || undefined }))}
                 value={parts.length === 1 ? parts[0] : ''}
                 onChange={v => setParts(v ? [v] : [])}
                 accent={palette.accent} soft={railSoft} />
@@ -2587,7 +2591,7 @@ export default function BankTrainer({ subjectState }: {
           <DeckNote shown={cardTasks.length} skipped={cardSkipped} total={filtered.length} />
         </div>
       ) : view === 'lines' ? (
-        <LinesGrid lines={examCatalog?.lines ?? []} tasks={subjectTasks} answered={answered} part2={part2Lines} accent={palette.accent}
+        <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent}
           onPick={label => { setLines([label]); setParts([]); setView('list') }} />
       ) : fipiLoading && filtered.length === 0 ? (
         <TaskListSkeleton rows={3} />

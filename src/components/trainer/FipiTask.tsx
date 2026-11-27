@@ -410,7 +410,8 @@ export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette,
  */
 export function LinesGrid({ lines, tasks, answered, part2, accent, onPick, mobile }: {
   lines: { number: number; title: string; points: number }[]
-  tasks: Task[]
+  /** Задания или лёгкий индекс набора — нужны только id и линия. */
+  tasks: Pick<Task, 'id' | 'line'>[]
   answered: Map<number, FipiState>
   part2: Set<number>
   accent: string
