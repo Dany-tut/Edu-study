@@ -34,6 +34,12 @@ type TaskBankStore = {
   fipiIndex: Record<string, FipiIndexRow[]>
   /** Счётчики обоих экзаменов предмета — для ЕГЭ/ОГЭ в рейле. */
   loadFipiCounts: (subject: string) => Promise<void>
+  /**
+   * Задания курсового предмета (бухгалтерия и т.п.), привязанные к урокам.
+   * Подгружает только задания из пройденных уроков — будущие не уезжают в браузер.
+   */
+  loadCourseSet: (subject: string, completedLessonIds: string[]) => Promise<void>
+  courseSetsReady: Record<string, true>
   addTask: (t: NewTask) => Promise<number>
   replaceTask: (id: number, patch: Partial<Task>) => Promise<void>
   removeTask: (id: number) => Promise<void>
@@ -78,6 +84,7 @@ function dbToTask(row: Record<string, unknown>): Task {
     kes: (row.kes as string[] | null) ?? [],
     fipiId: (row.fipi_id as string | null) ?? null,
     scoring: (row.scoring as Task['scoring']) ?? null,
+    lessonId: (row.lesson_id as string | null) ?? null,
   }
 }
 
@@ -114,6 +121,7 @@ function taskToDb(t: Partial<Task>) {
     kim_year: t.kimYear ?? null,
     kes: t.kes ?? [],
     scoring: t.scoring ?? null,
+    lesson_id: t.lessonId ?? null,
   }
 }
 
@@ -133,7 +141,7 @@ const DB_KEY: Record<keyof Omit<Task, 'id'>, string> = {
   answerType: 'answer_type', matchLeft: 'match_left', matchRight: 'match_right',
   sequenceItems: 'sequence_items', allowPhoto: 'allow_photo', blockOrder: 'block_order',
   exam: 'exam', kimYear: 'kim_year', kes: 'kes', fipiId: 'fipi_id', scoring: 'scoring',
-  payload: 'payload',
+  payload: 'payload', lessonId: 'lesson_id',
 }
 function patchToDb(patch: Partial<Task>) {
   const full = taskToDb(patch) as Record<string, unknown>
@@ -173,6 +181,7 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
   fipiSetsComplete: {},
   fipiCounts: {},
   fipiIndex: {},
+  courseSetsReady: {},
   recentlyEditedId: null,
   clearRecentlyEdited: () => set({ recentlyEditedId: null }),
 
@@ -190,7 +199,8 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       return
     }
     // Банк ФИПИ — тысячи строк на набор: в общий список не берём (см. loadFipiSet).
-    const { data } = await supabase.from('task_bank').select('*').is('fipi_guid', null).order('id')
+    // Курсовые задания (lesson_id NOT NULL) тоже отдельно: см. loadCourseSet.
+    const { data } = await supabase.from('task_bank').select('*').is('fipi_guid', null).is('lesson_id', null).order('id')
     if (data) {
       const own = data.map(dbToTask)
       // Уже открытые наборы ФИПИ не теряем при перезагрузке своих заданий.
@@ -263,6 +273,36 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
       const { count, error } = await supabase.from('task_bank').select('id', { count: 'exact', head: true })
         .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
       if (!error && count != null) set(s => ({ fipiCounts: { ...s.fipiCounts, [key]: count } }))
+    }))
+  },
+
+  loadCourseSet: async (subject, completedLessonIds) => {
+    const key = `course:${subject}`
+    if (completedLessonIds.length === 0) {
+      set(s => ({ courseSetsReady: { ...s.courseSetsReady, [key]: true } }))
+      return
+    }
+    if (DEV) {
+      const local = lsLoad().filter(t => t.subject === subject && t.lessonId && completedLessonIds.includes(t.lessonId))
+      const ids = new Set(local.map(t => t.id))
+      set(s => ({ tasks: [...s.tasks.filter(t => t.subject !== subject || !ids.has(t.id)), ...local], courseSetsReady: { ...s.courseSetsReady, [key]: true } }))
+      return
+    }
+    const old = get().tasks.filter(t => t.subject === subject && t.lessonId)
+    const oldIds = new Set(old.map(t => t.id))
+    const all: Task[] = []
+    for (let from = 0; ; from += 500) {
+      const { data, error } = await supabase.from('task_bank').select('*')
+        .eq('subject', subject).in('lesson_id', completedLessonIds)
+        .order('id').range(from, from + 499)
+      if (error) { console.error('[task_bank] loadCourseSet', error); break }
+      for (const r of data ?? []) all.push(dbToTask(r))
+      if (!data || data.length < 500) break
+    }
+    const newIds = new Set(all.map(t => t.id))
+    set(s => ({
+      tasks: [...s.tasks.filter(t => !oldIds.has(t.id) && !newIds.has(t.id)), ...all],
+      courseSetsReady: { ...s.courseSetsReady, [key]: true },
     }))
   },
 

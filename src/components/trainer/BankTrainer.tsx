@@ -1656,6 +1656,25 @@ export default function BankTrainer({ subjectState }: {
   const fipiCounts = useTaskBank(s => s.fipiCounts)
   const loadFipiCounts = useTaskBank(s => s.loadFipiCounts)
   useEffect(() => { if (bankOn) void loadFipiCounts(subject) }, [subject, bankOn, loadFipiCounts])
+
+  // ── Курсовые предметы (бухгалтерия и т.п.): задания только из пройденных уроков ──
+  const studentSubjects = useStudentData(s => s.subjects)
+  const studentProgress = useStudentData(s => s.progress)
+  const loadCourseSet = useTaskBank(s => s.loadCourseSet)
+  const isCourseBank = bankOn && !examCatalog
+  const completedLessonIds = useMemo(() => {
+    if (!isCourseBank) return []
+    const course = studentSubjects.find(s => s.subject === langSubject?.name)
+    if (!course) return []
+    const allIds = course.modules.flatMap(m => m.lessons.map(l => l.id))
+    return allIds.filter(id => {
+      const p = studentProgress[id]
+      return p && (p.status === 'completed' || p.status === 'submitted')
+    })
+  }, [isCourseBank, studentSubjects, studentProgress, langSubject?.name])
+  useEffect(() => { if (isCourseBank) void loadCourseSet(subject, completedLessonIds) }, [isCourseBank, subject, completedLessonIds, loadCourseSet])
+  const courseLoading = useTaskBank(s => isCourseBank && !s.courseSetsReady[`course:${subject}`])
+
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
   const [parts, setParts]       = useState<string[]>([])
@@ -2055,8 +2074,12 @@ export default function BankTrainer({ subjectState }: {
           ) : view === 'lines' ? (
             <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent} mobile
               onPick={label => { setLines([label]); setParts([]); setView('list') }} />
-          ) : fipiLoading && filtered.length === 0 ? (
+          ) : (fipiLoading || courseLoading) && filtered.length === 0 ? (
             <TaskListSkeleton rows={5} />
+          ) : isCourseBank && completedLessonIds.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <span style={balancedWrap}>{bindShortWords(t('Пройдите первый урок — задания появятся здесь'))}</span>
+            </div>
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
@@ -2582,8 +2605,12 @@ export default function BankTrainer({ subjectState }: {
       ) : view === 'lines' ? (
         <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent}
           onPick={label => { setLines([label]); setParts([]); setView('list') }} />
-      ) : fipiLoading && filtered.length === 0 ? (
+      ) : (fipiLoading || courseLoading) && filtered.length === 0 ? (
         <TaskListSkeleton rows={3} />
+      ) : isCourseBank && completedLessonIds.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <span style={balancedWrap}>{bindShortWords(t('Пройдите первый урок — задания появятся здесь'))}</span>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
