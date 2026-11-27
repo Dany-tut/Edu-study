@@ -97,6 +97,7 @@ import { reviewSlots, buildReviewTasks, gradeFor, type ReviewTask } from '../lib
 import VocabIntro from './VocabIntro'
 import LessonReview from './LessonReview'
 import HomeworkFlowBar from './HomeworkFlowBar'
+import { HW_COLUMN_LEFT, hwColumnWidth, useHomeworkColumnVars } from '../lib/homeworkColumn'
 import { HomeworkViewportChrome } from './MobileHomeworkViewport'
 import HomeworkResultActions from './HomeworkResultActions'
 import { testlyReviewUrl } from '../lib/testlyModule'
@@ -1819,6 +1820,9 @@ export default function HomeworkFlow({
 }: HomeworkFlowProps) {
   const t = useT()
   const isMobile = !useIsDesktop()
+  // Нижние полосы центруются по колонке задания, а не по окну (рейл слева).
+  const columnRef = useRef<HTMLElement>(null)
+  useHomeworkColumnVars(columnRef, !isMobile)
   // «Доп 2 · <урок>» — заголовок доп. домашки (без «Домашка по теме «…»»).
   const extraTitle = homework.title.match(EXTRA_TITLE_RE)
   const { dark } = useTheme()
@@ -3564,6 +3568,7 @@ export default function HomeworkFlow({
         {/* Полоса режима одного экрана выше точек прогресса (в ней вердикт и
             кнопка во всю ширину), поэтому и запас под ней больше. */}
         <main
+          ref={columnRef}
           className="flex flex-col"
           style={{ gap: 16, paddingBottom: state.basicSubmitted ? `calc(${resultActionsHeight + (isMobile ? 136 : 48)}px + env(safe-area-inset-bottom, 0px))` : (flowMode && !flowFinished) ? 210 : 100 }}
         >
@@ -4848,8 +4853,8 @@ export default function HomeworkFlow({
                   // env() safe-area is folded into the animated `bottom` via marginBottom
                   // so framer can tween the numeric part while the inset stays applied.
                   marginBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : 0,
-                  left: '50%', x: '-50%', transformOrigin: 'bottom center',
-                  zIndex: 100, width: 'min(560px, calc(100vw - 48px))',
+                  left: HW_COLUMN_LEFT, x: '-50%', transformOrigin: 'bottom center',
+                  zIndex: 100, width: hwColumnWidth(560, 48),
                 }}
               >
                 <BottomProgressBar

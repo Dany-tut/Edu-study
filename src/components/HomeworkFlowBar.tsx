@@ -32,6 +32,7 @@ import { ArrowRight } from './icons/appIcons'
 import { useT } from '../lib/i18n'
 import { useKeyboardState } from '../lib/useKeyboardInset'
 import { PAGE_WIDTH } from '../lib/pageWidth'
+import { HW_COLUMN_PAD_LEFT } from '../lib/homeworkColumn'
 
 export default function HomeworkFlowBar({
   step,
@@ -79,6 +80,9 @@ export default function HomeworkFlowBar({
         position: 'fixed',
         left: 0,
         right: 0,
+        // Середина полосы — на центре колонки задания (рейл слева на ПК).
+        paddingLeft: HW_COLUMN_PAD_LEFT,
+        boxSizing: 'border-box',
         zIndex: 100,
         marginBottom: keyboard.open ? 0 : 'env(safe-area-inset-bottom, 0px)',
         // Ничего сплошного: над заданием висят сами элементы, а не панель.
