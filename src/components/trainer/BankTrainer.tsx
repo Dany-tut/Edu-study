@@ -1763,7 +1763,8 @@ export default function BankTrainer({ subjectState }: {
   /** Номера линий части 2 по каталогу ФИПИ: развёрнутый ответ. */
   const part2Lines = useMemo(() => new Set((examCatalog?.lines ?? []).filter(l => l.subtypes.some(st => st.type === 'extended')).map(l => l.number)), [examCatalog])
   const merge        = useOptionMerger()
-  const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject && (t.exam ?? 'ege') === exam), [tasks, subject, exam])
+  const hasExamCatalog = !!examCatalog
+  const subjectTasks = useMemo(() => tasks.filter(t => t.subject === subject && (hasExamCatalog ? (t.exam ?? 'ege') === exam : true)), [tasks, subject, exam, hasExamCatalog])
   /** Набор размечен по кодификатору ФИПИ — фильтры строятся по КЭС, а не по программе учителя. */
   const fipiSet = !!kes && subjectTasks.some(t => t.fipiId)
   // Options mirror the teacher's PROGRAM (curriculum), not just the tasks that
@@ -1821,7 +1822,7 @@ export default function BankTrainer({ subjectState }: {
   const filtered = useMemo(() => {
     // When searching, go global (all subjects); otherwise stay on the active tab
     let list = search
-      ? tasks.filter(t => (t.exam ?? 'ege') === exam)
+      ? tasks.filter(t => hasExamCatalog ? (t.exam ?? 'ege') === exam : true)
       : subjectTasks
     if (fipiSet) {
       // Кодификатор: задание проверяет несколько элементов (КЭС), раздел — первая цифра кода.
@@ -2259,7 +2260,7 @@ export default function BankTrainer({ subjectState }: {
             <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             </>)}
-            <div style={{ display: 'flex', gap: 8 }}>
+            {examCatalog && <div style={{ display: 'flex', gap: 8 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
                 const avail = availableParts.includes(p as '1' | '2')
@@ -2274,7 +2275,7 @@ export default function BankTrainer({ subjectState }: {
                   <OpticalText as="iskra-button-label">{t('Часть')} {p}</OpticalText>
                 </button>
               )})}
-            </div>
+            </div>}
             <MultiSelectField label={t('Линия')} options={fipiSet ? lineOpts.map(o => o.label) : allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             {!fipiSet && <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />}
             <MobileStatusTabs value={statusFilter} onChange={setStatusFilter} accent={palette.accent} />

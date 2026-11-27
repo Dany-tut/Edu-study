@@ -3578,6 +3578,7 @@ export const EN: Record<string, string> = {
   'Схема': 'Diagram',
   'разговорник': 'phrasebook',
   'Банк ЕГЭ': 'Exam bank',
+  'Практикум': 'Practice',
   'Мои предметы': 'My subjects',
   'на повтор': 'to review',
   'Кабинет открывает курс этого предмета': 'Your cabinet opens this subject\u2019s course',
