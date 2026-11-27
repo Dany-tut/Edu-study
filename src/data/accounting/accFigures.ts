@@ -339,3 +339,71 @@ export function excelScreen(title: string, rows: string[][], opts: ExcelSheetOpt
     callouts: opts.note ? [opts.note] : undefined,
   }
 }
+
+// ─── Формула по частям ───────────────────────────────────────────────────────
+// Цветной разбор формулы: каждая часть своим цветом и номером, ниже — что
+// означает каждая часть и шаги вычисления с промежуточными результатами (как
+// «Вычислить формулу» в Excel). Статичная схема: работает в любом конспекте,
+// пока интерактивный разбор не утверждён концептом.
+const PART_COLORS = ['#2E6FD8', '#C2410C', '#127A4B', '#7C3AED', '#B42318', '#0E7490', '#A16207']
+
+export interface FormulaPart {
+  /** Кусок формулы ровно как в ячейке; куски подряд дают всю формулу. */
+  text: string
+  /** Подпись: что это за часть. Пусто — служебный кусок (скобки, «;»), рисуется серым. */
+  label?: string
+}
+
+export function formulaFig(title: string, parts: FormulaPart[], steps: Array<[string, string]> = [], opts: { note?: string } = {}): string {
+  const fs = 15, mono = "Menlo, Consolas, 'Courier New', monospace"
+  const charW = fs * 0.62
+  const maxW = W - 48
+  const out: string[] = []
+  let x = 24, y = 64
+  let n = 0
+  const labels: Array<{ n: number; color: string; label: string }> = []
+  for (const part of parts) {
+    const color = part.label ? PART_COLORS[n % PART_COLORS.length] : MUTED
+    if (part.label) { n++; labels.push({ n, color, label: part.label }) }
+    // Перенос по кускам: длинная формула идёт в несколько строк, а не за край.
+    let rest = part.text
+    while (rest.length) {
+      const room = Math.max(1, Math.floor((24 + maxW - x) / charW))
+      const chunk = rest.slice(0, room)
+      out.push(`<text x="${x}" y="${y}" font-size="${fs}" font-family="${mono}" font-weight="${part.label ? 700 : 400}" fill="${color}">${esc(chunk)}</text>`)
+      if (part.label && chunk === part.text.slice(0, chunk.length)) {
+        out.push(`<line x1="${x}" y1="${y + 5}" x2="${x + chunk.length * charW}" y2="${y + 5}" stroke="${color}" stroke-width="2"/>`)
+        out.push(`<circle cx="${x + 7}" cy="${y + 16}" r="8" fill="${color}"/><text x="${x + 7}" y="${y + 20}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${n}</text>`)
+      }
+      x += chunk.length * charW
+      rest = rest.slice(chunk.length)
+      if (rest.length) { x = 24; y += 40 }
+    }
+  }
+  y += 40
+  for (const l of labels) {
+    const lines = wrapLines(l.label, W - 70, 12.5)
+    out.push(`<circle cx="32" cy="${y - 4}" r="8" fill="${l.color}"/><text x="32" y="${y}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${l.n}</text>`)
+    lines.forEach((ln, i) => out.push(`<text x="48" y="${y + i * 16}" font-size="12.5" fill="${INK}">${esc(ln)}</text>`))
+    y += lines.length * 16 + 8
+  }
+  if (steps.length) {
+    y += 6
+    out.push(`<text x="24" y="${y}" font-size="11" font-weight="700" fill="${MUTED}">ВЫЧИСЛЕНИЕ ПО ШАГАМ</text>`)
+    y += 10
+    steps.forEach(([expr, res], i) => {
+      const lines = wrapLines(expr, W - 220, 12)
+      const h = lines.length * 15 + 12
+      out.push(`<rect x="24" y="${y}" width="${W - 48}" height="${h}" rx="6" fill="${i === steps.length - 1 ? ACCENT_SOFT : TILE}"/>`)
+      lines.forEach((ln, j) => out.push(`<text x="34" y="${y + 17 + j * 15}" font-size="12" font-family="${mono}" fill="${INK}">${esc(ln)}</text>`))
+      out.push(`<text x="${W - 34}" y="${y + 17}" text-anchor="end" font-size="12.5" font-weight="700" fill="${i === steps.length - 1 ? ACCENT : INK}">→ ${esc(res)}</text>`)
+      y += h + 6
+    })
+  }
+  if (opts.note) {
+    const lines = wrapLines(opts.note, W)
+    lines.forEach((ln, i) => out.push(`<text x="${W / 2}" y="${y + 14 + i * 15}" text-anchor="middle" font-size="11" fill="${MUTED}">${esc(ln)}</text>`))
+    y += lines.length * 15 + 8
+  }
+  return toDataUri(sheet(W, y + 16, title, out.join('')))
+}
