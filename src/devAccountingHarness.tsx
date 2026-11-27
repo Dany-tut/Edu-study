@@ -14,7 +14,8 @@
 // падает «Cannot access 'useDashboard' before initialization» (dev-flow тоже).
 import './lib/platform'
 import './store/studentDataStore'
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { isLabRef } from './lib/excelLab/embed'
 import { createRoot } from 'react-dom/client'
 import HomeworkFlow from './components/HomeworkFlow'
 import AnswerFlightLayer from './components/AnswerFlightLayer'
@@ -25,6 +26,8 @@ import { proseLines, proseWrap } from './lib/typography'
 import type { LessonHomework } from './data/lessonContent'
 import { ACC_LESSONS, ACC_COURSE_TITLE } from './data/accounting/accountingLessons'
 import './index.css'
+// Живые блоки Excel-лаборатории — как в TheorySheet: разбор формулы и тренажёр по данным картинки.
+const ExcelLabFigure = lazy(() => import('./components/excelLab/ExcelLabFigure'))
 
 const PROGRESS = 'acc-stand:done'
 const LAST = 'acc-stand:last'
@@ -125,7 +128,9 @@ function Stand() {
           {files.length > 0 && <div>⬇ Файлы: {files.map(f => <a key={f} href={`/courses/accounting/${f}`} download style={{ marginRight: 10 }}>{f}</a>)}</div>}
         </div>
         <article style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
-          <NotesWithReveals paragraphs={lesson.content.paragraphs} unlocked={standSubmitted} renderPara={par => par.image ? (
+          <NotesWithReveals paragraphs={lesson.content.paragraphs} unlocked={standSubmitted} renderPara={par => par.image && isLabRef(par.image) ? (
+            <Suspense key={par.id} fallback={null}><ExcelLabFigure src={par.image} caption={par.text} /></Suspense>
+          ) : par.image ? (
             <figure key={par.id} style={{ margin: 0 }}>
               <button type="button" onClick={() => setZoom({ src: par.image!, caption: par.text })} title="Открыть крупно" style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'none', cursor: 'zoom-in' }}>
                 <img src={par.image} alt={par.text} style={{ display: 'block', width: '100%', borderRadius: 12, border: '1px solid var(--color-border)', background: '#fff' }} />
