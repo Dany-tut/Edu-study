@@ -6,7 +6,7 @@ import type { ApLessonContent } from './apChemistryLessons'
 import type { HotspotSpec } from '../lib/screenHotspot'
 import type { TrainerSpec } from '../lib/excelLab/spec'
 import { parseVideoSource, type VideoSource } from '../lib/videoSource'
-import type { LessonFiles } from '../lib/lessonFiles'
+import { hasLessonFiles, type LessonFiles } from '../lib/lessonFiles'
 import { isChecklistParagraph } from '../lib/theoryChecklist'
 import { extraHwLabel } from '../lib/extraHomework'
 
@@ -288,7 +288,10 @@ export interface LessonDetail {
  *  предметам с фолбэком на химию, и урок английского предлагал скачать таблицу
  *  Менделеева и таблицу растворимостей. */
 function lessonFiles(lesson: Lesson): LessonFiles {
-  return lesson.files ?? {}
+  const own = lesson.files ?? {}
+  if (hasLessonFiles(own)) return own
+  // Учебные файлы авторского курса лежат в коде; файлы учителя из базы важнее.
+  return apLessonContent(lesson.id)?.files ?? own
 }
 
 export function getLessonDetail(lesson: Lesson): LessonDetail {

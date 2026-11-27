@@ -20,12 +20,15 @@ import { displayOrder } from './taskTypes'
 import type { LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from './lessonContent'
 import type { HotspotSpec } from '../lib/screenHotspot'
 import type { TrainerSpec } from '../lib/excelLab/spec'
+import type { LessonFiles } from '../lib/lessonFiles'
 
 /** Общая форма авторского урока: конспект + база домашки + хард. */
 export interface AuthoredLessonContent {
   paragraphs: LessonParagraph[]
   quiz: HomeworkQuizQuestion[]
   hardTask: HomeworkTeacherTask
+  /** Файлы урока из кода — показываются в «Материалах», если в базе своих нет. */
+  files?: LessonFiles
 }
 
 /** Абзац конспекта. */

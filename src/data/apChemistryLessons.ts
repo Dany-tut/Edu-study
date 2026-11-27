@@ -10,11 +10,14 @@
 // like every other course's konspekt in this app.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { LessonParagraph, HomeworkQuizQuestion, HomeworkTeacherTask } from './lessonContent'
+import type { LessonFiles } from '../lib/lessonFiles'
 
 export interface ApLessonContent {
   paragraphs: LessonParagraph[]
   quiz: HomeworkQuizQuestion[]
   hardTask: HomeworkTeacherTask
+  /** Файлы урока из кода (курс «Бухгалтерия»): «Материалы», если в базе пусто. */
+  files?: LessonFiles
 }
 
 const p = (id: string, text: string): LessonParagraph => ({ id, text })

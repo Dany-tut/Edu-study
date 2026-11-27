@@ -219,6 +219,17 @@ export async function uploadRecordingFile(file: File): Promise<string> {
 export async function downloadLessonFile(file: LessonFile): Promise<void> {
   // Внешнюю ссылку открываем как есть: Диск сам покажет файл и кнопку «скачать».
   // Файл из R2 — тоже вкладкой: тянуть сотни МБ в blob телефону не по силам.
+  // Учебный файл курса с этого же сайта (/courses/…) — сразу скачиваем,
+  // без пустой вкладки.
+  if (file.url?.startsWith('/')) {
+    const a = document.createElement('a')
+    a.href = file.url
+    a.download = file.name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    return
+  }
   if (file.url) {
     window.open(file.url, '_blank', 'noopener,noreferrer')
     return

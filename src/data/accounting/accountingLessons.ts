@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { p, qmatch, hard, type AuthoredLessonContent } from '../lessonAuthoring'
 import { MODULES } from './modules'
+import { accLessonFiles } from './accFiles'
 import type { AccLesson, AccModule } from './types'
 
 export const ACC_COURSE_ID = 'acc-ru'
@@ -122,4 +123,8 @@ export const ACC_LESSONS: Array<{ shortId: string; index: number; module: AccMod
 
 /** Конспект + домашка по short_id — то, что читает apLessonChunk. */
 export const ACC_LESSON_CONTENT: Record<string, AuthoredLessonContent> =
-  Object.fromEntries(ACC_LESSONS.map(x => [x.shortId, x.lesson.content]))
+  Object.fromEntries(ACC_LESSONS.map(x => [x.shortId, {
+    ...x.lesson.content,
+    // «Скачайте … из материалов урока» — файл обязан быть в «Материалах».
+    files: accLessonFiles([x.lesson.practice, ...x.lesson.content.paragraphs.map(par => par.text), x.lesson.content.hardTask.prompt]),
+  }]))

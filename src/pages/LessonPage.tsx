@@ -335,7 +335,7 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
           </span>
         )}
       </span>
-      {file.url
+      {file.url && !file.url.startsWith('/')
         ? <ExternalLink size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
         : <Download size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
     </button>

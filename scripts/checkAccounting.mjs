@@ -5,7 +5,7 @@
 //   node scripts/checkAccounting.mjs exp03.ts exp04.ts — только эти модули (во время авторинга)
 //   --strict — непокрытые темы считаются ошибкой (для сдачи курса)
 import { build } from 'esbuild'
-import { mkdirSync, existsSync } from 'node:fs'
+import { mkdirSync, existsSync, readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -16,8 +16,9 @@ const dir = resolve('src/data/accounting')
 const entry = files.length
   ? files.map((f, i) => `import * as m${i} from ${JSON.stringify(resolve(dir, f))}`).join('\n') +
     `\nexport const MODULES = [${files.map((_, i) => `...Object.values(m${i}).filter(v => v && typeof v === 'object' && Array.isArray(v.lessons))`).join(', ')}]` +
-    `\nexport { BLUEPRINT } from ${JSON.stringify(resolve(dir, 'blueprint.ts'))}`
-  : `export { MODULES } from ${JSON.stringify(resolve(dir, 'modules.ts'))}\nexport { BLUEPRINT } from ${JSON.stringify(resolve(dir, 'blueprint.ts'))}`
+    `\nexport { BLUEPRINT } from ${JSON.stringify(resolve(dir, 'blueprint.ts'))}` +
+    `\nexport { ACC_FILE_SIZES } from ${JSON.stringify(resolve(dir, 'accFiles.ts'))}`
+  : `export { ACC_FILE_SIZES } from ${JSON.stringify(resolve(dir, 'accFiles.ts'))}\nexport { MODULES } from ${JSON.stringify(resolve(dir, 'modules.ts'))}\nexport { BLUEPRINT } from ${JSON.stringify(resolve(dir, 'blueprint.ts'))}`
 
 mkdirSync('node_modules/.cache', { recursive: true })
 const out = resolve('node_modules/.cache/checkAccounting.bundle.mjs')
@@ -26,7 +27,7 @@ await build({
   bundle: true, platform: 'node', format: 'esm', outfile: out, logLevel: 'error',
   define: { 'import.meta.env': '{"VITE_SUPABASE_URL":"http://stub.local","VITE_SUPABASE_PUBLISHABLE_KEY":"stub"}' },
 })
-const { MODULES, BLUEPRINT } = await import(pathToFileURL(out).href + `?t=${Date.now()}`)
+const { MODULES, BLUEPRINT, ACC_FILE_SIZES } = await import(pathToFileURL(out).href + `?t=${Date.now()}`)
 
 const errors = []
 const warns = []
@@ -38,6 +39,16 @@ const keys = new Set()
 const quizIds = new Set()
 let lessonsTotal = 0, quizTotal = 0, figTotal = 0
 const covered = new Map() // moduleId -> Set(topic)
+
+// Учебные файлы: урок прикрепляет их в «Материалы» по списку accFiles.ts —
+// файл на диске без строки в списке ученик не скачает, неверный размер — врёт.
+const pubDir = resolve('public/courses/accounting')
+for (const name of readdirSync(pubDir).filter(n => !n.startsWith('.'))) {
+  const size = statSync(resolve(pubDir, name)).size
+  if (ACC_FILE_SIZES[name] === undefined) err('accFiles.ts', `нет файла ${name}`)
+  else if (ACC_FILE_SIZES[name] !== size) err('accFiles.ts', `${name}: размер ${ACC_FILE_SIZES[name]}, на диске ${size}`)
+}
+for (const name of Object.keys(ACC_FILE_SIZES)) if (!existsSync(resolve(pubDir, name))) err('accFiles.ts', `${name} нет в public/courses/accounting`)
 
 for (const mod of MODULES) {
   // EXP00 — вводный модуль курса (как учиться, справочник): тем ТЗ не закрывает.
