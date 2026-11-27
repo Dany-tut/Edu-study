@@ -11,7 +11,7 @@ export type ScoreMode = 'perOption' | 'criteria' | 'whole'
 export type AnswerType =
   | 'single' | 'multi' | 'fill' | 'matching' | 'sequence' | 'tableFill' | 'extended'
   // Данные типа — в payload: hotspot у «Найди на экране», допуск и единицы у «Числа».
-  | 'screenHotspot' | 'numeric'
+  | 'screenHotspot' | 'numeric' | 'dropdownGap'
 
 export interface TaskChoice { id: string; text: string; correct: boolean; points?: number }
 export interface TaskAnswerKey { id: string; keyword: string; points: number }
@@ -334,11 +334,94 @@ export type SubjectCurriculum = {
   sectionLineMap: Record<string, { lines: number[]; part2Lines: number[] }>
 }
 
+// ── Accounting (Бухгалтерия) ─────────────────────────────────────────────────
+
+export const ACCOUNTING_SECTIONS = [
+  'Первичные документы',
+  'План счетов и проводки',
+  'Расчёт зарплаты',
+  'Налоги и взносы',
+  'Закрытие месяца и года',
+  'Работа в 1С и Excel',
+]
+
+export const ACCOUNTING_TOPICS: Record<string, string[]> = {
+  'Первичные документы': [
+    'Виды первичных документов',
+    'Реквизиты и заполнение',
+    'Счёт-фактура и накладная',
+    'Акты и кассовые документы',
+  ],
+  'План счетов и проводки': [
+    'Структура плана счетов',
+    'Двойная запись',
+    'Типовые проводки',
+    'Корреспонденция счетов',
+    'Оборотно-сальдовая ведомость',
+  ],
+  'Расчёт зарплаты': [
+    'Оклад и табель',
+    'Больничные и отпускные',
+    'Пособия и декрет',
+    'Удержания из зарплаты',
+  ],
+  'Налоги и взносы': [
+    'НДФЛ',
+    'Страховые взносы',
+    'НДС',
+    'Налог на прибыль',
+    'УСН и патент',
+  ],
+  'Закрытие месяца и года': [
+    'Закрытие 20, 25, 26 счетов',
+    'Реформация баланса',
+    'Финансовый результат',
+    'Инвентаризация',
+  ],
+  'Работа в 1С и Excel': [
+    'Навигация в 1С',
+    'Формулы и функции Excel',
+    'Сводные таблицы',
+    'Автоматизация отчётов',
+  ],
+}
+
+export const ACCOUNTING_LINES: Record<number, string> = {
+  1:  'Первичные документы',
+  2:  'План счетов',
+  3:  'Двойная запись и проводки',
+  4:  'Оборотно-сальдовая ведомость',
+  5:  'Расчёт оклада и табеля',
+  6:  'Больничные и отпускные',
+  7:  'Пособия и декрет',
+  8:  'Удержания из зарплаты',
+  9:  'НДФЛ',
+  10: 'Страховые взносы',
+  11: 'НДС',
+  12: 'Налог на прибыль',
+  13: 'УСН и патент',
+  14: 'Закрытие месяца',
+  15: 'Реформация баланса',
+  16: 'Навигация в 1С',
+  17: 'Формулы Excel',
+  18: 'Сводные таблицы и отчёты',
+}
+
+export const ACCOUNTING_SECTION_LINE_MAP: Record<string, { lines: number[]; part2Lines: number[] }> = {
+  'Первичные документы':       { lines: [1],              part2Lines: [] },
+  'План счетов и проводки':    { lines: [2, 3, 4],        part2Lines: [] },
+  'Расчёт зарплаты':           { lines: [5, 6, 7, 8],     part2Lines: [] },
+  'Налоги и взносы':           { lines: [9, 10, 11, 12, 13], part2Lines: [] },
+  'Закрытие месяца и года':    { lines: [14, 15],          part2Lines: [] },
+  'Работа в 1С и Excel':       { lines: [16, 17, 18],      part2Lines: [] },
+}
+
 // Config map: subject id → its static ЕГЭ taxonomy. Adding a bank subject means
 // adding an entry here (and marking hasBank in the registry) — no type changes.
 const STATIC_CURRICULUM: Record<string, SubjectCurriculum> = {
-  biology:   { sections: BIOLOGY_SECTIONS,   topics: BIOLOGY_TOPICS,   lineNames: BIOLOGY_LINES,   sectionLineMap: BIOLOGY_SECTION_LINE_MAP },
-  chemistry: { sections: CHEMISTRY_SECTIONS, topics: CHEMISTRY_TOPICS, lineNames: CHEMISTRY_LINES, sectionLineMap: CHEMISTRY_SECTION_LINE_MAP },
+  biology:    { sections: BIOLOGY_SECTIONS,    topics: BIOLOGY_TOPICS,    lineNames: BIOLOGY_LINES,    sectionLineMap: BIOLOGY_SECTION_LINE_MAP },
+  chemistry:  { sections: CHEMISTRY_SECTIONS,  topics: CHEMISTRY_TOPICS,  lineNames: CHEMISTRY_LINES,  sectionLineMap: CHEMISTRY_SECTION_LINE_MAP },
+  accounting: { sections: ACCOUNTING_SECTIONS, topics: ACCOUNTING_TOPICS, lineNames: ACCOUNTING_LINES, sectionLineMap: ACCOUNTING_SECTION_LINE_MAP },
 }
 
 /** Subject ids that ship a static curriculum. Derived from the config, not hardcoded. */

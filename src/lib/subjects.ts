@@ -247,6 +247,7 @@ const CHEMISTRY_DARK: SubjectPalette = { text: '#C08AFF', soft: '#201336', accen
 export const SUBJECTS: SubjectDef[] = [
   { id: 'chemistry', name: 'Химия', icon: '🧪', hasBank: true, ranks: ['Старт', 'Атомы', 'Молекулы', 'Реакции', 'Растворы', 'Эксперт', 'Мастер'], trainer: BANK_MODES, light: CHEMISTRY_LIGHT, dark: CHEMISTRY_DARK },
   { id: 'biology', name: 'Биология', icon: '🧬', hasBank: true, ranks: ['Старт', 'Клетка', 'Ткани', 'Организм', 'Экосистема', 'Эксперт', 'Мастер'], trainer: BANK_MODES, light: BIOLOGY_LIGHT, dark: BIOLOGY_DARK },
+  { id: 'accounting', name: 'Бухгалтерия', icon: '📊', hasBank: true, ranks: ['Старт', 'Документы', 'Проводки', 'Расчёты', 'Отчётность', 'Эксперт', 'Мастер'], trainer: BANK_MODES, ...palettePair('#D47B2E', '#E8A35C', '#A85E1C', '#F0BE86') },
   { id: 'physics', name: 'Физика', icon: '⚡', hasBank: false, ranks: ['Старт', 'Механика', 'Энергия', 'Поля', 'Кванты', 'Эксперт', 'Мастер'], trainer: CARDS_ONLY, ...palettePair('#0E9B9B', '#37C2C2', '#0B7A7A', '#5FD6D6') },
   { id: 'math', name: 'Математика', icon: '📐', hasBank: false, ranks: ['Старт', 'Числа', 'Уравнения', 'Функции', 'Пределы', 'Эксперт', 'Мастер'], trainer: CARDS_ONLY, ...palettePair('#2B7FFF', '#5C9CFF', '#1E5FD6', '#8FBCFF') },
   { id: 'russian', name: 'Русский', icon: '📝', hasBank: false, isLanguage: true, native: true, langCode: 'ru', ranks: NATIVE_RANKS, trainer: LANG_MODES, ...palettePair('#E0567F', '#EC7EA0', '#B23A60', '#F0A0BB') },
