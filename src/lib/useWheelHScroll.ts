@@ -14,10 +14,30 @@ export function useWheelHScroll(ref: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    // Один жест (включая инерцию трекпада) целиком принадлежит ряду, если он
+    // начал листать ряд: иначе у края хвост жеста уезжал в страницу, и вместе
+    // с вкладками прокручивалась лента (Дани, 27.11.2026, админка). Новый жест
+    // у края — снова странице. Пауза между событиями одного жеста < 120 мс.
+    let ownedUntil = 0
+    const own = (e: WheelEvent) => { ownedUntil = e.timeStamp + 120; e.preventDefault() }
     const onWheel = (e: WheelEvent) => {
       // Programmatically centered strips must not move with wheel gestures.
       if (!/^(auto|scroll)$/.test(getComputedStyle(el).overflowX)) return
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
+      const maxX = el.scrollWidth - el.clientWidth
+      if (e.timeStamp < ownedUntil && maxX > 1) {
+        const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+        own(e)
+        el.scrollLeft = Math.max(0, Math.min(maxX, el.scrollLeft + dx))
+        return
+      }
+      // Свайп трекпада вбок: листаем ряд сами. Браузеру его не отдаём — у
+      // диагонального свайпа вертикальная доля прокручивала страницу.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        if (maxX <= 1) return
+        own(e)
+        el.scrollLeft = Math.max(0, Math.min(maxX, el.scrollLeft + e.deltaX))
+        return
+      }
       // A lesson list inside a day owns vertical wheel gestures, including at
       // its ends (overscroll-behavior: contain). Do not turn them into date changes.
       let target = e.target instanceof Element ? e.target : null
@@ -32,7 +52,7 @@ export function useWheelHScroll(ref: RefObject<HTMLElement | null>) {
       const step = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? el.clientWidth : 1)
       const next = Math.max(0, Math.min(max, el.scrollLeft + step))
       if (next === el.scrollLeft) return
-      e.preventDefault()
+      own(e)
       el.scrollLeft = next
     }
     el.addEventListener('wheel', onWheel, { passive: false })
