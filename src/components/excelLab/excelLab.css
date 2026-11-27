@@ -173,7 +173,9 @@ html[data-platform="android"] .xl-modes button { min-height: 48px; }
 /* ── Способы решения и версия Excel ─────────────────────────────────────── */
 .xl-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: var(--color-bg-2); }
 .xl-tabs button {
-  flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  /* Равные доли, а не по содержимому: смена подписи («нужно разрешение» →
+     «доступно») при выборе версии или макросов не двигает соседние вкладки. */
+  flex: 1 1 0; min-width: 112px; display: flex; flex-direction: column; align-items: center; gap: 2px;
   border: 0; background: transparent; border-radius: 12px; padding: 8px 12px; min-height: 48px; cursor: pointer; color: var(--color-text);
 }
 .xl-tabs button[aria-selected="true"] { background: var(--color-bg-card, var(--color-surface)); box-shadow: 0 2px 8px rgba(0,0,0,.08); }

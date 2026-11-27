@@ -5,6 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import MobileSheet from '../MobileSheet'
+import HScrollFade from '../HScrollFade'
 import { PLATFORM } from '../../lib/platform'
 import { EXCEL_CHOICES, METHOD_TITLES, STATUS_TEXT, loadExcelPrefs, methodStatus, pickMethod, saveExcelPrefs, useExcelPrefs, versionLabel, type ExcelChoice } from '../../lib/excelLab/excelVersion'
 import type { MethodsSpec } from '../../lib/excelLab/spec'
@@ -97,7 +98,8 @@ export default function ExcelMethods({ spec }: { spec: MethodsSpec }) {
       {picker && !PHONE && <div className="xl-card">{pickerBody}</div>}
       {PHONE && <MobileSheet open={picker} onClose={() => setPicker(false)} title="Версия Excel" softEdge>{pickerBody}</MobileSheet>}
 
-      <div className="xl-tabs no-scrollbar" role="tablist" aria-label="Способы решения" style={{ overflowX: 'auto' }}>
+      <HScrollFade padTop={0} padBottom={0} fadeWidth={28}>
+      <div className="xl-tabs" role="tablist" aria-label="Способы решения" style={{ minWidth: '100%' }}>
         {spec.methods.map(m => {
           const s = methodStatus(m, prefs)
           return (
@@ -108,6 +110,7 @@ export default function ExcelMethods({ spec }: { spec: MethodsSpec }) {
           )
         })}
       </div>
+      </HScrollFade>
 
       {cur && (
         <div className="xl-card" role="tabpanel">

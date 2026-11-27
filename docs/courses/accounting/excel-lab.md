@@ -75,7 +75,7 @@ methodsFig({
 - `src/lib/excelLab/spec.ts` — типы данных и проверка «исправь формулу» (`checkFix`, `trainerCorrect`).
 - `src/lib/excelLab/embed.ts` — `withLab`/`readLab`: данные блока внутри SVG-картинки конспекта.
 - `src/lib/excelLab/figures.ts` — `trainerFig`, `methodsFig` для конспекта.
-- `src/lib/excelLab/excelVersion.ts` — версия Excel ученика (`students.preferences.excel` через `save_student_excel`, миграция 20261127150000; до её применения — только в браузере) и выбор «ваш вариант».
+- `src/lib/excelLab/excelVersion.ts` — версия Excel ученика (`students.preferences.excel` через `save_student_excel`, миграция 20261127131724) и выбор «ваш вариант».
 - Тип задания `excelTrainer` — `taskTypes.ts`, хелпер `qxl` — `lessonAuthoring.ts`, редактор учителя — `teacher/ExcelTrainerEditor.tsx` (JSON с проверкой и предпросмотром).
 
 ## Ограничения
