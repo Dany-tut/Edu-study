@@ -103,7 +103,7 @@
     "fflate": "^0.8.2",
     "framer-motion": "^11.0.0",
     "lottie-react": "^2.4.1",
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^1.69.0",
     "postcss": "^8.5.15",
     "posthog-js": "^1.444.3",
     "qrcode.react": "4.2.0",
