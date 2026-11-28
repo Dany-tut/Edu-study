@@ -1,5 +1,6 @@
 import { Fragment, useState, type ReactNode } from 'react'
-import { Check, Copy } from './icons/appIcons'
+import { CopyCheckIcon } from './icons/CopyCheckIcon'
+import { haptic } from '../lib/feedback'
 import { t } from '../lib/i18n'
 import { BREAK_SPACE, keepsTogether, tidyProse } from '../lib/typography'
 import { BOLD_WEIGHT, parseBold } from '../lib/markup'
@@ -55,8 +56,11 @@ export function useCopy(text: string) {
   const [copied, setCopied] = useState(false)
   const copy = () => {
     void navigator.clipboard?.writeText(text).then(() => {
+      // Ответ даёт только иконка (копировать → галочка), без надписи
+      // «Скопировано»; на телефоне — короткий тактильный щелчок.
+      haptic(10)
       setCopied(true)
-      window.setTimeout(() => setCopied(false), 1600)
+      window.setTimeout(() => setCopied(false), 1500)
     }).catch(() => { /* нет доступа к буферу — текст видно, его можно выделить */ })
   }
   return { copied, copy }
@@ -72,6 +76,27 @@ const CHIP = {
 } as const
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
 
+/**
+ * Формула с местами переноса только после «;», «,» и «(»: имя функции
+ * (ДЛСТР) и ссылка на ячейку (A2) не рвутся посередине. <wbr> не попадает
+ * в буфер при ручном выделении — скопированная формула остаётся рабочей.
+ * Слово длиннее строки всё же переносится (overflow-wrap), а не вылезает.
+ */
+export function formulaNodes(code: string): ReactNode[] {
+  // Разделитель внутри кавычек («","») — часть строки, после него не рвём.
+  // Посимвольно, без lookbehind в регулярке (его нет в Safari до 16.4).
+  const parts: string[] = []
+  let cur = '', quoted = false
+  for (const ch of code) {
+    cur += ch
+    if (ch === '"') quoted = !quoted
+    else if (!quoted && (ch === ';' || ch === ',' || ch === '(')) { parts.push(cur); cur = '' }
+  }
+  if (cur) parts.push(cur)
+  return parts.map((part, i) => <Fragment key={i}>{i > 0 && <wbr />}{part}</Fragment>)
+}
+const FORMULA_WRAP = { wordBreak: 'normal', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' } as const
+
 function CodeBlock({ code, block }: { code: string; block: boolean }) {
   const { copied, copy } = useCopy(code)
   if (!block) {
@@ -83,22 +108,23 @@ function CodeBlock({ code, block }: { code: string; block: boolean }) {
         tabIndex={0}
         onClick={copy}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copy() } }}
-        title={copied ? t('Скопировано') : t('Копировать')}
+        aria-label={(copied ? t('Скопировано') : t('Копировать')) + ': ' + code}
+        title={t('Копировать')}
         style={{
           ...CHIP, fontFamily: MONO, fontSize: '0.9em', fontWeight: 500, borderRadius: '0.45em',
-          padding: '0.08em 0.4em', cursor: 'copy', wordBreak: 'break-all', whiteSpace: 'pre-wrap',
+          padding: '0.08em 0.4em', cursor: 'copy', ...FORMULA_WRAP,
           boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone',
         }}
       >
-        {code.slice(0, -1)}
+        {formulaNodes(code.slice(0, -1))}
         {/* Иконка видна всегда — у формулы в тексте то же обещание, что у блока
             (одно поведение копирования, Figma стр. 31). Склеена с последним
             знаком: на переносе не уезжает одна на новую строку пустым чипом. */}
         <span style={{ whiteSpace: 'nowrap' }}>
           {code.slice(-1)}
-          {copied
-            ? <Check size="0.85em" style={{ display: 'inline-block', marginLeft: '0.3em', verticalAlign: '-0.08em', color: 'var(--color-green-text)' }} />
-            : <Copy size="0.85em" style={{ display: 'inline-block', marginLeft: '0.3em', verticalAlign: '-0.08em', opacity: 0.7 }} />}
+          <span className="cc-btn" style={{ display: 'inline-block', marginLeft: '0.3em', verticalAlign: '-0.08em', lineHeight: 0, color: copied ? 'var(--color-green-text)' : undefined, opacity: copied ? 1 : 0.7 }}>
+            <CopyCheckIcon done={copied} size="0.85em" />
+          </span>
         </span>
       </code>
     )
@@ -132,7 +158,7 @@ function FormulaRow({ tag, code, first }: { tag?: string; code: string; first: b
       onClick={copy}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copy() } }}
       aria-label={(copied ? t('Скопировано') : t('Копировать')) + ': ' + code}
-      title={copied ? t('Скопировано') : t('Копировать')}
+      title={t('Копировать')}
       style={{
         display: 'flex', alignItems: 'flex-start', gap: '0.6em', cursor: 'copy',
         padding: '0.45em 0.45em 0.45em 0.75em', borderRadius: 0,
@@ -148,19 +174,16 @@ function FormulaRow({ tag, code, first }: { tag?: string; code: string; first: b
       )}
       <code style={{
         flex: 1, minWidth: 0, paddingTop: '0.22em', fontFamily: MONO, fontWeight: 500, lineHeight: 1.55,
-        fontSize: first ? '0.875em' : '0.8125em', wordBreak: 'break-all', whiteSpace: 'pre-wrap',
+        fontSize: first ? '0.875em' : '0.8125em', ...FORMULA_WRAP,
         color: first ? 'var(--color-purple-text)' : 'var(--color-text-2)',
-      }}>{code}</code>
-      {copied && (
-        <span style={{ flexShrink: 0, alignSelf: 'center', fontSize: '0.75em', fontWeight: 600, color: 'var(--color-green-text)' }}>{t('Скопировано')}</span>
-      )}
-      <span aria-hidden style={{
+      }}>{formulaNodes(code)}</code>
+      <span aria-hidden className="cc-btn" style={{
         flexShrink: 0, width: `${btn}em`, height: `${btn}em`, borderRadius: '0.5em',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         border: '1px solid rgba(var(--accent-rgb), 0.28)', background: 'var(--color-bg-card)',
         color: copied ? 'var(--color-green-text)' : 'var(--color-purple-text)',
       }}>
-        {copied ? <Check size="1em" /> : <Copy size="1em" />}
+        <CopyCheckIcon done={copied} />
       </span>
     </span>
   )
@@ -185,16 +208,17 @@ function CopyBox({ text, prompt, copied, copy }: { text: string; prompt: boolean
         padding: `${padY}em calc(${btn + 0.6}em) ${padY}em 0.65em`,
         ...(prompt
           ? { fontFamily: 'inherit', fontSize: '1em', overflowWrap: 'break-word' as const, whiteSpace: 'pre-wrap' as const }
-          : { fontFamily: MONO, fontWeight: 500, wordBreak: 'break-all' as const, whiteSpace: 'pre-wrap' as const }),
+          : { fontFamily: MONO, fontWeight: 500, ...FORMULA_WRAP }),
       }}>
-        {prompt ? text : <code style={{ fontFamily: 'inherit', fontSize: `${fs}em` }}>{text}</code>}
+        {prompt ? text : <code style={{ fontFamily: 'inherit', fontSize: `${fs}em` }}>{formulaNodes(text)}</code>}
       </span>
       <button
         type="button"
         data-hover="layer"
         onClick={copy}
         aria-label={copied ? t('Скопировано') : t('Копировать')}
-        title={copied ? t('Скопировано') : t('Копировать')}
+        title={t('Копировать')}
+        className="cc-btn"
         style={{
           position: 'absolute', top: btnTop, right: '0.35em',
           width: `${btn}em`, height: `${btn}em`, borderRadius: '0.5em', cursor: 'pointer',
@@ -204,7 +228,7 @@ function CopyBox({ text, prompt, copied, copy }: { text: string; prompt: boolean
           color: copied ? 'var(--color-green-text)' : 'var(--color-purple-text)',
         }}
       >
-        {copied ? <Check size="1em" /> : <Copy size="1em" />}
+        <CopyCheckIcon done={copied} />
       </button>
     </span>
   )

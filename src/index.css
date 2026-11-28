@@ -1456,3 +1456,20 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   .konspekt-col .k-h2 { scroll-margin-top: 128px; }
 }
 
+/* ── Иконка копирования → галочка (components/icons/CopyCheckIcon) ──
+   Листы уходят, галочка дорисовывается обводкой с пружинным «поп» и через
+   1,5 с плавно возвращается обратно. Цвет (зелёный) задаёт кнопка. */
+.cc { overflow: visible; flex-shrink: 0; }
+.cc-copy, .cc-check { transform-origin: 16px 16px; transform-box: view-box; }
+.cc-copy { transition: opacity .18s ease .12s, transform .32s cubic-bezier(.34, 1.56, .64, 1) .1s; }
+.cc.is-done .cc-copy { opacity: 0; transform: scale(.55) rotate(-10deg); transition: opacity .12s ease, transform .16s ease-in; }
+.cc-check { opacity: 0; transition: opacity .2s ease; }
+.cc-check path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .2s ease; }
+.cc.is-done .cc-check { opacity: 1; transition: opacity .08s ease .06s; animation: cc-pop .46s cubic-bezier(.34, 1.56, .64, 1) .06s both; }
+.cc.is-done .cc-check path { stroke-dashoffset: 0; transition: stroke-dashoffset .3s cubic-bezier(.65, 0, .35, 1) .08s; }
+.cc.is-done .cc-check path + path { transition-delay: .3s; transition-duration: .14s; }
+@keyframes cc-pop { 0% { transform: scale(.7); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.cc-btn { transition: color .2s ease, border-color .2s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .cc-copy, .cc-check, .cc-check path, .cc.is-done .cc-copy, .cc.is-done .cc-check, .cc.is-done .cc-check path { transition: none !important; animation: none !important; }
+}

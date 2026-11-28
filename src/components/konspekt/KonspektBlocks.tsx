@@ -14,8 +14,9 @@ import { useState, type CSSProperties, type ReactNode } from 'react'
 import type { KBlock, CalloutTone } from '../../lib/konspekt'
 import { headingId } from '../../lib/konspekt'
 import { FormulaCard, useCopy } from '../Prose'
+import { CopyCheckIcon } from '../icons/CopyCheckIcon'
 import OpticalText from '../OpticalText'
-import { AlertCircle, AlertTriangle, Check, CheckCircle2, ChevronDown, Copy, Lightbulb, Quote, Sparkles, XCircle } from '../icons/appIcons'
+import { AlertCircle, AlertTriangle, CheckCircle2, ChevronDown, Lightbulb, Quote, Sparkles, XCircle } from '../icons/appIcons'
 import { useT } from '../../lib/i18n'
 
 /** Нарисовать текст абзаца (строками, с разбором слов, формулами). */
@@ -173,11 +174,12 @@ function PromptCard({ text, note, rt, k }: { text: string; note: string; rt: Ren
           style={{
             gap: '0.375em', height: '2em', padding: '0 0.75em', borderRadius: 999, fontFamily: 'inherit', fontSize: '0.8125em', fontWeight: 600,
             border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)',
-            color: copied ? 'var(--color-green-text)' : 'var(--color-text)',
+            color: 'var(--color-text)',
           }}
+          aria-label={copied ? t('Скопировано') : t('Копировать')}
         >
-          {copied ? <Check size="1.15em" /> : <Copy size="1.15em" style={{ color: 'var(--color-accent)' }} />}
-          <OpticalText as="iskra-button-label">{copied ? t('Скопировано') : t('Копировать')}</OpticalText>
+          <span className="cc-btn" style={{ display: 'flex', color: copied ? 'var(--color-green-text)' : 'var(--color-accent)' }}><CopyCheckIcon done={copied} size="1.15em" /></span>
+          <OpticalText as="iskra-button-label">{t('Копировать')}</OpticalText>
         </button>
       </div>
       <div style={{ padding: '0.625em 0.75em', borderRadius: '0.625em', background: 'var(--color-bg-3)', fontSize: '0.9375em', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{text}</div>
