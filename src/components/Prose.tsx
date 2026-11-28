@@ -51,7 +51,7 @@ const isCode = (s: string) => s.length > 2 && s.startsWith('`') && s.endsWith('`
 // и перенос по словам. Формула начинается с «=» или короче шести слов.
 const isPromptText = (code: string) => !code.trimStart().startsWith('=') && code.trim().split(/\s+/).length >= 6
 
-function useCopy(text: string) {
+export function useCopy(text: string) {
   const [copied, setCopied] = useState(false)
   const copy = () => {
     void navigator.clipboard?.writeText(text).then(() => {
@@ -91,11 +91,75 @@ function CodeBlock({ code, block }: { code: string; block: boolean }) {
         }}
       >
         {code}
-        {copied && <Check size="0.95em" style={{ marginLeft: '0.3em', verticalAlign: '-0.12em', color: 'var(--color-green-text)' }} />}
+        {/* Иконка видна всегда — у формулы в тексте то же обещание, что у блока
+            (одно поведение копирования, Figma стр. 31). */}
+        {copied
+          ? <Check size="0.85em" style={{ marginLeft: '0.3em', verticalAlign: '-0.08em', color: 'var(--color-green-text)' }} />
+          : <Copy size="0.85em" style={{ marginLeft: '0.3em', verticalAlign: '-0.08em', opacity: 0.7 }} />}
       </code>
     )
   }
-  return <CopyBox text={code} prompt={isPromptText(code)} copied={copied} copy={copy} />
+  if (!isPromptText(code)) return <FormulaCard rows={[{ code }]} />
+  return <CopyBox text={code} prompt copied={copied} copy={copy} />
+}
+
+/**
+ * Формула-блок: одна или две строки (язык курса + английский Excel). У каждой
+ * строки своя иконка «Копировать», и вся строка тоже копирует по клику —
+ * одно поведение для русской и английской версии. Размеры в em: растёт с
+ * «Крупным текстом».
+ */
+export function FormulaCard({ rows }: { rows: { tag?: string; code: string }[] }) {
+  return (
+    <span className="k-formula" style={{ ...CHIP, display: 'block', borderRadius: '0.75em', overflow: 'hidden', margin: '0.2em 0' }}>
+      {rows.map((r, i) => <FormulaRow key={i} tag={r.tag} code={r.code} first={i === 0} />)}
+    </span>
+  )
+}
+
+function FormulaRow({ tag, code, first }: { tag?: string; code: string; first: boolean }) {
+  const { copied, copy } = useCopy(code)
+  const btn = 1.875
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      data-hover="layer"
+      onClick={copy}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copy() } }}
+      aria-label={(copied ? t('Скопировано') : t('Копировать')) + ': ' + code}
+      title={copied ? t('Скопировано') : t('Копировать')}
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: '0.6em', cursor: 'copy',
+        padding: '0.45em 0.45em 0.45em 0.75em', borderRadius: 0,
+        borderTop: first ? 0 : '1px solid rgba(var(--accent-rgb), 0.2)',
+      }}
+    >
+      {tag && (
+        <span style={{
+          flexShrink: 0, marginTop: '0.42em', padding: '0.12em 0.4em', borderRadius: '0.4em',
+          background: 'var(--color-bg-card)', fontSize: '0.6875em', fontWeight: 700, lineHeight: 1.25,
+          color: first ? 'var(--color-purple-text)' : 'var(--color-text-3)',
+        }}>{tag}</span>
+      )}
+      <code style={{
+        flex: 1, minWidth: 0, paddingTop: '0.22em', fontFamily: MONO, fontWeight: 500, lineHeight: 1.55,
+        fontSize: first ? '0.875em' : '0.8125em', wordBreak: 'break-all', whiteSpace: 'pre-wrap',
+        color: first ? 'var(--color-purple-text)' : 'var(--color-text-2)',
+      }}>{code}</code>
+      {copied && (
+        <span style={{ flexShrink: 0, alignSelf: 'center', fontSize: '0.75em', fontWeight: 600, color: 'var(--color-green-text)' }}>{t('Скопировано')}</span>
+      )}
+      <span aria-hidden style={{
+        flexShrink: 0, width: `${btn}em`, height: `${btn}em`, borderRadius: '0.5em',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        border: '1px solid rgba(var(--accent-rgb), 0.28)', background: 'var(--color-bg-card)',
+        color: copied ? 'var(--color-green-text)' : 'var(--color-purple-text)',
+      }}>
+        {copied ? <Check size="1em" /> : <Copy size="1em" />}
+      </span>
+    </span>
+  )
 }
 
 /**

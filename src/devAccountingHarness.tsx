@@ -12,6 +12,9 @@
 // Первым — хранилище кабинета: HomeworkFlow тянет studentDataStore, а тот на
 // верхнем уровне обращается к useDashboard; без этого порядка цикл импорта
 // падает «Cannot access 'useDashboard' before initialization» (dev-flow тоже).
+import KonspektPara from './components/konspekt/KonspektBlocks'
+import KonspektToc from './components/konspekt/KonspektToc'
+import { parseKonspekt, konspektToc } from './lib/konspekt'
 import './lib/platform'
 import { accLessonFiles } from './data/accounting/accFiles'
 import './store/studentDataStore'
@@ -71,6 +74,13 @@ function Stand() {
   const standScale = Number(new URLSearchParams(location.search).get('scale') ?? 1) || 1
   const { lesson, module } = cur
   const service = splitServiceParas(lesson.content.paragraphs)
+  const toc = konspektToc(service.notes)
+  // Тот же вид текста, что в уроке (LessonPage renderNoteText), без разбора слов.
+  const standText = (text: string, key: string, style?: React.CSSProperties) => (
+    <div key={key} style={{ fontSize: '1em', lineHeight: 1.6, fontWeight: 500, color: 'var(--color-text)', ...style }}>
+      {proseLines(text).map(line => <p key={line.key} style={{ fontSize: 'inherit', lineHeight: 'inherit', fontWeight: 'inherit', color: 'inherit', margin: 0, ...proseWrap, ...line.style }}><Prose text={line.text} /></p>)}
+    </div>
+  )
   // Тот же список, что ученик видит в «Материалах» урока (accFiles.ts).
   const files = (accLessonFiles([lesson.practice, ...lesson.content.paragraphs.map(p => p.text), lesson.content.hardTask.prompt]).materials ?? []).map(f => f.name)
   const homework: LessonHomework = {
@@ -88,7 +98,7 @@ function Stand() {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 20, padding: 16, maxWidth: 1400, margin: '0 auto', color: 'var(--color-text)', background: 'var(--color-bg)', minHeight: '100vh', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: 20, padding: 16, maxWidth: 1600, margin: '0 auto', color: 'var(--color-text)', background: 'var(--color-bg)', minHeight: '100vh', flexWrap: 'wrap' }}>
       <aside style={wide
         ? { flex: '1 1 300px', maxWidth: 380, position: 'sticky', top: 0, alignSelf: 'flex-start', maxHeight: '100vh', overflowY: 'auto', paddingBottom: 24 }
         : { flex: '1 1 100%', paddingBottom: 8 }}>
@@ -132,22 +142,25 @@ function Stand() {
           {lesson.applies && <div>📅 Применимость: {lesson.applies}</div>}
           {files.length > 0 && <div>⬇ Файлы: {files.map(f => <a key={f} href={`/courses/accounting/${f}`} download style={{ marginRight: 10 }}>{f}</a>)}</div>}
         </div>
-        <article style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
+        <article style={{ padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
+          <div className={`konspekt-layout${toc.length >= 3 ? ' has-toc' : ''}`}>
+          <div className="konspekt-col" style={{ fontSize: 16 * standScale }}>
           <NotesWithReveals paragraphs={service.notes} unlocked={standSubmitted} scale={standScale} renderPara={par => par.image && isLabRef(par.image) ? (
             <Suspense key={par.id} fallback={null}><ExcelLabFigure src={par.image} caption={par.text} /></Suspense>
           ) : par.image ? (
-            <figure key={par.id} style={{ margin: 0 }}>
+            <figure key={par.id} className="k-wide" style={{ margin: 0, maxWidth: 680, marginInline: 'auto' }}>
               <button type="button" onClick={() => setZoom({ src: par.image!, caption: par.text })} title="Открыть крупно" style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'none', cursor: 'zoom-in' }}>
                 <img src={par.image} alt={par.text} style={{ display: 'block', width: '100%', borderRadius: 12, border: '1px solid var(--color-border)', background: '#fff' }} />
               </button>
               <figcaption style={{ marginTop: 6, fontSize: 12, color: 'var(--color-muted)', ...proseWrap }}><Prose text={par.text} /></figcaption>
             </figure>
-          ) : (
-            <div key={par.id}>{proseLines(par.text).map(line => (
-              <p key={line.key} style={{ fontSize: 15 * standScale, lineHeight: 1.6, margin: 0, ...proseWrap, ...line.style }}><Prose text={line.text} /></p>
-            ))}</div>
-          )} />
+          ) : parseKonspekt(par.text) ? (
+            <KonspektPara key={par.id} pid={par.id} blocks={parseKonspekt(par.text)!} rt={standText} />
+          ) : standText(par.text, par.id)} />
           {service.askSection !== null && <LessonAskCard section={service.askSection} scale={standScale} />}
+          </div>
+          {toc.length >= 3 && <KonspektToc items={toc} />}
+          </div>
         </article>
         <ImageZoom src={zoom?.src ?? null} caption={zoom?.caption} onClose={() => setZoom(null)} />
         <div style={{ display: 'flex', gap: 8, margin: '14px 0' }}>

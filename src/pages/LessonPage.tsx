@@ -45,6 +45,9 @@ import { EMOJI_STEPS } from '../components/homeworkSteps'
 import { useT, useTc } from '../lib/i18n'
 import { tidyProse, proseWrap, proseLines, balancedWrap } from '../lib/typography'
 import Prose from '../components/Prose'
+import KonspektPara from '../components/konspekt/KonspektBlocks'
+import KonspektToc from '../components/konspekt/KonspektToc'
+import { parseKonspekt, konspektToc } from '../lib/konspekt'
 import ImageZoom from '../components/ImageZoom'
 import Model3DFigure from '../components/Model3DFigure'
 import { isModelRef } from '../lib/models3d/registry'
@@ -226,9 +229,9 @@ function useBigText() {
     try { localStorage.setItem(BIG_TEXT_KEY, v ? '0' : '1') } catch { /* приватный режим — переживём */ }
     return !v
   })
-  // 1.6 (15px → 24px), а не 2: двойной кегль ломает абзац на короткие обрывки
-  // и читать становится хуже, чем было. Крупно, но строка ещё держится.
-  return { big, scale: big ? 1.6 : 1, toggle }
+  // 1.25 (16px → 20px). Было 1.6, но колонка конспекта теперь 40em: она растёт
+  // вместе с кеглем, и ×1.6 давал бы ~38 знаков в строке (решение Дани 28.11.2026).
+  return { big, scale: big ? 1.25 : 1, toggle }
 }
 
 // ── Плитки файлов урока ──────────────────────────────────────────────────────
@@ -965,6 +968,26 @@ export default function LessonPage() {
   // под конспектом (lib/lessonServiceParas, LessonAskCard).
   const { notes, askSection } = splitServiceParas(detail.paragraphs.filter(p => p.origin !== 'recap'))
   const recapParas = detail.paragraphs.filter(p => p.origin === 'recap')
+  const toc = konspektToc(notes)
+  const showToc = isDesktop && toc.length >= 3
+  // Первый абзац без лид-слова — вводный (лид): чуть крупнее и мягче.
+  const leadParaId = notes.length > 2 && !notes[0].image && !notes[0].reactionId && !notes[0].text.startsWith('**') && !parseKonspekt(notes[0].text) ? notes[0].id : null
+  /** Текст абзаца строками: разбор слов (языки) или Prose с формулами. */
+  const renderNoteText = (text: string, key: string, style?: React.CSSProperties, reactionId?: string) => (
+    <div key={key} style={{ fontSize: '1em', lineHeight: 1.6, color: 'var(--color-text)', fontWeight: 500, ...style }}>
+      {/* Keep fontWeight constant — toggling weight on highlight in/out
+          reflows the text. Строка списка — свой блок: отступ примера держит
+          поле, а не ведущие пробелы (см. proseLines в lib/typography.ts). */}
+      {proseLines(text).map(line => glossLang && !reactionId ? (
+        <GlossedText key={line.key} text={tidyProse(line.text)} lang={glossLang} accent={glossAccent} subject={subjectDef?.id}
+          style={{ fontSize: 'inherit', lineHeight: 'inherit', color: 'inherit', fontWeight: 'inherit', ...line.style }} />
+      ) : (
+        <p key={line.key} style={{ fontSize: 'inherit', lineHeight: 'inherit', color: 'inherit', fontWeight: 'inherit', ...proseWrap, ...line.style }}>
+          {renderHighlightedParagraph(line.text, reactionId, pendingHighlight, courseReactions)}
+        </p>
+      ))}
+    </div>
+  )
   // Итоговый проект сдают хардом; урок без харда — сдачей базовой домашки.
   const workSubmitted = !!workAssessment?.hardStatus || (detail.homework?.hasHardLevel === false && !!workAssessment)
   const canSeek = !!detail.videoSource && ['file', 'youtube', 'rutube'].includes(detail.videoSource.kind)
@@ -1275,53 +1298,27 @@ export default function LessonPage() {
           </div>
           {/* Эталон «Проверка себя» свёрнут до нажатия, «Разбор после сдачи» —
               закрыт до сдачи работы (components/AnswerReveal, lib/answerReveal). */}
-          <NotesWithReveals paragraphs={notes} unlocked={workSubmitted} scale={scale} renderPara={p => p.image ? (
-            <TheoryFigure key={p.id} src={p.image} caption={p.text} scale={scale} />
-          ) : (
-            <div
-              key={p.id}
-              ref={el => { if (p.reactionId) paragraphRefs.current[p.reactionId] = el }}
-            >
-              {/* Keep fontWeight constant — toggling weight on highlight in/out
-                  reflows the text and visibly jerks the line. The equation gets
-                  its own background highlight via renderHighlightedParagraph,
-                  which is the actual emphasis cue. */}
-              {/* Строка списка — свой блок: отступ примера держит поле, а не
-                  ведущие пробелы, иначе перенос возвращает хвост к левому краю
-                  (см. proseLines в lib/typography.ts). */}
-              {proseLines(p.text).map(line => glossLang && !p.reactionId ? (
-                <GlossedText
-                  key={line.key}
-                  text={tidyProse(line.text)}
-                  lang={glossLang}
-                  accent={glossAccent}
-                  subject={subjectDef?.id}
-                  style={{
-                    fontSize: 15 * scale,
-                    lineHeight: 1.6,
-                    color: 'var(--color-text)',
-                    fontWeight: 500,
-                    ...line.style,
-                  }}
-                />
-              ) : (
-                <p
-                  key={line.key}
-                  style={{
-                    fontSize: 15 * scale,
-                    lineHeight: 1.6,
-                    color: 'var(--color-text)',
-                    fontWeight: 500,
-                    ...proseWrap,
-                    ...line.style,
-                  }}
-                >
-                  {renderHighlightedParagraph(line.text, p.reactionId, pendingHighlight, courseReactions)}
-                </p>
-              ))}
+          {/* Колонка текста 40em (≈70 знаков), широкие блоки шире; справа на
+              ПК ≥1280 — оглавление урока (Figma стр. 31, вариант A). Эталон
+              «Проверка себя» свёрнут до нажатия, «Разбор после сдачи» закрыт
+              до сдачи (components/AnswerReveal). */}
+          <div className={`konspekt-layout${showToc ? ' has-toc' : ''}`}>
+            <div className="konspekt-col" style={{ fontSize: 16 * scale }}>
+              <NotesWithReveals paragraphs={notes} unlocked={workSubmitted} scale={scale} renderPara={p => {
+                if (p.image) return <div key={p.id} className="k-wide"><TheoryFigure src={p.image} caption={p.text} scale={scale} /></div>
+                const blocks = p.reactionId ? null : parseKonspekt(p.text)
+                if (blocks) return <KonspektPara key={p.id} pid={p.id} blocks={blocks} rt={renderNoteText} />
+                const lead = p.id === leadParaId
+                return (
+                  <div key={p.id} ref={el => { if (p.reactionId) paragraphRefs.current[p.reactionId] = el }}>
+                    {renderNoteText(p.text, p.id, lead ? { fontSize: '1.125em', lineHeight: 1.55, color: 'var(--color-text-2)' } : undefined, p.reactionId)}
+                  </div>
+                )
+              }} />
+              {askSection !== null && <LessonAskCard section={askSection} scale={scale} />}
             </div>
-          )} />
-          {askSection !== null && <LessonAskCard section={askSection} scale={scale} />}
+            {showToc && <KonspektToc items={toc} />}
+          </div>
         </section>
       )}
 

@@ -1423,3 +1423,23 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   outline: 2px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
   outline-offset: -2px;
 }
+
+/* ── Конспект урока: колонка 40em, широкие блоки, оглавление (Figma стр. 31) ──
+   Текст — не шире 40em (~70 знаков), в em от кегля конспекта, поэтому мера
+   держится и с «Крупным текстом». Схемы/таблицы (.k-wide) — шире текста.
+   Оглавление справа — только на ПК ≥ 1280 (вариант A, решение Дани 28.11). */
+.konspekt-layout { display: grid; grid-template-columns: minmax(0, 1fr); }
+.konspekt-col { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: calc(40em + 180px); margin: 0 auto; min-width: 0; }
+.konspekt-col > * { width: 100%; max-width: 40em; margin-left: auto !important; margin-right: auto !important; }
+.konspekt-col > .k-wide { max-width: none; }
+.konspekt-col > .k-h2 { max-width: 32em; } /* 32 × 1.25em = 40em колонки */
+.konspekt-col .k-h2 + * { margin-top: -4px; }
+.k-meta { display: grid; grid-template-columns: 8em minmax(0, 1fr); column-gap: 1em; }
+.konspekt-toc { display: none; }
+@media (min-width: 1280px) {
+  .konspekt-layout.has-toc { grid-template-columns: minmax(0, 1fr) 200px; column-gap: 32px; align-items: start; }
+  .konspekt-layout.has-toc .konspekt-toc { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 96px; padding-top: 4px; }
+}
+@media (max-width: 1023px) {
+  .k-meta { grid-template-columns: minmax(0, 1fr); }
+}
