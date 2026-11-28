@@ -67,6 +67,8 @@ function Stand() {
   const cur = ACC_LESSONS[idx]
   // Стенд без базы: «сдано» для разбора после сдачи — флажок ?submitted=1.
   const standSubmitted = new URLSearchParams(location.search).get('submitted') === '1'
+  // ?scale=1.2 — как «Крупный текст» в уроке: проверить, что блоки растут вместе с текстом.
+  const standScale = Number(new URLSearchParams(location.search).get('scale') ?? 1) || 1
   const { lesson, module } = cur
   const service = splitServiceParas(lesson.content.paragraphs)
   // Тот же список, что ученик видит в «Материалах» урока (accFiles.ts).
@@ -131,7 +133,7 @@ function Stand() {
           {files.length > 0 && <div>⬇ Файлы: {files.map(f => <a key={f} href={`/courses/accounting/${f}`} download style={{ marginRight: 10 }}>{f}</a>)}</div>}
         </div>
         <article style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
-          <NotesWithReveals paragraphs={service.notes} unlocked={standSubmitted} renderPara={par => par.image && isLabRef(par.image) ? (
+          <NotesWithReveals paragraphs={service.notes} unlocked={standSubmitted} scale={standScale} renderPara={par => par.image && isLabRef(par.image) ? (
             <Suspense key={par.id} fallback={null}><ExcelLabFigure src={par.image} caption={par.text} /></Suspense>
           ) : par.image ? (
             <figure key={par.id} style={{ margin: 0 }}>
@@ -142,10 +144,10 @@ function Stand() {
             </figure>
           ) : (
             <div key={par.id}>{proseLines(par.text).map(line => (
-              <p key={line.key} style={{ fontSize: 15, lineHeight: 1.6, margin: 0, ...proseWrap, ...line.style }}><Prose text={line.text} /></p>
+              <p key={line.key} style={{ fontSize: 15 * standScale, lineHeight: 1.6, margin: 0, ...proseWrap, ...line.style }}><Prose text={line.text} /></p>
             ))}</div>
           )} />
-          {service.askSection !== null && <LessonAskCard section={service.askSection} />}
+          {service.askSection !== null && <LessonAskCard section={service.askSection} scale={standScale} />}
         </article>
         <ImageZoom src={zoom?.src ?? null} caption={zoom?.caption} onClose={() => setZoom(null)} />
         <div style={{ display: 'flex', gap: 8, margin: '14px 0' }}>
