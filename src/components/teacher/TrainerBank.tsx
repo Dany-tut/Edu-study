@@ -38,6 +38,8 @@ import MultiSelectField from '../MultiSelectField'
 import { useScrollLock } from '../../lib/useScrollLock'
 import { useT, t } from '../../lib/i18n'
 import { alertDialog } from '../ConfirmHost'
+import { fipiBankOf, fipiMatch, useFipiTasks, FipiBankSwitch, FipiFilterFields } from './fipiBankFilters'
+import { nfTheme, nfThemeId } from '../../data/fipiThemes'
 
 function bankSaveFailed(e: unknown) {
   console.error('[bank]', e)
@@ -312,7 +314,7 @@ export function BankQuestionCard({
             {dirty && <span style={cardChip(accent)}>{t('изм.')}</span>}
           </div>
           <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
-            {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
+            {cardTitle(task) || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
           </p>
           <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--color-text-5)', maxWidth: 130, overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{task.topic}</span>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -483,6 +485,13 @@ function iconBtn(bg: string, color: string): React.CSSProperties {
 }
 
 // ─── Compact grid tile (4 per row) ──────────────────────────────────────────────
+/** Заголовок карточки: первая строка условия без HTML (у банка ФИПИ условие — разметка). */
+function cardTitle(task: Task): string {
+  const txt = task.question.replace(/<\/(p|div|li|tr|h\d)>|<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&laquo;/g, '«').replace(/&raquo;/g, '»').replace(/&mdash;/g, '—').replace(/&quot;/g, '"').replace(/&amp;/g, '&')
+  return txt.split('\n').map(x => x.replace(/\s+/g, ' ').trim()).find(Boolean) ?? ''
+}
+
 function BankGridCard({
   task, selected, onToggleSelected, onForkSelected, onDelete, showSelect, accent, accentBg, isNew, isEdited, editMode,
 }: {
@@ -552,10 +561,10 @@ function BankGridCard({
       {/* Body: question title + topic */}
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, marginBottom: 4,  ...textFadeLines(2),  overflow: 'hidden' }}>
-          {task.question.split('\n')[0] || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
+          {cardTitle(task) || <span style={{ color: 'var(--color-text-4)' }}>{t('Без текста')}</span>}
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-3)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>
-          {task.topic}
+          {task.fipiId ? (nfTheme(nfThemeId(task))?.theme.name ?? '') : task.topic}
         </div>
       </div>
 
@@ -701,8 +710,21 @@ export function TrainerBankBrowser({
     return () => clearTimeout(t)
   }, [recentlyEditedId, clearRecentlyEdited])
 
+  const fipiTasks = useFipiTasks(filters)
+  const fipiOn = !!fipiBankOf(filters)
+  const fipiReady = useTaskBank(s => { const fb = fipiBankOf(filters); return fb ? !!s.fipiSetsReady[`${fb.subject}:${fb.exam}`] : true })
   const filtered = useMemo(() => {
-    let list = tasks.filter(t => {
+    let list = fipiOn ? fipiTasks.filter(t => {
+      if (!fipiMatch(t, filters)) return false
+      if (filters.search) {
+        const q = filters.search.toLowerCase().replace(/^№/, '')
+        if (!t.question.toLowerCase().includes(q) && !String(t.id).includes(q) && !(t.fipiId ?? '').toLowerCase().includes(q)) return false
+      }
+      return true
+    }) : tasks.filter(t => {
+      // Банк ФИПИ живёт своим режимом: в «Своих» его строк нет, даже если
+      // набор уже загружен тренажёром.
+      if (t.fipiId) return false
       if (filters.subject && t.subject !== filters.subject) return false
       if (filters.subjects && !filters.subjects.includes(t.subject)) return false
       if (filters.sections.length && !filters.sections.includes(t.section)) return false
@@ -736,7 +758,7 @@ export function TrainerBankBrowser({
       if (i > 0) sorted.unshift(sorted.splice(i, 1)[0])
     }
     return sorted
-  }, [tasks, filters, sortMode, editedFlashId])
+  }, [tasks, fipiTasks, fipiOn, filters, sortMode, editedFlashId])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -751,7 +773,7 @@ export function TrainerBankBrowser({
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-4)', fontSize: 13 }}>{t(filters.subjects?.length === 0 ? 'Выберите предмет — можно несколько' : 'Нет заданий по выбранным фильтрам')}</div>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-4)', fontSize: 13 }}>{t(!fipiReady ? 'Загружаю банк ФИПИ…' : filters.subjects?.length === 0 ? 'Выберите предмет — можно несколько' : 'Нет заданий по выбранным фильтрам')}</div>
       )}
 
       {viewMode === 'grid' ? (
@@ -761,9 +783,9 @@ export function TrainerBankBrowser({
               selected={selectedIds.has(t.id)}
               onToggleSelected={() => onToggleSelected(t.id)}
               onForkSelected={newId => onForkSelected(t.id, newId)}
-              onDelete={onDeleteTask ? () => onDeleteTask(t.id) : undefined}
+              onDelete={onDeleteTask && !t.fipiId ? () => onDeleteTask(t.id) : undefined}
               showSelect={showSelect} accent={accent} accentBg={accentBg}
-              isNew={t.id === newlyAddedId} isEdited={t.id === editedFlashId} editMode={editMode} />
+              isNew={t.id === newlyAddedId} isEdited={t.id === editedFlashId} editMode={editMode && !t.fipiId} />
           ))}
         </div>
       ) : (
@@ -772,7 +794,7 @@ export function TrainerBankBrowser({
             selected={selectedIds.has(t.id)}
             onToggleSelected={() => onToggleSelected(t.id)}
             onForkSelected={newId => onForkSelected(t.id, newId)}
-            onDelete={onDeleteTask ? () => onDeleteTask(t.id) : undefined}
+            onDelete={onDeleteTask && !t.fipiId ? () => onDeleteTask(t.id) : undefined}
             showSelect={showSelect} compact={false} accent={accent} accentBg={accentBg}
             isEdited={t.id === editedFlashId} />
         ))
@@ -824,6 +846,8 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
   // Разметка ЕГЭ (раздел → тема → часть → линия) у языка отсутствует: у его
   // заданий эти поля пустые, поэтому вместо них показываем уровень и навык.
   const langTax = languageTaxonomy(filters.subject)
+  const bankSwitch = <FipiBankSwitch filters={filters} onChange={onChange} accent={accent} accentBg={accentBg} />
+  if (fipiBankOf(filters)) return <>{bankSwitch}<FipiFilterFields filters={filters} onChange={onChange} accent={accent} accentBg={accentBg} /><ResetFilters filters={filters} onChange={onChange} /></>
   return langTax ? (
     <>
       <MultiSelectField label={t('Уровень')} values={filters.levels ?? []} options={langTax.levels} onChange={v => onChange({ levels: v })} accent={accent} accentBg={accentBg} />
@@ -833,6 +857,7 @@ export function BankFilterFields({ filters, onChange, accent = 'var(--color-peac
     </>
   ) : (
     <>
+      {bankSwitch}
       <MultiSelectField label={t('Раздел')} values={filters.sections} options={sectionOptions} onChange={v => onChange({ sections: v })} accent={accent} accentBg={accentBg} />
       <MultiSelectField label={t('Тема')} values={filters.topics} options={topicOptions} onChange={v => onChange({ topics: v })} accent={accent} accentBg={accentBg} />
       <div style={{ display: 'flex', gap: 6 }}>

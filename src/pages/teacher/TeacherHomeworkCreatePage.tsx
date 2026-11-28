@@ -16,6 +16,7 @@ import ScrollFade from '../../components/ScrollFade'
 import { useStickyLift } from '../../lib/useStickyLift'
 import { useTeacher } from '../../store/teacherStore'
 import { useTaskBank } from '../../store/taskBankStore'
+import { fipiBankOf, fipiMatch, useFipiTasks, FipiBankSwitch, FipiFilterFields } from '../../components/teacher/fipiBankFilters'
 import { useT, useTc, tc } from '../../lib/i18n'
 import { alertDialog } from '../../components/ConfirmHost'
 import { AlertStack } from '../../components/Alert'
@@ -1025,7 +1026,7 @@ function AutoTextarea({ value, onChange, placeholder, minHeight = 0, style }: {
 
 // ─── Trainer tab (bank picker) ─────────────────────────────────────────────────
 
-type TrainerFilters = { search: string; subject: string; sections: string[]; topics: string[]; parts: string[]; lines: string[]; source: string }
+type TrainerFilters = { search: string; subject: string; sections: string[]; topics: string[]; parts: string[]; lines: string[]; source: string; bank?: '' | 'ege' | 'oge' }
 
 function TrainerTab({
   addedIds, filters, onAdd,
@@ -1036,7 +1037,11 @@ function TrainerTab({
 }) {
   const t = useT()
   const bankTasks = useTaskBank(s => s.tasks)
-  const filtered = bankTasks.filter(t => {
+  // Банк ФИПИ — тот же набор, что у детей в тренажёре (режим в панели фильтров).
+  const fipiTasks = useFipiTasks(filters)
+  const fipiOn = !!fipiBankOf(filters)
+  const filtered = fipiOn ? fipiTasks.filter(x => fipiMatch(x, filters) && (!filters.search || x.question.toLowerCase().includes(filters.search.toLowerCase()) || String(x.id).includes(filters.search))) : bankTasks.filter(t => {
+    if (t.fipiId) return false
     if (filters.subject && t.subject !== filters.subject) return false
     if (filters.sections.length && !filters.sections.includes(t.section)) return false
     if (filters.topics.length && !filters.topics.includes(t.topic)) return false
@@ -1274,11 +1279,15 @@ function TrainerFilterPanel({
       <SubjectPicker
         options={bankSubjectOptionsFor(allowedSubjects).map(o => ({ value: o.value, label: t(o.label), icon: o.value ? subjectIcon(o.value) : undefined }))}
         value={filters.subject}
-        onChange={v => onChange({ subject: v, sections: [], topics: [], lines: [] })}
+        onChange={v => onChange({ subject: v, sections: [], topics: [], lines: [], parts: [] })}
         accent="var(--color-accent)" accentBg="var(--color-purple-soft)" activeColor="var(--color-accent)"
         idleBg="var(--color-bg)" size="sm"
         ariaLabel={t('Предмет')}
       />
+      <FipiBankSwitch filters={filters} onChange={onChange} accent="var(--color-purple-text)" accentBg="var(--color-purple-soft)" />
+      {fipiBankOf(filters) ? (
+        <FipiFilterFields filters={filters} onChange={onChange} accent="var(--color-purple-text)" accentBg="var(--color-purple-soft)" />
+      ) : (<>
 
       {/* Dropdown filters */}
       <MultiSelectField label={t('Раздел')} options={sectionOptions} values={filters.sections}
@@ -1305,6 +1314,7 @@ function TrainerFilterPanel({
         onChange={v => onChange({ lines: v })} small />
       <FilterSelect label={t('Источник')} options={merge(SOURCES, SOURCE_SCOPE)} value={filters.source}
         onChange={v => onChange({ source: v })} />
+      </>)}
 
       {hasFilters && (
         <button data-hover="layer"
@@ -1316,7 +1326,7 @@ function TrainerFilterPanel({
       )}
 
       <div style={{ fontSize: 11, color: 'var(--color-text-4)', textAlign: 'center', marginTop: 4 }}>
-        {bankTasks.length} {t('заданий в базе')}
+        {bankTasks.filter(x => !x.fipiId).length} {t('заданий в базе')}
       </div>
       </div>
     </motion.div>

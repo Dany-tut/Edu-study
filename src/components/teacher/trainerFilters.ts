@@ -14,6 +14,12 @@ export type TrainerFilters = {
    * `subject` (создание ДЗ).
    */
   subjects?: string[]
+  /**
+   * Какой банк смотрим: '' — задания преподавателей, 'ege'/'oge' — банк ФИПИ
+   * этого экзамена (только при одном предмете с банком: химия, биология).
+   * В режиме ФИПИ sections/topics — названия разделов и тем Neo (payload.nf).
+   */
+  bank?: '' | 'ege' | 'oge'
 }
 export const emptyTrainerFilters: TrainerFilters = {
   search: '', subject: '', sections: [], topics: [], parts: [], lines: [], source: '', levels: [], skills: [],

@@ -2339,6 +2339,8 @@ export function CreatorView({
   const [mode, setMode] = useState<Exclude<Tab, 'testing' | 'decks'>>(initialMode)
   const addTask = useTaskBank(s => s.addTask)
   const replaceTask = useTaskBank(s => s.replaceTask)
+  // Строки банка ФИПИ общие: прямо их правит только админ (RLS task_bank_update).
+  const fipiAdmin = useTeacherAccess(s => s.isAdmin)
 
   // ── Task-authoring state (the "trainer" tab now authors a bank task) ──
   // Draft-backed: every user-entered field survives a reload (images excluded —
@@ -2814,6 +2816,31 @@ export function CreatorView({
         return
       }
 
+      if (editingTask?.fipiId) {
+        // Задание банка ФИПИ — одна строка task_bank для всех учеников и
+        // тренажёра. Формат ответа ФИПИ (клетки, «выберите», ключ) редактор не
+        // знает, поэтому правится только текст: условие, решение и ответ
+        // простого поля. Остальное — как в строке банка.
+        const fipiPatch: Partial<NewBankTask> = {
+          question: tkQuestion, solution: tkSolution.trim(),
+          ...(editingTask.answerType === 'fill' && tkShortAnswer.trim() ? { answer: tkShortAnswer.trim() } : {}),
+        }
+        try {
+          if (fipiAdmin) await replaceTask(editingTask.id, fipiPatch)
+          else {
+            // Учитель меняет только свою копию: общий банк правит админ.
+            const { id: _id, ...rest } = editingTask
+            await addTask({ ...rest, ...fipiPatch, fipiId: null })
+          }
+        } catch (e) {
+          console.error('[bank] fipi save', e)
+          void alertDialog({ title: t('Задание не сохранилось — проверьте связь и попробуйте ещё раз.'), tone: 'danger' })
+          return
+        }
+        clearDrafts(tkDraft)
+        onCancel()
+        return
+      }
       if (editingTask) {
         // Update existing task in the bank, then close without creating a new trainer card.
         // Закрываем только после записи: при сбое правка и черновик остаются.
@@ -2892,7 +2919,7 @@ export function CreatorView({
     onCancel()
   }
 
-  const canSave = mode === 'trainer' ? builtTask !== null
+  const canSave = mode === 'trainer' ? (editingTask?.fipiId ? !!stripHtml(tkQuestion) : builtTask !== null)
     : mode === 'course' ? cTitle.trim().length > 0
     : wTitle.trim().length > 0
 
@@ -2901,7 +2928,7 @@ export function CreatorView({
   useEffect(() => () => setDocked(false), [])
 
   const currentName = (mode === 'trainer' ? stripHtml(tkQuestion) : mode === 'course' ? cTitle : wTitle).trim()
-  const createLabel = mode === 'trainer' ? (editingTask ? t('Редактировать задание') : t('Создать задание')) : mode === 'course' ? (editCourse ? t('Редактировать курс') : t('Создать курс')) : (editWidget ? t('Редактировать виджет') : t('Создать виджет'))
+  const createLabel = mode === 'trainer' ? (editingTask?.fipiId && !fipiAdmin ? t('Скопировать себе') : editingTask ? t('Редактировать задание') : t('Создать задание')) : mode === 'course' ? (editCourse ? t('Редактировать курс') : t('Создать курс')) : (editWidget ? t('Редактировать виджет') : t('Создать виджет'))
   const saveLabel = t('Сохранить')
   const paramsLabel = mode === 'course' ? t('Параметры курса') : mode === 'trainer' ? t('Параметры задания') : t('Параметры виджета')
 
@@ -8775,7 +8802,9 @@ export default function TeacherConstructorPage() {
   /** Условие задания без разметки — для карточки в общей сетке. */
   const plainText = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
   const bankTasksOfSubject = useMemo(
-    () => bankSubjects ? allTasks.filter(x => bankSubjects.includes(x.subject)) : [],
+    // Банк ФИПИ — свой режим на полке «Задания» (Свои · ЕГЭ ФИПИ · ОГЭ ФИПИ):
+    // тысячи его строк в «Всё» и в счёт не идут.
+    () => bankSubjects ? allTasks.filter(x => !x.fipiId && bankSubjects.includes(x.subject)) : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [allTasks, bankSubjectsKey],
   )
@@ -9167,7 +9196,9 @@ export default function TeacherConstructorPage() {
       }))
       setCourses(prev => prev.filter(c => !checkedIds.has(c.id) || failed.has(c.id)))
     } else if (onTasksShelf) {
-      await Promise.all([...checkedIds].map(id => removeTask(Number(id)).catch(e => {
+      // Строки банка ФИПИ общие для всех учеников — из «Базы» не удаляются.
+      const fipiIds = new Set(allTasks.filter(x => x.fipiId).map(x => String(x.id)))
+      await Promise.all([...checkedIds].filter(id => !fipiIds.has(id)).map(id => removeTask(Number(id)).catch(e => {
         console.error('[bank] removeTask', e); failed.add(id)
       })))
     } else if (activeTab === 'testing') {
