@@ -7,24 +7,39 @@
 import { useEffect, useState } from 'react'
 import { useT } from '../../lib/i18n'
 
-export default function KonspektToc({ items }: { items: { id: string; text: string }[] }) {
-  const t = useT()
+/** Текущий раздел конспекта: последний заголовок, ушедший выше трети экрана. */
+export function useActiveHeading(items: { id: string }[]) {
   const [active, setActive] = useState<string | null>(items[0]?.id ?? null)
-
+  const key = items.map(i => i.id).join('|')
   useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return
-    const els = items.map(i => document.getElementById(i.id)).filter((e): e is HTMLElement => !!e)
+    const els = key.split('|').map(id => document.getElementById(id)).filter((e): e is HTMLElement => !!e)
     if (!els.length) return
-    // Текущий раздел — последний заголовок, ушедший выше трети экрана.
-    const io = new IntersectionObserver(() => {
+    let raf = 0
+    const update = () => {
+      raf = 0
       const line = window.innerHeight / 3
       let cur: string | null = els[0].id
       for (const el of els) if (el.getBoundingClientRect().top <= line) cur = el.id
       setActive(cur)
-    }, { rootMargin: '0px 0px -60% 0px', threshold: [0, 1] })
-    els.forEach(el => io.observe(el))
-    return () => io.disconnect()
-  }, [items])
+    }
+    // Прокрутка бывает и у окна, и у мобильного контейнера — слушаем захватом.
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    update()
+    return () => { document.removeEventListener('scroll', onScroll, { capture: true }); if (raf) cancelAnimationFrame(raf) }
+  }, [key])
+  return [active, setActive] as const
+}
+
+/** Перейти к разделу конспекта. Без smooth: в части вебвью плавная прокрутка
+ *  молча не срабатывает (memory: invisible-in-dark). */
+export function goToHeading(id: string) {
+  document.getElementById(id)?.scrollIntoView({ block: 'start' })
+}
+
+export default function KonspektToc({ items }: { items: { id: string; text: string }[] }) {
+  const t = useT()
+  const [active, setActive] = useActiveHeading(items)
 
   return (
     <nav className="konspekt-toc" aria-label={t('В уроке')}>
@@ -39,7 +54,7 @@ export default function KonspektToc({ items }: { items: { id: string; text: stri
             type="button"
             data-hover="layer"
             aria-current={on ? 'location' : undefined}
-            onClick={() => { document.getElementById(it.id)?.scrollIntoView({ block: 'start' }); setActive(it.id) }}
+            onClick={() => { goToHeading(it.id); setActive(it.id) }}
             style={{
               display: 'block', width: '100%', textAlign: 'left', border: 0, cursor: 'pointer', fontFamily: 'inherit',
               padding: '6px 10px', borderRadius: 8, fontSize: 14, lineHeight: 1.35,

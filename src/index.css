@@ -1434,12 +1434,17 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 .konspekt-col > .k-wide { max-width: none; }
 .konspekt-col > .k-h2 { max-width: 32em; } /* 32 × 1.25em = 40em колонки */
 .konspekt-col .k-h2 + * { margin-top: -4px; }
+.konspekt-col .k-h2 { scroll-margin-top: 96px; }
 .k-meta { display: grid; grid-template-columns: 8em minmax(0, 1fr); column-gap: 1em; }
 .konspekt-toc { display: none; }
+/* iPad: справа капсула конспекта (KonspektNav) — текст под неё не заходит. */
+[data-platform="ipad"] .konspekt-layout { padding-right: 56px; }
 @media (min-width: 1280px) {
   .konspekt-layout.has-toc { grid-template-columns: minmax(0, 1fr) 200px; column-gap: 32px; align-items: start; }
   .konspekt-layout.has-toc .konspekt-toc { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 96px; padding-top: 4px; }
 }
 @media (max-width: 1023px) {
   .k-meta { grid-template-columns: minmax(0, 1fr); }
+  /* Под стеклянными таблетками шапки урока (MOBILE_TOP_INSET + 40). */
+  .konspekt-col .k-h2 { scroll-margin-top: 128px; }
 }

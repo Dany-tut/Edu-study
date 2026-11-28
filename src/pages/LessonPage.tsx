@@ -47,6 +47,8 @@ import { tidyProse, proseWrap, proseLines, balancedWrap } from '../lib/typograph
 import Prose from '../components/Prose'
 import KonspektPara from '../components/konspekt/KonspektBlocks'
 import KonspektToc from '../components/konspekt/KonspektToc'
+import KonspektNav from '../components/konspekt/KonspektNav'
+import { PLATFORM } from '../lib/platform'
 import { parseKonspekt, konspektToc } from '../lib/konspekt'
 import ImageZoom from '../components/ImageZoom'
 import Model3DFigure from '../components/Model3DFigure'
@@ -829,6 +831,8 @@ export default function LessonPage() {
   const topBarBox = useDashboard(s => s.topBarBox)
 
   const { big, scale, toggle: toggleBig } = useBigText()
+  // Конспект на экране — показываем его кнопки на телефонах и айпаде (KonspektNav).
+  const notesRef = useRef<HTMLElement>(null)
   const nySkin = useNewYearSkin()
   // Палитра предмета для разбора слов в конспекте — литеральным цветом, а не
   // переменной темы: подсветка слова строится конкатенацией (`${accent}22`).
@@ -969,7 +973,8 @@ export default function LessonPage() {
   const { notes, askSection } = splitServiceParas(detail.paragraphs.filter(p => p.origin !== 'recap'))
   const recapParas = detail.paragraphs.filter(p => p.origin === 'recap')
   const toc = konspektToc(notes)
-  const showToc = isDesktop && toc.length >= 3
+  // Колонка «В уроке» — только ПК; на айпаде оглавление в капсуле справа.
+  const showToc = isDesktop && PLATFORM !== 'ipad' && toc.length >= 3
   // Первый абзац без лид-слова — вводный (лид): чуть крупнее и мягче.
   const leadParaId = notes.length > 2 && !notes[0].image && !notes[0].reactionId && !notes[0].text.startsWith('**') && !parseKonspekt(notes[0].text) ? notes[0].id : null
   /** Текст абзаца строками: разбор слов (языки) или Prose с формулами. */
@@ -1261,6 +1266,7 @@ export default function LessonPage() {
           arrival from the reactions widget. ── */}
       {notes.length > 0 && (
         <section
+          ref={notesRef}
           className="flex flex-col"
           style={{
             gap: 14,
@@ -1276,7 +1282,7 @@ export default function LessonPage() {
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Конспект')}</span>
             {/* Кегль конспекта. Кнопка стоит у самого текста, а не в шапке
                 страницы: включают её, уже начав читать и споткнувшись о размер. */}
-            <button data-hover="layer"
+            {PLATFORM !== 'ipad' && <button data-hover="layer"
               onClick={toggleBig}
               title={t(big ? 'Обычный текст' : 'Крупный текст')}
               aria-pressed={big}
@@ -1294,7 +1300,7 @@ export default function LessonPage() {
             >
               <ALargeSmall size={16} />
               <OpticalText as="iskra-button-label">{t('Крупный текст')}</OpticalText>
-            </button>
+            </button>}
           </div>
           {/* Эталон «Проверка себя» свёрнут до нажатия, «Разбор после сдачи» —
               закрыт до сдачи работы (components/AnswerReveal, lib/answerReveal). */}
@@ -1319,6 +1325,7 @@ export default function LessonPage() {
             </div>
             {showToc && <KonspektToc items={toc} />}
           </div>
+          {(!isDesktop || PLATFORM === 'ipad') && <KonspektNav items={toc} big={big} onToggleBig={toggleBig} sectionRef={notesRef} />}
         </section>
       )}
 

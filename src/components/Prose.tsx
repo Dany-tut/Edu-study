@@ -90,12 +90,16 @@ function CodeBlock({ code, block }: { code: string; block: boolean }) {
           boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone',
         }}
       >
-        {code}
+        {code.slice(0, -1)}
         {/* Иконка видна всегда — у формулы в тексте то же обещание, что у блока
-            (одно поведение копирования, Figma стр. 31). */}
-        {copied
-          ? <Check size="0.85em" style={{ marginLeft: '0.3em', verticalAlign: '-0.08em', color: 'var(--color-green-text)' }} />
-          : <Copy size="0.85em" style={{ marginLeft: '0.3em', verticalAlign: '-0.08em', opacity: 0.7 }} />}
+            (одно поведение копирования, Figma стр. 31). Склеена с последним
+            знаком: на переносе не уезжает одна на новую строку пустым чипом. */}
+        <span style={{ whiteSpace: 'nowrap' }}>
+          {code.slice(-1)}
+          {copied
+            ? <Check size="0.85em" style={{ display: 'inline-block', marginLeft: '0.3em', verticalAlign: '-0.08em', color: 'var(--color-green-text)' }} />
+            : <Copy size="0.85em" style={{ display: 'inline-block', marginLeft: '0.3em', verticalAlign: '-0.08em', opacity: 0.7 }} />}
+        </span>
       </code>
     )
   }

@@ -64,7 +64,7 @@ function Block({ b, rt, k, anchor }: { b: KBlock; rt: RenderText; k: string; anc
         </div>
       )
     case 'h2':
-      return <h2 id={anchor} className="k-h2" style={{ margin: '0.6em 0 0', fontSize: '1.25em', lineHeight: 1.4, fontWeight: 700, color: 'var(--color-text)', scrollMarginTop: 96 }}>{b.text}</h2>
+      return <h2 id={anchor} className="k-h2" style={{ margin: '0.6em 0 0', fontSize: '1.25em', lineHeight: 1.4, fontWeight: 700, color: 'var(--color-text)' }}>{b.text}</h2>
     case 'h3':
       return <h3 className="k-h3" style={{ margin: '0.25em 0 0', fontSize: '1em', lineHeight: 1.5, fontWeight: 650, color: 'var(--color-text)' }}>{b.text}</h3>
     case 'text':

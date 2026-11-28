@@ -14,11 +14,12 @@
 // падает «Cannot access 'useDashboard' before initialization» (dev-flow тоже).
 import KonspektPara from './components/konspekt/KonspektBlocks'
 import KonspektToc from './components/konspekt/KonspektToc'
+import KonspektNav from './components/konspekt/KonspektNav'
 import { parseKonspekt, konspektToc } from './lib/konspekt'
 import './lib/platform'
 import { accLessonFiles } from './data/accounting/accFiles'
 import './store/studentDataStore'
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { isLabRef } from './lib/excelLab/embed'
 import { createRoot } from 'react-dom/client'
 import HomeworkFlow from './components/HomeworkFlow'
@@ -48,6 +49,7 @@ function Stand() {
   const [idx, setIdx] = useState(Number.isFinite(initial) ? Math.min(Math.max(initial, 0), ACC_LESSONS.length - 1) : 0)
   const [done, setDone] = useState<number[]>(() => read<number[]>(PROGRESS, []))
   const [q, setQ] = useState('')
+  const standNotesRef = useRef<HTMLElement>(null)
   const [zoom, setZoom] = useState<{ src: string; caption?: string } | null>(null)
   // На телефоне оглавление — сверху обычным блоком: липкая колонка налезала на урок.
   const wide = typeof window !== 'undefined' && window.innerWidth >= 900
@@ -142,7 +144,7 @@ function Stand() {
           {lesson.applies && <div>📅 Применимость: {lesson.applies}</div>}
           {files.length > 0 && <div>⬇ Файлы: {files.map(f => <a key={f} href={`/courses/accounting/${f}`} download style={{ marginRight: 10 }}>{f}</a>)}</div>}
         </div>
-        <article style={{ padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
+        <article ref={standNotesRef} style={{ padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
           <div className={`konspekt-layout${toc.length >= 3 ? ' has-toc' : ''}`}>
           <div className="konspekt-col" style={{ fontSize: 16 * standScale }}>
           <NotesWithReveals paragraphs={service.notes} unlocked={standSubmitted} scale={standScale} renderPara={par => par.image && isLabRef(par.image) ? (
@@ -159,8 +161,9 @@ function Stand() {
           ) : standText(par.text, par.id)} />
           {service.askSection !== null && <LessonAskCard section={service.askSection} scale={standScale} />}
           </div>
-          {toc.length >= 3 && <KonspektToc items={toc} />}
+          {toc.length >= 3 && wide && <KonspektToc items={toc} />}
           </div>
+          {!wide && <KonspektNav items={toc} big={standScale > 1} onToggleBig={() => { const u = new URL(location.href); u.searchParams.set('scale', standScale > 1 ? '1' : '1.25'); location.href = u.toString() }} sectionRef={standNotesRef} />}
         </article>
         <ImageZoom src={zoom?.src ?? null} caption={zoom?.caption} onClose={() => setZoom(null)} />
         <div style={{ display: 'flex', gap: 8, margin: '14px 0' }}>
