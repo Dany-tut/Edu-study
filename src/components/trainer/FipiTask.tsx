@@ -390,7 +390,7 @@ export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette,
             </ol>
           )}
           {f.kind === 'select' && (
-            <Blank labels={f.cells ?? []} value={value} onChange={setValue} locked={peeked} wrong={result?.wrong ?? []} tone={tone} mobile={mobile} score={result && tone ? <ScorePill got={result.got} max={result.max} tone={tone} mobile={mobile} /> : undefined} digits={f.digits?.length ? f.digits : ['1', '2', '3', '4', '5']} />
+            <Blank labels={f.cells ?? []} value={value} onChange={setValue} locked={peeked} wrong={result?.wrong ?? []} tone={tone} mobile={mobile} score={result && tone && mobile ? <ScorePill got={result.got} max={result.max} tone={tone} mobile={mobile} /> : undefined} digits={f.digits?.length ? f.digits : ['1', '2', '3', '4', '5']} />
           )}
           {f.kind === 'text' && (
             <input value={value} readOnly={peeked} onChange={e => setValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && complete && check()}
@@ -399,7 +399,8 @@ export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette,
                 background: tone ? TONE[tone].bg : 'var(--color-bg-input)',
                 border: `1.5px solid ${tone ? TONE[tone].border : 'var(--color-border-medium)'}`, color: tone ? TONE[tone].fg : 'var(--color-text)' }} />
           )}
-          {result && tone && f.kind !== 'select' && <ScorePill got={result.got} max={result.max} tone={tone} mobile={mobile} />}
+          {/* На ПК счёт уже в бейдже сверху — у поля не дублируем (Дани 28.11). */}
+          {result && tone && mobile && f.kind !== 'select' && <ScorePill got={result.got} max={result.max} tone={tone} mobile={mobile} />}
           {f.kind === 'check' && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Порядок номеров не важен')}</span>}
           <span style={{ flex: 1 }} />
           <div style={{ display: 'flex', gap: 8 }}>
