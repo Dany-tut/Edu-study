@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import OpticalText from './OpticalText'
-import { Check, RefreshCw, RotateCcw, X as XIcon } from './icons/appIcons'
+import { Check, ChevronDown, ChevronRight, RefreshCw, RotateCcw, X as XIcon } from './icons/appIcons'
 import { fetchStudentBreakdown, startTestlyRetake, testlyPoints, TESTLY_SITE } from '../lib/testlyModule'
 import { useT } from '../lib/i18n'
 import './testlyMistakesPanel.css'
@@ -81,21 +81,7 @@ export default function TestlyMistakesPanel({ testId, testTitle, owner, attemptK
     </div>
 
     <div className="tmp-questions">
-      {questions.map(q => {
-        const isWrong = q.status === 'wrong' || q.status === 'partial' || q.status === 'unanswered'
-        return <div key={q.n} className={'tmp-q' + (isWrong ? ' tmp-q-wrong' : '')}>
-          <span className={'tmp-q-num' + (isWrong ? ' tmp-q-num-wrong' : ' tmp-q-num-correct')}>{q.n}</span>
-          <div className="tmp-q-body">
-            <p className="tmp-q-prompt">{q.prompt}</p>
-            {q.answer && <p className="tmp-q-answer">{t('Ваш ответ:')} {q.answer}</p>}
-          </div>
-          <span className={'tmp-q-badge' + (isWrong ? ' tmp-badge-wrong' : ' tmp-badge-correct')}>
-            {q.status === 'correct' ? <><Check size={11} /> {testlyPoints(q.got, q.max)}</> :
-             q.status === 'unanswered' ? <>— {t('Без ответа')}</> :
-             <><XIcon size={11} /> {t('Неверно')}</>}
-          </span>
-        </div>
-      })}
+      {questions.map(q => <MistakeRow key={q.n} q={q} />)}
     </div>
 
     <p className="tmp-note">{t('Верный ответ на ошибку не показываем — перерешайте её.')}</p>
@@ -114,5 +100,40 @@ export default function TestlyMistakesPanel({ testId, testTitle, owner, attemptK
 
     {retakesLeft === 0 && <div className="tmp-limit-notice">{t('Попытки перерешать закончились. Напишите преподавателю — он может открыть ещё.')}</div>}
     {error && <p className="tmp-error" role="alert">{error}</p>}
+  </div>
+}
+
+/** Two complete lines; the full prompt opens with the row, not in a hover hint. */
+function MistakeRow({ q }: { q: StudentQuestion }) {
+  const t = useT()
+  const [open, setOpen] = useState(false)
+  const promptRef = useRef<HTMLParagraphElement>(null)
+  const [clipped, setClipped] = useState(false)
+  useLayoutEffect(() => {
+    const el = promptRef.current
+    if (!el || open || typeof ResizeObserver === 'undefined') return
+    const measure = () => setClipped(el.scrollHeight > el.clientHeight + 1)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [open, q.prompt])
+  const expandable = clipped || open
+  const toggle = () => setOpen(v => !v)
+  const isWrong = q.status === 'wrong' || q.status === 'partial' || q.status === 'unanswered'
+  return <div className={'tmp-q' + (isWrong ? ' tmp-q-wrong' : '')} role={expandable ? 'button' : undefined} tabIndex={expandable ? 0 : undefined}
+    aria-expanded={expandable ? open : undefined} onClick={expandable ? toggle : undefined}
+    onKeyDown={expandable ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle() } } : undefined}>
+    <span className={'tmp-q-num' + (isWrong ? ' tmp-q-num-wrong' : ' tmp-q-num-correct')}>{q.n}</span>
+    <div className="tmp-q-body">
+      <p ref={promptRef} className={'tmp-q-prompt' + (open ? ' tmp-q-prompt-open' : '')} title="" data-text-fade-mode="last-line">{q.prompt}</p>
+      {q.answer && <p className="tmp-q-answer">{t('Ваш ответ:')} {q.answer}</p>}
+    </div>
+    <span className={'tmp-q-badge' + (isWrong ? ' tmp-badge-wrong' : ' tmp-badge-correct')}>
+      {q.status === 'correct' ? <><Check size={11} /> {testlyPoints(q.got, q.max)}</> :
+       q.status === 'unanswered' ? <>— {t('Без ответа')}</> :
+       <><XIcon size={11} /> {t('Неверно')}</>}
+    </span>
+    {expandable && (open ? <ChevronDown size={14} className="tmp-q-chevron" /> : <ChevronRight size={14} className="tmp-q-chevron" />)}
   </div>
 }

@@ -20,6 +20,10 @@
 .tmp-q-num-wrong { background:var(--color-red-soft); color:var(--color-red-text); }
 .tmp-q-body { flex:1; min-width:0; }
 .tmp-q-prompt { margin:1px 0 0; font-size:13px; line-height:1.6; color:var(--color-text); display:block; max-height:2lh; overflow:hidden; --iskra-text-fade-lines:2; }
+.tmp-q-prompt.tmp-q-prompt-open { max-height:none; overflow:visible; --iskra-text-fade-lines:0; }
+.tmp-q[role=button] { cursor:pointer; }
+@media (hover: hover) and (pointer: fine) { .tmp-q[role=button]:hover { background:var(--color-bg-2); } }
+.tmp-q-chevron { flex:none; margin-top:5px; color:var(--color-text-3); }
 .tmp-q-answer { margin:3px 0 0; font-size:12px; color:var(--color-text-3); }
 .tmp-q-wrong .tmp-q-answer { color:var(--color-red-text); }
 .tmp-q-badge { flex:none; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:8px; font-size:11px; font-weight:600; white-space:nowrap; }
