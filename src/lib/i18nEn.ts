@@ -6923,4 +6923,18 @@ export const EN: Record<string, string> = {
   "нет заданий": "no tasks",
   "одна ошибка": "one mistake",
   "ч. 2": "part 2",
+  // Ответ голосом (VoiceDictation, 28.11.2026)
+  'Ответ голосом': 'Voice answer',
+  'ученик диктует — текст печатается в поле': 'the student dictates — text appears in the field',
+  'Сохранять запись для учителя': 'Keep the recording for the teacher',
+  'отправляется текст, запись прикрепляется': 'the text is submitted, the recording is attached',
+  'Распознавание речи здесь недоступно': 'Speech recognition is not available here',
+  'Ничего не расслышал — попробуйте ещё раз': "Didn't catch anything — try again",
+  'Текст на месте, а запись не загрузилась': 'The text is kept, but the recording did not upload',
+  'Дописываю к ответу': 'Adding to your answer',
+  'Говорите — текст появится в поле': 'Speak — the text will appear in the field',
+  'Ответить голосом': 'Answer by voice',
+  'Запись ответа': 'Answer recording',
+  'Отменить запись': 'Cancel recording',
+  'Надиктовано голосом': 'Dictated by voice',
 }

@@ -138,6 +138,9 @@ export interface HomeworkQuizQuestion {
   /** Ширина картинки условия в процентах колонки (по умолчанию 100). */
   imageSize?: number
   responseMode?: 'write' | 'speak'
+  /** extended — ответ голосом (см. TaskPayload.voiceInput / voiceKeep). */
+  voiceInput?: boolean
+  voiceKeep?: boolean
   /** Комментарий, который открывается после ответа (слова автора работы). */
   afterNote?: string
   /** Дополнительные принимаемые формулировки для свободного ввода. */
@@ -446,6 +449,8 @@ export function authoredTaskToQuestion(t: AuthoredHomeworkTask, i: number): Home
     image: t.image,
     imageSize: t.imageSize,
     responseMode: t.responseMode,
+    voiceInput: tp === 'extended' ? t.voiceInput : undefined,
+    voiceKeep: tp === 'extended' ? t.voiceKeep : undefined,
     afterNote: t.afterNote,
     passage: t.passage,
     passageTitle: t.passageTitle,

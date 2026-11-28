@@ -34,9 +34,15 @@ export default function AudioPlayer({
   soft,
   variant = 'solid',
   picker = true,
+  resolveUrl,
 }: {
   /** Путь в бакете task-media (резолвится в signed URL). */
   audioUrl?: string
+  /**
+   * Чем превратить путь в ссылку, если файл лежит не в task-media (запись
+   * ответа голосом — в приватном homework-answer-files). Не задан — task-media.
+   */
+  resolveUrl?: (path: string) => Promise<string | null>
   /** Текст для синтеза речи, если файл не загружен. */
   ttsText?: string
   ttsVoice?: string
@@ -105,7 +111,7 @@ export default function AudioPlayer({
   useEffect(() => {
     let alive = true
     if (!audioUrl) { setSrc(null); return }
-    getMediaUrl(audioUrl).then(u => { if (alive) setSrc(u) })
+    (resolveUrl ?? getMediaUrl)(audioUrl).then(u => { if (alive) setSrc(u) })
     return () => { alive = false }
   }, [audioUrl])
 
