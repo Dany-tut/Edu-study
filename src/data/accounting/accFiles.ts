@@ -13,7 +13,7 @@ export const ACC_FILE_SIZES: Record<string, number> = {
   'chislennost-power-query.zip': 45133,
   'chislennost-shablon.xlsx': 3193507,
   'formuly-dlya-raboty.xlsx': 36784,
-  'kalendar-srokov-2027.xlsx': 30468,
+  'kalendar-srokov-2027.xlsx': 31200,
   'kalkulyacii-proizvodstva.xlsx': 35200,
   'konsolidaciya-gruppy.xlsx': 55644,
   'kontragenty-dlya-importa.xlsx': 8627,
