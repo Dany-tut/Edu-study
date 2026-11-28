@@ -5,7 +5,7 @@ import { DEV_SEED_TASKS } from '../data/devTaskSeed'
 
 type NewTask = Omit<Task, 'id'>
 
-export type FipiIndexRow = Pick<Task, 'id' | 'part' | 'line' | 'kes'>
+export type FipiIndexRow = Pick<Task, 'id' | 'part' | 'line' | 'kes'> & { /** Тема «как у Neo» — payload.nf.theme. */ nf?: string | null }
 
 type TaskBankStore = {
   tasks: Task[]
@@ -240,11 +240,11 @@ export const useTaskBank = create<TaskBankStore>((set, get) => ({
     void (async () => {
       const idx: FipiIndexRow[] = []
       for (let from = 0; ; from += 1000) {
-        const { data, error } = await supabase.from('task_bank').select('id, part, line, kes')
+        const { data, error } = await supabase.from('task_bank').select('id, part, line, kes, nf:payload->nf->>theme')
           .eq('subject', subject).eq('exam', exam).not('fipi_guid', 'is', null)
           .order('id').range(from, from + 999)
         if (error) { console.error('[task_bank] fipi index', error); return }
-        for (const r of data ?? []) idx.push({ id: r.id as number, part: r.part as Task['part'], line: r.line as number, kes: (r.kes as string[] | null) ?? [] })
+        for (const r of data ?? []) idx.push({ id: r.id as number, part: r.part as Task['part'], line: r.line as number, kes: (r.kes as string[] | null) ?? [], nf: (r as { nf?: string | null }).nf ?? null })
         if (!data || data.length < 1000) break
       }
       set(s => ({ fipiIndex: { ...s.fipiIndex, [key]: idx } }))
