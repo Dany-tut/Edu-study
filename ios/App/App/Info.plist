@@ -47,6 +47,10 @@
 	     в приложении-обёртке микрофон не включался никак. -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Микрофон нужен, чтобы записать устный ответ в домашке и произношение в тренажёре.</string>
+	<!-- Ответ голосом: сказанное печатается в поле системной диктовкой iOS
+	     (NativeDictationPlugin). Без этой строки запрос распознавания роняет приложение. -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Распознавание речи нужно, чтобы надиктованный ответ печатался в поле домашки.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

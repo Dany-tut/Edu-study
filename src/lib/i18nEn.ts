@@ -6925,6 +6925,7 @@ export const EN: Record<string, string> = {
   "одна ошибка": "one mistake",
   "ч. 2": "part 2",
   // Ответ голосом (VoiceDictation, 28.11.2026)
+  'Разрешите микрофон и распознавание речи в настройках телефона': 'Allow the microphone and speech recognition in your phone settings',
   'Ответ голосом': 'Voice answer',
   'ученик диктует — текст печатается в поле': 'the student dictates — text appears in the field',
   'Сохранять запись для учителя': 'Keep the recording for the teacher',

@@ -138,6 +138,7 @@ class MainViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(PasskeyPlugin())
         bridge?.registerPluginInstance(AppLockPlugin())
         bridge?.registerPluginInstance(AppIconPlugin())
+        bridge?.registerPluginInstance(NativeDictationPlugin())
         Self.hideFormAccessoryBar()
     }
 

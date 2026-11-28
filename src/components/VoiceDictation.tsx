@@ -9,6 +9,7 @@ import {
 } from '../lib/answerVoice'
 import { useT } from '../lib/i18n'
 import { textFadeLines } from '../lib/textFades'
+import { hasNativeDictation, startNativeDictation, type NativeDictationSession } from '../lib/nativeDictation'
 
 // Ответ голосом под полем развёрнутого ответа (Figma «Искра», стр. 29).
 //
@@ -25,8 +26,11 @@ import { textFadeLines } from '../lib/textFades'
 // никогда: «Перезаписать» снимает только последнюю вставку и только если
 // поле с тех пор не трогали; после снятия 8 секунд висит «Вернуть».
 //
-// БЕЗ РАСПОЗНАВАЛКИ (Firefox, приложение на айфоне до нативного плагина)
-// микрофона нет вовсе — поле остаётся обычным, как было.
+// В ПРИЛОЖЕНИИ (айфон, айпад, Android) слушает сам телефон — системная
+// диктовка через lib/nativeDictation.ts, бесплатно. Айфон отдаёт и запись,
+// Android — только текст.
+//
+// БЕЗ РАСПОЗНАВАЛКИ (Firefox) микрофона нет вовсе — поле остаётся обычным.
 
 type Phase = 'idle' | 'recording' | 'saving'
 
@@ -62,6 +66,8 @@ export default function VoiceDictation({
   const liveRef = useRef('')
   const startedRef = useRef(0)
   const asrRef = useRef<AsrSession | null>(null)
+  // В приложении — системная диктовка телефона (lib/nativeDictation.ts).
+  const nativeRef = useRef<NativeDictationSession | null>(null)
   const recRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const streamRef = useRef<MediaStream | null>(null)
@@ -73,7 +79,8 @@ export default function VoiceDictation({
   const propsRef = useRef({ value, clips, onChange, onClips })
   propsRef.current = { value, clips, onChange, onClips }
 
-  const [available] = useState(() => isAsrAvailable())
+  const [native] = useState(() => hasNativeDictation())
+  const [available] = useState(() => native || isAsrAvailable())
 
   function release() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
@@ -85,6 +92,7 @@ export default function VoiceDictation({
   }
   useEffect(() => () => {
     asrRef.current?.cancel()
+    nativeRef.current?.cancel()
     release()
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
   }, [])
@@ -100,20 +108,14 @@ export default function VoiceDictation({
     setNote('')
     baseRef.current = base
     liveRef.current = ''
+    if (native) { await startNative(); return }
     const session = listenLong(lang, text => {
       liveRef.current = text
       propsRef.current.onChange(joinDictated(baseRef.current, text))
     })
     if (!session) { setNote(t('Распознавание речи здесь недоступно')); return }
     asrRef.current = session
-    startedRef.current = Date.now()
-    setElapsed(0)
-    setPhase('recording')
-    timerRef.current = setInterval(() => {
-      const sec = Math.floor((Date.now() - startedRef.current) / 1000)
-      setElapsed(sec)
-      if (sec >= MAX_SECONDS) void commit()
-    }, 500)
+    startTimer()
 
     // Запись для учителя — параллельно распознаванию, своим доступом к
     // микрофону. Не дали микрофон записи — распознавание всё равно идёт.
@@ -154,6 +156,42 @@ export default function VoiceDictation({
     }
   }
 
+  function startTimer() {
+    startedRef.current = Date.now()
+    setElapsed(0)
+    setPhase('recording')
+    timerRef.current = setInterval(() => {
+      const sec = Math.floor((Date.now() - startedRef.current) / 1000)
+      setElapsed(sec)
+      if (sec >= MAX_SECONDS) void commit()
+    }, 500)
+  }
+
+  /** Приложение: телефон сам слушает, пишет текст и (айфон) запись. */
+  async function startNative() {
+    const session = startNativeDictation(lang, keep, {
+      text: text => {
+        liveRef.current = text
+        propsRef.current.onChange(joinDictated(baseRef.current, text))
+      },
+      level: l => setLevels(prev => [...prev.slice(1), Math.max(0.15, Math.min(1, l))]),
+      ended: () => { if (nativeRef.current === session) void commit() },
+    })
+    nativeRef.current = session
+    startTimer()
+    try {
+      await session.ready
+    } catch (e) {
+      if (nativeRef.current !== session) return
+      nativeRef.current = null
+      release()
+      propsRef.current.onChange(baseRef.current)
+      setPhase('idle')
+      const denied = (e as { code?: string })?.code === 'denied'
+      setNote(denied ? t('Разрешите микрофон и распознавание речи в настройках телефона') : t('Распознавание речи здесь недоступно'))
+    }
+  }
+
   function stopRecorder(): Promise<Blob | null> {
     const rec = recRef.current
     recRef.current = null
@@ -166,18 +204,29 @@ export default function VoiceDictation({
 
   async function commit() {
     const session = asrRef.current
-    if (!session) return
+    const nativeSession = nativeRef.current
+    if (!session && !nativeSession) return
     asrRef.current = null
+    nativeRef.current = null
     setPhase('saving')
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
-    session.stop()
-    const [heardRaw, blob] = await Promise.all([
-      Promise.race([session.done, new Promise<string>(r => setTimeout(() => r(liveRef.current), 1500))]),
-      stopRecorder(),
-    ])
+    let heardRaw = ''
+    let blob: Blob | null = null
+    let sec = Math.max(1, Math.round((Date.now() - startedRef.current) / 1000))
+    if (nativeSession) {
+      const r = await nativeSession.stop().catch(() => null)
+      heardRaw = r?.text ?? ''
+      blob = r?.audio ?? null
+      if (r?.sec) sec = r.sec
+    } else if (session) {
+      session.stop()
+      ;[heardRaw, blob] = await Promise.all([
+        Promise.race([session.done, new Promise<string>(r => setTimeout(() => r(liveRef.current), 1500))]),
+        stopRecorder(),
+      ])
+    }
     release()
     const heard = (heardRaw || liveRef.current).trim()
-    const sec = Math.max(1, Math.round((Date.now() - startedRef.current) / 1000))
     const base = baseRef.current
     if (!heard) {
       propsRef.current.onChange(base)
@@ -204,6 +253,8 @@ export default function VoiceDictation({
     const session = asrRef.current
     asrRef.current = null
     session?.cancel()
+    nativeRef.current?.cancel()
+    nativeRef.current = null
     void stopRecorder()
     release()
     propsRef.current.onChange(baseRef.current)
@@ -255,7 +306,7 @@ export default function VoiceDictation({
 
       {undo !== null && phase === 'idle' && (
         <button data-hover="layer" type="button"
-          onClick={() => { asrRef.current?.cancel(); onChange(undo); setUndo(null) }}
+          onClick={() => { onChange(undo); setUndo(null) }}
           style={pill('var(--color-bg)', 'var(--color-text)')}>
           <RotateCcw size={14} /> <OpticalText as="iskra-button-label">{t('Вернуть')}</OpticalText>
         </button>
