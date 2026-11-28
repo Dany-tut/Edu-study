@@ -1,4 +1,4 @@
-import { textFadeStyle } from '../lib/textFades'
+import { textFadeStyle, textFadeLines } from '../lib/textFades'
 import { SubjectMark } from './icons/SubjectMark'
 import { useEffect, useRef, useState } from 'react'
 import { ICON_GAP } from '../lib/subjects'
@@ -8,6 +8,10 @@ import { supabase } from '../lib/supabase'
 import { getStudentSession, setStudentSession } from '../lib/studentSession'
 import { getSessionUser } from '../lib/owner'
 import { t, tc } from '../lib/i18n'
+import { getSubject } from '../lib/subjects'
+import { useDashboard } from '../store/dashboardStore'
+import { useStudentData } from '../store/studentDataStore'
+import type { Subject } from '../data/mockData'
 
 // A 1:1 student can own several subject cards — each a separate individual group
 // + student row for the same person, all sharing one auth account. This switcher
@@ -127,12 +131,27 @@ export function useSubjectCards() {
     return () => { cancelled = true }
   }, [session?.id])
 
-  const current = session ? cards.find(c => c.groupId === session.groupId) ?? cards[0] ?? null : null
+  // ВЫБОР КУРСА — ОДИН НА ВЕСЬ КАБИНЕТ (слова Дани 28.11: «пусть выбор в
+  // профиле — меняет везде»). Курс открывает `activeSubjectId` дашборда: его
+  // читают трек главной, «Твои дела», виджеты и тренажёр. Галочка в профиле —
+  // карточка, которой принадлежит открытый курс, а не отдельное состояние;
+  // иначе после смены курса в таблетке главной профиль показывал прежнюю
+  // карточку, а после смены карточки трек оставался на старом курсе.
+  const activeCourseId = useDashboard(s => s.activeSubjectId)
+  const courses = useStudentData(s => s.subjects)
+  const activeOwner = courses.find(c => c.id === activeCourseId)?.ownerStudentId
+  const current = session
+    ? cards.find(c => c.id === activeOwner) ?? cards.find(c => c.groupId === session.groupId) ?? cards[0] ?? null
+    : null
 
-  // Возврат false = перехода не было (та же карточка), вызвавшему остаётся
+  // Возврат false = перезагрузки не было (та же карточка), вызвавшему остаётся
   // просто закрыть свою оболочку.
   function switchTo(card: Card) {
     if (!session) return false
+    // Сначала курс: он сохраняется в localStorage (persist дашборда) и
+    // переживает перезагрузку ниже, F5 и перезапуск приложения.
+    const target = courseForCard(useStudentData.getState().subjects, card)
+    if (target) useDashboard.getState().setActiveSubject(target.id)
     if (card.groupId === session.groupId) return false
     setStudentSession({ id: card.id, name: session.name, groupId: card.groupId })
     // Full reload so App's data-load effect re-runs against the new card
@@ -145,6 +164,33 @@ export function useSubjectCards() {
 
   // Переключать нечего, пока карточка одна.
   return { cards, current, switchTo, hasChoice: !!session && cards.length > 1, loading }
+}
+
+// Какой курс был открыт в каждой карточке: у карточки бывает несколько
+// курсов (биология: «университетский» и «Биология клетки»), и возврат в
+// карточку должен открыть тот, где ученик остановился, а не первый в списке.
+const CARD_COURSE_KEY = 'subject_card_course_v1'
+function cardCourseMemory(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(CARD_COURSE_KEY) ?? '{}') ?? {} } catch { return {} }
+}
+/** Запомнить открытый курс за его карточкой (зовёт DashboardPage при смене). */
+export function rememberCardCourse(courses: readonly Subject[], courseId: string): void {
+  const owner = courses.find(c => c.id === courseId)?.ownerStudentId
+  if (!owner) return
+  const map = cardCourseMemory()
+  if (map[owner] === courseId) return
+  try { localStorage.setItem(CARD_COURSE_KEY, JSON.stringify({ ...map, [owner]: courseId })) } catch { /* приватный режим */ }
+}
+
+/** Курс карточки: последний открытый в ней, иначе первый её курс; если курс
+ *  карточке не привязан напрямую — первый курс того же предмета. */
+export function courseForCard(courses: readonly Subject[], card: { id: string; subject: string }): Subject | null {
+  const own = courses.filter(c => c.ownerStudentId === card.id)
+  const remembered = cardCourseMemory()[card.id]
+  const pick = own.find(c => c.id === remembered) ?? own[0]
+  if (pick) return pick
+  const subjectId = getSubject(card.subject)?.id
+  return subjectId ? courses.find(c => getSubject(c.subject)?.id === subjectId) ?? null : null
 }
 
 export default function SubjectSwitcher({ compact = false, style }: { compact?: boolean; style?: React.CSSProperties }) {
@@ -182,7 +228,9 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
   const label = subjectCardLabel
 
   return (
-    <div ref={ref} style={{ position: 'relative', width: compact ? 'auto' : '100%', ...style }}>
+    // Пока список открыт, подсказка с полным названием на кнопке не нужна: она
+    // вылезала поверх первого пункта. Пункты сами в две строки — видно целиком.
+    <div ref={ref} data-custom-tooltip={open ? '' : undefined} style={{ position: 'relative', width: compact ? 'auto' : '100%', ...style }}>
       <button data-hover="layer"
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -222,8 +270,8 @@ export default function SubjectSwitcher({ compact = false, style }: { compact?: 
                 onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
                 onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
               >
-                <SubjectMark subject={c.subject} size={16} /><span style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{label(c)}</span>
-                {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
+                <SubjectMark subject={c.subject} size={16} /><span style={{ minWidth: 0, flex: 1, ...textFadeLines(2) }}>{label(c)}</span>
+                {active && <Check size={16} style={{ flexShrink: 0, color: 'var(--color-text)' }} />}
               </button>
             )
           })}

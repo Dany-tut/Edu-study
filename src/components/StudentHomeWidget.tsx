@@ -40,7 +40,7 @@ function FeedSummary({ onOpen }: { onOpen:()=>void }) {
   return <HomeWidgetPresentation id={10} title={t('Лента')} action={t('Открыть ленту')} onOpen={onOpen} copy={{title:item?.title??t('Свежие материалы'),text:item?.body??t('Ролики и заметки на языке курса')}}/>
 }
 function TasksSummary({ onOpen,onTask }: { onOpen:()=>void;onTask:(task:HomeWidgetTask)=>void }) {
-  const t=useT(),subjects=useStudentData(s=>s.subjects),loaded=useStudentData(s=>s.loaded),tasks=homeWidgetTasks(subjects)
+  const t=useT(),subjects=useStudentData(s=>s.subjects),loaded=useStudentData(s=>s.loaded),activeId=useDashboard(s=>s.activeSubjectId),tasks=homeWidgetTasks(subjects,activeId)
   return <HomeWidgetPresentation id={11} title={t('Твои дела')} action={t('Все дела')+(tasks.length?` · ${tasks.length}`:'')} onOpen={onOpen} onTask={onTask} status={!loaded?'loading':tasks.length?'ready':'empty'} tasks={loaded&&tasks.length?tasks:undefined} copy={loaded&&!tasks.length?{title:t('Новых дел нет'),text:t('Практика — по желанию')}:undefined}/>
 
 }
@@ -65,6 +65,6 @@ export default function StudentHomeWidget({ id,onOpen,onTask }: { id:number;onOp
 }
 
 export function HomeTasksDetail({ onTask }: { onTask:(task:HomeWidgetTask)=>void }) {
-  const t=useT(),subjects=useStudentData(s=>s.subjects),tasks=homeWidgetTasks(subjects),loaded=useStudentData(s=>s.loaded)
+  const t=useT(),subjects=useStudentData(s=>s.subjects),activeId=useDashboard(s=>s.activeSubjectId),tasks=homeWidgetTasks(subjects,activeId),loaded=useStudentData(s=>s.loaded)
   return <div className="ihw-all-tasks">{!loaded?<p className="ihw-detail-empty">{t('Загружаем дела')}</p>:tasks.length?tasks.map(task=><HomeTaskRow key={task.key} task={task} onOpen={()=>onTask(task)}/>):<p className="ihw-detail-empty">{t('Новых дел нет')}</p>}</div>
 }

@@ -11,6 +11,7 @@ import StudentHome from '../components/StudentHome'
 import MobileBottomNav from '../components/MobileBottomNav'
 import MobileHomeworkViewport from '../components/MobileHomeworkViewport'
 import MobileProfilePage from '../components/MobileProfilePage'
+import { rememberCardCourse } from '../components/SubjectSwitcher'
 import CoursesPage from './CoursesPage'
 import type { DiaryTab } from './StudentDiaryPage'
 import { useScrollFades } from '../lib/useScrollFades'
@@ -208,8 +209,17 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!dataLoaded || allCourses.length === 0) return
     if (allCourses.some(c => c.id === activeCourseId)) return
-    setActiveSubject(allCourses[0].id)
+    // Запасной курс — из карточки, выбранной в профиле (сессия), а не просто
+    // первый в списке: иначе галочка в профиле и трек расходились.
+    const sessionId = getStudentSession()?.id
+    setActiveSubject((allCourses.find(c => c.ownerStudentId === sessionId) ?? allCourses[0]).id)
   }, [dataLoaded, allCourses, activeCourseId, setActiveSubject])
+
+  // Открытый курс запоминается за своей карточкой профиля — возврат в
+  // карточку открывает его, а не первый курс карточки.
+  useEffect(() => {
+    if (dataLoaded) rememberCardCourse(allCourses, activeCourseId)
+  }, [dataLoaded, allCourses, activeCourseId])
 
   useEffect(() => {
     if (activePage === 'home') return
