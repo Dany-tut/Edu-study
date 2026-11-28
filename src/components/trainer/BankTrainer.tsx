@@ -55,7 +55,6 @@ import { useNavCollapse } from '../../lib/useNavCollapse'
 import { useKeyboardInset } from '../../lib/useKeyboardInset'
 import MobileScreen from '../MobileScreen'
 import SubjectCards from './SubjectCards'
-import { fetchCardGroups } from '../../lib/cardGroups'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS, RailCard, RailModes, RailSegment, FilterMenu, TileGrid, Tile, TileMeter } from './TrainerShell'
 import { catalogFor, type ExamCode, type ExamYear } from '../../data/examPresets'
 import { FIPI_KES } from '../../data/fipiKes'
@@ -1657,6 +1656,25 @@ export default function BankTrainer({ subjectState }: {
   const fipiCounts = useTaskBank(s => s.fipiCounts)
   const loadFipiCounts = useTaskBank(s => s.loadFipiCounts)
   useEffect(() => { if (bankOn) void loadFipiCounts(subject) }, [subject, bankOn, loadFipiCounts])
+
+  // ── Курсовые предметы (бухгалтерия и т.п.): задания только из пройденных уроков ──
+  const studentSubjects = useStudentData(s => s.subjects)
+  const studentProgress = useStudentData(s => s.progress)
+  const loadCourseSet = useTaskBank(s => s.loadCourseSet)
+  const isCourseBank = bankOn && !examCatalog
+  const completedLessonIds = useMemo(() => {
+    if (!isCourseBank) return []
+    const course = studentSubjects.find(s => s.subject === langSubject?.name)
+    if (!course) return []
+    const allIds = course.modules.flatMap(m => m.lessons.map(l => l.id))
+    return allIds.filter(id => {
+      const p = studentProgress[id]
+      return p && (p.status === 'completed' || p.status === 'submitted')
+    })
+  }, [isCourseBank, studentSubjects, studentProgress, langSubject?.name])
+  useEffect(() => { if (isCourseBank) void loadCourseSet(subject, completedLessonIds) }, [isCourseBank, subject, completedLessonIds, loadCourseSet])
+  const courseLoading = useTaskBank(s => isCourseBank && !s.courseSetsReady[`course:${subject}`])
+
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
   const [parts, setParts]       = useState<string[]>([])
@@ -1890,20 +1908,10 @@ export default function BankTrainer({ subjectState }: {
   // Сегменты собираются из возможностей: «Список» и «Стопка» — два взгляда на
   // задания банка, «Карточки» — другой материал. Предмет без банка получает
   // один сегмент, и переключать ему нечего.
-  // «Карточки» — наборы, которые собирает учитель. У предмета с банком, где
-  // наборов нет, пункт вёл в пустую полку («пока нет — их собирает учитель»):
-  // показываем его, только когда наборы есть. Без банка полка — единственный
-  // экран и остаётся всегда.
-  const [hasDecks, setHasDecks] = useState(false)
-  useEffect(() => {
-    if (!bankOn || !cardsOn) return
-    let alive = true
-    setHasDecks(false)
-    fetchCardGroups(cardsSubject, deckOwner().studentId)
-      .then(gs => { if (alive) setHasDecks(gs.some(g => g.sets.length > 0)) })
-      .catch(() => {})
-    return () => { alive = false }
-  }, [bankOn, cardsOn, cardsSubject])
+  // «Карточки» у предметов с банком заданий пока скрыты (решение Дани 27.11):
+  // учительские наборы (например «Разделы биологии») в базе остаются, но в
+  // тренажёре пункта нет. Без банка полка — единственный экран и остаётся.
+  const hasDecks = false
   const viewTabItems = useMemo(() => {
     const out: ['list' | 'cards' | 'lines' | 'decks', string, typeof List][] = []
     if (bankOn) { out.push(['list', 'Список', List], ['cards', 'Стопка', Layers]) }
@@ -1911,7 +1919,7 @@ export default function BankTrainer({ subjectState }: {
     if (cardsOn && (!bankOn || hasDecks)) out.push(['decks', 'Карточки', BookOpen])
     return out
   }, [bankOn, cardsOn, examCatalog, hasDecks])
-  // Открытый экран карточек, а наборов у предмета не оказалось, — в список.
+  // Сохранённый экран карточек у предмета с банком — в список.
   useEffect(() => { if (view === 'decks' && bankOn && !hasDecks) setView('list') }, [view, bankOn, hasDecks])
 
   const viewOptions = useMemo(
@@ -2066,8 +2074,12 @@ export default function BankTrainer({ subjectState }: {
           ) : view === 'lines' ? (
             <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent} mobile
               onPick={label => { setLines([label]); setParts([]); setView('list') }} />
-          ) : fipiLoading && filtered.length === 0 ? (
+          ) : (fipiLoading || courseLoading) && filtered.length === 0 ? (
             <TaskListSkeleton rows={5} />
+          ) : isCourseBank && completedLessonIds.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <span style={balancedWrap}>{bindShortWords(t('Пройдите первый урок — задания появятся здесь'))}</span>
+            </div>
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
@@ -2593,8 +2605,12 @@ export default function BankTrainer({ subjectState }: {
       ) : view === 'lines' ? (
         <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent}
           onPick={label => { setLines([label]); setParts([]); setView('list') }} />
-      ) : fipiLoading && filtered.length === 0 ? (
+      ) : (fipiLoading || courseLoading) && filtered.length === 0 ? (
         <TaskListSkeleton rows={3} />
+      ) : isCourseBank && completedLessonIds.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <span style={balancedWrap}>{bindShortWords(t('Пройдите первый урок — задания появятся здесь'))}</span>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>

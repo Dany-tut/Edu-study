@@ -191,6 +191,8 @@ export interface TrainerSubjectState {
 export function useTrainerSubject(): TrainerSubjectState {
   const courses = useStudentData(s => s.subjects)
   const tasks = useTaskBank(s => s.tasks)
+  const fipiCounts = useTaskBank(s => s.fipiCounts)
+  const loadFipiCounts = useTaskBank(s => s.loadFipiCounts)
   const activeSubjectId = useDashboard(s => s.activeSubjectId)
   const coursesLoaded = useStudentData(s => s.loaded)
 
@@ -223,7 +225,21 @@ export function useTrainerSubject(): TrainerSubjectState {
     return id
   }, [])
 
+  // Число заданий ФИПИ по предметам с банком — для меню и правила скрытия ниже.
+  // Запрос-счётчик (head), сами задания не тянет.
+  useEffect(() => {
+    for (const def of SUBJECTS) if (def.hasBank) void loadFipiCounts(def.id)
+  }, [loadFipiCounts])
+
   const options = useMemo<TrainerSubjectOption[]>(() => {
+    // Своих заданий в tasks + банк ФИПИ по обоим экзаменам. ФИПИ из tasks не
+    // вычитаем вдвое: открытый набор лежит и там, поэтому берём большее.
+    const bankCount = (id: string) => {
+      const own = tasks.filter(t => t.subject === id && !t.fipiId).length
+      const fipiLoaded = tasks.filter(t => t.subject === id && t.fipiId).length
+      const fipi = (fipiCounts[`${id}:ege`] ?? 0) + (fipiCounts[`${id}:oge`] ?? 0)
+      return own + Math.max(fipiLoaded, fipi)
+    }
     const seen = new Set<string>()
     const out: TrainerSubjectOption[] = []
 
@@ -252,15 +268,21 @@ export function useTrainerSubject(): TrainerSubjectState {
       const decks = cardSubjects.get(def.id) ?? 0
       const cardsOnly = !def.isLanguage && !def.hasBank
       if (cardsOnly && !(def.trainer?.includes('cards') && decks > 0)) continue
-      const bankTaskCount = def.hasBank ? tasks.filter(t => t.subject === def.id).length : 0
-      if (def.hasBank && bankTaskCount === 0 && decks === 0) continue
+      // Банк ФИПИ в общий список заданий не грузится (loadFipiSet тянет его,
+      // только когда предмет открыт), поэтому у химии и биологии tasks пусты,
+      // пока их не открыли. Считать по одному tasks значило прятать химию из
+      // меню, а тренажёр открывал вместо неё что попало. Прячем предмет, только
+      // когда число заданий ФИПИ по обоим экзаменам уже пришло и оно нулевое.
+      const bankTaskCount = def.hasBank ? bankCount(def.id) : 0
+      const fipiKnown = fipiCounts[`${def.id}:ege`] !== undefined && fipiCounts[`${def.id}:oge`] !== undefined
+      if (def.hasBank && fipiKnown && bankTaskCount === 0 && decks === 0) continue
       add(def, def.isLanguage ? 'lang' : cardsOnly ? 'cards' : 'bank', def.isLanguage
         // Тексты вместе со сценами — столько же, сколько показывает «Чтение» в
         // самом тренажёре. Разные числа в меню предметов и в меню режимов
         // читаются как ошибка одного из них.
         ? textCount(def.langCode) + sceneCount(def.langCode)
         : cardsOnly ? decks
-        : tasks.filter(t => t.subject === def.id).length)
+        : bankTaskCount)
     }
 
     // 2. Предметы с банком заданий — ТОЛЬКО как запасной вариант, когда по
@@ -283,7 +305,7 @@ export function useTrainerSubject(): TrainerSubjectState {
       const bank = BANK_SUBJECT_IDS.filter(id => present.has(id))
       for (const id of (bank.length ? bank : BANK_SUBJECT_IDS)) {
         const def = getSubject(id)
-        if (def) add(def, 'bank', tasks.filter(t => t.subject === id).length)
+        if (def) add(def, 'bank', bankCount(id))
       }
     }
 
@@ -310,7 +332,7 @@ export function useTrainerSubject(): TrainerSubjectState {
     }
 
     return out
-  }, [courses, tasks, coursesLoaded, linkedSubject, cardSubjects])
+  }, [courses, tasks, fipiCounts, coursesLoaded, linkedSubject, cardSubjects])
 
   const [picked, setPicked] = useState(() => {
     if (linkedSubject) { write(KEY, linkedSubject); return linkedSubject }

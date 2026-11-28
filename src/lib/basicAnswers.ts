@@ -1,4 +1,5 @@
 import type { HotspotSpec } from './screenHotspot'
+import { parseVoiceClips, type AnswerVoiceClip } from './answerVoice'
 /**
  * Ответы базового уровня домашки — снимок для преподавателя.
  *
@@ -63,6 +64,11 @@ export interface BasicAnswerRow {
    * пронумерованными нажатиями, вердикт пересчитывается тем же hotspotOutcome.
    */
   hotspot?: { spec: HotspotSpec; taps: string }
+  /**
+   * Развёрнутый ответ, надиктованный голосом: записи вставок и что услышала
+   * распознавалка. Сам ответ — текстом в `answer` (lib/answerVoice.ts).
+   */
+  dictation?: AnswerVoiceClip[]
 }
 
 export interface BasicAnswersPayload {
@@ -108,8 +114,10 @@ export function parseBasicAnswers(attachments: unknown): BasicAnswersPayload | n
       const answer = typeof row.answer === 'string' ? row.answer : ''
       const verdict: BasicAnswerVerdict = ['correct', 'wrong', 'hint', 'review', 'skip', 'empty'].includes(row.verdict)
         ? row.verdict : answer ? 'review' : 'empty'
+      const dictation = parseVoiceClips((row as { dictation?: unknown }).dictation)
       return [{
         ...row, n, answer, verdict,
+        dictation: dictation.length ? dictation : undefined,
         prompt: typeof row.prompt === 'string' ? row.prompt : `${t('Задание')} ${n}`,
         type: typeof row.type === 'string' ? row.type : 'unknown',
       }]

@@ -64,6 +64,8 @@ export interface Task {
    * балл за элемент, «ЕГЭ: одна ошибка — минус балл», по критериям.
    */
   scoring?: 'all_or_nothing' | 'per_item' | 'ege_minus_one' | 'one_error_minus_one' | 'criteria' | 'none' | null
+  /** short_id урока курса (e.g. 'acc-ru-5'). Для курсовых предметов — фильтр по прогрессу ученика. */
+  lessonId?: string | null
 }
 
 // ── Chemistry (ЕГЭ 2026) ─────────────────────────────────────────────────────
