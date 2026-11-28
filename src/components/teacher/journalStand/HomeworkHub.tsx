@@ -2,6 +2,7 @@ import OpticalText from '../../OpticalText'
 import { trackEvent } from '../../../lib/analytics'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Modal from '../../Modal'
+import Segmented from '../../Segmented'
 import { useScrollFades } from '../../../lib/useScrollFades'
 import BasicAnswersList from '../BasicAnswersList'
 import { ArrowLeft, ArrowRight, Check, ChevronRight, ClipboardList, Home, Maximize2, Search, X } from '../../icons/appIcons'
@@ -234,9 +235,11 @@ function HomeworkDialog({ data, items, target, setTarget, onSave, onLocate, onFu
               <span className={'jh-document-status '+(pending?'jh-status-pending':entry.work.status==='Зачтено'?'jh-status-passed':'')}>{entry.work.status}</span>
             </div>
             {target.keys.length>1 && <label className="jh-mobile-student">Ученик<select aria-label="Выбрать ученика в стопке" disabled={busy} value={entry.key} onChange={e=>setTarget({...target,selected:e.target.value})}>{stack.map(e=><option key={e.key} value={e.key}>{e.student.name} · {e.work.status}</option>)}</select></label>}
-            <div className="jh-document-tools" role="group" aria-label="Фильтр ответов"><button data-hover="layer" type="button" aria-pressed={answerFilter==='all'} onClick={()=>setAnswerFilter('all')}><OpticalText as="iskra-button-label">Все задания </OpticalText><span>{breakdown ? breakdown.questions.length : payload?.rows.length??0}</span></button>
-              {pending && !isTestlyWork && <button data-hover="layer" type="button" aria-pressed={answerFilter==='manual'} disabled={!manual.length} onClick={()=>setAnswerFilter('manual')}><OpticalText as="iskra-button-label">На проверку </OpticalText><span>{manual.length}</span></button>}
-              <button data-hover="layer" type="button" aria-pressed={answerFilter==='errors'} disabled={breakdown ? !breakdown.questions.some(q => q.status !== 'correct') : !errors.length} onClick={()=>setAnswerFilter('errors')}><OpticalText as="iskra-button-label">Ошибки </OpticalText><span>{breakdown ? breakdown.questions.filter(q => q.status !== 'correct').length : errors.length}</span></button></div>
+            <div className="jh-document-tools"><Segmented variant="mode" value={answerFilter} onChange={setAnswerFilter} style={{maxWidth:'none',flex:'none'}} items={[
+              {id:'all' as const,label:'Все задания',count:breakdown ? breakdown.questions.length : payload?.rows.length??0},
+              ...(pending && !isTestlyWork ? [{id:'manual' as const,label:'На проверку',count:manual.length}] : []),
+              {id:'errors' as const,label:'Ошибки',count:breakdown ? breakdown.questions.filter(q => q.status !== 'correct').length : errors.length,countTone:'danger' as const},
+            ]}/></div>
             <div className="jh-document-scroll" ref={documentArea}>
               {entry.work.submitted ? isTestlyWork && (breakdown || breakdownLoading) ? (
                 breakdown ? <TestlyBreakdownView

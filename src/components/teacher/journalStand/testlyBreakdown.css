@@ -32,6 +32,7 @@
 .tb-q-num.tb-q-unanswered { background:var(--color-bg-3); color:var(--color-text-3); }
 .tb-q-body { flex:1; min-width:0; }
 .tb-q-prompt { margin:1px 0 0; font-size:12px; line-height:1.6; color:var(--color-text-2); overflow-wrap:anywhere; display:block; max-height:2lh; overflow:hidden; --iskra-text-fade-lines:2; }
+.tb-q-prompt.tb-q-prompt-open { max-height:none; overflow:visible; --iskra-text-fade-lines:0; }
 .tb-q-answers { margin:4px 0 0; font-size:11px; line-height:1.5; color:var(--color-text-3); overflow-wrap:anywhere; }
 .tb-q-label { font-weight:500; }
 .tb-q-correct-label { color:var(--color-green-text); }

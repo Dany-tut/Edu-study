@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { fetchTestlyBreakdown, testlyPoints, testlyResultsUrl } from '../../../lib/testlyModule'
 import type { TestlyBreakdownSnapshot, TestlyQuestionBreakdown } from '../../../lib/testlyBreakdown'
 import { breakdownSummary } from '../../../lib/testlyBreakdown'
@@ -95,16 +95,28 @@ export function TestlyBreakdownView({ testId, testTitle, studentId, attemptKey, 
 
 function QuestionRow({ q, forTeacher }: { q: TestlyQuestionBreakdown; forTeacher?: boolean }) {
   const [open, setOpen] = useState(false)
-  const hasDetails = !!(q.image || q.explanation)
+  // Two complete lines; the full prompt opens with the card, not in a hover hint.
+  const promptRef = useRef<HTMLParagraphElement>(null)
+  const [clipped, setClipped] = useState(false)
+  useLayoutEffect(() => {
+    const el = promptRef.current
+    if (!el || open || typeof ResizeObserver === 'undefined') return
+    const measure = () => setClipped(el.scrollHeight > el.clientHeight + 1)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [open, q.prompt])
+  const hasDetails = !!(q.image || q.explanation) || clipped || open
   const statusClass = q.status === 'correct' ? 'tb-q-correct' : q.status === 'partial' ? 'tb-q-partial' : q.status === 'wrong' ? 'tb-q-wrong' : 'tb-q-unanswered'
 
   return <div className={'tb-question ' + statusClass}>
-    <header className="tb-q-header" role={hasDetails ? 'button' : undefined} tabIndex={hasDetails ? 0 : undefined}
+    <header className="tb-q-header" role={hasDetails ? 'button' : undefined} tabIndex={hasDetails ? 0 : undefined} aria-expanded={hasDetails ? open : undefined}
       onClick={hasDetails ? () => setOpen(v => !v) : undefined}
       onKeyDown={hasDetails ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v) } } : undefined}>
       <span className={'tb-q-num ' + statusClass}>{q.n}</span>
       <div className="tb-q-body">
-        <p className="tb-q-prompt">{q.prompt}</p>
+        <p ref={promptRef} className={'tb-q-prompt' + (open ? ' tb-q-prompt-open' : '')} title="" data-text-fade-mode="last-line">{q.prompt}</p>
         {forTeacher && (q.answer || q.correct) && (
           <p className="tb-q-answers">
             {q.answer && <><span className="tb-q-label">Ответ:</span> {q.answer}</>}
