@@ -22,6 +22,7 @@ import { verdictLabel } from '../../lib/basicAnswers'
 import { useT } from '../../lib/i18n'
 import { bindShortWords, proseWrap } from '../../lib/typography'
 import AudioPlayer from '../AudioPlayer'
+import { answerVoiceUrl } from '../../lib/answerVoice'
 // Картинка «Найди на экране» с нажатиями ученика. Лениво: генераторы
 // реконструкций нужны только там, где такое задание есть.
 const HotspotReview = lazy(() => import('../ScreenHotspotSolver').then(m => ({ default: m.HotspotReview })))
@@ -152,11 +153,43 @@ function AnswerCard({ row, live, teacherReviewed }: { row: BasicAnswerRow; live?
         </p>
       )}
 
+      <DictationBlock row={row} />
+
       {showReference && (
         <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-green-text)' }}>
           {t('Правильный ответ')}: <b>{row.correct}</b>
         </p>
       )}
+    </div>
+  )
+}
+
+/** Путь записи → ссылка из приватного бакета ответов. */
+const voiceUrl = (path: string) => answerVoiceUrl({ path, sec: 0, mime: '', heard: '' })
+
+/**
+ * Ответ, надиктованный голосом: записи вставок и что услышала распознавалка.
+ * Отправлен текст (он выше); это — чтобы учитель мог послушать и сверить.
+ */
+function DictationBlock({ row }: { row: BasicAnswerRow }) {
+  const t = useT()
+  const clips = row.dictation ?? []
+  if (!clips.length) return null
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)' }}>
+        {clips.length > 1 ? `${t('Надиктовано голосом')} · ${t('записей')}: ${clips.length}` : t('Надиктовано голосом')}
+      </span>
+      {clips.map((c, i) => (
+        <div key={c.path + i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <AudioPlayer audioUrl={c.path} resolveUrl={voiceUrl} compact />
+          {c.heard && (
+            <p className="jh-transcript" style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-3)', ...proseWrap }}>
+              {t('Расшифровка')}: «{c.heard}»
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
@@ -182,6 +215,7 @@ function ReviewAnswer({ row, live, teacherReviewed, passingScore }: { row: Basic
         {row.hotspot && hotspotView(row)}
         {row.voice ? <AudioPlayer audioUrl={row.answer} compact/> : <p>{row.answer || t('Ответа нет.')}</p>}
         {row.heard && row.verdict !== 'correct' && <p className="jh-transcript">{t('Машина услышала')}: {row.heard}</p>}
+        <DictationBlock row={row} />
       </div>{showReference && <div className="jh-reference-answer"><small>{t('Правильный ответ')}</small><p>{row.correct}</p></div>}</div>}
   </section>
 }

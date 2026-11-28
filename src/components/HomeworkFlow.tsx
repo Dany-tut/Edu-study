@@ -34,6 +34,8 @@ import { isNewHard, hardId, studentSolutions, legacyHardToBlocks, LEGACY_HARD_KE
 import { optimizePhoto } from '../lib/imageOptim'
 import { storeSolutionImages } from '../lib/homeworkPhotos'
 import { uploadAnswerFile } from '../lib/answerFiles'
+import { dictationLang, type AnswerVoiceClip } from '../lib/answerVoice'
+import VoiceDictation from './VoiceDictation'
 import HardConversation, { type HardTabVM, type SolutionPayload } from './teacher/HardConversation'
 import { playUnlock, playPop, vibrate } from '../lib/sound'
 import {
@@ -54,7 +56,7 @@ import { useIsDesktop } from '../lib/useIsDesktop'
 import { useSwipeBack } from '../lib/useSwipeBack'
 import { useScreenBack } from '../lib/useScreenBack'
 import { useNavCollapse } from '../lib/useNavCollapse'
-import { useT, t as tStatic, tc as tcStatic } from '../lib/i18n'
+import { useT, useLang, t as tStatic, tc as tcStatic } from '../lib/i18n'
 import { setVoiceScene, clearVoiceScene, speak, stopSpeech, hasVoiceFor } from '../lib/speech'
 import { bindShortWords, proseWrap, balancedWrap, splitLeadIn } from '../lib/typography'
 import GrowTextarea, { growMinHeight } from './GrowTextarea'
@@ -776,6 +778,11 @@ interface PersistedHomeworkState {
    * подсмотрено (прежнее поведение).
    */
   basicHintsOpen?: Record<string, true>
+  /**
+   * Ответ голосом (extended + voiceInput): записи, приложенные к тексту ответа,
+   * по id задания. Отправляется текст; записи — учителю (lib/answerVoice.ts).
+   */
+  basicVoice?: Record<string, AnswerVoiceClip[]>
   /**
    * Шаг языковой домашки, где на экране ровно одно задание.
    *
@@ -1781,7 +1788,7 @@ function enterDraft(current: PersistedHomeworkState, attemptId: string): Persist
   return {
     ...current,
     attemptId, selectedLevel: 'basic', basicSubmitted: false, submittedAt: undefined,
-    basicAnswers: {}, basicChecked: {}, basicHints: {}, basicHintsOpen: {},
+    basicAnswers: {}, basicChecked: {}, basicHints: {}, basicHintsOpen: {}, basicVoice: {},
     selfAssessmentValue: null, selfAssessedAt: undefined, flowStep: 0, flowQueue: undefined,
   }
 }
@@ -1830,6 +1837,7 @@ export default function HomeworkFlow({
   onBack,
 }: HomeworkFlowProps) {
   const t = useT()
+  const uiLang = useLang(s => s.lang)
   const isMobile = !useIsDesktop()
   // Нижние полосы центруются по колонке задания, а не по окну (рейл слева).
   const columnRef = useRef<HTMLElement>(null)
@@ -2357,6 +2365,9 @@ export default function HomeworkFlow({
         ...(voice ? { voice: true } : {}),
         ...(testly ? { testly } : {}),
         ...(hotspot ? { hotspot } : {}),
+        // Ответ голосом: текст — в answer, записи — учителю послушать.
+        ...(tp === 'extended' && (state.basicVoice?.[question.id]?.length ?? 0) > 0
+          ? { dictation: state.basicVoice![question.id] } : {}),
         // Что услышала распознавалка — преподавателю в незачтённых: по нему
         // сразу видно, ученик сказал не то или машина не расслышала.
         ...(tp === 'speaking' && parseVoiceAnswer(raw).heard
@@ -2782,6 +2793,14 @@ export default function HomeworkFlow({
     setState(current => ({
       ...current,
       basicAnswers: { ...current.basicAnswers, [questionId]: value },
+    }))
+  }
+
+  const setVoiceClips = (questionId: string, clips: AnswerVoiceClip[]) => {
+    if (state.basicSubmitted) return
+    setState(current => ({
+      ...current,
+      basicVoice: { ...(current.basicVoice ?? {}), [questionId]: clips },
     }))
   }
 
@@ -4649,6 +4668,18 @@ export default function HomeworkFlow({
                           opacity: locked ? 0.85 : 1,
                         }}
                       />
+                      )}
+                      {qType(question) === 'extended' && question.voiceInput && (
+                        <VoiceDictation
+                          value={selectedAnswer ?? ''}
+                          onChange={v => setFreeAnswer(question.id, v)}
+                          disabled={locked}
+                          lang={dictationLang(question.lang, uiLang)}
+                          keep={question.voiceKeep !== false}
+                          clips={state.basicVoice?.[question.id] ?? []}
+                          onClips={c => setVoiceClips(question.id, c)}
+                          studentId={ownerStudentIdFor(subject)}
+                        />
                       )}
                       {/* Ответ ждут письмом, которого нет на клавиатуре ученика
                           (см. ScriptKeyboard). */}

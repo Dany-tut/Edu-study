@@ -2,7 +2,7 @@ import OpticalText from './OpticalText'
 import FadeText from './FadeText'
 import { viewportDropdownPosition, watchDropdownViewport } from '../lib/dropdownPosition'
 import { textFadeStyle } from '../lib/textFades'
-import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
+import { Fragment, useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Check, X, Plus } from './icons/appIcons'
@@ -29,8 +29,16 @@ export default function MultiSelectField({
   label, options, values, onChange,
   accent = 'var(--color-purple-text)', accentBg = 'var(--color-purple-soft)', small = false,
   lockScroll = false, creatable = false, createLabel = 'Добавить', createHint, createPlaceholder, field, optionIcon, clearable = true,
+  groupOf, countOf,
 }: {
   label: string
+  /**
+   * Заголовок группы для варианта: варианты идут подряд, и над первым из каждой
+   * группы встаёт подпись (темы по разделам, линии по частям — как у Neo Family).
+   */
+  groupOf?: (value: string) => string | undefined
+  /** Счётчик справа в строке варианта: сколько заданий останется. */
+  countOf?: (value: string) => number | undefined
   clearable?: boolean
   /** Optional subject mark, kept outside the text fade. */
   optionIcon?: (value: string) => ReactNode
@@ -287,16 +295,25 @@ export default function MultiSelectField({
                 <div role="listbox" aria-label={label} aria-multiselectable="true" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {shown.length === 0 && !canCreate ? (
                     <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--color-text-3)' }}>{t('Ничего не найдено')}</div>
-                  ) : shown.map(o => {
+                  ) : shown.map((o, i) => {
                     const selected = values.includes(o)
+                    const group = groupOf?.(o)
+                    const head = group && (i === 0 || groupOf?.(shown[i - 1]) !== group)
+                    const count = countOf?.(o)
                     return (
-                      <button data-hover="layer" type="button" role="option" aria-selected={selected} key={o} onClick={() => toggle(o)}
+                      <Fragment key={o}>
+                      {head && (
+                        <div style={{ padding: i === 0 ? '4px 12px 2px' : '10px 12px 2px', fontSize: 11, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--color-text-3)' }}>{t(group)}</div>
+                      )}
+                      <button data-hover="layer" type="button" role="option" aria-selected={selected} onClick={() => toggle(o)}
                         style={{ ...dropdownRow(selected, { small, accent, accentBg }), fontSize, ...(optionIcon && field && field.fontSize >= 16 ? { minHeight: 48 } : {}) }}
                         {...dropdownRowHover(selected)}
                       >
                         {optionIcon?.(o)}<FadeText optical lines={2} style={{ flex: 1, overflowWrap: 'anywhere' }}>{t(o)}</FadeText>
+                        {count !== undefined && <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, color: 'var(--color-text-3)', fontVariantNumeric: 'tabular-nums' }}>{count}</span>}
                         {selected && <Check size={14} strokeWidth={2.5} style={{ flexShrink: 0, color: accent }} />}
                       </button>
+                      </Fragment>
                     )
                   })}
                   {canCreate && (

@@ -8,7 +8,7 @@ import { Check as LoopMarkCheck, X as LoopMarkX } from '../icons/appIcons'
 import { LoopInlineIcon } from '../icons/LoopIcon'
 import { ChevronDown as LoopInlineChevronDown } from '../icons/appIcons'
 import { Check as LoopInlineCheck } from '../icons/appIcons'
-import { useState, useMemo, useRef, useEffect, lazy, Suspense, type ReactNode } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense, type ReactNode } from 'react'
 import CountBadge from '../CountBadge'
 import ScrollFade from '../ScrollFade'
 import QuestionTable from '../QuestionTable'
@@ -34,7 +34,8 @@ let lastTrainerOpen = 0
 import { useCurriculum } from '../../store/curriculumStore'
 import FipiTaskBody, { FipiVerdict, LinesGrid, type FipiState } from './FipiTask'
 import { fipiOf } from '../../lib/fipiGrade'
-import { kesSectionLabel, kesTopicLabel } from '../../data/fipiKes'
+import { FIPI_THEMES, nfTheme, nfThemeId } from '../../data/fipiThemes'
+import { rememberExam, useStudentExam } from '../../lib/studentExam'
 import { useTaskBank, type FipiIndexRow } from '../../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import { useDashboard } from '../../store/dashboardStore'
@@ -55,7 +56,6 @@ import { useNavCollapse } from '../../lib/useNavCollapse'
 import { useKeyboardInset } from '../../lib/useKeyboardInset'
 import MobileScreen from '../MobileScreen'
 import SubjectCards from './SubjectCards'
-import { fetchCardGroups } from '../../lib/cardGroups'
 import TrainerShell, { StatusTabs as ShellStatusTabs, SortMenu, PILL_GLASS, RailCard, RailModes, RailSegment, FilterMenu, TileGrid, Tile, TileMeter } from './TrainerShell'
 import { catalogFor, type ExamCode, type ExamYear } from '../../data/examPresets'
 import { FIPI_KES } from '../../data/fipiKes'
@@ -402,25 +402,33 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               <>
                 <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text)', minWidth: 14, textAlign: 'center' }}>{index + 1}</span>
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
-                  {task.line} {t('линия')}
+                  {fipi ? `${t('Линия')} ${task.line}` : `${task.line} ${t('линия')}`}
                 </span>
                 <NumberBadge id={task.id} onCopied={onCopyId} icon={<Database size={12} strokeWidth={2.5} />} />
+                {fipi && <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{t('Часть')} {task.part}</span>}
               </>
             ) : (
               <>
                 <span style={{ fontSize: 11, fontWeight: 700, color: palette.text }}>{t('Задание')} {index + 1}</span>
                 <span style={{ fontSize: 11, color: '#BDBDC2' }}>·</span>
+                {/* Банк ФИПИ — как у Neo Family: «Линия N · № · Часть», тема строкой ниже.
+                    Название линии в чипе убрано: «2 · Методы…» путали с разделом. */}
+                {fipi ? (<>
+                  <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: `${palette.accent}33`, color: 'var(--color-text)' }}>{t('Линия')} {task.line}</span>
+                  <NumberBadge id={task.id} onCopied={onCopyId} />
+                </>) : (<>
                 <NumberBadge id={task.id} onCopied={onCopyId} />
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: `${palette.accent}33`, color: 'var(--color-text)' }}>
                   {task.line} · {lineNames[task.line] ?? `${t('Линия')} ${task.line}`}
                 </span>
+                </>)}
                 <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: 'var(--color-muted)' }}>{t('Часть')} {task.part}</span>
               </>
             )}
           </div>
-          {mobile && task.topic && (
+          {(fipi ? !!nfTheme(nfThemeId(task)) : mobile && !!task.topic) && (
             <div style={{ fontSize: 11, color: 'var(--color-muted)', lineHeight: 1.3, marginTop: -1 }}>
-              <span style={{ fontWeight: 600 }}>{t('Тема:')}</span> {fipi ? kesTopicLabel(`${task.exam}_${task.subject}`, task.topic) : task.topic}
+              <span style={{ fontWeight: 600 }}>{t('Тема:')}</span> {fipi ? nfTheme(nfThemeId(task))?.theme.name : task.topic}
             </div>
           )}
         </div>
@@ -795,7 +803,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         {mobile
           ? <span style={{ flex: 1 }} />
           : fipi
-            ? <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{kesSectionLabel(`${task.exam}_${task.subject}`, task.topic || task.section)} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {kesTopicLabel(`${task.exam}_${task.subject}`, task.topic)} · {t('ФИПИ')} {task.fipiId}</span>
+            // Строки кодификатора на карточке нет (как у Neo Family): тема — сверху.
+            ? <span style={{ flex: 1 }} />
             : <span style={{ fontSize: 11, color: 'var(--color-muted)', flex: 1 }}>{task.section} <LoopUiChevronRight size={11} style={{display:'inline-block',verticalAlign:'middle'}} /> {task.topic} · {task.source}</span>}
         <button data-hover="layer" onClick={() => setReported(r => !r)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'none', border: 'none', fontSize: 11, color: reported ? '#C0187A' : 'var(--color-text-3)', cursor: 'pointer' }}>
           <AlertTriangle size={12} /><OpticalText as="iskra-button-label">{reported ? t('Отправлено') : t('Ошибка')}</OpticalText>
@@ -1629,7 +1638,10 @@ export default function BankTrainer({ subjectState }: {
   // Концепт: Figma «Искра», стр. 27. Экзамен запоминается на предмет: у ученика
   // химия на ЕГЭ и биология на ОГЭ — нормальное сочетание. Год — КИМ ФИПИ:
   // 2026 действующий, 2027 — проект (структура та же, меняются баллы части линий).
-  const [exam, setExamState] = useState<ExamCode>(() => {
+  // Экзамен из карточки предмета («Химия · ЕГЭ») — тогда выбора ЕГЭ/ОГЭ нет
+  // вовсе: блок «Экзамен» скрыт, банк только этого экзамена (lib/studentExam).
+  const fixedExam = useStudentExam(subject)
+  const [chosenExam, setExamState] = useState<ExamCode>(() => {
     try { return (localStorage.getItem(`trainer_exam_${subject}`) as ExamCode) || 'ege' } catch { return 'ege' }
   })
   // Год КИМ — всегда база 2026. Переключатель «КИМ 2026 / 2027 · проект»
@@ -1642,8 +1654,9 @@ export default function BankTrainer({ subjectState }: {
   }, [subject])
   const setExam = (e: ExamCode) => {
     setExamState(e)
-    try { localStorage.setItem(`trainer_exam_${subject}`, e) } catch { /* приватный режим */ }
+    rememberExam(subject, e)
   }
+  const exam: ExamCode = fixedExam ?? chosenExam
   const loadFipiSet = useTaskBank(s => s.loadFipiSet)
   useEffect(() => { if (bankOn) void loadFipiSet(subject, exam) }, [subject, exam, bankOn, loadFipiSet])
   const subjectName = langSubject?.name ?? (subject === 'chemistry' ? 'Химия' : subject === 'biology' ? 'Биология' : subject)
@@ -1657,6 +1670,25 @@ export default function BankTrainer({ subjectState }: {
   const fipiCounts = useTaskBank(s => s.fipiCounts)
   const loadFipiCounts = useTaskBank(s => s.loadFipiCounts)
   useEffect(() => { if (bankOn) void loadFipiCounts(subject) }, [subject, bankOn, loadFipiCounts])
+
+  // ── Курсовые предметы (бухгалтерия и т.п.): задания только из пройденных уроков ──
+  const studentSubjects = useStudentData(s => s.subjects)
+  const studentProgress = useStudentData(s => s.progress)
+  const loadCourseSet = useTaskBank(s => s.loadCourseSet)
+  const isCourseBank = bankOn && !examCatalog
+  const completedLessonIds = useMemo(() => {
+    if (!isCourseBank) return []
+    const course = studentSubjects.find(s => s.subject === langSubject?.name)
+    if (!course) return []
+    const allIds = course.modules.flatMap(m => m.lessons.map(l => l.id))
+    return allIds.filter(id => {
+      const p = studentProgress[id]
+      return p && (p.status === 'completed' || p.status === 'submitted')
+    })
+  }, [isCourseBank, studentSubjects, studentProgress, langSubject?.name])
+  useEffect(() => { if (isCourseBank) void loadCourseSet(subject, completedLessonIds) }, [isCourseBank, subject, completedLessonIds, loadCourseSet])
+  const courseLoading = useTaskBank(s => isCourseBank && !s.courseSetsReady[`course:${subject}`])
+
   const [sections, setSections] = useState<string[]>([])
   const [topics, setTopics]     = useState<string[]>([])
   const [parts, setParts]       = useState<string[]>([])
@@ -1780,17 +1812,49 @@ export default function BankTrainer({ subjectState }: {
   // а не по уже пришедшим порциям: иначе числа росли вслед за догрузкой.
   const fipiIndex = useTaskBank(s => s.fipiIndex[`${subject}:${exam}`])
   const countBase: FipiIndexRow[] = fipiIndex ?? subjectTasks
-  const kesSectionOpts = useMemo(() => !fipiSet || !kes ? [] : Object.entries(kes.sections).map(([code, name]) => ({
-    value: code, label: `${code} · ${name}`, count: countBase.filter(t => (t.kes ?? []).some(k => k.split('.')[0] === code)).length,
-  })).filter(o => o.count > 0), [fipiSet, kes, countBase])
-  const kesTopicOpts = useMemo(() => !fipiSet || !kes ? [] : Object.entries(kes.topics)
-    .filter(([code]) => !sections.length || sections.includes(code.split('.')[0]))
-    .map(([code, name]) => ({ value: code, label: `${code} ${name}`, count: countBase.filter(t => (t.kes ?? []).includes(code)).length }))
-    .filter(o => o.count > 0), [fipiSet, kes, countBase, sections])
-  const lineOpts = useMemo(() => (examCatalog?.lines ?? [])
-    .filter(l => !parts.length || parts.includes(part2Lines.has(l.number) ? '2' : '1'))
-    .map(l => ({ value: String(l.number), label: `${l.number} · ${l.title}`, count: countBase.filter(t => t.line === l.number).length })),
-    [examCatalog, parts, part2Lines, countBase])
+  // Набор ФИПИ — фильтры «как у Neo Family» (решение Дани 28.11): Раздел → Тема
+  // (учебный список data/fipiThemes, тема задания в payload.nf.theme), Часть →
+  // Линия. Каждый фильтр сужает остальные в обе стороны: варианты и счётчики
+  // фильтра считаются по заданиям, прошедшим ВСЕ ОСТАЛЬНЫЕ фильтры. Счётчики —
+  // по индексу всего набора (taskBankStore.fipiIndex), а не по пришедшим порциям.
+  const nfSecs = fipiSet ? FIPI_THEMES[kesKey] : undefined
+  const lineNumsSel = useMemo(() => new Set(lines.map(l => Number(l.split(' · ')[0]))), [lines])
+  const nfMatch = useCallback((r: FipiIndexRow | Task, skip: 'section' | 'topic' | 'part' | 'line') => {
+    const th = nfTheme(nfThemeId(r))
+    if (skip !== 'section' && sections.length && !(th && sections.includes(th.section.name))) return false
+    if (skip !== 'topic' && topics.length && !(th && topics.includes(th.theme.name))) return false
+    if (skip !== 'part' && parts.length && !parts.includes(String(r.part))) return false
+    if (skip !== 'line' && lines.length && !lineNumsSel.has(r.line)) return false
+    return true
+  }, [sections, topics, parts, lines, lineNumsSel])
+  const kesSectionOpts = useMemo(() => {
+    if (!nfSecs) return []
+    const rows = countBase.filter(r => nfMatch(r, 'section'))
+    return nfSecs.map(sec => ({ value: sec.name, group: undefined as string | undefined, count: rows.filter(r => nfTheme(nfThemeId(r))?.section.id === sec.id).length }))
+      .filter(o => o.count > 0 || sections.includes(o.value))
+  }, [nfSecs, countBase, nfMatch, sections])
+  const kesTopicOpts = useMemo(() => {
+    if (!nfSecs) return []
+    const rows = countBase.filter(r => nfMatch(r, 'topic'))
+    const seen = new Set<string>()
+    const out: { value: string; group: string; count: number }[] = []
+    for (const sec of nfSecs) for (const th of sec.themes) {
+      if (seen.has(th.name)) continue
+      const count = rows.filter(r => nfTheme(nfThemeId(r))?.theme.name === th.name).length
+      if (count > 0 || topics.includes(th.name)) { seen.add(th.name); out.push({ value: th.name, group: sec.name, count }) }
+    }
+    return out
+  }, [nfSecs, countBase, nfMatch, topics])
+  const lineOpts = useMemo(() => {
+    const rows = fipiSet ? countBase.filter(r => nfMatch(r, 'line')) : countBase
+    return (examCatalog?.lines ?? [])
+      .filter(l => fipiSet || !parts.length || parts.includes(part2Lines.has(l.number) ? '2' : '1'))
+      .map(l => ({ value: `${l.number} · ${l.title}`, label: `${l.number} · ${l.title}`, group: `${t('Часть')} ${part2Lines.has(l.number) ? 2 : 1}`, count: rows.filter(r => r.line === l.number).length }))
+      .filter(o => !fipiSet || o.count > 0 || lines.includes(o.value))
+  }, [examCatalog, parts, part2Lines, countBase, fipiSet, nfMatch, lines, t])
+  const nfPartCount = useCallback((p: number) => countBase.filter(r => r.part === p && nfMatch(r, 'part')).length, [countBase, nfMatch])
+  const optCount = (opts: { value: string; count: number }[]) => { const m = new Map(opts.map(o => [o.value, o.count])); return (v: string) => m.get(v) }
+  const optGroup = (opts: { value: string; group?: string }[]) => { const m = new Map(opts.map(o => [o.value, o.group])); return (v: string) => m.get(v) }
   const sectionOptions = merge(baseSections, sectionScope(subject))
   const baseTopics   = useMemo(() => {
     const taskTopics = (sections.length ? subjectTasks.filter(t => sections.includes(t.section)) : subjectTasks).map(t => t.topic).filter(Boolean)
@@ -1836,9 +1900,9 @@ export default function BankTrainer({ subjectState }: {
       ? tasks.filter(t => hasExamCatalog ? (t.exam ?? 'ege') === exam : true)
       : subjectTasks
     if (fipiSet) {
-      // Кодификатор: задание проверяет несколько элементов (КЭС), раздел — первая цифра кода.
-      if (!search && sections.length) list = list.filter(t => (t.kes ?? []).some(k => sections.includes(k.split('.')[0])))
-      if (!search && topics.length)   list = list.filter(t => (t.kes ?? []).some(k => topics.includes(k)))
+      // Раздел и тема «как у Neo» — по payload.nf.theme (data/fipiThemes).
+      if (!search && sections.length) list = list.filter(t => { const th = nfTheme(nfThemeId(t)); return !!th && sections.includes(th.section.name) })
+      if (!search && topics.length)   list = list.filter(t => { const th = nfTheme(nfThemeId(t)); return !!th && topics.includes(th.theme.name) })
     } else {
       if (!search && sections.length) list = list.filter(t => sections.includes(t.section))
       if (!search && topics.length)   list = list.filter(t => topics.includes(t.topic))
@@ -1890,20 +1954,10 @@ export default function BankTrainer({ subjectState }: {
   // Сегменты собираются из возможностей: «Список» и «Стопка» — два взгляда на
   // задания банка, «Карточки» — другой материал. Предмет без банка получает
   // один сегмент, и переключать ему нечего.
-  // «Карточки» — наборы, которые собирает учитель. У предмета с банком, где
-  // наборов нет, пункт вёл в пустую полку («пока нет — их собирает учитель»):
-  // показываем его, только когда наборы есть. Без банка полка — единственный
-  // экран и остаётся всегда.
-  const [hasDecks, setHasDecks] = useState(false)
-  useEffect(() => {
-    if (!bankOn || !cardsOn) return
-    let alive = true
-    setHasDecks(false)
-    fetchCardGroups(cardsSubject, deckOwner().studentId)
-      .then(gs => { if (alive) setHasDecks(gs.some(g => g.sets.length > 0)) })
-      .catch(() => {})
-    return () => { alive = false }
-  }, [bankOn, cardsOn, cardsSubject])
+  // «Карточки» у предметов с банком заданий пока скрыты (решение Дани 27.11):
+  // учительские наборы (например «Разделы биологии») в базе остаются, но в
+  // тренажёре пункта нет. Без банка полка — единственный экран и остаётся.
+  const hasDecks = false
   const viewTabItems = useMemo(() => {
     const out: ['list' | 'cards' | 'lines' | 'decks', string, typeof List][] = []
     if (bankOn) { out.push(['list', 'Список', List], ['cards', 'Стопка', Layers]) }
@@ -1911,7 +1965,7 @@ export default function BankTrainer({ subjectState }: {
     if (cardsOn && (!bankOn || hasDecks)) out.push(['decks', 'Карточки', BookOpen])
     return out
   }, [bankOn, cardsOn, examCatalog, hasDecks])
-  // Открытый экран карточек, а наборов у предмета не оказалось, — в список.
+  // Сохранённый экран карточек у предмета с банком — в список.
   useEffect(() => { if (view === 'decks' && bankOn && !hasDecks) setView('list') }, [view, bankOn, hasDecks])
 
   const viewOptions = useMemo(
@@ -2066,8 +2120,12 @@ export default function BankTrainer({ subjectState }: {
           ) : view === 'lines' ? (
             <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent} mobile
               onPick={label => { setLines([label]); setParts([]); setView('list') }} />
-          ) : fipiLoading && filtered.length === 0 ? (
+          ) : (fipiLoading || courseLoading) && filtered.length === 0 ? (
             <TaskListSkeleton rows={5} />
+          ) : isCourseBank && completedLessonIds.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <span style={balancedWrap}>{bindShortWords(t('Пройдите первый урок — задания появятся здесь'))}</span>
+            </div>
           ) : filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '56px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>
@@ -2257,16 +2315,16 @@ export default function BankTrainer({ subjectState }: {
             {/* Предмет и экзамен — первыми, как рейл на ПК: карточка предмета,
                 ЕГЭ/ОГЭ и год КИМ. Сверху экрана их больше нет. */}
             <SubjectPill state={subjectState} palette={palette} />
-            {bankOn && examCatalog && (<>
+            {bankOn && examCatalog && !fixedExam && (<>
               <RailSegment
                 options={(['ege', 'oge'] as ExamCode[]).map(e => ({ value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ', badge: Math.max(tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length, fipiCounts[`${subject}:${e}`] ?? 0) || undefined }))}
                 value={exam} onChange={v => v && setExam(v as ExamCode)} accent={palette.accent} soft={railSoft} clearable={false} />
             </>)}
             {fipiSet ? (<>
-              <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.label)} values={kesSectionOpts.filter(o => sections.includes(o.value)).map(o => o.label)}
-                onChange={v => setSections(v.map(l => l.split(' · ')[0]))} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
-              <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.label)} values={kesTopicOpts.filter(o => topics.includes(o.value)).map(o => o.label)}
-                onChange={v => setTopics(v.map(l => l.split(' ')[0]))} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
+              <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.value)} values={sections} onChange={setSections}
+                countOf={optCount(kesSectionOpts)} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
+              <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.value)} values={topics} onChange={setTopics}
+                countOf={optCount(kesTopicOpts)} groupOf={optGroup(kesTopicOpts)} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             </>) : (<>
             <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
@@ -2274,7 +2332,7 @@ export default function BankTrainer({ subjectState }: {
             {examCatalog && <div style={{ display: 'flex', gap: 8 }}>
               {['1', '2'].map(p => {
                 const active = parts.includes(p)
-                const avail = availableParts.includes(p as '1' | '2')
+                const avail = fipiSet ? nfPartCount(Number(p)) > 0 || active : availableParts.includes(p as '1' | '2')
                 return (
                 <button data-hover="layer" key={p} disabled={!avail} onClick={() => { tactile(); setParts(active ? parts.filter(x => x !== p) : [...parts, p]) }} style={{
                   flex: 1, padding: '12px 12px', borderRadius: 13, fontSize: 14, fontWeight: 600, cursor: avail ? 'pointer' : 'not-allowed',
@@ -2287,7 +2345,8 @@ export default function BankTrainer({ subjectState }: {
                 </button>
               )})}
             </div>}
-            {hasExamCatalog && <MultiSelectField label={t('Линия')} options={fipiSet ? lineOpts.map(o => o.label) : allLines} values={lines} onChange={setLines} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />}
+            {hasExamCatalog && <MultiSelectField label={t('Линия')} options={fipiSet ? lineOpts.map(o => o.label) : allLines} values={lines} onChange={setLines}
+              countOf={fipiSet ? optCount(lineOpts) : undefined} groupOf={fipiSet ? optGroup(lineOpts) : undefined} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />}
             {hasExamCatalog && !fipiSet && <FilterField label={t('Источник')} options={allSources} value={source} onChange={setSource} accent={palette.accent} />}
             <MobileStatusTabs value={statusFilter} onChange={setStatusFilter} accent={palette.accent} />
             {/* Сортировка — здесь же: в доке её место занял «Режим». */}
@@ -2466,7 +2525,7 @@ export default function BankTrainer({ subjectState }: {
         )}
 
         {/* ЭКЗАМЕН — по образцу «Что читаем»: ЕГЭ/ОГЭ со счётчиками. Год КИМ — база 2026, без переключателя. */}
-        {bankOn && view !== 'decks' && examCatalog && (
+        {bankOn && view !== 'decks' && examCatalog && !fixedExam && (
           <RailCard icon={<Target size={15} />} title="Экзамен" accent={palette.accent}>
             <RailSegment
               options={(['ege', 'oge'] as ExamCode[]).map(e => ({
@@ -2494,16 +2553,17 @@ export default function BankTrainer({ subjectState }: {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {fipiSet ? (<>
-              <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.label)} values={kesSectionOpts.filter(o => sections.includes(o.value)).map(o => o.label)}
-                onChange={v => setSections(v.map(l => l.split(' · ')[0]))} accent={palette.accent} accentBg={railSoft} lockScroll />
-              <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.label)} values={kesTopicOpts.filter(o => topics.includes(o.value)).map(o => o.label)}
-                onChange={v => setTopics(v.map(l => l.split(' ')[0]))} accent={palette.accent} accentBg={railSoft} lockScroll />
+              <MultiSelectField label={t('Раздел')} options={kesSectionOpts.map(o => o.value)} values={sections} onChange={setSections}
+                countOf={optCount(kesSectionOpts)} accent={palette.accent} accentBg={railSoft} lockScroll />
+              <MultiSelectField label={t('Тема')} options={kesTopicOpts.map(o => o.value)} values={topics} onChange={setTopics}
+                countOf={optCount(kesTopicOpts)} groupOf={optGroup(kesTopicOpts)} accent={palette.accent} accentBg={railSoft} lockScroll />
               <RailSegment
-                options={[1, 2].map(p => ({ value: String(p), label: `${t('Часть')} ${p}`, badge: countBase.filter(x => x.part === p).length || undefined }))}
+                options={[1, 2].map(p => ({ value: String(p), label: `${t('Часть')} ${p}`, badge: nfPartCount(p) || undefined }))}
                 value={parts.length === 1 ? parts[0] : ''}
                 onChange={v => setParts(v ? [v] : [])}
                 accent={palette.accent} soft={railSoft} />
-              <MultiSelectField label={t('Линия')} options={lineOpts.map(o => o.label)} values={lines} onChange={setLines} accent={palette.accent} accentBg={railSoft} lockScroll />
+              <MultiSelectField label={t('Линия')} options={lineOpts.map(o => o.label)} values={lines} onChange={setLines}
+                countOf={optCount(lineOpts)} groupOf={optGroup(lineOpts)} accent={palette.accent} accentBg={railSoft} lockScroll />
             </>) : (<>
             <MultiSelectField label={t('Раздел')} options={sectionOptions} values={sections} onChange={setSections} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
             <MultiSelectField label={t('Тема')} options={topicOptions} values={topics} onChange={setTopics} accent={palette.accent} accentBg={`${palette.accent}22`} lockScroll />
@@ -2593,8 +2653,12 @@ export default function BankTrainer({ subjectState }: {
       ) : view === 'lines' ? (
         <LinesGrid lines={examCatalog?.lines ?? []} tasks={countBase} answered={answered} part2={part2Lines} accent={palette.accent}
           onPick={label => { setLines([label]); setParts([]); setView('list') }} />
-      ) : fipiLoading && filtered.length === 0 ? (
+      ) : (fipiLoading || courseLoading) && filtered.length === 0 ? (
         <TaskListSkeleton rows={3} />
+      ) : isCourseBank && completedLessonIds.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <span style={balancedWrap}>{bindShortWords(t('Пройдите первый урок — задания появятся здесь'))}</span>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-3)', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <span style={balancedWrap}>{bindShortWords(t('Заданий не найдено — измените фильтры'))}</span>

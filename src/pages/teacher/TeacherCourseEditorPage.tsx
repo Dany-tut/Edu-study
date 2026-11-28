@@ -3798,6 +3798,23 @@ function HWTaskCard({ task, index, onUpdate, onPhotoChange, onDelete, onGripDown
                 />
               )}
 
+              {/* Ответ голосом (extended): ученик диктует, в поле печатается
+                  текст; отправляется текст, запись — учителю. Figma стр. 29. */}
+              {task.type === 'extended' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <Switch checked={!!task.voiceInput} onChange={v => onUpdate({ ...task, voiceInput: v || undefined })} label={t('Ответ голосом')} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Ответ голосом')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('ученик диктует — текст печатается в поле')}</span></span>
+                  </label>
+                  {task.voiceInput && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                      <Switch checked={task.voiceKeep ?? true} onChange={v => onUpdate({ ...task, voiceKeep: v })} label={t('Сохранять запись для учителя')} />
+                      <span style={{ fontSize: 13, color: 'var(--color-text)' }}>{t('Сохранять запись для учителя')} <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('отправляется текст, запись прикрепляется')}</span></span>
+                    </label>
+                  )}
+                </div>
+              )}
+
               {/* Число (numeric): эталон + допуск ± + единицы, подписи внутри полей, свои тумблеры */}
               {task.type === 'numeric' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

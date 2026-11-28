@@ -243,8 +243,8 @@ export function ExcelSettingsButton({ courseTitle }: { courseTitle?: string }) {
   useEffect(() => { void loadExcelPrefs() }, [])
   return (
     <>
-      <button type="button" className="xl-pill" onClick={() => setOpen(true)} aria-haspopup="dialog">
-        Настройки обучения <em>{versionLabel(prefs.version)}</em>
+      <button type="button" className="xl-pill" onClick={() => setOpen(true)} aria-haspopup="dialog" title="Настройки обучения" aria-label={`Настройки обучения: ${versionLabel(prefs.version)}`}>
+        <em>{versionLabel(prefs.version)}</em>
       </button>
       <ExcelOverlay open={open} onClose={() => setOpen(false)} title="Настройки обучения" wide>
         <ExcelSettingsPanel courseTitle={courseTitle} onDone={() => setOpen(false)} />
