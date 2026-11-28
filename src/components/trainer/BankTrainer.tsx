@@ -37,6 +37,7 @@ import { fipiOf } from '../../lib/fipiGrade'
 import { FIPI_THEMES, nfTheme, nfThemeId } from '../../data/fipiThemes'
 import { rememberExam, useStudentExam } from '../../lib/studentExam'
 import { useTaskBank, type FipiIndexRow } from '../../store/taskBankStore'
+import { flushAnswers, loadServerAnswers, mergeWithServer, queueAnswer } from '../../lib/trainerAnswersSync'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import { useDashboard } from '../../store/dashboardStore'
 import { useStudentData } from '../../store/studentDataStore'
@@ -1770,6 +1771,30 @@ export default function BankTrainer({ subjectState }: {
     answered.forEach((v, k) => { obj[k] = v })
     try { localStorage.setItem(LS_ANSWERED, JSON.stringify(obj)) } catch {}
   }, [answered])
+  // ── Ответы на сервере (trainer_answers): другое устройство видит прогресс ──
+  const answeredRef = useRef(answered)
+  answeredRef.current = answered
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scheduleFlush = useCallback((ms = 600) => {
+    if (flushTimer.current) clearTimeout(flushTimer.current)
+    flushTimer.current = setTimeout(() => { void flushAnswers(id => answeredRef.current.get(id)) }, ms)
+  }, [])
+  useEffect(() => {
+    let alive = true
+    void loadServerAnswers().then(res => {
+      if (!alive || !res) return
+      setAnswered(prev => mergeWithServer(prev, res.rows, res.uid))
+      scheduleFlush(0)
+    })
+    const kick = () => { if (document.visibilityState !== 'hidden') scheduleFlush(0) }
+    window.addEventListener('online', kick)
+    document.addEventListener('visibilitychange', kick)
+    return () => {
+      alive = false
+      window.removeEventListener('online', kick)
+      document.removeEventListener('visibilitychange', kick)
+    }
+  }, [scheduleFlush])
   useEffect(() => {
     try { localStorage.setItem(LS_FAVORITES, JSON.stringify([...favorites])) } catch {}
   }, [favorites])
@@ -1894,16 +1919,18 @@ export default function BankTrainer({ subjectState }: {
       const prevAttempt = cur && cur.correct !== null ? { value: cur.value, correct: cur.correct, date: cur.date, ...(cur.got !== undefined ? { got: cur.got, max: cur.max } : {}) } : undefined
       const first = cur?.first ?? prevAttempt ?? (correct !== null ? attempt : undefined)
       const attempts = correct === null ? cur?.attempts : (cur?.attempts ?? (prevAttempt ? 1 : 0)) + 1
-      return new Map(prev).set(id, { ...attempt, ...(first ? { first } : {}), ...(attempts ? { attempts } : {}), ...(cur?.revealed ? { revealed: true } : {}) })
+      return new Map(prev).set(id, { ...attempt, at: Date.now(), ...(first ? { first } : {}), ...(attempts ? { attempts } : {}), ...(cur?.revealed ? { revealed: true } : {}) })
     })
+    queueAnswer(id); scheduleFlush()
   }
   /** Ученик открыл решение: задание запирается, засчитан результат до этого. Переживает F5 (LS_ANSWERED). */
   function revealAnswer(id: number) {
     setAnswered(prev => {
       const cur = prev.get(id)
       if (!cur || cur.revealed) return prev
-      return new Map(prev).set(id, { ...cur, revealed: true })
+      return new Map(prev).set(id, { ...cur, revealed: true, at: Date.now() })
     })
+    queueAnswer(id); scheduleFlush()
   }
 
   const filtered = useMemo(() => {

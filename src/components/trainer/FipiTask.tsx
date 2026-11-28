@@ -28,6 +28,8 @@ import { fipiOf, gradeFipi, type FipiPayload } from '../../lib/fipiGrade'
 /** revealed — ученик открыл решение (эталон): задание заперто, перерешать нельзя (Дани, 27.11). */
 export type FipiState = {
   value: string; correct: boolean | null; got?: number; max?: number; date?: string; revealed?: boolean
+  /** Время записи (мс) — какое из двух устройств новее (trainerAnswersSync). */
+  at?: number
   /** Первая попытка — пишется один раз и больше не меняется (статистика «с первого раза»). */
   first?: { value: string; correct: boolean | null; got?: number; max?: number; date?: string }
   /** Сколько раз ученик нажимал «Проверить». */
