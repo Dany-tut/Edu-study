@@ -9,7 +9,9 @@ import { useNativeOverlay } from '../lib/nativeGlass'
 import { useBackClose } from '../lib/overlayStack'
 import { motion, AnimatePresence, useMotionValue, useDragControls, animate } from 'framer-motion'
 import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
-import { IS_IOS } from '../lib/platform'
+import { IS_IOS, PLATFORM } from '../lib/platform'
+
+const IPAD = PLATFORM === 'ipad'
 
 // Bottom sheet (MOBILE ONLY). Slides up from the bottom, glass surface, drag
 // handle, optional title. Backdrop tap closes. Content scrolls with contained
@@ -257,7 +259,8 @@ export default function MobileSheet({
       style={{
         overflowY: 'auto',
         overscrollBehavior: 'contain',
-        padding: footer
+        // Карточка айпада висит над краем экрана — safe-area внутри не нужна.
+        padding: footer || IPAD
           ? '10px 20px 20px'
           : '10px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)',
         // Content melts under the grabber/header instead of hard-cutting:
@@ -308,10 +311,22 @@ export default function MobileSheet({
               WebkitBackdropFilter: 'var(--blur-solid)',
               borderRadius: '32px 32px 0 0',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+              // АЙПАД: не лист во всю ширину, а узкая карточка у правого края,
+              // рядом с капсулой — до неё дотягивается большой палец правой
+              // руки (Дани 28.11; docs/platforms.md §1.1 «шторки от капсулы
+              // влево»). Отступ справа = капсула 72 + зазоры, как у MobileScreen.
+              ...(IPAD ? {
+                left: 'auto',
+                right: 'calc(env(safe-area-inset-right, 0px) + 112px)',
+                bottom: keyboard.open ? keyboard.inset + 12 : 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+                width: 'min(380px, calc(100vw - 140px))',
+                borderRadius: 28,
+                boxShadow: '0 12px 48px rgba(0,0,0,0.22)',
+              } : null),
               // Низа у шторки нет: контент уходит под край экрана, как на
               // главной и в курсах. Отступ под safe-area живёт внутри —
               // в прокрутке (или в подвале), а не мёртвой полосой под ними.
-              maxHeight: keyboard.open ? `calc(100dvh - ${keyboard.inset + 12}px)` : '85dvh',
+              maxHeight: keyboard.open ? `calc(100dvh - ${keyboard.inset + 12}px)` : IPAD ? '72dvh' : '85dvh',
               display: 'flex', flexDirection: 'column',
             }}
             onPaste={onPaste}
@@ -358,7 +373,7 @@ export default function MobileSheet({
               </div>
             ) : scrollBody}
             {footer && (
-              <div style={{ flexShrink: 0, padding: keyboard.open ? '8px 20px 16px' : '8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
+              <div style={{ flexShrink: 0, padding: keyboard.open || IPAD ? '8px 20px 16px' : '8px 20px calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
                 {footer}
               </div>
             )}
