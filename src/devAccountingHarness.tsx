@@ -13,6 +13,7 @@
 // верхнем уровне обращается к useDashboard; без этого порядка цикл импорта
 // падает «Cannot access 'useDashboard' before initialization» (dev-flow тоже).
 import './lib/platform'
+import { accLessonFiles } from './data/accounting/accFiles'
 import './store/studentDataStore'
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { isLabRef } from './lib/excelLab/embed'
@@ -34,8 +35,6 @@ const LAST = 'acc-stand:last'
 const read = <T,>(k: string, d: T): T => { try { return JSON.parse(localStorage.getItem(k) ?? '') as T } catch { return d } }
 const write = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { /* приватный режим */ } }
 
-const FILE_RE = /(?<![\w.-])([a-z0-9-]+\.(?:xlsx|zip))\b/g
-const filesOf = (texts: string[]) => [...new Set(texts.flatMap(t => [...t.matchAll(FILE_RE)].map(m => m[1])))]
 
 const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е')
 
@@ -67,7 +66,8 @@ function Stand() {
   // Стенд без базы: «сдано» для разбора после сдачи — флажок ?submitted=1.
   const standSubmitted = new URLSearchParams(location.search).get('submitted') === '1'
   const { lesson, module } = cur
-  const files = filesOf(lesson.content.paragraphs.map(p => p.text).concat(lesson.practice))
+  // Тот же список, что ученик видит в «Материалах» урока (accFiles.ts).
+  const files = (accLessonFiles([lesson.practice, ...lesson.content.paragraphs.map(p => p.text), lesson.content.hardTask.prompt]).materials ?? []).map(f => f.name)
   const homework: LessonHomework = {
     title: 'Проверь себя', subtitle: lesson.title, recommendationScore: 4, hasHardLevel: true,
     levels: [

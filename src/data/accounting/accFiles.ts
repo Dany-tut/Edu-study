@@ -6,6 +6,8 @@
 import type { LessonFile, LessonFiles } from '../../lib/lessonFiles'
 
 export const ACC_FILE_SIZES: Record<string, number> = {
+  'alfa.xls': 5632,
+  'beta.xls': 5632,
   'chislennost-formuly-praktikum.xlsx': 11921,
   'chislennost-papka-vygruzok.zip': 19455,
   'chislennost-power-query.zip': 45133,
@@ -32,10 +34,11 @@ export const ACC_FILE_SIZES: Record<string, number> = {
 
 const MIME: Record<string, string> = {
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  xls: 'application/vnd.ms-excel',
   zip: 'application/zip',
 }
 
-const NAME_RE = /[a-z0-9][a-z0-9-]*\.(?:xlsx|zip)/g
+const NAME_RE = /[a-z0-9][a-z0-9-]*\.(?:xlsx|xls|zip)(?![a-z])/g
 
 /** Файлы, которые называет текст урока, — в порядке первого упоминания. */
 export function accLessonFiles(texts: string[]): LessonFiles {
