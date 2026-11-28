@@ -1437,10 +1437,17 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 .konspekt-col .k-h2 { scroll-margin-top: 96px; }
 .k-meta { display: grid; grid-template-columns: 8em minmax(0, 1fr); column-gap: 1em; }
 .konspekt-toc { display: none; }
+/* Шапка конспекта в сетке текста: заголовок и кнопка в одной ячейке, на ПК
+   с оглавлением кнопка уходит в колонку «В уроке» и встаёт по её левому краю. */
+.konspekt-layout.k-headrow { align-items: center; }
+.k-headrow > * { grid-row: 1; grid-column: 1; }
+.k-head { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 40em; margin: 0 auto; min-width: 0; }
+.k-headrow > .k-big { justify-self: end; }
 /* iPad: справа капсула конспекта (KonspektNav) — текст под неё не заходит. */
 [data-platform="ipad"] .konspekt-layout { padding-right: 56px; }
 @media (min-width: 1280px) {
   .konspekt-layout.has-toc { grid-template-columns: minmax(0, 1fr) 200px; column-gap: 32px; align-items: start; }
+  .k-headrow.has-toc > .k-big { grid-column: 2; justify-self: start; }
   .konspekt-layout.has-toc .konspekt-toc { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 96px; padding-top: 4px; }
 }
 @media (max-width: 1023px) {
@@ -1448,3 +1455,4 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
   /* Под стеклянными таблетками шапки урока (MOBILE_TOP_INSET + 40). */
   .konspekt-col .k-h2 { scroll-margin-top: 128px; }
 }
+

@@ -197,7 +197,9 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
           <img src={src} alt={caption ?? ''} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 8 }} />
         </button>
         {caption && (
-          <figcaption style={{ fontSize: 13 * scale, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center', ...balancedWrap }}>
+          // Подпись не шире самой схемы: длинная переносится в две строки,
+          // а не тянется за края листа.
+          <figcaption style={{ fontSize: 13 * scale, lineHeight: 1.5, color: 'var(--color-muted)', textAlign: 'center', width: '100%', maxWidth: FIGURE_W, margin: '0 auto', boxSizing: 'border-box', padding: '0 12px', ...balancedWrap }}>
             <Prose text={caption} />
           </figcaption>
         )}
@@ -1277,18 +1279,23 @@ export default function LessonPage() {
             boxShadow: 'var(--shadow-2)',
           }}
         >
-          <div className="flex items-center" style={{ gap: 8 }}>
-            <FileText size={18} style={{ color: 'var(--color-accent)' }} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Конспект')}</span>
+          {/* Шапка стоит в той же сетке, что и текст: «Конспект» начинается
+              ровно с левого края колонки, а «Крупный текст» на ПК с оглавлением
+              — над колонкой «В уроке». */}
+          <div className={`konspekt-layout k-headrow${showToc ? ' has-toc' : ''}`}>
+            <div className="k-head" style={{ fontSize: 16 * scale }}>
+              <FileText size={18} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>{t('Конспект')}</span>
+            </div>
             {/* Кегль конспекта. Кнопка стоит у самого текста, а не в шапке
                 страницы: включают её, уже начав читать и споткнувшись о размер. */}
             {PLATFORM !== 'ipad' && <button data-hover="layer"
               onClick={toggleBig}
               title={t(big ? 'Обычный текст' : 'Крупный текст')}
               aria-pressed={big}
-              className="flex items-center cursor-pointer"
+              className="k-big flex items-center cursor-pointer"
               style={{
-                marginLeft: 'auto', gap: 6, padding: '6px 12px', borderRadius: 999,
+                gap: 6, padding: '6px 12px', borderRadius: 999,
                 fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
                 /* Нейтральный графит, а не акцентный фиолет: акцент в тёмной
                    теме светлый (#B3A6F7), и белая надпись на нём давала 1.6:1.
