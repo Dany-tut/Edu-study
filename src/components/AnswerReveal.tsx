@@ -101,7 +101,7 @@ export default function AnswerReveal({ kind, title, unlocked, compact = false, s
             }}
           >
             <OpticalText as="iskra-button-label">{shown ? t('Скрыть') : t('Показать')}</OpticalText>
-            <ChevronDown size={15} style={{ transform: shown ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease', color: 'var(--color-muted)' }} />
+            <ChevronDown size={15} style={{ transform: shown ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease', color: 'var(--color-text-3)' }} />
           </span>
         )}
       </button>

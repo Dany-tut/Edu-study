@@ -10,6 +10,8 @@
 // поправить надо и там.
 
 export const EN: Record<string, string> = {
+  'Скачать все': 'Download all',
+  'собираем архив': 'building archive',
   'Добавить учеников': 'Add students',
   '— существующие ученики сохранят свой логин': '— existing students keep their login',
   'Добавить в группы': 'Add to groups',

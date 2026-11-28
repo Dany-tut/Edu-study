@@ -261,3 +261,75 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} ${t('КБ')}`
   return `${(bytes / 1024 / 1024).toFixed(1)} ${t('МБ')}`
 }
+
+/** Файл, который можно положить в общий архив: свой (хранилище урока) или
+ *  учебный файл курса с этого же сайта. Внешние ссылки (Диск, R2) — нет:
+ *  чужой хост не отдаст их странице, а CSP новых хостов не пускает. */
+export function isBundlableFile(file: LessonFile): boolean {
+  return !file.url || file.url.startsWith('/')
+}
+
+async function fileBytes(file: LessonFile): Promise<Uint8Array> {
+  if (file.url?.startsWith('/')) {
+    const res = await fetch(file.url)
+    if (!res.ok) throw new Error(t('Файл не найден'))
+    return new Uint8Array(await res.arrayBuffer())
+  }
+  const { data, error } = await supabase.storage.from(BUCKET).download(file.path)
+  if (error || !data) throw error ?? new Error(t('Файл не найден'))
+  return new Uint8Array(await data.arrayBuffer())
+}
+
+/** Имя без запрещённых в файловых системах символов. */
+function safeName(name: string): string {
+  return name.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120) || 'file'
+}
+
+/**
+ * «Скачать все» — один zip, собранный на клиенте. По одному файлу подряд
+ * браузер блокирует после первого скачивания, архив — одно скачивание.
+ * Без сжатия (level 0): xlsx/zip/pdf уже сжаты, а телефону так быстрее.
+ * В приложении (WKWebView / Android WebView) `<a download>` с blob ничего не
+ * сохраняет — там архив уходит в системное «Поделиться» (Сохранить в Файлы).
+ */
+export async function downloadLessonFilesZip(
+  files: LessonFile[],
+  archiveTitle: string,
+  onProgress?: (done: number, total: number) => void,
+): Promise<void> {
+  const list = files.filter(isBundlableFile)
+  if (list.length === 0) throw new Error(t('Файл не найден'))
+  const { zipSync } = await import('fflate')
+  const entries: Record<string, [Uint8Array, { level: 0 }]> = {}
+  const used = new Set<string>()
+  let done = 0
+  onProgress?.(0, list.length)
+  for (const file of list) {
+    const bytes = await fileBytes(file)
+    // Одинаковые имена не затирают друг друга в архиве.
+    let name = safeName(file.name)
+    for (let i = 2; used.has(name.toLowerCase()); i++) name = safeName(file.name).replace(/(\.[^.]*)?$/, ` (${i})$1`)
+    used.add(name.toLowerCase())
+    entries[name] = [bytes, { level: 0 }]
+    onProgress?.(++done, list.length)
+  }
+  const zipped = zipSync(entries)
+  const archive = `${safeName(archiveTitle).replace(/\.zip$/i, '')}.zip`
+  const blob = new Blob([zipped as Uint8Array<ArrayBuffer>], { type: 'application/zip' })
+  const native = !!(window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()
+  if (native && typeof navigator.share === 'function') {
+    const shareFile = new File([blob], archive, { type: 'application/zip' })
+    if (!navigator.canShare || navigator.canShare({ files: [shareFile] })) {
+      try { await navigator.share({ files: [shareFile], title: archive }); return }
+      catch (e) { if ((e as Error)?.name === 'AbortError') return }
+    }
+  }
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = archive
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 30_000)
+}

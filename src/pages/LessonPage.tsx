@@ -20,7 +20,7 @@ import ScrollFade from '../components/ScrollFade'
 import { useDashboard } from '../store/dashboardStore'
 import { findLessonById, getExtraHomeworks, getLessonDetail, type LessonHomework } from '../data/lessonContent'
 import { extraHwLabel, hwRef } from '../lib/extraHomework'
-import { downloadLessonFile, formatFileSize, isLinkFile, type LessonFile } from '../lib/lessonFiles'
+import { downloadLessonFile, downloadLessonFilesZip, formatFileSize, isBundlableFile, isLinkFile, type LessonFile } from '../lib/lessonFiles'
 import { useStudentData } from '../store/studentDataStore'
 import { useIsDesktop } from '../lib/useIsDesktop'
 import type { LessonVideoHandle } from '../components/LessonVideoPlayer'
@@ -336,8 +336,55 @@ function FileRow({ file, onDone }: { file: LessonFile; onDone: () => void }) {
         )}
       </span>
       {file.url && !file.url.startsWith('/')
-        ? <ExternalLink size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-        : <Download size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+        ? <ExternalLink size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+        : <Download size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
+    </button>
+  )
+}
+
+/** «Скачать все» — последней строкой списка, в стиле строк файлов: один zip
+ *  с файлами урока (внешние ссылки в архив не попадают). Прогресс и ошибка —
+ *  во второй строке, как у отдельного файла. */
+function DownloadAllRow({ files, archiveTitle, onDone }: { files: LessonFile[]; archiveTitle: string; onDone: () => void }) {
+  const t = useT()
+  const [progress, setProgress] = useState<[number, number] | null>(null)
+  const [err, setErr] = useState(false)
+  const total = files.reduce((sum, f) => sum + (f.size || 0), 0)
+  const busy = progress !== null
+
+  async function click() {
+    if (busy) return
+    setErr(false); setProgress([0, files.length])
+    try {
+      await downloadLessonFilesZip(files, archiveTitle, (done, all) => setProgress([done, all]))
+      onDone()
+    } catch {
+      setErr(true)
+    } finally {
+      setProgress(null)
+    }
+  }
+
+  return (
+    <button
+      onClick={click}
+      className="flex items-center w-full cursor-pointer"
+      style={{ gap: 10, padding: 10, borderRadius: 12, border: 'none', borderTop: '1px solid var(--color-border-soft)', background: 'transparent', textAlign: 'left', opacity: busy ? 0.6 : 1 }}
+      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-3)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+    >
+      <div style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-purple-soft)', color: 'var(--color-accent)' }}>
+        <FolderOpen size={16} strokeWidth={2} />
+      </div>
+      <span className="min-w-0" style={{ flex: 1 }}>
+        <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', ...textFadeStyle, whiteSpace: 'nowrap' }}>{t('Скачать все')}</span>
+        <span style={{ display: 'block', fontSize: 11, color: err ? 'var(--color-red-text)' : 'var(--color-text-3)' }}>
+          {err ? t('не удалось скачать')
+            : busy ? `${t('собираем архив')} · ${progress![0]} / ${progress![1]}`
+            : [`${files.length} ${plural(files.length, t('файл'), t('файла'), t('файлов'))}`, formatFileSize(total)].filter(Boolean).join(' · ')}
+        </span>
+      </span>
+      <Download size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
     </button>
   )
 }
@@ -387,14 +434,14 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
         </p>
       </div>
       {active && (file!.url
-        ? <ExternalLink size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
-        : <Download size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />)}
+        ? <ExternalLink size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
+        : <Download size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />)}
     </motion.button>
   )
 }
 
 /** «Материалы» — список справочных файлов в выпадашке. Без файлов неактивна. */
-function MaterialsTile({ materials }: { materials: LessonFile[] }) {
+function MaterialsTile({ materials, archiveTitle }: { materials: LessonFile[]; archiveTitle: string }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   const [up, setUp] = useState(true)
@@ -454,7 +501,7 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
         {active && (
           <ChevronDown
             size={16}
-            style={{ color: 'var(--color-text-4)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
+            style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
           />
         )}
       </motion.button>
@@ -472,6 +519,9 @@ function MaterialsTile({ materials }: { materials: LessonFile[] }) {
               {materials.map(m => (
                 <FileRow key={m.id} file={m} onDone={() => setOpen(false)} />
               ))}
+              {materials.filter(isBundlableFile).length >= 2 && (
+                <DownloadAllRow files={materials.filter(isBundlableFile)} archiveTitle={archiveTitle} onDone={() => setOpen(false)} />
+              )}
             </ScrollFade>
           </motion.div>
         )}
@@ -1284,7 +1334,7 @@ export default function LessonPage() {
       >
         <DownloadTile icon={NotebookPen} label={t('Рабочая тетрадь')} file={detail.files.workbook} />
         <DownloadTile icon={FileText} label={t('Конспект')} file={detail.files.notebook} />
-        <MaterialsTile materials={detail.files.materials ?? []} />
+        <MaterialsTile materials={detail.files.materials ?? []} archiveTitle={lesson.title} />
         {detail.homework && (
           <div style={{ gridColumn: isDesktop ? 'auto' : '1 / -1' }}>
             <HomeworkCard lessonId={lesson.id} homework={detail.homework} onOpen={() => openHomework()} timeLocked={homeworkTimeLocked(lesson, accessNow)} recording={lesson.deliveryMode === 'recording'} videoRequired={homeworkNeedsVideo({ ...lesson, watch })} />

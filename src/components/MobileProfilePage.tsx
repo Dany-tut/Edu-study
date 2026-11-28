@@ -400,7 +400,7 @@ export default function MobileProfilePage() {
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Каталог курсов')}
                 </span>
-                <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
               </motion.button>
 
               {/* Цвет курса — глубина перекраски и личные цвета предметов */}
@@ -429,7 +429,7 @@ export default function MobileProfilePage() {
                   {tintColor
                     ? <span style={{ width: 22, height: 22, borderRadius: 999, background: tintColor, boxShadow: '0 0 0 1px var(--color-border-medium)' }} />
                     : <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{t('Выключено')}</span>}
-                  <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                  <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
                 </span>
               </motion.button>
 
@@ -446,7 +446,7 @@ export default function MobileProfilePage() {
                   </span>
                   <span className="flex items-center" style={{ gap: 8 }}>
                     <AppIconTile src={(APP_ICONS.find(o => o.id === iconCurrent) ?? APP_ICONS[0]).preview} size={28} />
-                    <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                    <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
                   </span>
                 </motion.button>
               )}
@@ -464,7 +464,7 @@ export default function MobileProfilePage() {
                   </span>
                   <span className="flex items-center" style={{ gap: 8 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>{subjects.length}</span>
-                    <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                    <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
                   </span>
                 </motion.button>
               )}
@@ -483,7 +483,7 @@ export default function MobileProfilePage() {
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-3)' }}>
                     {t('Свайп влево')} · {t(ACTION_LABEL[swipeLeftAction])}
                   </span>
-                  <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                  <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
                 </span>
               </motion.button>
 
@@ -535,7 +535,7 @@ export default function MobileProfilePage() {
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Оплата')}
                 </span>
-                <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
               </motion.button>}
 
               <motion.button data-hover="layer"
@@ -547,7 +547,7 @@ export default function MobileProfilePage() {
                 <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                   {t('Обратная связь')}
                 </span>
-                <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
               </motion.button>
 
               {canInstall && (
@@ -560,7 +560,7 @@ export default function MobileProfilePage() {
                   <span className="flex items-center" style={{ gap: 10, fontSize: 15, fontWeight: 500, color: 'var(--color-text)' }}>
                     <Download size={18} style={{ color: 'var(--color-muted)' }} />{t('Установить приложение')}
                   </span>
-                  <ChevronRight size={18} style={{ color: 'var(--color-text-4)' }} />
+                  <ChevronRight size={18} style={{ color: 'var(--color-text-3)' }} />
                 </motion.button>
               )}
 
@@ -605,9 +605,9 @@ export default function MobileProfilePage() {
               >
                 <span className="min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <SubjectMark subject={c.subject} size={16} />
-                  <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', ...textFadeStyle }}>{subjectCardLabel(c)}</span>
+                  <span style={{ minWidth: 0, ...textFadeLines(2) }}>{subjectCardLabel(c)}</span>
                 </span>
-                {active && <Check size={16} style={{ flexShrink: 0, color: c.color }} />}
+                {active && <Check size={16} style={{ flexShrink: 0, color: 'var(--color-text)' }} />}
               </button>
             )
           })}

@@ -396,7 +396,7 @@ function LessonCard({ lesson, status, scheduleState, index, focused, onOpen, pal
         {status === 'test_low' && <span style={{ fontSize: 11, color: v.tint }}>{t('Ниже проходного балла')} · {t('порог')} {lesson.result?.passingScore}%</span>}
       </div>
       {/* trailing */}
-      {!isLocked && <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+      {!isLocked && <ChevronRight size={18} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
     </motion.button>
   )
 }

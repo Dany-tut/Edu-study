@@ -447,7 +447,7 @@ export default function MobileHome() {
                       <FadeText className="schedule-lesson-title" style={{ width: '100%', fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{tc(l.lessonTitle)}</FadeText>
                       {st.label && <ScheduleStatusBadge state={st} label={st.recordingAvailable ? 'Запись доступна' : st.label} />}
                     </span>
-                    {st.phase !== 'cancelled' && <ChevronRight size={16} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />}
+                    {st.phase !== 'cancelled' && <ChevronRight size={16} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />}
                   </button>
                 ))}
               </div>
@@ -538,7 +538,7 @@ export default function MobileHome() {
                   {t('Занятий нет и лента пуста — можно позаниматься в тренажёре')}
                 </div>
               </div>
-              <ChevronRight size={18} style={{ color: 'var(--color-text-4)', flexShrink: 0 }} />
+              <ChevronRight size={18} style={{ color: 'var(--color-text-3)', flexShrink: 0 }} />
             </button>
           )}
         </div>
