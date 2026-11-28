@@ -9,6 +9,8 @@ import { playPop, vibrate } from '../lib/sound'
 import { useT, useLang } from '../lib/i18n'
 import { TestlyTile } from './TestlyMark'
 import { testlyPresentation } from '../lib/testlyPresentation'
+import TestlyFrame from './TestlyFrame'
+import type { TestlyDone } from '../lib/testlyEmbed'
 
 /*
  * Тест из Тестли в домашке ученика. Личная ссылка Тестли открывается внутри
@@ -41,6 +43,8 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
   const [opening, setOpening] = useState(false)
   const [opened, setOpened] = useState(false)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
+  // Итог из листа Тестли (testly:done): разбор по номерам заданий — без верных ответов.
+  const [doneMsg, setDoneMsg] = useState<TestlyDone | null>(null)
   const embedSrc = embedUrl ? (() => {
     const url = new URL(embedUrl)
     url.searchParams.set('embed', 'iskra')
@@ -193,6 +197,20 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
               </div>
             </div>
           )}
+          {doneAt !== null && !pending && !hideResult && doneMsg?.showAfter === 'review' && doneMsg.perQuestion && doneMsg.perQuestion.length > 0 && (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('По заданиям')}</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {doneMsg.perQuestion.map(q => (
+                  <span key={q.n} title={q.state === 'ok' ? t('Верно') : q.state === 'bad' ? t('Ошибка') : t('У учителя')} style={{
+                    width: 34, height: 34, borderRadius: 10, display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+                    background: q.state === 'ok' ? 'var(--color-green-soft, color-mix(in srgb, var(--color-green-text) 16%, transparent))' : q.state === 'bad' ? 'color-mix(in srgb, var(--color-rose-text) 16%, transparent)' : 'var(--color-amber-soft)',
+                    color: q.state === 'ok' ? 'var(--color-green-text)' : q.state === 'bad' ? 'var(--color-rose-text)' : 'var(--color-amber-text)',
+                  }}>{q.n}</span>
+                ))}
+              </div>
+            </div>
+          )}
           {doneAt !== null && pending && <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('Итоговый результат появится после проверки всей работы.')}</p>}
           {progress && (
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -231,19 +249,13 @@ export default function TestlyTask({ test, value, disabled, onChange, onReopen, 
           </div>
         </div>
       </div>
-      {embedUrl && (
-        <section style={{ position: 'relative', overflow: 'hidden', borderRadius: 18, border: '1px solid var(--color-border-medium)', background: '#fff' }}>
-          <iframe
-            title={t('Тест Тестли')}
-            className="testly-task-frame"
-            src={embedSrc ?? undefined}
-            scrolling="no"
-            allow="fullscreen; clipboard-read; clipboard-write"
-            allowFullScreen
-            referrerPolicy="strict-origin-when-cross-origin"
-            style={{ display: 'block', width: '100%', border: 0, background: '#fff' }}
-          />
-        </section>
+      {embedUrl && embedSrc && (
+        <TestlyFrame
+          src={embedSrc}
+          title={test.title}
+          onClose={() => { setEmbedUrl(null); void refresh() }}
+          onDone={d => { setDoneMsg(d); setEmbedUrl(null); void refresh() }}
+        />
       )}
       <span style={{ fontSize: 11.5, color: 'var(--color-text-3)', lineHeight: 1.4 }}>{note}</span>
     </div>

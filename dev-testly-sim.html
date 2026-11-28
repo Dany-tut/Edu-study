@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Имитатор листа Тестли (embed=iskra v1)</title>
+<style>
+  body { margin: 0; font: 16px/1.4 system-ui, -apple-system, sans-serif; background: var(--back); color: var(--ink); }
+  .sheet { max-width: 720px; margin: 16px auto; background: var(--paper); border-radius: 24px; padding: 22px; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+  .prog { display: flex; gap: 4px; margin-bottom: 14px } .prog i { flex: 1; height: 4px; border-radius: 2px; background: rgba(0,0,0,.1) } .prog i.on { background: var(--acc) }
+  h2 { font-size: 19px; margin: 6px 0 14px } .meta { font-size: 13px; opacity: .65 }
+  .fig { background: #fff; border-radius: 16px; border: 1px solid rgba(0,0,0,.1); padding: 8px; cursor: zoom-in } .fig svg { display: block; width: 100% }
+  .opt { display: flex; gap: 12px; align-items: center; padding: 11px 14px; margin-top: 8px; border: 1px solid rgba(0,0,0,.14); border-radius: 14px; cursor: pointer }
+  .opt.on { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 10%, transparent) }
+  .card { border: 1px solid rgba(0,0,0,.12); border-radius: 18px; padding: 14px; margin-bottom: 10px } .card.cur { border: 1.5px solid var(--acc) }
+  .own { display: flex; gap: 8px; margin-top: 18px } .own button { flex: 1; height: 44px; border-radius: 22px; border: 0; background: var(--acc); color: #fff; font-size: 15px }
+  .flagbtn { margin-top: 12px; font-size: 13px; background: none; border: 0; color: #C46A12; cursor: pointer; padding: 0 }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// Имитатор листа Тестли для стенда рамки Искры. Говорит по протоколу v1
+// (docs/iskra-embed-protocol.md в репозитории Тестли): testly:state / testly:done / testly:zoom,
+// рукопожатие iskra:hello и команды iskra:cmd. Настоящий лист рисует Тестли.
+const P = new URLSearchParams(location.search)
+const layout = P.get('layout') || 'cards'
+const theme = { cards: { paper: '#ffffff', ink: '#0b0f14', acc: '#6366f1', back: '#e9ecf2' }, notebook: { paper: '#fbfaf4', ink: '#1b2230', acc: '#4f7d4c', back: '#a9c0a0' }, feed: { paper: '#ffffff', ink: '#0b0f14', acc: '#6366f1', back: '#e9ecf2' } }[layout] || {}
+const accent = P.get('accent') || theme.acc
+for (const [k, v] of Object.entries({ paper: theme.paper, ink: theme.ink, acc: accent, back: theme.back })) document.documentElement.style.setProperty('--' + k, v)
+const allowBack = P.get('back') !== '0', showQuestionNumbers = P.get('nums') !== '0'
+const minutes = P.get('time') === '0' ? null : 30
+const showAfter = P.get('after') || 'review'
+const total = 12
+const FIG = '<svg viewBox="0 0 640 170"><path d="M30 95 Q160 40 470 55 L590 40 Q620 70 590 100 L470 110 Q160 150 30 95Z" fill="#eee" stroke="#333" stroke-width="3"/><g font-size="16" fill="#222">' +
+  [[150, 30, 1], [320, 30, 2], [400, 30, 3], [575, 25, 4], [500, 140, 5], [380, 150, 6]].map(([x, y, n]) => `<text x="${x}" y="${y}">${n}</text>`).join('') + '</g></svg>'
+const Q = Array.from({ length: total }, (_, i) => ({ n: i + 1, text: i === 5 ? 'Выберите три верно обозначенные подписи к рисунку, на котором изображено строение ланцетника.' : `Задание ${i + 1}: выберите верный ответ.`, fig: i === 5, opts: i === 5 ? ['1 — хорда', '2 — нервная трубка', '3 — спинной кровеносный сосуд', '4 — хвост', '5 — анальное отверстие', '6 — глотка'] : ['Вариант А', 'Вариант Б', 'Вариант В'] }))
+const S = { index: Number(P.get('index') || 5), answers: { 0: [1], 1: [0], 2: [2], 3: [1], 4: [0], 5: [2, 4], 7: [1] }, flags: new Set(P.get('flag') ? [Number(P.get('flag'))] : [9]), stage: P.get('stage') || 'test', frame: false, returnToEnd: false, submitting: false, saving: P.get('offline') ? 'offline' : 'saved', deadline: minutes ? Date.now() + 18 * 60e3 + 20e3 : null }
+const parentOrigin = location.ancestorOrigins?.[0] || (document.referrer ? new URL(document.referrer).origin : '*')
+const send = m => parent.postMessage({ ...m, v: 1 }, parentOrigin)
+let lastSent = ''
+function state() {
+  const answered = Object.keys(S.answers).length
+  const base = { type: 'testly:state', frame: S.frame, stage: S.stage, layout, allowBack, showQuestionNumbers, deadline: S.deadline, skew: 0, total, accent, btn: 'fill' }
+  const msg = (S.stage === 'test' || S.stage === 'review') ? { ...base, index: S.index, n: S.index + 1, info: false, answered, flags: [...S.flags], empty: Q.filter((_, i) => !S.answers[i]).map(q => q.n),
+    items: Q.map((q, i) => ({ n: q.n, index: i, answered: !!S.answers[i], flag: S.flags.has(q.n) })), last: layout !== 'feed' && S.index === total - 1, returnToEnd: S.returnToEnd, saving: S.saving, savedAt: Date.now(), submitting: S.submitting } : base
+  const j = JSON.stringify(msg); if (j !== lastSent) { lastSent = j; send(msg) }
+}
+function done() {
+  const res = showAfter === 'none' ? { showAfter } : { showAfter, got: 14, max: 19, autoMax: 16, percent: 74, pending: false, review: showAfter === 'review' ? 'demo' : null,
+    perQuestion: showAfter === 'review' ? Q.map(q => ({ n: q.n, state: [3, 7, 10].includes(q.n) ? 'bad' : q.n === 12 ? 'pending' : 'ok', got: null, max: 1 })) : null }
+  send({ type: 'testly:done', submittedAt: new Date().toISOString(), ...res })
+}
+addEventListener('message', e => {
+  if (e.source !== parent || e.data?.v !== 1) return
+  const d = e.data
+  if (d.type === 'iskra:hello') { S.frame = true; render(); if (S.stage === 'done') done() }
+  if (d.type !== 'iskra:cmd' || !S.frame || S.submitting) return
+  if (d.cmd === 'next') { if (layout === 'feed' || S.index === total - 1 || S.returnToEnd) S.stage = 'review'; else S.index++ }
+  if (d.cmd === 'back') { if (S.stage === 'review') S.stage = 'test'; else if (allowBack && S.index > 0) S.index-- }
+  if (d.cmd === 'goto') { S.index = typeof d.index === 'number' ? d.index : d.n - 1; if (S.stage === 'review') S.returnToEnd = true; S.stage = 'test' }
+  if (d.cmd === 'review') S.stage = 'review'
+  if (d.cmd === 'submit') { S.submitting = true; render(); setTimeout(() => { S.submitting = false; S.stage = 'done'; render(); done() }, 600); return }
+  render()
+})
+function taskHtml(i, cur) {
+  const q = Q[i], a = S.answers[i] || []
+  return `<div class="meta">Задание ${q.n} · 1 балл</div><h2>${q.text}</h2>${q.fig ? `<div class="fig" data-zoom>${FIG}</div>` : ''}` +
+    q.opts.map((o, k) => `<div class="opt ${a.includes(k) ? 'on' : ''}" data-q="${i}" data-o="${k}">${a.includes(k) ? '☑' : '☐'} ${o}</div>`).join('') +
+    (cur ? `<button class="flagbtn" data-flag="${q.n}">${S.flags.has(q.n) ? 'Снять отметку «вернуться»' : 'Отметить «вернуться»'}</button>` : '')
+}
+function render() {
+  const app = document.getElementById('app')
+  if (S.stage === 'done') { app.innerHTML = `<div class="sheet"><h2>Работа сдана</h2>${S.frame ? '' : '<div class="own"><button>Посмотреть разбор</button></div>'}</div>`; state(); return }
+  const own = S.frame ? '' : `<div class="own">${allowBack ? '<button data-own="back">Назад</button>' : ''}<button data-own="next">Дальше</button></div>`
+  if (layout === 'feed') app.innerHTML = `<div class="sheet">${Q.map((_, i) => `<div class="card ${i === S.index ? 'cur' : ''}">${taskHtml(i, i === S.index)}</div>`).join('')}${own}</div>`
+  else app.innerHTML = `<div class="sheet"><div class="prog">${Q.map((_, i) => `<i class="${S.answers[i] ? 'on' : ''}"></i>`).join('')}</div>${taskHtml(S.index, true)}${own}</div>`
+  state()
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-q],[data-zoom],[data-flag],[data-own]'); if (!t) return
+  if (t.dataset.zoom !== undefined) { if (S.frame) send({ type: 'testly:zoom', src: 'data:image/svg+xml;utf8,' + encodeURIComponent(FIG.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="340" ')), alt: 'Строение ланцетника' }); return }
+  if (t.dataset.flag) { const n = +t.dataset.flag; S.flags.has(n) ? S.flags.delete(n) : S.flags.add(n) }
+  if (t.dataset.own) { S.index = Math.max(0, Math.min(total - 1, S.index + (t.dataset.own === 'next' ? 1 : -1))) }
+  if (t.dataset.q) { const i = +t.dataset.q, o = +t.dataset.o, a = S.answers[i] || []; S.answers[i] = a.includes(o) ? a.filter(x => x !== o) : [...a, o]; if (!S.answers[i].length) delete S.answers[i]; S.index = i
+    S.saving = 'saving'; setTimeout(() => { S.saving = 'saved'; render() }, 400) }
+  render()
+})
+render()
+</script>
+</body>
+</html>
