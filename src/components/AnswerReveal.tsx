@@ -70,11 +70,11 @@ export default function AnswerReveal({ kind, title, unlocked, compact = false, s
         {!compact && (
           <span className="answer-reveal-icon" style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            width: 32, height: 32, borderRadius: 10,
+            width: 32 * scale, height: 32 * scale, borderRadius: 10 * scale,
             background: locked ? 'var(--color-bg-3)' : 'var(--color-accent-soft)',
             color: locked ? 'var(--color-muted)' : 'var(--color-accent)',
           }}>
-            <Icon size={17} />
+            <Icon size={17 * scale} />
           </span>
         )}
         <span className="flex-1 min-w-0 flex flex-col" style={{ gap: 2 }}>
@@ -87,7 +87,7 @@ export default function AnswerReveal({ kind, title, unlocked, compact = false, s
         </span>
         {locked && compact && (
           <span className="flex items-center flex-shrink-0" style={{ gap: 5, fontSize: 12 * scale, color: 'var(--color-muted)' }}>
-            <Lock size={13} />
+            <Lock size={13 * scale} />
             {t('После сдачи')}
           </span>
         )}
@@ -95,13 +95,14 @@ export default function AnswerReveal({ kind, title, unlocked, compact = false, s
           <span
             className="flex items-center flex-shrink-0"
             style={{
-              gap: 4, height: compact ? 28 : 32, padding: compact ? '0 10px' : '0 12px', borderRadius: 999,
+              // Растёт с «Крупным текстом» вместе с заголовком блока.
+              gap: 4 * scale, height: (compact ? 28 : 32) * scale, padding: `0 ${(compact ? 10 : 12) * scale}px`, borderRadius: 999,
               border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)',
-              fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
+              fontSize: 13 * scale, fontWeight: 600, color: 'var(--color-text)',
             }}
           >
             <OpticalText as="iskra-button-label">{shown ? t('Скрыть') : t('Показать')}</OpticalText>
-            <ChevronDown size={15} style={{ transform: shown ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease', color: 'var(--color-text-3)' }} />
+            <ChevronDown size={15 * scale} style={{ transform: shown ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease', color: 'var(--color-text-3)' }} />
           </span>
         )}
       </button>

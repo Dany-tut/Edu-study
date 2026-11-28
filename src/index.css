@@ -1393,3 +1393,18 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
 .fipi-html sup.fipi-over { font-size: 0.7em; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fipi-html img { background: #fff; padding: 4px; } }
 :root[data-theme="dark"] .fipi-html img { background: #fff; padding: 4px; }
+
+/* Белые учебные схемы и реконструкции листа в тёмной теме не слепят: лист
+   чуть приглушён, картинка на тон темнее, рамка видна на тёмном фоне.
+   В увеличении (ImageZoom) схема остаётся исходной яркости. */
+[data-theme="dark"] .theory-figure {
+  background: rgba(236, 236, 240, 0.86) !important;
+  border-color: var(--color-border) !important;
+}
+[data-theme="dark"] .theory-figure img,
+[data-theme="dark"] .theory-figure-img { filter: brightness(0.88) contrast(0.97); }
+
+/* Плитки урока (Рабочая тетрадь, Конспект, Материалы): после клика мышью
+   кольца нет, с клавиатуры — в тон акцента, а не белое currentColor. */
+.lesson-tile:focus:not(:focus-visible) { outline: none; }
+.lesson-tile:focus-visible { outline: 2px solid rgba(var(--accent-rgb), 0.7); outline-offset: -2px; }

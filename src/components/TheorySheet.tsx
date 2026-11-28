@@ -308,6 +308,7 @@ export default function TheorySheet({ open, onClose, lessonId, lessonTitle, para
                     style={{ display: 'block', width: '100%', padding: 0, border: 0, background: 'none', cursor: 'zoom-in', borderRadius: 14 }}
                   >
                   <img
+                    className="theory-figure-img"
                     src={p.image}
                     alt=""
                     style={{

@@ -175,6 +175,7 @@ function TheoryFigure({ src, caption, scale = 1 }: { src: string; caption?: stri
     <>
       <figure style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button data-hover="layer"
+          className="theory-figure"
           onClick={() => setZoom(true)}
           aria-label={caption ? t('Увеличить схему: ') + caption : t('Увеличить схему')}
           style={{
@@ -282,11 +283,12 @@ function tileDropdownStyle(up: boolean): React.CSSProperties {
     zIndex: 50,
     padding: 8,
     borderRadius: 16,
-    background: 'rgba(var(--glass-rgb), 0.92)',
-    backdropFilter: 'var(--blur-solid)',
-    WebkitBackdropFilter: 'var(--blur-solid)',
-    border: '1px solid var(--color-border-glass)',
-    boxShadow: '0 12px 40px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.06)',
+    // Как у остальных выпадающих меню Искры (меню профиля, выбор курса):
+    // непрозрачный фон — текст урока под списком не просвечивает, — тонкая
+    // граница и общий токен тени поднятого слоя (обе темы).
+    background: 'var(--color-bg-input)',
+    border: '1px solid var(--color-border)',
+    boxShadow: 'var(--shadow-4)',
   }
 }
 
@@ -409,7 +411,7 @@ function DownloadTile({ icon: Icon, label, file }: { icon: typeof NotebookPen; l
       whileTap={active ? { scale: 0.99 } : undefined}
       disabled={!active}
       onClick={click}
-      className="flex items-center w-full"
+      className="flex items-center w-full lesson-tile"
       style={{ ...tileStyle(active, false), opacity: active ? (busy ? 0.7 : 1) : 0.6 }}
       title={file?.name}
     >
@@ -479,7 +481,7 @@ function MaterialsTile({ materials, archiveTitle }: { materials: LessonFile[]; a
         whileTap={active ? { scale: 0.99 } : undefined}
         disabled={!active}
         onClick={toggle}
-        className="flex items-center w-full"
+        className="flex items-center w-full lesson-tile"
         style={tileStyle(active, open)}
       >
         <div
@@ -501,7 +503,9 @@ function MaterialsTile({ materials, archiveTitle }: { materials: LessonFile[]; a
         {active && (
           <ChevronDown
             size={16}
-            style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
+            // Шеврон смотрит туда, куда откроется список (вверх — по
+            // умолчанию), а в открытом — в обратную сторону: «свернуть».
+            style={{ color: 'var(--color-text-3)', flexShrink: 0, transform: (up ? !open : open) ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}
           />
         )}
       </motion.button>
@@ -515,7 +519,7 @@ function MaterialsTile({ materials, archiveTitle }: { materials: LessonFile[]; a
             transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
             style={tileDropdownStyle(up)}
           >
-            <ScrollFade maxHeight={300} bg="rgba(var(--glass-rgb), 0.92)" overlayScrollbar>
+            <ScrollFade maxHeight={300} bg="var(--color-bg-input)" overlayScrollbar>
               {materials.map(m => (
                 <FileRow key={m.id} file={m} onDone={() => setOpen(false)} />
               ))}
