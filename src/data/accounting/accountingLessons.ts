@@ -95,10 +95,19 @@ export const ACC_LESSONS: Array<{ shortId: string; index: number; module: AccMod
   // Ученик видит номера занятий, поэтому ключ заменяется на «№N «название»».
   // Ключи внутри id вопросов (acc-m13-07-q1) не трогаем — перед ними дефис.
   const titles = new Map(order.map(o => [o.lesson?.key ?? 'm00-02', o.lesson?.title ?? 'Справочник']))
-  const relinkText = (t: string) => t.replace(/(?<![\w-])m(\d\d)-(\d\d)(?![\w-])/g, (k: string) => {
-    const n = numberOf(k)
-    return n < 0 ? k : `№${n + 1} «${titles.get(k)}»`
-  })
+  // Полное «№N «название»» — при первом упоминании в абзаце, дальше — только «№N»:
+  // иначе длинное название повторяется по пять раз подряд. Ключи EXT-модулей
+  // (x02-10) раскрываются так же, как m13-07.
+  const relinkText = (t: string) => {
+    const seen = new Set<string>()
+    return t.replace(/(?<![\w-])[mx]\d\d-\d\d(?![\w-])/g, (k: string) => {
+      const n = numberOf(k)
+      if (n < 0) return k
+      if (seen.has(k)) return `№${n + 1}`
+      seen.add(k)
+      return `№${n + 1} «${titles.get(k)}»`
+    })
+  }
   const relink = (l: AccLesson): AccLesson => ({
     ...l,
     content: {
