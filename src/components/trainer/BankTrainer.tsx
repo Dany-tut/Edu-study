@@ -35,6 +35,7 @@ import { useCurriculum } from '../../store/curriculumStore'
 import FipiTaskBody, { FipiVerdict, LinesGrid, type FipiState } from './FipiTask'
 import { fipiOf } from '../../lib/fipiGrade'
 import { kesSectionLabel, kesTopicLabel } from '../../data/fipiKes'
+import { rememberExam, useStudentExam } from '../../lib/studentExam'
 import { useTaskBank, type FipiIndexRow } from '../../store/taskBankStore'
 import { useOptionMerger, sectionScope, topicScope, SOURCE_SCOPE } from '../../store/taskMetaStore'
 import { useDashboard } from '../../store/dashboardStore'
@@ -1628,7 +1629,10 @@ export default function BankTrainer({ subjectState }: {
   // Концепт: Figma «Искра», стр. 27. Экзамен запоминается на предмет: у ученика
   // химия на ЕГЭ и биология на ОГЭ — нормальное сочетание. Год — КИМ ФИПИ:
   // 2026 действующий, 2027 — проект (структура та же, меняются баллы части линий).
-  const [exam, setExamState] = useState<ExamCode>(() => {
+  // Экзамен из карточки предмета («Химия · ЕГЭ») — тогда выбора ЕГЭ/ОГЭ нет
+  // вовсе: блок «Экзамен» скрыт, банк только этого экзамена (lib/studentExam).
+  const fixedExam = useStudentExam(subject)
+  const [chosenExam, setExamState] = useState<ExamCode>(() => {
     try { return (localStorage.getItem(`trainer_exam_${subject}`) as ExamCode) || 'ege' } catch { return 'ege' }
   })
   // Год КИМ — всегда база 2026. Переключатель «КИМ 2026 / 2027 · проект»
@@ -1641,8 +1645,9 @@ export default function BankTrainer({ subjectState }: {
   }, [subject])
   const setExam = (e: ExamCode) => {
     setExamState(e)
-    try { localStorage.setItem(`trainer_exam_${subject}`, e) } catch { /* приватный режим */ }
+    rememberExam(subject, e)
   }
+  const exam: ExamCode = fixedExam ?? chosenExam
   const loadFipiSet = useTaskBank(s => s.loadFipiSet)
   useEffect(() => { if (bankOn) void loadFipiSet(subject, exam) }, [subject, exam, bankOn, loadFipiSet])
   const subjectName = langSubject?.name ?? (subject === 'chemistry' ? 'Химия' : subject === 'biology' ? 'Биология' : subject)
@@ -2269,7 +2274,7 @@ export default function BankTrainer({ subjectState }: {
             {/* Предмет и экзамен — первыми, как рейл на ПК: карточка предмета,
                 ЕГЭ/ОГЭ и год КИМ. Сверху экрана их больше нет. */}
             <SubjectPill state={subjectState} palette={palette} />
-            {bankOn && examCatalog && (<>
+            {bankOn && examCatalog && !fixedExam && (<>
               <RailSegment
                 options={(['ege', 'oge'] as ExamCode[]).map(e => ({ value: e, label: e === 'ege' ? 'ЕГЭ' : 'ОГЭ', badge: Math.max(tasks.filter(x => x.subject === subject && (x.exam ?? 'ege') === e).length, fipiCounts[`${subject}:${e}`] ?? 0) || undefined }))}
                 value={exam} onChange={v => v && setExam(v as ExamCode)} accent={palette.accent} soft={railSoft} clearable={false} />
@@ -2478,7 +2483,7 @@ export default function BankTrainer({ subjectState }: {
         )}
 
         {/* ЭКЗАМЕН — по образцу «Что читаем»: ЕГЭ/ОГЭ со счётчиками. Год КИМ — база 2026, без переключателя. */}
-        {bankOn && view !== 'decks' && examCatalog && (
+        {bankOn && view !== 'decks' && examCatalog && !fixedExam && (
           <RailCard icon={<Target size={15} />} title="Экзамен" accent={palette.accent}>
             <RailSegment
               options={(['ege', 'oge'] as ExamCode[]).map(e => ({

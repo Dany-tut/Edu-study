@@ -3578,6 +3578,7 @@ export const EN: Record<string, string> = {
   'Схема': 'Diagram',
   'разговорник': 'phrasebook',
   'Банк ЕГЭ': 'Exam bank',
+  'Банк ОГЭ': 'OGE bank',
   'Практикум': 'Practice',
   'Пройдите первый урок — задания появятся здесь': 'Complete your first lesson — tasks will appear here',
   'Мои предметы': 'My subjects',

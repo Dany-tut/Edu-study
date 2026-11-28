@@ -52,7 +52,7 @@ function useMeta() {
       return o.count ? `${t('Карточки')} · ${o.count} ${t(plural(o.count, ['набор', 'набора', 'наборов']))}` : t('Карточки')
     }
     const EXAM_SUBJECTS = new Set(['chemistry', 'biology'])
-    const bankLabel = EXAM_SUBJECTS.has(o.def.id) ? t('Банк ЕГЭ') : t('Практикум')
+    const bankLabel = EXAM_SUBJECTS.has(o.def.id) ? (o.exam === 'oge' ? t('Банк ОГЭ') : t('Банк ЕГЭ')) : t('Практикум')
     return o.count ? `${bankLabel} · ${o.count} ${t('заданий')}` : bankLabel
   }
 }
