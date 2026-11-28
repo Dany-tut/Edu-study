@@ -62,7 +62,9 @@ export default function AnswerReveal({ kind, title, unlocked, compact = false, s
         style={{
           gap: compact ? 10 : 12,
           padding: compact ? '8px 10px 8px 12px' : '12px 14px',
-          border: 0, background: 'transparent', fontFamily: 'inherit',
+          // Скругление одно — у контейнера (overflow: hidden обрезает и
+          // ховер-плашку): своё 8px от data-hover давало ступеньку в углах.
+          border: 0, borderRadius: 0, background: 'transparent', fontFamily: 'inherit',
           cursor: locked ? 'default' : 'pointer',
           color: 'var(--color-text)',
         }}

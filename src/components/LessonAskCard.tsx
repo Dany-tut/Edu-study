@@ -50,9 +50,9 @@ export default function LessonAskCard({ section, scale = 1 }: { section: string;
         style={{
           // Действие карточки — мягкий акцент, а не графит «Показать»: блок
           // должен считываться как приглашение написать, иначе его не видно.
-          height: 34, padding: '0 14px', borderRadius: 999,
+          height: 34 * scale, padding: `0 ${14 * scale}px`, borderRadius: 999,
           border: 0, background: 'var(--color-accent-soft)',
-          fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--color-accent)',
+          fontFamily: 'inherit', fontSize: 13 * scale, fontWeight: 600, color: 'var(--color-accent)',
         }}
       >
         <OpticalText as="iskra-button-label">{t('Задать вопрос')}</OpticalText>
