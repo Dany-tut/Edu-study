@@ -14,7 +14,7 @@
 // Логика клеток бланка (автопереход, вставка «4543», стрелки, Backspace) —
 // порт CorrespondenceAnswer из Тестли (web/src/ui/CorrespondenceAnswer.tsx).
 
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { CheckCircle2, Eye, EyeOff, X } from '../icons/appIcons'
 import OpticalText from '../OpticalText'
 import { useT } from '../../lib/i18n'
@@ -26,7 +26,33 @@ import type { Task } from '../../data/taskBankData'
 import { fipiOf, gradeFipi, type FipiPayload } from '../../lib/fipiGrade'
 
 /** revealed — ученик открыл решение (эталон): задание заперто, перерешать нельзя (Дани, 27.11). */
-export type FipiState = { value: string; correct: boolean | null; got?: number; max?: number; date?: string; revealed?: boolean }
+export type FipiState = {
+  value: string; correct: boolean | null; got?: number; max?: number; date?: string; revealed?: boolean
+  /** Первая попытка — пишется один раз и больше не меняется (статистика «с первого раза»). */
+  first?: { value: string; correct: boolean | null; got?: number; max?: number; date?: string }
+  /** Сколько раз ученик нажимал «Проверить». */
+  attempts?: number
+}
+
+/** Тон поля после проверки: полный балл, частичный, ноль. */
+export type Tone = 'full' | 'part' | 'zero'
+export const toneOf = (r: { got: number; max: number } | null | undefined): Tone | null =>
+  !r ? null : r.got >= r.max ? 'full' : r.got > 0 ? 'part' : 'zero'
+const TONE = {
+  full: { bg: 'var(--color-green-soft)', fg: 'var(--color-green-text)', border: 'var(--color-green-border, #6EE7A0)' },
+  part: { bg: 'var(--color-yellow-soft)', fg: 'var(--color-yellow-text)', border: 'var(--color-yellow-border, #F5C451)' },
+  zero: { bg: 'var(--color-red-soft)', fg: 'var(--color-red-text)', border: 'var(--color-red-border, #F48B91)' },
+} as const
+
+/** Баллы рядом с полем: «1 / 2» в цвет проверки. */
+function ScorePill({ got, max, tone, mobile }: { got: number; max: number; tone: Tone; mobile?: boolean }) {
+  const c = TONE[tone]
+  return (
+    <span aria-label={`${got} / ${max}`} style={{ display: 'inline-flex', alignItems: 'center', height: mobile ? 48 : 42, padding: '0 14px', borderRadius: 16, background: c.bg, color: c.fg, border: `1.5px solid ${c.border}`, fontSize: 15, fontWeight: 800, fontVariantNumeric: 'lining-nums tabular-nums', whiteSpace: 'nowrap', boxSizing: 'border-box' }}>
+      {got} / {max}
+    </span>
+  )
+}
 
 type Palette = { accent: string; soft: string; text: string; onAccent: string; ring: string }
 
@@ -36,20 +62,26 @@ const ru = (n: number, one: string, few: string, many: string) => {
 }
 
 /** Плашка вердикта: «Верно · 2 из 2», «1 из 2 · одна ошибка», «Самооценка 1 из 2». */
-export function FipiVerdict({ state, self }: { state?: FipiState; self?: boolean }) {
+export function FipiVerdict({ state, self, compact }: { state?: FipiState; self?: boolean; compact?: boolean }) {
   const t = useT()
   if (!state || state.got === undefined || state.max === undefined) return null
   const full = state.got >= state.max
   const zero = state.got <= 0
   const bg = self ? 'var(--color-accent-soft, rgba(126,110,230,0.14))' : full ? 'var(--color-green-soft)' : zero ? 'var(--color-red-soft)' : 'var(--color-yellow-soft)'
   const fg = self ? 'var(--color-accent)' : full ? 'var(--color-green-text)' : zero ? 'var(--color-red-text)' : 'var(--color-yellow-text)'
-  const label = self
+  // Решено не с первого раза — так и пишем: первая попытка в статистике своя.
+  const later = !self && (state.attempts ?? 1) > 1 && !!state.first && (state.first.got ?? 0) < state.got
+  // Телефон: слова уже есть у поля (цвет + «1 / 2»), сверху — только счёт,
+  // иначе широкая плашка сжимала колонку «Линия · № · Часть» в столбик.
+  const label = compact && !self
+    ? `${state.got} ${t('из')} ${state.max}${later ? ` · ${t('со')} ${state.attempts}${t('-й')}` : ''}`
+    : self
     ? `${t('Самооценка')} ${state.got} ${t('из')} ${state.max}`
-    : full ? `${t('Верно')} · ${state.got} ${t('из')} ${state.max}`
+    : full ? (later ? `${t('Верно')} ${t('с')} ${state.attempts}${t('-й попытки')} · ${state.got} ${t('из')} ${state.max}` : `${t('Верно')} · ${state.got} ${t('из')} ${state.max}`)
       : zero ? `${t('Неверно')} · 0 ${t('из')} ${state.max}`
         : `${state.got} ${t('из')} ${state.max} · ${t('одна ошибка')}`
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: bg, color: fg, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: compact ? '6px 10px' : '8px 12px', borderRadius: 14, background: bg, color: fg, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>
       {!self && (full ? <CheckCircle2 size={16} /> : zero ? <X size={16} /> : null)}
       {label}
     </div>
@@ -91,9 +123,12 @@ function GroupText({ html, mobile }: { html: string; mobile?: boolean }) {
 const COLLAPSED_H = 160
 
 /** Бланк: клетка под каждой буквой. Порт CorrespondenceAnswer из Тестли. */
-function Blank({ labels, value, onChange, locked, wrong, checked, mobile, digits }: {
-  labels: string[]; value: string; onChange: (v: string) => void; locked: boolean; wrong: number[]; checked: boolean; mobile?: boolean; digits: string[]
+function Blank({ labels, value, onChange, locked, wrong, tone, mobile, digits, score }: {
+  labels: string[]; value: string; onChange: (v: string) => void; locked: boolean; wrong: number[]; tone: Tone | null; mobile?: boolean; digits: string[]
+  /** Баллы «1 / 2» — в ряд с клетками, а не с цифрами-кнопками (на телефоне те растянуты на всю ширину). */
+  score?: ReactNode
 }) {
+  const checked = tone !== null
   const t = useT()
   const fields = useRef<(HTMLInputElement | null)[]>([])
   const [focus, setFocus] = useState(0)
@@ -114,11 +149,12 @@ function Blank({ labels, value, onChange, locked, wrong, checked, mobile, digits
   }
   const cellH = mobile ? 50 : 48
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: mobile ? '100%' : undefined }}>
       <div role="group" aria-label={t('Ответ по клеткам')} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {labels.map((label, i) => {
-          const bad = checked && wrong.includes(i)
-          const ok = checked && !bad
+          // Полный балл — все клетки зелёные, ноль — все красные, частичный —
+          // ошибочная красная, остальные жёлтые. Правка любой клетки гасит подсветку.
+          const c = !checked ? null : tone === 'part' ? TONE[wrong.includes(i) ? 'zero' : 'part'] : TONE[tone!]
           return (
             <label key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-3)' }}>{label}</span>
@@ -143,14 +179,15 @@ function Blank({ labels, value, onChange, locked, wrong, checked, mobile, digits
                   width: cellH - 2, height: cellH, boxSizing: 'border-box', textAlign: 'center', padding: 0,
                   fontSize: 21, fontWeight: 700, borderRadius: 13, outline: 'none',
                   fontVariantNumeric: 'lining-nums tabular-nums',
-                  background: bad ? 'var(--color-red-soft)' : ok ? 'var(--color-green-soft)' : 'var(--color-bg-input)',
-                  color: bad ? 'var(--color-red-text)' : ok ? 'var(--color-green-text)' : 'var(--color-text)',
-                  border: `${!checked && mobile && focus === i ? 2 : 1.5}px solid ${bad ? 'var(--color-red-border, #F48B91)' : ok ? 'var(--color-green-border, #6EE7A0)' : !checked && mobile && focus === i ? 'var(--color-accent)' : 'var(--color-border-medium)'}`,
+                  background: c ? c.bg : 'var(--color-bg-input)',
+                  color: c ? c.fg : 'var(--color-text)',
+                  border: `${!checked && mobile && focus === i ? 2 : 1.5}px solid ${c ? c.border : !checked && mobile && focus === i ? 'var(--color-accent)' : 'var(--color-border-medium)'}`,
                 }}
               />
             </label>
           )
         })}
+        {score && <div style={{ alignSelf: 'flex-end' }}>{score}</div>}
       </div>
       {mobile && !locked && (
         <div role="group" aria-label={t('Цифры')} style={{ display: 'flex', gap: 6 }}>
@@ -168,9 +205,12 @@ function Blank({ labels, value, onChange, locked, wrong, checked, mobile, digits
 }
 
 /** «Выберите несколько»: номера вариантов, порядок не важен. */
-function Choice({ options, n, value, onChange, locked, wrong, checked, mobile }: {
-  options: string[]; n: number; value: string; onChange: (v: string) => void; locked: boolean; wrong: number[]; checked: boolean; mobile?: boolean
+function Choice({ options, n, value, onChange, locked, wrong, tone, mobile }: {
+  options: string[]; n: number; value: string; onChange: (v: string) => void; locked: boolean; wrong: number[]; tone: Tone | null; mobile?: boolean
 }) {
+  // Подсвечиваем только выбранные номера: пропущенный верный не выдаём.
+  const toneFor = (num: number, on: boolean) => !on || tone === null ? null
+    : tone === 'part' ? TONE[wrong.includes(num) ? 'zero' : 'part'] : TONE[tone]
   const t = useT()
   const picked = new Set([...value])
   // Варианты у ФИПИ почти всегда вписаны в само условие («1) … 2) …»), отдельного
@@ -181,16 +221,15 @@ function Choice({ options, n, value, onChange, locked, wrong, checked, mobile }:
         {Array.from({ length: n }, (_, i) => {
           const d = String(i + 1)
           const on = picked.has(d)
-          const bad = checked && wrong.includes(i + 1)
-          const ok = checked && on && !bad
+          const c = toneFor(i + 1, on)
           return (
             <button key={d} data-hover="layer" disabled={locked} aria-pressed={on}
               onClick={() => { tactile(); const s = new Set(picked); s.has(d) ? s.delete(d) : s.add(d); onChange([...s].sort().join('')) }}
               style={{ width: mobile ? 48 : 46, height: mobile ? 48 : 46, borderRadius: 13, fontSize: 19, fontWeight: 700, cursor: locked ? 'default' : 'pointer',
                 fontVariantNumeric: 'lining-nums tabular-nums',
-                background: bad ? 'var(--color-red-soft)' : ok ? 'var(--color-green-soft)' : on ? 'var(--color-accent)' : 'var(--color-bg-input)',
-                color: bad ? 'var(--color-red-text)' : ok ? 'var(--color-green-text)' : on ? '#fff' : 'var(--color-text)',
-                border: `1.5px solid ${bad ? '#F48B91' : ok ? '#6EE7A0' : on ? 'transparent' : 'var(--color-border-medium)'}` }}>
+                background: c ? c.bg : on ? 'var(--color-accent)' : 'var(--color-bg-input)',
+                color: c ? c.fg : on ? '#fff' : 'var(--color-text)',
+                border: `1.5px solid ${c ? c.border : on ? 'transparent' : 'var(--color-border-medium)'}` }}>
               {d}
             </button>
           )
@@ -203,16 +242,15 @@ function Choice({ options, n, value, onChange, locked, wrong, checked, mobile }:
       {options.map((html, i) => {
         const n = String(i + 1)
         const on = picked.has(n)
-        const bad = checked && wrong.includes(i + 1)
-        const ok = checked && on && !bad
+        const c = toneFor(i + 1, on)
         return (
           <button key={n} data-hover="layer" disabled={locked}
             onClick={() => { tactile(); const s = new Set(picked); s.has(n) ? s.delete(n) : s.add(n); onChange([...s].sort().join('')) }}
             style={{
               display: 'flex', alignItems: 'center', gap: mobile ? 8 : 10, textAlign: 'left', width: '100%',
               padding: mobile ? '8px 11px' : '10px 14px', minHeight: mobile ? 40 : 44, borderRadius: 12, cursor: locked ? 'default' : 'pointer',
-              background: bad ? 'var(--color-red-soft)' : ok ? 'var(--color-green-soft)' : on ? 'var(--color-accent-soft, rgba(126,110,230,0.14))' : 'rgba(var(--glass-rgb),0.7)',
-              border: `1px solid ${bad ? '#F48B91' : ok ? '#6EE7A0' : on ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
+              background: c ? c.bg : on ? 'var(--color-accent-soft, rgba(126,110,230,0.14))' : 'rgba(var(--glass-rgb),0.7)',
+              border: `1px solid ${c ? c.border : on ? 'var(--color-accent)' : 'var(--color-border-soft)'}`,
               color: 'var(--color-text)',
             }}>
             <span style={{ width: mobile ? 22 : 26, height: mobile ? 22 : 26, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700,
@@ -305,6 +343,10 @@ export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette,
   const [showSolution, setShowSolution] = useState(false)
   const checked = state !== undefined && state.correct !== null && state.value === value && !!value
   const result = useMemo(() => (checked ? gradeFipi(task, value) : null), [checked, task, value])
+  // Поле после проверки не запирается (Дани 28.11): ученик правит ответ —
+  // подсветка гаснет (value ≠ проверенного), «Проверить» снова тот же.
+  // Заперто только открытым «Решением».
+  const tone = toneOf(result)
   // Решение (правильный ответ и пояснение) — только после своей попытки:
   // «пока ученик не даст свой ответ — решение не показываем» (Дани, 27.11).
   // Подсматривать до ответа больше нельзя; старые «подсмотренные» записи
@@ -330,7 +372,7 @@ export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette,
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {f.groupHtml && <GroupText html={f.groupHtml} mobile={mobile} />}
 
-      {f.kind === 'check' && <Choice options={f.options ?? []} n={f.n ?? 5} value={value} onChange={setValue} locked={checked || peeked} wrong={result?.wrong ?? []} checked={checked} mobile={mobile} />}
+      {f.kind === 'check' && <Choice options={f.options ?? []} n={f.n ?? 5} value={value} onChange={setValue} locked={peeked} wrong={result?.wrong ?? []} tone={tone} mobile={mobile} />}
 
       {f.kind === 'extended' ? (
         <SelfCheck task={task} f={f} state={state} onAnswer={onAnswer} onReveal={onReveal} palette={palette} mobile={mobile} />
@@ -348,15 +390,16 @@ export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette,
             </ol>
           )}
           {f.kind === 'select' && (
-            <Blank labels={f.cells ?? []} value={value} onChange={setValue} locked={checked || peeked} wrong={result?.wrong ?? []} checked={checked} mobile={mobile} digits={f.digits?.length ? f.digits : ['1', '2', '3', '4', '5']} />
+            <Blank labels={f.cells ?? []} value={value} onChange={setValue} locked={peeked} wrong={result?.wrong ?? []} tone={tone} mobile={mobile} score={result && tone ? <ScorePill got={result.got} max={result.max} tone={tone} mobile={mobile} /> : undefined} digits={f.digits?.length ? f.digits : ['1', '2', '3', '4', '5']} />
           )}
           {f.kind === 'text' && (
-            <input value={value} readOnly={checked || peeked} onChange={e => setValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && complete && check()}
+            <input value={value} readOnly={peeked} onChange={e => setValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && complete && check()}
               placeholder={peeked ? t('Ответ открыт') : t('Ответ')} inputMode={/^[\d,.\s-]+$/.test(task.answer) ? 'decimal' : 'text'}
               style={{ flex: '1 1 160px', maxWidth: mobile ? 'none' : 240, height: mobile ? 48 : 42, boxSizing: 'border-box', padding: '0 16px', borderRadius: 16, fontSize: mobile ? 16 : 15, outline: 'none',
-                background: checked ? (result?.full ? 'var(--color-green-soft)' : 'var(--color-red-soft)') : 'var(--color-bg-input)',
-                border: `1px solid ${checked ? (result?.full ? '#6EE7A0' : '#F48B91') : 'var(--color-border-medium)'}`, color: 'var(--color-text)' }} />
+                background: tone ? TONE[tone].bg : 'var(--color-bg-input)',
+                border: `1.5px solid ${tone ? TONE[tone].border : 'var(--color-border-medium)'}`, color: tone ? TONE[tone].fg : 'var(--color-text)' }} />
           )}
+          {result && tone && f.kind !== 'select' && <ScorePill got={result.got} max={result.max} tone={tone} mobile={mobile} />}
           {f.kind === 'check' && <span style={{ fontSize: 12, color: 'var(--color-text-3)' }}>{t('Порядок номеров не важен')}</span>}
           <span style={{ flex: 1 }} />
           <div style={{ display: 'flex', gap: 8 }}>
@@ -364,12 +407,6 @@ export default function FipiTaskBody({ task, state, onAnswer, onReveal, palette,
               <button data-hover="layer" onClick={check}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, height: mobile ? 48 : 42, padding: '0 20px', borderRadius: 16, border: 'none', background: palette.accent, color: palette.onAccent, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: `0 4px 14px ${palette.ring}` }}>
                 <CheckCircle2 size={14} /><OpticalText as="iskra-button-label">{t('Проверить')}</OpticalText>
-              </button>
-            )}
-            {checked && result && !result.full && !revealed && (
-              <button data-hover="layer" onClick={() => { setValue(''); onAnswer('', false, result.got, result.max) }}
-                style={{ height: mobile ? 48 : 42, padding: '0 16px', borderRadius: 16, border: '1.5px solid var(--color-border-medium)', background: 'rgba(var(--glass-rgb),0.88)', fontSize: 13, fontWeight: 600, color: 'var(--color-text-2)', cursor: 'pointer' }}>
-                <OpticalText as="iskra-button-label">{t('Ещё раз')}</OpticalText>
               </button>
             )}
             {attempted && (

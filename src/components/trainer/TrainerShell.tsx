@@ -447,6 +447,18 @@ export default function TrainerShell({ rail, toolbar, share, shareAccent, help, 
             willChange: 'transform',
           }}
         >
+        {/* Подложка полосы на ПК: цвет страницы с мягким краем снизу. Без неё
+            текст карточек, уезжая вверх, шёл прямо под таблетками «Поиск · Все ·
+            Не решённые…» и читался вместе с ними (Дани 28.11). Слой за
+            содержимым полосы (zIndex −1 внутри её слоя), но над лентой. */}
+        {!narrow && (
+          <div aria-hidden style={{
+            position: 'absolute', top: 0, left: -12, right: -12, bottom: -22, zIndex: -1, pointerEvents: 'none',
+            background: 'var(--color-bg)',
+            maskImage: 'linear-gradient(to bottom, #000 calc(100% - 30px), transparent)',
+            WebkitMaskImage: 'linear-gradient(to bottom, #000 calc(100% - 30px), transparent)',
+          }} />
+        )}
 
         {/* Строка управления занимает всю ширину, кнопка адреса — правый край.
             Ряд, а не ещё один элемент ВНУТРИ строки: строка переносится по

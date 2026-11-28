@@ -324,7 +324,9 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
   const fipi = fipiOf(task)
   const isFav = favorites.has(task.id)
   const isCorrect = state?.correct === true
-  const isWrong   = state?.correct === false
+  // Частичный балл («1 из 2») — жёлтая рамка, не красная.
+  const isPartial = state?.correct === false && (state.got ?? 0) > 0
+  const isWrong   = state?.correct === false && !isPartial
   // Once the current text has actually been checked, hide "Проверить" — only
   // the field + "Решение" remain. Editing the answer afterwards (inputVal no
   // longer matches what was checked) brings "Проверить" back so it can be
@@ -388,8 +390,8 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
         gap: 14, padding: '20px 20px 12px 20px', borderRadius: 24,
         position: 'relative',
         background: 'rgba(var(--glass-rgb), 0.96)',
-        border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : isWrong ? 'rgba(244,139,145,0.5)' : 'var(--color-border-soft)'}`,
-        boxShadow: isCorrect ? '0 8px 24px rgba(110,231,160,0.14)' : isWrong ? '0 8px 24px rgba(244,139,145,0.12)' : 'none',
+        border: `1px solid ${isCorrect ? 'rgba(110,231,160,0.58)' : isPartial ? 'rgba(245,196,81,0.6)' : isWrong ? 'rgba(244,139,145,0.5)' : 'var(--color-border-soft)'}`,
+        boxShadow: isCorrect ? '0 8px 24px rgba(110,231,160,0.14)' : isPartial ? '0 8px 24px rgba(245,196,81,0.14)' : isWrong ? '0 8px 24px rgba(244,139,145,0.12)' : 'none',
       }}
     >
       {/* Header: label + badges | result badge + bookmark */}
@@ -437,7 +439,7 @@ function TaskCard({ task, index, palette, favorites, onFavorite, answered, onAns
               решение до ответа не открывается, а старые «подсмотренные»
               записи (correct: null) показываются как нерешённые. */}
           {fipi && state?.got !== undefined ? (
-            <FipiVerdict state={state} self={fipi.kind === 'extended'} />
+            <FipiVerdict state={state} self={fipi.kind === 'extended'} compact={mobile} />
           ) : attempted && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 14, background: isCorrect ? 'var(--color-green-soft)' : 'var(--color-red-soft)', color: isCorrect ? 'var(--color-green-text)' : 'var(--color-red-text)', fontSize: 13, fontWeight: 700 }}>
               {isCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
@@ -1883,7 +1885,17 @@ export default function BankTrainer({ subjectState }: {
   function setAnswer(id: number, value: string, correct: boolean | null, got?: number, max?: number) {
     const date = new Date().toISOString().slice(0, 10)
     // Открытое решение (revealed) не снимается новой записью — задание заперто.
-    setAnswered(prev => new Map(prev).set(id, { value, correct, date, ...(got !== undefined ? { got, max } : {}), ...(prev.get(id)?.revealed ? { revealed: true } : {}) }))
+    setAnswered(prev => {
+      const cur = prev.get(id)
+      const attempt = { value, correct, date, ...(got !== undefined ? { got, max } : {}) }
+      // Первая попытка пишется один раз и не меняется (Дани 28.11): перерешал —
+      // текущий результат новый, а «с первого раза» остаётся как было. Старые
+      // записи без first: их прежний результат и был первой попыткой.
+      const prevAttempt = cur && cur.correct !== null ? { value: cur.value, correct: cur.correct, date: cur.date, ...(cur.got !== undefined ? { got: cur.got, max: cur.max } : {}) } : undefined
+      const first = cur?.first ?? prevAttempt ?? (correct !== null ? attempt : undefined)
+      const attempts = correct === null ? cur?.attempts : (cur?.attempts ?? (prevAttempt ? 1 : 0)) + 1
+      return new Map(prev).set(id, { ...attempt, ...(first ? { first } : {}), ...(attempts ? { attempts } : {}), ...(cur?.revealed ? { revealed: true } : {}) })
+    })
   }
   /** Ученик открыл решение: задание запирается, засчитан результат до этого. Переживает F5 (LS_ANSWERED). */
   function revealAnswer(id: number) {

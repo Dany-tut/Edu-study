@@ -74,7 +74,7 @@ function byWrong(scoring: Task['scoring'], max: number, wrong: number, total: nu
  * Проверить ответ ученика. value — строка в формате бланка (как task.answer).
  * Для части 2 (extended) не вызывается: там балл — сумма отмеченных критериев.
  */
-export function gradeFipi(task: Pick<Task, 'answer' | 'maxPoints' | 'scoring' | 'payload'>, value: string): FipiResult {
+export function gradeFipi(task: Pick<Task, 'answer' | 'maxPoints' | 'scoring' | 'payload'> & { question?: string }, value: string): FipiResult {
   const f = fipiOf(task)
   const max = task.maxPoints ?? 1
   const key = task.answer ?? ''
@@ -97,6 +97,23 @@ export function gradeFipi(task: Pick<Task, 'answer' | 'maxPoints' | 'scoring' | 
     const errors = Math.max(extra.length, missing.length)
     const g = byWrong(task.scoring, max, errors, want.size)
     return { got: g, max, wrong, full: errors === 0 }
+  }
+  // text, ответ из цифр и линия на 2–3 балла (био ЕГЭ 2, 17, 21; ОГЭ 13, 21…):
+  // ФИПИ даёт частичный балл — каждая ошибка минус балл. Раньше такие поля
+  // проверялись «всё или ничего», и «1 из 2» было не получить. «Выберите…»
+  // сверяется набором (порядок не важен), остальное — по позициям.
+  const digitKey = key.replace(/\s/g, '')
+  if (max >= 2 && /^\d{2,}$/.test(digitKey) && !key.includes('|')) {
+    const typed = value.replace(/\D/g, '')
+    if (/выбер/i.test(task.question ?? '') && !/последовательн|порядк/i.test(task.question ?? '')) {
+      const want = new Set([...digitKey]), got = new Set([...typed])
+      const extra = [...got].filter(d => !want.has(d)), missing = [...want].filter(d => !got.has(d))
+      const errors = Math.max(extra.length, missing.length)
+      return { got: Math.max(0, max - errors), max, wrong: [...extra, ...missing].map(Number).sort((a, b) => a - b), full: errors === 0 }
+    }
+    const want = [...digitKey]
+    const errors = want.reduce((n, d, i) => n + (typed[i] === d ? 0 : 1), 0) + Math.max(0, typed.length - want.length)
+    return { got: Math.max(0, max - errors), max, wrong: want.map((d, i) => (typed[i] === d ? -1 : i)).filter(i => i >= 0), full: errors === 0 }
   }
   // text: несколько допустимых ответов через «|»; число сверяем по значению
   const variants = key.split('|').map(normShort).filter(Boolean)
