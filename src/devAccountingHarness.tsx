@@ -23,6 +23,8 @@ import AnswerFlightLayer from './components/AnswerFlightLayer'
 import Prose from './components/Prose'
 import ImageZoom from './components/ImageZoom'
 import { NotesWithReveals } from './components/AnswerReveal'
+import LessonAskCard from './components/LessonAskCard'
+import { splitServiceParas } from './lib/lessonServiceParas'
 import { proseLines, proseWrap } from './lib/typography'
 import type { LessonHomework } from './data/lessonContent'
 import { ACC_LESSONS, ACC_COURSE_TITLE } from './data/accounting/accountingLessons'
@@ -66,6 +68,7 @@ function Stand() {
   // Стенд без базы: «сдано» для разбора после сдачи — флажок ?submitted=1.
   const standSubmitted = new URLSearchParams(location.search).get('submitted') === '1'
   const { lesson, module } = cur
+  const service = splitServiceParas(lesson.content.paragraphs)
   // Тот же список, что ученик видит в «Материалах» урока (accFiles.ts).
   const files = (accLessonFiles([lesson.practice, ...lesson.content.paragraphs.map(p => p.text), lesson.content.hardTask.prompt]).materials ?? []).map(f => f.name)
   const homework: LessonHomework = {
@@ -128,7 +131,7 @@ function Stand() {
           {files.length > 0 && <div>⬇ Файлы: {files.map(f => <a key={f} href={`/courses/accounting/${f}`} download style={{ marginRight: 10 }}>{f}</a>)}</div>}
         </div>
         <article style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 720, padding: 20, borderRadius: 16, border: '1px solid var(--color-border-soft)', background: 'var(--color-bg-card)' }}>
-          <NotesWithReveals paragraphs={lesson.content.paragraphs} unlocked={standSubmitted} renderPara={par => par.image && isLabRef(par.image) ? (
+          <NotesWithReveals paragraphs={service.notes} unlocked={standSubmitted} renderPara={par => par.image && isLabRef(par.image) ? (
             <Suspense key={par.id} fallback={null}><ExcelLabFigure src={par.image} caption={par.text} /></Suspense>
           ) : par.image ? (
             <figure key={par.id} style={{ margin: 0 }}>
@@ -142,6 +145,7 @@ function Stand() {
               <p key={line.key} style={{ fontSize: 15, lineHeight: 1.6, margin: 0, ...proseWrap, ...line.style }}><Prose text={line.text} /></p>
             ))}</div>
           )} />
+          {service.askSection !== null && <LessonAskCard section={service.askSection} />}
         </article>
         <ImageZoom src={zoom?.src ?? null} caption={zoom?.caption} onClose={() => setZoom(null)} />
         <div style={{ display: 'flex', gap: 8, margin: '14px 0' }}>

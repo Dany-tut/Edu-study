@@ -1408,3 +1408,18 @@ input[type="range"]:not(.video-volume)::-moz-range-thumb {
    кольца нет, с клавиатуры — в тон акцента, а не белое currentColor. */
 .lesson-tile:focus:not(:focus-visible) { outline: none; }
 .lesson-tile:focus-visible { outline: 2px solid rgba(var(--accent-rgb), 0.7); outline-offset: -2px; }
+
+/* «Вопрос по уроку» (components/LessonAskCard): на узком телефоне кнопка
+   уходит под текст, а не сжимает его в столбик. Фокус-кольцо у карточек
+   конспекта — приглушённый акцент, а не currentColor: в тёмной теме белое
+   кольцо резало глаз. */
+@media (max-width: 480px) {
+  .lesson-ask-card { flex-wrap: wrap; }
+  .lesson-ask-card > .lesson-ask-text { flex-basis: 100%; }
+  .lesson-ask-card > button { margin-left: auto; }
+}
+.answer-reveal > button:focus-visible,
+.lesson-ask-card > button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  outline-offset: -2px;
+}

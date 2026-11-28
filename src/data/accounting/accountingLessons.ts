@@ -70,13 +70,19 @@ function handbook(modules: AccModule[], numberOf: (key: string) => number): AccL
  * Номер урока в разделе связывает сообщение с уроком.
  */
 function withComment(lesson: AccLesson, index: number): AccLesson {
-  if (lesson.content.paragraphs.some(par => par.id === 'comment')) return lesson
   return {
     ...lesson,
     content: {
       ...lesson.content,
-      paragraphs: [...lesson.content.paragraphs, p('comment',
-        `**Вопрос или комментарий к уроку.** Если что-то непонятно или у вас на работе устроено иначе — меню профиля → «Обратная связь», раздел «Бухгалтерия, урок №${index + 1}». Напишите, как у вас, и вставьте скриншот (Ctrl+V, на Mac — Cmd+V) без ФИО, ИНН и счетов. Практическое задание урока тоже принимает фото.`)],
+      // Источники норм ученику не показываются (на них держится сверка), а
+      // вопрос рисуется карточкой с кнопкой — LessonAskCard. Текст абзаца —
+      // запасной вид для мест, которые kind не знают.
+      paragraphs: [
+        ...lesson.content.paragraphs.map(par => (par.id === 'src' ? { ...par, kind: 'sources' as const } : par)),
+        { ...p('comment',
+          `**Вопрос или комментарий к уроку.** Если что-то непонятно или у вас на работе устроено иначе — меню профиля → «Обратная связь», раздел «Бухгалтерия, урок №${index + 1}». Напишите, как у вас, и вставьте скриншот (Ctrl+V, на Mac — Cmd+V) без ФИО, ИНН и счетов. Практическое задание урока тоже принимает фото.`),
+          kind: 'ask' as const, section: `Бухгалтерия, урок №${index + 1}` },
+      ],
     },
   }
 }

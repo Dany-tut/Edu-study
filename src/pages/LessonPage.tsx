@@ -1,5 +1,7 @@
 import OpticalText from '../components/OpticalText'
 import { NotesWithReveals } from '../components/AnswerReveal'
+import LessonAskCard from '../components/LessonAskCard'
+import { splitServiceParas } from '../lib/lessonServiceParas'
 import LessonTranscriptPanel from '../components/LessonTranscriptPanel'
 import { RecapSummary, SelfCheck } from '../components/LessonRecapBlocks'
 import MarqueeText from '../components/MarqueeText'
@@ -959,7 +961,9 @@ export default function LessonPage() {
   // Монтаж записи (если преподаватель его применил): что плеер пропускает и ускоряет.
   // Дёшево (два десятка пауз) и читается плеером через ref — без useMemo.
   // Конспект и «Итоги занятия» из записи — разные блоки: у итогов таймкоды.
-  const notes = detail.paragraphs.filter(p => p.origin !== 'recap')
+  // Источники норм ученику не показываются, «Вопрос по уроку» — карточкой
+  // под конспектом (lib/lessonServiceParas, LessonAskCard).
+  const { notes, askSection } = splitServiceParas(detail.paragraphs.filter(p => p.origin !== 'recap'))
   const recapParas = detail.paragraphs.filter(p => p.origin === 'recap')
   // Итоговый проект сдают хардом; урок без харда — сдачей базовой домашки.
   const workSubmitted = !!workAssessment?.hardStatus || (detail.homework?.hasHardLevel === false && !!workAssessment)
@@ -1317,6 +1321,7 @@ export default function LessonPage() {
               ))}
             </div>
           )} />
+          {askSection !== null && <LessonAskCard section={askSection} scale={scale} />}
         </section>
       )}
 
